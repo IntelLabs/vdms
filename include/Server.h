@@ -11,16 +11,15 @@
 namespace athena {
     class Server
     {
-        static const int SERVER_PORT = 55551;
+        static const int SERVER_PORT = 55555;
         static const int QUERY_BUFFER_SIZE = 4096;  // in bytes
-
-        Jarvis::Graph *_db;
-        // TODO: Global dblock until GraphDb supports concurrency internally.
-        std::mutex _dblock;
 
         CommunicationManager *_cm;
 
         // TODO: Partitioner here
+
+        // Aux lock, not in use
+        std::mutex *_dblock;
 
         // Handle ^c
         static bool shutdown;
@@ -29,7 +28,7 @@ namespace athena {
             { Server::shutdown = (signo == SIGINT); }
 
     public:
-        Server(std::string db_name);
+        Server();
         void process_requests();
         ~Server();
     };

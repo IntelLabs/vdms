@@ -25,14 +25,12 @@ namespace athena {
 
         bool _shutdown;
 
-        // GraphDb stuff sent along by the server
-        Jarvis::Graph *_db;
         // Need this lock till we have concurrency support in JL
         // TODO: Make this reader writer.
         std::mutex *_dblock;
 
     public:
-        CommunicationManager(Jarvis::Graph *db, std::mutex *mtx);
+        CommunicationManager(std::mutex *mtx);
         ~CommunicationManager();
         void process_queue();
         void add_connection(comm::Connection *c);

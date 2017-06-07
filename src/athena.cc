@@ -16,5 +16,12 @@
 int main(int argc, char **argv)
 {
     printf("Athena App :)\n");
+
+    printf("Server will start processing requests... \n");
+    athena::Server server;
+    server.process_requests();
+
+    printf("Server shutting down... \n");
+
     return 0;
 }

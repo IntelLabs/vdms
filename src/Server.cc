@@ -8,33 +8,18 @@ using namespace athena;
 
 bool Server::shutdown = false;
 
-Server::Server(std::string db_name)
+Server::Server()
 {
     // Verify that the version of the library that we linked against is
     // compatible with the version of the headers we compiled against.
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-    // TODO: This should probably come from a server command line.
-    Jarvis::Graph::Config config;
-    try{
-        _db = new Jarvis::Graph(db_name.c_str(), Jarvis::Graph::ReadWrite, &config);
-    }
-    catch(Jarvis::Exception e) {
-        print_exception(e);
-
-        // TODO: Log the creation of database
-
-        _db = new Jarvis::Graph(db_name.c_str(), Jarvis::Graph::Create, &config);
-        // Don't catch exception here so we exit in case of trouble.
-    }
-
-    // TODO: Init partitioner here with network info
-
     if (install_handler() != 0)
         throw ExceptionServer(SignalHandler);
 
     // Create the query handler here assuming database is valid now.
-    _cm = new CommunicationManager(_db, &_dblock);
+    _dblock = new std::mutex();
+    _cm = new CommunicationManager(_dblock);
 }
 
 void Server::process_requests()
@@ -65,6 +50,5 @@ int Server::install_handler()
 Server::~Server()
 {
     _cm->shutdown();
-    delete _db;
 }
 
