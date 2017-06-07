@@ -1,5 +1,5 @@
 # We need to add this dependecy.
-utils = SConscript(['utils/SConstruct'])
+# utils = SConscript(['utils/SConstruct'])
 
 intel_root='/opt/intel/'
 
@@ -12,13 +12,14 @@ env = Environment(CPPPATH= ['include', 'src',
                         CXXFLAGS="-std=c++11 -O3")
 
 
-source_files = ['src/AthenaDemoHLS.cc',
-                'src/athenaServer.cc',
+source_files = ['src/athena.cc',
+                'src/Server.cc',
                 'src/CommandHandler.cc',
                 'src/CommunicationManager.cc',
                 # 'src/QueryEngine.cc',
                 'src/QueryHandler.cc',
-                'src/Server.cc',
+                # 'src/AthenaDemoHLS.cc',
+                # 'src/athenaServer.cc',
                 ]
 
 athena = env.Program('athena', source_files,
