@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package protobuf_defs;
+
+message RequestMsg {
+    uint32 msg_id = 1;
+    uint32 method_id = 2;
+    bytes arguments = 3;
+}
+
+message ReplyMsg {
+    uint32 msg_id = 1;
+    bytes results = 2;
+}
+
+message GetNodePartitionArg {
+    uint64 node_id=1;
+}
+
+message GetNodePartitionResults {
+  uint32 partition_id=1;
+}
+
+message GetNodePartitionBatchArg {
+   repeated uint64 node_id=1;
+}
+
+message GetNodePartitionBatchResults {
+ repeated uint32 partition_id=1;
+}

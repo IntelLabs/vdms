@@ -1,0 +1,8 @@
+syntax = "proto3";
+
+package athena.protobufs;
+
+message queryMessage {
+    string json_query = 1;
+    bytes blob = 2;
+}
