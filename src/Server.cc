@@ -24,18 +24,25 @@ Server::Server()
 
 void Server::process_requests()
 {
+    comm::ConnServer *server;
     try {
-        comm::ConnServer server(SERVER_PORT);
-
-        while (!shutdown) {
-            // Listening thread for CQE
-            comm::Connection *conn_server = new comm::Connection(server.accept());
-            _cm->add_connection(conn_server);
-        }
+        server = new comm::ConnServer(SERVER_PORT);
     }
     catch (comm::ExceptionComm e) {
         print_exception(e);
         return;
+    }
+
+    while (!shutdown) {
+        try {
+            // Listening thread for CQE
+            comm::Connection *conn_server =
+                                    new comm::Connection(server->accept());
+            _cm->add_connection(conn_server);
+        }
+        catch (comm::ExceptionComm e) {
+            print_exception(e);
+        }
     }
 }
 

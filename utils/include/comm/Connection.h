@@ -46,7 +46,7 @@ public:
 
 private:
 
-    const unsigned MAX_CONN_QUEUE  = 128;
+    const unsigned MAX_CONN_QUEUE  = 2048;
     const unsigned MAX_PORT_NUMBER = 65535;
 
     int _port; // Server port
