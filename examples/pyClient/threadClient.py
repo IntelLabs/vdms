@@ -14,8 +14,7 @@ def clientThread(thId):
 
     print "Thread " + str(thId) + ": " + response
 
-
-for i in range(1,100):
+for i in range(1,1000):
     thread = Thread(target=clientThread,args=(i,) )
     thread.start()
 
