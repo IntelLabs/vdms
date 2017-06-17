@@ -1,3 +1,5 @@
+#include "gtest/gtest.h"
+
 #include <mutex>
 #include <vector>
 
@@ -11,7 +13,7 @@ using namespace Jarvis;
 using namespace athena;
 using namespace std;
 
-int main(int argc, char **argv)
+TEST(PMGD, protobufHandler)
 {
     printf("Testing PMGD protobuf handler\n");
 
@@ -80,6 +82,4 @@ int main(int argc, char **argv)
 
         qh.process_queries(cmds);
     }
-
-    return 0;
 }

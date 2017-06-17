@@ -48,11 +48,14 @@ testenv = Environment(CPPPATH = [ 'include', 'src', 'utils/include',
                         intel_root + 'jarvis/util', ],
                         CXXFLAGS="-std=c++11 -O3")
 
-test_sources = [ 'src/PMGDQueryHandler.cc', 'tests/pmgd_queries.cc' ]
+test_sources = ['tests/main.cc',
+                'src/PMGDQueryHandler.cc',
+                'tests/pmgd_queries.cc' ]
 
-pmgd_query_test = testenv.Program( 'pmgd_query_test', test_sources,
-                    LIBS = [
-                        'jarvis', 'jarvis-util', 'jsoncpp', 'athena-utils', 'protobuf' ],
+pmgd_query_test = testenv.Program( 'tests/pmgd_query_test',
+                                    test_sources,
+                    LIBS = ['jarvis', 'jarvis-util', 'jsoncpp',
+                            'athena-utils', 'protobuf', 'gtest', 'pthread' ],
                     LIBPATH = ['/usr/local/lib/',
                        intel_root + 'utils/', # for athena-utils
                        intel_root + 'jarvis/lib/' ]
