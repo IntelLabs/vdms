@@ -4,13 +4,16 @@ package pmgd.protobufs;
 
 message Property
 {
+    // These prop values need to keep matching the PMGD counterparts.
     enum PropertyType{
-        BooleanType  = 0x00;
-        IntegerType  = 0x01;
-        StringType   = 0x02;
-        FloatType    = 0x03;
-        TimeType     = 0x04;
-        BlobType     = 0x05;
+        ErrorType    = 0x00;
+        NoValueType  = 0x01;
+        BooleanType  = 0x02;
+        IntegerType  = 0x03;
+        StringType   = 0x04;
+        FloatType    = 0x05;
+        TimeType     = 0x06;
+        BlobType     = 0x07;
     }
 
     PropertyType type = 1;
@@ -26,13 +29,13 @@ message Property
 
 message Node {
     string tag = 1;
-    uint64 id  = 2;  //this will be GlobalID or local to the client
+    uint64 id  = 2;  // this will local to the client
     repeated Property properties = 3;
 }
 
 message Edge {
-    uint64 src = 1; //this will be GlobalID or local to the client
-    uint64 dst = 2; //this will be GlobalID or local to the client
+    uint64 src = 1; //this will local to the client
+    uint64 dst = 2; //this will local to the client
     string tag = 3;
     repeated Property properties = 4;
 }
@@ -49,30 +52,109 @@ message AddEdge
     Edge edge = 2;
 }
 
+message PropertyPredicate
+{
+    // These op values need to keep matching the PMGD counterparts.
+    enum Op {
+        DontCare = 0x0;
+        Eq = 0x1;
+        Ne = 0x2;
+        Gt = 0x3;
+        Ge = 0x4;
+        Lt = 0x5;
+        Le = 0x6;
+        GeLe = 0x7;
+        GeLt = 0x8;
+        GtLe = 0x9;
+        GtLt = 0xa;
+    }
+
+    oneof key_oneof {
+        // Specify either string key name
+        string key = 1;
+        // or integer equivalent. Integer is given preference.
+        uint32 keyid = 2;
+    }
+
+    Op op = 3;
+    Property v1 = 4;
+
+    // v2 is of course not required for all the operations above.
+    Property v2 = 5;
+}
+
+// Indicate what to do with the responses.
+enum ResponseType {
+    List = 0;
+    Count = 1;
+    Sum = 2;
+    Average = 3;
+    ID = 4;
+}
+
+message QueryNode
+{
+    // Indicate whether to And or Or the property predicates specified
+    // below.
+    enum PredicateOp {
+        And = 0;
+        Or = 1;
+    }
+
+    uint64 identifier = 1;
+
+    oneof tag_oneof {
+        // Apply to nodes with specific tag using either the int
+        uint32 tagid = 2;
+        //or string version of the tag.
+        string tag = 3;
+    }
+
+    // Specify search conditions and whether to OR or AND them
+    PredicateOp p_op = 4;
+    repeated PropertyPredicate predicates = 5;
+
+    // Specify what to do with the responses. If the option is
+    // list, the response properties will indicate list of what
+    // properties.
+    ResponseType r_type = 6;
+
+    // User could request multiple properties.
+    // This is populated only if the r_type is List
+    // TODO Change to keyids later. Oneof doesn't work with
+    // repeated properties
+    repeated string response_keys = 7;
+}
+
 message Command
 {
     enum CommandId {
         TxBegin      = 0x0;
-        TxEnd        = 0x1;
+        TxCommit     = 0x1;
+        TxAbort      = 0x2;
 
         AddNode   = 0x21;
         AddEdge   = 0x22;
-        CreateIndex  = 0x23;
 
-        SetProperty  = 0x30;
-        Query        = 0x40;
-        Next         = 0x41;
-
+        QueryNode = 0x30;
     }
 
     // We will switch over this value
     CommandId cmd_id = 1;
+    // TODO Might need a transaction object here or maybe just another variable
+    // to indicate read write etc
     uint64    tx_id  = 2;
 
     //Since all fields are optional,
     //we define all cmds type here.
     AddNode add_node    = 10;
     AddEdge add_edge    = 11;
+    QueryNode query_node = 12;
+}
+
+message PropertyList
+{
+    repeated Property values = 1;
 }
 
 message CommandResponse
@@ -80,8 +162,29 @@ message CommandResponse
     enum ErrorCode {
         Success = 0;
         Abort   = 1;
+        Exception = 2;
     }
 
     // We will switch over this value
-    ErrorCode error_code =1;
+    // TODO Needs more information in case of error
+    ErrorCode error_code = 1;
+
+    // In order to help figure how to parse response, re-include
+    // what we had expected
+    ResponseType r_type = 2;
+
+    // If the query asked for sum/average/count.
+    // Average is always float. Sum depends on the type of values
+    // being summed. Count is always an int value.
+    // If the query added a node or edge, this would contain the
+    // global node id.
+    oneof op_oneof {
+        uint64 op_int_value = 3;
+        double op_float_value = 4;
+    }
+    // Even though this map should be in the oneof, can't put
+    // it there since it is not allowed.
+    // For the query, multiple nodes could have met the condition
+    // and therefore there can be a list per property key.
+    map<string,PropertyList> prop_values = 5;
 }
