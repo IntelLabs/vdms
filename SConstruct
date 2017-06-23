@@ -49,6 +49,7 @@ testenv = Environment(CPPPATH = [ 'include', 'src', 'utils/include',
                         CXXFLAGS="-std=c++11 -O3")
 
 test_sources = ['tests/main.cc',
+                'src/SearchExpression.cc',
                 'src/PMGDQueryHandler.cc',
                 'tests/pmgd_queries.cc' ]
 

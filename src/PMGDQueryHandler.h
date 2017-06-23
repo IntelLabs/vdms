@@ -6,6 +6,7 @@
 
 #include "protobuf/pmgdMessages.pb.h" // Protobuff implementation
 #include "jarvis.h"
+#include "SearchExpression.h"
 
 namespace athena {
     // Instance created per worker thread to handle all transactions on a given
@@ -23,12 +24,17 @@ namespace athena {
         Jarvis::Transaction *_tx;
 
         /// Map an integer ID to a Node (reset at the end of each transaction).
-        std::map<int, Jarvis::Node *> mNodes;
+        // std::map<int, Jarvis::Node *> mNodes;
         /// Map an integer ID to an Edge (reset at the end of each transaction).
-        std::map<int, Jarvis::Edge *> mEdges;
+        // std::map<int, Jarvis::Edge *> mEdges;
 
-        pmgd::protobufs::CommandResponse add_node(const pmgd::protobufs::AddNode &cn);
-        void process_query(pmgd::protobufs::Command *cmd);
+        template <class Element> void set_property(Element &e, const pmgd::protobufs::Property &p);
+        void add_node(const pmgd::protobufs::AddNode &cn, pmgd::protobufs::CommandResponse *response);
+        Jarvis::Property construct_search_property(const pmgd::protobufs::Property &p);
+        Jarvis::PropertyPredicate construct_search_term(const pmgd::protobufs::PropertyPredicate &p_pp);
+        void construct_protobuf_property(const Jarvis::Property &j_p, pmgd::protobufs::Property *p_p);
+        void query_node(const pmgd::protobufs::QueryNode &qn, pmgd::protobufs::CommandResponse *response);
+        void process_query(pmgd::protobufs::Command *cmd, pmgd::protobufs::CommandResponse *response);
 
     public:
         PMGDQueryHandler(Jarvis::Graph *_db, std::mutex *mtx);
@@ -36,6 +42,6 @@ namespace athena {
         // The vector here can contain just one JL command but will be surrounded by
         // TX begin and end. So just expose one call to the QueryHandler for
         // the request server
-        void process_queries(std::vector<pmgd::protobufs::Command *> cmds);
+        std::vector<pmgd::protobufs::CommandResponse *> process_queries(std::vector<pmgd::protobufs::Command *> cmds);
     };
 };
