@@ -89,7 +89,8 @@ enum ResponseType {
     Count = 1;
     Sum = 2;
     Average = 3;
-    ID = 4;
+    NodeID = 4;
+    EdgeID = 5;
 }
 
 message QueryNode
