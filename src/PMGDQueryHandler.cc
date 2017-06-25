@@ -49,8 +49,9 @@ void PMGDQueryHandler::process_query(protobufs::Command *cmd,
             {
                 _tx->commit();
                 _dblock->unlock();
-                // mNodes.clear();
-                // mEdges.clear();
+                // TODO Clearing might not be needed if it goes out of scope anyway
+                mNodes.clear();
+                mEdges.clear();
                 delete _tx;
                 _tx = NULL;
                 response->set_error_code(protobufs::CommandResponse::Success);
@@ -59,8 +60,9 @@ void PMGDQueryHandler::process_query(protobufs::Command *cmd,
             case protobufs::Command::TxAbort:
             {
                 _dblock->unlock();
-                // mNodes.clear();
-                // mEdges.clear();
+                // TODO Clearing might not be needed if it goes out of scope anyway
+                mNodes.clear();
+                mEdges.clear();
                 delete _tx;
                 _tx = NULL;
                 response->set_error_code(protobufs::CommandResponse::Abort);
@@ -69,9 +71,9 @@ void PMGDQueryHandler::process_query(protobufs::Command *cmd,
             case protobufs::Command::AddNode:
                 add_node(cmd->add_node(), response);
                 break;
-                //     case Command::CreateEdge:
-                //         CreateEdge();
-                //         break;
+            case protobufs::Command::AddEdge:
+                add_edge(cmd->add_edge(), response);
+                break;
                 //     case Command::CreateIndex:
                 //         CreateIndex();
                 //         break;
@@ -140,7 +142,7 @@ void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
     // Presumably this node gets placed here.
     StringID sid(cn.node().tag().c_str());
     Node &n = _db->add_node(sid);
-    //mNodes.insert(std::pair<int, Node *>(cn.identifier(), &n));
+    mNodes.insert(std::pair<int, Node *>(cn.identifier(), &n));
 
     for (int i = 0; i < cn.node().properties_size(); ++i) {
         const protobufs::Property &p = cn.node().properties(i);
@@ -148,10 +150,33 @@ void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
     }
 
     response->set_error_code(protobufs::CommandResponse::Success);
-    response->set_r_type(protobufs::ID);
+    response->set_r_type(protobufs::NodeID);
     // TODO: Partition code goes here
     // For now, fill in the single system node id
     response->set_op_int_value(_db->get_id(n));
+}
+
+void PMGDQueryHandler::add_edge(const protobufs::AddEdge &ce,
+                                  protobufs::CommandResponse *response)
+{
+    // Presumably this node gets placed here.
+    StringID sid(ce.edge().tag().c_str());
+    // Assumes these entries are found.
+    Node &src = *(mNodes.at(ce.edge().src()));
+    Node &dst = *(mNodes.at(ce.edge().dst()));
+    Edge &e = _db->add_edge(src, dst, sid);
+    mEdges.insert(std::pair<int, Edge *>(ce.identifier(), &e));
+
+    for (int i = 0; i < ce.edge().properties_size(); ++i) {
+        const protobufs::Property &p = ce.edge().properties(i);
+        set_property(e, p);
+    }
+
+    response->set_error_code(protobufs::CommandResponse::Success);
+    response->set_r_type(protobufs::EdgeID);
+    // TODO: Partition code goes here
+    // For now, fill in the single system edge id
+    response->set_op_int_value(_db->get_id(e));
 }
 
 // TODO: Do we need a separate function here or should we try to combine
