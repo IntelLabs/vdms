@@ -59,7 +59,7 @@ TEST(PMGDQueryHandler, addTest)
     vector<protobufs::Command *> cmds;
 
     {
-        int txid = 1, patientid = 1;
+        int txid = 1, patientid = 1, eid = 1;
         protobufs::Command cmdtx;
         cmdtx.set_cmd_id(protobufs::Command::TxBegin);
         cmdtx.set_tx_id(txid);
@@ -77,6 +77,21 @@ TEST(PMGDQueryHandler, addTest)
                   "jane.doe@abc.com", FEMALE);
         cmds.push_back(&cmdadd1);
 
+        protobufs::Command cmdedge1;
+        cmdedge1.set_tx_id(txid);
+        cmdedge1.set_cmd_id(protobufs::Command::AddEdge);
+        protobufs::AddEdge *ae = cmdedge1.mutable_add_edge();
+        ae->set_identifier(eid++);
+        protobufs::Edge *e = ae->mutable_edge();
+        e->set_src(1);
+        e->set_dst(2);
+        e->set_tag("Married");
+        protobufs::Property *p = e->add_properties();
+        p->set_type(protobufs::Property::TimeType);
+        p->set_key("Since");
+        p->set_time_value("Sat Sep 1 19:59:24 PDT 1956");
+        cmds.push_back(&cmdedge1);
+
         protobufs::Command cmdadd2;
         cmdadd2.set_tx_id(txid);
         add_patient(cmdadd2, patientid++, "Alice Crypto", 70, "Sat Nov 1 17:59:24 PDT 1946",
@@ -89,18 +104,37 @@ TEST(PMGDQueryHandler, addTest)
                   "bob.crypto@xyz.com", MALE);
         cmds.push_back(&cmdadd3);
 
+        protobufs::Command cmdedge2;
+        cmdedge2.set_tx_id(txid);
+        cmdedge2.set_cmd_id(protobufs::Command::AddEdge);
+        ae = cmdedge2.mutable_add_edge();
+        ae->set_identifier(eid++);
+        e = ae->mutable_edge();
+        e->set_src(3);
+        e->set_dst(4);
+        e->set_tag("Married");
+        p = e->add_properties();
+        p->set_type(protobufs::Property::TimeType);
+        p->set_key("Since");
+        p->set_time_value("Wed Dec 2 19:59:24 PDT 1970");
+        cmds.push_back(&cmdedge2);
+
         protobufs::Command cmdtxcommit;
         cmdtxcommit.set_cmd_id(protobufs::Command::TxCommit);
         cmdtxcommit.set_tx_id(txid);
         cmds.push_back(&cmdtxcommit);
 
         vector<protobufs::CommandResponse *> responses = qh.process_queries(cmds);
-        int ids = 1;
+        int nodeids = 1, edgeids = 1;
         for (auto it : responses) {
             ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << "Unsuccessful TX";
-            if (it->r_type() == protobufs::ID) {
+            if (it->r_type() == protobufs::NodeID) {
                 long nodeid = it->op_int_value();
-                EXPECT_EQ(nodeid, ids++) << "Unexpected node id";
+                EXPECT_EQ(nodeid, nodeids++) << "Unexpected node id";
+            }
+            else if (it->r_type() == protobufs::EdgeID) {
+                long edgeid = it->op_int_value();
+                EXPECT_EQ(edgeid, edgeids++) << "Unexpected edge id";
             }
         }
     }
