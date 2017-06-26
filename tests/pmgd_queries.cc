@@ -164,9 +164,9 @@ void print_property(const string &key, const protobufs::Property &p)
     }
 }
 
-TEST(PMGDQueryHandler, queryTest)
+TEST(PMGDQueryHandler, queryTestList)
 {
-    printf("Testing PMGD query protobuf handler\n");
+    printf("Testing PMGD query protobuf handler for list return\n");
 
     Graph db("qhgraph");
 
@@ -233,5 +233,52 @@ TEST(PMGDQueryHandler, queryTest)
         }
         EXPECT_EQ(nodecount, 2) << "Not enough nodes found";
         EXPECT_EQ(propcount, 2) << "Not enough properties read";
+    }
+}
+
+TEST(PMGDQueryHandler, queryTestAverage)
+{
+    printf("Testing PMGD query protobuf handler for average return\n");
+
+    Graph db("qhgraph");
+
+    // Since PMGD is still single threaded, provide a lock for the DB
+    mutex dblock;
+    PMGDQueryHandler qh(&db, &dblock);
+
+    vector<protobufs::Command *> cmds;
+
+    {
+        int txid = 1;
+        protobufs::Command cmdtx;
+        cmdtx.set_cmd_id(protobufs::Command::TxBegin);
+        cmdtx.set_tx_id(txid);
+        cmds.push_back(&cmdtx);
+
+        protobufs::Command cmdquery;
+        cmdquery.set_cmd_id(protobufs::Command::QueryNode);
+        cmdquery.set_tx_id(txid);
+        protobufs::QueryNode *qn = cmdquery.mutable_query_node();
+        qn->set_identifier(1);
+        qn->set_tag("Patient");
+        qn->set_r_type(protobufs::Average);
+        string *key = qn->add_response_keys();
+        *key = "Age";
+        cmds.push_back(&cmdquery);
+
+        // No need to commit in this case. So just end TX
+        protobufs::Command cmdtxend;
+        // Commit here doesn't change anything. Just indicates end of TX
+        cmdtxend.set_cmd_id(protobufs::Command::TxCommit);
+        cmdtxend.set_tx_id(txid);
+        cmds.push_back(&cmdtxend);
+
+        vector<protobufs::CommandResponse *> responses = qh.process_queries(cmds);
+        for (auto it : responses) {
+            ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << "Unsuccessful TX";
+            if (it->r_type() == protobufs::Average) {
+                EXPECT_EQ(it->op_float_value(), 76.5) << "Average didn't match expected for four patients' age";
+            }
+        }
     }
 }

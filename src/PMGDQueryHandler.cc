@@ -103,6 +103,7 @@ void PMGDQueryHandler::process_query(protobufs::Command *cmd,
     catch (Exception e) {
         _dblock->unlock();
         response->set_error_code(protobufs::CommandResponse::Exception);
+        response->set_error_msg(e.msg);
     }
 }
 
@@ -290,26 +291,68 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     std::vector<StringID> keyids;
     for (int i = 0; i < qn.response_keys_size(); ++i)
         keyids.push_back(StringID(qn.response_keys(i).c_str()));
-    printf("Number of requested keys: %ld\n", keyids.size());
-
-    if (ni) {
-        if (qn.r_type() == protobufs::List) {
-            auto& rmap = *(response->mutable_prop_values());
-            for (; ni; ni.next()) {
-                for (int i = 0; i < keyids.size(); ++i) {
-                    protobufs::PropertyList &list = rmap[qn.response_keys(i)];
-                    protobufs::Property *p_p = list.add_values();
-                    Property j_p = ni->get_property(keyids[i]);
-                    // Assumes matching enum values!
-                    p_p->set_type((protobufs::Property::PropertyType)j_p.type());
-                    construct_protobuf_property(j_p, p_p);
-                }
-            }
-        }
-    }
-    else
-        printf("No matching nodes\n");
 
     response->set_r_type(qn.r_type());
     response->set_error_code(protobufs::CommandResponse::Success);
+    bool avg = false;
+    size_t count = 0;
+    switch(qn.r_type()) {
+    case protobufs::List:
+    {
+        auto& rmap = *(response->mutable_prop_values());
+        for (; ni; ni.next()) {
+            count++;
+            for (int i = 0; i < keyids.size(); ++i) {
+                protobufs::PropertyList &list = rmap[qn.response_keys(i)];
+                protobufs::Property *p_p = list.add_values();
+                Property j_p = ni->get_property(keyids[i]);
+                // Assumes matching enum values!
+                p_p->set_type((protobufs::Property::PropertyType)j_p.type());
+                construct_protobuf_property(j_p, p_p);
+            }
+        }
+        response->set_op_int_value(count);
+        break;
+    }
+    case protobufs::Count:
+    {
+        for (; ni; ni.next())
+            count++;
+        response->set_op_int_value(count);
+        break;
+    }
+    // Next two assume that the property requested is either Int or Float.
+    // Also, only looks at the first property specified.
+    case protobufs::Average:
+        avg = true;
+    case protobufs::Sum:
+    {
+        if (ni->get_property(keyids[0]).type() == PropertyType::Integer) {
+            size_t sum = 0;
+            for (; ni; ni.next()) {
+                sum += ni->get_property(keyids[0]).int_value();
+                count++;
+            }
+            if (avg)
+                response->set_op_float_value((double)sum / count);
+            else
+                response->set_op_int_value(sum);
+        }
+        else {
+            double sum = 0.0;
+            for (; ni; ni.next()) {
+                sum += ni->get_property(keyids[0]).float_value();
+                count++;
+            }
+            if (avg)
+                response->set_op_float_value(sum / count);
+            else
+                response->set_op_float_value(sum);
+        }
+        break;
+    }
+    default:
+        response->set_error_code(protobufs::CommandResponse::Error);
+        response->set_error_msg("Unknown operation type for query\n");
+    }
 }

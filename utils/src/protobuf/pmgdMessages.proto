@@ -163,29 +163,33 @@ message CommandResponse
     enum ErrorCode {
         Success = 0;
         Abort   = 1;
-        Exception = 2;
+        Error   = 2;
+        Exception = 3;
     }
 
     // We will switch over this value
-    // TODO Needs more information in case of error
     ErrorCode error_code = 1;
+    string error_msg = 2;
 
     // In order to help figure how to parse response, re-include
     // what we had expected
-    ResponseType r_type = 2;
+    ResponseType r_type = 3;
 
     // If the query asked for sum/average/count.
     // Average is always float. Sum depends on the type of values
     // being summed. Count is always an int value.
     // If the query added a node or edge, this would contain the
     // global node id.
+    // In case a list was requested, store the count of matching
+    // nodes/edges here.
     oneof op_oneof {
-        uint64 op_int_value = 3;
-        double op_float_value = 4;
+        uint64 op_int_value = 4;
+        double op_float_value = 5;
     }
     // Even though this map should be in the oneof, can't put
-    // it there since it is not allowed.
+    // it there since it is not allowed. So now we use the count
+    // in oneof to store how many nodes/edges matched.
     // For the query, multiple nodes could have met the condition
     // and therefore there can be a list per property key.
-    map<string,PropertyList> prop_values = 5;
+    map<string,PropertyList> prop_values = 6;
 }
