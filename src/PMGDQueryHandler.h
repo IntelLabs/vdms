@@ -37,6 +37,7 @@ namespace athena {
         Jarvis::PropertyPredicate construct_search_term(const pmgd::protobufs::PropertyPredicate &p_pp);
         void construct_protobuf_property(const Jarvis::Property &j_p, pmgd::protobufs::Property *p_p);
         void query_node(const pmgd::protobufs::QueryNode &qn, pmgd::protobufs::CommandResponse *response);
+        void query_neighbor(const pmgd::protobufs::QueryNeighbor &qnb, pmgd::protobufs::CommandResponse *response);
         void process_query(pmgd::protobufs::Command *cmd, pmgd::protobufs::CommandResponse *response);
 
     public:

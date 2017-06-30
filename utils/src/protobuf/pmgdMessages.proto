@@ -93,15 +93,15 @@ enum ResponseType {
     EdgeID = 5;
 }
 
+// Indicate whether to And or Or the property predicates specified
+// below.
+enum PredicateOp {
+    And = 0;
+    Or = 1;
+}
+
 message QueryNode
 {
-    // Indicate whether to And or Or the property predicates specified
-    // below.
-    enum PredicateOp {
-        And = 0;
-        Or = 1;
-    }
-
     uint64 identifier = 1;
 
     oneof tag_oneof {
@@ -127,6 +127,64 @@ message QueryNode
     repeated string response_keys = 7;
 }
 
+message QueryNeighbor
+{
+    // Need to match those in PMGD!
+    enum EdgeDirection {
+        Any = 0;
+        Outgoing = 1;
+        Incoming = 2;
+    }
+
+    // First need to find a start node for neighbor search using
+    // typical querying.
+    QueryNode query_start_node = 1;
+
+    // Then need a way to find which neighbors to look at.
+    // Use edge direction, and edge tags to specify which neighbors
+    // to look at.
+    // TODO it will be good if we could specify some property predicates
+    // on these edges too! But PMGD needs to support those calls first.
+    // TODO I think the neighbor calls can accept a vector of edge tag
+    // and direction for more than 1 hop neighbor search. That is not
+    // supported with this. Will need a repeated structure.
+    // TODO Need hope count
+    oneof edgetag_oneof {
+        // Apply to nodes with specific tag using either the int
+        uint32 e_tagid = 2;
+        //or string version of the tag.
+        string e_tag = 3;
+    }
+    EdgeDirection dir = 4;
+
+    // Now specify constraints for the neighbors
+    oneof neighbortag_oneof {
+        // Apply to nodes with specific tag using either the int
+        uint32 n_tagid = 5;
+        //or string version of the tag.
+        string n_tag = 6;
+    }
+    // Specify search conditions and whether to OR or AND them
+    PredicateOp p_op = 7;
+    repeated PropertyPredicate predicates = 8;
+    // Indicate whether you want PMGD to check if all neighbors
+    // are unique. Does carry a performance penalty to do that
+    // in cases where it is known that neighbors are unique.
+    bool unique = 9;
+
+    // Specify what to do with the responses. If the option is
+    // list, the response properties will indicate list of what
+    // properties.
+    ResponseType r_type = 10;
+
+    // User could request multiple properties.
+    // This is populated only if the r_type is List
+    // TODO Change to keyids later. Oneof doesn't work with
+    // repeated properties
+    repeated string response_keys = 11;
+}
+
+
 message Command
 {
     enum CommandId {
@@ -138,6 +196,7 @@ message Command
         AddEdge   = 0x22;
 
         QueryNode = 0x30;
+        QueryNeighbor = 0x32;
     }
 
     // We will switch over this value
@@ -150,7 +209,8 @@ message Command
     //we define all cmds type here.
     AddNode add_node    = 10;
     AddEdge add_edge    = 11;
-    QueryNode query_node = 12;
+    QueryNode query_node = 13;
+    QueryNeighbor query_neighbor = 15;
 }
 
 message PropertyList
@@ -165,6 +225,7 @@ message CommandResponse
         Abort   = 1;
         Error   = 2;
         Exception = 3;
+        Empty   = 4;  // For an empty iterator.
     }
 
     // We will switch over this value

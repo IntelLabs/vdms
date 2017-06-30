@@ -83,6 +83,9 @@ void PMGDQueryHandler::process_query(protobufs::Command *cmd,
             case protobufs::Command::QueryNode:
                 query_node(cmd->query_node(), response);
                 break;
+            case protobufs::Command::QueryNeighbor:
+                query_neighbor(cmd->query_neighbor(), response);
+                break;
                 //     case Command::RemoveNode:
                 //         RemoveNode();
                 //         break;
@@ -259,29 +262,32 @@ void PMGDQueryHandler::construct_protobuf_property(const Property &j_p, protobuf
 void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
                                     protobufs::CommandResponse *response)
 {
-    StringID *search_node_tag;
+    StringID *search_node_tag = NULL;
 
+    // TODO This could be a macro
     if (qn.tag_oneof_case() == 2) {
-        // TODO For now, assuming that this is the ID in JL String Table.
-        // I think this should be a client specified identifier which is maintained
-        // in a map of (client string id, StringID &)
-        StringID tmp(qn.tagid());
-        search_node_tag = &tmp;
+        if (qn.tagid() == 0) {
+            // TODO For now, assuming that this is the ID in JL String Table.
+            // I think this should be a client specified identifier which is maintained
+            // in a map of (client string id, StringID &)
+            StringID tmp(qn.tagid());
+            search_node_tag = &tmp;
+        }
     }
     else {
         StringID tmp(qn.tag().c_str());
         search_node_tag = &tmp;   // Points into PMGD anyway. For NOW
     }
-        
-    SearchExpression search(*_db, *search_node_tag);
 
-    if (qn.p_op() == protobufs::QueryNode::Or)
+    SearchExpression search(*_db, (search_node_tag != NULL ? *search_node_tag : 0));
+
+    if (qn.p_op() == protobufs::Or)
         throw JarvisException(NotImplemented);
 
     for (int i = 0; i < qn.predicates_size(); ++i) {
         const protobufs::PropertyPredicate &p_pp = qn.predicates(i);
-        PropertyPredicate j_pp = construct_search_term(p_pp); 
-        search.Add(j_pp); 
+        PropertyPredicate j_pp = construct_search_term(p_pp);
+        search.Add(j_pp);
     }
 
     NodeIterator ni = search.EvalNodes();
@@ -294,6 +300,7 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
 
     response->set_r_type(qn.r_type());
     response->set_error_code(protobufs::CommandResponse::Success);
+
     bool avg = false;
     size_t count = 0;
     switch(qn.r_type()) {
@@ -338,7 +345,7 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
             else
                 response->set_op_int_value(sum);
         }
-        else {
+        else if (ni->get_property(keyids[0]).type() == PropertyType::Float) {
             double sum = 0.0;
             for (; ni; ni.next()) {
                 sum += ni->get_property(keyids[0]).float_value();
@@ -349,10 +356,188 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
             else
                 response->set_op_float_value(sum);
         }
+        else {
+            response->set_error_code(protobufs::CommandResponse::Error);
+            response->set_error_msg("Wrong first property for sum/average\n");
+        }
         break;
     }
     default:
         response->set_error_code(protobufs::CommandResponse::Error);
         response->set_error_msg("Unknown operation type for query\n");
     }
+}
+
+void PMGDQueryHandler::query_neighbor(const protobufs::QueryNeighbor &qnb,
+                                    protobufs::CommandResponse *response)
+{
+    StringID *start_node_tag = NULL, *neighb_tag = NULL;
+    const protobufs::QueryNode &qn = qnb.query_start_node();
+
+    if ((qn.p_op() == protobufs::Or) || (qnb.p_op() == protobufs::Or)
+          || qnb.unique()) {
+        response->set_error_code(protobufs::CommandResponse::Exception);
+        response->set_error_msg("Unique neighbor operation/Or not implemented\n");
+        throw JarvisException(NotImplemented);
+    }
+
+    if (qn.tag_oneof_case() == 2) {
+        if (qn.tagid() != 0) {
+            // TODO For now, assuming that this is the ID in JL String Table.
+            // I think this should be a client specified identifier which is maintained
+            // in a map of (client string id, StringID &)
+            StringID tmp(qn.tagid());
+            start_node_tag = &tmp;
+        }
+    }
+    else {
+        StringID tmp(qn.tag().c_str());
+        start_node_tag = &tmp;   // Points into PMGD anyway. For NOW
+    }
+
+    SearchExpression search_start(*_db, (start_node_tag != NULL ? *start_node_tag : 0));
+
+    if (qn.p_op() == protobufs::Or)
+        throw JarvisException(NotImplemented);
+
+    for (int i = 0; i < qn.predicates_size(); ++i) {
+        const protobufs::PropertyPredicate &p_pp = qn.predicates(i);
+        PropertyPredicate j_pp = construct_search_term(p_pp);
+        search_start.Add(j_pp);
+    }
+
+    NodeIterator start_ni = search_start.EvalNodes();
+
+    if (!start_ni) {
+        // No starting node found.
+        response->set_r_type(qnb.r_type());
+        response->set_error_msg("Starting node(s) not found\n");
+        response->set_error_code(protobufs::CommandResponse::Empty);
+        return;
+    }
+
+    if (qnb.neighbortag_oneof_case() == 5) {
+        if (qnb.n_tagid() != 0) {
+            // TODO For now, assuming that this is the ID in JL String Table.
+            // I think this should be a client specified identifier which is maintained
+            // in a map of (client string id, StringID &)
+            StringID tmp(qnb.n_tagid());
+            neighb_tag = &tmp;
+        }
+    }
+    else {
+        StringID tmp(qnb.n_tag().c_str());
+        neighb_tag = &tmp;   // Points into PMGD anyway. For NOW
+    }
+
+    SearchExpression search_neighbors(*_db, (neighb_tag != NULL ? *neighb_tag : 0));
+    for (int i = 0; i < qnb.predicates_size(); ++i) {
+        const protobufs::PropertyPredicate &p_pp = qnb.predicates(i);
+        PropertyPredicate j_pp = construct_search_term(p_pp);
+        search_neighbors.Add(j_pp);
+    }
+
+    // TODO This should really be translated at some global level. Either
+    // this class or maybe even the request server main handler.
+    std::vector<StringID> keyids;
+    for (int i = 0; i < qnb.response_keys_size(); ++i)
+        keyids.push_back(StringID(qnb.response_keys(i).c_str()));
+
+    StringID *edge_tag = NULL;
+    if (qnb.edgetag_oneof_case() == 5) {
+        if (qnb.e_tagid() != 0) {
+            // TODO For now, assuming that this is the ID in JL String Table.
+            // I think this should be a client specified identifier which is maintained
+            // in a map of (client string id, StringID &)
+            StringID tmp(qnb.e_tagid());
+            edge_tag = &tmp;
+        }
+    }
+    else {
+        StringID tmp(qnb.e_tag().c_str());
+        edge_tag = &tmp;   // Points into PMGD anyway. For NOW
+    }
+
+    bool avg = false;
+    size_t count = 0;
+    for (; start_ni; start_ni.next()) {
+        // TODO Maybe unique can have a default value of false.
+        // TODO No support in case unique is true but get it from LDBC.
+        // Eventually need to add a get_union(NodeIterator, vector<Constraints>)
+        // call to PMGD.
+        NodeIterator neighb_i = search_neighbors.EvalNodes(*start_ni,
+                                       (Jarvis::Direction)qnb.dir(),
+                                       (edge_tag != NULL ? *edge_tag : 0), qnb.unique());
+        if (!neighb_i)
+            continue;
+
+        // TODO Some repetition with subtle differences between the following
+        // and the code in QueryNode.
+        switch(qnb.r_type()) {
+        case protobufs::List:
+        {
+            auto& rmap = *(response->mutable_prop_values());
+            for (; neighb_i; neighb_i.next()) {
+                count++;
+                for (int i = 0; i < keyids.size(); ++i) {
+                    protobufs::PropertyList &list = rmap[qnb.response_keys(i)];
+                    protobufs::Property *p_p = list.add_values();
+                    Property j_p = neighb_i->get_property(keyids[i]);
+                    // Assumes matching enum values!
+                    p_p->set_type((protobufs::Property::PropertyType)j_p.type());
+                    construct_protobuf_property(j_p, p_p);
+                }
+            }
+            response->set_op_int_value(count);
+            break;
+        }
+        case protobufs::Count:
+        {
+            for (; neighb_i; neighb_i.next())
+                count++;
+            response->set_op_int_value(count);
+            break;
+        }
+        // Next two assume that the property requested is either Int or Float.
+        // Also, only looks at the first property specified.
+        case protobufs::Average:
+            avg = true;
+        case protobufs::Sum:
+        {
+            if (neighb_i->get_property(keyids[0]).type() == PropertyType::Integer) {
+                static size_t sum = 0;
+                for (; neighb_i; neighb_i.next()) {
+                    sum += neighb_i->get_property(keyids[0]).int_value();
+                    count++;
+                }
+                if (avg)
+                    response->set_op_float_value((double)sum / count);
+                else
+                    response->set_op_int_value(sum);
+            }
+            else if (neighb_i->get_property(keyids[0]).type() == PropertyType::Float){
+                static double sum = 0.0;
+                for (; neighb_i; neighb_i.next()) {
+                    sum += neighb_i->get_property(keyids[0]).float_value();
+                    count++;
+                }
+                if (avg)
+                    response->set_op_float_value(sum / count);
+                else
+                    response->set_op_float_value(sum);
+            }
+            else {
+                response->set_error_code(protobufs::CommandResponse::Error);
+                response->set_error_msg("Wrong first property for sum/average\n");
+            }
+            break;
+        }
+        default:
+            response->set_error_code(protobufs::CommandResponse::Error);
+            response->set_error_msg("Unknown operation type for query\n");
+        }
+    }
+
+    response->set_r_type(qnb.r_type());
+    response->set_error_code(protobufs::CommandResponse::Success);
 }

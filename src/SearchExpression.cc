@@ -1,5 +1,6 @@
 #include "SearchExpression.h"
 #include "jarvis.h"
+#include "neighbor.h"
 
 class SearchExpression::SearchExpressionIterator : public Jarvis::NodeIteratorImplIntf
 {
@@ -9,6 +10,9 @@ class SearchExpression::SearchExpressionIterator : public Jarvis::NodeIteratorIm
     /// Node iterator on the first property predicate
     Jarvis::NodeIterator mNodeIt;
 
+    // Indicate where to start in the search expression vector
+    unsigned _start_at;
+
     /// Advance to the next matching node
     /// @returns true if we find a matching node
     /// Precondition: mNodeIt points to the next possible node
@@ -16,7 +20,7 @@ class SearchExpression::SearchExpressionIterator : public Jarvis::NodeIteratorIm
     bool _next()
     {
         for (; mNodeIt; mNodeIt.next()) {
-            for (std::size_t i = 1; i < mExpr.mExpr.size(); i++) {
+            for (std::size_t i = _start_at; i < mExpr.mExpr.size(); i++) {
                 Jarvis::PropertyFilter<Jarvis::Node> pf(mExpr.mExpr.at(i));
                 if (pf(*mNodeIt) == Jarvis::DontPass)
                     goto continueNodeIt;
@@ -36,6 +40,21 @@ public:
         : mExpr(expr),
           mNodeIt(mExpr.mDB.get_nodes(mExpr.Tag(), (mExpr.mExpr.empty() ? Jarvis::PropertyPredicate() : mExpr.mExpr.at(0))))
     {
+        _start_at = 1;
+        _next();
+    }
+
+    /// Construct an iterator given the search expression for neighbors
+    ///
+    /// Postcondition: mNodeIt points to the first matching node, or
+    /// returns NULL.
+    SearchExpressionIterator(const Jarvis::Node &node, Jarvis::Direction dir,
+                               Jarvis::StringID edgetag, bool unique,
+                               const SearchExpression &neighbor_expr)
+        : mExpr(neighbor_expr),
+          mNodeIt(get_neighbors(node, dir, edgetag, unique))
+    {
+        _start_at = 0;
         _next();
     }
 
@@ -113,6 +132,14 @@ public:
 Jarvis::NodeIterator SearchExpression::EvalNodes()
 {
     return Jarvis::NodeIterator(new SearchExpressionIterator(*this));
+}
+
+/// Evaluate the associated search expression on neighbors
+/// @returns an iterator over the search expression
+Jarvis::NodeIterator SearchExpression::EvalNodes(const Jarvis::Node &node, Jarvis::Direction dir,
+                                                   Jarvis::StringID edgetag, bool unique)
+{
+    return Jarvis::NodeIterator(new SearchExpressionIterator(node, dir, edgetag, unique, *this));
 }
 
 /// Evaluate the associated search expression
