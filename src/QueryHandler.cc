@@ -16,11 +16,11 @@ void QueryHandler::process_query(comm::Connection *c)
         protobufs::queryMessage cmd = handler.get_command();
         // TODO: Need a shutdown command for the thread
 
-        std::cout << cmd.json_query() << std::endl;
+        std::cout << cmd.json() << std::endl;
 
         //TODO: Handle the query, for now, just reply with a string
         protobufs::queryMessage response;
-        response.set_json_query("{COOL RESPONSE}");
+        response.set_json("{COOL RESPONSE}");
         handler.send_response(response);
 
         // int code = cmd.cmd_id();
