@@ -27,7 +27,7 @@ protected:
 
     const unsigned MAX_PORT_NUMBER  = 65535;
     const unsigned MAX_RETRIES      = 100;
-    const unsigned MAX_BUFFER_SIZE  = (4*1024);
+    const unsigned MAX_BUFFER_SIZE  = (4*1024*1024);
 
     int _socket_fd;
 };

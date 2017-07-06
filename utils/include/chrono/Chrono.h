@@ -50,6 +50,14 @@ public:
 		return periodStats;
 	}
 
+	uint32_t getTotalTime_ms(void) const {
+		return elapsedStats.totalTime_ms;
+	}
+
+	uint32_t getTotalTime_us(void) const {
+		return elapsedStats.totalTime_ms*1000.0f;
+	}
+
 	uint32_t getLastTime_ms(void) const {
 		return elapsedStats.lastTime_ms;
 	}
@@ -72,6 +80,16 @@ public:
 
 	uint32_t getSTD_us(void) const {
 		return elapsedStats.stdDevTime_ms*1000.0f;
+	}
+
+	void printTotalTime_ms(void) const {
+		std::cout << name << ": " << getTotalTime_ms()
+				  << " [ms]" << std::endl;
+	}
+
+	void printTotalTime_us(void) const {
+		std::cout << name << ": " << getTotalTime_us()
+				  << " [us]" << std::endl;
 	}
 
 	void printLastTime_ms(void) const {

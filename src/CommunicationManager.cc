@@ -33,7 +33,7 @@ void CommunicationManager::process_queue()
         }
         if (c != NULL) {
             QueryHandler _qh(_dblock);
-            printf("About to process a recieved query...\n");
+            printf("New incoming connection...\n");
             _qh.process_query(c);
         }
     }

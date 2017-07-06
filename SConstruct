@@ -5,12 +5,12 @@ intel_root='/opt/intel/'
 
 env = Environment(CPPPATH= ['include', 'src',
                         'utils/include',
-                        intel_root + 'vcl/Image/include',
+                        '/usr/include/jsoncpp/',
                         intel_root + 'jarvis/include',
                         intel_root + 'jarvis/util',
+                        intel_root + 'vcl/include',
                         intel_root + 'utils/include',],
                         CXXFLAGS="-std=c++11 -O3")
-
 
 source_files = ['src/athena.cc',
                 'src/Server.cc',
@@ -18,8 +18,6 @@ source_files = ['src/athena.cc',
                 'src/CommunicationManager.cc',
                 # 'src/QueryEngine.cc',
                 'src/QueryHandler.cc',
-                # 'src/AthenaDemoHLS.cc',
-                # 'src/athenaServer.cc',
                 ]
 
 athena = env.Program('athena', source_files,
@@ -38,7 +36,7 @@ athena = env.Program('athena', source_files,
                 ],
             LIBPATH = ['/usr/local/lib/',
                        intel_root + 'jarvis/lib/',
-                       intel_root + 'vcl/Image/',
+                       intel_root + 'vcl/',
                        intel_root + 'utils/', # for athena-utils
                        ]
             )
