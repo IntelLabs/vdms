@@ -33,11 +33,11 @@ class Athena(object):
             return "NOT CONNECTED"
 
         quer = queryMessage_pb2.queryMessage()
-        # quer has .json_query and .blob
-        quer.json_query = query_JSON
+        # quer has .json and .blob
+        quer.json = query_JSON
 
-        if img_array:
-            quer.blob = img_array[0]
+        for im in img_array:
+            quer.blobs.extend([im])
 
         # Serialize with protobuf and send
         # start = time.time()
@@ -59,7 +59,11 @@ class Athena(object):
         querRes = queryMessage_pb2.queryMessage()
         querRes.ParseFromString(response)
 
-        return querRes.json_query
+        img_array = []
+        for b in querRes.blobs:
+            img_array.append(b)
+
+        return (querRes.json, img_array)
 
     # Recieves json object
     def queryJSONObj(self, json_obj, img_array = []):

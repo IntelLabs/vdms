@@ -4,5 +4,5 @@ package athena.protobufs;
 
 message queryMessage {
     string json = 1;
-    repeated bytes blob = 2;
+    repeated bytes blobs = 2;
 }
