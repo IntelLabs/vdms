@@ -1,0 +1,12 @@
+# We need to add this dependecy.
+# utils = SConscript(['utils/SConstruct'])
+
+intel_root='/opt/intel/'
+
+client_env = Environment(CPPPATH = [ '../utils/include' ],
+                        CXXFLAGS="-std=c++11 -O3")
+
+client_sources = [ 'AthenaClient.cc' ]
+
+client_env.ParseConfig('pkg-config --cflags --libs protobuf')
+client_env.SharedLibrary('athena-client', client_sources)
