@@ -14,12 +14,12 @@ using namespace Jarvis;
 //using namespace pmgd;
 using namespace std;
 
-TEST(QueryHandlerTester, addTest){
-  cout<<"Ragaad: Testing Query handler add protobufs";
+TEST(QueryHandler, addTest){
+  cout << "Testing Query handler add protobufs";
   std::ifstream ifile;
   int fsize;
   char * inBuf;
-  ifile.open("QuerySample.json", std::ifstream::in);
+  ifile.open("query_sample.json", std::ifstream::in);
   ifile.seekg(0, std::ios::end);
   fsize = (int)ifile.tellg();
   ifile.seekg(0, std::ios::beg);
@@ -29,7 +29,7 @@ TEST(QueryHandlerTester, addTest){
   ifile.close();
   delete[] inBuf;
 
-  Graph db("qhgraph", Graph::Create);
+  Graph db("jsongraph", Graph::Create);
 
   // Since PMGD is still single threaded, provide a lock for the DB
   mutex dblock;

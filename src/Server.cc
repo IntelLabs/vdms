@@ -16,8 +16,8 @@ Server::Server(std::string dbname)
 
     if (install_handler() != 0)
         throw ExceptionServer(SignalHandler);
-  //creating a db
-  _db = new Jarvis::Graph(dbname.c_str(), Jarvis::Graph::Create);
+    //creating a db
+    _db = new Jarvis::Graph(dbname.c_str(), Jarvis::Graph::Create);
     // Create the query handler here assuming database is valid now.
     _dblock = new std::mutex();
     _cm = new CommunicationManager(_db, _dblock);
@@ -38,7 +38,7 @@ void Server::process_requests()
         try {
             // Listening thread for CQE
             comm::Connection *conn_server =
-                                    new comm::Connection(server->accept());
+                new comm::Connection(server->accept());
             _cm->add_connection(conn_server);
         }
         catch (comm::ExceptionComm e) {
