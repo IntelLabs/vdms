@@ -16,8 +16,9 @@ source_files = ['src/athena.cc',
                 'src/Server.cc',
                 'src/CommandHandler.cc',
                 'src/CommunicationManager.cc',
-                # 'src/QueryEngine.cc',
                 'src/QueryHandler.cc',
+                'src/SearchExpression.cc',
+                'src/PMGDQueryHandler.cc',
                 ]
 
 athena = env.Program('athena', source_files,
@@ -36,10 +37,11 @@ athena = env.Program('athena', source_files,
                 ],
             LIBPATH = ['/usr/local/lib/',
                        intel_root + 'jarvis/lib/',
-                       intel_root + 'vcl/',
+                       intel_root + 'vcl/Image/',
                        intel_root + 'utils/', # for athena-utils
                        ]
             )
+
 
 testenv = Environment(CPPPATH = [ 'include', 'src', 'utils/include',
                         intel_root + 'jarvis/include',
@@ -49,7 +51,12 @@ testenv = Environment(CPPPATH = [ 'include', 'src', 'utils/include',
 test_sources = ['tests/main.cc',
                 'src/SearchExpression.cc',
                 'src/PMGDQueryHandler.cc',
-                'tests/pmgd_queries.cc' ]
+                'src/QueryHandler.cc',
+                 'src/CommandHandler.cc',
+            #    'tests/pmgd_queries.cc',
+                'tests/QueryHandlerTester.cc'
+                #'test/json_test.cc'
+                 ]
 
 pmgd_query_test = testenv.Program( 'tests/pmgd_query_test',
                                     test_sources,
@@ -59,3 +66,15 @@ pmgd_query_test = testenv.Program( 'tests/pmgd_query_test',
                        intel_root + 'utils/', # for athena-utils
                        intel_root + 'jarvis/lib/' ]
                    )
+json_test_sources = ['src/SearchExpression.cc',
+                                  'src/PMGDQueryHandler.cc',
+                                 'tests/json_query_test.cc' ]
+
+Json_query_test = testenv.Program( 'json_query_test',
+                                                     json_test_sources,
+                                      LIBS = ['jarvis', 'jarvis-util', 'jsoncpp',
+                                              'athena-utils', 'protobuf', 'gtest', 'pthread' ],
+                                      LIBPATH = ['/usr/local/lib/',
+                                         intel_root + 'utils/', # for athena-utils
+                                         intel_root + 'jarvis/lib/' ]
+                                     )

@@ -17,7 +17,8 @@ namespace athena {
         CommunicationManager *_cm;
 
         // TODO: Partitioner here
-
+        //until we have a separate PMGD server this db lives here
+        Jarvis::Graph *_db;
         // Aux lock, not in use
         std::mutex *_dblock;
 
@@ -28,7 +29,7 @@ namespace athena {
             { Server::shutdown = (signo == SIGINT); }
 
     public:
-        Server();
+        Server(std::string dbname);
         void process_requests();
         ~Server();
     };

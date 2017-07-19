@@ -6,8 +6,9 @@
 using namespace athena;
 using namespace Jarvis;
 
-CommunicationManager::CommunicationManager(std::mutex *mtx)
+CommunicationManager::CommunicationManager(Jarvis::Graph *db,std::mutex *mtx)
 {
+     _db = db;
     _dblock = mtx;
 
     // TODO: Need network configuration here across all partition instances.
@@ -32,9 +33,9 @@ void CommunicationManager::process_queue()
             _workq.pop();
         }
         if (c != NULL) {
-            QueryHandler _qh(_dblock);
-            printf("New incoming connection...\n");
-            _qh.process_query(c);
+            QueryHandler _qh(_db,_dblock);
+            printf("About to process a recieved query...\n");
+            _qh.process_connection(c);
         }
     }
 }

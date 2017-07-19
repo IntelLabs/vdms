@@ -1,0 +1,49 @@
+
+
+{
+	"Query":[
+		{
+	"AddNode":
+	 {
+
+	"clientId": 1,
+	"Tag": "Patient",
+
+	"properties": {
+		 "Email":"st@rashed.com",
+		 "Age": 27,
+		 "Birthday":"22-03-1990"
+	}
+}
+
+		},
+{
+"AddNode":
+ {
+"clientId": 2,
+"Tag": "Patient1",
+
+"properties": {
+	 "Email":"st@raghehed.com1",
+	 "Age": 217,
+	 "Birthday":"22-03-19901"
+}
+}
+
+},
+{
+"AddEdge":
+ {
+		"clientId": 5,
+		"src" : 1,
+		"dst" : 2,
+		"tag":  "Married",
+		"properties":{
+		"since" : " 22-4-1984"
+
+		}
+ }
+
+}
+]
+}

@@ -1,30 +1,29 @@
 #pragma once
-
-#include <map>
+#include <string>
 #include <mutex>
+#include <vector>
 
 #include "protobuf/queryMessage.pb.h" // Protobuff implementation
 #include "CommandHandler.h"
-#include "jarvis.h"
+#include "PMGDQueryHandler.h"// to provide the database connection
+//Json parsing step files
+#include <jsoncpp/json/json.h>
+#include <jsoncpp/json/value.h>
+#include <jsoncpp/json/writer.h>
+
 
 namespace athena {
-    // Instance created per worker thread to handle all transactions on a given
-    // connection.
-    class QueryHandler
-    {
-        // Need this lock till we have concurrency support in JL
-        // TODO: Make this reader writer.
-        std::mutex *_dblock;
+	// Instance created per worker thread to handle all transactions on a given
+	// connection.
+	class QueryHandler
+	{
+		PMGDQueryHandler _pmgd_qh;
 
-        /// Map an integer ID to a Node (reset at the end of each transaction).
-        std::map<int, Jarvis::Node *> mNodes;
-        /// Map an integer ID to an Edge (reset at the end of each transaction).
-        std::map<int, Jarvis::Edge *> mEdges;
+		void  construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds, Json::Value root, int txid);
 
-        // void create_node(CommandHandler &handler, const protobufs::CreateNode &cn);
-
-    public:
-        QueryHandler(std::mutex *mtx);
-        void process_query(comm::Connection *c);
-    };
+	public:
+		QueryHandler(Jarvis::Graph *db, std::mutex *mtx);
+		void process_connection(comm::Connection *c);
+		void process_query(std::string);
+	};
 };
