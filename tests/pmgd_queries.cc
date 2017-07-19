@@ -186,7 +186,7 @@ TEST(PMGDQueryHandler, queryTest)
         protobufs::QueryNode *qn = cmdquery.mutable_query_node();
         qn->set_identifier(1);
         qn->set_tag("Patient");
-        qn->set_p_op(protobufs::And);
+        qn->set_p_op(protobufs::QueryNode::And);
         protobufs::PropertyPredicate *pp = qn->add_predicates();
         pp->set_key("Email");
         pp->set_op(protobufs::PropertyPredicate::Gt);

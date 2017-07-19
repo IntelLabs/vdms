@@ -274,7 +274,7 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         
     SearchExpression search(*_db, *search_node_tag);
 
-    if (qn.p_op() == protobufs::Or)
+    if (qn.p_op() == protobufs::QueryNode::Or)
         throw JarvisException(NotImplemented);
 
     for (int i = 0; i < qn.predicates_size(); ++i) {

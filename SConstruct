@@ -1,15 +1,14 @@
 # We need to add this dependecy.
 # utils = SConscript(['utils/SConstruct'])
-
-intel_root='/opt/intel/'
+client = SConscript(['client/SConstruct'])
 
 env = Environment(CPPPATH= ['include', 'src',
                         'utils/include',
                         '/usr/include/jsoncpp/',
-                        intel_root + 'jarvis/include',
-                        intel_root + 'jarvis/util',
-                        intel_root + 'vcl/include',
-                        intel_root + 'utils/include',],
+                        'jarvis/include',
+                        'jarvis/util',
+                        'vcl/include',
+                        'utils/include',],
                         CXXFLAGS="-std=c++11 -O3")
 
 athena_common_files = [
@@ -39,16 +38,16 @@ athena = env.Program('athena', [ athena_common_files, athena_server_files ] ,
                 'opencv_imgproc'
                 ],
             LIBPATH = ['/usr/local/lib/',
-                       intel_root + 'jarvis/lib/',
-                       intel_root + 'vcl/Image/',
-                       intel_root + 'utils/', # for athena-utils
+                       'jarvis/lib/',
+                       'vcl/',
+                       'utils/', # for athena-utils
                        ]
             )
 
 
 testenv = Environment(CPPPATH = [ 'include', 'src', 'utils/include',
-                        intel_root + 'jarvis/include',
-                        intel_root + 'jarvis/util', ],
+                        'jarvis/include',
+                        'jarvis/util', ],
                         CXXFLAGS="-std=c++11 -O3")
 
 test_sources = [ 'tests/main.cc',
@@ -61,6 +60,6 @@ query_tests = testenv.Program( 'tests/query_tests',
                     LIBS = ['jarvis', 'jarvis-util', 'jsoncpp',
                             'athena-utils', 'protobuf', 'gtest', 'pthread' ],
                     LIBPATH = ['/usr/local/lib/',
-                       intel_root + 'utils/', # for athena-utils
-                       intel_root + 'jarvis/lib/' ]
+                       'utils/', # for athena-utils
+                       'jarvis/lib/' ]
                    )
