@@ -1,0 +1,64 @@
+# Import('env')
+
+def compileProtoFiles(utils_env):
+  #Compile .proto file to generate protobuf files (.h and .cc).
+
+  #TODO: This is a bit hacky, but will fail otherwise.
+  proto1 = utils_env.Command (
+             ['include/protobuf/queryMessage.pb.h',
+              'src/protobuf/queryMessage.pb.cc',
+              '../python/athena/queryMessage_pb2.py',
+             ], # TARGET
+              'src/protobuf/queryMessage.proto', # $SOURCE
+              'protoc \
+              -I=utils/src/protobuf --cpp_out=utils/src/protobuf/ \
+              --python_out=python/athena/  $SOURCE && \
+              mv utils/src/protobuf/queryMessage.pb.h \
+                 utils/include/protobuf/queryMessage.pb.h'
+              )
+
+  protoPMGD = utils_env.Command (
+             ['src/protobuf/pmgdMessages.pb.h',
+              'src/protobuf/pmgdMessages.pb.cc',
+             ], # TARGET
+              'src/protobuf/pmgdMessages.proto', # $SOURCE
+              'protoc \
+              -I=utils/src/protobuf --cpp_out=utils/src/protobuf/ $SOURCE && \
+              mv utils/src/protobuf/pmgdMessages.pb.h \
+                 utils/include/protobuf/pmgdMessages.pb.h'
+              )
+
+utils_env = Environment(CPPPATH=
+                          ['include/comm',
+                           'include/protobuf',
+                           'include/chrono',
+                           'include', 'src'],
+                        CXXFLAGS="-std=c++11")
+
+comm_cc = ['src/comm/Connection.cc',
+           'src/comm/ConnServer.cc',
+           'src/comm/ConnClient.cc',
+           'src/comm/Exception.cc',
+          ]
+
+compileProtoFiles(utils_env)
+
+protobuf_cc = ['src/protobuf/queryMessage.pb.cc',
+               'src/protobuf/pmgdMessages.pb.cc']
+
+chrono_cc = ['src/chrono/Chrono.cc']
+
+utils_source_files = [comm_cc, protobuf_cc, chrono_cc]
+
+utils_env.ParseConfig('pkg-config --cflags --libs protobuf')
+utils_env.SharedLibrary('athena-utils', utils_source_files)
+
+# Comm Testing
+comm_test_env = Environment(CPPPATH=['include/comm'],
+                            CXXFLAGS="-std=c++11")
+
+comm_test_source_files = "test/comm/UnitTests.cc";
+comm_test_env.Program('test/comm/comm_test', comm_test_source_files,
+            LIBS = ['libathena-utils', 'pthread', 'gtest'],
+            LIBPATH = ['.']
+            )

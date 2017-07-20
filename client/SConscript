@@ -1,8 +1,6 @@
 # We need to add this dependecy.
 # utils = SConscript(['utils/SConstruct'])
 
-intel_root='/opt/intel/'
-
 client_env = Environment(CPPPATH = [ '../utils/include' ],
                         CXXFLAGS="-std=c++11 -O3")
 
