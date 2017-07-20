@@ -1,14 +1,24 @@
 # We need to add this dependecy.
 # utils = SConscript(['utils/SConstruct'])
+import os
+
+# Set INTEL_PATH. First check arguments, then enviroment, then default
+if ARGUMENTS.get("INTEL_PATH", '') != '':
+  intel_path = ARGUMENTS.get("INTEL_PATH", '')
+elif os.environ.get('INTEL_PATH', '') != '':
+  intel_path = os.environ.get('INTEL_PATH', '')
+else:
+  intel_path = './'
+
 client = SConscript(['client/SConstruct'])
 
 env = Environment(CPPPATH= ['include', 'src',
-                        'utils/include',
                         '/usr/include/jsoncpp/',
-                        'jarvis/include',
-                        'jarvis/util',
-                        'vcl/include',
-                        'utils/include',],
+                        'utils/include',
+                        intel_path + 'jarvis/include',
+                        intel_path + 'jarvis/util',
+                        intel_path + 'vcl/include',
+                        ],
                         CXXFLAGS="-std=c++11 -O3")
 
 athena_common_files = [
@@ -38,16 +48,16 @@ athena = env.Program('athena', [ athena_common_files, athena_server_files ] ,
                 'opencv_imgproc'
                 ],
             LIBPATH = ['/usr/local/lib/',
-                       'jarvis/lib/',
-                       'vcl/',
                        'utils/', # for athena-utils
+                       intel_path + 'jarvis/lib/',
+                       intel_path + 'vcl/',
                        ]
             )
 
 
 testenv = Environment(CPPPATH = [ 'include', 'src', 'utils/include',
-                        'jarvis/include',
-                        'jarvis/util', ],
+                        intel_path + 'jarvis/include',
+                        intel_path + 'jarvis/util', ],
                         CXXFLAGS="-std=c++11 -O3")
 
 test_sources = [ 'tests/main.cc',
@@ -61,5 +71,5 @@ query_tests = testenv.Program( 'tests/query_tests',
                             'athena-utils', 'protobuf', 'gtest', 'pthread' ],
                     LIBPATH = ['/usr/local/lib/',
                        'utils/', # for athena-utils
-                       'jarvis/lib/' ]
+                       intel_path + 'jarvis/lib/' ]
                    )
