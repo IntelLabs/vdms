@@ -77,7 +77,7 @@ std::basic_string<uint8_t> Connection::recv_message()
 
         while (bytes_recv < size) {
 
-            int ret = ::recv(_socket_fd, (void*)(buffer + bytes_recv),
+            int ret = ::recv(_socket_fd, (void*)((char*)buffer + bytes_recv),
                     size - bytes_recv, flags);
 
             if (ret < 0) {
