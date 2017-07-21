@@ -37,7 +37,7 @@ class Athena(object):
         quer.json = query_JSON
 
         for im in img_array:
-            quer.blobs.extend([im])
+            quer.blobs.extend(im)
 
         # Serialize with protobuf and send
         # start = time.time()
@@ -54,7 +54,12 @@ class Athena(object):
         # Recieve response
         recv_len = self.conn.recv(4)
         recv_len = struct.unpack('@I', recv_len)[0]
-        response = self.conn.recv(recv_len)
+        response = ''
+        while len(response) < recv_len:
+            packet = self.conn.recv(recv_len - len(response))
+            if not packet:
+                return None
+            response += packet
 
         querRes = queryMessage_pb2.queryMessage()
         querRes.ParseFromString(response)

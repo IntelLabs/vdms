@@ -4,7 +4,7 @@ def compileProtoFiles(utils_env):
   #Compile .proto file to generate protobuf files (.h and .cc).
 
   #TODO: This is a bit hacky, but will fail otherwise.
-  proto1 = utils_env.Command (
+  protoQuery = utils_env.Command (
              ['include/protobuf/queryMessage.pb.h',
               'src/protobuf/queryMessage.pb.cc',
               '../python/athena/queryMessage_pb2.py',
@@ -18,7 +18,7 @@ def compileProtoFiles(utils_env):
               )
 
   protoPMGD = utils_env.Command (
-             ['src/protobuf/pmgdMessages.pb.h',
+             ['include/protobuf/pmgdMessages.pb.h',
               'src/protobuf/pmgdMessages.pb.cc',
              ], # TARGET
               'src/protobuf/pmgdMessages.proto', # $SOURCE
