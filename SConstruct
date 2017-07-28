@@ -1,7 +1,8 @@
 # We need to add this dependecy.
 import os
 
-def buildServer(intel_path):
+
+def buildServer(intel_path, lib_paths):
   env = Environment(CPPPATH= ['include', 'src',
                           '/usr/include/jsoncpp/',
                           'utils/include',
@@ -36,15 +37,12 @@ def buildServer(intel_path):
                   'opencv_highgui',
                   'opencv_imgproc'
                   ],
-              LIBPATH = ['/usr/local/lib/',
-                         'utils/', # for athena-utils
-                         intel_path + 'jarvis/lib/',
-                         intel_path + 'vcl/',
-                         ]
+              LIBPATH = libs_paths
               )
 
   testenv = Environment(CPPPATH = [ 'include', 'src', 'utils/include',
                           intel_path + 'jarvis/include',
+                          intel_path + 'vcl/include',
                           intel_path + 'jarvis/util', ],
                           CXXFLAGS="-std=c++11 -O3")
 
@@ -53,19 +51,18 @@ def buildServer(intel_path):
                    'tests/json_query_test.cc'
                  ]
 
-  query_tests = testenv.Program( 'tests/query_tests',
-                                  ['src/QueryHandler.o',
-                                  'src/SearchExpression.o',
-                                  'src/PMGDQueryHandler.o',
-                                  'src/CommandHandler.o',
-                                  test_sources ],
-                      LIBS = ['jarvis', 'jarvis-util', 'jsoncpp',
-                              'athena-utils', 'protobuf',
-                              'gtest', 'pthread' ],
-                      LIBPATH = ['/usr/local/lib/',
-                           'utils/', # for athena-utils
-                         intel_path + 'jarvis/lib/' ]
-                     )
+  query_tests = testenv.Program(
+                  'tests/query_tests',
+                  ['src/QueryHandler.o',
+                  'src/SearchExpression.o',
+                  'src/PMGDQueryHandler.o',
+                  'src/CommandHandler.o',
+                  test_sources ],
+                  LIBS = ['jarvis', 'jarvis-util', 'jsoncpp',
+                          'athena-utils', 'protobuf', 'vclimage',
+                          'gtest', 'pthread' ],
+                  LIBPATH = libs_paths
+                 )
 
 # Set INTEL_PATH. First check arguments, then enviroment, then default
 if ARGUMENTS.get('INTEL_PATH', '') != '':
@@ -75,11 +72,16 @@ elif os.environ.get('INTEL_PATH', '') != '':
 else:
   intel_path = './'
 
+libs_paths = ['/usr/local/lib/',
+               intel_path + 'athena/utils/',
+               intel_path + 'vcl/',
+               intel_path + 'jarvis/lib/' ]
+
 utils  = SConscript(os.path.join('utils', 'SConscript'))
 client = SConscript(os.path.join('client','SConscript'))
 
 if not ARGUMENTS.get('BUILD_SERVER', False):
-  buildServer(intel_path)
+  buildServer(intel_path, libs_paths)
 
 
 

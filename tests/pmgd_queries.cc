@@ -7,6 +7,8 @@
 #include "jarvis.h"
 #include "PMGDQueryHandler.h"
 
+#include <stdlib.h>     /* system, NULL, EXIT_FAILURE */
+
 using namespace pmgd;
 // TODO Need the following namespace just for now.
 using namespace Jarvis;
@@ -50,6 +52,7 @@ TEST(PMGDQueryHandler, addTest)
 {
     printf("Testing PMGD add protobuf handler\n");
 
+    int ret = system("rm -r qhgraph");
     Graph db("qhgraph", Graph::Create);
 
     // Since PMGD is still single threaded, provide a lock for the DB
