@@ -15,11 +15,13 @@ using namespace Jarvis;
 using namespace std;
 
 TEST(QueryHandler, addTest){
-  cout << "Testing Query handler add protobufs";
+  //cout << "Testing Query handler add protobufs\n";
   std::ifstream ifile;
   int fsize;
   char * inBuf;
+   std::cout<<"FILE OPEND"<<std::endl;
   ifile.open("query_sample.json", std::ifstream::in);
+  std::cout<<"FILE OPEND"<<std::endl;
   ifile.seekg(0, std::ios::end);
   fsize = (int)ifile.tellg();
   ifile.seekg(0, std::ios::beg);
@@ -28,6 +30,7 @@ TEST(QueryHandler, addTest){
   std::string json_query = std::string(inBuf);
   ifile.close();
   delete[] inBuf;
+  std::cout<<json_query<<std::endl;
 
   Graph db("jsongraph", Graph::Create);
 

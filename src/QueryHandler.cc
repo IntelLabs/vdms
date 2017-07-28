@@ -1,142 +1,129 @@
 #include <string>
 #include "QueryHandler.h"
-
+//map
 using namespace athena;
 
 QueryHandler::QueryHandler(Jarvis::Graph *db, std::mutex *mtx)
     : _pmgd_qh(db, mtx)
-{ }
-
-void QueryHandler::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds, Json::Value root, int txid)
 {
-    const Json::Value& queries = root ["Query"]; // array of characters
-    std::cout<<"Query Size is "<<queries.size(); //iterate over the query elements
-    for (int j = 0; j < queries.size(); j++){ //iterate over the list of the queries
-        const Json::Value& query=queries[j];
-        for(int i = 0;i < query.getMemberNames().size(); i++) { //iterate over the individual query
-            const Json::Value json_Node= queries[j]["AddNode"]; //the json Node
-            const Json::Value json_Edge= queries[j]["AddEdge"]; //the json Edge
-            std::string cmd = query.getMemberNames()[i];
-            if (cmd == "Query") {
-                Json::Value error;
-                error["return"] = "Query not supported";
-            }
+_rs_cmds.insert( std::pair<std::string,RSCommand*
+    > ("AddNode", new AddNode()));
 
-            if (cmd == "AddNode") {
-                pmgd::protobufs::Command* cmdadd = new  pmgd::protobufs::Command();
-                cmdadd->set_cmd_id(pmgd::protobufs::Command::AddNode);
-                cmdadd->set_tx_id(txid);
-                pmgd::protobufs::AddNode *an = cmdadd->mutable_add_node();
-                if(json_Node.isMember("clientId"))
-                    an->set_identifier(json_Node["clientId"].asUInt());
-                pmgd::protobufs::Node *n = an->mutable_node();
+_rs_cmds.insert( std::pair<std::string,RSCommand*
+        > ("AddEdge", new AddEdge()));
+    std::cout<<_rs_cmds.size()<<"*****///\n";
+ //initilaze the map
 
-                if (json_Node.isMember("tag")){
-                    n->set_tag(json_Node["tag"].asCString());
-                }
-                if (json_Node.isMember("properties")){ //iterate over the properties of nodes
-                    std::cout<<" Properties"<<json_Node["properties"].size()<<"\n";
-                    const Json::Value node_properties = json_Node["properties"]; //take the sub-object of the properties
+ }
 
-                    for(  auto itr = node_properties.begin() ; itr != node_properties.end() ; itr++ ){
-                        pmgd::protobufs::Property *p = n->add_properties();
+void RSCommand::check_properties_type(pmgd::protobufs::Property *p,    const char * key , Json::Value val){
 
-                        if ((*itr).isString()){
-                            p->set_type(pmgd::protobufs::Property::StringType);
-                            p->set_key(itr.key().asCString() );
-                            p->set_string_value((*itr).asString());
-                        }
+    if (val.isString()){
+        p->set_type(pmgd::protobufs::Property::StringType);
+        p->set_key(key);
+        p->set_string_value(val.asString());
+    }
+    else if( ((val).isInt() )){
+        p->set_type(pmgd::protobufs::Property::IntegerType);
+        p->set_key(key);
+        p->set_int_value(val.asInt());
+    }
 
-                        else if( ((*itr).isInt() )){
-                            p->set_type(pmgd::protobufs::Property::IntegerType);
-                            p->set_key(itr.key().asCString() );
-                            p->set_int_value((*itr).asInt());
-                        }
+    else if( ((val).isBool() )){
+        p->set_type(pmgd::protobufs::Property::BooleanType);
+        p->set_key(key);
+        p->set_bool_value(val.asBool());
+    }
 
-                        else if( ((*itr).isBool() )){
-                            p->set_type(pmgd::protobufs::Property::BooleanType);
-                            p->set_key(itr.key().asCString() );
-                            p->set_bool_value((*itr).asBool());
-                        }
-
-                        else if( ((*itr).isDouble() )){
-                            p->set_type(pmgd::protobufs::Property::FloatType);
-                            p->set_key(itr.key().asCString() );
-                            p->set_float_value((*itr).asDouble());
-                        }
-                        else
-                            printf( "unknown type=[%d]", itr.key().type() );
-                    } //nodes properties
-                }
-
-                cmds.push_back(cmdadd);
-
-            }
-
-            if (cmd == "AddEdge") {
-                pmgd::protobufs::Command* cmdedge =new pmgd::protobufs::Command();
-                cmdedge->set_tx_id(txid);
-
-                cmdedge->set_cmd_id(pmgd::protobufs::Command::AddEdge);
-                pmgd::protobufs::AddEdge *ae = cmdedge->mutable_add_edge();
-                if(json_Edge.isMember("clientId"))
-                    ae->set_identifier(json_Edge["clientId"].asUInt());
-
-                pmgd::protobufs::Edge *e = ae->mutable_edge();
-                if(json_Edge.isMember("sourceId"))
-                    e->set_src(json_Edge["sourceId"].asInt() );
-                if(json_Edge.isMember("destId"))
-                    e->set_dst(json_Edge["destId"].asUInt());
-                if(json_Edge.isMember("tag"))
-                    e->set_tag(json_Edge["tag"].asCString());
-
-                if (json_Edge.isMember("properties")) { //iterate over the properties of nodes
-                    const Json::Value properties = json_Edge["properties"]; //take the sub-object of the properties
-
-                    for(  auto itr = properties.begin() ; itr != properties.end() ; itr++ ) {
-                        //checking the property value type in the follwoing if statement:
-                        pmgd::protobufs::Property *p = e->add_properties();
-                        if ((*itr).isString()){
-                            p->set_type(pmgd::protobufs::Property::StringType);
-                            p->set_key(itr.key().asCString());
-                            p->set_string_value((*itr).asString());
-                        }
-                        else if( ((*itr).isInt() )){
-                            p->set_type(pmgd::protobufs::Property::IntegerType);
-                            p->set_key(itr.key().asCString() );
-                            p->set_int_value((*itr).asInt());
-                        }
-
-                        else if( ((*itr).isBool() )){
-                            p->set_type(pmgd::protobufs::Property::BooleanType);
-                            p->set_key(itr.key().asCString() );
-                            p->set_bool_value((*itr).asBool());
-                        }
-
-                        else if( ((*itr).isDouble() )){
-                            p->set_type(pmgd::protobufs::Property::FloatType);
-                            p->set_key(itr.key().asCString() );
-                            p->set_float_value((*itr).asDouble());
-                            //  p = e->add_properties();
-                            std::cout <<"here is the "<<itr.key().asCString() << "\t" << *itr << "\n";
-                        }
-                    } // edge properties
-                }
-
-                cmds.push_back(cmdedge);
-            } //AddEdge
-            else if(cmd == "QueryNode") {
-                std::cout<<"Query Nodes"<<std::endl;
-
-            }
-            else
-                std::cout<<"This case is not covered\n";
-
-        }
+    else if( ((val).isDouble() )){
+        p->set_type(pmgd::protobufs::Property::FloatType);
+        p->set_key(key);
+        p->set_float_value(val.asDouble());
+        //  p = e->add_properties();
+        std::cout <<"here is the "<<key << "\t" << val << "\n";
     }
 
 
+
 }
+
+
+int AddNode::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds, const Json::Value json_Node, int txid){ //addNode command constructor
+   pmgd::protobufs::Command* cmdadd = new  pmgd::protobufs::Command();
+
+    cmdadd->set_cmd_id(pmgd::protobufs::Command::AddNode);
+    cmdadd->set_tx_id(txid);
+    std::cout<<"AddNode-Protobuff"<<std::endl;
+    //this->construct_protobuf(cmdadd,json_Node,txid);
+
+    cmdadd->set_cmd_id(pmgd::protobufs::Command::AddNode);
+    cmdadd->set_tx_id(txid);
+    pmgd::protobufs::AddNode *an = cmdadd->mutable_add_node();
+    if(json_Node.isMember("clientId"))
+        an->set_identifier(json_Node["clientId"].asUInt());
+      pmgd::protobufs::Node *n = an->mutable_node();
+
+    if (json_Node.isMember("tag")){
+        n->set_tag(json_Node["tag"].asCString());
+    }
+    if (json_Node.isMember("properties")){ //iterate over the properties of nodes
+        std::cout<<" Properties"<<json_Node["properties"].size()<<"\n";
+        const Json::Value node_properties = json_Node["properties"]; //take the sub-object of the properties
+
+        for(  Json::ValueConstIterator itr = node_properties.begin() ; itr != node_properties.end() ; itr++ ){
+            pmgd::protobufs::Property *p = n->add_properties();
+    // Checking the properties
+    check_properties_type(p, itr.key().asCString(), *itr);
+
+        } //nodes properties
+    }
+
+    std::cout<<"******AddNode*****\n";
+    cmds.push_back(cmdadd);
+    return 1;
+
+}
+
+int AddEdge::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds, const Json::Value json_Edge, int txid){
+    pmgd::protobufs::Command* cmdedge =new pmgd::protobufs::Command();
+
+    cmdedge->set_tx_id(txid);
+
+    cmdedge->set_cmd_id(pmgd::protobufs::Command::AddEdge);
+    pmgd::protobufs::AddEdge *ae = cmdedge->mutable_add_edge();
+    if(json_Edge.isMember("clientId"))
+        ae->set_identifier(json_Edge["clientId"].asUInt());
+
+    pmgd::protobufs::Edge *e = ae->mutable_edge();
+    if(json_Edge.isMember("sourceId"))
+        e->set_src(json_Edge["sourceId"].asInt() );
+    if(json_Edge.isMember("destId"))
+        e->set_dst(json_Edge["destId"].asUInt());
+    if(json_Edge.isMember("tag"))
+        e->set_tag(json_Edge["tag"].asCString());
+        if (json_Edge.isMember("properties")){ //iterate over the properties of nodes
+            std::cout<<" Properties"<<json_Edge["properties"].size()<<"\n";
+            const Json::Value edge_properties = json_Edge["properties"]; //take the sub-object of the properties
+
+            for(  Json::ValueConstIterator itr = edge_properties.begin() ; itr != edge_properties.end() ; itr++ ){
+                pmgd::protobufs::Property *p = e->add_properties();
+        // Checking the properties
+        check_properties_type(p, itr.key().asCString(), *itr);
+
+            } //nodes properties
+        }
+     cmds.push_back(cmdedge);
+    std::cout<<"******AddEdge*****\n";
+    return 1;
+}
+
+Json::Value AddNode::send_response(){}
+
+Json::Value AddEdge::send_response(){}
+
+
+
+
 
 void QueryHandler::process_query(std::string json_query)
 {
@@ -165,8 +152,14 @@ void QueryHandler::process_query(std::string json_query)
         }
         else {
             std::cout<<"\nPasing successful and the root size is  "<<parsingSuccessful<<"\t"<<root.size()<<std::endl;
-            construct_protobuf( cmds, root,txid); //this a function to bulid the protobuf fpr each json object
-            std::cout<<"parsing and protobufs converting Successful:"<<parsingSuccessful<<std::endl;
+        //    const Json::Value& queries = root []; // array of characters
+            //std::cout<<"Query Size is "<<queries.size(); //iterate over the query elements
+            for (int j = 0; j < root.size(); j++){ //iterate over the list of the queries
+                const Json::Value& query=root[j];
+                assert (query.getMemberNames().size() == 1);
+                std::string cmd = query.getMemberNames()[0];
+                _rs_cmds[cmd]->construct_protobuf(cmds,query[cmd],1);
+            }
         }
         //the vector is not called by reference
         //this is to push the TxEnd to the cmds vector
