@@ -9,6 +9,7 @@ def buildServer(intel_path, lib_paths):
                           intel_path + 'jarvis/include',
                           intel_path + 'jarvis/util',
                           intel_path + 'vcl/include',
+                          intel_path + 'vcl/src',
                           ],
                           CXXFLAGS="-std=c++11 -O3")
 
@@ -43,6 +44,7 @@ def buildServer(intel_path, lib_paths):
   testenv = Environment(CPPPATH = [ 'include', 'src', 'utils/include',
                           intel_path + 'jarvis/include',
                           intel_path + 'vcl/include',
+                          intel_path + 'vcl/src',
                           intel_path + 'jarvis/util', ],
                           CXXFLAGS="-std=c++11 -O3")
 
@@ -73,7 +75,7 @@ else:
   intel_path = './'
 
 libs_paths = ['/usr/local/lib/',
-               intel_path + 'athena/utils/',
+               intel_path + 'utils/',
                intel_path + 'vcl/',
                intel_path + 'jarvis/lib/' ]
 
