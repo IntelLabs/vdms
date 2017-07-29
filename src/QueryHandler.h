@@ -13,13 +13,15 @@
 #include <jsoncpp/json/value.h>
 
 namespace athena {
-    // Instance created per worker thread to handle all transactions on a given
-    // connection.
-
-    class RSCommand {
+    // Helper classes for handling various JSON commands.
+    class RSCommand 
+    {
+    protected:
+         void set_property(pmgd::protobufs::Property *p,
+                                    const char * prop_name,
+                                    Json::Value );
 
     public:
-
         virtual int construct_protobuf(
                             std::vector<pmgd::protobufs::Command*> &cmds,
                             const Json::Value& root,
@@ -30,54 +32,48 @@ namespace athena {
 
         void run_operations(VCL::Image& vclimg, const Json::Value& op);
 
-        virtual bool need_blob(){return false;}
-    protected:
-         void check_properties_type(pmgd::protobufs::Property *p,
-                                    const char * prop_name,
-                                    Json::Value );
+        virtual bool need_blob() { return false; }
      };
 
     // Low-level API
-    class AddNode: public RSCommand {
-
+    class AddNode : public RSCommand
+    {
     public:
         int construct_protobuf( std::vector<pmgd::protobufs::Command*> &cmds,
                                 const Json::Value& root,
                                 const std::string& blob,
                                 int txid);
-
-        bool need_blob(){return false;}
         // Json::Value send_response();
     };
 
-    class AddEdge: public RSCommand {
-
+    class AddEdge : public RSCommand
+    {
     public:
         int construct_protobuf( std::vector<pmgd::protobufs::Command*> &cmds,
                                 const Json::Value& root,
                                 const std::string& blob,
                                 int txid);
-        bool need_blob(){return false;}
         // Json::Value send_response();
     };
 
     // High-level API
-    class AddImage: public RSCommand {
-
+    class AddImage: public RSCommand
+    {
     public:
         int construct_protobuf( std::vector<pmgd::protobufs::Command*> &cmds,
                                 const Json::Value& root,
                                 const std::string& blob,
                                 int txid);
-        bool need_blob(){return true;}
+        bool need_blob() { return true; }
         // Json::Value send_response();
     };
 
+    // Instance created per worker thread to handle all transactions on a given
+    // connection.
     class QueryHandler
     {
         PMGDQueryHandler _pmgd_qh;
         std::unordered_map<std::string, RSCommand *> _rs_cmds;
-
 
     public:
         QueryHandler(Jarvis::Graph *db, std::mutex *mtx);

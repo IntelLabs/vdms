@@ -26,7 +26,7 @@ QueryHandler::QueryHandler(Jarvis::Graph *db, std::mutex *mtx)
     _rs_cmds["AddImage"] = new AddImage();
 }
 
-void RSCommand::check_properties_type(pmgd::protobufs::Property *p,
+void RSCommand::set_property(pmgd::protobufs::Property *p,
     const char * key , Json::Value val){
 
     if (val.isString()){
@@ -82,7 +82,7 @@ int AddNode::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
         for(  Json::ValueConstIterator itr = node_properties.begin() ; itr != node_properties.end() ; itr++ ){
             pmgd::protobufs::Property *p = n->add_properties();
             // Checking the properties
-            check_properties_type(p, itr.key().asCString(), *itr);
+            set_property(p, itr.key().asCString(), *itr);
 
         } //nodes properties
     }
@@ -123,7 +123,7 @@ int AddEdge::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
                 itr != edge_properties.end() ; itr++ ) {
             pmgd::protobufs::Property *p = e->add_properties();
             // Checking the properties
-            check_properties_type(p, itr.key().asCString(), *itr);
+            set_property(p, itr.key().asCString(), *itr);
         } //nodes properties
     }
     cmds.push_back(cmdedge);
