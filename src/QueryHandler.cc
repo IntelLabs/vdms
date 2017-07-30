@@ -353,13 +353,14 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
         cmdtx.set_tx_id(txid); //give it an ID
         cmds.push_back(&cmdtx); //push the creating command to the vector
 
-        unsigned blob_count = 0;
+        unsigned blob_count = 0, query_count = 0;
 
         //iterate over the list of the queries
-        for (int j = 0; j < root.size(); j++){
-            const Json::Value& query=root[j];
+        for (int j = 0; j < root.size(); j++) {
+            const Json::Value& query = root[j];
             assert (query.getMemberNames().size() == 1);
             std::string cmd = query.getMemberNames()[0];
+            query_count++;
 
             if (_rs_cmds[cmd]->need_blob()) {
                 assert (proto_query.blobs().size() >= blob_count);
@@ -380,8 +381,8 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
         cmds.push_back(&cmdtxend);
 
         // execute the queries using the PMGDQueryHandler object
-        std::vector<pmgd::protobufs::CommandResponse *> pmgd_responses =
-                            _pmgd_qh.process_queries(cmds);
+        std::vector<std::vector<pmgd::protobufs::CommandResponse *>> pmgd_responses =
+                            _pmgd_qh.process_queries(cmds, query_count);
 
         // //iterate over the list of the queries to generate responses
         // for (int j = 0; j < root.size(); j++){

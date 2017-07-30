@@ -62,23 +62,26 @@ TEST(PMGDQueryHandler, addTest)
     vector<protobufs::Command *> cmds;
 
     {
-        int txid = 1, patientid = 1, eid = 1;
+        int txid = 1, patientid = 1, eid = 1, query_count = 0;
         protobufs::Command cmdtx;
         cmdtx.set_cmd_id(protobufs::Command::TxBegin);
         cmdtx.set_tx_id(txid);
         cmds.push_back(&cmdtx);
+        query_count++;
 
         protobufs::Command cmdadd;
         cmdadd.set_tx_id(txid);
         add_patient(cmdadd, patientid++, "John Doe", 86, "Sat Nov 1 18:59:24 PDT 1930",
                   "john.doe@abc.com", MALE);
         cmds.push_back(&cmdadd);
+        query_count++;
 
         protobufs::Command cmdadd1;
         cmdadd1.set_tx_id(txid);
         add_patient(cmdadd1, patientid++, "Jane Doe", 80, "Sat Oct 1 17:59:24 PDT 1936",
                   "jane.doe@abc.com", FEMALE);
         cmds.push_back(&cmdadd1);
+        query_count++;
 
         protobufs::Command cmdedge1;
         cmdedge1.set_tx_id(txid);
@@ -94,18 +97,21 @@ TEST(PMGDQueryHandler, addTest)
         p->set_key("Since");
         p->set_time_value("Sat Sep 1 19:59:24 PDT 1956");
         cmds.push_back(&cmdedge1);
+        query_count++;
 
         protobufs::Command cmdadd2;
         cmdadd2.set_tx_id(txid);
         add_patient(cmdadd2, patientid++, "Alice Crypto", 70, "Sat Nov 1 17:59:24 PDT 1946",
                   "alice.crypto@xyz.com", FEMALE);
         cmds.push_back(&cmdadd2);
+        query_count++;
 
         protobufs::Command cmdadd3;
         cmdadd3.set_tx_id(txid);
         add_patient(cmdadd3, patientid++, "Bob Crypto", 70, "Sat Nov 30 7:59:24 PDT 1946",
                   "bob.crypto@xyz.com", MALE);
         cmds.push_back(&cmdadd3);
+        query_count++;
 
         protobufs::Command cmdedge2;
         cmdedge2.set_tx_id(txid);
@@ -121,23 +127,28 @@ TEST(PMGDQueryHandler, addTest)
         p->set_key("Since");
         p->set_time_value("Wed Dec 2 19:59:24 PDT 1970");
         cmds.push_back(&cmdedge2);
+        query_count++;
 
         protobufs::Command cmdtxcommit;
         cmdtxcommit.set_cmd_id(protobufs::Command::TxCommit);
         cmdtxcommit.set_tx_id(txid);
         cmds.push_back(&cmdtxcommit);
+        query_count++;
 
-        vector<protobufs::CommandResponse *> responses = qh.process_queries(cmds);
+        vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count);
         int nodeids = 1, edgeids = 1;
-        for (auto it : responses) {
-            ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << "Unsuccessful TX";
-            if (it->r_type() == protobufs::NodeID) {
-                long nodeid = it->op_int_value();
-                EXPECT_EQ(nodeid, nodeids++) << "Unexpected node id";
-            }
-            else if (it->r_type() == protobufs::EdgeID) {
-                long edgeid = it->op_int_value();
-                EXPECT_EQ(edgeid, edgeids++) << "Unexpected edge id";
+        for (int i = 0; i < query_count; ++i) {
+            vector<protobufs::CommandResponse *> response = responses[i];
+            for (auto it : response) {
+                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << "Unsuccessful TX";
+                if (it->r_type() == protobufs::NodeID) {
+                    long nodeid = it->op_int_value();
+                    EXPECT_EQ(nodeid, nodeids++) << "Unexpected node id";
+                }
+                else if (it->r_type() == protobufs::EdgeID) {
+                    long edgeid = it->op_int_value();
+                    EXPECT_EQ(edgeid, edgeids++) << "Unexpected edge id";
+                }
             }
         }
     }
@@ -177,11 +188,12 @@ TEST(PMGDQueryHandler, queryTestList)
     vector<protobufs::Command *> cmds;
 
     {
-        int txid = 1;
+        int txid = 1, query_count = 0;
         protobufs::Command cmdtx;
         cmdtx.set_cmd_id(protobufs::Command::TxBegin);
         cmdtx.set_tx_id(txid);
         cmds.push_back(&cmdtx);
+        query_count++;
 
         protobufs::Command cmdquery;
         cmdquery.set_cmd_id(protobufs::Command::QueryNode);
@@ -204,6 +216,7 @@ TEST(PMGDQueryHandler, queryTestList)
         key = qn->add_response_keys();
         *key = "Age";
         cmds.push_back(&cmdquery);
+        query_count++;
 
         // No need to commit in this case. So just end TX
         protobufs::Command cmdtxend;
@@ -211,25 +224,29 @@ TEST(PMGDQueryHandler, queryTestList)
         cmdtxend.set_cmd_id(protobufs::Command::TxCommit);
         cmdtxend.set_tx_id(txid);
         cmds.push_back(&cmdtxend);
+        query_count++;
 
-        vector<protobufs::CommandResponse *> responses = qh.process_queries(cmds);
+        vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count);
         int nodecount, propcount = 0;
-        for (auto it : responses) {
-            ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << "Unsuccessful TX";
-            if (it->r_type() == protobufs::List) {
-                auto mymap = it->prop_values();
-                for(auto m_it : mymap) {
-                    // Assuming string for now
-                    protobufs::PropertyList &p = m_it.second;
-                    nodecount = 0;
-                    for (int i = 0; i < p.values_size(); ++i) {
-                        print_property(m_it.first, p.values(i));
-                        nodecount++;
+        for (int i = 0; i < query_count; ++i) {
+            vector<protobufs::CommandResponse *> response = responses[i];
+            for (auto it : response) {
+                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                if (it->r_type() == protobufs::List) {
+                    auto mymap = it->prop_values();
+                    for(auto m_it : mymap) {
+                        // Assuming string for now
+                        protobufs::PropertyList &p = m_it.second;
+                        nodecount = 0;
+                        for (int i = 0; i < p.values_size(); ++i) {
+                            print_property(m_it.first, p.values(i));
+                            nodecount++;
+                        }
+                        propcount++;
                     }
-                    propcount++;
                 }
+                printf("\n");
             }
-            printf("\n");
         }
         EXPECT_EQ(nodecount, 2) << "Not enough nodes found";
         EXPECT_EQ(propcount, 2) << "Not enough properties read";
@@ -249,11 +266,12 @@ TEST(PMGDQueryHandler, queryTestAverage)
     vector<protobufs::Command *> cmds;
 
     {
-        int txid = 1;
+        int txid = 1, query_count = 0;
         protobufs::Command cmdtx;
         cmdtx.set_cmd_id(protobufs::Command::TxBegin);
         cmdtx.set_tx_id(txid);
         cmds.push_back(&cmdtx);
+        query_count++;
 
         protobufs::Command cmdquery;
         cmdquery.set_cmd_id(protobufs::Command::QueryNode);
@@ -265,6 +283,7 @@ TEST(PMGDQueryHandler, queryTestAverage)
         string *key = qn->add_response_keys();
         *key = "Age";
         cmds.push_back(&cmdquery);
+        query_count++;
 
         // No need to commit in this case. So just end TX
         protobufs::Command cmdtxend;
@@ -272,12 +291,16 @@ TEST(PMGDQueryHandler, queryTestAverage)
         cmdtxend.set_cmd_id(protobufs::Command::TxCommit);
         cmdtxend.set_tx_id(txid);
         cmds.push_back(&cmdtxend);
+        query_count++;
 
-        vector<protobufs::CommandResponse *> responses = qh.process_queries(cmds);
-        for (auto it : responses) {
-            ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
-            if (it->r_type() == protobufs::Average) {
-                EXPECT_EQ(it->op_float_value(), 76.5) << "Average didn't match expected for four patients' age";
+        vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count);
+        for (int i = 0; i < query_count; ++i) {
+            vector<protobufs::CommandResponse *> response = responses[i];
+            for (auto it : response) {
+                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                if (it->r_type() == protobufs::Average) {
+                    EXPECT_EQ(it->op_float_value(), 76.5) << "Average didn't match expected for four patients' age";
+                }
             }
         }
     }
@@ -296,11 +319,12 @@ TEST(PMGDQueryHandler, queryNeighborTestList)
     vector<protobufs::Command *> cmds;
 
     {
-        int txid = 1;
+        int txid = 1, query_count = 0;
         protobufs::Command cmdtx;
         cmdtx.set_cmd_id(protobufs::Command::TxBegin);
         cmdtx.set_tx_id(txid);
         cmds.push_back(&cmdtx);
+        query_count++;
 
         protobufs::Command cmdquery;
         cmdquery.set_cmd_id(protobufs::Command::QueryNeighbor);
@@ -331,6 +355,7 @@ TEST(PMGDQueryHandler, queryNeighborTestList)
         string *key = qnb->add_response_keys();
         *key = "Name";
         cmds.push_back(&cmdquery);
+        query_count++;
 
         // No need to commit in this case. So just end TX
         protobufs::Command cmdtxend;
@@ -338,25 +363,29 @@ TEST(PMGDQueryHandler, queryNeighborTestList)
         cmdtxend.set_cmd_id(protobufs::Command::TxCommit);
         cmdtxend.set_tx_id(txid);
         cmds.push_back(&cmdtxend);
+        query_count++;
 
-        vector<protobufs::CommandResponse *> responses = qh.process_queries(cmds);
+        vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count);
         int nodecount, propcount = 0;
-        for (auto it : responses) {
-            ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
-            if (it->r_type() == protobufs::List) {
-                auto mymap = it->prop_values();
-                for(auto m_it : mymap) {
-                    // Assuming string for now
-                    protobufs::PropertyList &p = m_it.second;
-                    nodecount = 0;
-                    for (int i = 0; i < p.values_size(); ++i) {
-                        print_property(m_it.first, p.values(i));
-                        nodecount++;
+        for (int i = 0; i < query_count; ++i) {
+            vector<protobufs::CommandResponse *> response = responses[i];
+            for (auto it : response) {
+                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                if (it->r_type() == protobufs::List) {
+                    auto mymap = it->prop_values();
+                    for(auto m_it : mymap) {
+                        // Assuming string for now
+                        protobufs::PropertyList &p = m_it.second;
+                        nodecount = 0;
+                        for (int i = 0; i < p.values_size(); ++i) {
+                            print_property(m_it.first, p.values(i));
+                            nodecount++;
+                        }
+                        propcount++;
                     }
-                    propcount++;
                 }
+                printf("\n");
             }
-            printf("\n");
         }
         EXPECT_EQ(nodecount, 2) << "Not enough nodes found";
         EXPECT_EQ(propcount, 1) << "Not enough properties read";
@@ -376,11 +405,12 @@ TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
     vector<protobufs::Command *> cmds;
 
     {
-        int txid = 1;
+        int txid = 1, query_count = 0;
         protobufs::Command cmdtx;
         cmdtx.set_cmd_id(protobufs::Command::TxBegin);
         cmdtx.set_tx_id(txid);
         cmds.push_back(&cmdtx);
+        query_count++;
 
         protobufs::Command cmdquery;
         cmdquery.set_cmd_id(protobufs::Command::QueryNeighbor);
@@ -420,6 +450,7 @@ TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
         string *key = qnb->add_response_keys();
         *key = "Name";
         cmds.push_back(&cmdquery);
+        query_count++;
 
         // No need to commit in this case. So just end TX
         protobufs::Command cmdtxend;
@@ -427,25 +458,29 @@ TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
         cmdtxend.set_cmd_id(protobufs::Command::TxCommit);
         cmdtxend.set_tx_id(txid);
         cmds.push_back(&cmdtxend);
+        query_count++;
 
-        vector<protobufs::CommandResponse *> responses = qh.process_queries(cmds);
+        vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count);
         int nodecount, propcount = 0;
-        for (auto it : responses) {
-            ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
-            if (it->r_type() == protobufs::List) {
-                auto mymap = it->prop_values();
-                for(auto m_it : mymap) {
-                    // Assuming string for now
-                    protobufs::PropertyList &p = m_it.second;
-                    nodecount = 0;
-                    for (int i = 0; i < p.values_size(); ++i) {
-                        print_property(m_it.first, p.values(i));
-                        nodecount++;
+        for (int i = 0; i < query_count; ++i) {
+            vector<protobufs::CommandResponse *> response = responses[i];
+            for (auto it : response) {
+                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                if (it->r_type() == protobufs::List) {
+                    auto mymap = it->prop_values();
+                    for(auto m_it : mymap) {
+                        // Assuming string for now
+                        protobufs::PropertyList &p = m_it.second;
+                        nodecount = 0;
+                        for (int i = 0; i < p.values_size(); ++i) {
+                            print_property(m_it.first, p.values(i));
+                            nodecount++;
+                        }
+                        propcount++;
                     }
-                    propcount++;
                 }
+                printf("\n");
             }
-            printf("\n");
         }
         EXPECT_EQ(nodecount, 1) << "Not enough nodes found";
         EXPECT_EQ(propcount, 1) << "Not enough properties read";
@@ -466,11 +501,12 @@ TEST(PMGDQueryHandler, queryNeighborTestSum)
     vector<protobufs::Command *> cmds;
 
     {
-        int txid = 1;
+        int txid = 1, query_count = 0;
         protobufs::Command cmdtx;
         cmdtx.set_cmd_id(protobufs::Command::TxBegin);
         cmdtx.set_tx_id(txid);
         cmds.push_back(&cmdtx);
+        query_count++;
 
         protobufs::Command cmdquery;
         cmdquery.set_cmd_id(protobufs::Command::QueryNeighbor);
@@ -501,6 +537,7 @@ TEST(PMGDQueryHandler, queryNeighborTestSum)
         string *key = qnb->add_response_keys();
         *key = "Age";
         cmds.push_back(&cmdquery);
+        query_count++;
 
         // No need to commit in this case. So just end TX
         protobufs::Command cmdtxend;
@@ -508,13 +545,17 @@ TEST(PMGDQueryHandler, queryNeighborTestSum)
         cmdtxend.set_cmd_id(protobufs::Command::TxCommit);
         cmdtxend.set_tx_id(txid);
         cmds.push_back(&cmdtxend);
+        query_count++;
 
-        vector<protobufs::CommandResponse *> responses = qh.process_queries(cmds);
+        vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count);
         int nodecount, propcount = 0;
-        for (auto it : responses) {
-            ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
-            if (it->r_type() == protobufs::Sum) {
-                EXPECT_EQ(it->op_int_value(), 150) << "Sum didn't match expected for two patients' age";
+        for (int i = 0; i < query_count; ++i) {
+            vector<protobufs::CommandResponse *> response = responses[i];
+            for (auto it : response) {
+                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                if (it->r_type() == protobufs::Sum) {
+                    EXPECT_EQ(it->op_int_value(), 150) << "Sum didn't match expected for two patients' age";
+                }
             }
         }
     }

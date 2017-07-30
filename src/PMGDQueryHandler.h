@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <unordered_map>
 #include <mutex>
 #include <vector>
 
@@ -25,10 +26,10 @@ namespace athena {
 
         // Map an integer ID to a Node (reset at the end of each transaction).
         // TODO this might have to map to a Global ID in the distributed setting.
-        std::map<int, Jarvis::Node *> mNodes;
+        std::unordered_map<int, Jarvis::Node *> mNodes;
         // Map an integer ID to an Edge (reset at the end of each transaction).
         // TODO this might have to map to a Global ID in the distributed setting.
-        std::map<int, Jarvis::Edge *> mEdges;
+        std::unordered_map<int, Jarvis::Edge *> mEdges;
 
         template <class Element> void set_property(Element &e, const pmgd::protobufs::Property &p);
         void add_node(const pmgd::protobufs::AddNode &cn, pmgd::protobufs::CommandResponse *response);
@@ -45,7 +46,15 @@ namespace athena {
 
         // The vector here can contain just one JL command but will be surrounded by
         // TX begin and end. So just expose one call to the QueryHandler for
-        // the request server
-        std::vector<pmgd::protobufs::CommandResponse *> process_queries(std::vector<pmgd::protobufs::Command *> cmds);
+        // the request server.
+        // The return vector contains an ordered list of query id with
+        // group of commands that correspond to that query.
+        // Pass the number of queries here since that could be different
+        // than the number of commands.
+        // Ensure that the cmd_grp_id, that is the query number are in increasing
+        // order and account for the TxBegin and TxEnd in numbering.
+        std::vector<std::vector<pmgd::protobufs::CommandResponse *>> process_queries(
+                                           std::vector<pmgd::protobufs::Command *> cmds,
+                                           int num_queries);
     };
 };

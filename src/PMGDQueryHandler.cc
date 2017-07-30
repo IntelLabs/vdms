@@ -15,13 +15,16 @@ PMGDQueryHandler::PMGDQueryHandler(Graph *db, std::mutex *mtx)
     _tx = NULL;
 }
 
-std::vector<protobufs::CommandResponse *> PMGDQueryHandler::process_queries(std::vector<protobufs::Command *> cmds)
+std::vector<std::vector<protobufs::CommandResponse *>>
+              PMGDQueryHandler::process_queries(std::vector<protobufs::Command *> cmds,
+              int num_queries)
 {
-    std::vector<protobufs::CommandResponse *> responses;
+    std::vector<std::vector<protobufs::CommandResponse *>> responses(num_queries);
     for (auto cmd : cmds) {
         protobufs::CommandResponse *response = new protobufs::CommandResponse();
         process_query(cmd, response);
-        responses.push_back(response);
+        std::vector<protobufs::CommandResponse *> &resp_v = responses[cmd->cmd_grp_id()];
+        resp_v.push_back(response);
     }
     // TODO Assuming a move rather than vector copy here.
     // Will the response pointers be deleted when the vector goes out of scope?
@@ -32,8 +35,8 @@ void PMGDQueryHandler::process_query(protobufs::Command *cmd,
                                      protobufs::CommandResponse *response)
 {
     try {
-        // TODO: Need a shutdown command for the thread
         int code = cmd->cmd_id();
+        response->set_cmd_grp_id(cmd->cmd_grp_id());
         switch (code) {
             case protobufs::Command::TxBegin:
             {

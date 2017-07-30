@@ -199,11 +199,17 @@ message Command
         QueryNeighbor = 0x32;
     }
 
-    // We will switch over this value
-    CommandId cmd_id = 1;
     // TODO Might need a transaction object here or maybe just another variable
     // to indicate read write etc
-    uint64    tx_id  = 2;
+    uint64    tx_id  = 1;
+
+    // We will switch over this value
+    CommandId cmd_id = 2;
+    // Certain queries could generate multiple PMGD
+    // commands but their responses should be grouped
+    // together. So add a variable to help handle that.
+    // This will be copied to the CommandResponse variable.
+    uint32 cmd_grp_id = 3;
 
     //Since all fields are optional,
     //we define all cmds type here.
@@ -232,9 +238,15 @@ message CommandResponse
     ErrorCode error_code = 1;
     string error_msg = 2;
 
+    // Certain queries could generate multiple PMGD
+    // commands but their responses should be grouped
+    // together. So add a variable to help handle that.
+    // This is copied from the Command variable.
+    uint32 cmd_grp_id = 3;
+
     // In order to help figure how to parse response, re-include
     // what we had expected
-    ResponseType r_type = 3;
+    ResponseType r_type = 4;
 
     // If the query asked for sum/average/count.
     // Average is always float. Sum depends on the type of values
@@ -244,13 +256,13 @@ message CommandResponse
     // In case a list was requested, store the count of matching
     // nodes/edges here.
     oneof op_oneof {
-        uint64 op_int_value = 4;
-        double op_float_value = 5;
+        uint64 op_int_value = 5;
+        double op_float_value = 6;
     }
     // Even though this map should be in the oneof, can't put
     // it there since it is not allowed. So now we use the count
     // in oneof to store how many nodes/edges matched.
     // For the query, multiple nodes could have met the condition
     // and therefore there can be a list per property key.
-    map<string,PropertyList> prop_values = 6;
+    map<string,PropertyList> prop_values = 7;
 }
