@@ -55,17 +55,17 @@ void RSCommand::set_property(pmgd::protobufs::Property *p,
 int AddNode::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
                                 const Json::Value& jsoncmd,
                                 const std::string& blob,
-                                int txid)
+                                int grp_id)
 {
     pmgd::protobufs::Command* cmdadd = new  pmgd::protobufs::Command();
 
     Json::Value aNode = jsoncmd["AddNode"];
 
     cmdadd->set_cmd_id(pmgd::protobufs::Command::AddNode);
-    cmdadd->set_tx_id(txid);
+    cmdadd->set_cmd_grp_id(grp_id);
 
     cmdadd->set_cmd_id(pmgd::protobufs::Command::AddNode);
-    cmdadd->set_tx_id(txid);
+    cmdadd->set_cmd_grp_id(grp_id);
     pmgd::protobufs::AddNode *an = cmdadd->mutable_add_node();
 
     if(aNode.isMember("clientId"))
@@ -94,12 +94,12 @@ int AddNode::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
 int AddEdge::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
                                 const Json::Value& jsoncmd,
                                 const std::string& blob,
-                                int txid)
+                                int grp_id)
 {
     Json::Value aEdge = jsoncmd["AddEdge"];
 
     pmgd::protobufs::Command* cmdedge =new pmgd::protobufs::Command();
-    cmdedge->set_tx_id(txid);
+    cmdedge->set_cmd_grp_id(grp_id);
     cmdedge->set_cmd_id(pmgd::protobufs::Command::AddEdge);
     pmgd::protobufs::AddEdge *ae = cmdedge->mutable_add_edge();
 
@@ -133,7 +133,7 @@ int AddEdge::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
 int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
                                 const Json::Value& jsoncmd,
                                 const std::string& blob,
-                                int txid)
+                                int grp_id)
 {
     Json::Value aImg = jsoncmd["AddImage"];
     Json::Value res;
@@ -144,7 +144,7 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
     // Create PMGD cmd for AddNode
     pmgd::protobufs::Command* cmdadd = new pmgd::protobufs::Command();
     cmdadd->set_cmd_id(pmgd::protobufs::Command::AddNode);
-    cmdadd->set_tx_id(txid);
+    cmdadd->set_cmd_grp_id(grp_id);
     pmgd::protobufs::AddNode *an = cmdadd->mutable_add_node();
 
     // Adds AT:IMAGE node
@@ -344,44 +344,47 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
 
             //defien a vector of commands
         std::vector<pmgd::protobufs::Command *> cmds;
-        int txid = 1; //a flag for this transaction
+        unsigned group_count = 0;
             //this command to start a new transaction
         pmgd::protobufs::Command cmdtx;
             //this the protobuf of new TxBegin
         cmdtx.set_cmd_id(pmgd::protobufs::Command::TxBegin);
-        cmdtx.set_tx_id(txid); //give it an ID
+        cmdtx.set_cmd_grp_id(group_count); //give it an ID
         cmds.push_back(&cmdtx); //push the creating command to the vector
 
-        unsigned blob_count = 0, query_count = 0;
+        unsigned blob_count = 0;
 
         //iterate over the list of the queries
         for (int j = 0; j < root.size(); j++) {
             const Json::Value& query = root[j];
             assert (query.getMemberNames().size() == 1);
             std::string cmd = query.getMemberNames()[0];
-            query_count++;
+            ++group_count;
 
             if (_rs_cmds[cmd]->need_blob()) {
                 assert (proto_query.blobs().size() >= blob_count);
                 std::string blob = proto_query.blobs(blob_count);
-                _rs_cmds[cmd]->construct_protobuf(cmds, query, blob, j);
+                _rs_cmds[cmd]->construct_protobuf(cmds, query, blob,
+                                                  group_count);
                 blob_count++;
             }
             else{
-                _rs_cmds[cmd]->construct_protobuf(cmds, query, "", j);
+                _rs_cmds[cmd]->construct_protobuf(cmds, query, "",
+                                                  group_count);
             }
         }
+        ++group_count;
         //the vector is not called by reference
         //this is to push the TxEnd to the cmds vector
         pmgd::protobufs::Command cmdtxend;
         // Commit here doesn't change anything. Just indicates end of TX
         cmdtxend.set_cmd_id(pmgd::protobufs::Command::TxCommit);
-        cmdtxend.set_tx_id(txid);
+        cmdtxend.set_cmd_grp_id(group_count);
         cmds.push_back(&cmdtxend);
 
         // execute the queries using the PMGDQueryHandler object
         std::vector<std::vector<pmgd::protobufs::CommandResponse *>> pmgd_responses =
-                            _pmgd_qh.process_queries(cmds, query_count);
+                            _pmgd_qh.process_queries(cmds, group_count + 1);
 
         // //iterate over the list of the queries to generate responses
         // for (int j = 0; j < root.size(); j++){

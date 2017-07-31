@@ -82,5 +82,3 @@ SConscript(os.path.join('client','SConscript'), exports=['env'])
 if not ARGUMENTS.get('BUILD_SERVER', False):
   buildServer(intel_path, env)
 
-
-

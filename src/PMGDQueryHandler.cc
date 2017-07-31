@@ -40,7 +40,6 @@ void PMGDQueryHandler::process_query(protobufs::Command *cmd,
         switch (code) {
             case protobufs::Command::TxBegin:
             {
-                int txID = cmd->tx_id();
                 _dblock->lock();
 
                 // TODO: Needs to distinguish transaction parameters like RO/RW
