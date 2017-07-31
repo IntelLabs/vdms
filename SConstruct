@@ -1,17 +1,23 @@
 # We need to add this dependecy.
 import os
 
+def buildServer(intel_path, env):
 
-def buildServer(intel_path, lib_paths):
-  env = Environment(CPPPATH= ['include', 'src',
-                          '/usr/include/jsoncpp/',
-                          'utils/include',
-                          intel_path + 'jarvis/include',
-                          intel_path + 'jarvis/util',
-                          intel_path + 'vcl/include',
-                          intel_path + 'vcl/src',
-                          ],
-                          CXXFLAGS="-std=c++11 -O3")
+  athena_env = env.Clone()
+  athena_env.Append(CPPPATH= ['include', 'src',
+                '/usr/include/jsoncpp/',
+                'utils/include',
+                intel_path + 'jarvis/include',
+                intel_path + 'jarvis/util',
+                intel_path + 'vcl/include',
+                intel_path + 'vcl/src',
+                ])
+
+  libs_paths = ['/usr/local/lib/', 'utils/',
+               intel_path + 'utils/',
+               intel_path + 'vcl/',
+               intel_path + 'jarvis/lib/'
+               ]
 
   athena_server_files = [
                   'src/QueryHandler.cc',
@@ -23,20 +29,13 @@ def buildServer(intel_path, lib_paths):
                   'src/CommunicationManager.cc',
                 ]
 
-  athena = env.Program('athena', athena_server_files,
+  athena = athena_env.Program('athena', athena_server_files,
               LIBS = [
-                  # utils,
                   'jarvis', 'jarvis-util',
                   'jsoncpp',
                   'athena-utils', 'protobuf',
-                  'vclimage', 'pthread',
-                  'opencv_core', 'tiledb',
-                  'z' , 'crypto' ,
-                  'lz4' , 'zstd' ,
-                  'blosc', 'mpi',
-                  'opencv_imgcodecs',
-                  'opencv_highgui',
-                  'opencv_imgproc'
+                  'vcl', 'pthread',
+                  'tiledb',
                   ],
               LIBPATH = libs_paths
               )
@@ -61,7 +60,7 @@ def buildServer(intel_path, lib_paths):
                   'src/CommandHandler.o',
                   test_sources ],
                   LIBS = ['jarvis', 'jarvis-util', 'jsoncpp',
-                          'athena-utils', 'protobuf', 'vclimage',
+                          'athena-utils', 'protobuf', 'vcl',
                           'gtest', 'pthread' ],
                   LIBPATH = libs_paths
                  )
@@ -74,16 +73,14 @@ elif os.environ.get('INTEL_PATH', '') != '':
 else:
   intel_path = './'
 
-libs_paths = ['/usr/local/lib/',
-               intel_path + 'utils/',
-               intel_path + 'vcl/',
-               intel_path + 'jarvis/lib/' ]
+# Enviroment use by all the builds
+env = Environment(CXXFLAGS="-std=c++11 -O3")
 
-utils  = SConscript(os.path.join('utils', 'SConscript'))
-client = SConscript(os.path.join('client','SConscript'))
+SConscript(os.path.join('utils', 'SConscript'), exports=['env'])
+SConscript(os.path.join('client','SConscript'), exports=['env'])
 
 if not ARGUMENTS.get('BUILD_SERVER', False):
-  buildServer(intel_path, libs_paths)
+  buildServer(intel_path, env)
 
 
 

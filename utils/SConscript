@@ -1,4 +1,4 @@
-# Import('env')
+Import('env')
 
 def compileProtoFiles(utils_env):
   #Compile .proto file to generate protobuf files (.h and .cc).
@@ -28,12 +28,13 @@ def compileProtoFiles(utils_env):
                  utils/include/protobuf/pmgdMessages.pb.h'
               )
 
-utils_env = Environment(CPPPATH=
-                          ['include/comm',
-                           'include/protobuf',
-                           'include/chrono',
-                           'include', 'src'],
-                        CXXFLAGS="-std=c++11")
+utils_env = env.Clone()
+utils_env.Append(CPPPATH=
+            ['include/comm',
+             'include/protobuf',
+             'include/chrono',
+             'include', 'src'],
+             )
 
 comm_cc = ['src/comm/Connection.cc',
            'src/comm/ConnServer.cc',
