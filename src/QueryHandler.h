@@ -11,10 +11,12 @@
 
 // Json parsing files
 #include <jsoncpp/json/value.h>
+#include<jsoncpp/json/writer.h>
+#include <jsoncpp/json/json.h>
 
 namespace athena {
     // Helper classes for handling various JSON commands.
-    class RSCommand 
+    class RSCommand
     {
     protected:
          void set_property(pmgd::protobufs::Property *p,
@@ -54,6 +56,14 @@ namespace athena {
                                 const std::string& blob,
                                 int txid);
         // Json::Value send_response();
+    };
+    class QueryNode : public RSCommand{
+    public:
+        int construct_protobuf( std::vector<pmgd::protobufs::Command*> &cmds,
+                                const Json::Value& root,
+                                const std::string& blob,
+                                int txid);
+
     };
 
     // High-level API

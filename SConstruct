@@ -48,7 +48,7 @@ def buildServer(intel_path, env):
                           CXXFLAGS="-std=c++11 -O3")
 
   test_sources = [ 'tests/main.cc',
-                   'tests/pmgd_queries.cc',
+                 # 'tests/pmgd_queries.cc',
                    'tests/json_query_test.cc'
                  ]
 
@@ -81,4 +81,3 @@ SConscript(os.path.join('client','SConscript'), exports=['env'])
 
 if not ARGUMENTS.get('BUILD_SERVER', False):
   buildServer(intel_path, env)
-

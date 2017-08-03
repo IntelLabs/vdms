@@ -1,0 +1,146 @@
+[
+  {
+      "AddNode":
+      {
+
+          "clientId": 1,
+          "tag": "Patient",
+
+          "properties": {
+              "Email":"rst@rashed.com",
+              "Age": 86,
+              "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
+              "name":"Mohammed",
+               "fv": {"_blob":"----ghjhsglfhwa"}
+          }
+      }
+
+  },
+  {
+      "AddNode":
+      {
+          "clientId": 2,
+          "tag": "Patient",
+
+          "properties": {
+              "Email":"gst@raghehed.com1",
+              "Age": 80,
+              "Birthday":{" _date ":"Sat Oct 1 17:59:24 PDT 1936"},
+              "fv":{"_blob" :"----ghjhsglfhwa"},
+               "name": "Khalid"
+
+          }
+      }
+
+  },
+  {
+      "AddEdge":
+      {
+          "clientId": 5,
+          "sourceId" : 1,
+          "destId" : 2,
+          "tag":  "Married",
+          "properties":{
+              "since" : {"_date":"Sat Sep 1 19:59:24 PDT 1956"},
+              "fv": {"_blob":"----ghjhsglfhwa"}
+          }
+      }
+
+  },
+  {
+      "AddNode":
+      {
+
+          "clientId": 3,
+          "tag": "Patient",
+
+          "properties": {
+              "Email":"ast@rashed.com",
+              "Age": 86,
+              "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
+               "Study": false,
+               "avg": 32.4,
+                "name": "Ahmad",
+                "fv": {"_blob":"----ghjhsglfhwa"}
+          }
+      }
+
+  },
+  {
+      "AddNode":
+      {
+          "clientId": 4,
+          "tag": "Patient",
+
+          "properties": {
+              "Email":"qst@raghehed.com1",
+              "Age": 25,
+               "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
+               "Study": true,
+               "avg": 21.6,
+               "name": "Ali",
+                "fv": {"_blob":"----ghjhsglfhwa"}
+
+          }
+      }
+
+  },
+  {
+      "AddEdge":
+      {
+          "clientId": 6,
+          "sourceId" : 3,
+          "destId" : 4,
+          "tag":  "Married",
+          "properties":{
+              "since" : {"_date":"Sat Sep 1 19:59:24 PDT 1956"}
+          }
+      }
+
+  },
+  {
+    "QueryNode" : {
+          "searchId" : 1,
+          "tag" :  "<recognized tag value>",
+          "and" : [
+            {"Key1":  [">=", 20] },
+            {"Key2" : ["<=", 50]}
+
+            ],
+            "results": {
+              "list":["key1", "Key2"],
+              "sum": ["key1"],
+              "average":["K1","K2"],
+              "count": []
+            }
+
+
+     }
+ },
+ {
+   "QueryNode" : {
+         "searchId" : 1,
+         "tag" :  "Patient",
+         "and" : [
+           {"Age":  [">", 20, "<=", 90 ]},
+           {"Email":[">", "g"]}
+
+
+
+
+       ],
+             "results": {
+
+             "list":["Age","name", "Email"]
+
+
+
+
+
+
+             }
+}
+}
+
+
+]

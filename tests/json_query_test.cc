@@ -21,7 +21,7 @@ TEST(QueryHandler, addTest){
   std::ifstream ifile;
   int fsize;
   char * inBuf;
-  ifile.open("query_sample.json", std::ifstream::in);
+  ifile.open("/home/ragaad/athena/tests/Queries.json", std::ifstream::in);
   ifile.seekg(0, std::ios::end);
   fsize = (int)ifile.tellg();
   ifile.seekg(0, std::ios::beg);
