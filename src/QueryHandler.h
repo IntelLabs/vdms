@@ -84,6 +84,7 @@ namespace athena {
     {
         PMGDQueryHandler _pmgd_qh;
         std::unordered_map<std::string, RSCommand *> _rs_cmds;
+        
 
     public:
         QueryHandler(Jarvis::Graph *db, std::mutex *mtx);
