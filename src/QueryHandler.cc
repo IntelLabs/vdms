@@ -5,6 +5,8 @@
 #include "jarvis.h"
 #include "util.h"
 
+#include "AthenaConfig.h"
+
 #include <jsoncpp/json/json.h>
 #include <jsoncpp/json/value.h>
 #include <jsoncpp/json/writer.h>
@@ -12,9 +14,6 @@
 #define ATHENA_IM_TAG           "AT:IMAGE"
 #define ATHENA_IM_NAME_PROP     "name"
 #define ATHENA_IM_PATH_PROP     "imgPath"
-#define ATHENA_STORAGE_PATH_TDB "/ssd_400/imagestdb/hls/"
-#define ATHENA_STORAGE_PATH_PNG "/ssd_400/png/"
-// #define ATHENA_STORAGE_PATH_PNG "/mnt/optane/png/"
 
 using namespace athena;
 
@@ -25,7 +24,6 @@ QueryHandler::QueryHandler(Jarvis::Graph *db, std::mutex *mtx)
     _rs_cmds["Connect"]  = new AddEdge();
     _rs_cmds["AddImage"] = new AddImage();
     _rs_cmds["FindEntity"] = new QueryNode();
-
 }
 
 void RSCommand::set_property(pmgd::protobufs::Property *p,
@@ -338,6 +336,14 @@ int QueryNode::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
 
 }
 
+AddImage::AddImage()
+{
+    _storage_tdb = AthenaConfig::instance()
+                ->get_string_value("tiledb_database", DEFAULT_TDB_PATH);
+    _storage_png = AthenaConfig::instance()
+                ->get_string_value("png_database", DEFAULT_PNG_PATH);
+}
+
 int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
         const Json::Value& jsoncmd,
         const std::string& blob,
@@ -447,7 +453,7 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
 
     ChronoCpu write_time("write_time");
 
-    std::string img_root = ATHENA_STORAGE_PATH_TDB;
+    std::string img_root = _storage_tdb;
     VCL::ImageFormat vcl_format = VCL::TDB;
 
     if (aImg.isMember("format")) {
@@ -455,11 +461,11 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
 
         if (format == "png") {
             vcl_format = VCL::PNG;
-            img_root = ATHENA_STORAGE_PATH_PNG;
+            img_root = _storage_png;
         }
         else if (format == "tdb") {
             vcl_format = VCL::TDB;
-            img_root = ATHENA_STORAGE_PATH_TDB;
+            img_root = _storage_tdb;
         }
         else {
             std::cout << "Format Not Implemented" << std::endl;
@@ -477,6 +483,7 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
     p->set_key(ATHENA_IM_PATH_PROP);
     p->set_string_value(file_name);
 
+    std::cout << file_name << std::endl;
     write_time.tic();
     vclimg.store(file_name, vcl_format);
     write_time.tac();
@@ -590,8 +597,8 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
         cmds.push_back(&cmdtxend);
 
         // execute the queries using the PMGDQueryHandler object
-        std::vector<std::vector<pmgd::protobufs::CommandResponse *>> pmgd_responses =
-            _pmgd_qh.process_queries(cmds, group_count + 1);
+        std::vector<std::vector<pmgd::protobufs::CommandResponse *>>
+            pmgd_responses = _pmgd_qh.process_queries(cmds, group_count + 1);
 
     } catch (VCL::Exception e) {
         print_exception(e);

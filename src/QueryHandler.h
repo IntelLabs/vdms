@@ -11,7 +11,7 @@
 
 // Json parsing files
 #include <jsoncpp/json/value.h>
-#include<jsoncpp/json/writer.h>
+#include <jsoncpp/json/writer.h>
 #include <jsoncpp/json/json.h>
 
 namespace athena {
@@ -69,12 +69,21 @@ namespace athena {
     // High-level API
     class AddImage: public RSCommand
     {
+        const std::string DEFAULT_TDB_PATH = "./tdb_database";
+        const std::string DEFAULT_PNG_PATH = "./png_database";
+
+        std::string _storage_tdb;
+        std::string _storage_png;
+
     public:
+        AddImage();
+
         int construct_protobuf( std::vector<pmgd::protobufs::Command*> &cmds,
                                 const Json::Value& root,
                                 const std::string& blob,
                                 int txid);
         bool need_blob() { return true; }
+
         // Json::Value send_response();
     };
 
@@ -84,12 +93,12 @@ namespace athena {
     {
         PMGDQueryHandler _pmgd_qh;
         std::unordered_map<std::string, RSCommand *> _rs_cmds;
-        
 
     public:
         QueryHandler(Jarvis::Graph *db, std::mutex *mtx);
         void process_connection(comm::Connection *c);
         void process_query(protobufs::queryMessage proto_query,
                            protobufs::queryMessage& response);
+
     };
 };

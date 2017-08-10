@@ -4,12 +4,20 @@
 #include "comm/Connection.h"
 #include "Exception.h"
 
+#include "AthenaConfig.h"
+
 using namespace athena;
 
 bool Server::shutdown = false;
 
-Server::Server(std::string dbname)
+Server::Server(std::string config_file)
 {
+    AthenaConfig::init(config_file);
+    std::string dbname = AthenaConfig::instance()
+                        ->get_string_value("pmgd_path", "default_pmgd");
+    _server_port = AthenaConfig::instance()
+                        ->get_int_value("port", DEFAULT_PORT);
+
     // Verify that the version of the library that we linked against is
     // compatible with the version of the headers we compiled against.
     GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -27,7 +35,7 @@ void Server::process_requests()
 {
     comm::ConnServer *server;
     try {
-        server = new comm::ConnServer(SERVER_PORT);
+        server = new comm::ConnServer(_server_port);
     }
     catch (comm::ExceptionComm e) {
         print_exception(e);

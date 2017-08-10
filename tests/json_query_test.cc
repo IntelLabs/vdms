@@ -1,4 +1,5 @@
 #include "QueryHandler.h"
+#include "AthenaConfig.h"
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -21,7 +22,7 @@ TEST(QueryHandler, addTest){
   std::ifstream ifile;
   int fsize;
   char * inBuf;
-  ifile.open("/home/ragaad/athena/tests/newAPI.json", std::ifstream::in);
+  ifile.open("newAPI.json", std::ifstream::in);
   ifile.seekg(0, std::ios::end);
   fsize = (int)ifile.tellg();
   ifile.seekg(0, std::ios::beg);
@@ -37,6 +38,8 @@ TEST(QueryHandler, addTest){
 
   // Since PMGD is still single threaded, provide a lock for the DB
   mutex dblock;
+
+  AthenaConfig::init("config-tests.json");
 
   QueryHandler query_handler(&db, &dblock);
 

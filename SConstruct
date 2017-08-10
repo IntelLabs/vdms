@@ -20,6 +20,7 @@ def buildServer(intel_path, env):
                ]
 
   athena_server_files = [
+                  'src/AthenaConfig.cc',
                   'src/QueryHandler.cc',
                   'src/SearchExpression.cc',
                   'src/PMGDQueryHandler.cc',
@@ -56,6 +57,7 @@ def buildServer(intel_path, env):
                   'tests/query_tests',
                   ['src/QueryHandler.o',
                   'src/SearchExpression.o',
+                  'src/AthenaConfig.o',
                   'src/PMGDQueryHandler.o',
                   'src/CommandHandler.o',
                   test_sources ],

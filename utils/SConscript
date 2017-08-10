@@ -60,6 +60,6 @@ comm_test_env = Environment(CPPPATH=['include/comm'],
 
 comm_test_source_files = "test/comm/UnitTests.cc";
 comm_test_env.Program('test/comm/comm_test', comm_test_source_files,
-            LIBS = ['libathena-utils', 'pthread', 'gtest'],
+            LIBS = ['athena-utils', 'pthread', 'gtest'],
             LIBPATH = ['.']
             )

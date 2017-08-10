@@ -11,8 +11,7 @@
 namespace athena {
     class Server
     {
-        static const int SERVER_PORT = 55555;
-        static const int QUERY_BUFFER_SIZE = 4096;  // in bytes
+        static const int DEFAULT_PORT = 55555;
 
         CommunicationManager *_cm;
 
@@ -22,6 +21,8 @@ namespace athena {
         // Aux lock, not in use
         std::mutex *_dblock;
 
+        int _server_port;
+
         // Handle ^c
         static bool shutdown;
         int install_handler();
@@ -29,7 +30,7 @@ namespace athena {
             { Server::shutdown = (signo == SIGINT); }
 
     public:
-        Server(std::string dbname);
+        Server(std::string config_file);
         void process_requests();
         ~Server();
     };
