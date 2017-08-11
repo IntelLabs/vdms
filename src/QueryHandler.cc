@@ -737,8 +737,8 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
 
 
             }
-            Json::StyledWriter Writer;
-            Json_output = Writer.write(json_responses_root);
+
+            Json_output = fastWriter.write(json_responses_root);
             std::cout<<Json_output;
             proto_res.set_json(Json_output);
 
