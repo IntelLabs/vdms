@@ -206,15 +206,15 @@ int QueryNode::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
         else if(operators.size()==1){
             if(operators[0]==">")
                 pp->set_op(pmgd::protobufs::PropertyPredicate::Gt);
-            if(operators[0] ==">=")
+            else if(operators[0] ==">=")
                 pp->set_op(pmgd::protobufs::PropertyPredicate::Ge);
-            if(operators[0] =="<")
+            else if(operators[0] =="<")
                 pp->set_op(pmgd::protobufs::PropertyPredicate::Lt);
-            if(operators[0] =="<=")
+            else if(operators[0] =="<=")
                 pp->set_op(pmgd::protobufs::PropertyPredicate::Le);
-            if(operators[0] =="==")
+            else if(operators[0] =="==")
                 pp->set_op(pmgd::protobufs::PropertyPredicate::Eq);
-            if(operators[0] =="!=")
+            else if(operators[0] =="!=")
                 pp->set_op(pmgd::protobufs::PropertyPredicate::Ne);
 
         }
@@ -308,13 +308,13 @@ int QueryNode::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
 
         }
         if(response_type.key().asString()=="sum"){
-            qn->set_r_type(pmgd::protobufs::Sum);
+
             for(auto response_key=0; response_key!=type[response_type.key().asString()].size(); response_key++){
 
                 std::string *r_key= qn->add_response_keys();
                 *r_key = type[response_type.key().asString()][response_key].asString();
             }
-
+        qn->set_r_type(pmgd::protobufs::Sum);
         }
         if(response_type.key().asString()=="average"){
 
@@ -506,10 +506,6 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
     // response.append(res);
 }
 
-// Json::Value AddNode::send_response(){}
-
-// Json::Value AddEdge::send_response(){}
-
 void RSCommand::run_operations(VCL::Image& vclimg, const Json::Value& op)
 {
     std::string type = op["type"].asString();
@@ -530,13 +526,154 @@ void RSCommand::run_operations(VCL::Image& vclimg, const Json::Value& op)
     }
 }
 
+std::string print_properties( const std::string &key, const pmgd::protobufs::Property &p)
+{
+     std::string s;
+     std::string s1=key;
+     std::string s2;
+    switch(p.type()) {
+        case pmgd::protobufs::Property::BooleanType:
+            //printf("key: %s, value: %d\n", key.c_str(), p.bool_value());
+                s2=std::to_string(p.bool_value());
+
+
+            break;
+
+        case pmgd::protobufs::Property::IntegerType:
+            //printf("key: %s, value: %ld\n", key.c_str(), p.int_value());
+            s2=std::to_string(p.int_value());
+
+
+            break;
+        case pmgd::protobufs::Property::StringType:
+        case pmgd::protobufs::Property::TimeType:
+            //printf("key: %s, value: %s\n", key.c_str(), p.string_value().c_str());
+                s2=p.string_value();
+            // *s=key.c_str() +p.string_value();
+
+            //s2=p.string_value().asString();
+            //    s=strcat(s1,s2);
+
+            break;
+        case pmgd::protobufs::Property::FloatType:
+        //    printf("key: %s, value: %lf\n", key.c_str(), p.float_value());
+                s2=std::to_string(p.float_value());
+            break;
+        default:
+            printf(" Unknown\n");
+    }
+    s="  "+s1+"    " +s2
+    ;
+    return s;
+}
+
+
+Json::Value  QueryHandler::construct_responses(std::vector<pmgd::protobufs::CommandResponse *> response){
+    Json::Value json_responses;
+    for (auto it : response) {
+            if (it->r_type() == pmgd::protobufs::NodeID) {
+            long nodeid = it->op_int_value();
+            Json::Value AddNode;
+
+            if(it->error_code()!=pmgd::protobufs::CommandResponse::Success){
+                //AddNode["Node_ID"]=int(nodeid);
+                AddNode["return"] = it->error_msg();
+
+            }
+            else{
+                //AddNode["Entity_ID"]=int(nodeid);
+                AddNode["return"] = "Success: " +it->error_msg();
+            }
+            Json::Value node;
+            node["AddEntity"]=AddNode;
+            json_responses.append(node);
+
+
+        }
+        if (it->r_type() == pmgd::protobufs::EdgeID) {
+            Json::Value AddEdge;
+            long edgeid = it->op_int_value();
+            //AddEdge["Connection_ID"]=int(edgeid);
+            if(it->error_code()!=pmgd::protobufs::CommandResponse::Success){
+
+                AddEdge["return"] = it->error_msg();}
+            else
+                AddEdge["return"] = "Success "+it->error_msg();
+                Json::Value edge;
+                edge["Connection"]=AddEdge;
+                json_responses.append(edge);
+
+        }
+        if (it->r_type() == pmgd::protobufs::List) {
+            Json::Value List;
+            std::string list = "";
+
+
+            auto mymap = it->prop_values();
+            for(auto m_it : mymap) {
+                // Assuming string for now
+                pmgd::protobufs::PropertyList &p = m_it.second;
+
+                for (int i = 0; i < p.values_size(); ++i) {
+                    list= list+print_properties(m_it.first.c_str(), p.values(i));
+
+                    //List["value"]="";//std::string(*list)"";
+                    List["return"] = list;
+
+                }
+
+            }
+            Json::Value node;
+            node["List"]=List;
+            json_responses.append(node);
+        } //List
+
+        if (it->r_type() == pmgd::protobufs::Average) {
+            Json::Value Average;
+            float average = it->op_float_value();
+
+            Average["return"] =    double(average);
+
+            Json::Value node;
+            node["Average"]=Average;
+            json_responses.append(node);
+
+
+        }
+
+        if (it->r_type() == pmgd::protobufs::Sum) {
+
+            Json::Value Sum;
+            float sum = it->op_float_value();
+                Sum["return"]=float(sum);
+
+            Json::Value node;
+            node["Sum"]=Sum;
+            json_responses.append(node);
+                    }
+        if (it->r_type() == pmgd::protobufs::Count) {
+            Json::Value Count;
+            float count = it->op_int_value();
+            Count["return"] =float(count);
+            Json::Value node;
+            node["Count"]=count;
+            json_responses.append(node);
+
+        }
+
+        printf("\n");
+    }
+return  json_responses;
+}
+
+
 void QueryHandler::process_query(protobufs::queryMessage proto_query,
         protobufs::queryMessage& proto_res)
 {
     Json::FastWriter fastWriter;
 
     try {
-        std::vector<Json::Value> json_responses;
+        Json::Value json_responses;
         Json::Value root;
         Json::Reader reader;
 
@@ -547,7 +684,7 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
             std::cout << "Error parsing!" << std::endl;
             Json::Value error;
             error["return"] = "Server error - parsing";
-            json_responses.push_back(error);
+            json_responses.append(error);
         }
 
         //defien a vector of commands
@@ -588,10 +725,22 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
         cmdtxend.set_cmd_id(pmgd::protobufs::Command::TxCommit);
         cmdtxend.set_cmd_grp_id(group_count);
         cmds.push_back(&cmdtxend);
-
+         Json::Value json_responses_root;
         // execute the queries using the PMGDQueryHandler object
         std::vector<std::vector<pmgd::protobufs::CommandResponse *>> pmgd_responses =
             _pmgd_qh.process_queries(cmds, group_count + 1);
+            for (int i = 0; i < group_count; ++i) {
+                std::vector<pmgd::protobufs::CommandResponse *> &response = pmgd_responses[i];
+
+
+            json_responses_root.append(construct_responses(response));//append the result of the response to the response_root json
+
+
+            }
+            Json::StyledWriter Writer;
+            Json_output = Writer.write(json_responses_root);
+            std::cout<<Json_output;
+            proto_res.set_json(Json_output);
 
     } catch (VCL::Exception e) {
         print_exception(e);
@@ -604,6 +753,7 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
         error["error"] = "Jarvis Exception!";
         proto_res.set_json(fastWriter.write(error));
     }
+
 }
 
 void QueryHandler::process_connection(comm::Connection *c)

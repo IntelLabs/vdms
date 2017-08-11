@@ -24,13 +24,15 @@ namespace athena {
                                     Json::Value );
 
     public:
+
+
         virtual int construct_protobuf(
                             std::vector<pmgd::protobufs::Command*> &cmds,
                             const Json::Value& root,
                             const std::string& blob,
                             int txid) = 0;
 
-        // virtual Json::Value send_response();
+
 
         void run_operations(VCL::Image& vclimg, const Json::Value& op);
 
@@ -45,7 +47,7 @@ namespace athena {
                                 const Json::Value& root,
                                 const std::string& blob,
                                 int txid);
-        // Json::Value send_response();
+
     };
 
     class AddEdge : public RSCommand
@@ -84,12 +86,15 @@ namespace athena {
     {
         PMGDQueryHandler _pmgd_qh;
         std::unordered_map<std::string, RSCommand *> _rs_cmds;
-        
+        std::string Json_output;
+
 
     public:
         QueryHandler(Jarvis::Graph *db, std::mutex *mtx);
         void process_connection(comm::Connection *c);
         void process_query(protobufs::queryMessage proto_query,
                            protobufs::queryMessage& response);
+        Json::Value construct_responses(std::vector<pmgd::protobufs::CommandResponse *>);
+
     };
 };
