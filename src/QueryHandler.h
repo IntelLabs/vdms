@@ -35,6 +35,9 @@ namespace athena {
         void run_operations(VCL::Image& vclimg, const Json::Value& op);
 
         virtual bool need_blob() { return false; }
+
+        virtual Json::Value
+            send_response(std::vector<pmgd::protobufs::CommandResponse*> &cmds);
      };
 
     // Low-level API
@@ -84,7 +87,22 @@ namespace athena {
                                 int txid);
         bool need_blob() { return true; }
 
-        // Json::Value send_response();
+        Json::Value send_response(std::vector<pmgd::protobufs::CommandResponse*> &cmds);
+    };
+
+    class FindImage: public RSCommand
+    {
+
+    public:
+        FindImage();
+
+        int construct_protobuf( std::vector<pmgd::protobufs::Command*> &cmds,
+                                const Json::Value& root,
+                                const std::string& blob,
+                                int txid);
+        bool need_blob() { return false; }
+
+        Json::Value send_response(std::vector<pmgd::protobufs::CommandResponse*> &cmds);
     };
 
     // Instance created per worker thread to handle all transactions on a given

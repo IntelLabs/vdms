@@ -26,6 +26,13 @@ QueryHandler::QueryHandler(Jarvis::Graph *db, std::mutex *mtx)
     _rs_cmds["FindEntity"] = new QueryNode();
 }
 
+Json::Value RSCommand::send_response(std::vector<pmgd::protobufs::CommandResponse*> &cmds)
+{
+    Json::Value ok;
+    ok["generic"] = "Success";
+    return ok;
+}
+
 void RSCommand::set_property(pmgd::protobufs::Property *p,
         const char * key , Json::Value val){
 
@@ -336,6 +343,60 @@ int QueryNode::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
 
 }
 
+FindImage::FindImage()
+{
+}
+
+Json::Value FindImage::send_response(std::vector<pmgd::protobufs::CommandResponse*>& cmds)
+{
+    Json::Value findImage;
+    findImage["return"] = "success :)";
+
+    return findImage;
+}
+
+int FindImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
+        const Json::Value& jsoncmd,
+        const std::string& blob,
+        int grp_id)
+{
+    if (jsoncmd.isMember("link")) {
+        Json::Value link = jsoncmd["link"];
+
+        pmgd::protobufs::Command* cmd = new pmgd::protobufs::Command();
+        cmd->set_cmd_id(pmgd::protobufs::Command::QueryNode);
+        cmd->set_cmd_grp_id(grp_id);
+
+        pmgd::protobufs::QueryNode* qNode = new pmgd::protobufs::QueryNode();
+        std::string entity   = link["entity"].asString();
+        qNode->set_tag(entity);
+
+        pmgd::protobufs::PropertyPredicate *pps =
+                                qNode->add_predicates();
+
+        std::string prop_id  = link["prop_id"].asString();
+        pps->set_op(pmgd::protobufs::PropertyPredicate::Eq);
+        pps->set_key(prop_id);
+
+        // This is the same logic that Ragaa
+        std::string prop_val = link["prop_value"].asString();
+        pmgd::protobufs::Property* prop = new pmgd::protobufs::Property();
+        Json::Value json_prop = link["prop_value"];
+        set_property(prop, prop_id.c_str(), json_prop);
+
+        pps->set_allocated_v1(prop);
+
+        qNode->set_r_type(pmgd::protobufs::ResponseType::List);
+        std::string* str_list = qNode->add_response_keys();
+        *str_list = "imgPath";
+
+        cmd->set_allocated_query_node(qNode);
+        cmds.push_back(cmd);
+    }
+
+    return 0;
+}
+
 AddImage::AddImage()
 {
     _storage_tdb = AthenaConfig::instance()
@@ -344,13 +405,23 @@ AddImage::AddImage()
                 ->get_string_value("png_database", DEFAULT_PNG_PATH);
 }
 
+Json::Value AddImage::send_response(std::vector<pmgd::protobufs::CommandResponse*>& cmds)
+{
+    for(auto pmgd_res : cmds) {
+        std::cout << pmgd_res->error_code() << std::endl;
+    }
+    Json::Value addImage;
+    addImage["return"] = "success :)";
+
+    return addImage;
+}
+
 int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
         const Json::Value& jsoncmd,
         const std::string& blob,
         int grp_id)
 {
     Json::Value aImg = jsoncmd["AddImage"];
-    Json::Value res;
 
     ChronoCpu ch("addImage");
     ch.tic();
@@ -375,73 +446,6 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
         p->set_string_value(im_name);
     }
 
-    // TODO: IMPLEMENT LOGIC FOR CATEGORY
-    // if (aImg.isMember("category")) {
-    //     // will get the JL node for that category.
-    //     // here we check if the category is defined,
-    //     // if not, we create a new category.
-    //     // std::cout << aImg["category"]["name"].asString()
-    //     //           << std::endl;
-
-    //     std::string cat = aImg["category"]["name"].asString();
-
-    //     Jarvis::NodeIterator i = demodb.db()->get_nodes(cat.c_str());
-
-    //     if (i) {
-    //         // ChronoCpu addEdge("addEdge");
-    //         // addEdge.tic();
-    //         Jarvis::Edge &e = demodb.db()->add_edge(im_node, *i,
-    //                         "AT:IMAGE_EDGE");
-    //         // addEdge.tac();
-    //         // addEdge.printLastTime_us();
-    //     }
-    //     else {
-    //         // ChronoCpu addNode("addNode");
-    //         // addNode.tic();
-    //         Jarvis::Node &cat_node = demodb.db()->add_node(cat.c_str());
-    //         // addNode.tac();
-    //         // addNode.printLastTime_ms();
-
-    //         std::cout <<  " { \"warning\": \"No such category, adding\"}\n";
-    //         Jarvis::Edge &e = demodb.db()->add_edge(im_node, cat_node,
-    //                         "AT:IMAGE_EDGE");
-    //     }
-    // }
-
-
-    // TODO: IMPLEMENT LOGIC FOR LINK
-    // if (aImg.isMember("link")) {
-    //     Json::Value link = aImg["link"];
-    //     // will get the JL node for that the entity,
-    //     // which can be a generic entity.
-    //     // For the HLS case, this entity can be a Patient.
-    //     // Some unique ID must be given in that case.
-
-    //     std::string entity   = link["entity"].asString();
-    //     std::string prop_id  = link["prop_id"].asString();
-    //     std::string prop_val = link["prop_value"].asString();
-
-    //     // Here we need a swtich based on the type? absolutely horrible
-
-    //     Jarvis::PropertyPredicate pps1(prop_id.c_str(),
-    //                                 Jarvis::PropertyPredicate::Eq,
-    //                                 prop_val);
-
-    //     Jarvis::NodeIterator i = demodb.db()->get_nodes(entity.c_str(),
-    //                                                    pps1);
-
-    //     if (i) {
-    //         Jarvis::Edge &e = demodb.db()->add_edge(im_node, *i, "AT:IMAGE_EDGE");
-    //     }
-    //     else {
-    //         Json::Value error;
-    //         error["addImage"] = "error: No such entity";
-    //         std::cout << "No such entity: " << prop_val << std::endl;
-    //         response.append(error);
-    //         return;
-    //     }
-    // }
-
     ChronoCpu ch_ops("addImage");
     ch_ops.tic();
 
@@ -451,7 +455,7 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
         (vclimg, aImg["operation"]);
     }
 
-    ChronoCpu write_time("write_time");
+    ChronoCpu wr_ch("wr_ch");
 
     std::string img_root = _storage_tdb;
     VCL::ImageFormat vcl_format = VCL::TDB;
@@ -484,9 +488,9 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
     p->set_string_value(file_name);
 
     std::cout << file_name << std::endl;
-    write_time.tic();
+    wr_ch.tic();
     vclimg.store(file_name, vcl_format);
-    write_time.tac();
+    wr_ch.tac();
 
     ch_ops.tac();
 
@@ -498,19 +502,14 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
     addImage["return"] = "success :)";
     addImage["name"] = aImg["name"].asString();
 
-    // if (aImg.isMember("timing")) {
-    //     Json::Value timing;
-    //     timing["addImage[us]"]  = ch.getAvgTime_us();
-    //     timing["imageTotal[%]"] = ch_ops.getAvgTime_us()*100 /
-    //                               ch.getAvgTime_us();
-    //     timing["imageTotal[us]"] = ch_ops.getAvgTime_us();
-    //     timing["write_image[us]"] = write_time.getAvgTime_us();
+    if (aImg.isMember("log")) {
+        std::cout << "Timing: " << ch.getAvgTime_us() << ", "; // Total
+        std::cout << ch_ops.getAvgTime_us() << ", "; // Total Ops
+        std::cout << wr_ch.getAvgTime_us() << ", ";  // Total Write
 
-    //     addImage["timing"] = timing;
-    // }
-
-    // res["addImage"] = addImage;
-    // response.append(res);
+        std::cout << ch_ops.getAvgTime_us()*100 /
+                     ch.getAvgTime_us() << "\%" << std::endl; // % ops to total
+    }
 }
 
 // Json::Value AddNode::send_response(){}
@@ -522,6 +521,7 @@ void RSCommand::run_operations(VCL::Image& vclimg, const Json::Value& op)
     std::string type = op["type"].asString();
 
     if (type == "threshold"){
+
         vclimg.threshold(op["value"].asInt());
     }
     if (type == "resize"){
@@ -543,7 +543,7 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
     Json::FastWriter fastWriter;
 
     try {
-        std::vector<Json::Value> json_responses;
+        Json::Value json_responses;
         Json::Value root;
         Json::Reader reader;
 
@@ -554,10 +554,11 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
             std::cout << "Error parsing!" << std::endl;
             Json::Value error;
             error["return"] = "Server error - parsing";
-            json_responses.push_back(error);
+            json_responses.append(error);
         }
 
         //defien a vector of commands
+        // TODO WE NEED TO DELETE EACH ELEMENT AFTER DONE WITH THIS VECTOR!!!
         std::vector<pmgd::protobufs::Command *> cmds;
         unsigned group_count = 0;
         //this command to start a new transaction
@@ -599,6 +600,19 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
         // execute the queries using the PMGDQueryHandler object
         std::vector<std::vector<pmgd::protobufs::CommandResponse *>>
             pmgd_responses = _pmgd_qh.process_queries(cmds, group_count + 1);
+
+        for (int j = 0; j < root.size(); j++) {
+            const Json::Value& query = root[j];
+            std::string cmd = query.getMemberNames()[0];
+
+            std::vector<pmgd::protobufs::CommandResponse *>& res =
+                        pmgd_responses.at(j);
+
+            json_responses.append(
+                    _rs_cmds[cmd]->send_response(res) );
+        }
+
+        proto_res.set_json(fastWriter.write(json_responses));
 
     } catch (VCL::Exception e) {
         print_exception(e);
