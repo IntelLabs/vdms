@@ -1,0 +1,18 @@
+// Athena Config File
+// This is the run-time config file
+// Sets database paths and other parameters
+
+{
+    // Network
+    "port": 55555, // Default is 55555
+
+    // Database paths
+    "pmgd_path": "./test-graph",
+    "tiledb_database": "./tdb/hls",
+    "png_database": "./native_format/pngs/",
+    "jpg_database": "./native_format/jpgs/",
+    "videos_database": "./videos_db",
+
+    "support_info": "Vishakha Grupta",
+    "support_phone": "1-800-Vishakha"
+}
