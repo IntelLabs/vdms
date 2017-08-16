@@ -199,7 +199,7 @@ TEST(PMGDQueryHandler, queryTestList)
         cmdquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdquery.set_tx_id(txid);
         protobufs::QueryNode *qn = cmdquery.mutable_query_node();
-        qn->set_identifier(1);
+        qn->set_identifier(-1);
         qn->set_tag("Patient");
         qn->set_p_op(protobufs::And);
         protobufs::PropertyPredicate *pp = qn->add_predicates();
@@ -277,7 +277,7 @@ TEST(PMGDQueryHandler, queryTestAverage)
         cmdquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdquery.set_tx_id(txid);
         protobufs::QueryNode *qn = cmdquery.mutable_query_node();
-        qn->set_identifier(1);
+        qn->set_identifier(-1);
         qn->set_tag("Patient");
         qn->set_r_type(protobufs::Average);
         string *key = qn->add_response_keys();

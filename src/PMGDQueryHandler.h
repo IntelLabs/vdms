@@ -14,6 +14,29 @@ namespace athena {
     // connection.
     class PMGDQueryHandler
     {
+
+        class NewNodeIteratorImpl : public Jarvis::NodeIteratorImplIntf
+        {
+            Jarvis::Node &_n;
+            bool start = true;
+
+        public:
+            NewNodeIteratorImpl(Jarvis::Node &n)
+                : _n(n)
+                { }
+
+            operator bool() const { return start; }
+
+            /// No next matching node
+            bool next()
+            {
+                start = false;
+                return start;
+            }
+
+            Jarvis::Node *ref() { return (start ? &_n : NULL); }
+        };
+
         // This class is instantiated by the server each time there is a new
         // connection. So someone needs to pass a handle to the graph db itself.
         Jarvis::Graph *_db;
@@ -24,11 +47,20 @@ namespace athena {
 
         Jarvis::Transaction *_tx;
 
-        // Map an integer ID to a Node (reset at the end of each transaction).
+        // Map an integer ID to a NodeIterator (reset at the end of each transaction).
+        // This works for Adds and Queries. We assume that the client or
+        // the request server code will always add a ref to the AddNode
+        // call or a query call. That is what is the key in the map.
+        // Add calls typically don't result in a NodeIterator. But we make
+        // one to keep the code uniform. In a chained query, there is no way
+        // of finding out if the reference is for an AddNode or a QueryNode
+        // and rather than searching multiple maps, we keep it uniform here.
         // TODO this might have to map to a Global ID in the distributed setting.
-        std::unordered_map<int, Jarvis::Node *> mNodes;
+        std::unordered_map<int, Jarvis::NodeIterator *> mNodes;
+
         // Map an integer ID to an Edge (reset at the end of each transaction).
         // TODO this might have to map to a Global ID in the distributed setting.
+        // Not really used at this point.
         std::unordered_map<int, Jarvis::Edge *> mEdges;
 
         template <class Element> void set_property(Element &e, const pmgd::protobufs::Property &p);

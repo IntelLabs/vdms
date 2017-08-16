@@ -52,6 +52,7 @@ void PMGDQueryHandler::process_query(protobufs::Command *cmd,
                 _tx->commit();
                 _dblock->unlock();
                 // TODO Clearing might not be needed if it goes out of scope anyway
+                // TODO Need to free pointers at some point
                 mNodes.clear();
                 mEdges.clear();
                 delete _tx;
@@ -63,6 +64,7 @@ void PMGDQueryHandler::process_query(protobufs::Command *cmd,
             {
                 _dblock->unlock();
                 // TODO Clearing might not be needed if it goes out of scope anyway
+                // TODO Need to free pointers at some point
                 mNodes.clear();
                 mEdges.clear();
                 delete _tx;
@@ -148,7 +150,10 @@ void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
     // Presumably this node gets placed here.
     StringID sid(cn.node().tag().c_str());
     Node &n = _db->add_node(sid);
-    mNodes.insert(std::pair<int, Node *>(cn.identifier(), &n));
+    if (cn.identifier() >= 0) {
+        // Need a pointer type for NodeIterator due to its semantics.
+        mNodes[cn.identifier()] = new NodeIterator(new NewNodeIteratorImpl(n));
+    }
 
     for (int i = 0; i < cn.node().properties_size(); ++i) {
         const protobufs::Property &p = cn.node().properties(i);
@@ -167,22 +172,50 @@ void PMGDQueryHandler::add_edge(const protobufs::AddEdge &ce,
 {
     // Presumably this node gets placed here.
     StringID sid(ce.edge().tag().c_str());
-    // Assumes these entries are found.
-    Node &src = *(mNodes.at(ce.edge().src()));
-    Node &dst = *(mNodes.at(ce.edge().dst()));
-    Edge &e = _db->add_edge(src, dst, sid);
-    mEdges.insert(std::pair<int, Edge *>(ce.identifier(), &e));
 
-    for (int i = 0; i < ce.edge().properties_size(); ++i) {
-        const protobufs::Property &p = ce.edge().properties(i);
-        set_property(e, p);
+    // Assumes there could be multiple.
+    NodeIterator *srcni;
+    NodeIterator *dstni;
+
+    // Since _ref is optional, need to make sure the map has the
+    // right reference.
+    auto srcit = mNodes.find(ce.edge().src());
+    auto dstit = mNodes.find(ce.edge().dst());
+    if (srcit != mNodes.end() && dstit != mNodes.end()) {
+        srcni = srcit->second;
+        dstni = dstit->second;
+    }
+    else {
+        response->set_error_code(protobufs::CommandResponse::Error);
+        response->set_error_msg("Source/destination node references not found");
+        return;
+    }
+    if (!srcni || !dstni) {
+        response->set_error_code(protobufs::CommandResponse::Empty);
+        response->set_error_msg("Empty node iterators for adding edge");
+        return;
+    }
+    long eid = 0;
+    // TODO: Partition code goes here
+    for ( ; *srcni; srcni->next()) {
+        Node &src = **srcni;
+        for ( ; *dstni; dstni->next()) {
+            Node &dst = **dstni;
+            Edge &e = _db->add_edge(src, dst, sid);
+            for (int i = 0; i < ce.edge().properties_size(); ++i) {
+                const protobufs::Property &p = ce.edge().properties(i);
+                set_property(e, p);
+            }
+
+            mEdges.insert(std::pair<int, Edge *>(ce.identifier(), &e));
+            eid = _db->get_id(e);
+        }
     }
 
     response->set_error_code(protobufs::CommandResponse::Success);
     response->set_r_type(protobufs::EdgeID);
-    // TODO: Partition code goes here
-    // For now, fill in the single system edge id
-    response->set_op_int_value(_db->get_id(e));
+    // ID of the last edge added
+    response->set_op_int_value(eid);
 }
 
 // TODO: Do we need a separate function here or should we try to combine
@@ -292,7 +325,21 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         search.Add(j_pp);
     }
 
+    // TODO Is this the right way? Can we make the map not need a pointer?
     NodeIterator ni = search.EvalNodes();
+    // NodeIterator ni = new NodeIterator(search.EvalNodes());
+    if (!bool(ni)) {
+        response->set_error_code(protobufs::CommandResponse::Empty);
+        response->set_error_msg("Null search iterator\n");
+    }
+    if (qn.identifier() >= 0) {
+        // TODO: If ni is now used, it will show up empty since it has been
+        // moved to mNodes. Needs fixing for reuse.
+        mNodes[qn.identifier()] = new NodeIterator(ni);
+        response->set_r_type(protobufs::Cached);
+        response->set_error_code(protobufs::CommandResponse::Success);
+        return;
+    }
 
     // TODO This should really be translated at some global level. Either
     // this class or maybe even the request server main handler.
