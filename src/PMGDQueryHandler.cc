@@ -299,10 +299,10 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     for (int i = 0; i < qn.predicates_size(); ++i) {
         const protobufs::PropertyPredicate &p_pp = qn.predicates(i);
         PropertyPredicate j_pp = construct_search_term(p_pp);
-        search.Add(j_pp);
+        search.add(j_pp);
     }
 
-    NodeIterator ni = search.EvalNodes();
+    NodeIterator ni = search.eval_nodes();
     if (!bool(ni)) {
         response->set_error_code(protobufs::CommandResponse::Empty);
         response->set_error_msg("Null search iterator\n");
@@ -425,10 +425,10 @@ void PMGDQueryHandler::query_neighbor(const protobufs::QueryNeighbor &qnb,
         for (int i = 0; i < qn.predicates_size(); ++i) {
             const protobufs::PropertyPredicate &p_pp = qn.predicates(i);
             PropertyPredicate j_pp = construct_search_term(p_pp);
-            search_start.Add(j_pp);
+            search_start.add(j_pp);
         }
 
-        start_ni = new NodeIterator(search_start.EvalNodes());
+        start_ni = new NodeIterator(search_start.eval_nodes());
 
         if (!*start_ni) {
             // No starting node found.
@@ -453,7 +453,7 @@ void PMGDQueryHandler::query_neighbor(const protobufs::QueryNeighbor &qnb,
     for (int i = 0; i < qnb.predicates_size(); ++i) {
         const protobufs::PropertyPredicate &p_pp = qnb.predicates(i);
         PropertyPredicate j_pp = construct_search_term(p_pp);
-        search_neighbors.Add(j_pp);
+        search_neighbors.add(j_pp);
     }
 
     // TODO This should really be translated at some global level. Either
@@ -471,7 +471,7 @@ void PMGDQueryHandler::query_neighbor(const protobufs::QueryNeighbor &qnb,
         // TODO No support in case unique is true but get it from LDBC.
         // Eventually need to add a get_union(NodeIterator, vector<Constraints>)
         // call to PMGD.
-        NodeIterator neighb_i = search_neighbors.EvalNodes(**start_ni,
+        NodeIterator neighb_i = search_neighbors.eval_nodes(**start_ni,
                                        (Jarvis::Direction)qnb.dir(),
                                        edge_tag);
         if (!neighb_i)

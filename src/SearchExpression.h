@@ -23,21 +23,21 @@ class SearchExpression {
     class EdgeSearchExpressionIterator;
 
     /// The conjunctions of property predicates
-    std::vector<Jarvis::PropertyPredicate> mExpr;
+    std::vector<Jarvis::PropertyPredicate> _predicates;
 
     /// A pointer to the database
-    Jarvis::Graph &mDB;
+    Jarvis::Graph &_db;
 
 public:
     /// Construction requires a handle to a database
-    SearchExpression(Jarvis::Graph &db, Jarvis::StringID tag) : mDB(db), _tag(tag) {}
+    SearchExpression(Jarvis::Graph &db, Jarvis::StringID tag) : _db(db), _tag(tag) {}
 
-    void Add(Jarvis::PropertyPredicate pp) { mExpr.push_back(pp); }
-    const Jarvis::StringID Tag() const { return _tag; };
+    void add(Jarvis::PropertyPredicate pp) { _predicates.push_back(pp); }
+    const Jarvis::StringID tag() const { return _tag; };
 
-    Jarvis::NodeIterator EvalNodes();
-    Jarvis::NodeIterator EvalNodes(const Jarvis::Node &node, Jarvis::Direction dir = Jarvis::Any,
+    Jarvis::NodeIterator eval_nodes();
+    Jarvis::NodeIterator eval_nodes(const Jarvis::Node &node, Jarvis::Direction dir = Jarvis::Any,
                                        Jarvis::StringID edgetag = 0, bool unique = true);
 
-    Jarvis::EdgeIterator EvalEdges();
+    Jarvis::EdgeIterator eval_edges();
 };
