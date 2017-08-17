@@ -143,9 +143,14 @@ message QueryNeighbor
         Incoming = 2;
     }
 
-    // First need to find a start node for neighbor search using
-    // typical querying.
-    QueryNode query_start_node = 1;
+    oneof link_oneof {
+        // First need to find a start node for neighbor search using
+        // typical querying.
+        QueryNode query_start_node = 1;
+
+        // In case an identifier is specified, provide the value of ref.
+        int64 start_identifier = 2;
+    }
 
     // Then need a way to find which neighbors to look at.
     // Use edge direction, and edge tags to specify which neighbors
@@ -158,37 +163,37 @@ message QueryNeighbor
     // TODO Need hope count
     oneof edgetag_oneof {
         // Apply to nodes with specific tag using either the int
-        uint32 e_tagid = 2;
+        uint32 e_tagid = 4;
         //or string version of the tag.
-        string e_tag = 3;
+        string e_tag = 5;
     }
-    EdgeDirection dir = 4;
+    EdgeDirection dir = 7;
 
     // Now specify constraints for the neighbors
     oneof neighbortag_oneof {
         // Apply to nodes with specific tag using either the int
-        uint32 n_tagid = 5;
+        uint32 n_tagid = 9;
         //or string version of the tag.
-        string n_tag = 6;
+        string n_tag = 10;
     }
     // Specify search conditions and whether to OR or AND them
-    PredicateOp p_op = 7;
-    repeated PropertyPredicate predicates = 8;
+    PredicateOp p_op = 12;
+    repeated PropertyPredicate predicates = 13;
     // Indicate whether you want PMGD to check if all neighbors
     // are unique. Does carry a performance penalty to do that
     // in cases where it is known that neighbors are unique.
-    bool unique = 9;
+    bool unique = 14;
 
     // Specify what to do with the responses. If the option is
     // list, the response properties will indicate list of what
     // properties.
-    ResponseType r_type = 10;
+    ResponseType r_type = 16;
 
     // User could request multiple properties.
     // This is populated only if the r_type is List
     // TODO Change to keyids later. Oneof doesn't work with
     // repeated properties
-    repeated string response_keys = 11;
+    repeated string response_keys = 18;
 }
 
 

@@ -14,7 +14,7 @@
 ///
 /// Calling Eval() returns a node iterator.
 class SearchExpression {
-    Jarvis::StringID &_tag;
+    Jarvis::StringID _tag;
 
     /// Opaque definition of a node iterator
     class SearchExpressionIterator;
@@ -33,7 +33,7 @@ public:
     SearchExpression(Jarvis::Graph &db, Jarvis::StringID tag) : mDB(db), _tag(tag) {}
 
     void Add(Jarvis::PropertyPredicate pp) { mExpr.push_back(pp); }
-    const Jarvis::StringID &Tag() const { return _tag; }
+    const Jarvis::StringID Tag() const { return _tag; };
 
     Jarvis::NodeIterator EvalNodes();
     Jarvis::NodeIterator EvalNodes(const Jarvis::Node &node, Jarvis::Direction dir = Jarvis::Any,

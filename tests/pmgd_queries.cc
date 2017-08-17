@@ -560,3 +560,96 @@ TEST(PMGDQueryHandler, queryNeighborTestSum)
         }
     }
 }
+
+TEST(PMGDQueryHandler, queryNeighborLinkTestList)
+{
+    printf("Testing PMGD query protobuf handler for list return of neighbors using link\n");
+
+    Graph db("qhgraph");
+
+    // Since PMGD is still single threaded, provide a lock for the DB
+    mutex dblock;
+    PMGDQueryHandler qh(&db, &dblock);
+
+    vector<protobufs::Command *> cmds;
+
+    {
+        int txid = 1, query_count = 0;
+        protobufs::Command cmdtx;
+        cmdtx.set_cmd_id(protobufs::Command::TxBegin);
+        cmdtx.set_tx_id(txid);
+        cmds.push_back(&cmdtx);
+        query_count++;
+
+        // Set parameters to find the starting node(s)
+        protobufs::Command cmdstartquery;
+        cmdstartquery.set_cmd_id(protobufs::Command::QueryNode);
+        cmdstartquery.set_tx_id(txid);
+        protobufs::QueryNode *qn = cmdstartquery.mutable_query_node();
+        qn->set_identifier(1);
+        qn->set_tag("Patient");
+        qn->set_p_op(protobufs::And);
+        protobufs::PropertyPredicate *pp = qn->add_predicates();
+        pp->set_key("Sex");
+        pp->set_op(protobufs::PropertyPredicate::Eq);
+        protobufs::Property *p = pp->mutable_v1();
+        p->set_type(protobufs::Property::IntegerType);
+        // I think the key is not required here.
+        p->set_key("Sex");
+        p->set_int_value(MALE);
+        cmds.push_back(&cmdstartquery);
+        query_count++;
+
+        protobufs::Command cmdquery;
+        cmdquery.set_cmd_id(protobufs::Command::QueryNeighbor);
+        cmdquery.set_tx_id(txid);
+        protobufs::QueryNeighbor *qnb = cmdquery.mutable_query_neighbor();
+        qnb->set_start_identifier(1);
+        // Now set parameters for neighbor traversal
+        qnb->set_e_tag("Married");
+        qnb->set_dir(protobufs::QueryNeighbor::Any);
+        qnb->set_n_tagid(0);
+        qnb->set_unique(false);
+        qnb->set_p_op(protobufs::And);
+        qnb->set_r_type(protobufs::List);
+        string *key = qnb->add_response_keys();
+        *key = "Name";
+        cmds.push_back(&cmdquery);
+        query_count++;
+
+        // No need to commit in this case. So just end TX
+        protobufs::Command cmdtxend;
+        // Commit here doesn't change anything. Just indicates end of TX
+        cmdtxend.set_cmd_id(protobufs::Command::TxCommit);
+        cmdtxend.set_tx_id(txid);
+        cmds.push_back(&cmdtxend);
+        query_count++;
+
+        vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count);
+        int nodecount, propcount = 0;
+        for (int i = 0; i < query_count; ++i) {
+            vector<protobufs::CommandResponse *> response = responses[i];
+            for (auto it : response) {
+                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                if (it->r_type() == protobufs::List) {
+                    auto mymap = it->prop_values();
+                    for(auto m_it : mymap) {
+                        // Assuming string for now
+                        protobufs::PropertyList &p = m_it.second;
+                        nodecount = 0;
+                        for (int i = 0; i < p.values_size(); ++i) {
+                            print_property(m_it.first, p.values(i));
+                            nodecount++;
+                        }
+                        propcount++;
+                    }
+                }
+                printf("\n");
+            }
+        }
+        EXPECT_EQ(nodecount, 2) << "Not enough nodes found";
+        EXPECT_EQ(propcount, 1) << "Not enough properties read";
+    }
+}
+
+

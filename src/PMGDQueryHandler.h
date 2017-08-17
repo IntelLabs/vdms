@@ -14,7 +14,6 @@ namespace athena {
     // connection.
     class PMGDQueryHandler
     {
-
         class NewNodeIteratorImpl : public Jarvis::NodeIteratorImplIntf
         {
             Jarvis::Node &_n;

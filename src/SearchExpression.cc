@@ -5,7 +5,7 @@
 class SearchExpression::SearchExpressionIterator : public Jarvis::NodeIteratorImplIntf
 {
     /// Reference to expression to evaluate
-    const SearchExpression &mExpr;
+    const SearchExpression mExpr;
 
     /// Node iterator on the first property predicate
     Jarvis::NodeIterator mNodeIt;

@@ -246,28 +246,16 @@ Property PMGDQueryHandler::construct_search_property(const protobufs::Property &
 
 PropertyPredicate PMGDQueryHandler::construct_search_term(const protobufs::PropertyPredicate &p_pp)
 {
-    StringID *key;
-
-    if (p_pp.key_oneof_case() == 2) {
-        // TODO For now, assuming that this is the ID in JL String Table.
-        // I think this should be a client specified identifier which is maintained
-        // in a map of (client string id, StringID &)
-        StringID tmp(p_pp.keyid());
-        key = &tmp;
-    }
-    else {
-        StringID tmp(p_pp.key().c_str());
-        key = &tmp;   // Points into PMGD anyway. For NOW
-    }
+    StringID key = (p_pp.key_oneof_case() == 2) ? StringID(p_pp.keyid()) : StringID(p_pp.key().c_str());
 
     // Assumes exact match between enum values
     // TODO Maybe have some way of verifying certain such assumptions at start?
     PropertyPredicate::Op op = (PropertyPredicate::Op)p_pp.op();
     if (op == PropertyPredicate::DontCare)
-        return PropertyPredicate(*key);
+        return PropertyPredicate(key);
     if (op < PropertyPredicate::GeLe)
-        return PropertyPredicate(*key, op, construct_search_property(p_pp.v1()));
-    return PropertyPredicate(*key, op, construct_search_property(p_pp.v1()),
+        return PropertyPredicate(key, op, construct_search_property(p_pp.v1()));
+    return PropertyPredicate(key, op, construct_search_property(p_pp.v1()),
                                construct_search_property(p_pp.v2()));
 }
 
@@ -297,24 +285,13 @@ void PMGDQueryHandler::construct_protobuf_property(const Property &j_p, protobuf
 void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
                                     protobufs::CommandResponse *response)
 {
-    StringID *search_node_tag = NULL;
+    // TODO For now, assuming that this is the ID in JL String Table.
+    // I think this should be a client specified identifier which is maintained
+    // in a map of (client string id, StringID &)
+    StringID search_node_tag = (qn.tag_oneof_case() == 2) ? StringID(qn.tagid())
+                                : StringID(qn.tag().c_str());
 
-    // TODO This could be a macro
-    if (qn.tag_oneof_case() == 2) {
-        if (qn.tagid() == 0) {
-            // TODO For now, assuming that this is the ID in JL String Table.
-            // I think this should be a client specified identifier which is maintained
-            // in a map of (client string id, StringID &)
-            StringID tmp(qn.tagid());
-            search_node_tag = &tmp;
-        }
-    }
-    else {
-        StringID tmp(qn.tag().c_str());
-        search_node_tag = &tmp;   // Points into PMGD anyway. For NOW
-    }
-
-    SearchExpression search(*_db, (search_node_tag != NULL ? *search_node_tag : 0));
+    SearchExpression search(*_db, search_node_tag);
 
     if (qn.p_op() == protobufs::Or)
         throw JarvisException(NotImplemented);
@@ -325,16 +302,19 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         search.Add(j_pp);
     }
 
-    // TODO Is this the right way? Can we make the map not need a pointer?
     NodeIterator ni = search.EvalNodes();
-    // NodeIterator ni = new NodeIterator(search.EvalNodes());
     if (!bool(ni)) {
         response->set_error_code(protobufs::CommandResponse::Empty);
         response->set_error_msg("Null search iterator\n");
+        return;
     }
     if (qn.identifier() >= 0) {
         // TODO: If ni is now used, it will show up empty since it has been
         // moved to mNodes. Needs fixing for reuse.
+        // TODO: Also, this triggers a copy of the SearchExpression object
+        // via the SearchExpressionIterator class, which might be slow,
+        // especially with a lot of property constraints. Might need another
+        // way for it.
         mNodes[qn.identifier()] = new NodeIterator(ni);
         response->set_r_type(protobufs::Cached);
         response->set_error_code(protobufs::CommandResponse::Success);
@@ -420,66 +400,56 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
 void PMGDQueryHandler::query_neighbor(const protobufs::QueryNeighbor &qnb,
                                     protobufs::CommandResponse *response)
 {
-    StringID *start_node_tag = NULL, *neighb_tag = NULL;
-    const protobufs::QueryNode &qn = qnb.query_start_node();
+    NodeIterator *start_ni = NULL;
 
-    if ((qn.p_op() == protobufs::Or) || (qnb.p_op() == protobufs::Or)
-          || qnb.unique()) {
-        response->set_error_code(protobufs::CommandResponse::Exception);
-        response->set_error_msg("Unique neighbor operation/Or not implemented\n");
-        throw JarvisException(NotImplemented);
-    }
+    if (qnb.link_oneof_case() == 1) {
+        const protobufs::QueryNode &qn = qnb.query_start_node();
+        // TODO For now, assuming that this is the ID in JL String Table.
+        // I think this should be a client specified identifier which is maintained
+        // in a map of (client string id, StringID &)
+        StringID start_node_tag = (qn.tag_oneof_case() == 2) ? StringID(qn.tagid())
+                                    : StringID(qn.tag().c_str());
 
-    if (qn.tag_oneof_case() == 2) {
-        if (qn.tagid() != 0) {
-            // TODO For now, assuming that this is the ID in JL String Table.
-            // I think this should be a client specified identifier which is maintained
-            // in a map of (client string id, StringID &)
-            StringID tmp(qn.tagid());
-            start_node_tag = &tmp;
+        if ((qn.p_op() == protobufs::Or) || (qnb.p_op() == protobufs::Or)
+              || qnb.unique()) {
+            response->set_error_code(protobufs::CommandResponse::Exception);
+            response->set_error_msg("Unique neighbor operation/Or not implemented\n");
+            throw JarvisException(NotImplemented);
+        }
+
+        SearchExpression search_start(*_db, start_node_tag);
+
+        if (qn.p_op() == protobufs::Or)
+            throw JarvisException(NotImplemented);
+
+        for (int i = 0; i < qn.predicates_size(); ++i) {
+            const protobufs::PropertyPredicate &p_pp = qn.predicates(i);
+            PropertyPredicate j_pp = construct_search_term(p_pp);
+            search_start.Add(j_pp);
+        }
+
+        start_ni = new NodeIterator(search_start.EvalNodes());
+
+        if (!*start_ni) {
+            // No starting node found.
+            response->set_r_type(qnb.r_type());
+            response->set_error_msg("Starting node(s) not found\n");
+            response->set_error_code(protobufs::CommandResponse::Empty);
+            return;
         }
     }
-    else {
-        StringID tmp(qn.tag().c_str());
-        start_node_tag = &tmp;   // Points into PMGD anyway. For NOW
+    else  { // case where link is used.
+        start_ni = mNodes[qnb.start_identifier()];
+        // TODO Just until iterators can be reused, remove this iterator
+        // from the map since it can only be used once and we can assume it
+        // is being accessed here to be used.
+        //mNodes.erase(qnb.start_identifier());
     }
 
-    SearchExpression search_start(*_db, (start_node_tag != NULL ? *start_node_tag : 0));
+    StringID neighb_tag = (qnb.neighbortag_oneof_case() == 9) ? StringID(qnb.n_tagid())
+                            : StringID(qnb.n_tag().c_str());
 
-    if (qn.p_op() == protobufs::Or)
-        throw JarvisException(NotImplemented);
-
-    for (int i = 0; i < qn.predicates_size(); ++i) {
-        const protobufs::PropertyPredicate &p_pp = qn.predicates(i);
-        PropertyPredicate j_pp = construct_search_term(p_pp);
-        search_start.Add(j_pp);
-    }
-
-    NodeIterator start_ni = search_start.EvalNodes();
-
-    if (!start_ni) {
-        // No starting node found.
-        response->set_r_type(qnb.r_type());
-        response->set_error_msg("Starting node(s) not found\n");
-        response->set_error_code(protobufs::CommandResponse::Empty);
-        return;
-    }
-
-    if (qnb.neighbortag_oneof_case() == 5) {
-        if (qnb.n_tagid() != 0) {
-            // TODO For now, assuming that this is the ID in JL String Table.
-            // I think this should be a client specified identifier which is maintained
-            // in a map of (client string id, StringID &)
-            StringID tmp(qnb.n_tagid());
-            neighb_tag = &tmp;
-        }
-    }
-    else {
-        StringID tmp(qnb.n_tag().c_str());
-        neighb_tag = &tmp;   // Points into PMGD anyway. For NOW
-    }
-
-    SearchExpression search_neighbors(*_db, (neighb_tag != NULL ? *neighb_tag : 0));
+    SearchExpression search_neighbors(*_db, neighb_tag);
     for (int i = 0; i < qnb.predicates_size(); ++i) {
         const protobufs::PropertyPredicate &p_pp = qnb.predicates(i);
         PropertyPredicate j_pp = construct_search_term(p_pp);
@@ -492,31 +462,18 @@ void PMGDQueryHandler::query_neighbor(const protobufs::QueryNeighbor &qnb,
     for (int i = 0; i < qnb.response_keys_size(); ++i)
         keyids.push_back(StringID(qnb.response_keys(i).c_str()));
 
-    StringID *edge_tag = NULL;
-    if (qnb.edgetag_oneof_case() == 5) {
-        if (qnb.e_tagid() != 0) {
-            // TODO For now, assuming that this is the ID in JL String Table.
-            // I think this should be a client specified identifier which is maintained
-            // in a map of (client string id, StringID &)
-            StringID tmp(qnb.e_tagid());
-            edge_tag = &tmp;
-        }
-    }
-    else {
-        StringID tmp(qnb.e_tag().c_str());
-        edge_tag = &tmp;   // Points into PMGD anyway. For NOW
-    }
-
+    StringID edge_tag = (qnb.edgetag_oneof_case() == 4) ? StringID(qnb.e_tagid())
+                            : StringID(qnb.e_tag().c_str());
     bool avg = false;
     size_t count = 0;
-    for (; start_ni; start_ni.next()) {
+    for (; *start_ni; start_ni->next()) {
         // TODO Maybe unique can have a default value of false.
         // TODO No support in case unique is true but get it from LDBC.
         // Eventually need to add a get_union(NodeIterator, vector<Constraints>)
         // call to PMGD.
-        NodeIterator neighb_i = search_neighbors.EvalNodes(*start_ni,
+        NodeIterator neighb_i = search_neighbors.EvalNodes(**start_ni,
                                        (Jarvis::Direction)qnb.dir(),
-                                       (edge_tag != NULL ? *edge_tag : 0), qnb.unique());
+                                       edge_tag);
         if (!neighb_i)
             continue;
 
