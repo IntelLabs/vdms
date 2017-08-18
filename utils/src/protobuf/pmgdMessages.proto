@@ -186,6 +186,7 @@ message QueryNeighbor
     // Specify search conditions and whether to OR or AND them
     PredicateOp p_op = 12;
     repeated PropertyPredicate predicates = 13;
+
     // Indicate whether you want PMGD to check if all neighbors
     // are unique. Does carry a performance penalty to do that
     // in cases where it is known that neighbors are unique.

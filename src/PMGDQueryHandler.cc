@@ -350,6 +350,18 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         response->set_error_msg("Null search iterator\n");
         return;
     }
+    // TODO This needs a reusable iterator
+    Node &n = *ni;  // outside if so it can be used for caching if needed.
+    if (qn.unique()) {
+        // TODO Really expensive without the reusable iterator
+        NodeIterator tni = search.eval_nodes();
+        tni.next();
+        if (bool(tni)) {  // Not unique and that is an error here.
+            response->set_error_code(protobufs::CommandResponse::NotUnique);
+            response->set_error_msg("Query response not unique\n");
+            return;
+        }
+    }
     if (qn.identifier() >= 0) {
         // TODO: If ni is now used, it will show up empty since it has been
         // moved to mNodes. Needs fixing for reuse.
@@ -357,7 +369,8 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         // via the SearchExpressionIterator class, which might be slow,
         // especially with a lot of property constraints. Might need another
         // way for it.
-        mNodes[qn.identifier()] = new NodeIterator(ni);
+        mNodes[qn.identifier()] = qn.unique() ? new NodeIterator(new NewNodeIteratorImpl(n))
+                                    : new NodeIterator(ni);
         response->set_r_type(protobufs::Cached);
         response->set_error_code(protobufs::CommandResponse::Success);
         return;
@@ -444,6 +457,11 @@ void PMGDQueryHandler::query_neighbor(const protobufs::QueryNeighbor &qnb,
 {
     NodeIterator *start_ni = NULL;
 
+    if ((qnb.p_op() == protobufs::Or) || qnb.unique()) {
+        response->set_error_code(protobufs::CommandResponse::Exception);
+        response->set_error_msg("Unique neighbor operation/Or not implemented\n");
+        throw JarvisException(NotImplemented);
+    }
     if (qnb.link_oneof_case() == 1) {
         const protobufs::QueryNode &qn = qnb.query_start_node();
         // TODO For now, assuming that this is the ID in JL String Table.
@@ -452,10 +470,9 @@ void PMGDQueryHandler::query_neighbor(const protobufs::QueryNeighbor &qnb,
         StringID start_node_tag = (qn.tag_oneof_case() == 2) ? StringID(qn.tagid())
                                     : StringID(qn.tag().c_str());
 
-        if ((qn.p_op() == protobufs::Or) || (qnb.p_op() == protobufs::Or)
-              || qnb.unique()) {
+        if (qn.p_op() == protobufs::Or) {
             response->set_error_code(protobufs::CommandResponse::Exception);
-            response->set_error_msg("Unique neighbor operation/Or not implemented\n");
+            response->set_error_msg("Start query node Or not implemented\n");
             throw JarvisException(NotImplemented);
         }
 
@@ -478,6 +495,18 @@ void PMGDQueryHandler::query_neighbor(const protobufs::QueryNeighbor &qnb,
             response->set_error_msg("Starting node(s) not found\n");
             response->set_error_code(protobufs::CommandResponse::Empty);
             return;
+        }
+
+        // Uniqueness constraint
+        if (qn.unique()) {
+            // TODO Really expensive without the reusable iterator
+            NodeIterator tni = search_start.eval_nodes();
+            tni.next();
+            if (bool(tni)) {  // Not unique and that is an error here.
+                response->set_error_code(protobufs::CommandResponse::NotUnique);
+                response->set_error_msg("Start query response not unique\n");
+                return;
+            }
         }
     }
     else  { // case where link is used.

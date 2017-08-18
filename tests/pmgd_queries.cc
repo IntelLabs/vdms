@@ -306,6 +306,73 @@ TEST(PMGDQueryHandler, queryTestAverage)
     }
 }
 
+TEST(PMGDQueryHandler, queryTestUnique)
+{
+    printf("Testing PMGD query protobuf handler for unique query return\n");
+
+    Graph db("qhgraph");
+
+    // Since PMGD is still single threaded, provide a lock for the DB
+    mutex dblock;
+    PMGDQueryHandler qh(&db, &dblock);
+
+    vector<protobufs::Command *> cmds;
+
+    {
+        int txid = 1, query_count = 0;
+        protobufs::Command cmdtx;
+        cmdtx.set_cmd_id(protobufs::Command::TxBegin);
+        cmdtx.set_tx_id(txid);
+        cmdtx.set_cmd_grp_id(query_count);
+        cmds.push_back(&cmdtx);
+        query_count++;
+
+        protobufs::Command cmdquery;
+        cmdquery.set_cmd_id(protobufs::Command::QueryNode);
+        cmdquery.set_tx_id(txid);
+        cmdquery.set_cmd_grp_id(query_count);
+        protobufs::QueryNode *qn = cmdquery.mutable_query_node();
+        qn->set_identifier(-1);
+        qn->set_tag("Patient");
+        qn->set_p_op(protobufs::And);
+        qn->set_unique(true);
+        protobufs::PropertyPredicate *pp = qn->add_predicates();
+        pp->set_key("Email");
+        pp->set_op(protobufs::PropertyPredicate::Gt);
+        protobufs::Property *p = pp->mutable_v1();
+        p->set_type(protobufs::Property::StringType);
+        // I think the key is not required here.
+        p->set_key("Email");
+        p->set_string_value("j");
+        qn->set_r_type(protobufs::List);
+        string *key = qn->add_response_keys();
+        *key = "Email";
+        cmds.push_back(&cmdquery);
+        query_count++;
+
+        // No need to commit in this case. So just end TX
+        protobufs::Command cmdtxend;
+        // Commit here doesn't change anything. Just indicates end of TX
+        cmdtxend.set_cmd_id(protobufs::Command::TxCommit);
+        cmdtxend.set_tx_id(txid);
+        cmdtxend.set_cmd_grp_id(0);
+        cmds.push_back(&cmdtxend);
+        query_count++;
+
+        vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count);
+        for (int i = 0; i < query_count; ++i) {
+            vector<protobufs::CommandResponse *> response = responses[i];
+            for (auto it : response) {
+                if (i == 1)  // that's the unique query test
+                    EXPECT_EQ(it->error_code(), protobufs::CommandResponse::NotUnique) << "Was expecting the not unique msg";
+                else
+                    ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+            }
+        }
+    }
+}
+
+
 TEST(PMGDQueryHandler, queryNeighborTestList)
 {
     printf("Testing PMGD query protobuf handler for list return of neighbor\n");
@@ -683,6 +750,7 @@ TEST(PMGDQueryHandler, addConstrainedTest)
         protobufs::QueryNode *qn = an->mutable_query_node();
         qn->set_identifier(patientid++);  // ref for caching in case found.
         qn->set_tag("Patient");
+        qn->set_unique(true);
         qn->set_p_op(protobufs::And);
         protobufs::PropertyPredicate *pp = qn->add_predicates();
         pp->set_key("Email");
