@@ -43,7 +43,14 @@ message Edge {
 message AddNode
 {
     int64 identifier = 1;
+    // We want to be able to query and check if this node
+    // exists and add only if it doesn't. So if query_node
+    // is not set, then we add a node blindly or if query
+    // doesn't return a matching node, then add.
+    // Assumes unique match else returns an error if multiple
+    // nodes found.
     Node node = 2;
+    QueryNode query_node = 3;
 }
 
 message AddEdge
@@ -244,6 +251,8 @@ message CommandResponse
         Error   = 2;
         Exception = 3;
         Empty   = 4;  // For an empty iterator.
+        Exists  = 5;  // If you were looking for something and it is found.
+        NotUnique  = 6;  // If you were looking for something and it is not unique.
     }
 
     // We will switch over this value

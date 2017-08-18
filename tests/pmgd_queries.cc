@@ -652,4 +652,91 @@ TEST(PMGDQueryHandler, queryNeighborLinkTestList)
     }
 }
 
+TEST(PMGDQueryHandler, addConstrainedTest)
+{
+    printf("Testing PMGD add protobuf handler if node doesn't exist\n");
 
+    Graph db("qhgraph");
+
+    // Since PMGD is still single threaded, provide a lock for the DB
+    mutex dblock;
+    PMGDQueryHandler qh(&db, &dblock);
+
+    vector<protobufs::Command *> cmds;
+
+    {
+        int txid = 1, patientid = 1, eid = 1, query_count = 0;
+        protobufs::Command cmdtx;
+        cmdtx.set_cmd_id(protobufs::Command::TxBegin);
+        cmdtx.set_tx_id(txid);
+        cmdtx.set_cmd_grp_id(query_count);
+        cmds.push_back(&cmdtx);
+        query_count++;
+
+        protobufs::Command cmdadd;
+        cmdadd.set_tx_id(txid);
+        cmdadd.set_cmd_grp_id(query_count);
+        add_patient(cmdadd, patientid, "John Doe", 86, "Sat Nov 1 18:59:24 PDT 1930",
+                  "john.doe@abc.com", MALE);
+        // Add a test to verify this node doesn't exist
+        protobufs::AddNode *an = cmdadd.mutable_add_node();
+        protobufs::QueryNode *qn = an->mutable_query_node();
+        qn->set_identifier(patientid++);  // ref for caching in case found.
+        qn->set_tag("Patient");
+        qn->set_p_op(protobufs::And);
+        protobufs::PropertyPredicate *pp = qn->add_predicates();
+        pp->set_key("Email");
+        pp->set_op(protobufs::PropertyPredicate::Eq);
+        protobufs::Property *p = pp->mutable_v1();
+        p->set_type(protobufs::Property::StringType);
+        // I think the key is not required here.
+        p->set_key("Email");
+        p->set_string_value("john.doe@abc.com");
+        cmds.push_back(&cmdadd);
+        query_count++;
+
+        protobufs::Command cmdadd1;
+        cmdadd1.set_tx_id(txid);
+        cmdadd1.set_cmd_grp_id(query_count);
+        add_patient(cmdadd1, patientid++, "Janice Doe", 40, "Fri Oct 1 1:59:24 PDT 1976",
+                  "janice.doe@abc.com", FEMALE);
+        cmds.push_back(&cmdadd1);
+        query_count++;
+
+        protobufs::Command cmdedge1;
+        cmdedge1.set_tx_id(txid);
+        cmdedge1.set_cmd_id(protobufs::Command::AddEdge);
+        cmdedge1.set_cmd_grp_id(query_count);
+        protobufs::AddEdge *ae = cmdedge1.mutable_add_edge();
+        ae->set_identifier(eid++);
+        protobufs::Edge *e = ae->mutable_edge();
+        e->set_src(1);
+        e->set_dst(2);
+        e->set_tag("Daughter");
+        cmds.push_back(&cmdedge1);
+        query_count++;
+
+        protobufs::Command cmdtxcommit;
+        cmdtxcommit.set_cmd_id(protobufs::Command::TxCommit);
+        cmdtxcommit.set_tx_id(txid);
+        cmdtxcommit.set_cmd_grp_id(0);
+        cmds.push_back(&cmdtxcommit);
+        query_count++;
+
+        vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count);
+
+        // Since PMGD queries always generate one response per command,
+        // we can do the following:
+        protobufs::CommandResponse *resp = responses[0][0];  // TxBegin
+        ASSERT_EQ(resp->error_code(), protobufs::CommandResponse::Success) << "Unsuccessful TX";
+        resp = responses[1][0];  // Conditional add
+        ASSERT_EQ(resp->error_code(), protobufs::CommandResponse::Exists) << resp->error_msg();
+        EXPECT_EQ(resp->op_int_value(), 1) << "Unexpected node id for conditional add";
+        resp = responses[2][0];  // Regular add
+        ASSERT_EQ(resp->error_code(), protobufs::CommandResponse::Success) << resp->error_msg();
+        EXPECT_EQ(resp->op_int_value(), 5) << "Unexpected node id for add";
+        resp = responses[3][0];  // Regular add edge
+        ASSERT_EQ(resp->error_code(), protobufs::CommandResponse::Success) << resp->error_msg();
+        EXPECT_EQ(resp->op_int_value(), 3) << "Unexpected edge id for add";
+    }
+}

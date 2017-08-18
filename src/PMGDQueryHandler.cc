@@ -147,7 +147,49 @@ void PMGDQueryHandler::set_property(Element &e, const protobufs::Property &p)
 void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
                                   protobufs::CommandResponse *response)
 {
-    // Presumably this node gets placed here.
+    if (cn.has_query_node()) {
+        const protobufs::QueryNode &qn = cn.query_node();
+        // Have to query and check if this node is present.
+        // TODO For now, assuming that this is the ID in JL String Table.
+        // I think this should be a client specified identifier which is maintained
+        // in a map of (client string id, StringID &)
+        StringID search_node_tag = (qn.tag_oneof_case() == 2) ? StringID(qn.tagid())
+                                    : StringID(qn.tag().c_str());
+
+        // TODO Make a function or something out of this sequence.
+        SearchExpression search(*_db, search_node_tag);
+
+        if (qn.p_op() == protobufs::Or)
+            throw JarvisException(NotImplemented);
+
+        for (int i = 0; i < qn.predicates_size(); ++i) {
+            const protobufs::PropertyPredicate &p_pp = qn.predicates(i);
+            PropertyPredicate j_pp = construct_search_term(p_pp);
+            search.add(j_pp);
+        }
+
+        NodeIterator ni = search.eval_nodes();
+        if (bool(ni)) {
+            // TODO This needs a reusable iterator
+            Node &n = *ni;
+            ni.next();
+            if (bool(ni)) {  // Not unique and that is an error here.
+                response->set_error_code(protobufs::CommandResponse::NotUnique);
+                response->set_error_msg("No unique node found for the add node\n");
+                return;
+            }
+            if (cn.identifier() >= 0)
+                mNodes[cn.identifier()] = new NodeIterator(new NewNodeIteratorImpl(n));
+            response->set_error_code(protobufs::CommandResponse::Exists);
+            response->set_r_type(protobufs::NodeID);
+            // TODO: Partition code goes here
+            // For now, fill in the single system node id
+            response->set_op_int_value(_db->get_id(n));
+            return;
+        }
+    }
+
+    // Since the node wasn't found, now add it.
     StringID sid(cn.node().tag().c_str());
     Node &n = _db->add_node(sid);
     if (cn.identifier() >= 0) {
