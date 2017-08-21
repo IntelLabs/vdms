@@ -61,6 +61,9 @@
                "avg": 32.4,
                 "name": "Mathias",
                 "fv": {"_blob":"----ghjhsglfhwa"}
+          },
+          "constraints":
+          { "name": ["==", "Mathias"]
           }
       }
 
@@ -107,9 +110,9 @@
 
 
        },
-             "results": {
-             "list":["Age"]
-             }
+       "results": {
+         "list":["Age"]
+        }
 }
 },
 {
@@ -117,19 +120,19 @@
         "_ref": -1,
         "class" :  "Patient",
         "constraints": {
-         "Age":  [">", 20, "<=", 90 ]
+         "Age":  [">", 20, "<=", 80 ]
       },
             "results": {
-            "average":["Age"]
+            "list":["Age"]
             }
 }
 },
  {
    "FindEntity" : {
-         "_ref" : 6,
+         "_ref" : -1,
          "class" :  "Patient",
          "constraints": {
-
+           "avg": [">", 1.6],
 
            "Email":[">", "g"]
 
@@ -137,7 +140,7 @@
        },
        "link": {
         "direction": "any",
-        "class": "Patient",
+        // "class": "Patient",
         "ref": 1
         },
        "results": {

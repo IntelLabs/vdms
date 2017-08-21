@@ -231,12 +231,12 @@ message CommandResponse
 {
     enum ErrorCode {
         Success = 0;
-        Abort   = 1;
-        Error   = 2;
-        Exception = 3;
-        Empty   = 4;  // For an empty iterator.
-        Exists  = 5;  // If you were looking for something and it is found.
-        NotUnique  = 6;  // If you were looking for something and it is not unique.
+        Abort   = -3;
+        Error   = -1;
+        Exception = -2;
+        Empty   = 1;  // For an empty iterator.
+        Exists  = 2;  // If you were looking for something and it is found.
+        NotUnique  = 3;  // If you were looking for something and it is not unique.
     }
 
     // We will switch over this value
