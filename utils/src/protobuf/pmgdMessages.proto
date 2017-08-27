@@ -98,8 +98,8 @@ enum ResponseType {
     Average = 3;
     NodeID = 4;
     EdgeID = 5;
-    // TODO Until there is a reusable iterator, indicate that a
-    // query was cached and so no result type was returned.
+
+    // Indicate that we just need the results cached.
     Cached = 6;
 }
 
@@ -110,38 +110,10 @@ enum PredicateOp {
     Or = 1;
 }
 
-message QueryNode
-{
-    int64 identifier = 1;
-
-    oneof tag_oneof {
-        // Apply to nodes with specific tag using either the int
-        uint32 tagid = 2;
-        //or string version of the tag.
-        string tag = 3;
-    }
-
-    // Specify search conditions and whether to OR or AND them
-    PredicateOp p_op = 4;
-    repeated PropertyPredicate predicates = 5;
-
-    // Specify what to do with the responses. If the option is
-    // list, the response properties will indicate list of what
-    // properties.
-    ResponseType r_type = 6;
-
-    // User could request multiple properties.
-    // This is populated only if the r_type is List
-    // TODO Change to keyids later. Oneof doesn't work with
-    // repeated properties
-    repeated string response_keys = 7;
-
-    // Indicate whether we should make sure there was only one value
-    // that matched the constraints.
-    bool unique = 8;
-}
-
-message QueryNeighbor
+// Provide a way for QueryNode to become QueryNeighbor. This way
+// of implementing requires chained calls. It is no longer possible
+// to provide a search for starting node(s) within the query call itself.
+message LinkInfo
 {
     // Need to match those in PMGD!
     enum EdgeDirection {
@@ -150,14 +122,8 @@ message QueryNeighbor
         Incoming = 2;
     }
 
-    oneof link_oneof {
-        // First need to find a start node for neighbor search using
-        // typical querying.
-        QueryNode query_start_node = 1;
-
-        // In case an identifier is specified, provide the value of ref.
-        int64 start_identifier = 2;
-    }
+    // This is the _ref value of the starting nodes for these neighbors
+    int64 start_identifier = 2;
 
     // Then need a way to find which neighbors to look at.
     // Use edge direction, and edge tags to specify which neighbors
@@ -176,34 +142,53 @@ message QueryNeighbor
     }
     EdgeDirection dir = 7;
 
-    // Now specify constraints for the neighbors
-    oneof neighbortag_oneof {
-        // Apply to nodes with specific tag using either the int
-        uint32 n_tagid = 9;
-        //or string version of the tag.
-        string n_tag = 10;
-    }
-    // Specify search conditions and whether to OR or AND them
-    PredicateOp p_op = 12;
-    repeated PropertyPredicate predicates = 13;
-
     // Indicate whether you want PMGD to check if all neighbors
     // are unique. Does carry a performance penalty to do that
     // in cases where it is known that neighbors are unique.
-    bool unique = 14;
+    bool nb_unique = 14;
+}
+
+message QueryNode
+{
+    // _ref for this search.
+    // TODO Support caching for the neighbor version of this call too
+    int64 identifier = 1;
+
+    // For the version of FindEntity that has link in it, this
+    // member will be defined. Rest of the tag and property
+    // constraints will then apply to the neighbors, not the start
+    // node, except the unique constraint.
+    LinkInfo link = 2;
+
+    // In case of QueryNeighbor, this is the tag constrait for the
+    // found neighbors. Similarly for the remaining variables here.
+    oneof tag_oneof {
+        // Apply to nodes with specific tag using either the int
+        uint32 tagid = 4;
+        //or string version of the tag.
+        string tag = 5;
+    }
+
+    // Specify search conditions and whether to OR or AND them
+    PredicateOp p_op = 7;
+    repeated PropertyPredicate predicates = 8;
 
     // Specify what to do with the responses. If the option is
     // list, the response properties will indicate list of what
     // properties.
-    ResponseType r_type = 16;
+    ResponseType r_type = 10;
 
     // User could request multiple properties.
     // This is populated only if the r_type is List
     // TODO Change to keyids later. Oneof doesn't work with
     // repeated properties
-    repeated string response_keys = 18;
-}
+    repeated string response_keys = 11;
 
+    // Indicate whether we should make sure there was only one value
+    // that matched the constraints.
+    // TODO Support this for QueryNeighbor
+    bool unique = 12;
+}
 
 message Command
 {
@@ -216,7 +201,6 @@ message Command
         AddEdge   = 0x22;
 
         QueryNode = 0x30;
-        QueryNeighbor = 0x32;
     }
 
     // TODO Might need a transaction object here or maybe just another variable
@@ -235,8 +219,7 @@ message Command
     //we define all cmds type here.
     AddNode add_node    = 10;
     AddEdge add_edge    = 11;
-    QueryNode query_node = 13;
-    QueryNeighbor query_neighbor = 15;
+    QueryNode query_node = 15;
 }
 
 message PropertyList

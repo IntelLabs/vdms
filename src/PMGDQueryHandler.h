@@ -36,6 +36,72 @@ namespace athena {
             Jarvis::Node *ref() { return (start ? &_n : NULL); }
         };
 
+        class MultiNeighborIteratorImpl : public Jarvis::NodeIteratorImplIntf
+        {
+            // Iterator for the starting nodes.
+            Jarvis::NodeIterator *_start_ni;
+            SearchExpression _search_neighbors;
+            Jarvis::NodeIterator *_neighb_i;     // TODO: Does this work properly?
+            Jarvis::Direction _dir;
+            Jarvis::StringID _edge_tag;
+
+            bool _next()
+            {
+                while (*_start_ni) {
+                    if (_neighb_i != NULL)
+                        delete _neighb_i;
+
+                    // TODO Maybe unique can have a default value of false.
+                    // TODO No support in case unique is true but get it from LDBC.
+                    // Eventually need to add a get_union(NodeIterator, vector<Constraints>)
+                    // call to PMGD.
+                    // TODO Any way to skip new?
+                    _neighb_i = new Jarvis::NodeIterator(_search_neighbors.eval_nodes(**_start_ni,
+                                               _dir, _edge_tag));
+                    _start_ni->next();
+                    if (bool(*_neighb_i))
+                        return true;
+                }
+                return false;
+            }
+
+        public:
+            MultiNeighborIteratorImpl(Jarvis::NodeIterator *start_ni,
+                                      SearchExpression search_neighbors,
+                                      Jarvis::Direction dir,
+                                      Jarvis::StringID edge_tag)
+                : _start_ni(start_ni),
+                  _search_neighbors(search_neighbors),
+                  _neighb_i(NULL),
+                  _dir(dir),
+                  _edge_tag(edge_tag)
+            {
+                _next();
+            }
+
+            ~MultiNeighborIteratorImpl()
+            {
+                if (_neighb_i != NULL)
+                    delete _neighb_i;
+                _neighb_i = NULL;
+            }
+
+            operator bool() const { return _neighb_i != NULL ? bool(*_neighb_i) : false; }
+
+            /// No next matching node
+            bool next()
+            {
+                if (_neighb_i != NULL && !*_neighb_i) {
+                    _neighb_i->next();
+                    if (bool(*_neighb_i))
+                        return true;
+                }
+                return _next();
+            }
+
+            Jarvis::Node *ref() { return &**_neighb_i; }
+        };
+
         // This class is instantiated by the server each time there is a new
         // connection. So someone needs to pass a handle to the graph db itself.
         Jarvis::Graph *_db;
@@ -69,7 +135,7 @@ namespace athena {
         Jarvis::PropertyPredicate construct_search_term(const pmgd::protobufs::PropertyPredicate &p_pp);
         void construct_protobuf_property(const Jarvis::Property &j_p, pmgd::protobufs::Property *p_p);
         void query_node(const pmgd::protobufs::QueryNode &qn, pmgd::protobufs::CommandResponse *response);
-        void query_neighbor(const pmgd::protobufs::QueryNeighbor &qnb, pmgd::protobufs::CommandResponse *response);
+        // void query_neighbor(const pmgd::protobufs::QueryNeighbor &qnb, pmgd::protobufs::CommandResponse *response);
         void process_query(pmgd::protobufs::Command *cmd, pmgd::protobufs::CommandResponse *response);
 
     public:
