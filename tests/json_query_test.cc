@@ -75,16 +75,14 @@ TEST(QueryHandler, addTest){
 
           if ( query[cmd]["results"].isMember("count") ) {
             count_found_before=true;
-
           }
-
         }
         else if (query.isMember("properties"))
           in_props=query["properties"].size();
-
     }
 
-           // int i = system("rm -r jsongraph");
+    // This is needed every time we run, if not the test will fail
+    int i = system("rm -r jsongraph");
     Graph db("jsongraph", Graph::Create);
 
     mutex dblock;
@@ -106,7 +104,6 @@ TEST(QueryHandler, addTest){
         const Json::Value& query = parsed[j];
         assert (query.getMemberNames().size() == 1);
         std::string cmd = query.getMemberNames()[0];
-        // std::cout<<query[cmd]["average"]<<std::endl;
 
         if (cmd=="AddEntity")
             out_node_num++;
@@ -116,45 +113,42 @@ TEST(QueryHandler, addTest){
             out_query_num++;
 
         if ( query[cmd]["status"] == 0)
-           sucess++;
+            sucess++;
 
         if (query[cmd].isMember("list"))
-           list_found_after = true;
+            list_found_after = true;
 
         if (query[cmd].isMember("average") ) {
-           average_found_after = true;
-           average_value = query[cmd]["average"].asDouble();
-
+            average_found_after = true;
+            average_value = query[cmd]["average"].asDouble();
         }
 
         if (query[cmd].isMember("sum"))
-         sum_found_after = true;
+            sum_found_after = true;
 
         if (query[cmd].isMember("count")){
-         count_found_after = true;
-         count_value = query[cmd]["count"].asInt();
-
+            count_found_after = true;
+            count_value = query[cmd]["count"].asInt();
        }
 
-
      }
-
 
     int total_sucess=out_node_num+out_query_num+out_edge_num;
     //google tests to double check the read and parsed values.
     EXPECT_EQ(in_node_num, out_node_num) << "Not enough nodes found";
     EXPECT_EQ(in_edge_num, out_edge_num) << "Not enough edges found";
-    EXPECT_EQ(in_query_num, out_query_num) <<"Not enough queries found";
-    EXPECT_EQ(sucess, total_sucess) <<"Not enough queries found";
-   // EXPECT_EQ(list_found_before, list_found_after) <<"Wrong list operation!!";
-    EXPECT_EQ(average_found_before, average_found_after) <<"Wrong average operation!!";
-    EXPECT_EQ(sum_found_before, sum_found_after) <<"Wrong sum operation!!";
-    EXPECT_EQ(count_found_before, count_found_after) <<"Wrong count operation!!";
-   // EXPECT_EQ(count_value, 4) <<"Wrong count value!!";
-    //EXPECT_EQ(average_value, 69.25) <<"Wrong average value!!";
+    EXPECT_EQ(in_query_num, out_query_num) << "Not enough queries found";
+    EXPECT_EQ(sucess, total_sucess) << "Not enough queries found";
+    // EXPECT_EQ(list_found_before, list_found_after) <<"Wrong list operation!!";
+    EXPECT_EQ(average_found_before, average_found_after) <<
+                  "Wrong average operation!!";
+    EXPECT_EQ(sum_found_before, sum_found_after) << "Wrong sum operation!!";
+    EXPECT_EQ(count_found_before, count_found_after) <<
+                  "Wrong count operation!!";
+    // EXPECT_EQ(count_value, 4) <<"Wrong count value!!";
+    // EXPECT_EQ(average_value, 69.25) <<"Wrong average value!!";
 
+    // EXPECT_EQ(average_value, 69.25) <<"Wrong average value !!";
 
-    //EXPECT_EQ(average_value, 69.25) <<"Wrong average value !!";
-
-    std::cout<< writer.write(parsed) << std::endl;
+    // std::cout<< writer.write(parsed) << std::endl;
 }

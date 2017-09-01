@@ -50,7 +50,7 @@ void add_patient(protobufs::Command &cmdadd, int id, string name, int age,
 
 TEST(PMGDQueryHandler, addTest)
 {
-    printf("Testing PMGD add protobuf handler\n");
+    //printf("Testing PMGD add protobuf handler\n");
 
     int ret = system("rm -r qhgraph");
     Graph db("qhgraph", Graph::Create);
@@ -158,26 +158,26 @@ void print_property(const string &key, const protobufs::Property &p)
 {
     switch(p.type()) {
     case protobufs::Property::BooleanType:
-        printf("key: %s, value: %d\n", key.c_str(), p.bool_value());
+        //printf("key: %s, value: %d\n", key.c_str(), p.bool_value());
         break;
     case protobufs::Property::IntegerType:
-        printf("key: %s, value: %ld\n", key.c_str(), p.int_value());
+        //printf("key: %s, value: %ld\n", key.c_str(), p.int_value());
         break;
     case protobufs::Property::StringType:
     case protobufs::Property::TimeType:
-        printf("key: %s, value: %s\n", key.c_str(), p.string_value().c_str());
+        //printf("key: %s, value: %s\n", key.c_str(), p.string_value().c_str());
         break;
     case protobufs::Property::FloatType:
-        printf("key: %s, value: %lf\n", key.c_str(), p.float_value());
+        //printf("key: %s, value: %lf\n", key.c_str(), p.float_value());
         break;
-    default:
-        printf("Unknown\n");
+    // default:
+        // printf("Unknown\n");
     }
 }
 
 TEST(PMGDQueryHandler, queryTestList)
 {
-    printf("Testing PMGD query protobuf handler for list return\n");
+    //printf("Testing PMGD query protobuf handler for list return\n");
 
     Graph db("qhgraph");
 
@@ -245,7 +245,7 @@ TEST(PMGDQueryHandler, queryTestList)
                         propcount++;
                     }
                 }
-                printf("\n");
+                //printf("\n");
             }
         }
         EXPECT_EQ(nodecount, 2) << "Not enough nodes found";
@@ -255,7 +255,7 @@ TEST(PMGDQueryHandler, queryTestList)
 
 TEST(PMGDQueryHandler, queryTestAverage)
 {
-    printf("Testing PMGD query protobuf handler for average return\n");
+    //printf("Testing PMGD query protobuf handler for average return\n");
 
     Graph db("qhgraph");
 
@@ -308,7 +308,7 @@ TEST(PMGDQueryHandler, queryTestAverage)
 
 TEST(PMGDQueryHandler, queryTestUnique)
 {
-    printf("Testing PMGD query protobuf handler for unique query return\n");
+    //printf("Testing PMGD query protobuf handler for unique query return\n");
 
     Graph db("qhgraph");
 
@@ -374,7 +374,7 @@ TEST(PMGDQueryHandler, queryTestUnique)
 
 TEST(PMGDQueryHandler, queryNeighborTestList)
 {
-    printf("Testing PMGD query protobuf handler for list return of neighbor\n");
+    //printf("Testing PMGD query protobuf handler for list return of neighbor\n");
 
     Graph db("qhgraph");
 
@@ -459,7 +459,7 @@ TEST(PMGDQueryHandler, queryNeighborTestList)
                         propcount++;
                     }
                 }
-                printf("\n");
+                //printf("\n");
             }
         }
         EXPECT_EQ(nodecount, 2) << "Not enough nodes found";
@@ -469,7 +469,7 @@ TEST(PMGDQueryHandler, queryNeighborTestList)
 
 TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
 {
-    printf("Testing PMGD query protobuf handler for list return of neighbors with constraints\n");
+    //printf("Testing PMGD query protobuf handler for list return of neighbors with constraints\n");
 
     Graph db("qhgraph");
 
@@ -563,7 +563,7 @@ TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
                         propcount++;
                     }
                 }
-                printf("\n");
+                //printf("\n");
             }
         }
         EXPECT_EQ(nodecount, 1) << "Not enough nodes found";
@@ -573,7 +573,7 @@ TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
 
 TEST(PMGDQueryHandler, queryNeighborTestSum)
 {
-    printf("Testing PMGD query protobuf handler for summing of given neighbor property\n");
+    //printf("Testing PMGD query protobuf handler for summing of given neighbor property\n");
 
     Graph db("qhgraph");
 
@@ -655,7 +655,7 @@ TEST(PMGDQueryHandler, queryNeighborTestSum)
 
 TEST(PMGDQueryHandler, addConstrainedTest)
 {
-    printf("Testing PMGD add protobuf handler if node doesn't exist\n");
+    //printf("Testing PMGD add protobuf handler if node doesn't exist\n");
 
     Graph db("qhgraph");
 
@@ -745,7 +745,7 @@ TEST(PMGDQueryHandler, addConstrainedTest)
 
 TEST(PMGDQueryHandler, queryNeighborLinksTestList)
 {
-    printf("Testing PMGD query protobuf handler for list return of neighbors using two links\n");
+    //printf("Testing PMGD query protobuf handler for list return of neighbors using two links\n");
 
     Graph db("qhgraph");
 
@@ -846,7 +846,7 @@ TEST(PMGDQueryHandler, queryNeighborLinksTestList)
                         propcount++;
                     }
                 }
-                printf("\n");
+                //printf("\n");
             }
         }
         EXPECT_EQ(nodecount, 1) << "Not enough nodes found";

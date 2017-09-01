@@ -5,8 +5,6 @@
 #include <unordered_map>
 #include "VCL.h"
 
-//#include "protobuf/queryMessage.pb.h" // Protobuf implementation
-// #include "protobuf/pmgdMessages.pb.h" // Protobuff implementation
 #include "CommandHandler.h"
 #include "PMGDQueryHandler.h" // to provide the database connection
 
@@ -21,10 +19,16 @@ namespace athena {
     class RSCommand
     {
     protected:
-         void set_property(pmgd::protobufs::Property *p,
+        void set_property(pmgd::protobufs::Property *p,
                                         const char * prop_name,
                                         Json::Value);
+
         virtual Json::Value parse_response(pmgd::protobufs::CommandResponse *);
+
+        Json::Value print_properties(const std::string &key,
+                             const pmgd::protobufs::Property &p);
+
+        typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
 
     public:
         virtual int construct_protobuf(
@@ -37,30 +41,41 @@ namespace athena {
 
         virtual bool need_blob() { return false; }
 
-        virtual Json::Value construct_responses(std::vector<pmgd::protobufs::CommandResponse *>&, Json::Value*) = 0;
-    };
+        virtual Json::Value construct_responses(
+            std::vector<pmgd::protobufs::CommandResponse *> &cmds,
+            Json::Value *json,
+            protobufs::queryMessage &response) = 0;
+     };
 
     class AddEntity : public RSCommand
     {
     public:
+        int add_entity_body(pmgd::protobufs::AddNode*,
+                            const Json::Value& root);
 
         int construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
-                                const Json::Value& root,
-                                const std::string& blob,
-                                int txid);
-        int add_entity_body(pmgd::protobufs::AddNode*, const Json::Value& root);
+                               const Json::Value& root,
+                               const std::string& blob,
+                               int txid);
 
-        Json::Value construct_responses(std::vector<pmgd::protobufs::CommandResponse *>&, Json::Value*);
+        Json::Value construct_responses(
+            std::vector<pmgd::protobufs::CommandResponse *>&,
+            Json::Value*,
+            protobufs::queryMessage &response);
     };
 
     class AddConnection : public RSCommand
     {
     public:
         int construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
-                                const Json::Value& root,
-                                const std::string& blob,
-                                int txid);
-         Json::Value construct_responses(std::vector<pmgd::protobufs::CommandResponse *>&, Json::Value*);
+                               const Json::Value& root,
+                               const std::string& blob,
+                               int txid);
+
+        Json::Value construct_responses(
+                std::vector<pmgd::protobufs::CommandResponse *>&,
+                Json::Value*,
+                protobufs::queryMessage &response);
     };
 
     class FindEntity : public RSCommand
@@ -68,22 +83,29 @@ namespace athena {
     protected:
         void set_operand(pmgd::protobufs::Property* p1, Json::Value);
 
-        int build_query_protobuf(pmgd::protobufs::Command*, const Json::Value& root,
-                                           pmgd::protobufs::QueryNode *queryType);
+        int build_query_protobuf(pmgd::protobufs::Command*,
+                                 const Json::Value& root,
+                                 pmgd::protobufs::QueryNode *queryType);
 
-        int get_response_type(const Json::Value& result_type_array, std::string response, pmgd::protobufs::QueryNode *queryType);
+        int get_response_type(const Json::Value& result_type_array,
+                              std::string response,
+                              pmgd::protobufs::QueryNode *queryType);
 
-        int parse_query_results(const Json::Value& result_type, pmgd::protobufs::QueryNode* queryType);
+        int parse_query_results(const Json::Value& result_type,
+                                pmgd::protobufs::QueryNode* queryType);
 
     public:
         int construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
-                                const Json::Value& root,
-                                const std::string& blob,
-                                int txid);
+                               const Json::Value& root,
+                               const std::string& blob,
+                               int txid);
 
         int parse_query_constraints(const Json::Value& root, pmgd::protobufs::QueryNode* queryType);
 
-        Json::Value construct_responses(std::vector<pmgd::protobufs::CommandResponse *>&, Json::Value*);
+        Json::Value construct_responses(
+            std::vector<pmgd::protobufs::CommandResponse *>&,
+            Json::Value*,
+            protobufs::queryMessage &response);
     };
 
     class AddImage: public RSCommand
@@ -97,27 +119,33 @@ namespace athena {
     public:
         AddImage();
 
-        int construct_protobuf( std::vector<pmgd::protobufs::Command*> &cmds,
-                                const Json::Value& root,
-                                const std::string& blob,
-                                int txid);
+        int construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
+                               const Json::Value& root,
+                               const std::string& blob,
+                               int txid);
+
         bool need_blob() { return true; }
 
-        Json::Value construct_responses( std::vector<pmgd::protobufs::CommandResponse *>&, Json::Value*);
+        Json::Value construct_responses(
+                std::vector<pmgd::protobufs::CommandResponse*> &cmds,
+                Json::Value *json,
+                protobufs::queryMessage &response);
     };
 
     class FindImage: public RSCommand
     {
     public:
-        FindImage();
+        int construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
+                               const Json::Value& root,
+                               const std::string& blob,
+                               int txid);
 
-        int construct_protobuf( std::vector<pmgd::protobufs::Command*> &cmds,
-                                const Json::Value& root,
-                                const std::string& blob,
-                                int txid);
         bool need_blob() { return false; }
 
-        Json::Value construct_responses( std::vector<pmgd::protobufs::CommandResponse *>&, Json::Value*);
+        Json::Value construct_responses(
+                std::vector<pmgd::protobufs::CommandResponse *> &cmds,
+                Json::Value *json,
+                protobufs::queryMessage &response);
     };
 
     // Instance created per worker thread to handle all transactions on a given
@@ -126,8 +154,6 @@ namespace athena {
     {
         PMGDQueryHandler _pmgd_qh;
         std::unordered_map<std::string, RSCommand *> _rs_cmds;
-
-         std::string Json_output;
 
     public:
         QueryHandler(Jarvis::Graph *db, std::mutex *mtx);

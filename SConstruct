@@ -48,9 +48,10 @@ def buildServer(intel_path, env):
                           intel_path + 'jarvis/util', ],
                           CXXFLAGS="-std=c++11 -O3")
 
-  test_sources = [ 'tests/main.cc',
+  test_sources = ['tests/main.cc',
                   'tests/pmgd_queries.cc',
-                   'tests/json_query_test.cc'
+                  'tests/add_image.cc',
+                  'tests/json_query_test.cc'
                  ]
 
   query_tests = testenv.Program(

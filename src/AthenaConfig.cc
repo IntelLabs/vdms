@@ -34,7 +34,7 @@ AthenaConfig::AthenaConfig(std::string config_file)
     Json::Reader reader;
     std::ifstream file(config_file);
 
-    bool parsingSuccessful = reader.parse( file, json_config );
+    bool parsingSuccessful = reader.parse(file, json_config);
 
     if (!parsingSuccessful){
         std::cout << "Error parsing config file" << std::endl;
