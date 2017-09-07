@@ -27,14 +27,20 @@ class Athena(object):
         self.connected = False
 
     # Recieves a json struct as a string
-    def query(self, query_JSON, img_array = []):
+    def query(self, query, img_array = []):
+
+        # Check the query type
+        if not isinstance(query, str): # assumes json
+            query_str = json.dumps(query)
+        else:
+            query_str = query
 
         if not self.connected:
             return "NOT CONNECTED"
 
         quer = queryMessage_pb2.queryMessage()
         # quer has .json and .blob
-        quer.json = query_JSON
+        quer.json = query_str
 
         for im in img_array:
             quer.blobs.extend(im)
@@ -70,9 +76,12 @@ class Athena(object):
 
         return (querRes.json, img_array)
 
-    # Recieves json object
-    def queryJSONObj(self, json_obj, img_array = []):
+# Aux functions for printing JSON queries/responses
+def aux_print_json(data):
+    # Check the query type
+    json_obj = json.loads(data)
+    # if isinstance(data, str): # assumes string
+    # else:
+    #     json_obj = data
 
-        parsed = json.loads(json_obj)
-        str_query = json.dumps(parsed, indent=4, sort_keys=False)
-        return self.query(str_query, img_array)
+    print json.dumps(json_obj, indent=4, sort_keys=False)

@@ -30,6 +30,23 @@ namespace athena {
 
         typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
 
+        void add_link(Json::Value& link, pmgd::protobufs::QueryNode *qn);
+
+        void set_operand(pmgd::protobufs::Property* p1, Json::Value);
+
+        int build_query_protobuf(pmgd::protobufs::Command*,
+                                 const Json::Value& root,
+                                 pmgd::protobufs::QueryNode *queryType);
+
+        int get_response_type(const Json::Value& result_type_array,
+                              std::string response,
+                              pmgd::protobufs::QueryNode *queryType);
+
+        int parse_query_results(const Json::Value& result_type,
+                                pmgd::protobufs::QueryNode* queryType);
+
+        int parse_query_constraints(const Json::Value& root, pmgd::protobufs::QueryNode* queryType);
+
     public:
         virtual int construct_protobuf(
                                 std::vector<pmgd::protobufs::Command*> &cmds,
@@ -81,26 +98,12 @@ namespace athena {
     class FindEntity : public RSCommand
     {
     protected:
-        void set_operand(pmgd::protobufs::Property* p1, Json::Value);
-
-        int build_query_protobuf(pmgd::protobufs::Command*,
-                                 const Json::Value& root,
-                                 pmgd::protobufs::QueryNode *queryType);
-
-        int get_response_type(const Json::Value& result_type_array,
-                              std::string response,
-                              pmgd::protobufs::QueryNode *queryType);
-
-        int parse_query_results(const Json::Value& result_type,
-                                pmgd::protobufs::QueryNode* queryType);
 
     public:
         int construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
                                const Json::Value& root,
                                const std::string& blob,
                                int txid);
-
-        int parse_query_constraints(const Json::Value& root, pmgd::protobufs::QueryNode* queryType);
 
         Json::Value construct_responses(
             std::vector<pmgd::protobufs::CommandResponse *>&,

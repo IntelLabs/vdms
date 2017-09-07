@@ -69,8 +69,7 @@ TEST(AddImage, simpleAdd)
     // std::cout << response.json() << std::endl;
     json_reader.parse(response.json(), json_response);
 
-    EXPECT_EQ(json_response[0]["AddImage"]["status"].asString(),
-            "Success");
+    EXPECT_EQ(json_response[0]["AddImage"]["status"].asString(), "0");
 }
 
 TEST(AddImage, simpleAddx10)
@@ -120,7 +119,6 @@ TEST(AddImage, simpleAddx10)
     json_reader.parse(response.json(), json_response);
 
     for (int i = 0; i < total_images; ++i) {
-        EXPECT_EQ(json_response[i]["AddImage"]["status"].asString(),
-                "Success");
+        EXPECT_EQ(json_response[i]["AddImage"]["status"].asString(), "0");
     }
 }

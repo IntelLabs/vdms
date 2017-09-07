@@ -15,7 +15,13 @@
 #define ATHENA_IM_NAME_PROP     "name"
 #define ATHENA_IM_PATH_PROP     "imgPath"
 
+#define ATHENA_COL_TAG          "AT:COLLECTION"
+#define ATHENA_COL_NAME_PROP    "name"
+#define ATHENA_COL_EDGE_TAG     "collection_tag"
+
 using namespace athena;
+
+static uint32_t STATIC_IDENTIFIER = 0;
 
 QueryHandler::QueryHandler(Jarvis::Graph *db, std::mutex *mtx)
     : _pmgd_qh(db, mtx)
@@ -64,6 +70,11 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
             error["return"] = "Server error - parsing";
             json_responses.append(error);
         }
+
+        // TODO REMOVE THIS:
+        // Json::StyledWriter swriter;
+        // std::cout << "Recieved query:" << std::endl;
+        // std::cout << swriter.write(root) << std::endl;
 
         // define a vector of commands
         // TODO WE NEED TO DELETE EACH ELEMENT AFTER DONE WITH THIS VECTOR!!!
@@ -199,6 +210,26 @@ Json::Value RSCommand::print_properties(const std::string &key,
     return result[key];
 }
 
+void RSCommand::add_link(Json::Value& link, pmgd::protobufs::QueryNode *qn)
+{
+    pmgd::protobufs::LinkInfo *qnb = qn->mutable_link();
+    if (link.isMember("ref")) {
+        qnb->set_start_identifier(link["ref"].asInt());
+    }
+    if (link.isMember("direction")) {
+        if (link["direction"]== "out")
+            qnb->set_dir(pmgd::protobufs::LinkInfo::Outgoing);
+        else if ( link["direction"] =="in" )
+            qnb->set_dir(pmgd::protobufs::LinkInfo::Incoming);
+        else if ( link["direction"] == "any" )
+            qnb->set_dir(pmgd::protobufs::LinkInfo::Any);
+    }
+    if (link.isMember("unique"))
+        qnb->set_nb_unique(link["unique"].asBool());
+    if (link.isMember("class"))
+         qnb->set_e_tag(link["class"].asCString());
+}
+
 void RSCommand::set_property(pmgd::protobufs::Property *p,
         const char *key, Json::Value val)
 {
@@ -246,7 +277,7 @@ Json::Value RSCommand::parse_response(
     switch (response->r_type()) {
 
         case pmgd::protobufs::NodeID:
-            if (response->error_code()== pmgd::protobufs::CommandResponse::Success)
+            if (response->error_code() == pmgd::protobufs::CommandResponse::Success)
                 json_responses["status"] = pmgd::protobufs::CommandResponse::Success;
 
             else if (response->error_code() == pmgd::protobufs::CommandResponse::Exists)
@@ -258,35 +289,35 @@ Json::Value RSCommand::parse_response(
             break;
 
         case pmgd::protobufs::EdgeID:
-            if (response->error_code()== pmgd::protobufs::CommandResponse::Success) {
+            if (response->error_code() == pmgd::protobufs::CommandResponse::Success) {
                  if (response->error_code() == pmgd::protobufs::CommandResponse::Exists)
                     json_responses["status"] = pmgd::protobufs::CommandResponse::Success;
                 else
                     json_responses["status"] = response->error_code();
             }
             else {
-                json_responses["status"]=response->error_code();
-                json_responses["info"] =response->error_msg();
+                json_responses["status"] = response->error_code();
+                json_responses["info"]   = response->error_msg();
             }
             break;
 
         case pmgd::protobufs::Cached:
-            if (response->error_code()== pmgd::protobufs::CommandResponse::Success)
+            if (response->error_code() == pmgd::protobufs::CommandResponse::Success)
                 json_responses["status"] = pmgd::protobufs::CommandResponse::Success;
             else {
-                json_responses["status"]=response->error_code();
-                json_responses["info"] =response->error_msg();
+                json_responses["status"] = response->error_code();
+                json_responses["info"]   = response->error_msg();
             }
             break;
 
-        case pmgd::protobufs::List :
-            if (response->error_code()== pmgd::protobufs::CommandResponse::Success) {
+        case pmgd::protobufs::List:
+            if (response->error_code() == pmgd::protobufs::CommandResponse::Success) {
                 int cnt;
                 Json::Value list;
                 Json::Value result;
                 auto mymap = response->prop_values();
 
-                int count=0;
+                int count = 0;
 
                 for (auto key:mymap) {
                     count=key.second.values().size();
@@ -294,12 +325,12 @@ Json::Value RSCommand::parse_response(
                 }
 
                 if (count > 0) {
-                    for (int i=0; i<count; ++i) {
+                    for (int i = 0; i<count; ++i) {
                         Json::Value prop;
 
                         for (auto key : mymap) {
                             pmgd::protobufs::PropertyList &p = key.second;
-                            prop[key.first]=print_properties(key.first.c_str(), p.values(i));
+                            prop[key.first] = print_properties(key.first.c_str(), p.values(i));
                         }
 
                         list.append(prop);
@@ -317,45 +348,45 @@ Json::Value RSCommand::parse_response(
             break;
 
     case pmgd::protobufs::Average:
-        if (response->error_code()==pmgd::protobufs::CommandResponse::Success) {
+        if (response->error_code() == pmgd::protobufs::CommandResponse::Success) {
             float average = response->op_float_value();
             json_responses["status"] = pmgd::protobufs::CommandResponse::Success;
-            json_responses["average"]=double(average);
+            json_responses["average"] = double(average);
         }
         else {
-            json_responses["status"]=response->error_code();
-            json_responses["info"] =response->error_msg();
+            json_responses["status"] = response->error_code();
+            json_responses["info"]   = response->error_msg();
         }
         break;
 
     case pmgd::protobufs::Sum:
 
-        if (response->error_code()==pmgd::protobufs::CommandResponse::Success) {
+        if (response->error_code() == pmgd::protobufs::CommandResponse::Success) {
             Json::Int64  sum = response->op_int_value();
             json_responses["status"] = pmgd::protobufs::CommandResponse::Success;
             json_responses["sum"]= sum;
         }
         else {
-            json_responses["status"]=response->error_code();
-            json_responses["info"] =response->error_msg();
+            json_responses["status"] = response->error_code();
+            json_responses["info"]   = response->error_msg();
         }
         break;
 
     case pmgd::protobufs::Count:
-        if (response->error_code()==pmgd::protobufs::CommandResponse::Success) {
+        if (response->error_code() == pmgd::protobufs::CommandResponse::Success) {
             float count = response->op_int_value();
             json_responses["status"] = pmgd::protobufs::CommandResponse::Success;
             json_responses["count"] =float(count);
         }
         else {
-            json_responses["status"]=response->error_code();
-            json_responses["info"] =response->error_msg();
+            json_responses["status"] = response->error_code();
+            json_responses["info"]   = response->error_msg();
         }
         break;
 
     default:
-           json_responses["status"]=response->error_code();
-           json_responses["info"] =response->error_msg();
+        json_responses["status"] = response->error_code();
+        json_responses["info"]   = response->error_msg();
     }
 
     return  json_responses;
@@ -424,7 +455,6 @@ int AddEntity::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
 
     if( json_node.isMember("constraints")) {
 
-        FindEntity query; // to call the parse constraints block
         pmgd::protobufs::QueryNode *qn = an->mutable_query_node();
 
         if (json_node.isMember("_ref"))
@@ -438,8 +468,7 @@ int AddEntity::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
             qn->set_unique(json_node["unique"].asBool());
 
         qn->set_p_op(pmgd::protobufs::And);
-        query.parse_query_constraints(json_node["constraints"], qn);
-
+        parse_query_constraints(json_node["constraints"], qn);
     }
 
     add_entity_body(an,json_node);
@@ -504,7 +533,7 @@ Json::Value AddConnection::construct_responses(
 
 //========= FindEntity definitions =========
 
-void FindEntity::set_operand(pmgd::protobufs::Property* p, Json::Value operand)
+void RSCommand::set_operand(pmgd::protobufs::Property* p, Json::Value operand)
 {
     if (operand.isInt()) {
         p->set_type(pmgd::protobufs::Property::IntegerType);
@@ -527,7 +556,7 @@ void FindEntity::set_operand(pmgd::protobufs::Property* p, Json::Value operand)
     }
 }
 
-int FindEntity::parse_query_constraints(const Json::Value& predicates_array, pmgd::protobufs::QueryNode* query_node)
+int RSCommand::parse_query_constraints(const Json::Value& predicates_array, pmgd::protobufs::QueryNode* query_node)
 {
     for (auto itr = predicates_array.begin() ;
            itr != predicates_array.end() ; itr++ ) {
@@ -596,7 +625,7 @@ int FindEntity::parse_query_constraints(const Json::Value& predicates_array, pmg
    return 0;
 }
 
-int FindEntity::get_response_type(const Json::Value& result_type_array,
+int RSCommand::get_response_type(const Json::Value& result_type_array,
             std::string response,
             pmgd::protobufs::QueryNode *query_node)
 {
@@ -609,7 +638,7 @@ int FindEntity::get_response_type(const Json::Value& result_type_array,
     return 0;
 }
 
-int FindEntity::parse_query_results (const Json::Value& result_type,
+int RSCommand::parse_query_results (const Json::Value& result_type,
                                     pmgd::protobufs::QueryNode *query_node)
 {
     for (auto response_type =result_type.begin(); response_type!=result_type.end(); response_type++) {
@@ -645,13 +674,14 @@ int FindEntity::parse_query_results (const Json::Value& result_type,
     return 0;
 }
 
-int FindEntity::build_query_protobuf(pmgd::protobufs::Command*,
-                                     const Json::Value& _query,
+int RSCommand::build_query_protobuf(pmgd::protobufs::Command* cmd,
+                                     const Json::Value& query,
                                      pmgd::protobufs::QueryNode *query_node )
 {
+    // TODO: We always assume AND, we need to change that
     query_node->set_p_op(pmgd::protobufs::And);
-    parse_query_constraints(_query["constraints"], query_node);
-    parse_query_results (_query["results"], query_node);
+    parse_query_constraints(query["constraints"], query_node);
+    parse_query_results (query["results"], query_node);
     return 0;
 }
 
@@ -662,48 +692,29 @@ int FindEntity::construct_protobuf(
     const std::string& blob,
     int grp_id)
 {
-    Json::Value _query = jsoncmd["FindEntity"];
+    Json::Value find_ent = jsoncmd["FindEntity"];
     pmgd::protobufs::Command* cmdquery = new pmgd::protobufs::Command();
     cmdquery->set_cmd_id(pmgd::protobufs::Command::QueryNode);
     cmdquery->set_cmd_grp_id(grp_id);
 
     pmgd::protobufs::QueryNode *qn = cmdquery->mutable_query_node();
 
-    // TODO: This is momentarily fix, this should be fixed at PMGD Handler.
-    // I think this was already fixed and nobody removed this.
-
-    if (_query.isMember("_ref"))
-        qn->set_identifier(_query["_ref"].asInt());
+    if (find_ent.isMember("_ref"))
+        qn->set_identifier(find_ent["_ref"].asInt());
     else
         qn->set_identifier(-1);
 
-    if (_query.isMember("class"))
-        qn->set_tag(_query["class"].asCString());
+    if (find_ent.isMember("class"))
+        qn->set_tag(find_ent["class"].asCString());
 
-    if (_query.isMember("unique"))
-        qn->set_unique(_query["unique"].asBool());
+    if (find_ent.isMember("unique"))
+        qn->set_unique(find_ent["unique"].asBool());
 
-    if (_query.isMember("link")) {
-        pmgd::protobufs::LinkInfo *qnb = qn->mutable_link();
-        Json::Value link = _query["link"];
-        if (link.isMember("ref")) {
-            qnb->set_start_identifier(link["ref"].asInt());
-        }
-        if (link.isMember("direction")) {
-            if (link["direction"]== "out")
-                qnb->set_dir(pmgd::protobufs::LinkInfo::Outgoing);
-            else if ( link["direction"] =="in" )
-                qnb->set_dir(pmgd::protobufs::LinkInfo::Incoming);
-            else if ( link["direction"] == "any" )
-                qnb->set_dir(pmgd::protobufs::LinkInfo::Any);
-        }
-        if (link.isMember("unique"))
-            qnb->set_nb_unique(link["unique"].asBool());
-        if (link.isMember("class"))
-             qnb->set_e_tag(link["class"].asCString());
+    if (find_ent.isMember("link")) {
+        add_link(find_ent["link"], qn);
     }
 
-    build_query_protobuf(cmdquery, _query, qn);
+    build_query_protobuf(cmdquery, find_ent, qn);
 
     cmds.push_back(cmdquery);
 
@@ -748,11 +759,14 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
     cmdadd->set_cmd_grp_id(grp_id);
     pmgd::protobufs::AddNode *an = cmdadd->mutable_add_node();
 
+    // TODO: THIS STATIC IDENTIFIER IS HORRIBLE
+    uint32_t id_node = STATIC_IDENTIFIER++;
+    an->set_identifier(id_node);
+
     // Adds AT:IMAGE node
     pmgd::protobufs::Node *n = an->mutable_node();
     n->set_tag(ATHENA_IM_TAG);
 
-    // Will add the "name" property to the image
     if (aImg.isMember("properties")) {
         Json::Value props = aImg["properties"];
 
@@ -811,18 +825,106 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
 
     cmds.push_back(cmdadd);
 
-    ch.tac();
+    if (aImg.isMember("link")) {
+        // pmgd::protobufs::Command* cmdq = new pmgd::protobufs::Command();
+        // cmdq->set_cmd_id(pmgd::protobufs::Command::QueryNode);
+        // cmdq->set_cmd_grp_id(grp_id);
+        // pmgd::protobufs::QueryNode *qn = cmdq->mutable_query_node();
+        // uint32_t id_link = STATIC_IDENTIFIER++;
+        // qn->set_identifier(id_link);
+        // cmds.push_back(cmdq);
 
-    Json::Value addImage;
-    addImage["return"] = "success :)";
-    addImage["name"] = aImg["name"].asString();
+        Json::Value& link = aImg["link"];
+
+        if (link.isMember("ref")) {
+            pmgd::protobufs::Command* cmd =
+                                            new pmgd::protobufs::Command();
+            cmd->set_cmd_id(pmgd::protobufs::Command::AddEdge);
+            cmd->set_cmd_grp_id(grp_id);
+
+            pmgd::protobufs::AddEdge* adde = cmd->mutable_add_edge();
+            pmgd::protobufs::Edge* edge = adde->mutable_edge();
+
+            if (link.isMember("direction") && link["direction"] == "in") {
+                edge->set_src(link["ref"].asUInt());
+                edge->set_dst(id_node);
+            }
+            else {
+                edge->set_src(id_node);
+                edge->set_dst(link["ref"].asUInt());
+            }
+
+            if (link.isMember("class"))
+                edge->set_tag(link["class"].asString());
+            else
+                edge->set_tag("AT:IMG_LINK");
+
+            cmds.push_back(cmd);
+        }
+    }
+
+    if (aImg.isMember("collections")) {
+        Json::Value collections = aImg["collections"];
+
+        for (auto col : collections) {
+            std::cout << col << std::endl;
+            pmgd::protobufs::Command* cmd = new pmgd::protobufs::Command();
+            cmd->set_cmd_id(pmgd::protobufs::Command::AddNode);
+            cmd->set_cmd_grp_id(grp_id);
+
+            pmgd::protobufs::AddNode* addn = cmd->mutable_add_node();
+
+            uint32_t collection_id = STATIC_IDENTIFIER++;
+            addn->set_identifier(collection_id);
+
+            pmgd::protobufs::Node* node = addn->mutable_node();
+            node->set_tag(ATHENA_COL_TAG);
+
+            pmgd::protobufs::Property* p;
+            p = node->add_properties();
+
+            p->set_type(pmgd::protobufs::Property::StringType);
+            p->set_key(ATHENA_COL_NAME_PROP);
+            p->set_string_value(col.asString());
+
+            pmgd::protobufs::QueryNode* qn = addn->mutable_query_node();
+            qn->set_unique(true);
+            qn->set_tag(ATHENA_COL_TAG);
+
+            pmgd::protobufs::PropertyPredicate* pps = qn->add_predicates();
+            pps->set_op(pmgd::protobufs::PropertyPredicate::Eq);
+
+            p = pps->mutable_v1();
+            p->set_type(pmgd::protobufs::Property::StringType);
+            p->set_key(ATHENA_COL_NAME_PROP);
+            p->set_string_value(col.asString());
+
+            cmds.push_back(cmd);
+
+            // Add the edge
+
+            pmgd::protobufs::Command* cmd_edge
+                                    = new pmgd::protobufs::Command();
+            cmd_edge->set_cmd_id(pmgd::protobufs::Command::AddEdge);
+            cmd_edge->set_cmd_grp_id(grp_id);
+
+            pmgd::protobufs::AddEdge* adde = cmd_edge->mutable_add_edge();
+            pmgd::protobufs::Edge* edge = adde->mutable_edge();
+            edge->set_src(collection_id);
+            edge->set_dst(id_node);
+            edge->set_tag(ATHENA_COL_EDGE_TAG);
+
+            cmds.push_back(cmd_edge);
+        }
+    }
+
+    ch.tac();
 
     if (aImg.isMember("log") && aImg["log"].asBool()) {
         std::cout << file_name << std::endl;
         std::cout << "Timing: " << ch.getAvgTime_us() << ", "; // Total
         std::cout << ch_ops.getAvgTime_us() << ", "; // Total Ops
         std::cout << wr_ch.getAvgTime_us() << ", ";  // Total Write
-
         std::cout << ch_ops.getAvgTime_us()*100 /
                      ch.getAvgTime_us() << "\%" << std::endl; // % ops to total
     }
@@ -833,22 +935,28 @@ Json::Value AddImage::construct_responses(
     Json::Value *json,
     protobufs::queryMessage &query_res)
 {
-    Json::Value addImage;
+    Json::Value ret;
     bool flag_error = false;
+    Json::Value addImage;
+
     for(auto pmgd_res : responses) {
+        // std::cout << "status: " << pmgd_res->error_code() << std::endl;
+        // std::cout << "info: " << pmgd_res->error_msg() << std::endl;
+        // std::cout << "pmgd_err_code: " << pmgd_res->error_code() << std::endl;
         if (pmgd_res->error_code() != 0){
-            addImage["return"] = "ERROR";
-            addImage["code"] = pmgd_res->error_code();
-            addImage["message"] = pmgd_res->error_msg();
+            addImage["status"] = pmgd::protobufs::CommandResponse::Error;
+            addImage["info"] = pmgd_res->error_msg();
+            addImage["pmgd_err_code"] = pmgd_res->error_code();
             flag_error = true;
+            break;
         }
     }
+    // std::cout << "+++++++++++" << std::endl;
 
     if (!flag_error) {
-        addImage["status"] = "Success";
+        addImage["status"] = pmgd::protobufs::CommandResponse::Success;
     }
 
-    Json::Value ret;
     ret["AddImage"] = addImage;
 
     return ret;
@@ -856,77 +964,68 @@ Json::Value AddImage::construct_responses(
 
 //========= FindImage definitions =========
 
-int FindImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
-        const Json::Value& jsoncmd,
-        const std::string& blob,
-        int grp_id)
+int FindImage::construct_protobuf(
+    std::vector<pmgd::protobufs::Command*> &cmds,
+    const Json::Value& jsoncmd,
+    const std::string& blob,
+    int grp_id)
 {
-    Json::Value fImg = jsoncmd["FindImage"];
-    // Create PMGD cmd for QueryNode
+    Json::Value find_img = jsoncmd["FindImage"];
     pmgd::protobufs::Command* cmdq = new pmgd::protobufs::Command();
     cmdq->set_cmd_id(pmgd::protobufs::Command::QueryNode);
     cmdq->set_cmd_grp_id(grp_id);
 
-    pmgd::protobufs::QueryNode* qNode = new pmgd::protobufs::QueryNode();
-    qNode->set_tag(ATHENA_IM_TAG);
-    qNode->set_r_type(pmgd::protobufs::List);
-    std::string *r_img = qNode->add_response_keys();
+    pmgd::protobufs::QueryNode* qn = cmdq->mutable_query_node();
+
+    if (find_img.isMember("_ref"))
+        qn->set_identifier(find_img["_ref"].asInt());
+    else
+        qn->set_identifier(-1);
+
+    qn->set_tag(ATHENA_IM_TAG);
+
+    if (find_img.isMember("unique"))
+        qn->set_unique(find_img["unique"].asBool());
+
+    if (find_img.isMember("link")) {
+        add_link(find_img["link"], qn);
+    }
+
+    // We need the path for the image.
+    std::string *r_img = qn->add_response_keys();
     *r_img = ATHENA_IM_PATH_PROP;
 
-    // Will add the "name" property to the image
-    if (fImg.isMember("properties")) {
-        Json::Value props = fImg["properties"];
-        pmgd::protobufs::PropertyPredicate* pps = qNode->add_predicates();
+    // // Will add the "name" property to the image
+    // This is cover inside build_query_proto
+    // if (find_img.isMember("properties")) {
+    //     Json::Value props = find_img["properties"];
+    //     pmgd::protobufs::PropertyPredicate* pps = qn->add_predicates();
 
-        for (auto m : props.getMemberNames()) {
-            std::string * r_key = qNode->add_response_keys();
-            *r_key = m;
-            pps->set_key(m);
-            pps->set_op(pmgd::protobufs::PropertyPredicate::Eq);
-            pmgd::protobufs::Property *p = new pmgd::protobufs::Property();
-            set_property(p, m.c_str(), props[m]);
-            pps->set_allocated_v1(p);
-        }
-    }
-    cmdq->set_allocated_query_node(qNode);
-    cmds.push_back(cmdq);
-
-    // if (fImg.isMember("link")) {
-    //     Json::Value link = fImg["link"];
-
-    //     pmgd::protobufs::Command* cmd = new pmgd::protobufs::Command();
-    //     cmd->set_cmd_id(pmgd::protobufs::Command::QueryNode);
-    //     cmd->set_cmd_grp_id(grp_id);
-
-    //     pmgd::protobufs::QueryNode* qNode = new pmgd::protobufs::QueryNode();
-    //     std::string entity   = link["entity"].asString();
-    //     qNode->set_tag(entity);
-
-    //     pmgd::protobufs::PropertyPredicate *pps = qNode->add_predicates();
-
-    //     std::string prop_id  = link["prop_id"].asString();
-    //     pps->set_op(pmgd::protobufs::PropertyPredicate::Eq);
-    //     pps->set_key(prop_id);
-
-    //     // This is the same logic that Ragaa
-    //     std::string prop_val = link["prop_value"].asString();
-    //     pmgd::protobufs::Property* prop = new pmgd::protobufs::Property();
-    //     Json::Value json_prop = link["prop_value"];
-    //     set_property(prop, prop_id.c_str(), json_prop);
-
-    //     pps->set_allocated_v1(prop);
-
-    //     qNode->set_r_type(pmgd::protobufs::ResponseType::List);
-    //     std::string* str_list = qNode->add_response_keys();
-    //     *str_list = "imgPath";
-
-    //     cmd->set_allocated_query_node(qNode);
-    //     cmds.push_back(cmd);
+    //     for (auto m : props.getMemberNames()) {
+    //         std::string *r_key = qn->add_response_keys();
+    //         *r_key = m;
+    //         pps->set_key(m);
+    //         pps->set_op(pmgd::protobufs::PropertyPredicate::Eq);
+    //         pmgd::protobufs::Property *p = new pmgd::protobufs::Property();
+    //         set_property(p, m.c_str(), props[m]);
+    //         pps->set_allocated_v1(p);
+    //     }
     // }
+
+    if (find_img.isMember("collections")) {
+
+    }
+
+    // Will overwrite whatever build_query_protobuf() sets,
+    // TODO: CHECK HOW TO HANDLE THIS CASE BETTER FOR FINDIMAGE
+    qn->set_r_type(pmgd::protobufs::List);
+
+    build_query_protobuf(NULL, find_img, qn);
+
+    cmds.push_back(cmdq);
 
     return 0;
 }
-
 
 Json::Value FindImage::construct_responses(
     std::vector<pmgd::protobufs::CommandResponse *> &responses,
@@ -936,21 +1035,35 @@ Json::Value FindImage::construct_responses(
     Json::Value findImage;
     Json::Value props_array;
     Json::Value fImg = (*json)["FindImage"];
+    Json::Value ret;
 
     bool flag_error = false;
 
+    if (responses.size() == 0) {
+        findImage["status"]  = pmgd::protobufs::CommandResponse::Error;
+        findImage["info"] = "Not Found!";
+        flag_error = true;
+        ret["FindImage"] = findImage;
+        return ret;
+    }
+
     for (auto pmgd_res : responses) {
+
         if (pmgd_res->error_code() != 0) {
-            findImage["return"]  = "ERROR";
-            findImage["message"] = pmgd_res->error_msg();
+            findImage["status"] = pmgd::protobufs::CommandResponse::Error;
+            findImage["info"] = pmgd_res->error_msg();
+            findImage["pmgd_err_code"] = pmgd_res->error_code();
 
             flag_error = true;
             break;
         }
 
+        // This list will be the one with the imgPath information
         if (pmgd_res->r_type() != pmgd::protobufs::List) {
             continue;
         }
+
+        findImage = parse_response(pmgd_res);
 
         int matches = pmgd_res->op_int_value();
 
@@ -959,59 +1072,54 @@ Json::Value FindImage::construct_responses(
             break;
         }
 
-        if (matches > 0) {
+        for (auto& ent : findImage["entities"]) {
 
-            for (int i = 0; i < matches; ++i) {
-                Json::Value prop;
-                for (auto key : pmgd_res->prop_values()) {
-                    // Check Type, wait for Ragaad's code
-                    prop[key.first] = key.second.values(i).string_value();
+            std::string im_path = ent[ATHENA_IM_PATH_PROP].asString();
+            try {
+                VCL::Image vclimg(im_path);
 
-                    if (key.first == ATHENA_IM_PATH_PROP) {
-
-                        std::string im_path = prop[key.first].asString();
-                        try {
-                            VCL::Image vclimg(im_path);
-
-                            if (fImg.isMember("operation")) {
-                                run_operations(vclimg, fImg["operation"]);
-                            }
-
-                            std::vector<unsigned char> img_enc;
-                            img_enc = vclimg.get_encoded_image(VCL::PNG);
-                            if (!img_enc.empty()) {
-                                std::string img_str((const char*)
-                                                    img_enc.data(),
-                                                    img_enc.size());
-
-                                query_res.add_blobs(img_str);
-                            }
-                        } catch (VCL::Exception e) {
-                            print_exception(e);
-                            findImage["return"]  = "ERROR";
-                            findImage["message"] = "Not Found!";
-                            flag_error = true;
-                            break;
-                        }
-                    }
+                if (fImg.isMember("operation")) {
+                    run_operations(vclimg, fImg["operation"]);
                 }
-                props_array.append(prop);
+
+                std::vector<unsigned char> img_enc;
+                img_enc = vclimg.get_encoded_image(VCL::PNG);
+                if (!img_enc.empty()) {
+                    std::string img_str((const char*)
+                                        img_enc.data(),
+                                        img_enc.size());
+
+                    query_res.add_blobs(img_str);
+                }
+            } catch (VCL::Exception e) {
+                print_exception(e);
+                findImage["status"]  = pmgd::protobufs::CommandResponse::Success;
+                findImage["info"] = "VCL Exception";
+                flag_error = true;
+                break;
             }
-        }
-        else {
-            findImage["return"]  = "ERROR";
-            findImage["message"] = "Not Found!";
-            flag_error = true;
-            break;
         }
     }
 
     if (!flag_error) {
-        findImage["return"] = "Success";
-        findImage["properties"] = props_array;
+        findImage["status"] = pmgd::protobufs::CommandResponse::Success;
     }
 
-    Json::Value ret;
+    // In case no properties asked by the user
+    // TODO: This is more like a hack. I don;t like it
+    bool empty_flag = false;
+
+    for (auto& ent : findImage["entities"]) {
+        ent.removeMember(ATHENA_IM_PATH_PROP);
+        if (ent.getMemberNames().size() == 0) {
+            empty_flag = true;
+            break;
+        }
+    }
+
+    if (empty_flag)
+        findImage.removeMember("entities");
+
     ret["FindImage"] = findImage;
 
     return ret;
