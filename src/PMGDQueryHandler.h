@@ -47,7 +47,7 @@ namespace athena {
 
             bool _next()
             {
-                while (*_start_ni) {
+                while (bool(*_start_ni)) {
                     if (_neighb_i != NULL)
                         delete _neighb_i;
 
@@ -91,7 +91,7 @@ namespace athena {
             /// No next matching node
             bool next()
             {
-                if (_neighb_i != NULL && !*_neighb_i) {
+                if (_neighb_i != NULL && bool(*_neighb_i)) {
                     _neighb_i->next();
                     if (bool(*_neighb_i))
                         return true;
@@ -139,7 +139,7 @@ namespace athena {
         void process_query(pmgd::protobufs::Command *cmd, pmgd::protobufs::CommandResponse *response);
 
     public:
-        PMGDQueryHandler(Jarvis::Graph *_db, std::mutex *mtx);
+        PMGDQueryHandler(Jarvis::Graph *db, std::mutex *mtx);
 
         // The vector here can contain just one JL command but will be surrounded by
         // TX begin and end. So just expose one call to the QueryHandler for

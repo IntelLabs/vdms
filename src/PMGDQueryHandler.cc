@@ -448,9 +448,11 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
             count++;
             for (int i = 0; i < keyids.size(); ++i) {
                 protobufs::PropertyList &list = rmap[qn.response_keys(i)];
-                protobufs::Property *p_p = list.add_values();
-                Property j_p = ni->get_property(keyids[i]);
+                Property j_p;
+                if (!ni->check_property(keyids[i], j_p))
+                    continue;
                 // Assumes matching enum values!
+                protobufs::Property *p_p = list.add_values();
                 p_p->set_type((protobufs::Property::PropertyType)j_p.type());
                 construct_protobuf_property(j_p, p_p);
             }
