@@ -54,6 +54,8 @@ namespace athena {
                                 const std::string& blob,
                                 int txid) = 0;
 
+        static Json::Value construct_error_response(pmgd::protobufs::CommandResponse *response);
+
         void run_operations(VCL::Image& vclimg, const Json::Value& op);
 
         virtual bool need_blob() { return false; }

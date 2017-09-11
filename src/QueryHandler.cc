@@ -132,19 +132,23 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
         //     }
         // }
 
-        for (int j = 0; j < root.size(); j++) {
-
-            std::string cmd = root[j].getMemberNames()[0];
-
-            std::vector<pmgd::protobufs::CommandResponse *>& res =
-                        pmgd_responses.at(j+1);
-
-            json_responses.append( _rs_cmds[cmd]->construct_responses(
-                                                    res,
-                                                    &root[j],
-                                                    proto_res) );
+        // Make sure there were no errors
+        if (pmgd_responses.size() != group_count + 1) {
+            // TODO: This is where we will need request server rollback code.
+            std::vector<pmgd::protobufs::CommandResponse *>& res = pmgd_responses.at(0);
+            json_responses.append(RSCommand::construct_error_response(res[0]));
         }
-
+        else {
+            for (int j = 0; j < root.size(); j++) {
+                std::string cmd = root[j].getMemberNames()[0];
+                std::vector<pmgd::protobufs::CommandResponse *>& res =
+                            pmgd_responses.at(j+1);
+                json_responses.append( _rs_cmds[cmd]->construct_responses(
+                                                        res,
+                                                        &root[j],
+                                                        proto_res) );
+            }
+        }
         proto_res.set_json(fastWriter.write(json_responses));
 
     } catch (VCL::Exception e) {
@@ -266,6 +270,14 @@ void RSCommand::set_property(pmgd::protobufs::Property *p,
         p->set_key(key);
         p->set_float_value(val.asDouble());
     }
+}
+
+Json::Value RSCommand::construct_error_response(pmgd::protobufs::CommandResponse *response)
+{
+    Json::Value json_responses;
+    json_responses["status"] = response->error_code();
+    json_responses["info"] = response->error_msg();
+    return  json_responses;
 }
 
 Json::Value RSCommand::parse_response(

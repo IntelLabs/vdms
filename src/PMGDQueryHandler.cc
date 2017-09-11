@@ -19,12 +19,35 @@ std::vector<std::vector<protobufs::CommandResponse *>>
               PMGDQueryHandler::process_queries(std::vector<protobufs::Command *> cmds,
               int num_queries)
 {
+    int curr_query = 0;
     std::vector<std::vector<protobufs::CommandResponse *>> responses(num_queries);
+
     for (auto cmd : cmds) {
         protobufs::CommandResponse *response = new protobufs::CommandResponse();
-        process_query(cmd, response);
         std::vector<protobufs::CommandResponse *> &resp_v = responses[cmd->cmd_grp_id()];
+        try {
+            process_query(cmd, response);
+        }
+        catch (Exception e) {
+            for (unsigned i = 0; i < curr_query; ++i) {
+                unsigned size = responses[i].size();
+                for (unsigned j = 0; j < size; ++j) {
+                    if (responses[i][j] != NULL)
+                        delete responses[i][j];
+                    responses[i].clear();
+                }
+            }
+            responses.resize(1);
+
+            // Since we have shortened the container, this reference will still remain
+            // valid. So we can reuse the 0th spot.
+            response->set_cmd_grp_id(0);
+            std::vector<protobufs::CommandResponse *> &resp_v1 = responses[0];
+            resp_v1.push_back(response);
+            return responses;
+        }
         resp_v.push_back(response);
+        curr_query++;
     }
     // TODO Assuming a move rather than vector copy here.
     // Will the response pointers be deleted when the vector goes out of scope?
@@ -70,6 +93,7 @@ void PMGDQueryHandler::process_query(protobufs::Command *cmd,
                 delete _tx;
                 _tx = NULL;
                 response->set_error_code(protobufs::CommandResponse::Abort);
+                response->set_error_msg("Abort called");
                 break;
             }
             case protobufs::Command::AddNode:
@@ -106,8 +130,13 @@ void PMGDQueryHandler::process_query(protobufs::Command *cmd,
     }
     catch (Exception e) {
         _dblock->unlock();
+        mNodes.clear();
+        mEdges.clear();
+        delete _tx;
+        _tx = NULL;
         response->set_error_code(protobufs::CommandResponse::Exception);
-        response->set_error_msg(e.msg);
+        response->set_error_msg(e.name + std::string(": ") +  e.msg);
+        throw e;
     }
 }
 
@@ -137,7 +166,7 @@ void PMGDQueryHandler::set_property(Element &e, const protobufs::Property &p)
         break;
     }
     case protobufs::Property::BlobType:
-        throw JarvisException(NotImplemented);
+        throw JarvisException(NotImplemented, "Blob type not implemented");
     }
 }
 
@@ -157,7 +186,7 @@ void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
         SearchExpression search(*_db, search_node_tag);
 
         if (qn.p_op() == protobufs::Or)
-            throw JarvisException(NotImplemented);
+            throw JarvisException(NotImplemented, "Or operator not implemented");
 
         for (int i = 0; i < qn.predicates_size(); ++i) {
             const protobufs::PropertyPredicate &p_pp = qn.predicates(i);
@@ -279,7 +308,7 @@ Property PMGDQueryHandler::construct_search_property(const protobufs::Property &
         return Property(t_e);
     }
     case protobufs::Property::BlobType:
-        throw JarvisException(PropertyTypeInvalid);
+        throw JarvisException(PropertyTypeInvalid, "Search on blob property not permitted");
     }
 }
 
@@ -317,7 +346,7 @@ void PMGDQueryHandler::construct_protobuf_property(const Property &j_p, protobuf
         p_p->set_time_value(time_to_string(j_p.time_value()));
         break;
     case PropertyType::Blob:
-        throw JarvisException(PropertyTypeInvalid);
+        throw JarvisException(PropertyTypeInvalid, "Blob property not supported");
     }
 }
 
@@ -329,7 +358,7 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     StringID edge_tag;
 
     if (qn.p_op() == protobufs::Or)
-        throw JarvisException(NotImplemented);
+        throw JarvisException(NotImplemented, "Or operation not implemented");
 
     bool has_link = qn.has_link();
     if (has_link)  { // case where link is used.
