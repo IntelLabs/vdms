@@ -13,6 +13,9 @@ class SearchExpression::SearchExpressionIterator : public Jarvis::NodeIteratorIm
     // Indicate where to start in the search expression vector
     unsigned _start_at;
 
+    // Indicate if it is a neighbor search
+    bool _neighbor;
+
     /// Advance to the next matching node
     /// @returns true if we find a matching node
     /// Precondition: mNodeIt points to the next possible node
@@ -20,6 +23,8 @@ class SearchExpression::SearchExpressionIterator : public Jarvis::NodeIteratorIm
     bool _next()
     {
         for (; mNodeIt; mNodeIt.next()) {
+            if (_neighbor && (_expr.tag() != 0 && mNodeIt->get_tag() != _expr.tag()) )
+                goto continueNodeIt;
             for (std::size_t i = _start_at; i < _expr._predicates.size(); i++) {
                 Jarvis::PropertyFilter<Jarvis::Node> pf(_expr._predicates.at(i));
                 if (pf(*mNodeIt) == Jarvis::DontPass)
@@ -40,7 +45,8 @@ public:
         : _expr(expr),
           mNodeIt(_expr._db.get_nodes(_expr.tag(),
                       (_expr._predicates.empty() ? Jarvis::PropertyPredicate()
-                           : _expr._predicates.at(0))))
+                           : _expr._predicates.at(0)))),
+          _neighbor(false)
     {
         _start_at = 1;
         _next();
@@ -54,7 +60,8 @@ public:
                                Jarvis::StringID edgetag, bool unique,
                                const SearchExpression &neighbor_expr)
         : _expr(neighbor_expr),
-          mNodeIt(get_neighbors(node, dir, edgetag, unique))
+          mNodeIt(get_neighbors(node, dir, edgetag, unique)),
+          _neighbor(true)
     {
         _start_at = 0;
         _next();
