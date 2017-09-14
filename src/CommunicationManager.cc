@@ -34,7 +34,7 @@ void CommunicationManager::process_queue()
         }
         if (c != NULL) {
             QueryHandler _qh(_db,_dblock);
-            printf("About to process a recieved query...\n");
+            printf("Connection recieved...\n");
             _qh.process_connection(c);
         }
     }

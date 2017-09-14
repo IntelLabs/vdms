@@ -1,4 +1,5 @@
 #include <string>
+#include <fstream>
 #include "QueryHandler.h"
 #include "chrono/Chrono.h"
 
@@ -53,7 +54,6 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
                                  protobufs::queryMessage& proto_res)
 {
     Json::FastWriter fastWriter;
-    Json::StyledWriter sWriter;
 
     try {
         Json::Value json_responses;
@@ -72,9 +72,9 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
         }
 
         // TODO REMOVE THIS:
-        // Json::StyledWriter swriter;
-        // std::cout << "Recieved query:" << std::endl;
-        // std::cout << swriter.write(root) << std::endl;
+        Json::StyledWriter swriter;
+        std::ofstream output_log("log.log", std::fstream::app);
+        output_log << swriter.write(root) << std::endl;
 
         // define a vector of commands
         // TODO WE NEED TO DELETE EACH ELEMENT AFTER DONE WITH THIS VECTOR!!!
@@ -95,6 +95,12 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
             assert (query.getMemberNames().size() == 1);
             std::string cmd = query.getMemberNames()[0];
             ++group_count;
+
+            if (_rs_cmds.end() == _rs_cmds.find(cmd)) {
+                Json::Value error;
+                error["error"] = "Command not found: " + cmd;
+                proto_res.set_json(fastWriter.write(error));
+            }
 
             if (_rs_cmds[cmd]->need_blob()) {
                 assert (proto_query.blobs().size() >= blob_count);
@@ -838,19 +844,10 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
     cmds.push_back(cmdadd);
 
     if (aImg.isMember("link")) {
-        // pmgd::protobufs::Command* cmdq = new pmgd::protobufs::Command();
-        // cmdq->set_cmd_id(pmgd::protobufs::Command::QueryNode);
-        // cmdq->set_cmd_grp_id(grp_id);
-        // pmgd::protobufs::QueryNode *qn = cmdq->mutable_query_node();
-        // uint32_t id_link = STATIC_IDENTIFIER++;
-        // qn->set_identifier(id_link);
-        // cmds.push_back(cmdq);
-
         Json::Value& link = aImg["link"];
 
         if (link.isMember("ref")) {
-            pmgd::protobufs::Command* cmd =
-                                            new pmgd::protobufs::Command();
+            pmgd::protobufs::Command* cmd = new pmgd::protobufs::Command();
             cmd->set_cmd_id(pmgd::protobufs::Command::AddEdge);
             cmd->set_cmd_grp_id(grp_id);
 
@@ -879,7 +876,6 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
         Json::Value collections = aImg["collections"];
 
         for (auto col : collections) {
-            std::cout << col << std::endl;
             pmgd::protobufs::Command* cmd = new pmgd::protobufs::Command();
             cmd->set_cmd_id(pmgd::protobufs::Command::AddNode);
             cmd->set_cmd_grp_id(grp_id);
@@ -902,6 +898,7 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
             pmgd::protobufs::QueryNode* qn = addn->mutable_query_node();
             qn->set_unique(true);
             qn->set_tag(ATHENA_COL_TAG);
+            qn->set_p_op(pmgd::protobufs::And);
 
             pmgd::protobufs::PropertyPredicate* pps = qn->add_predicates();
             pps->set_op(pmgd::protobufs::PropertyPredicate::Eq);
@@ -955,7 +952,11 @@ Json::Value AddImage::construct_responses(
         // std::cout << "status: " << pmgd_res->error_code() << std::endl;
         // std::cout << "info: " << pmgd_res->error_msg() << std::endl;
         // std::cout << "pmgd_err_code: " << pmgd_res->error_code() << std::endl;
-        if (pmgd_res->error_code() != 0){
+        if (pmgd_res->error_code() != pmgd::protobufs::CommandResponse::Success
+            &&
+            pmgd_res->error_code() != pmgd::protobufs::CommandResponse::Exists)
+            {
+
             addImage["status"] = pmgd::protobufs::CommandResponse::Error;
             addImage["info"] = pmgd_res->error_msg();
             addImage["pmgd_err_code"] = pmgd_res->error_code();
@@ -1007,25 +1008,30 @@ int FindImage::construct_protobuf(
     std::string *r_img = qn->add_response_keys();
     *r_img = ATHENA_IM_PATH_PROP;
 
-    // // Will add the "name" property to the image
+    // Will add the "name" property to the image
     // This is cover inside build_query_proto
-    // if (find_img.isMember("properties")) {
-    //     Json::Value props = find_img["properties"];
-    //     pmgd::protobufs::PropertyPredicate* pps = qn->add_predicates();
+    if (find_img.isMember("properties")) {
+        Json::Value props = find_img["properties"];
+        pmgd::protobufs::PropertyPredicate* pps = qn->add_predicates();
 
-    //     for (auto m : props.getMemberNames()) {
-    //         std::string *r_key = qn->add_response_keys();
-    //         *r_key = m;
-    //         pps->set_key(m);
-    //         pps->set_op(pmgd::protobufs::PropertyPredicate::Eq);
-    //         pmgd::protobufs::Property *p = new pmgd::protobufs::Property();
-    //         set_property(p, m.c_str(), props[m]);
-    //         pps->set_allocated_v1(p);
-    //     }
-    // }
+        for (auto m : props.getMemberNames()) {
+            std::string *r_key = qn->add_response_keys();
+            *r_key = m;
+            pps->set_key(m);
+            pps->set_op(pmgd::protobufs::PropertyPredicate::Eq);
+            pmgd::protobufs::Property *p = new pmgd::protobufs::Property();
+            set_property(p, m.c_str(), props[m]);
+            pps->set_allocated_v1(p);
+        }
+    }
 
     if (find_img.isMember("collections")) {
+        Json::Value collections = find_img["collections"];
 
+        for (auto col : collections) {
+            // Do stuff with the collections
+            // Here we will need and/or etc.
+        }
     }
 
     // Will overwrite whatever build_query_protobuf() sets,
@@ -1129,8 +1135,9 @@ Json::Value FindImage::construct_responses(
         }
     }
 
-    if (empty_flag)
+    if (empty_flag) {
         findImage.removeMember("entities");
+    }
 
     ret["FindImage"] = findImage;
 
