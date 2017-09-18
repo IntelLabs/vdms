@@ -24,6 +24,10 @@ using namespace athena;
 
 static uint32_t STATIC_IDENTIFIER = 0;
 
+// TODO This will be later replaced by a real logger
+std::ofstream GENERIC_LOGGER("log.log", std::fstream::app);
+
+
 QueryHandler::QueryHandler(Jarvis::Graph *db, std::mutex *mtx)
     : _pmgd_qh(db, mtx)
 {
@@ -73,8 +77,7 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
 
         // TODO REMOVE THIS:
         Json::StyledWriter swriter;
-        std::ofstream output_log("log.log", std::fstream::app);
-        output_log << swriter.write(root) << std::endl;
+        GENERIC_LOGGER << swriter.write(root) << std::endl;
 
         // define a vector of commands
         // TODO WE NEED TO DELETE EACH ELEMENT AFTER DONE WITH THIS VECTOR!!!
@@ -174,20 +177,26 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
 
 void RSCommand::run_operations(VCL::Image& vclimg, const Json::Value& op)
 {
-    std::string type = op["type"].asString();
-    if (type == "threshold"){
-        vclimg.threshold(op["value"].asInt());
-    }
-    if (type == "resize"){
-        vclimg.resize(op["height"].asInt(),
-                op["width" ].asInt());
-    }
-    if (type == "crop"){
-        vclimg.crop(VCL::Rectangle (
-                    op["x"].asInt(),
-                    op["y"].asInt(),
-                    op["height"].asInt(),
-                    op["width" ].asInt()));
+    for (auto& operation : op) {
+        std::string type = operation["type"].asString();
+        if (type == "threshold") {
+            vclimg.threshold(operation["value"].asInt());
+        }
+        else if (type == "resize") {
+            vclimg.resize(operation["height"].asInt(),
+                    operation["width" ].asInt());
+        }
+        else if (type == "crop") {
+            vclimg.crop(VCL::Rectangle (
+                        operation["x"].asInt(),
+                        operation["y"].asInt(),
+                        operation["height"].asInt(),
+                        operation["width" ].asInt()));
+        }
+        else {
+            GENERIC_LOGGER << "Operation not recognised: "
+                           << type << std::endl;
+        }
     }
 }
 
@@ -799,8 +808,8 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
 
     VCL::Image vclimg((void*)blob.data(), blob.size());
 
-    if (aImg.isMember("operation")) {
-        run_operations(vclimg, aImg["operation"]);
+    if (aImg.isMember("operations")) {
+        run_operations(vclimg, aImg["operations"]);
     }
 
     ChronoCpu wr_ch("wr_ch");
@@ -1096,8 +1105,8 @@ Json::Value FindImage::construct_responses(
             try {
                 VCL::Image vclimg(im_path);
 
-                if (fImg.isMember("operation")) {
-                    run_operations(vclimg, fImg["operation"]);
+                if (fImg.isMember("operations")) {
+                    run_operations(vclimg, fImg["operations"]);
                 }
 
                 std::vector<unsigned char> img_enc;
