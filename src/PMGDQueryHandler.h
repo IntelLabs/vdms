@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <mutex>
 #include <vector>
+#include <list>
 
 #include "protobuf/pmgdMessages.pb.h" // Protobuff implementation
 #include "jarvis.h"
@@ -14,32 +15,66 @@ namespace athena {
     // connection.
     class PMGDQueryHandler
     {
-        class NewNodeIteratorImpl : public Jarvis::NodeIteratorImplIntf
-        {
-            Jarvis::Node &_n;
-            bool start = true;
-
         public:
-            NewNodeIteratorImpl(Jarvis::Node &n)
-                : _n(n)
-                { }
+        class ReusableNodeIterator
+        {
+            // Iterator for the starting nodes.
+            Jarvis::NodeIterator _ni;
+            std::list<Jarvis::Node *> _traversed;
 
-            operator bool() const { return start; }
+            // Current postion of list iterator
+            std::list<Jarvis::Node *>::iterator _it;
 
-            /// No next matching node
-            bool next()
+            bool _next()
             {
-                start = false;
-                return start;
+                if (_it != _traversed.end()) {
+                    ++_it;
+                    if (_it != _traversed.end())
+                        return true;
+                }
+                if (bool(_ni)) {
+                    _it = _traversed.insert(_traversed.end(), &*_ni);
+                    _ni.next();
+                    return true;
+                }
+                return false;
             }
 
-            Jarvis::Node *ref() { return (start ? &_n : NULL); }
+            Jarvis::Node *ref()
+            {
+                if (!bool(*this))
+                    throw JarvisException(NullIterator, "Null impl");
+                return *_it;
+            }
+
+        public:
+            // Make sure this is not auto-declared. The move one won't be.
+            ReusableNodeIterator(const ReusableNodeIterator &) = delete;
+            ReusableNodeIterator(Jarvis::NodeIterator ni)
+                : _ni(ni),
+                  _it(_traversed.begin())
+            {
+                _next();
+            }
+
+            // Add this to clean up the NewNodeIterator requirement
+            ReusableNodeIterator(Jarvis::Node *n)
+                : _ni(NULL),
+                  _it(_traversed.insert(_traversed.end(), n))
+              {}
+
+            operator bool() const { return _it != _traversed.end(); }
+            bool next() { return _next(); }
+            Jarvis::Node &operator *() { return *ref(); }
+            Jarvis::Node *operator ->() { return ref(); }
+            void reset() { _it = _traversed.begin(); }
         };
 
+        private:
         class MultiNeighborIteratorImpl : public Jarvis::NodeIteratorImplIntf
         {
             // Iterator for the starting nodes.
-            Jarvis::NodeIterator *_start_ni;
+            ReusableNodeIterator *_start_ni;
             SearchExpression _search_neighbors;
             Jarvis::NodeIterator *_neighb_i;     // TODO: Does this work properly?
             Jarvis::Direction _dir;
@@ -66,7 +101,7 @@ namespace athena {
             }
 
         public:
-            MultiNeighborIteratorImpl(Jarvis::NodeIterator *start_ni,
+            MultiNeighborIteratorImpl(ReusableNodeIterator *start_ni,
                                       SearchExpression search_neighbors,
                                       Jarvis::Direction dir,
                                       Jarvis::StringID edge_tag)
@@ -102,6 +137,7 @@ namespace athena {
             Jarvis::Node *ref() { return &**_neighb_i; }
         };
 
+        private:
         // This class is instantiated by the server each time there is a new
         // connection. So someone needs to pass a handle to the graph db itself.
         Jarvis::Graph *_db;
@@ -121,7 +157,7 @@ namespace athena {
         // of finding out if the reference is for an AddNode or a QueryNode
         // and rather than searching multiple maps, we keep it uniform here.
         // TODO this might have to map to a Global ID in the distributed setting.
-        std::unordered_map<int, Jarvis::NodeIterator *> mNodes;
+        std::unordered_map<int, ReusableNodeIterator *> mNodes;
 
         // Map an integer ID to an Edge (reset at the end of each transaction).
         // TODO this might have to map to a Global ID in the distributed setting.
@@ -137,6 +173,9 @@ namespace athena {
         void query_node(const pmgd::protobufs::QueryNode &qn, pmgd::protobufs::CommandResponse *response);
         // void query_neighbor(const pmgd::protobufs::QueryNeighbor &qnb, pmgd::protobufs::CommandResponse *response);
         void process_query(pmgd::protobufs::Command *cmd, pmgd::protobufs::CommandResponse *response);
+        template <class Iterator> void build_results(Iterator &ni,
+                                                      const pmgd::protobufs::QueryNode &qn,
+                                                      pmgd::protobufs::CommandResponse *response);
 
     public:
         PMGDQueryHandler(Jarvis::Graph *db, std::mutex *mtx);

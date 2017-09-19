@@ -194,23 +194,28 @@ void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
             search.add(j_pp);
         }
 
-        NodeIterator ni = search.eval_nodes();
-        if (bool(ni)) {
-            // TODO This needs a reusable iterator
-            Node &n = *ni;
-            ni.next();
-            if (bool(ni)) {  // Not unique and that is an error here.
-                response->set_error_code(protobufs::CommandResponse::NotUnique);
-                response->set_error_msg("No unique node found for the add node\n");
-                return;
-            }
-            if (cn.identifier() >= 0)
-                mNodes[cn.identifier()] = new NodeIterator(new NewNodeIteratorImpl(n));
-            response->set_error_code(protobufs::CommandResponse::Exists);
-            response->set_r_type(protobufs::NodeID);
+        ReusableNodeIterator *ni = new ReusableNodeIterator(search.eval_nodes());
+        if (bool(*ni)) {
             // TODO: Partition code goes here
             // For now, fill in the single system node id
-            response->set_op_int_value(_db->get_id(n));
+            response->set_op_int_value(_db->get_id(**ni));
+
+            // Check unique
+            ni->next();
+            if (bool(*ni)) {  // Not unique and that is an error here.
+                response->set_error_code(protobufs::CommandResponse::NotUnique);
+                response->set_error_msg("No unique node found for the add node\n");
+                delete ni;
+                return;
+            }
+            if (cn.identifier() >= 0) {
+                ni->reset();
+                mNodes[cn.identifier()] = ni;
+            }
+            else
+                delete ni;
+            response->set_error_code(protobufs::CommandResponse::Exists);
+            response->set_r_type(protobufs::NodeID);
             return;
         }
     }
@@ -218,10 +223,8 @@ void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
     // Since the node wasn't found, now add it.
     StringID sid(cn.node().tag().c_str());
     Node &n = _db->add_node(sid);
-    if (cn.identifier() >= 0) {
-        // Need a pointer type for NodeIterator due to its semantics.
-        mNodes[cn.identifier()] = new NodeIterator(new NewNodeIteratorImpl(n));
-    }
+    if (cn.identifier() >= 0)
+        mNodes[cn.identifier()] = new ReusableNodeIterator(&n);
 
     for (int i = 0; i < cn.node().properties_size(); ++i) {
         const protobufs::Property &p = cn.node().properties(i);
@@ -242,8 +245,8 @@ void PMGDQueryHandler::add_edge(const protobufs::AddEdge &ce,
     StringID sid(ce.edge().tag().c_str());
 
     // Assumes there could be multiple.
-    NodeIterator *srcni;
-    NodeIterator *dstni;
+    ReusableNodeIterator *srcni;
+    ReusableNodeIterator *dstni;
 
     // Since _ref is optional, need to make sure the map has the
     // right reference.
@@ -258,7 +261,7 @@ void PMGDQueryHandler::add_edge(const protobufs::AddEdge &ce,
         response->set_error_msg("Source/destination node references not found");
         return;
     }
-    if (!srcni || !dstni) {
+    if (!bool(*srcni) || !bool(dstni)) {
         response->set_error_code(protobufs::CommandResponse::Empty);
         response->set_error_msg("Empty node iterators for adding edge");
         return;
@@ -278,7 +281,9 @@ void PMGDQueryHandler::add_edge(const protobufs::AddEdge &ce,
             mEdges.insert(std::pair<int, Edge *>(ce.identifier(), &e));
             eid = _db->get_id(e);
         }
+        dstni->reset();
     }
+    srcni->reset();
 
     response->set_error_code(protobufs::CommandResponse::Success);
     response->set_r_type(protobufs::EdgeID);
@@ -350,85 +355,21 @@ void PMGDQueryHandler::construct_protobuf_property(const Property &j_p, protobuf
     }
 }
 
-void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
-                                    protobufs::CommandResponse *response)
+namespace athena {
+template void PMGDQueryHandler::build_results<Jarvis::NodeIterator>(Jarvis::NodeIterator &ni,
+                                                      const protobufs::QueryNode &qn,
+                                                      protobufs::CommandResponse *response);
+template void PMGDQueryHandler::build_results<PMGDQueryHandler::ReusableNodeIterator>(
+                                                      PMGDQueryHandler::ReusableNodeIterator &ni,
+                                                      const protobufs::QueryNode &qn,
+                                                      protobufs::CommandResponse *response);
+};
+
+template <class Iterator>
+void PMGDQueryHandler::build_results(Iterator &ni,
+                                      const protobufs::QueryNode &qn,
+                                      protobufs::CommandResponse *response)
 {
-    NodeIterator *start_ni = NULL;
-    Jarvis::Direction dir;
-    StringID edge_tag;
-
-    if (qn.p_op() == protobufs::Or)
-        throw JarvisException(NotImplemented, "Or operation not implemented");
-
-    bool has_link = qn.has_link();
-    if (has_link)  { // case where link is used.
-        const protobufs::LinkInfo &link = qn.link();
-        if (link.nb_unique()) {  // TODO Add support for unique neighbors across iterators
-            response->set_error_code(protobufs::CommandResponse::Error);
-            response->set_error_msg("Non-repeated neighbors not supported\n");
-            return;
-        }
-
-        dir = (Jarvis::Direction)link.dir();
-        edge_tag = (link.e_tagid() == 4) ? StringID(link.e_tagid())
-                        : StringID(link.e_tag().c_str());
-        start_ni = mNodes[link.start_identifier()];
-        // TODO Just until iterators can be reused, remove this iterator
-        // from the map since it can only be used once and we can assume it
-        // is being accessed here to be used.
-        //mNodes.erase(qnb.start_identifier());
-    }
-
-    // TODO For now, assuming that this is the ID in JL String Table.
-    // I think this should be a client specified identifier which is maintained
-    // in a map of (client string id, StringID &)
-    StringID search_node_tag = (qn.tag_oneof_case() == 4) ? StringID(qn.tagid())
-                                : StringID(qn.tag().c_str());
-
-    SearchExpression search(*_db, search_node_tag);
-
-    for (int i = 0; i < qn.predicates_size(); ++i) {
-        const protobufs::PropertyPredicate &p_pp = qn.predicates(i);
-        PropertyPredicate j_pp = construct_search_term(p_pp);
-        search.add(j_pp);
-    }
-
-    NodeIterator ni = has_link ?
-                       Jarvis::NodeIterator(new MultiNeighborIteratorImpl(start_ni, search, dir, edge_tag))
-                       : search.eval_nodes();
-    if (!bool(ni)) {
-        response->set_error_code(protobufs::CommandResponse::Empty);
-        response->set_error_msg("Null search iterator\n");
-        return;
-    }
-
-    // TODO This needs a reusable iterator and this check won't happen for Neighbor
-    // case since unique = true is not supported.
-    Node &n = *ni;  // outside if so it can be used for caching if needed.
-    if (qn.unique()) {
-        // TODO Really expensive without the reusable iterator
-        NodeIterator tni = search.eval_nodes();
-        tni.next();
-        if (bool(tni)) {  // Not unique and that is an error here.
-            response->set_error_code(protobufs::CommandResponse::NotUnique);
-            response->set_error_msg("Query response not unique\n");
-            return;
-        }
-    }
-    if (qn.identifier() >= 0) {
-        // TODO: If ni is now used, it will show up empty since it has been
-        // moved to mNodes. Needs fixing for reuse.
-        // TODO: Also, this triggers a copy of the SearchExpression object
-        // via the SearchExpressionIterator class, which might be slow,
-        // especially with a lot of property constraints. Might need another
-        // way for it.
-        mNodes[qn.identifier()] = qn.unique() ? new NodeIterator(new NewNodeIteratorImpl(n))
-                                    : new NodeIterator(ni);
-        response->set_r_type(protobufs::Cached);
-        response->set_error_code(protobufs::CommandResponse::Success);
-        return;
-    }
-
     // TODO This should really be translated at some global level. Either
     // this class or maybe even the request server main handler.
     std::vector<StringID> keyids;
@@ -506,3 +447,88 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         response->set_error_msg("Unknown operation type for query\n");
     }
 }
+
+void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
+                                    protobufs::CommandResponse *response)
+{
+    ReusableNodeIterator *start_ni = NULL;
+    Jarvis::Direction dir;
+    StringID edge_tag;
+
+    if (qn.p_op() == protobufs::Or)
+        throw JarvisException(NotImplemented, "Or operation not implemented");
+
+    bool has_link = qn.has_link();
+    if (has_link)  { // case where link is used.
+        const protobufs::LinkInfo &link = qn.link();
+        if (link.nb_unique()) {  // TODO Add support for unique neighbors across iterators
+            response->set_error_code(protobufs::CommandResponse::Error);
+            response->set_error_msg("Non-repeated neighbors not supported\n");
+            return;
+        }
+
+        dir = (Jarvis::Direction)link.dir();
+        edge_tag = (link.e_tagid() == 4) ? StringID(link.e_tagid())
+                        : StringID(link.e_tag().c_str());
+        start_ni = mNodes[link.start_identifier()];
+    }
+
+    // TODO For now, assuming that this is the ID in JL String Table.
+    // I think this should be a client specified identifier which is maintained
+    // in a map of (client string id, StringID &)
+    StringID search_node_tag = (qn.tag_oneof_case() == 4) ? StringID(qn.tagid())
+                                : StringID(qn.tag().c_str());
+
+    SearchExpression search(*_db, search_node_tag);
+
+    for (int i = 0; i < qn.predicates_size(); ++i) {
+        const protobufs::PropertyPredicate &p_pp = qn.predicates(i);
+        PropertyPredicate j_pp = construct_search_term(p_pp);
+        search.add(j_pp);
+    }
+
+    NodeIterator ni = has_link ?
+                       Jarvis::NodeIterator(new MultiNeighborIteratorImpl(start_ni, search, dir, edge_tag))
+                       : search.eval_nodes();
+    if (!bool(ni)) {
+        response->set_error_code(protobufs::CommandResponse::Empty);
+        response->set_error_msg("Null search iterator\n");
+        return;
+    }
+
+    // TODO: Also, this triggers a copy of the SearchExpression object
+    // via the SearchExpressionIterator class, which might be slow,
+    // especially with a lot of property constraints. Might need another
+    // way for it.
+    ReusableNodeIterator *tni = (qn.identifier() >= 0 || qn.unique()) ?
+                                 new ReusableNodeIterator(ni) : NULL;
+    if (tni == NULL) {
+        // If not reusable
+        build_results<NodeIterator>(ni, qn, response);
+        return;
+    }
+
+    if (qn.unique()) {
+        tni->next();
+        if (bool(*tni)) {  // Not unique and that is an error here.
+            response->set_error_code(protobufs::CommandResponse::NotUnique);
+            response->set_error_msg("Query response not unique\n");
+            delete tni;
+            return;
+        }
+        tni->reset();
+    }
+    if (qn.identifier() >= 0) {
+        mNodes[qn.identifier()] = tni;
+
+        // Set these in case there is no results block.
+        response->set_r_type(protobufs::Cached);
+        response->set_error_code(protobufs::CommandResponse::Success);
+    }
+
+    // TODO What's the protobuf field to check if no results are expected?
+    build_results<ReusableNodeIterator>(*tni, qn, response);
+    tni->reset();
+    return;
+}
+
