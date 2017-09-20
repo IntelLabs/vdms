@@ -101,6 +101,9 @@ enum ResponseType {
 
     // Indicate that we just need the results cached.
     Cached = 6;
+
+    // Just introduce a TX response type
+    TX = 7;
 }
 
 // Indicate whether to And or Or the property predicates specified

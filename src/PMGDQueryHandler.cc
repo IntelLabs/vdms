@@ -68,6 +68,7 @@ void PMGDQueryHandler::process_query(protobufs::Command *cmd,
                 // TODO: Needs to distinguish transaction parameters like RO/RW
                 _tx = new Transaction(*_db, Transaction::ReadWrite);
                 response->set_error_code(protobufs::CommandResponse::Success);
+                response->set_r_type(protobufs::TX);
                 break;
             }
             case protobufs::Command::TxCommit:
@@ -81,6 +82,7 @@ void PMGDQueryHandler::process_query(protobufs::Command *cmd,
                 delete _tx;
                 _tx = NULL;
                 response->set_error_code(protobufs::CommandResponse::Success);
+                response->set_r_type(protobufs::TX);
                 break;
             }
             case protobufs::Command::TxAbort:
@@ -94,6 +96,7 @@ void PMGDQueryHandler::process_query(protobufs::Command *cmd,
                 _tx = NULL;
                 response->set_error_code(protobufs::CommandResponse::Abort);
                 response->set_error_msg("Abort called");
+                response->set_r_type(protobufs::TX);
                 break;
             }
             case protobufs::Command::AddNode:
