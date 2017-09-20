@@ -156,23 +156,25 @@ TEST(PMGDQueryHandler, addTest)
 
 void print_property(const string &key, const protobufs::Property &p)
 {
+#ifdef PRINT_PROPERTY
     switch(p.type()) {
     case protobufs::Property::BooleanType:
-        //printf("key: %s, value: %d\n", key.c_str(), p.bool_value());
+        printf("key: %s, value: %d\n", key.c_str(), p.bool_value());
         break;
     case protobufs::Property::IntegerType:
-        //printf("key: %s, value: %ld\n", key.c_str(), p.int_value());
+        printf("key: %s, value: %ld\n", key.c_str(), p.int_value());
         break;
     case protobufs::Property::StringType:
     case protobufs::Property::TimeType:
-        //printf("key: %s, value: %s\n", key.c_str(), p.string_value().c_str());
+        printf("key: %s, value: %s\n", key.c_str(), p.string_value().c_str());
         break;
     case protobufs::Property::FloatType:
-        //printf("key: %s, value: %lf\n", key.c_str(), p.float_value());
+        printf("key: %s, value: %lf\n", key.c_str(), p.float_value());
         break;
-    // default:
-        // printf("Unknown\n");
+    default:
+        printf("Unknown\n");
     }
+#endif
 }
 
 TEST(PMGDQueryHandler, queryTestList)
@@ -851,6 +853,132 @@ TEST(PMGDQueryHandler, queryNeighborLinksTestList)
         }
         EXPECT_EQ(nodecount, 1) << "Not enough nodes found";
         EXPECT_EQ(propcount, 1) << "Not enough properties read";
+    }
+}
+
+TEST(PMGDQueryHandler, queryNeighborLinksReuseTestList)
+{
+    // printf("Testing PMGD query protobuf handler for list return of neighbors using two links\n");
+
+    Graph db("qhgraph");
+
+    // Since PMGD is still single threaded, provide a lock for the DB
+    mutex dblock;
+    PMGDQueryHandler qh(&db, &dblock);
+
+    vector<protobufs::Command *> cmds;
+
+    {
+        int txid = 1, query_count = 0;
+        protobufs::Command cmdtx;
+        cmdtx.set_cmd_id(protobufs::Command::TxBegin);
+        cmdtx.set_tx_id(txid);
+        cmds.push_back(&cmdtx);
+        query_count++;
+
+        // Set parameters to find the starting node(s)
+        protobufs::Command cmdstartquery;
+        cmdstartquery.set_cmd_id(protobufs::Command::QueryNode);
+        cmdstartquery.set_tx_id(txid);
+        protobufs::QueryNode *qn = cmdstartquery.mutable_query_node();
+        qn->set_identifier(1);
+        qn->set_tag("Patient");
+        qn->set_p_op(protobufs::And);
+        protobufs::PropertyPredicate *pp = qn->add_predicates();
+        pp->set_key("Sex");
+        pp->set_op(protobufs::PropertyPredicate::Eq);
+        protobufs::Property *p = pp->mutable_v1();
+        p->set_type(protobufs::Property::IntegerType);
+        // I think the key is not required here.
+        p->set_key("Sex");
+        p->set_int_value(FEMALE);
+        qn->set_r_type(protobufs::List);
+        string *key = qn->add_response_keys();
+        *key = "Email";
+        cmds.push_back(&cmdstartquery);
+        query_count++;
+
+        protobufs::Command cmdquery;
+        cmdquery.set_cmd_id(protobufs::Command::QueryNode);
+        cmdquery.set_tx_id(txid);
+        qn = cmdquery.mutable_query_node();
+        qn->set_identifier(2);
+        protobufs::LinkInfo *qnb = qn->mutable_link();
+        // Now set parameters for neighbor traversal
+        qnb->set_start_identifier(1);
+        qnb->set_e_tag("Married");
+        qnb->set_dir(protobufs::LinkInfo::Any);
+        qnb->set_nb_unique(false);
+        qn->set_tagid(0);
+        qn->set_unique(false);
+        qn->set_p_op(protobufs::And);
+        qn->set_r_type(protobufs::Count);
+        cmds.push_back(&cmdquery);
+        query_count++;
+
+        protobufs::Command cmdfollquery;
+        cmdfollquery.set_cmd_id(protobufs::Command::QueryNode);
+        cmdfollquery.set_tx_id(txid);
+        qn = cmdfollquery.mutable_query_node();
+        qn->set_identifier(-1);
+        qnb = qn->mutable_link();
+        // Now set parameters for neighbor traversal
+        qnb->set_start_identifier(2);
+        qnb->set_e_tag("Daughter");
+        qnb->set_dir(protobufs::LinkInfo::Any);
+        qnb->set_nb_unique(false);
+        qn->set_tagid(0);
+        qn->set_unique(false);
+        qn->set_p_op(protobufs::And);
+        qn->set_r_type(protobufs::List);
+        key = qn->add_response_keys();
+        *key = "Name";
+        key = qn->add_response_keys();
+        *key = "Email";
+        cmds.push_back(&cmdfollquery);
+        query_count++;
+
+        // No need to commit in this case. So just end TX
+        protobufs::Command cmdtxend;
+        // Commit here doesn't change anything. Just indicates end of TX
+        cmdtxend.set_cmd_id(protobufs::Command::TxCommit);
+        cmdtxend.set_tx_id(txid);
+        cmds.push_back(&cmdtxend);
+        query_count++;
+
+        vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count);
+        int nodecount = 0, propcount = 0;
+        int totnodecount = 0, totpropcount = 0;
+        for (int i = 0; i < query_count; ++i) {
+            vector<protobufs::CommandResponse *> response = responses[i];
+            for (auto it : response) {
+                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                if (it->r_type() == protobufs::List) {
+                    propcount = 0;
+                    auto mymap = it->prop_values();
+                    for(auto m_it : mymap) {
+                        // Assuming string for now
+                        protobufs::PropertyList &p = m_it.second;
+                        nodecount = 0;
+                        propcount++;
+                        for (int i = 0; i < p.values_size(); ++i) {
+                            print_property(m_it.first, p.values(i));
+                            nodecount++;
+                        }
+                    }
+                    totpropcount += propcount;
+                    totnodecount += nodecount;
+                }
+                if (it->r_type() == protobufs::Count) {
+                    EXPECT_EQ(it->op_int_value(), 2) << "Doesn't match expected count";
+                }
+                // printf("\n");
+            }
+        }
+        EXPECT_EQ(nodecount, 1) << "Not enough nodes found";
+        EXPECT_EQ(propcount, 2) << "Not enough properties read";
+        EXPECT_EQ(totnodecount, 4) << "Not enough total nodes found";
+        EXPECT_EQ(totpropcount, 3) << "Not enough total properties read";
     }
 }
 
