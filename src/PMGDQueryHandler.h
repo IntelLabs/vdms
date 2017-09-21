@@ -20,10 +20,16 @@ namespace athena {
         {
             // Iterator for the starting nodes.
             Jarvis::NodeIterator _ni;
+
+            // TODO Is list the best data structure if we could potentially
+            // sort?
             std::list<Jarvis::Node *> _traversed;
 
             // Current postion of list iterator
             std::list<Jarvis::Node *>::iterator _it;
+
+            // Optional in case sort required
+            Jarvis::StringID _sortkey;
 
             bool _next()
             {
@@ -47,6 +53,18 @@ namespace athena {
                 return *_it;
             }
 
+            // TODO Is this the best way to do this
+            struct compare_propkey
+            {
+                Jarvis::StringID _propid;
+                bool operator()(const Jarvis::Node *n1, const Jarvis::Node *n2)
+                {
+                   // if (n1 == NULL || n2 == NULL)
+                     //   throw JarvisException(NullIterator, "Comparing at least one null node");
+                    return n1->get_property(_propid) < n2->get_property(_propid);
+                }
+            };
+
         public:
             // Make sure this is not auto-declared. The move one won't be.
             ReusableNodeIterator(const ReusableNodeIterator &) = delete;
@@ -68,6 +86,21 @@ namespace athena {
             Jarvis::Node &operator *() { return *ref(); }
             Jarvis::Node *operator ->() { return ref(); }
             void reset() { _it = _traversed.begin(); }
+
+            // Sort the list. Once the list is sorted, all operations
+            // following that happen in a sorted manner. And this function
+            // resets the iterator to the beginning.
+            // TODO It might be possible to avoid this if the first iterator
+            // was build out of an index sorted on the same key been sought here.
+            // Hopefully that won't happen.
+            void sort(Jarvis::StringID sortkey)
+            {
+                // TODO First finish traversal?
+                for( ; _ni; _ni.next())
+                    _traversed.insert(_traversed.end(), &*_ni);
+                _traversed.sort(compare_propkey{sortkey});
+                _it = _traversed.begin();
+            }
         };
 
         private:

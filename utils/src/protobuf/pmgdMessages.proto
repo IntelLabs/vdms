@@ -191,6 +191,13 @@ message QueryNode
     // that matched the constraints.
     // TODO Support this for QueryNeighbor
     bool unique = 12;
+
+    // Should the results be sorted? Default is false.
+    // If sort is true, it will sort in all cases. Whether it is to
+    // count or to calculate an average.
+    bool sort = 13;
+    // Choose the property key to sort on.
+    string sort_key = 14;
 }
 
 message Command

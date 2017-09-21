@@ -337,6 +337,8 @@ PropertyPredicate PMGDQueryHandler::construct_search_term(const protobufs::Prope
 
 void PMGDQueryHandler::construct_protobuf_property(const Property &j_p, protobufs::Property *p_p)
 {
+    // Assumes matching enum values!
+    p_p->set_type((protobufs::Property::PropertyType)j_p.type());
     switch(j_p.type()) {
     case PropertyType::Boolean:
         p_p->set_bool_value(j_p.bool_value());
@@ -391,13 +393,11 @@ void PMGDQueryHandler::build_results(Iterator &ni,
         for (; ni; ni.next()) {
             count++;
             for (int i = 0; i < keyids.size(); ++i) {
-                protobufs::PropertyList &list = rmap[qn.response_keys(i)];
                 Property j_p;
                 if (!ni->check_property(keyids[i], j_p))
                     continue;
-                // Assumes matching enum values!
+                protobufs::PropertyList &list = rmap[qn.response_keys(i)];
                 protobufs::Property *p_p = list.add_values();
-                p_p->set_type((protobufs::Property::PropertyType)j_p.type());
                 construct_protobuf_property(j_p, p_p);
             }
         }
@@ -503,8 +503,8 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     // via the SearchExpressionIterator class, which might be slow,
     // especially with a lot of property constraints. Might need another
     // way for it.
-    ReusableNodeIterator *tni = (qn.identifier() >= 0 || qn.unique()) ?
-                                 new ReusableNodeIterator(ni) : NULL;
+    bool reuse = qn.identifier() >= 0 || qn.unique() || qn.sort();
+    ReusableNodeIterator *tni =  reuse ?  new ReusableNodeIterator(ni) : NULL;
     if (tni == NULL) {
         // If not reusable
         build_results<NodeIterator>(ni, qn, response);
@@ -528,6 +528,8 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         response->set_r_type(protobufs::Cached);
         response->set_error_code(protobufs::CommandResponse::Success);
     }
+    if (qn.sort())
+        tni->sort(qn.sort_key().c_str());
 
     // TODO What's the protobuf field to check if no results are expected?
     build_results<ReusableNodeIterator>(*tni, qn, response);
