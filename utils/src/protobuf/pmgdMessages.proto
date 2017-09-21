@@ -198,6 +198,9 @@ message QueryNode
     bool sort = 13;
     // Choose the property key to sort on.
     string sort_key = 14;
+
+    // Limit the number of results returned or used for calculations
+    uint64 limit = 18;
 }
 
 message Command

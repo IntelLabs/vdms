@@ -1,3 +1,4 @@
+#include <limits>
 #include "PMGDQueryHandler.h"
 #include "util.h"   // Jarvis util
 
@@ -385,13 +386,13 @@ void PMGDQueryHandler::build_results(Iterator &ni,
     response->set_error_code(protobufs::CommandResponse::Success);
 
     bool avg = false;
+    size_t limit = qn.limit() > 0 ? qn.limit() : std::numeric_limits<size_t>::max();
     size_t count = 0;
     switch(qn.r_type()) {
     case protobufs::List:
     {
         auto& rmap = *(response->mutable_prop_values());
         for (; ni; ni.next()) {
-            count++;
             for (int i = 0; i < keyids.size(); ++i) {
                 Property j_p;
                 if (!ni->check_property(keyids[i], j_p))
@@ -400,6 +401,9 @@ void PMGDQueryHandler::build_results(Iterator &ni,
                 protobufs::Property *p_p = list.add_values();
                 construct_protobuf_property(j_p, p_p);
             }
+            count++;
+            if (count >= limit)
+                break;
         }
         response->set_op_int_value(count);
         break;
@@ -422,6 +426,8 @@ void PMGDQueryHandler::build_results(Iterator &ni,
             for (; ni; ni.next()) {
                 sum += ni->get_property(keyids[0]).int_value();
                 count++;
+                if (count >= limit)
+                    break;
             }
             if (avg)
                 response->set_op_float_value((double)sum / count);
@@ -433,6 +439,8 @@ void PMGDQueryHandler::build_results(Iterator &ni,
             for (; ni; ni.next()) {
                 sum += ni->get_property(keyids[0]).float_value();
                 count++;
+                if (count >= limit)
+                    break;
             }
             if (avg)
                 response->set_op_float_value(sum / count);

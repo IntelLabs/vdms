@@ -1115,3 +1115,132 @@ TEST(PMGDQueryHandler, querySortedNeighborLinksReuseTestList)
     }
 }
 
+TEST(PMGDQueryHandler, queryTestListLimit)
+{
+    //printf("Testing PMGD query protobuf handler for list return with limit\n");
+
+    Graph db("qhgraph");
+
+    // Since PMGD is still single threaded, provide a lock for the DB
+    mutex dblock;
+    PMGDQueryHandler qh(&db, &dblock);
+
+    vector<protobufs::Command *> cmds;
+
+    {
+        int txid = 1, query_count = 0;
+        protobufs::Command cmdtx;
+        cmdtx.set_cmd_id(protobufs::Command::TxBegin);
+        cmdtx.set_tx_id(txid);
+        cmds.push_back(&cmdtx);
+        query_count++;
+
+        protobufs::Command cmdquery;
+        cmdquery.set_cmd_id(protobufs::Command::QueryNode);
+        cmdquery.set_tx_id(txid);
+        protobufs::QueryNode *qn = cmdquery.mutable_query_node();
+        qn->set_identifier(-1);
+        qn->set_tag("Patient");
+        qn->set_p_op(protobufs::And);
+        qn->set_r_type(protobufs::List);
+        string *key = qn->add_response_keys();
+        *key = "Email";
+        key = qn->add_response_keys();
+        *key = "Age";
+        qn->set_limit(4);
+        cmds.push_back(&cmdquery);
+        query_count++;
+
+        // No need to commit in this case. So just end TX
+        protobufs::Command cmdtxend;
+        // Commit here doesn't change anything. Just indicates end of TX
+        cmdtxend.set_cmd_id(protobufs::Command::TxCommit);
+        cmdtxend.set_tx_id(txid);
+        cmds.push_back(&cmdtxend);
+        query_count++;
+
+        vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count);
+        int nodecount, propcount = 0;
+        for (int i = 0; i < query_count; ++i) {
+            vector<protobufs::CommandResponse *> response = responses[i];
+            for (auto it : response) {
+                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                if (it->r_type() == protobufs::List) {
+                    auto mymap = it->prop_values();
+                    for(auto m_it : mymap) {
+                        // Assuming string for now
+                        protobufs::PropertyList &p = m_it.second;
+                        nodecount = 0;
+                        for (int i = 0; i < p.values_size(); ++i) {
+                            print_property(m_it.first, p.values(i));
+                            nodecount++;
+                        }
+                        propcount++;
+                    }
+                }
+                //printf("\n");
+            }
+        }
+        EXPECT_EQ(nodecount, 4) << "Incorrect number of nodes found";
+        EXPECT_EQ(propcount, 2) << "Not enough properties read";
+    }
+}
+
+TEST(PMGDQueryHandler, queryTestSortedLimitedAverage)
+{
+    //printf("Testing PMGD query protobuf handler for average return on sorted and limited return\n");
+
+    Graph db("qhgraph");
+
+    // Since PMGD is still single threaded, provide a lock for the DB
+    mutex dblock;
+    PMGDQueryHandler qh(&db, &dblock);
+
+    vector<protobufs::Command *> cmds;
+
+    {
+        int txid = 1, query_count = 0;
+        protobufs::Command cmdtx;
+        cmdtx.set_cmd_id(protobufs::Command::TxBegin);
+        cmdtx.set_tx_id(txid);
+        cmds.push_back(&cmdtx);
+        query_count++;
+
+        protobufs::Command cmdquery;
+        cmdquery.set_cmd_id(protobufs::Command::QueryNode);
+        cmdquery.set_tx_id(txid);
+        protobufs::QueryNode *qn = cmdquery.mutable_query_node();
+        qn->set_identifier(-1);
+        qn->set_tag("Patient");
+        qn->set_r_type(protobufs::Average);
+        string *key = qn->add_response_keys();
+        *key = "Age";
+        qn->set_sort(true);
+        qn->set_sort_key("Email");
+        // Average over 5 patients age is 69.2
+        qn->set_limit(3);
+        cmds.push_back(&cmdquery);
+        query_count++;
+
+        // No need to commit in this case. So just end TX
+        protobufs::Command cmdtxend;
+        // Commit here doesn't change anything. Just indicates end of TX
+        cmdtxend.set_cmd_id(protobufs::Command::TxCommit);
+        cmdtxend.set_tx_id(txid);
+        cmds.push_back(&cmdtxend);
+        query_count++;
+
+        vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count);
+        for (int i = 0; i < query_count; ++i) {
+            vector<protobufs::CommandResponse *> response = responses[i];
+            for (auto it : response) {
+                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                if (it->r_type() == protobufs::Average) {
+                    EXPECT_EQ(static_cast<int>(it->op_float_value()), 73) << "Average didn't match expected for three middle patients' age";
+                }
+            }
+        }
+    }
+}
+
+
