@@ -151,6 +151,4 @@ TEST(QueryHandler, addTest){
     // EXPECT_EQ(average_value, 69.25) <<"Wrong average value!!";
 
     // EXPECT_EQ(average_value, 69.25) <<"Wrong average value !!";
-
-    // std::cout<< writer.write(parsed) << std::endl;
 }

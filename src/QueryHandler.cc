@@ -159,6 +159,13 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
             }
         }
         proto_res.set_json(fastWriter.write(json_responses));
+        //clear  and free the used memory the the pmgd_responses vector of vectors
+        for (unsigned i = 0; i < group_count; ++i) {
+                for (unsigned j = 0; j < pmgd_responses[i].size(); ++j) {
+                    if (pmgd_responses[i][j] != NULL)
+                        delete pmgd_responses[i][j];
+                }
+        }
 
     } catch (VCL::Exception e) {
         print_exception(e);
@@ -683,6 +690,16 @@ int RSCommand::parse_query_results (const Json::Value& result_type,
         else if (response_type.key().asString() == "sum") {
             query_node->set_r_type(pmgd::protobufs::Sum);
             get_response_type (result_type, response_type.key().asString(), query_node);
+        }
+
+        else if (response_type.key().asString() == "sort") {
+            query_node->set_sort (true);
+            std::string sort_key =  result_type[response_type.key().asString()].asString();
+            query_node->set_sort_key(sort_key);
+        }
+        else if (response_type.key().asString() == "limit") {
+            int limit =  result_type[response_type.key().asString()].asInt();
+            query_node->set_limit(limit);
         }
 
         else if (response_type.key().asString() == "average") {

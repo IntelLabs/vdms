@@ -102,52 +102,121 @@
 
  {
    "FindEntity" : {
-         "_ref" : 5,
+         "_ref" : 15,
          "class" :  "Patient",
          "constraints": {
 
-          "Age":  [">", 20, "<", 80 ]
+          "Age":  [">", 0, "<", 80 ]
 
 
        },
+
        "results": {
-         "list":["Age"]
-        }
-}
+       "list": ["name"]
+     }
+  }
 },
+
+{
+   "FindEntity" : {
+         "_ref" : 16,
+         "class" :  "Patient",
+         "constraints": {
+
+          "Age":  [">", 0, "<", 80 ]
+
+
+       },
+
+       "results": {
+       "list": ["name"]
+     }
+  }
+},
+
 {
   "FindEntity" : {
         "_ref": -1,
         "class" :  "Patient",
         "constraints": {
-         "Age":  [">", 20, "<=", 80 ]
+         "Age":  [">", 0, "<=", 180 ]
       },
             "results": {
-            "list":["Age"]
-            }
-}
+            "list":["name","Age"]
+         }
+  }
 },
+
  {
    "FindEntity" : {
          "_ref" : -1,
          "class" :  "Patient",
          "constraints": {
            "avg": [">", 1.6],
-
            "Email":[">", "g"]
-
-
        },
        "link": {
         "direction": "any",
-        // "class": "Patient",
-        "ref": 5
+        "ref": 15
         },
        "results": {
 
-       "list":["Age","name", "Email"]
+       "list":["Age","name", "Email"],
+       "limit" :3
+
        }
-}
+   }
+},
+{
+   "FindEntity" : {
+         "_ref" : -1,
+         "class" :  "Patient",
+         "constraints": {
+         "Email":[">", "g"]
+     },
+       "link": {
+        "direction": "any",
+         "ref": 1
+        },
+       "results": {
+
+       "list":["Age","name", "Email"],
+       "sort":"Email"
+      }
+  }
+},
+
+{
+  "FindEntity" : {
+        "_ref": -1,
+        "class" :  "Patient",
+        "constraints": {
+         "Age":  [">", 0, "<=", 100 ]
+      },
+        "results": {
+            "list":["name","Age","Email"],
+            "sort" :"Age"
+          }
+    }
+},
+{
+   "FindEntity" : {
+         "_ref" : -1,
+         "class" :  "Patient",
+
+       "link": {
+        "direction": "any",
+        "ref":16
+        },
+       "results": {
+
+       "list":["Age","name", "Email"],
+       "limit":2
+
+
+       }
+   }
 }
 
 ]
+
