@@ -102,7 +102,7 @@
 
  {
    "FindEntity" : {
-         "_ref" : 1,
+         "_ref" : 5,
          "class" :  "Patient",
          "constraints": {
 
@@ -141,7 +141,7 @@
        "link": {
         "direction": "any",
         // "class": "Patient",
-        "ref": 1
+        "ref": 5
         },
        "results": {
 

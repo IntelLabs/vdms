@@ -177,6 +177,10 @@ void PMGDQueryHandler::set_property(Element &e, const protobufs::Property &p)
 void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
                                   protobufs::CommandResponse *response)
 {
+    long id = cn.identifier();
+    if (id >= 0 && mNodes.find(id) != mNodes.end())
+        throw JarvisException(UndefinedException, "Reuse of _ref value\n");
+
     if (cn.has_query_node()) {
         const protobufs::QueryNode &qn = cn.query_node();
         // Have to query and check if this node is present.
@@ -212,9 +216,10 @@ void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
                 delete ni;
                 return;
             }
-            if (cn.identifier() >= 0) {
+
+            if (id >= 0) {
                 ni->reset();
-                mNodes[cn.identifier()] = ni;
+                mNodes[id] = ni;
             }
             else
                 delete ni;
@@ -227,8 +232,8 @@ void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
     // Since the node wasn't found, now add it.
     StringID sid(cn.node().tag().c_str());
     Node &n = _db->add_node(sid);
-    if (cn.identifier() >= 0)
-        mNodes[cn.identifier()] = new ReusableNodeIterator(&n);
+    if (id >= 0)
+        mNodes[id] = new ReusableNodeIterator(&n);
 
     for (int i = 0; i < cn.node().properties_size(); ++i) {
         const protobufs::Property &p = cn.node().properties(i);
@@ -469,6 +474,10 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     if (qn.p_op() == protobufs::Or)
         throw JarvisException(NotImplemented, "Or operation not implemented");
 
+    long id = qn.identifier();
+    if (id >= 0 && mNodes.find(id) != mNodes.end())
+        throw JarvisException(UndefinedException, "Reuse of _ref value\n");
+
     bool has_link = qn.has_link();
     if (has_link)  { // case where link is used.
         const protobufs::LinkInfo &link = qn.link();
@@ -477,11 +486,14 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
             response->set_error_msg("Non-repeated neighbors not supported\n");
             return;
         }
+        long start_id = link.start_identifier();
+        if (start_id < 0 || mNodes.find(start_id) == mNodes.end())
+            throw JarvisException(UndefinedException, "Undefined _ref value used in link\n");
 
         dir = (Jarvis::Direction)link.dir();
         edge_tag = (link.e_tagid() == 4) ? StringID(link.e_tagid())
                         : StringID(link.e_tag().c_str());
-        start_ni = mNodes[link.start_identifier()];
+        start_ni = mNodes[start_id];
     }
 
     // TODO For now, assuming that this is the ID in JL String Table.
@@ -511,7 +523,7 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     // via the SearchExpressionIterator class, which might be slow,
     // especially with a lot of property constraints. Might need another
     // way for it.
-    bool reuse = qn.identifier() >= 0 || qn.unique() || qn.sort();
+    bool reuse = id >= 0 || qn.unique() || qn.sort();
     ReusableNodeIterator *tni =  reuse ?  new ReusableNodeIterator(ni) : NULL;
     if (tni == NULL) {
         // If not reusable
@@ -529,8 +541,8 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         }
         tni->reset();
     }
-    if (qn.identifier() >= 0) {
-        mNodes[qn.identifier()] = tni;
+    if (id >= 0) {
+        mNodes[id] = tni;
 
         // Set these in case there is no results block.
         response->set_r_type(protobufs::Cached);
