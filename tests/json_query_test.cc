@@ -98,11 +98,13 @@ TEST(QueryHandler, addTest){
     query_handler.process_query(proto_query, response );
     // std::string response_output= *(response.release_json());
 
+
     reader.parse(response.json().c_str(), parsed);
+    // std::cout << writer.write(parsed) << std::endl;
 
     for (int j = 0; j < parsed.size(); j++) {
         const Json::Value& query = parsed[j];
-        assert (query.getMemberNames().size() == 1);
+        ASSERT_EQ(query.getMemberNames().size(),1);
         std::string cmd = query.getMemberNames()[0];
 
         if (cmd=="AddEntity")

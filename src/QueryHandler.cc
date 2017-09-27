@@ -786,9 +786,16 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
     cmdadd->set_cmd_grp_id(grp_id);
     pmgd::protobufs::AddNode *an = cmdadd->mutable_add_node();
 
-    // TODO: THIS STATIC IDENTIFIER IS HORRIBLE
-    uint32_t id_node = STATIC_IDENTIFIER++;
-    an->set_identifier(id_node);
+    uint32_t node_ref;
+    if (aImg.isMember("_ref")) {
+        node_ref = aImg["_ref"].asInt();
+        an->set_identifier(node_ref);
+    }
+    else {
+        // TODO: THIS STATIC IDENTIFIER IS HORRIBLE
+        node_ref = STATIC_IDENTIFIER++;
+        an->set_identifier(node_ref);
+    }
 
     // Adds AT:IMAGE node
     pmgd::protobufs::Node *n = an->mutable_node();
@@ -865,10 +872,10 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
 
             if (link.isMember("direction") && link["direction"] == "in") {
                 edge->set_src(link["ref"].asUInt());
-                edge->set_dst(id_node);
+                edge->set_dst(node_ref);
             }
             else {
-                edge->set_src(id_node);
+                edge->set_src(node_ref);
                 edge->set_dst(link["ref"].asUInt());
             }
 
@@ -929,7 +936,7 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
             pmgd::protobufs::AddEdge* adde = cmd_edge->mutable_add_edge();
             pmgd::protobufs::Edge* edge = adde->mutable_edge();
             edge->set_src(collection_id);
-            edge->set_dst(id_node);
+            edge->set_dst(node_ref);
             edge->set_tag(ATHENA_COL_EDGE_TAG);
 
             cmds.push_back(cmd_edge);
