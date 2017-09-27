@@ -162,7 +162,7 @@ class TestStringMethods(unittest.TestCase):
         # self.assertEqual(response[1]["FindImage"]["entities"][0]["name"], prefix_name + "1")
         self.assertEqual(len(img_array), 2)
 
-    def ztest_findImage_multiple_res(self):
+    def test_findImage_multiple_res(self):
         db = athena.Athena()
         db.connect(hostname, port)
 
