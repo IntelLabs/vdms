@@ -528,6 +528,10 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     if (tni == NULL) {
         // If not reusable
         build_results<NodeIterator>(ni, qn, response);
+
+        // Make sure the starting iterator is reset for later use.
+        if (has_link)
+            start_ni->reset();
         return;
     }
 
@@ -553,6 +557,16 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
 
     // TODO What's the protobuf field to check if no results are expected?
     build_results<ReusableNodeIterator>(*tni, qn, response);
+
+    // If there is a link, we have to make sure the start_ni can be reset.
+    // But if we didn't traverse the current iterator fully, then we cannot
+    // reset start_ni without traversing first.
+    // TODO Any faster and cleaner solution?
+    if (has_link) {
+        while(bool(*tni))
+            tni->next();
+        start_ni->reset();
+    }
     tni->reset();
     return;
 }
