@@ -117,9 +117,11 @@ namespace athena {
     {
         const std::string DEFAULT_TDB_PATH = "./tdb_database";
         const std::string DEFAULT_PNG_PATH = "./png_database";
+        const std::string DEFAULT_JPG_PATH = "./jpg_database";
 
         std::string _storage_tdb;
         std::string _storage_png;
+        std::string _storage_jpg;
 
     public:
         AddImage();

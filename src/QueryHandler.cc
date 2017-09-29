@@ -786,6 +786,8 @@ AddImage::AddImage()
                 ->get_string_value("tiledb_database", DEFAULT_TDB_PATH);
     _storage_png = AthenaConfig::instance()
                 ->get_string_value("png_database", DEFAULT_PNG_PATH);
+    _storage_jpg = AthenaConfig::instance()
+                ->get_string_value("jpg_database", DEFAULT_JPG_PATH);
 }
 
 int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
@@ -852,6 +854,10 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
         else if (format == "tdb") {
             vcl_format = VCL::TDB;
             img_root = _storage_tdb;
+        }
+        else if (format == "jpg") {
+            vcl_format = VCL::JPG;
+            img_root = _storage_jpg;
         }
         else {
             std::cout << "Format Not Implemented" << std::endl;
