@@ -8,11 +8,11 @@
 
     // Database paths
     "pmgd_path": "./db/hls-graph",
-    "tiledb_database": "./db/tiledb/hls/",
     "png_database": "./db/native_format/pngs/",
-    "jpg_database": "./db/native_format/jpgs/", // Not supported
-    "videos_database": "./videos_db",        // Not supported
+    "jpg_database": "./db/native_format/jpgs/",
+    "tiledb_database": "./db/tiledb/hls/",
+    "videos_database": "./videos_db",
 
-    "support_info": "Vishakha Gupta",
-    "support_phone": "1-800-Vishakha"
+    "support_info": "a-team@intel.com",
+    "support_phone": "1-800-A-TEAM"
 }

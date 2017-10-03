@@ -15,6 +15,7 @@
 #define ATHENA_IM_TAG           "AT:IMAGE"
 #define ATHENA_IM_NAME_PROP     "name"
 #define ATHENA_IM_PATH_PROP     "imgPath"
+#define ATHENA_IM_EDGE          "AT:IMG_LINK"
 
 #define ATHENA_COL_TAG          "AT:COLLECTION"
 #define ATHENA_COL_NAME_PROP    "name"
@@ -26,7 +27,6 @@ static uint32_t STATIC_IDENTIFIER = 0;
 
 // TODO This will be later replaced by a real logger
 std::ofstream GENERIC_LOGGER("log.log", std::fstream::app);
-
 
 QueryHandler::QueryHandler(Jarvis::Graph *db, std::mutex *mtx)
     : _pmgd_qh(db, mtx)
@@ -906,7 +906,7 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
             if (link.isMember("class"))
                 edge->set_tag(link["class"].asString());
             else
-                edge->set_tag("AT:IMG_LINK");
+                edge->set_tag(ATHENA_IM_EDGE);
 
             cmds.push_back(cmd);
         }
