@@ -124,22 +124,11 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
         cmdtxend.set_cmd_id(pmgd::protobufs::Command::TxCommit);
         cmdtxend.set_cmd_grp_id(group_count);
         cmds.push_back(&cmdtxend);
+
+
         // execute the queries using the PMGDQueryHandler object
-
-        // std::cout << "Queries: " << std::endl;
-        // for (auto ele2 : cmds) {
-        //     std::cout << ele2->DebugString() << std::endl;
-        // }
-
         std::vector<std::vector<pmgd::protobufs::CommandResponse *>>
             pmgd_responses = _pmgd_qh.process_queries(cmds, group_count + 1);
-
-        // std::cout << "Responses: " << std::endl;
-        // for (auto ele : pmgd_responses) {
-        //     for (auto ele2 : ele) {
-        //         std::cout << ele2->DebugString() << std::endl;
-        //     }
-        // }
 
         // Make sure there were no errors
         if (pmgd_responses.size() != group_count + 1) {
@@ -168,6 +157,7 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
             pmgd_responses[i].clear();
         }
         pmgd_responses.clear();
+
     } catch (VCL::Exception e) {
         print_exception(e);
         Json::Value error;
@@ -868,7 +858,7 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
         }
     }
 
-    std::string file_name = vclimg.create_unique(img_root, vcl_format);
+    std::string file_name = vclimg.create_name(img_root, vcl_format);
 
     pmgd::protobufs::Property *p = n->add_properties();
     p->set_type(pmgd::protobufs::Property::StringType);
