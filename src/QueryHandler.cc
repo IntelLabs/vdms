@@ -160,13 +160,14 @@ void QueryHandler::process_query(protobufs::queryMessage proto_query,
         }
         proto_res.set_json(fastWriter.write(json_responses));
         //clear  and free the used memory the the pmgd_responses vector of vectors
-        for (unsigned i = 0; i < group_count; ++i) {
-                for (unsigned j = 0; j < pmgd_responses[i].size(); ++j) {
-                    if (pmgd_responses[i][j] != NULL)
-                        delete pmgd_responses[i][j];
-                }
+        for (unsigned i = 0; i < pmgd_responses.size(); ++i) {
+            for (unsigned j = 0; j < pmgd_responses[i].size(); ++j) {
+                if (pmgd_responses[i][j] != NULL)
+                    delete pmgd_responses[i][j];
+            }
+            pmgd_responses[i].clear();
         }
-
+        pmgd_responses.clear();
     } catch (VCL::Exception e) {
         print_exception(e);
         Json::Value error;
@@ -861,7 +862,7 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
         }
     }
 
-    std::string file_name = vclimg.create_name(img_root, vcl_format);
+    std::string file_name = vclimg.create_unique(img_root, vcl_format);
 
     pmgd::protobufs::Property *p = n->add_properties();
     p->set_type(pmgd::protobufs::Property::StringType);

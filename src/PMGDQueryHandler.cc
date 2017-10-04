@@ -18,10 +18,9 @@ PMGDQueryHandler::PMGDQueryHandler(Graph *db, std::mutex *mtx)
 
 std::vector<std::vector<protobufs::CommandResponse *>>
               PMGDQueryHandler::process_queries(std::vector<protobufs::Command *> cmds,
-              int num_queries)
+              int num_groups)
 {
-    int curr_query = 0;
-    std::vector<std::vector<protobufs::CommandResponse *>> responses(num_queries);
+    std::vector<std::vector<protobufs::CommandResponse *>> responses(num_groups);
 
     for (auto cmd : cmds) {
         protobufs::CommandResponse *response = new protobufs::CommandResponse();
@@ -30,25 +29,40 @@ std::vector<std::vector<protobufs::CommandResponse *>>
             process_query(cmd, response);
         }
         catch (Exception e) {
-            for (unsigned i = 0; i < curr_query; ++i) {
+            for (unsigned i = 0; i < num_groups; ++i) {
                 unsigned size = responses[i].size();
                 for (unsigned j = 0; j < size; ++j) {
                     if (responses[i][j] != NULL)
                         delete responses[i][j];
-                    responses[i].clear();
                 }
+                responses[i].clear();
             }
-            responses.resize(1);
+            responses.clear();
 
             // Since we have shortened the container, this reference will still remain
             // valid. So we can reuse the 0th spot.
             response->set_cmd_grp_id(0);
-            std::vector<protobufs::CommandResponse *> &resp_v1 = responses[0];
+            std::vector<protobufs::CommandResponse *> resp_v1;
             resp_v1.push_back(response);
-            return responses;
+            responses.push_back(resp_v1);
+            break;  // Goto cleanup site.
         }
         resp_v.push_back(response);
-        curr_query++;
+    }
+
+    for (auto it = mNodes.begin(); it != mNodes.end(); ++it) {
+        if (it->second != NULL)
+            delete it->second;
+    }
+    mNodes.clear();
+    /* for (auto it = mEdges.begin(); it != mEdges.end(); ++it) {
+        if (it->second != NULL)
+            delete it->second;
+    } */
+    mEdges.clear();
+    if (_tx != NULL) {
+        delete _tx;
+        _tx = NULL;
     }
     // TODO Assuming a move rather than vector copy here.
     // Will the response pointers be deleted when the vector goes out of scope?
@@ -76,12 +90,6 @@ void PMGDQueryHandler::process_query(protobufs::Command *cmd,
             {
                 _tx->commit();
                 _dblock->unlock();
-                // TODO Clearing might not be needed if it goes out of scope anyway
-                // TODO Need to free pointers at some point
-                mNodes.clear();
-                mEdges.clear();
-                delete _tx;
-                _tx = NULL;
                 response->set_error_code(protobufs::CommandResponse::Success);
                 response->set_r_type(protobufs::TX);
                 break;
@@ -89,12 +97,6 @@ void PMGDQueryHandler::process_query(protobufs::Command *cmd,
             case protobufs::Command::TxAbort:
             {
                 _dblock->unlock();
-                // TODO Clearing might not be needed if it goes out of scope anyway
-                // TODO Need to free pointers at some point
-                mNodes.clear();
-                mEdges.clear();
-                delete _tx;
-                _tx = NULL;
                 response->set_error_code(protobufs::CommandResponse::Abort);
                 response->set_error_msg("Abort called");
                 response->set_r_type(protobufs::TX);
@@ -134,10 +136,6 @@ void PMGDQueryHandler::process_query(protobufs::Command *cmd,
     }
     catch (Exception e) {
         _dblock->unlock();
-        mNodes.clear();
-        mEdges.clear();
-        delete _tx;
-        _tx = NULL;
         response->set_error_code(protobufs::CommandResponse::Exception);
         response->set_error_msg(e.name + std::string(": ") +  e.msg);
         throw e;
