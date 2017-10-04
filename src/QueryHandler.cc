@@ -858,7 +858,7 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
         }
     }
 
-    std::string file_name = vclimg.create_name(img_root, vcl_format);
+    std::string file_name = vclimg.create_unique(img_root, vcl_format);
 
     pmgd::protobufs::Property *p = n->add_properties();
     p->set_type(pmgd::protobufs::Property::StringType);

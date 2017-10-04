@@ -20,7 +20,6 @@ std::vector<std::vector<protobufs::CommandResponse *>>
               PMGDQueryHandler::process_queries(std::vector<protobufs::Command *> cmds,
               int num_groups)
 {
-    int curr_cmd = 0;
     std::vector<std::vector<protobufs::CommandResponse *>> responses(num_groups);
 
     for (auto cmd : cmds) {
