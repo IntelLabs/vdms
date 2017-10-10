@@ -13,7 +13,7 @@ CommandHandler::CommandHandler(comm::Connection* conn):
 
 protobufs::queryMessage CommandHandler::get_command()
 {
-	std::basic_string<uint8_t> msg = _conn->recv_message();
+	const std::basic_string<uint8_t>& msg = _conn->recv_message();
 
 	protobufs::queryMessage cmd;
 	cmd.ParseFromArray((const void*)msg.data(), msg.length());

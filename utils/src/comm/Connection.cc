@@ -67,7 +67,7 @@ void Connection::send_message(const uint8_t *data, uint32_t size)
     }
 }
 
-std::basic_string<uint8_t> Connection::recv_message()
+const std::basic_string<uint8_t>& Connection::recv_message()
 {
     uint32_t recv_message_size;
 
@@ -106,7 +106,6 @@ std::basic_string<uint8_t> Connection::recv_message()
         throw ExceptionComm(InvalidMessageSize);
     }
 
-    std::basic_string<uint8_t> buffer_str;
     buffer_str.resize(recv_message_size);
 
     uint8_t *buffer = (uint8_t*) buffer_str.data();
