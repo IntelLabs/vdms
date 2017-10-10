@@ -79,9 +79,9 @@ class Athena(object):
 # Aux functions for printing JSON queries/responses
 def aux_print_json(data):
     # Check the query type
-    json_obj = json.loads(data)
-    # if isinstance(data, str): # assumes string
-    # else:
-    #     json_obj = data
+    if isinstance(data, str): # assumes string
+        json_obj = json.loads(data)
+    else:
+        json_obj = data
 
     print json.dumps(json_obj, indent=4, sort_keys=False)
