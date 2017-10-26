@@ -45,7 +45,8 @@ void QueryHandler::process_connection(comm::Connection *c)
     try {
         while (true) {
             protobufs::queryMessage response;
-            process_query(handler.get_command(), response );
+            protobufs::queryMessage query = handler.get_command();
+            process_query(query, response);
             handler.send_response(response);
         }
     } catch (comm::ExceptionComm e) {
@@ -54,7 +55,7 @@ void QueryHandler::process_connection(comm::Connection *c)
     delete c;
 }
 
-void QueryHandler::process_query(protobufs::queryMessage proto_query,
+void QueryHandler::process_query(protobufs::queryMessage& proto_query,
                                  protobufs::queryMessage& proto_res)
 {
     Json::FastWriter fastWriter;
@@ -336,25 +337,24 @@ Json::Value RSCommand::parse_response(
             break;
 
         case pmgd::protobufs::List:
-            if (response->error_code() == pmgd::protobufs::CommandResponse::Success) {
-                int cnt;
+            if (response->error_code() ==
+                pmgd::protobufs::CommandResponse::Success) {
                 Json::Value list;
-                Json::Value result;
-                auto mymap = response->prop_values();
+                auto& mymap = response->prop_values();
 
                 int count = 0;
 
-                for (auto key:mymap) {
-                    count=key.second.values().size();
+                for (auto& key : mymap) {
+                    count = key.second.values().size();
                     break;
                 }
 
                 if (count > 0) {
-                    for (int i = 0; i<count; ++i) {
+                    for (int i = 0; i < count; ++i) {
                         Json::Value prop;
 
-                        for (auto key : mymap) {
-                            pmgd::protobufs::PropertyList &p = key.second;
+                        for (auto& key : mymap) {
+                            const pmgd::protobufs::PropertyList &p = key.second;
                             prop[key.first] = print_properties(key.first.c_str(), p.values(i));
                         }
 
@@ -762,7 +762,7 @@ Json::Value FindEntity::construct_responses(
     protobufs::queryMessage &query_res)
 {
     Json::Value findEntity;
-    for (auto it : response)
+    for (auto& it : response)
         findEntity[query->getMemberNames()[0]] = parse_response(it);
 
     return findEntity;

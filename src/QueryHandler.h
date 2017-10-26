@@ -165,7 +165,7 @@ namespace athena {
     public:
         QueryHandler(Jarvis::Graph *db, std::mutex *mtx);
         void process_connection(comm::Connection *c);
-        void process_query(protobufs::queryMessage proto_query,
+        void process_query(protobufs::queryMessage& proto_query,
                            protobufs::queryMessage& response);
     };
 };
