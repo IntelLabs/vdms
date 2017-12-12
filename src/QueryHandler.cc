@@ -20,6 +20,9 @@
 #define ATHENA_COL_NAME_PROP    "name"
 #define ATHENA_COL_EDGE_TAG     "collection_tag"
 
+#define PARAM_MANDATORY 2
+#define PARAM_OPTIONAL  1
+
 using namespace athena;
 
 static uint32_t STATIC_IDENTIFIER = 0;
@@ -62,6 +65,36 @@ void QueryHandler::process_connection(comm::Connection *c)
     delete c;
 }
 
+bool QueryHandler::syntax_checker(const Json::Value &root)
+{
+    bool flag_error = true;
+
+    for (int j = 0; j < root.size(); j++) {
+        const Json::Value& query = root[j];
+        if (query.getMemberNames().size() != 1) {
+            GENERIC_LOGGER << "QueryHandler::syntax_checker : ";
+            GENERIC_LOGGER << "Wrong count on command" << std::endl;
+            return false;
+        }
+
+        const std::string cmd_str = query.getMemberNames()[0];
+        auto it = _rs_cmds.find(cmd_str);
+        if ( it == _rs_cmds.end() ) {
+            GENERIC_LOGGER << cmd_str << ": Command not found!" << std::endl;
+            return false;
+        }
+
+        bool flag_error = _rs_cmds[cmd_str]->check_params(query[cmd_str]);
+
+        if (!flag_error) {
+            GENERIC_LOGGER << cmd_str << ": Command syntax error" << std::endl;
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void QueryHandler::process_query(protobufs::queryMessage& proto_query,
                                  protobufs::queryMessage& proto_res)
 {
@@ -79,6 +112,15 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
             GENERIC_LOGGER << proto_query.json() << std::endl;
             Json::Value error;
             error["return"] = "Server error - parsing";
+            json_responses.append(error);
+            proto_res.set_json(fastWriter.write(json_responses));
+            return;
+        }
+
+        if (!syntax_checker(root)) {
+            GENERIC_LOGGER << "Error syntax" << std::endl;
+            Json::Value error;
+            error["return"] = "Query Syntax error!. Go Figure!";
             json_responses.append(error);
             proto_res.set_json(fastWriter.write(json_responses));
             return;
@@ -185,6 +227,14 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
 
 //========= AddEntity definitions =========
 
+AddEntity::AddEntity() : RSCommand("AddEntity")
+{
+    _valid_params_map["class"]       = PARAM_MANDATORY;
+    _valid_params_map["_ref"]        = PARAM_OPTIONAL;
+    _valid_params_map["properties"]  = PARAM_OPTIONAL;
+    _valid_params_map["constraints"] = PARAM_OPTIONAL;
+}
+
 int AddEntity::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
         const Json::Value& jsoncmd,
         const std::string& blob,
@@ -234,6 +284,14 @@ Json::Value AddEntity::construct_responses(
 
 //========= Connect definitions =========
 
+Connect::Connect() : RSCommand("Connect")
+{
+    _valid_params_map["ref1"]       = PARAM_MANDATORY;
+    _valid_params_map["ref2"]       = PARAM_MANDATORY;
+    _valid_params_map["class"]      = PARAM_OPTIONAL;
+    _valid_params_map["properties"] = PARAM_OPTIONAL;
+}
+
 int Connect::construct_protobuf(
         std::vector<pmgd::protobufs::Command*> &cmds,
         const Json::Value& jsoncmd,
@@ -273,6 +331,15 @@ Json::Value Connect::construct_responses(
 }
 
 //========= FindEntity definitions =========
+
+FindEntity::FindEntity() : RSCommand("FindEntity")
+{
+    _valid_params_map["class"]       = PARAM_OPTIONAL;
+    _valid_params_map["_ref"]        = PARAM_OPTIONAL;
+    _valid_params_map["constraints"] = PARAM_OPTIONAL;
+    _valid_params_map["results"]     = PARAM_OPTIONAL;
+    _valid_params_map["link"]        = PARAM_OPTIONAL;
+}
 
 int FindEntity::construct_protobuf(
     std::vector<pmgd::protobufs::Command*> &cmds,
@@ -329,8 +396,14 @@ Json::Value FindEntity::construct_responses(
 
 //========= AddImage definitions =========
 
-AddImage::AddImage()
+AddImage::AddImage() : RSCommand("AddImage")
 {
+    _valid_params_map["collections"] = PARAM_OPTIONAL;
+    _valid_params_map["properties"]  = PARAM_OPTIONAL;
+    _valid_params_map["operations"]  = PARAM_OPTIONAL;
+    _valid_params_map["link"]        = PARAM_OPTIONAL;
+    _valid_params_map["format"]      = PARAM_OPTIONAL;
+
     _storage_tdb = AthenaConfig::instance()
                 ->get_string_value("tiledb_database", DEFAULT_TDB_PATH);
     _storage_png = AthenaConfig::instance()
@@ -473,6 +546,14 @@ Json::Value AddImage::construct_responses(
 }
 
 //========= FindImage definitions =========
+
+FindImage::FindImage() : RSCommand("FindImage")
+{
+    _valid_params_map["_ref"]        = PARAM_OPTIONAL;
+    _valid_params_map["constraints"] = PARAM_OPTIONAL;
+    _valid_params_map["collections"] = PARAM_OPTIONAL;
+    _valid_params_map["results"]     = PARAM_OPTIONAL;
+}
 
 int FindImage::construct_protobuf(
     std::vector<pmgd::protobufs::Command*> &cmds,

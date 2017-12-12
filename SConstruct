@@ -46,7 +46,7 @@ def buildServer(intel_path, env):
                           intel_path + 'vcl/include',
                           intel_path + 'vcl/src',
                           intel_path + 'jarvis/util', ],
-                          CXXFLAGS="-std=c++11 -O3")
+                          CXXFLAGS="-std=c++11 -g -O3")
 
   test_sources = ['tests/main.cc',
                   'tests/pmgd_queries.cc',

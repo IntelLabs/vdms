@@ -5,6 +5,38 @@
 
 using namespace athena;
 
+RSCommand::RSCommand(const std::string& cmd_name):
+    _cmd_name(cmd_name)
+{
+}
+
+bool RSCommand::check_params(const Json::Value& cmd)
+{
+    std::map<std::string, int> valid = _valid_params_map;
+    std::map<std::string, int> params_map;
+
+    for (auto& param : cmd.getMemberNames()){
+        params_map[param] += 1;
+    }
+
+    for (auto& param : params_map){
+        auto it = valid.find(param.first);
+        if ( it == valid.end() ) {
+            return false;
+        }
+        valid[param.first] = 0;
+    }
+
+    for (auto& param : valid)
+    {
+        if (param.second > 1) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 void RSCommand::run_operations(VCL::Image& vclimg, const Json::Value& op)
 {
     for (auto& operation : op) {

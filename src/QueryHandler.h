@@ -26,6 +26,9 @@ typedef pmgd::protobufs::Property pmgdProp;
     {
     protected:
 
+        const std::string _cmd_name;
+        std::map<std::string, int> _valid_params_map;
+
         virtual Json::Value parse_response(pmgd::protobufs::CommandResponse *);
 
         virtual Json::Value check_responses(
@@ -76,6 +79,11 @@ typedef pmgd::protobufs::Property pmgdProp;
         void parse_query_constraints(const Json::Value& root, pmgd::protobufs::QueryNode* queryType);
 
     public:
+
+        RSCommand(const std::string& cmd_name);
+
+        bool check_params(const Json::Value& cmd);
+
         static Json::Value construct_error_response(pmgdCmdResponse *response);
 
         virtual bool need_blob() { return false; }
@@ -90,13 +98,12 @@ typedef pmgd::protobufs::Property pmgdProp;
             std::vector<pmgd::protobufs::CommandResponse *> &cmds,
             const Json::Value &json,
             protobufs::queryMessage &response) = 0;
-     };
+    };
 
     class AddEntity : public RSCommand
     {
-        const std::string _cmd_name = "AddEntity";
-
     public:
+        AddEntity();
         int construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
                                const Json::Value& root,
                                const std::string& blob,
@@ -110,9 +117,8 @@ typedef pmgd::protobufs::Property pmgdProp;
 
     class Connect : public RSCommand
     {
-        const std::string _cmd_name = "Connect";
-
     public:
+        Connect();
         int construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
                                const Json::Value& root,
                                const std::string& blob,
@@ -126,9 +132,8 @@ typedef pmgd::protobufs::Property pmgdProp;
 
     class FindEntity : public RSCommand
     {
-        const std::string _cmd_name = "FindEntity";
-
     public:
+        FindEntity();
         int construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
                                const Json::Value& root,
                                const std::string& blob,
@@ -142,7 +147,6 @@ typedef pmgd::protobufs::Property pmgdProp;
 
     class AddImage: public RSCommand
     {
-        const std::string _cmd_name = "AddImage";
         const std::string DEFAULT_TDB_PATH = "./tdb_database";
         const std::string DEFAULT_PNG_PATH = "./png_database";
         const std::string DEFAULT_JPG_PATH = "./jpg_database";
@@ -169,9 +173,8 @@ typedef pmgd::protobufs::Property pmgdProp;
 
     class FindImage: public RSCommand
     {
-        const std::string _cmd_name = "FindImage";
-
     public:
+        FindImage();
         int construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
                                const Json::Value& root,
                                const std::string& blob,
@@ -189,6 +192,8 @@ typedef pmgd::protobufs::Property pmgdProp;
     {
         PMGDQueryHandler _pmgd_qh;
         std::unordered_map<std::string, RSCommand *> _rs_cmds;
+
+        bool syntax_checker(const Json::Value &root);
 
     public:
         QueryHandler(Jarvis::Graph *db, std::mutex *mtx);
