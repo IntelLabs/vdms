@@ -12,7 +12,8 @@
     "png_database": "./native_format/pngs/",
     "jpg_database": "./native_format/jpgs/",
     "videos_database": "./videos_db",
+    "descriptors": "./native_format/descriptors/",
 
-    "support_info": "Vishakha Grupta",
-    "support_phone": "1-800-Vishakha"
+    "support_info": "A-team",
+    "support_phone": "1-800-a-team"
 }

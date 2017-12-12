@@ -15,15 +15,11 @@ using namespace Jarvis;
 std::string singleAddImage(" \
         { \
             \"AddImage\": { \
-                \"category\": { \
-                    \"name\": \"BrainScans\" \
-                }, \
-                \"operation\": { \
+                \"operations\": [{ \
                     \"width\": 512, \
                     \"type\": \"resize\", \
-                    \"height\": 512 \
-                }, \
-                \"log\": false, \
+                    \"height\": 512  \
+                }], \
                 \"properties\": { \
                     \"name\": \"brain_0\", \
                     \"doctor\": \"Dr. Strange Love\" \
@@ -38,7 +34,7 @@ TEST(AddImage, simpleAdd)
     std::string addImg;
     addImg += "[" + singleAddImage + "]";
 
-    int i = system("rm -r simpleAdd_db");
+    // int i = system("rm -r simpleAdd_db");
     Graph db("simpleAdd_db", Graph::Create);
     AthenaConfig::init("./addImage-config.json");
 
@@ -84,7 +80,7 @@ TEST(AddImage, simpleAddx10)
     }
     string_query += "]";
 
-    int i = system("rm -r simpleAddx10_db");
+    // int i = system("rm -r simpleAddx10_db");
     Graph db("simpleAddx10_db", Graph::Create);
 
     AthenaConfig::init("./addImage-config.json");

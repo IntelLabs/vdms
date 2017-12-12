@@ -1,4 +1,3 @@
-#! /usr/bin/python
 from threading import Thread
 import sys
 import os
@@ -6,13 +5,13 @@ import urllib
 import time
 import json
 import unittest
-
+import numpy as np
 import athena # Yeah, baby
 
 hostname = "localhost"
 port = 55557
 
-class TestStringMethods(unittest.TestCase):
+class TestAddImage(unittest.TestCase):
 
     #Methos to insert one image
     def insertImage(self, db, props=None, collections=None, format="png"):
@@ -71,7 +70,7 @@ class TestStringMethods(unittest.TestCase):
 
             img_params = {}
             img_params["properties"] = props
-            img_params["operation"] = op_params_resize
+            img_params["operations"] = [op_params_resize]
             img_params["format"] = "png"
 
             query = {}
@@ -198,7 +197,7 @@ class TestStringMethods(unittest.TestCase):
         self.assertEqual(response[0]["FindImage"]["returned"], number_of_inserts)
 
     # This test is failing.
-    def ztest_zFindImageWithCollection(self):
+    def test_zFindImageWithCollection(self):
         db = athena.Athena()
         db.connect(hostname, port)
 

@@ -39,11 +39,11 @@ TEST(QueryHandler, addTest){
     Json::Value root;
     Json::Value parsed;
     reader.parse(json_query, root);
-    int in_node_num = 0, out_node_num = 0;
-    int in_edge_num = 0, out_edge_num = 0;
+    int in_node_num  = 0, out_node_num  = 0;
+    int in_edge_num  = 0, out_edge_num  = 0;
     int in_query_num = 0, out_query_num = 0;
     int in_props = 0, out_props = 0;
-    int sucess=0;
+    int success=0;
     bool list_found_before = false, average_found_before = false;
     bool count_found_before =false , sum_found_before =false;
     bool list_found_after = false , average_found_after = false;
@@ -82,7 +82,7 @@ TEST(QueryHandler, addTest){
     }
 
     // This is needed every time we run, if not the test will fail
-    int i = system("rm -r jsongraph");
+    // int i = system("rm -r jsongraph");
     Graph db("jsongraph", Graph::Create);
 
     mutex dblock;
@@ -97,7 +97,6 @@ TEST(QueryHandler, addTest){
 
     query_handler.process_query(proto_query, response );
     // std::string response_output= *(response.release_json());
-
 
     reader.parse(response.json().c_str(), parsed);
     // std::cout << writer.write(parsed) << std::endl;
@@ -115,7 +114,7 @@ TEST(QueryHandler, addTest){
             out_query_num++;
 
         if ( query[cmd]["status"] == 0)
-            sucess++;
+            success++;
 
         if (query[cmd].isMember("list"))
             list_found_after = true;
@@ -135,12 +134,12 @@ TEST(QueryHandler, addTest){
 
      }
 
-    int total_sucess=out_node_num+out_query_num+out_edge_num;
+    int total_success = out_node_num + out_query_num + out_edge_num;
     //google tests to double check the read and parsed values.
     EXPECT_EQ(in_node_num, out_node_num) << "Not enough nodes found";
     EXPECT_EQ(in_edge_num, out_edge_num) << "Not enough edges found";
     EXPECT_EQ(in_query_num, out_query_num) << "Not enough queries found";
-    EXPECT_EQ(sucess, total_sucess) << "Not enough queries found";
+    EXPECT_EQ(success, total_success) << "Not enough queries found";
     // EXPECT_EQ(list_found_before, list_found_after) <<"Wrong list operation!!";
     EXPECT_EQ(average_found_before, average_found_after) <<
                   "Wrong average operation!!";
