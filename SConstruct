@@ -24,6 +24,7 @@ def buildServer(intel_path, env):
                   'src/QueryHandler.cc',
                   'src/SearchExpression.cc',
                   'src/PMGDQueryHandler.cc',
+                  'src/RSCommand.cc',
                   'src/CommandHandler.cc',
                   'src/athena.cc',
                   'src/Server.cc',
@@ -36,7 +37,6 @@ def buildServer(intel_path, env):
                   'jsoncpp',
                   'athena-utils', 'protobuf',
                   'vcl', 'pthread',
-                  'tiledb',
                   ],
               LIBPATH = libs_paths
               )
@@ -59,6 +59,7 @@ def buildServer(intel_path, env):
                   ['src/QueryHandler.o',
                   'src/SearchExpression.o',
                   'src/AthenaConfig.o',
+                  'src/RSCommand.o',
                   'src/PMGDQueryHandler.o',
                   'src/CommandHandler.o',
                   test_sources ],

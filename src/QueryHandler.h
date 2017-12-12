@@ -15,63 +15,88 @@
 
 namespace athena {
 
+typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
+typedef pmgd::protobufs::CommandResponse pmgdCmdResponse;
+typedef pmgd::protobufs::PropertyPredicate pmgdPropPred;
+typedef pmgd::protobufs::PropertyList pmgdPropList;
+typedef pmgd::protobufs::Property pmgdProp;
+
 // Helper classes for handling various JSON commands.
     class RSCommand
     {
     protected:
-        void set_property(pmgd::protobufs::Property *p,
-                                        const char * prop_name,
-                                        Json::Value);
 
         virtual Json::Value parse_response(pmgd::protobufs::CommandResponse *);
 
+        virtual Json::Value check_responses(
+                              std::vector<pmgdCmdResponse *> &responses);
+
+        void run_operations(VCL::Image &vclimg, const Json::Value &op);
+
+        // An AddNode with either constraints or unique is a ConditionalAddNode
+        pmgd::protobufs::Command* AddNode(int grp_id,
+                                      int ref,
+                                      const std::string &tag,
+                                      const Json::Value& props,
+                                      Json::Value constraints = Json::Value(),
+                                      bool unique = false);
+
+        pmgd::protobufs::Command* AddEdge(int grp_id, int ident,
+                                      int src, int dst,
+                                      const std::string &tag,
+                                      Json::Value& props);
+
+        pmgd::protobufs::Command* QueryNode(int grp_id, int ref,
+                                      const std::string& tag,
+                                      Json::Value& link,
+                                      Json::Value& constraints,
+                                      Json::Value& results,
+                                      bool unique = false);
+
+    private:
+
+        void set_property(pmgd::protobufs::Property *p,
+                          const char *prop_name,
+                          Json::Value);
+
         Json::Value print_properties(const std::string &key,
-                             const pmgd::protobufs::Property &p);
+                                     const pmgd::protobufs::Property &p);
 
-        typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
+        void add_link(const Json::Value& link, pmgd::protobufs::QueryNode *qn);
 
-        void add_link(Json::Value& link, pmgd::protobufs::QueryNode *qn);
+        void set_operand(pmgd::protobufs::Property* p1, const Json::Value&);
 
-        void set_operand(pmgd::protobufs::Property* p1, Json::Value);
-
-        int build_query_protobuf(pmgd::protobufs::Command*,
-                                 const Json::Value& root,
-                                 pmgd::protobufs::QueryNode *queryType);
-
-        int get_response_type(const Json::Value& result_type_array,
+        void get_response_type(const Json::Value& result_type_array,
                               std::string response,
                               pmgd::protobufs::QueryNode *queryType);
 
-        int parse_query_results(const Json::Value& result_type,
+        void parse_query_results(const Json::Value& result_type,
                                 pmgd::protobufs::QueryNode* queryType);
 
-        int parse_query_constraints(const Json::Value& root, pmgd::protobufs::QueryNode* queryType);
+        void parse_query_constraints(const Json::Value& root, pmgd::protobufs::QueryNode* queryType);
 
     public:
+        static Json::Value construct_error_response(pmgdCmdResponse *response);
+
+        virtual bool need_blob() { return false; }
+
         virtual int construct_protobuf(
                                 std::vector<pmgd::protobufs::Command*> &cmds,
                                 const Json::Value& root,
                                 const std::string& blob,
                                 int txid) = 0;
 
-        static Json::Value construct_error_response(pmgd::protobufs::CommandResponse *response);
-
-        void run_operations(VCL::Image& vclimg, const Json::Value& op);
-
-        virtual bool need_blob() { return false; }
-
         virtual Json::Value construct_responses(
             std::vector<pmgd::protobufs::CommandResponse *> &cmds,
-            Json::Value *json,
+            const Json::Value &json,
             protobufs::queryMessage &response) = 0;
      };
 
     class AddEntity : public RSCommand
     {
-    public:
-        int add_entity_body(pmgd::protobufs::AddNode*,
-                            const Json::Value& root);
+        const std::string _cmd_name = "AddEntity";
 
+    public:
         int construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
                                const Json::Value& root,
                                const std::string& blob,
@@ -79,12 +104,14 @@ namespace athena {
 
         Json::Value construct_responses(
             std::vector<pmgd::protobufs::CommandResponse *>&,
-            Json::Value*,
+            const Json::Value &json,
             protobufs::queryMessage &response);
     };
 
-    class AddConnection : public RSCommand
+    class Connect : public RSCommand
     {
+        const std::string _cmd_name = "Connect";
+
     public:
         int construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
                                const Json::Value& root,
@@ -93,13 +120,13 @@ namespace athena {
 
         Json::Value construct_responses(
                 std::vector<pmgd::protobufs::CommandResponse *>&,
-                Json::Value*,
+                const Json::Value &json,
                 protobufs::queryMessage &response);
     };
 
     class FindEntity : public RSCommand
     {
-    protected:
+        const std::string _cmd_name = "FindEntity";
 
     public:
         int construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
@@ -109,12 +136,13 @@ namespace athena {
 
         Json::Value construct_responses(
             std::vector<pmgd::protobufs::CommandResponse *>&,
-            Json::Value*,
+            const Json::Value &json,
             protobufs::queryMessage &response);
     };
 
     class AddImage: public RSCommand
     {
+        const std::string _cmd_name = "AddImage";
         const std::string DEFAULT_TDB_PATH = "./tdb_database";
         const std::string DEFAULT_PNG_PATH = "./png_database";
         const std::string DEFAULT_JPG_PATH = "./jpg_database";
@@ -135,23 +163,23 @@ namespace athena {
 
         Json::Value construct_responses(
                 std::vector<pmgd::protobufs::CommandResponse*> &cmds,
-                Json::Value *json,
+                const Json::Value &json,
                 protobufs::queryMessage &response);
     };
 
     class FindImage: public RSCommand
     {
+        const std::string _cmd_name = "FindImage";
+
     public:
         int construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
                                const Json::Value& root,
                                const std::string& blob,
                                int txid);
 
-        bool need_blob() { return false; }
-
         Json::Value construct_responses(
                 std::vector<pmgd::protobufs::CommandResponse *> &cmds,
-                Json::Value *json,
+                const Json::Value &json,
                 protobufs::queryMessage &response);
     };
 
@@ -164,6 +192,7 @@ namespace athena {
 
     public:
         QueryHandler(Jarvis::Graph *db, std::mutex *mtx);
+        ~QueryHandler();
         void process_connection(comm::Connection *c);
         void process_query(protobufs::queryMessage& proto_query,
                            protobufs::queryMessage& response);
