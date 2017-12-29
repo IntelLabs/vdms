@@ -402,12 +402,12 @@ void PMGDTransaction::parse_query_results (const Json::Value& result_type,
         }
 
         else if (response_type.key().asString() == "sort") {
-            query_node->set_sort (true);
+            query_node->set_sort(true);
             std::string sort_key = result_type[response_type.key().asString()].asString();
             query_node->set_sort_key(sort_key);
         }
         else if (response_type.key().asString() == "limit") {
-            int limit =  result_type[response_type.key().asString()].asInt();
+            int limit = result_type[response_type.key().asString()].asInt();
             query_node->set_limit(limit);
         }
 

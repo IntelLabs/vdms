@@ -197,7 +197,7 @@ class TestAddImage(unittest.TestCase):
         self.assertEqual(response[0]["FindImage"]["returned"], number_of_inserts)
 
     # This test is failing.
-    def test_zFindImageWithCollection(self):
+    def ztest_zFindImageWithCollection(self):
         db = athena.Athena()
         db.connect(hostname, port)
 

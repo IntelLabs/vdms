@@ -2,6 +2,7 @@
 #include <fstream>
 #include "QueryHandler.h"
 #include "chrono/Chrono.h"
+#include "ExceptionsCommand.h"
 
 #include "jarvis.h"
 #include "util.h"
@@ -65,34 +66,64 @@ void QueryHandler::process_connection(comm::Connection *c)
     delete c;
 }
 
-bool QueryHandler::syntax_checker(const Json::Value &root)
+bool QueryHandler::syntax_checker(const Json::Value &root, Json::Value& error)
 {
-    bool flag_error = true;
-
     for (int j = 0; j < root.size(); j++) {
         const Json::Value& query = root[j];
         if (query.getMemberNames().size() != 1) {
-            GENERIC_LOGGER << "QueryHandler::syntax_checker : ";
-            GENERIC_LOGGER << "Wrong count on command" << std::endl;
+            error["info"] = "Error: Only one command per element allowed";
             return false;
         }
 
         const std::string cmd_str = query.getMemberNames()[0];
         auto it = _rs_cmds.find(cmd_str);
-        if ( it == _rs_cmds.end() ) {
-            GENERIC_LOGGER << cmd_str << ": Command not found!" << std::endl;
+        if (it == _rs_cmds.end()) {
+            error["info"] = cmd_str + ": Command not found!";
             return false;
         }
 
-        bool flag_error = _rs_cmds[cmd_str]->check_params(query[cmd_str]);
+        bool flag_error = _rs_cmds[cmd_str]->check_params(query[cmd_str],
+                                                          error);
 
         if (!flag_error) {
-            GENERIC_LOGGER << cmd_str << ": Command syntax error" << std::endl;
             return false;
         }
     }
 
     return true;
+}
+
+int QueryHandler::parse_commands(const std::string& commands,
+                                 Json::Value& root)
+{
+    Json::Reader reader;
+
+    try {
+        bool parseSuccess = reader.parse(commands.c_str(), root);
+
+        if (!parseSuccess) {
+            root["info"] = "Error parsing the query, ill formed JSON";
+            root["status"] = RSCommand::Error;
+            return -1;
+        }
+
+        Json::Value error;
+
+        if (!syntax_checker(root, error)) {
+            root = error;
+            root["status"] = RSCommand::Error;
+            return -1;
+        }
+
+        // Json::StyledWriter swriter;
+        // GENERIC_LOGGER << swriter.write(root) << std::endl;
+    } catch (Json::Exception const&) {
+        root["info"] = "Json Exception at Parsing";
+        root["status"] = RSCommand::Error;
+        return -1;
+    }
+
+    return 0;
 }
 
 void QueryHandler::process_query(protobufs::queryMessage& proto_query,
@@ -103,94 +134,119 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
     try {
         Json::Value json_responses;
         Json::Value root;
-        Json::Reader reader;
 
-        bool parseSuccess = reader.parse(proto_query.json().c_str(), root);
+        Json::Value cmd_result;
+        Json::Value cmd_current;
+        bool flag_error = false;
 
-        if ( !parseSuccess ) {
-            GENERIC_LOGGER << "Error parsing: " << std::endl;
-            GENERIC_LOGGER << proto_query.json() << std::endl;
-            Json::Value error;
-            error["return"] = "Server error - parsing";
-            json_responses.append(error);
-            proto_res.set_json(fastWriter.write(json_responses));
-            return;
+        if (parse_commands(proto_query.json(), root) != 0) {
+            cmd_result = root;
+            flag_error = true;
+            cmd_current = "Transaction";
         }
-
-        if (!syntax_checker(root)) {
-            GENERIC_LOGGER << "Error syntax" << std::endl;
-            Json::Value error;
-            error["return"] = "Query Syntax error!. Go Figure!";
-            json_responses.append(error);
-            proto_res.set_json(fastWriter.write(json_responses));
-            return;
-        }
-
-        // TODO REMOVE THIS:
-        Json::StyledWriter swriter;
-        GENERIC_LOGGER << swriter.write(root) << std::endl;
 
         PMGDTransaction tx(_pmgd_qh);
         unsigned blob_count = 0;
 
         //iterate over the list of the queries
-        for (int j = 0; j < root.size(); j++) {
+        for (int j = 0; j < root.size() && !flag_error; j++) {
             const Json::Value& query = root[j];
             assert (query.getMemberNames().size() == 1);
             std::string cmd = query.getMemberNames()[0];
 
             int group_count = tx.add_group();
+            int ret_code;
 
             if (_rs_cmds[cmd]->need_blob()) {
                 assert (proto_query.blobs().size() >= blob_count);
                 std::string blob = proto_query.blobs(blob_count);
-                _rs_cmds[cmd]->construct_protobuf(tx, query, blob,
-                        group_count);
+
+                ret_code = _rs_cmds[cmd]->construct_protobuf(tx, query, blob,
+                        group_count, cmd_result);
                 blob_count++;
             }
             else {
-                _rs_cmds[cmd]->construct_protobuf(tx, query, "",
-                        group_count);
+                ret_code = _rs_cmds[cmd]->construct_protobuf(tx, query, "",
+                        group_count, cmd_result);
+            }
+
+            if (ret_code != 0) {
+                flag_error = true;
+                cmd_current = root[j];
+                break;
             }
         }
 
-        Json::Value& tx_responses = tx.run();
+        if (!flag_error) {
+            Json::Value& tx_responses = tx.run();
 
-        if (tx_responses.size() != root.size() ) { // error
-            json_responses.append(tx_responses);
-        } else {
-            for (int j = 0; j < root.size(); j++) {
-                std::string cmd = root[j].getMemberNames()[0];
-                json_responses.append( _rs_cmds[cmd]->construct_responses(
-                                                        tx_responses[j],
-                                                        root[j],
-                                                        proto_res) );
+            if (tx_responses.size() != root.size()) { // error
+                flag_error = true;
+                cmd_current = "Transaction";
+                cmd_result = tx_responses;
+                cmd_result["info"] = "Failed PMGDTransaction";
+                cmd_result["status"] = RSCommand::Error;
+            } else {
+
+                for (int j = 0; j < root.size(); j++) {
+                    std::string cmd = root[j].getMemberNames()[0];
+
+                    cmd_result = _rs_cmds[cmd]->construct_responses(
+                                                tx_responses[j],
+                                                root[j], proto_res);
+
+                    // This is for error handling
+                    if (cmd_result.isMember("status")) {
+                        int status = cmd_result["status"].asInt();
+                        if (status != RSCommand::Success ||
+                            status != RSCommand::Empty   ||
+                            status != RSCommand::Exists)
+                        {
+                            flag_error = true;
+                            cmd_current = root[j];
+                            break;
+                        }
+                    }
+                    json_responses.append(cmd_result);
+                }
             }
+        }
+
+        if (flag_error) {
+            cmd_result["FailedCommand"] = cmd_current;
+            json_responses.clear();
+            json_responses.append(cmd_result);
+            proto_res.clear_blobs();
+            Json::StyledWriter w;
+            GENERIC_LOGGER << w.write(json_responses);
         }
 
         proto_res.set_json(fastWriter.write(json_responses));
 
     } catch (VCL::Exception e) {
         print_exception(e);
-        GENERIC_LOGGER << "VCL Exception!" << std::endl;
-        Json::Value error;
-        error["error"] = "VCL Exception!";
-        proto_res.set_json(fastWriter.write(error));
+        GENERIC_LOGGER << "FATAL ERROR: VCL Exception at QH" << std::endl;
+        exit(0);
     } catch (Jarvis::Exception e) {
         print_exception(e);
-        GENERIC_LOGGER << "Jarvis Exception!" << std::endl;
-        Json::Value error;
-        error["error"] = "Jarvis Exception!";
-        proto_res.set_json(fastWriter.write(error));
+        GENERIC_LOGGER << "FATAL ERROR: PMGD Exception at QH" << std::endl;
+        exit(0);
+    } catch (ExceptionCommand e) {
+        print_exception(e);
+        GENERIC_LOGGER << "FATAL ERROR: Command Exception at QH" << std::endl;
+        exit(0);
     } catch (Json::Exception const&) {
-        GENERIC_LOGGER << "Json Exception!" << std::endl;
+        // Should not happen
+        // In case of error on the last fastWriter
+        GENERIC_LOGGER << "FATAL: Json Exception!" << std::endl;
         Json::Value error;
-        error["error"] = "Json Exception!";
+        error["info"] = "Internal Server Error: Json Exception";
+        error["status"] = RSCommand::Error;
         proto_res.set_json(fastWriter.write(error));
     } catch (const std::invalid_argument& ex) {
         GENERIC_LOGGER << "Invalid argument: " << ex.what() << '\n';
+        exit(0);
     }
-
 }
 
 //========= AddEntity definitions =========
@@ -204,9 +260,10 @@ AddEntity::AddEntity() : RSCommand("AddEntity")
 }
 
 int AddEntity::construct_protobuf(PMGDTransaction& tx,
-        const Json::Value& jsoncmd,
-        const std::string& blob,
-        int grp_id)
+    const Json::Value& jsoncmd,
+    const std::string& blob,
+    int grp_id,
+    Json::Value& error)
 {
     const Json::Value &cmd = jsoncmd[_cmd_name];
 
@@ -264,7 +321,8 @@ int Connect::construct_protobuf(
         PMGDTransaction& tx,
         const Json::Value& jsoncmd,
         const std::string& blob,
-        int grp_id)
+        int grp_id,
+        Json::Value& error)
 {
     const Json::Value &cmd = jsoncmd[_cmd_name];
 
@@ -306,6 +364,7 @@ FindEntity::FindEntity() : RSCommand("FindEntity")
     _valid_params_map["_ref"]        = PARAM_OPTIONAL;
     _valid_params_map["constraints"] = PARAM_OPTIONAL;
     _valid_params_map["results"]     = PARAM_OPTIONAL;
+    _valid_params_map["unique"]      = PARAM_OPTIONAL;
     _valid_params_map["link"]        = PARAM_OPTIONAL;
 }
 
@@ -313,7 +372,8 @@ int FindEntity::construct_protobuf(
     PMGDTransaction& tx,
     const Json::Value& jsoncmd,
     const std::string& blob,
-    int grp_id)
+    int grp_id,
+    Json::Value& error)
 {
     const Json::Value &cmd = jsoncmd[_cmd_name];
 
@@ -380,9 +440,10 @@ AddImage::AddImage() : RSCommand("AddImage")
 }
 
 int AddImage::construct_protobuf(PMGDTransaction& tx,
-        const Json::Value& jsoncmd,
-        const std::string& blob,
-        int grp_id)
+    const Json::Value& jsoncmd,
+    const std::string& blob,
+    int grp_id,
+    Json::Value& error)
 {
     const Json::Value &cmd = jsoncmd[_cmd_name];
 
@@ -419,11 +480,9 @@ int AddImage::construct_protobuf(PMGDTransaction& tx,
             img_root = _storage_jpg;
         }
         else {
-            GENERIC_LOGGER << "Format Not Implemented" << std::endl;
-            Json::Value error;
-            error["Format"] = format + " Not implemented";
-            // response.append(error);
-            // return;
+            error["info"] = format + ": format not implemented";
+            error["status"] = RSCommand::Error;
+            return -1;
         }
     }
 
@@ -517,6 +576,9 @@ FindImage::FindImage() : RSCommand("FindImage")
     _valid_params_map["_ref"]        = PARAM_OPTIONAL;
     _valid_params_map["constraints"] = PARAM_OPTIONAL;
     _valid_params_map["collections"] = PARAM_OPTIONAL;
+    _valid_params_map["operations"]  = PARAM_OPTIONAL;
+    _valid_params_map["unique"]      = PARAM_OPTIONAL;
+    _valid_params_map["link"]        = PARAM_OPTIONAL;
     _valid_params_map["results"]     = PARAM_OPTIONAL;
 }
 
@@ -524,7 +586,8 @@ int FindImage::construct_protobuf(
     PMGDTransaction& tx,
     const Json::Value& jsoncmd,
     const std::string& blob,
-    int grp_id)
+    int grp_id,
+    Json::Value& error)
 {
     const Json::Value &cmd = jsoncmd[_cmd_name];
 
@@ -555,9 +618,7 @@ int FindImage::construct_protobuf(
         results = cmd["results"];
     }
 
-    Json::Value arr;
-    arr.append(ATHENA_IM_PATH_PROP);
-    results["list"] = arr;
+    results["list"].append(ATHENA_IM_PATH_PROP);
 
     // if (find_img.isMember("collections")) {
     //     Json::Value collections = find_img["collections"];
@@ -586,7 +647,7 @@ Json::Value FindImage::construct_responses(
     bool flag_error = false;
 
     if (responses.size() == 0) {
-        findImage["status"]  = PMGDCmdResponse::Error;
+        findImage["status"]  = RSCommand::Error;
         findImage["info"] = "Not Found!";
         flag_error = true;
         ret[_cmd_name] = findImage;
@@ -627,7 +688,7 @@ Json::Value FindImage::construct_responses(
                 }
             } catch (VCL::Exception e) {
                 print_exception(e);
-                findImage["status"] = PMGDCmdResponse::Error;
+                findImage["status"] = RSCommand::Error;
                 findImage["info"]   = "VCL Exception";
                 flag_error = true;
                 break;
@@ -636,7 +697,7 @@ Json::Value FindImage::construct_responses(
     }
 
     if (!flag_error) {
-        findImage["status"] = PMGDCmdResponse::Success;
+        findImage["status"] = RSCommand::Success;
     }
 
     // In case no properties asked by the user

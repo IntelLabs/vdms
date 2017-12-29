@@ -2,6 +2,7 @@
 #include <iostream>
 
 #include "QueryHandler.h"
+#include "ExceptionsCommand.h"
 
 using namespace athena;
 
@@ -10,25 +11,25 @@ RSCommand::RSCommand(const std::string& cmd_name):
 {
 }
 
-bool RSCommand::check_params(const Json::Value& cmd)
+bool RSCommand::check_params(const Json::Value& cmd, Json::Value& error)
 {
     std::map<std::string, int> valid = _valid_params_map;
     std::map<std::string, int> params_map;
 
-    for (auto& param : cmd.getMemberNames()){
+    for (auto& param : cmd.getMemberNames()) {
         params_map[param] += 1;
     }
 
-    for (auto& param : params_map){
+    for (auto& param : params_map) {
         auto it = valid.find(param.first);
         if ( it == valid.end() ) {
+            error["info"] = _cmd_name + " does allow param: " + param.first;
             return false;
         }
         valid[param.first] = 0;
     }
 
-    for (auto& param : valid)
-    {
+    for (auto& param : valid) {
         if (param.second > 1) {
             return false;
         }
@@ -56,8 +57,7 @@ void RSCommand::run_operations(VCL::Image& vclimg, const Json::Value& op)
                         operation["width" ].asInt()));
         }
         else {
-            // GENERIC_LOGGER << "Operation not recognised: "
-            //                << type << std::endl;
+            throw ExceptionCommand(ImageError, "Operation not defined");
         }
     }
 }

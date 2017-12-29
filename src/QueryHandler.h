@@ -32,9 +32,17 @@ typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
 
     public:
 
+        enum ErrorCode {
+            Success = 0,
+            Error   = -1,
+            Empty   = 1,
+            Exists  = 2,
+            NotUnique  = 3
+        };
+
         RSCommand(const std::string& cmd_name);
 
-        bool check_params(const Json::Value& cmd);
+        bool check_params(const Json::Value& cmd, Json::Value& error);
 
         virtual bool need_blob() { return false; }
 
@@ -42,7 +50,8 @@ typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
                                 PMGDTransaction& tx,
                                 const Json::Value& root,
                                 const std::string& blob,
-                                int grp_id) = 0;
+                                int grp_id,
+                                Json::Value& error) = 0;
 
         virtual Json::Value construct_responses(
             Json::Value &json_responses,
@@ -57,7 +66,8 @@ typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
         int construct_protobuf(PMGDTransaction& tx,
                                const Json::Value& root,
                                const std::string& blob,
-                               int grp_id);
+                               int grp_id,
+                               Json::Value& error);
 
         Json::Value construct_responses(
             Json::Value &json_responses,
@@ -72,7 +82,8 @@ typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
         int construct_protobuf(PMGDTransaction& tx,
                                const Json::Value& root,
                                const std::string& blob,
-                               int grp_id);
+                               int grp_id,
+                               Json::Value& error);
 
         Json::Value construct_responses(
                 Json::Value &json_responses,
@@ -87,7 +98,8 @@ typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
         int construct_protobuf(PMGDTransaction& tx,
                                const Json::Value& root,
                                const std::string& blob,
-                               int grp_id);
+                               int grp_id,
+                               Json::Value& error);
 
         Json::Value construct_responses(
             Json::Value &json_responses,
@@ -111,7 +123,8 @@ typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
         int construct_protobuf(PMGDTransaction& tx,
                                const Json::Value& root,
                                const std::string& blob,
-                               int grp_id);
+                               int grp_id,
+                               Json::Value& error);
 
         bool need_blob() { return true; }
 
@@ -128,7 +141,8 @@ typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
         int construct_protobuf(PMGDTransaction& tx,
                                const Json::Value& root,
                                const std::string& blob,
-                               int grp_id);
+                               int grp_id,
+                               Json::Value& error);
 
         Json::Value construct_responses(
                 Json::Value &json_responses,
@@ -143,7 +157,8 @@ typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
         PMGDQueryHandler _pmgd_qh;
         std::unordered_map<std::string, RSCommand *> _rs_cmds;
 
-        bool syntax_checker(const Json::Value &root);
+        bool syntax_checker(const Json::Value &root, Json::Value& error);
+        int parse_commands(const std::string& commands, Json::Value& root);
 
     public:
         QueryHandler(Jarvis::Graph *db, std::mutex *mtx);
