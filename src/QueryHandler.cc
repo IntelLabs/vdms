@@ -130,17 +130,7 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
         Json::StyledWriter swriter;
         GENERIC_LOGGER << swriter.write(root) << std::endl;
 
-        // define a vector of commands
-        // TODO WE NEED TO DELETE EACH ELEMENT AFTER DONE WITH THIS VECTOR!!!
-        std::vector<pmgd::protobufs::Command *> cmds;
-        unsigned group_count = 0;
-        //this command to start a new transaction
-        pmgd::protobufs::Command cmdtx;
-        //this the protobuf of a new TxBegin
-        cmdtx.set_cmd_id(pmgd::protobufs::Command::TxBegin);
-        cmdtx.set_cmd_grp_id(group_count); //give it an ID
-        cmds.push_back(&cmdtx); //push the creating command to the vector
-
+        PMGDTransaction tx(_pmgd_qh);
         unsigned blob_count = 0;
 
         //iterate over the list of the queries
@@ -148,59 +138,37 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
             const Json::Value& query = root[j];
             assert (query.getMemberNames().size() == 1);
             std::string cmd = query.getMemberNames()[0];
-            ++group_count;
+
+            int group_count = tx.add_group();
 
             if (_rs_cmds[cmd]->need_blob()) {
                 assert (proto_query.blobs().size() >= blob_count);
                 std::string blob = proto_query.blobs(blob_count);
-                _rs_cmds[cmd]->construct_protobuf(cmds, query, blob,
+                _rs_cmds[cmd]->construct_protobuf(tx, query, blob,
                         group_count);
                 blob_count++;
             }
             else {
-                _rs_cmds[cmd]->construct_protobuf(cmds, query, "",
+                _rs_cmds[cmd]->construct_protobuf(tx, query, "",
                         group_count);
             }
         }
-        ++group_count;
 
-        pmgd::protobufs::Command cmdtxend;
-        // Commit here doesn't change anything. Just indicates end of TX
-        cmdtxend.set_cmd_id(pmgd::protobufs::Command::TxCommit);
-        cmdtxend.set_cmd_grp_id(group_count);
-        cmds.push_back(&cmdtxend);
+        Json::Value& tx_responses = tx.run();
 
-        // execute the queries using the PMGDQueryHandler object
-        std::vector<std::vector<pmgdCmdResponse *>>
-            pmgd_responses = _pmgd_qh.process_queries(cmds, group_count + 1);
-
-        // Make sure there were no errors
-        if (pmgd_responses.size() != group_count + 1) {
-            // TODO: This is where we will need request server rollback code.
-            std::vector<pmgdCmdResponse *>& res = pmgd_responses.at(0);
-            json_responses.append(RSCommand::construct_error_response(res[0]));
-        }
-        else {
+        if (tx_responses.size() != root.size() ) { // error
+            json_responses.append(tx_responses);
+        } else {
             for (int j = 0; j < root.size(); j++) {
                 std::string cmd = root[j].getMemberNames()[0];
-                std::vector<pmgdCmdResponse *>& res =
-                            pmgd_responses.at(j+1);
                 json_responses.append( _rs_cmds[cmd]->construct_responses(
-                                                        res,
+                                                        tx_responses[j],
                                                         root[j],
                                                         proto_res) );
             }
         }
-        proto_res.set_json(fastWriter.write(json_responses));
 
-        for (unsigned i = 0; i < pmgd_responses.size(); ++i) {
-            for (unsigned j = 0; j < pmgd_responses[i].size(); ++j) {
-                if (pmgd_responses[i][j] != NULL)
-                    delete pmgd_responses[i][j];
-            }
-            pmgd_responses[i].clear();
-        }
-        pmgd_responses.clear();
+        proto_res.set_json(fastWriter.write(json_responses));
 
     } catch (VCL::Exception e) {
         print_exception(e);
@@ -235,7 +203,7 @@ AddEntity::AddEntity() : RSCommand("AddEntity")
     _valid_params_map["constraints"] = PARAM_OPTIONAL;
 }
 
-int AddEntity::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
+int AddEntity::construct_protobuf(PMGDTransaction& tx,
         const Json::Value& jsoncmd,
         const std::string& blob,
         int grp_id)
@@ -265,20 +233,20 @@ int AddEntity::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
         constraints = cmd["constraints"];
     }
 
-    cmds.push_back(AddNode(grp_id, node_ref, tag, props, constraints, unique));
+    tx.AddNode(node_ref, tag, props, constraints, unique);
 
     return 0;
 }
 
 Json::Value AddEntity::construct_responses(
-    std::vector<pmgdCmdResponse *>& response,
+    Json::Value& response,
     const Json::Value &json,
     protobufs::queryMessage &query_res)
 {
     assert(response.size() == 1);
 
     Json::Value addEntity;
-    addEntity[_cmd_name] = parse_response(response[0]);
+    addEntity[_cmd_name] = response[0];
     return addEntity;
 }
 
@@ -293,7 +261,7 @@ Connect::Connect() : RSCommand("Connect")
 }
 
 int Connect::construct_protobuf(
-        std::vector<pmgd::protobufs::Command*> &cmds,
+        PMGDTransaction& tx,
         const Json::Value& jsoncmd,
         const std::string& blob,
         int grp_id)
@@ -314,19 +282,19 @@ int Connect::construct_protobuf(
     int dst = cmd["ref2"].asInt();
     const std::string &tag = cmd["class"].asString();
 
-    cmds.push_back(AddEdge(grp_id, edge_ref, src, dst, tag, props));
+    tx.AddEdge(edge_ref, src, dst, tag, props);
     return 0;
 }
 
 Json::Value Connect::construct_responses(
-    std::vector<pmgdCmdResponse*>& response,
+    Json::Value& response,
     const Json::Value &json,
     protobufs::queryMessage &query_res)
 {
     assert(response.size() == 1);
 
     Json::Value ret;
-    ret[_cmd_name] = parse_response(response[0]);
+    ret[_cmd_name] = response[0];
     return ret;
 }
 
@@ -342,7 +310,7 @@ FindEntity::FindEntity() : RSCommand("FindEntity")
 }
 
 int FindEntity::construct_protobuf(
-    std::vector<pmgd::protobufs::Command*> &cmds,
+    PMGDTransaction& tx,
     const Json::Value& jsoncmd,
     const std::string& blob,
     int grp_id)
@@ -376,21 +344,20 @@ int FindEntity::construct_protobuf(
         results = cmd["results"];
     }
 
-    cmds.push_back(
-        QueryNode(grp_id, node_ref, tag, link, constraints, results, unique));
+    tx.QueryNode(node_ref, tag, link, constraints, results, unique);
 
     return 0;
 }
 
 Json::Value FindEntity::construct_responses(
-    std::vector<pmgdCmdResponse*>& response,
+    Json::Value& response,
     const Json::Value &json,
     protobufs::queryMessage &query_res)
 {
     assert(response.size() == 1);
 
     Json::Value ret;
-    ret[_cmd_name] = parse_response(response[0]);
+    ret[_cmd_name] = response[0];
     return ret;
 }
 
@@ -412,7 +379,7 @@ AddImage::AddImage() : RSCommand("AddImage")
                 ->get_string_value("jpg_database", DEFAULT_JPG_PATH);
 }
 
-int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
+int AddImage::construct_protobuf(PMGDTransaction& tx,
         const Json::Value& jsoncmd,
         const std::string& blob,
         int grp_id)
@@ -469,7 +436,7 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
     props[ATHENA_IM_PATH_PROP] = file_name;
 
     // Add Image node
-    cmds.push_back(AddNode(grp_id, node_ref, ATHENA_IM_TAG, props));
+    tx.AddNode(node_ref, ATHENA_IM_TAG, props);
 
     vclimg.store(file_name, vcl_format);
 
@@ -496,7 +463,7 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
                 props_link = link["properties"];
             }
 
-            cmds.push_back(AddEdge(grp_id, -1, src, dst, e_tag, props_link));
+            tx.AddEdge(-1, src, dst, e_tag, props_link);
         }
     }
 
@@ -521,12 +488,10 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
             bool unique = true;
 
             // Conditional adding node
-            cmds.push_back(AddNode(grp_id, col_ref, col_tag, props_col,
-                                    constraints, unique));
+            tx.AddNode(col_ref, col_tag, props_col, constraints, unique);
 
             // Add edge between collection and image
-            cmds.push_back(AddEdge(grp_id, -1, col_ref, node_ref,
-                                    ATHENA_COL_EDGE_TAG, props_col));
+            tx.AddEdge(-1, col_ref, node_ref, ATHENA_COL_EDGE_TAG, props_col);
         }
     }
 
@@ -534,11 +499,11 @@ int AddImage::construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
 }
 
 Json::Value AddImage::construct_responses(
-    std::vector<pmgdCmdResponse *> &responses,
+    Json::Value& response,
     const Json::Value &json,
     protobufs::queryMessage &query_res)
 {
-    Json::Value resp = check_responses(responses);
+    Json::Value resp = check_responses(response);
 
     Json::Value ret;
     ret[_cmd_name] = resp;
@@ -556,7 +521,7 @@ FindImage::FindImage() : RSCommand("FindImage")
 }
 
 int FindImage::construct_protobuf(
-    std::vector<pmgd::protobufs::Command*> &cmds,
+    PMGDTransaction& tx,
     const Json::Value& jsoncmd,
     const std::string& blob,
     int grp_id)
@@ -603,14 +568,13 @@ int FindImage::construct_protobuf(
     //     }
     // }
 
-    cmds.push_back(
-        QueryNode(grp_id, node_ref, tag, link, constraints, results, unique));
+    tx.QueryNode(node_ref, tag, link, constraints, results, unique);
 
     return 0;
 }
 
 Json::Value FindImage::construct_responses(
-    std::vector<pmgdCmdResponse *> &responses,
+    Json::Value &responses,
     const Json::Value &json,
     protobufs::queryMessage &query_res)
 {
@@ -622,29 +586,24 @@ Json::Value FindImage::construct_responses(
     bool flag_error = false;
 
     if (responses.size() == 0) {
-        findImage["status"]  = pmgdCmdResponse::Error;
+        findImage["status"]  = PMGDCmdResponse::Error;
         findImage["info"] = "Not Found!";
         flag_error = true;
         ret[_cmd_name] = findImage;
         return ret;
     }
 
-    for (auto pmgd_res : responses) {
+    for (auto res : responses) {
 
-        if (pmgd_res->error_code() != 0) {
-            findImage["status"] = pmgd_res->error_code();
-            findImage["info"]   = pmgd_res->error_msg();
-
+        if (res["status"] != 0) {
             flag_error = true;
             break;
         }
 
-        // This list will be the one with the imgPath information
-        if (pmgd_res->r_type() != pmgd::protobufs::List) {
+        if (!res.isMember("entities"))
             continue;
-        }
 
-        findImage = parse_response(pmgd_res);
+        findImage = res;
 
         for (auto& ent : findImage["entities"]) {
 
@@ -668,7 +627,7 @@ Json::Value FindImage::construct_responses(
                 }
             } catch (VCL::Exception e) {
                 print_exception(e);
-                findImage["status"] = pmgdCmdResponse::Error;
+                findImage["status"] = PMGDCmdResponse::Error;
                 findImage["info"]   = "VCL Exception";
                 flag_error = true;
                 break;
@@ -677,7 +636,7 @@ Json::Value FindImage::construct_responses(
     }
 
     if (!flag_error) {
-        findImage["status"] = pmgdCmdResponse::Success;
+        findImage["status"] = PMGDCmdResponse::Success;
     }
 
     // In case no properties asked by the user

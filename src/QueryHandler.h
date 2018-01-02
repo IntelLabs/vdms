@@ -7,6 +7,7 @@
 
 #include "CommandHandler.h"
 #include "PMGDQueryHandler.h" // to provide the database connection
+#include "PMGDTransaction.h"
 
 // Json parsing files
 #include <jsoncpp/json/value.h>
@@ -16,10 +17,6 @@
 namespace athena {
 
 typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
-typedef pmgd::protobufs::CommandResponse pmgdCmdResponse;
-typedef pmgd::protobufs::PropertyPredicate pmgdPropPred;
-typedef pmgd::protobufs::PropertyList pmgdPropList;
-typedef pmgd::protobufs::Property pmgdProp;
 
 // Helper classes for handling various JSON commands.
     class RSCommand
@@ -29,54 +26,9 @@ typedef pmgd::protobufs::Property pmgdProp;
         const std::string _cmd_name;
         std::map<std::string, int> _valid_params_map;
 
-        virtual Json::Value parse_response(pmgd::protobufs::CommandResponse *);
-
-        virtual Json::Value check_responses(
-                              std::vector<pmgdCmdResponse *> &responses);
+        virtual Json::Value check_responses(Json::Value &responses);
 
         void run_operations(VCL::Image &vclimg, const Json::Value &op);
-
-        // An AddNode with either constraints or unique is a ConditionalAddNode
-        pmgd::protobufs::Command* AddNode(int grp_id,
-                                      int ref,
-                                      const std::string &tag,
-                                      const Json::Value& props,
-                                      Json::Value constraints = Json::Value(),
-                                      bool unique = false);
-
-        pmgd::protobufs::Command* AddEdge(int grp_id, int ident,
-                                      int src, int dst,
-                                      const std::string &tag,
-                                      Json::Value& props);
-
-        pmgd::protobufs::Command* QueryNode(int grp_id, int ref,
-                                      const std::string& tag,
-                                      Json::Value& link,
-                                      Json::Value& constraints,
-                                      Json::Value& results,
-                                      bool unique = false);
-
-    private:
-
-        void set_property(pmgd::protobufs::Property *p,
-                          const char *prop_name,
-                          Json::Value);
-
-        Json::Value print_properties(const std::string &key,
-                                     const pmgd::protobufs::Property &p);
-
-        void add_link(const Json::Value& link, pmgd::protobufs::QueryNode *qn);
-
-        void set_operand(pmgd::protobufs::Property* p1, const Json::Value&);
-
-        void get_response_type(const Json::Value& result_type_array,
-                              std::string response,
-                              pmgd::protobufs::QueryNode *queryType);
-
-        void parse_query_results(const Json::Value& result_type,
-                                pmgd::protobufs::QueryNode* queryType);
-
-        void parse_query_constraints(const Json::Value& root, pmgd::protobufs::QueryNode* queryType);
 
     public:
 
@@ -84,18 +36,16 @@ typedef pmgd::protobufs::Property pmgdProp;
 
         bool check_params(const Json::Value& cmd);
 
-        static Json::Value construct_error_response(pmgdCmdResponse *response);
-
         virtual bool need_blob() { return false; }
 
         virtual int construct_protobuf(
-                                std::vector<pmgd::protobufs::Command*> &cmds,
+                                PMGDTransaction& tx,
                                 const Json::Value& root,
                                 const std::string& blob,
-                                int txid) = 0;
+                                int grp_id) = 0;
 
         virtual Json::Value construct_responses(
-            std::vector<pmgd::protobufs::CommandResponse *> &cmds,
+            Json::Value &json_responses,
             const Json::Value &json,
             protobufs::queryMessage &response) = 0;
     };
@@ -104,13 +54,13 @@ typedef pmgd::protobufs::Property pmgdProp;
     {
     public:
         AddEntity();
-        int construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
+        int construct_protobuf(PMGDTransaction& tx,
                                const Json::Value& root,
                                const std::string& blob,
-                               int txid);
+                               int grp_id);
 
         Json::Value construct_responses(
-            std::vector<pmgd::protobufs::CommandResponse *>&,
+            Json::Value &json_responses,
             const Json::Value &json,
             protobufs::queryMessage &response);
     };
@@ -119,13 +69,13 @@ typedef pmgd::protobufs::Property pmgdProp;
     {
     public:
         Connect();
-        int construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
+        int construct_protobuf(PMGDTransaction& tx,
                                const Json::Value& root,
                                const std::string& blob,
-                               int txid);
+                               int grp_id);
 
         Json::Value construct_responses(
-                std::vector<pmgd::protobufs::CommandResponse *>&,
+                Json::Value &json_responses,
                 const Json::Value &json,
                 protobufs::queryMessage &response);
     };
@@ -134,13 +84,13 @@ typedef pmgd::protobufs::Property pmgdProp;
     {
     public:
         FindEntity();
-        int construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
+        int construct_protobuf(PMGDTransaction& tx,
                                const Json::Value& root,
                                const std::string& blob,
-                               int txid);
+                               int grp_id);
 
         Json::Value construct_responses(
-            std::vector<pmgd::protobufs::CommandResponse *>&,
+            Json::Value &json_responses,
             const Json::Value &json,
             protobufs::queryMessage &response);
     };
@@ -158,15 +108,15 @@ typedef pmgd::protobufs::Property pmgdProp;
     public:
         AddImage();
 
-        int construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
+        int construct_protobuf(PMGDTransaction& tx,
                                const Json::Value& root,
                                const std::string& blob,
-                               int txid);
+                               int grp_id);
 
         bool need_blob() { return true; }
 
         Json::Value construct_responses(
-                std::vector<pmgd::protobufs::CommandResponse*> &cmds,
+                Json::Value &json_responses,
                 const Json::Value &json,
                 protobufs::queryMessage &response);
     };
@@ -175,13 +125,13 @@ typedef pmgd::protobufs::Property pmgdProp;
     {
     public:
         FindImage();
-        int construct_protobuf(std::vector<pmgd::protobufs::Command*> &cmds,
+        int construct_protobuf(PMGDTransaction& tx,
                                const Json::Value& root,
                                const std::string& blob,
-                               int txid);
+                               int grp_id);
 
         Json::Value construct_responses(
-                std::vector<pmgd::protobufs::CommandResponse *> &cmds,
+                Json::Value &json_responses,
                 const Json::Value &json,
                 protobufs::queryMessage &response);
     };
