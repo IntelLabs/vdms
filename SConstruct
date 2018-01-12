@@ -4,7 +4,7 @@ import os
 def buildServer(intel_path, env):
 
   athena_env = env.Clone()
-  athena_env.Append(CPPPATH= ['include', 'src',
+  athena_env.Append(CPPPATH= ['src',
                 '/usr/include/jsoncpp/',
                 'utils/include',
                 intel_path + 'jarvis/include',
@@ -44,7 +44,7 @@ def buildServer(intel_path, env):
               LIBPATH = libs_paths
               )
 
-  testenv = Environment(CPPPATH = [ 'include', 'src', 'utils/include',
+  testenv = Environment(CPPPATH = ['src', 'utils/include',
                           intel_path + 'jarvis/include',
                           intel_path + 'vcl/include',
                           intel_path + 'vcl/src',
