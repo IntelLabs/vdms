@@ -4,6 +4,7 @@
 #include <vector>
 #include <mutex>
 #include <queue>
+#include <unordered_map>
 #include <condition_variable>
 
 #include "comm/Connection.h"
@@ -12,13 +13,16 @@
 namespace athena {
     class CommunicationManager
     {
-        // TODO Network config here
+        static const int MAX_CONNECTED_CLIENTS = 500;
 
         // For the thread pool
         std::mutex _mlock;
         std::condition_variable _cv;
         int _num_threads;
         std::vector<std::thread> _pool;
+
+        std::mutex _conn_list_lock;
+        std::unordered_map<long, comm::Connection *> _connection_map;
 
         // Monitor new connections queued in for worker threads
         std::queue<comm::Connection *> _workq;

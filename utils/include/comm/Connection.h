@@ -23,6 +23,8 @@ public:
     void send_message(const uint8_t *data, uint32_t size);
     const std::basic_string<uint8_t>& recv_message();
 
+    void shutdown();
+
 protected:
 
     const unsigned MAX_PORT_NUMBER  = 65535;

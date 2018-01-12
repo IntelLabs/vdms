@@ -9,6 +9,7 @@ namespace athena {
         FATAL_Server_Error,
 
         SignalHandler,
+        NullConnection,
 
         Undefined = 100,// Any undefined error
     };

@@ -6,6 +6,8 @@
 
 #include "AthenaConfig.h"
 
+#include "protobuf/pmgdMessages.pb.h" // Protobuff implementation
+
 using namespace athena;
 
 bool Server::shutdown = false;
@@ -22,8 +24,8 @@ Server::Server(std::string config_file)
     // compatible with the version of the headers we compiled against.
     GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-    if (install_handler() != 0)
-        throw ExceptionServer(SignalHandler);
+    install_handler();
+
     //creating a db
     _db = new Jarvis::Graph(dbname.c_str(), Jarvis::Graph::Create);
     // Create the query handler here assuming database is valid now.
@@ -44,7 +46,6 @@ void Server::process_requests()
 
     while (!shutdown) {
         try {
-            // Listening thread for CQE
             comm::Connection *conn_server =
                 new comm::Connection(server->accept());
             _cm->add_connection(conn_server);
@@ -53,19 +54,27 @@ void Server::process_requests()
             print_exception(e);
         }
     }
+
+    delete server;
 }
 
-int Server::install_handler()
+void Server::install_handler()
 {
     struct sigaction action;
     memset(&action, 0, sizeof(action));
     action.sa_handler = Server::sighandler;
-    return sigaction(SIGINT, &action, 0);
+    if (sigaction(SIGINT, &action, 0) != 0)
+        throw ExceptionServer(SignalHandler);
+    if (sigaction(SIGTERM, &action, 0) != 0)
+        throw ExceptionServer(SignalHandler);
+    if (sigaction(SIGQUIT, &action, 0) != 0)
+        throw ExceptionServer(SignalHandler);
 }
 
 Server::~Server()
 {
     _cm->shutdown();
+    delete _cm;
     delete _db;
     delete _dblock;
 }

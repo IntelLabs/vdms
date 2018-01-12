@@ -48,7 +48,6 @@ void QueryHandler::process_connection(comm::Connection *c)
     } catch (comm::ExceptionComm e) {
         print_exception(e);
     }
-    delete c;
 }
 
 bool QueryHandler::syntax_checker(const Json::Value &root, Json::Value& error)

@@ -40,6 +40,11 @@ Connection::~Connection()
     }
 }
 
+void Connection::shutdown()
+{
+    ::shutdown(_socket_fd, SHUT_RDWR);
+}
+
 void Connection::send_message(const uint8_t *data, uint32_t size)
 {
     if (size > MAX_BUFFER_SIZE) {

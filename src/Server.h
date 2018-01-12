@@ -3,9 +3,6 @@
 #include <csignal>
 
 #include "jarvis.h"
-#include "util.h"
-
-#include "QueryHandler.h"
 #include "CommunicationManager.h"
 
 namespace athena {
@@ -25,9 +22,11 @@ namespace athena {
 
         // Handle ^c
         static bool shutdown;
-        int install_handler();
+        void install_handler();
         static void sighandler(int signo)
-            { Server::shutdown = (signo == SIGINT); }
+            { Server::shutdown = (signo == SIGINT) ||
+                                 (signo == SIGTERM)||
+                                 (signo == SIGQUIT); }
 
     public:
         Server(std::string config_file);

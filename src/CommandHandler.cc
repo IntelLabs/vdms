@@ -1,14 +1,14 @@
 
 #include "CommandHandler.h"
+#include "Exception.h"
 
 using namespace athena;
 
 CommandHandler::CommandHandler(comm::Connection* conn):
 		_conn(conn)
 {
-	assert(_conn != NULL);
-
-	// We throw, we need to define exceptions model
+	if (_conn == NULL)
+		throw ExceptionServer(NullConnection);
 }
 
 protobufs::queryMessage CommandHandler::get_command()
