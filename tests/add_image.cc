@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 
-#include "QueryHandler.h"
+#include "QueryHandlerTester.h"
 #include "AthenaConfig.h"
 
 #include <string>
@@ -39,7 +39,9 @@ TEST(AddImage, simpleAdd)
     AthenaConfig::init("./addImage-config.json");
 
     std::mutex mu;
-    QueryHandler query_handler(&db, &mu);
+
+    QueryHandler qh_base(&db, &mu);
+    QueryHandlerTester query_handler(qh_base);
 
     protobufs::queryMessage proto_query;
     proto_query.set_json(addImg);
@@ -57,7 +59,7 @@ TEST(AddImage, simpleAdd)
     proto_query.add_blobs(image);
 
     protobufs::queryMessage response;
-    query_handler.process_query(proto_query, response);
+    query_handler.pq(proto_query, response);
 
     Json::Reader json_reader;
     Json::Value json_response;
@@ -86,7 +88,8 @@ TEST(AddImage, simpleAddx10)
     AthenaConfig::init("./addImage-config.json");
 
     std::mutex mu;
-    QueryHandler query_handler(&db, &mu);
+    QueryHandler qh_base(&db, &mu);
+    QueryHandlerTester query_handler(qh_base);
 
     protobufs::queryMessage proto_query;
     proto_query.set_json(string_query);
@@ -106,7 +109,7 @@ TEST(AddImage, simpleAddx10)
     }
 
     protobufs::queryMessage response;
-    query_handler.process_query(proto_query, response);
+    query_handler.pq(proto_query, response);
 
     Json::Reader json_reader;
     Json::Value json_response;

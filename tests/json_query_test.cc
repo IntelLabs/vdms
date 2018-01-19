@@ -1,21 +1,19 @@
-#include "QueryHandler.h"
-#include "AthenaConfig.h"
 #include <string>
 #include <fstream>
 #include <iostream>
-#include "gtest/gtest.h"
-#include <stdlib.h>     /* system, NULL, EXIT_FAILURE */
-
-#include <jsoncpp/json/writer.h>
 #include <mutex>
 #include <vector>
-#include "protobuf/pmgdMessages.pb.h" // Protobuff implementation
-#include "protobuf/queryMessage.pb.h" // Protobuff implementation
+#include <stdlib.h>     /* system, NULL, EXIT_FAILURE */
+
+#include "gtest/gtest.h"
+#include <jsoncpp/json/writer.h>
+
 #include "jarvis.h"
+#include "AthenaConfig.h"
+#include "QueryHandlerTester.h"
 
 using namespace athena;
 using namespace Jarvis;
-//using namespace pmgd;
 using namespace std;
 
 TEST(QueryHandler, addTest){
@@ -89,13 +87,14 @@ TEST(QueryHandler, addTest){
 
     AthenaConfig::init("config-tests.json");
 
-    QueryHandler query_handler(&db, &dblock);
+    QueryHandler qh_base(&db, &dblock);
+    QueryHandlerTester query_handler(qh_base);
 
     protobufs::queryMessage proto_query;
     proto_query.set_json(json_query);
     protobufs::queryMessage response;
 
-    query_handler.process_query(proto_query, response );
+    query_handler.pq(proto_query, response );
     // std::string response_output= *(response.release_json());
 
     reader.parse(response.json().c_str(), parsed);
