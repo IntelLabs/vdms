@@ -66,8 +66,7 @@ bool QueryHandler::syntax_checker(const Json::Value &root, Json::Value& error)
             return false;
         }
 
-        bool flag_error = _rs_cmds[cmd_str]->check_params(query[cmd_str],
-                                                          error);
+        bool flag_error = (*it).second->check_params(query[cmd_str], error);
 
         if (!flag_error) {
             return false;
@@ -123,86 +122,79 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
         Json::Value cmd_current;
         bool flag_error = false;
 
+        auto error = [&](Json::Value& res, Json::Value& failed_command)
+        {
+            res["FailedCommand"] = failed_command;
+            json_responses.clear();
+            json_responses.append(res);
+            proto_res.clear_blobs();
+            proto_res.set_json(fastWriter.write(json_responses));
+            Json::StyledWriter w;
+            GENERIC_LOGGER << w.write(json_responses);
+        };
+
         if (parse_commands(proto_query.json(), root) != 0) {
-            cmd_result = root;
-            flag_error = true;
             cmd_current = "Transaction";
+            error(root, cmd_current);
+            return;
         }
 
         PMGDTransaction tx(_pmgd_qh);
         unsigned blob_count = 0;
 
         //iterate over the list of the queries
-        for (int j = 0; j < root.size() && !flag_error; j++) {
+        for (int j = 0; j < root.size(); j++) {
             const Json::Value& query = root[j];
-            assert (query.getMemberNames().size() == 1);
+            assert(query.getMemberNames().size() == 1);
             std::string cmd = query.getMemberNames()[0];
 
             int group_count = tx.add_group();
-            int ret_code;
 
-            if (_rs_cmds[cmd]->need_blob()) {
-                assert (proto_query.blobs().size() >= blob_count);
-                std::string blob = proto_query.blobs(blob_count);
+            RSCommand *rscmd = _rs_cmds[cmd];
 
-                ret_code = _rs_cmds[cmd]->construct_protobuf(tx, query, blob,
-                        group_count, cmd_result);
-                blob_count++;
-            }
-            else {
-                ret_code = _rs_cmds[cmd]->construct_protobuf(tx, query, "",
-                        group_count, cmd_result);
-            }
+            const std::string& blob = rscmd->need_blob() ?
+                                      proto_query.blobs(blob_count++) : "";
+
+            int ret_code = rscmd->construct_protobuf(tx, query, blob,
+                                                     group_count, cmd_result);
 
             if (ret_code != 0) {
-                flag_error = true;
-                cmd_current = root[j];
-                break;
+                error(cmd_result, root[j]);
+                return;
             }
         }
 
-        if (!flag_error) {
-            Json::Value& tx_responses = tx.run();
+        Json::Value& tx_responses = tx.run();
 
-            if (tx_responses.size() != root.size()) { // error
-                flag_error = true;
-                cmd_current = "Transaction";
-                cmd_result = tx_responses;
-                cmd_result["info"] = "Failed PMGDTransaction";
-                cmd_result["status"] = RSCommand::Error;
-            } else {
+        if (tx_responses.size() != root.size()) { // error
+            cmd_current = "Transaction";
+            cmd_result = tx_responses;
+            cmd_result["info"] = "Failed PMGDTransaction";
+            cmd_result["status"] = RSCommand::Error;
+            error(cmd_result, cmd_current);
+            return;
+        }
+        else {
+            for (int j = 0; j < root.size(); j++) {
+                std::string cmd = root[j].getMemberNames()[0];
 
-                for (int j = 0; j < root.size(); j++) {
-                    std::string cmd = root[j].getMemberNames()[0];
+                cmd_result = _rs_cmds[cmd]->construct_responses(
+                                            tx_responses[j],
+                                            root[j], proto_res);
 
-                    cmd_result = _rs_cmds[cmd]->construct_responses(
-                                                tx_responses[j],
-                                                root[j], proto_res);
-
-                    // This is for error handling
-                    if (cmd_result.isMember("status")) {
-                        int status = cmd_result["status"].asInt();
-                        if (status != RSCommand::Success ||
-                            status != RSCommand::Empty   ||
-                            status != RSCommand::Exists)
-                        {
-                            flag_error = true;
-                            cmd_current = root[j];
-                            break;
-                        }
+                // This is for error handling
+                if (cmd_result.isMember("status")) {
+                    int status = cmd_result["status"].asInt();
+                    if (status != RSCommand::Success ||
+                        status != RSCommand::Empty   ||
+                        status != RSCommand::Exists)
+                    {
+                        error(cmd_result, root[j]);
+                        return;
                     }
-                    json_responses.append(cmd_result);
                 }
+                json_responses.append(cmd_result);
             }
-        }
-
-        if (flag_error) {
-            cmd_result["FailedCommand"] = cmd_current;
-            json_responses.clear();
-            json_responses.append(cmd_result);
-            proto_res.clear_blobs();
-            Json::StyledWriter w;
-            GENERIC_LOGGER << w.write(json_responses);
         }
 
         proto_res.set_json(fastWriter.write(json_responses));
