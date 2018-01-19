@@ -4,7 +4,7 @@
 #include <vector>
 #include <mutex>
 #include <queue>
-#include <unordered_map>
+#include <list>
 #include <condition_variable>
 
 #include "comm/Connection.h"
@@ -22,7 +22,7 @@ namespace athena {
         std::vector<std::thread> _pool;
 
         std::mutex _conn_list_lock;
-        std::unordered_map<long, comm::Connection *> _connection_map;
+        std::list<comm::Connection *> _conn_list;
 
         // Monitor new connections queued in for worker threads
         std::queue<comm::Connection *> _workq;

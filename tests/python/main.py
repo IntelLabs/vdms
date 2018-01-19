@@ -11,6 +11,83 @@ import athena # Yeah, baby
 hostname = "localhost"
 port = 55557
 
+class TestMultiClient(unittest.TestCase):
+
+    def addEntitiy(self, thID):
+
+        db = athena.Athena()
+        db.connect(hostname, port)
+
+        props = {}
+        props["name"] = "Luis"
+        props["lastname"] = "Ferro"
+        props["age"] = 27
+        props["threadid"] = thID
+
+        addEntity = {}
+        addEntity["properties"] = props
+        addEntity["class"] = "AwesomePeople"
+
+        query = {}
+        query["AddEntity"] = addEntity
+
+        all_queries = []
+        all_queries.append(query)
+
+        response, res_arr = db.query(all_queries)
+        response = json.loads(response)
+
+        self.assertEqual(response[0]["AddEntity"]["status"], 0)
+
+    def findEntity(self, thID):
+
+        db = athena.Athena()
+        db.connect(hostname, port)
+
+        constraints = {}
+        constraints["threadid"] = ["==",thID]
+
+        findEntity = {}
+        findEntity["constraints"] = constraints
+        findEntity["class"] = "AwesomePeople"
+
+        results = {}
+        results["list"] = ["name", "lastname", "threadid"]
+        findEntity["results"] = results
+
+        query = {}
+        query["FindEntity"] = findEntity
+
+        all_queries = []
+        all_queries.append(query)
+
+        response, res_arr = db.query(all_queries)
+        response = json.loads(response)
+        # print athena.aux_print_json(response)
+
+        self.assertEqual(response[0]["FindEntity"]["status"], 0)
+        self.assertEqual(response[0]["FindEntity"]["entities"][0]
+                                    ["lastname"], "Ferro")
+        self.assertEqual(response[0]["FindEntity"]["entities"][0]
+                                    ["threadid"], thID)
+
+    def test_runMultipleAdds(self):
+
+        simultaneous = 1000;
+        thread_arr = []
+        for i in range(1,simultaneous):
+            thread_add = Thread(target=self.addEntitiy,args=(i,) )
+            thread_add.start()
+            thread_arr.append(thread_add)
+
+        for i in range(1,simultaneous):
+            thread_find = Thread(target=self.findEntity,args=(i,) )
+            thread_find.start()
+            thread_arr.append(thread_find)
+
+        for th in thread_arr:
+            th.join();
+
 class TestAddImage(unittest.TestCase):
 
     #Methos to insert one image

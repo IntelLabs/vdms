@@ -33,16 +33,17 @@ void CommunicationManager::process_queue()
             c = _workq.front();
             _workq.pop();
         }
-        {
-            std::unique_lock<std::mutex> conn_list_lock(_conn_list_lock);
-            _connection_map[(long)c] = c;
-        }
         if (c != NULL) {
+            _conn_list_lock.lock();
+            auto c_it = _conn_list.insert(_conn_list.begin(), c);
+            _conn_list_lock.unlock();
+
             QueryHandler qh(_db, _dblock);
             printf("Connection received...\n");
             qh.process_connection(c);
+
             std::unique_lock<std::mutex> conn_list_lock(_conn_list_lock);
-            _connection_map.erase((long)c);
+            _conn_list.erase(c_it);
             delete c;
         }
     }
@@ -52,8 +53,8 @@ CommunicationManager::~CommunicationManager()
 {
     // Kill all connections by closing the sockets
     // If not, QueryHandler will be blocked on process_connection()
-    for (auto connection : _connection_map) {
-        connection.second->shutdown();
+    for (auto connection : _conn_list) {
+        connection->shutdown();
     }
 
     for (int i = 0; i < _num_threads; ++i) {
