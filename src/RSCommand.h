@@ -3,7 +3,7 @@
 #include <vector>
 #include <unordered_map>
 
-#include "PMGDTransaction.h"
+#include "PMGDQuery.h"
 
 // Json parsing files
 #include <jsoncpp/json/value.h>
@@ -46,7 +46,7 @@ namespace athena {
         virtual bool need_blob() { return false; }
 
         virtual int construct_protobuf(
-                                PMGDTransaction& tx,
+                                PMGDQuery& tx,
                                 const Json::Value& root,
                                 const std::string& blob,
                                 int grp_id,
@@ -62,7 +62,7 @@ namespace athena {
     {
     public:
         AddEntity();
-        int construct_protobuf(PMGDTransaction& tx,
+        int construct_protobuf(PMGDQuery& tx,
                                const Json::Value& root,
                                const std::string& blob,
                                int grp_id,
@@ -78,7 +78,7 @@ namespace athena {
     {
     public:
         Connect();
-        int construct_protobuf(PMGDTransaction& tx,
+        int construct_protobuf(PMGDQuery& tx,
                                const Json::Value& root,
                                const std::string& blob,
                                int grp_id,
@@ -94,7 +94,7 @@ namespace athena {
     {
     public:
         FindEntity();
-        int construct_protobuf(PMGDTransaction& tx,
+        int construct_protobuf(PMGDQuery& tx,
                                const Json::Value& root,
                                const std::string& blob,
                                int grp_id,

@@ -56,7 +56,7 @@ AddImage::AddImage() : ImageCommand("AddImage")
                 ->get_string_value("jpg_database", DEFAULT_JPG_PATH);
 }
 
-int AddImage::construct_protobuf(PMGDTransaction& tx,
+int AddImage::construct_protobuf(PMGDQuery& tx,
     const Json::Value& jsoncmd,
     const std::string& blob,
     int grp_id,
@@ -200,7 +200,7 @@ FindImage::FindImage() : ImageCommand("FindImage")
 }
 
 int FindImage::construct_protobuf(
-    PMGDTransaction& tx,
+    PMGDQuery& tx,
     const Json::Value& jsoncmd,
     const std::string& blob,
     int grp_id,

@@ -6,7 +6,6 @@
 
 #include "CommandHandler.h"
 #include "PMGDQueryHandler.h" // to provide the database connection
-#include "PMGDTransaction.h"
 #include "RSCommand.h"
 
 // Json parsing files

@@ -76,7 +76,7 @@ AddEntity::AddEntity() : RSCommand("AddEntity")
     _valid_params_map["constraints"] = PARAM_OPTIONAL;
 }
 
-int AddEntity::construct_protobuf(PMGDTransaction& tx,
+int AddEntity::construct_protobuf(PMGDQuery& tx,
     const Json::Value& jsoncmd,
     const std::string& blob,
     int grp_id,
@@ -135,7 +135,7 @@ Connect::Connect() : RSCommand("Connect")
 }
 
 int Connect::construct_protobuf(
-        PMGDTransaction& tx,
+        PMGDQuery& tx,
         const Json::Value& jsoncmd,
         const std::string& blob,
         int grp_id,
@@ -186,7 +186,7 @@ FindEntity::FindEntity() : RSCommand("FindEntity")
 }
 
 int FindEntity::construct_protobuf(
-    PMGDTransaction& tx,
+    PMGDQuery& tx,
     const Json::Value& jsoncmd,
     const std::string& blob,
     int grp_id,

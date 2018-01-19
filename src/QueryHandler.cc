@@ -6,6 +6,7 @@
 #include "ImageCommand.h"
 #include "ExceptionsCommand.h"
 
+#include "PMGDQuery.h"
 #include "jarvis.h"
 #include "util.h"
 
@@ -139,7 +140,7 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
             return;
         }
 
-        PMGDTransaction tx(_pmgd_qh);
+        PMGDQuery pmgd_query(_pmgd_qh);
         unsigned blob_count = 0;
 
         //iterate over the list of the queries
@@ -148,14 +149,14 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
             assert(query.getMemberNames().size() == 1);
             std::string cmd = query.getMemberNames()[0];
 
-            int group_count = tx.add_group();
+            int group_count = pmgd_query.add_group();
 
             RSCommand *rscmd = _rs_cmds[cmd];
 
             const std::string& blob = rscmd->need_blob() ?
                                       proto_query.blobs(blob_count++) : "";
 
-            int ret_code = rscmd->construct_protobuf(tx, query, blob,
+            int ret_code = rscmd->construct_protobuf(pmgd_query, query, blob,
                                                      group_count, cmd_result);
 
             if (ret_code != 0) {
@@ -164,7 +165,7 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
             }
         }
 
-        Json::Value& tx_responses = tx.run();
+        Json::Value& tx_responses = pmgd_query.run();
 
         if (tx_responses.size() != root.size()) { // error
             cmd_current = "Transaction";

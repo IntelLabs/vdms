@@ -4,7 +4,6 @@
 #include <vector>
 #include "VCL.h"
 
-#include "PMGDTransaction.h"
 #include "RSCommand.h"
 #include "ExceptionsCommand.h"
 
@@ -22,7 +21,7 @@ namespace athena {
 
         ImageCommand(const std::string &cmd_name);
 
-        virtual int construct_protobuf(PMGDTransaction& tx,
+        virtual int construct_protobuf(PMGDQuery& tx,
                                const Json::Value& root,
                                const std::string& blob,
                                int grp_id,
@@ -49,7 +48,7 @@ namespace athena {
     public:
         AddImage();
 
-        int construct_protobuf(PMGDTransaction& tx,
+        int construct_protobuf(PMGDQuery& tx,
                                const Json::Value& root,
                                const std::string& blob,
                                int grp_id,
@@ -67,7 +66,7 @@ namespace athena {
     {
     public:
         FindImage();
-        int construct_protobuf(PMGDTransaction& tx,
+        int construct_protobuf(PMGDQuery& tx,
                                const Json::Value& root,
                                const std::string& blob,
                                int grp_id,

@@ -19,7 +19,7 @@ typedef pmgd::protobufs::Property PMGDProp;
         from Protobuf data structures used by PMGD to Json structures
         used by the QueryHandler
     */
-    class PMGDTransaction
+    class PMGDQuery
     {
         std::vector<PMGDCommand *> _cmds;
         unsigned _group_count;
@@ -50,8 +50,8 @@ typedef pmgd::protobufs::Property PMGDProp;
         Json::Value construct_error_response(PMGDCmdResponse *response);
 
     public:
-        PMGDTransaction(PMGDQueryHandler& pmgd_qh);
-        ~PMGDTransaction();
+        PMGDQuery(PMGDQueryHandler& pmgd_qh);
+        ~PMGDQuery();
 
         unsigned add_group()     {return ++_current_group;}
         unsigned current_group() {return _current_group;}

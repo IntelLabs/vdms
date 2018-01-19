@@ -2,14 +2,14 @@
 #include <iostream>
 
 #include "PMGDQueryHandler.h" // to provide the database connection
-#include "PMGDTransaction.h" // to provide the database connection
+#include "PMGDQuery.h" // to provide the database connection
 
 #include <jsoncpp/json/json.h>
 #include <jsoncpp/json/value.h>
 
 using namespace athena;
 
-PMGDTransaction::PMGDTransaction(PMGDQueryHandler& pmgd_qh) :
+PMGDQuery::PMGDQuery(PMGDQueryHandler& pmgd_qh) :
     _pmgd_qh(pmgd_qh)
 {
     _current_group = 0;
@@ -21,7 +21,7 @@ PMGDTransaction::PMGDTransaction(PMGDQueryHandler& pmgd_qh) :
     _cmds.push_back(cmdtx); //push the creating command to the vector
 }
 
-PMGDTransaction::~PMGDTransaction()
+PMGDQuery::~PMGDQuery()
 {
     for (auto cmd : _cmds) {
         delete cmd;
@@ -36,7 +36,7 @@ PMGDTransaction::~PMGDTransaction()
     }
 }
 
-Json::Value& PMGDTransaction::run()
+Json::Value& PMGDQuery::run()
 {
     add_group(); // will set _current_group correctly
 
@@ -70,7 +70,7 @@ Json::Value& PMGDTransaction::run()
     return _json_responses;
 }
 
-void PMGDTransaction::add_link(const Json::Value& link, pmgd::protobufs::QueryNode *qn)
+void PMGDQuery::add_link(const Json::Value& link, pmgd::protobufs::QueryNode *qn)
 {
     pmgd::protobufs::LinkInfo *qnb = qn->mutable_link();
     if (link.isMember("ref")) {
@@ -90,7 +90,7 @@ void PMGDTransaction::add_link(const Json::Value& link, pmgd::protobufs::QueryNo
          qnb->set_e_tag(link["class"].asCString());
 }
 
-Json::Value PMGDTransaction::print_properties(const std::string &key,
+Json::Value PMGDQuery::print_properties(const std::string &key,
                             const PMGDProp &p)
 {
     Json::Value result;
@@ -123,7 +123,7 @@ Json::Value PMGDTransaction::print_properties(const std::string &key,
     return result[key];
 }
 
-void PMGDTransaction::set_property(PMGDProp *p,
+void PMGDQuery::set_property(PMGDProp *p,
         const char *key, Json::Value val)
 {
     if (val.isObject()) {
@@ -161,7 +161,7 @@ void PMGDTransaction::set_property(PMGDProp *p,
     }
 }
 
-Json::Value PMGDTransaction::construct_error_response(PMGDCmdResponse *response)
+Json::Value PMGDQuery::construct_error_response(PMGDCmdResponse *response)
 {
     Json::Value ret;
     ret["status"] = response->error_code();
@@ -169,7 +169,7 @@ Json::Value PMGDTransaction::construct_error_response(PMGDCmdResponse *response)
     return ret;
 }
 
-Json::Value PMGDTransaction::parse_response(PMGDCmdResponse* response)
+Json::Value PMGDQuery::parse_response(PMGDCmdResponse* response)
 {
     Json::Value ret;
     // We down-cast from uint64 to int
@@ -278,7 +278,7 @@ Json::Value PMGDTransaction::parse_response(PMGDCmdResponse* response)
     return ret;
 }
 
-void PMGDTransaction::set_operand(PMGDProp* p, const Json::Value& operand)
+void PMGDQuery::set_operand(PMGDProp* p, const Json::Value& operand)
 {
     if (operand.isInt()) {
         p->set_type(PMGDProp::IntegerType);
@@ -301,7 +301,7 @@ void PMGDTransaction::set_operand(PMGDProp* p, const Json::Value& operand)
     }
 }
 
-void PMGDTransaction::parse_query_constraints(const Json::Value& constraints,
+void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
                                        pmgd::protobufs::QueryNode* query_node)
 {
     for (auto &key : constraints.getMemberNames()) {
@@ -369,7 +369,7 @@ void PMGDTransaction::parse_query_constraints(const Json::Value& constraints,
     }
 }
 
-void PMGDTransaction::get_response_type(const Json::Value& result_type_array,
+void PMGDQuery::get_response_type(const Json::Value& result_type_array,
             std::string response,
             pmgd::protobufs::QueryNode *query_node)
 {
@@ -380,7 +380,7 @@ void PMGDTransaction::get_response_type(const Json::Value& result_type_array,
     }
 }
 
-void PMGDTransaction::parse_query_results (const Json::Value& result_type,
+void PMGDQuery::parse_query_results (const Json::Value& result_type,
                                     pmgd::protobufs::QueryNode *query_node)
 {
     for (auto response_type =result_type.begin();
@@ -425,7 +425,7 @@ void PMGDTransaction::parse_query_results (const Json::Value& result_type,
     }
 }
 
-void PMGDTransaction::AddNode(int ref,
+void PMGDQuery::AddNode(int ref,
                             const std::string &tag,
                             const Json::Value& props,
                             Json::Value constraints,
@@ -460,7 +460,7 @@ void PMGDTransaction::AddNode(int ref,
     _cmds.push_back(cmdadd);
 }
 
-void PMGDTransaction::AddEdge(int ident,
+void PMGDQuery::AddEdge(int ident,
                               int src, int dst,
                               const std::string &tag,
                               Json::Value& props)
@@ -484,7 +484,7 @@ void PMGDTransaction::AddEdge(int ident,
     _cmds.push_back(cmdedge);
 }
 
-void PMGDTransaction::QueryNode(int ref,
+void PMGDQuery::QueryNode(int ref,
                               const std::string& tag,
                               Json::Value& link,
                               Json::Value& constraints,
