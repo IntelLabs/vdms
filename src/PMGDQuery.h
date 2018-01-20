@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 
-#include "CommandHandler.h"
 #include "PMGDQueryHandler.h" // to provide the database connection
 
 #include <jsoncpp/json/json.h>

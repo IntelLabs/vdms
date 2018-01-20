@@ -4,9 +4,9 @@
 #include <vector>
 #include <unordered_map>
 
-#include "CommandHandler.h"
 #include "PMGDQueryHandler.h" // to provide the database connection
 #include "RSCommand.h"
+#include "comm/Connection.h"
 
 // Json parsing files
 #include <jsoncpp/json/value.h>

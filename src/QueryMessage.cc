@@ -1,17 +1,17 @@
 
-#include "CommandHandler.h"
+#include "QueryMessage.h"
 #include "Exception.h"
 
 using namespace athena;
 
-CommandHandler::CommandHandler(comm::Connection* conn):
+QueryMessage::QueryMessage(comm::Connection* conn):
 		_conn(conn)
 {
 	if (_conn == NULL)
 		throw ExceptionServer(NullConnection);
 }
 
-protobufs::queryMessage CommandHandler::get_command()
+protobufs::queryMessage QueryMessage::get_query()
 {
 	const std::basic_string<uint8_t>& msg = _conn->recv_message();
 
@@ -21,7 +21,7 @@ protobufs::queryMessage CommandHandler::get_command()
 	return cmd;
 }
 
-void CommandHandler::send_response(protobufs::queryMessage cmd)
+void QueryMessage::send_response(protobufs::queryMessage cmd)
 {
 	std::basic_string<uint8_t> msg(cmd.ByteSize(),0);
 	cmd.SerializeToArray((void*)msg.data(), msg.length());

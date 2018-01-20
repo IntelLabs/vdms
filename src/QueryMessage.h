@@ -4,14 +4,14 @@
 #include "protobuf/queryMessage.pb.h"
 
 namespace athena {
-    class CommandHandler
+    class QueryMessage
     {
         comm::Connection* _conn;
 
     public:
-        CommandHandler(comm::Connection* conn);
+        QueryMessage(comm::Connection* conn);
 
-        protobufs::queryMessage get_command();
+        protobufs::queryMessage get_query();
         void send_response(protobufs::queryMessage cmd);
     };
 };

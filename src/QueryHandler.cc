@@ -7,6 +7,7 @@
 #include "ExceptionsCommand.h"
 
 #include "PMGDQuery.h"
+#include "QueryMessage.h"
 #include "jarvis.h"
 #include "util.h"
 
@@ -37,14 +38,14 @@ QueryHandler::~QueryHandler()
 
 void QueryHandler::process_connection(comm::Connection *c)
 {
-    CommandHandler handler(c);
+    QueryMessage msgs(c);
 
     try {
         while (true) {
             protobufs::queryMessage response;
-            protobufs::queryMessage query = handler.get_command();
+            protobufs::queryMessage query = msgs.get_query();
             process_query(query, response);
-            handler.send_response(response);
+            msgs.send_response(response);
         }
     } catch (comm::ExceptionComm e) {
         print_exception(e);
