@@ -56,7 +56,7 @@ AddImage::AddImage() : ImageCommand("AddImage")
                 ->get_string_value("jpg_database", DEFAULT_JPG_PATH);
 }
 
-int AddImage::construct_protobuf(PMGDQuery& tx,
+int AddImage::construct_protobuf(PMGDQuery& query,
     const Json::Value& jsoncmd,
     const std::string& blob,
     int grp_id,
@@ -64,13 +64,7 @@ int AddImage::construct_protobuf(PMGDQuery& tx,
 {
     const Json::Value &cmd = jsoncmd[_cmd_name];
 
-    int node_ref;
-    if (cmd.isMember("_ref")) {
-        node_ref = cmd["_ref"].asInt();
-    }
-    else {
-        node_ref = STATIC_IDENTIFIER++;
-    }
+    int node_ref = get_value<int>(cmd, "_ref", STATIC_IDENTIFIER++);
 
     VCL::Image vclimg((void*)blob.data(), blob.size());
 
@@ -105,14 +99,17 @@ int AddImage::construct_protobuf(PMGDQuery& tx,
 
     std::string file_name = vclimg.create_unique(img_root, vcl_format);
 
-    Json::Value props;
-    if (cmd.isMember("properties")) {
-        props = cmd["properties"];
-    }
+    Json::Value props =
+            get_value<Json::Value>(cmd, "properties", Json::Value());
     props[ATHENA_IM_PATH_PROP] = file_name;
 
     // Add Image node
-    tx.AddNode(node_ref, ATHENA_IM_TAG, props);
+    query.AddNode(
+            node_ref,
+            ATHENA_IM_TAG,
+            props,
+            Json::Value()
+            );
 
     vclimg.store(file_name, vcl_format);
 
@@ -131,15 +128,10 @@ int AddImage::construct_protobuf(PMGDQuery& tx,
                 src = node_ref;
             }
 
-            std::string e_tag = link.isMember("class")?
-                                    link["class"].asString() : ATHENA_IM_EDGE;
-
-            Json::Value props_link;
-            if (link.isMember("properties")) {
-                props_link = link["properties"];
-            }
-
-            tx.AddEdge(-1, src, dst, e_tag, props_link);
+            query.AddEdge(-1, src, dst,
+                get_value<std::string>(link, "class", ATHENA_IM_EDGE),
+                get_value<Json::Value>(link, "properties", Json::Value())
+                );
         }
     }
 
@@ -164,10 +156,10 @@ int AddImage::construct_protobuf(PMGDQuery& tx,
             bool unique = true;
 
             // Conditional adding node
-            tx.AddNode(col_ref, col_tag, props_col, constraints, unique);
+            query.AddNode(col_ref, col_tag, props_col, constraints, unique);
 
             // Add edge between collection and image
-            tx.AddEdge(-1, col_ref, node_ref, ATHENA_COL_EDGE_TAG, props_col);
+            query.AddEdge(-1, col_ref, node_ref, ATHENA_COL_EDGE_TAG, props_col);
         }
     }
 
@@ -200,7 +192,7 @@ FindImage::FindImage() : ImageCommand("FindImage")
 }
 
 int FindImage::construct_protobuf(
-    PMGDQuery& tx,
+    PMGDQuery& query,
     const Json::Value& jsoncmd,
     const std::string& blob,
     int grp_id,
@@ -208,33 +200,8 @@ int FindImage::construct_protobuf(
 {
     const Json::Value &cmd = jsoncmd[_cmd_name];
 
-    int node_ref = -1;
-    if (cmd.isMember("_ref")) {
-        node_ref = cmd["_ref"].asInt();
-    }
-
-    const std::string& tag = ATHENA_IM_TAG;
-
-    bool unique = false;
-    if (cmd.isMember("unique")) {
-        unique = cmd["unique"].asBool();
-    }
-
-    Json::Value link;
-    if (cmd.isMember("link")) {
-        link = cmd["link"];
-    }
-
-    Json::Value constraints;
-    if (cmd.isMember("constraints")) {
-        constraints = cmd["constraints"];
-    }
-
-    Json::Value results;
-    if (cmd.isMember("results")) {
-        results = cmd["results"];
-    }
-
+    Json::Value results =
+                    get_value<Json::Value>(cmd, "results", Json::Value());
     results["list"].append(ATHENA_IM_PATH_PROP);
 
     // if (find_img.isMember("collections")) {
@@ -246,7 +213,14 @@ int FindImage::construct_protobuf(
     //     }
     // }
 
-    tx.QueryNode(node_ref, tag, link, constraints, results, unique);
+    query.QueryNode(
+            get_value<int>(cmd, "_ref", -1),
+            ATHENA_IM_TAG,
+            get_value<Json::Value>(cmd, "link", ""),
+            get_value<Json::Value>(cmd, "constraints", Json::Value()),
+            results,
+            get_value<bool>(cmd, "unique", false)
+            );
 
     return 0;
 }

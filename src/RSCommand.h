@@ -27,7 +27,10 @@ namespace athena {
         const std::string _cmd_name;
         std::map<std::string, int> _valid_params_map;
 
-        virtual Json::Value check_responses(Json::Value &responses);
+        template <typename T>
+        T get_value(const Json::Value& json, const std::string& key, const T& def);
+
+        virtual Json::Value check_responses(Json::Value& responses);
 
     public:
 
@@ -46,15 +49,15 @@ namespace athena {
         virtual bool need_blob() { return false; }
 
         virtual int construct_protobuf(
-                                PMGDQuery& tx,
+                                PMGDQuery& query,
                                 const Json::Value& root,
                                 const std::string& blob,
                                 int grp_id,
                                 Json::Value& error) = 0;
 
         virtual Json::Value construct_responses(
-            Json::Value &json_responses,
-            const Json::Value &json,
+            Json::Value& json_responses,
+            const Json::Value& json,
             protobufs::queryMessage &response) = 0;
     };
 
@@ -62,15 +65,15 @@ namespace athena {
     {
     public:
         AddEntity();
-        int construct_protobuf(PMGDQuery& tx,
+        int construct_protobuf(PMGDQuery& query,
                                const Json::Value& root,
                                const std::string& blob,
                                int grp_id,
                                Json::Value& error);
 
         Json::Value construct_responses(
-            Json::Value &json_responses,
-            const Json::Value &json,
+            Json::Value& json_responses,
+            const Json::Value& json,
             protobufs::queryMessage &response);
     };
 
@@ -78,15 +81,15 @@ namespace athena {
     {
     public:
         Connect();
-        int construct_protobuf(PMGDQuery& tx,
+        int construct_protobuf(PMGDQuery& query,
                                const Json::Value& root,
                                const std::string& blob,
                                int grp_id,
                                Json::Value& error);
 
         Json::Value construct_responses(
-                Json::Value &json_responses,
-                const Json::Value &json,
+                Json::Value& json_responses,
+                const Json::Value& json,
                 protobufs::queryMessage &response);
     };
 
@@ -94,15 +97,15 @@ namespace athena {
     {
     public:
         FindEntity();
-        int construct_protobuf(PMGDQuery& tx,
+        int construct_protobuf(PMGDQuery& query,
                                const Json::Value& root,
                                const std::string& blob,
                                int grp_id,
                                Json::Value& error);
 
         Json::Value construct_responses(
-            Json::Value &json_responses,
-            const Json::Value &json,
+            Json::Value& json_responses,
+            const Json::Value& json,
             protobufs::queryMessage &response);
     };
 

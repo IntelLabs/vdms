@@ -51,7 +51,7 @@ void QueryHandler::process_connection(comm::Connection *c)
     }
 }
 
-bool QueryHandler::syntax_checker(const Json::Value &root, Json::Value& error)
+bool QueryHandler::syntax_checker(const Json::Value& root, Json::Value& error)
 {
     for (int j = 0; j < root.size(); j++) {
         const Json::Value& query = root[j];

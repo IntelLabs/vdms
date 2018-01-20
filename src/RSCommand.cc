@@ -38,7 +38,7 @@ bool RSCommand::check_params(const Json::Value& cmd, Json::Value& error)
     return true;
 }
 
-Json::Value RSCommand::check_responses(Json::Value &responses)
+Json::Value RSCommand::check_responses(Json::Value& responses)
 {
     bool flag_error = false;
     Json::Value ret;
@@ -66,6 +66,47 @@ Json::Value RSCommand::check_responses(Json::Value &responses)
     return ret;
 }
 
+namespace athena {
+template<>
+int RSCommand::get_value(const Json::Value& json, const std::string& key,
+                         const int& def)
+{
+    if (json.isMember(key))
+        return json[key].asInt();
+
+    return def;
+}
+
+template<>
+bool RSCommand::get_value(const Json::Value& json, const std::string& key,
+                          const bool& def)
+{
+    if (json.isMember(key))
+        return json[key].asBool();
+
+    return def;
+}
+
+template<>
+std::string RSCommand::get_value(const Json::Value& json,
+                                 const std::string& key,
+                                 const std::string& def)
+{
+    if (json.isMember(key))
+        return json[key].asString();
+
+    return def;
+}
+
+template<>
+Json::Value RSCommand::get_value(const Json::Value& json,
+                                 const std::string& key,
+                                 const Json::Value& def)
+{
+    return json[key];
+}
+}
+
 //========= AddEntity definitions =========
 
 AddEntity::AddEntity() : RSCommand("AddEntity")
@@ -76,45 +117,28 @@ AddEntity::AddEntity() : RSCommand("AddEntity")
     _valid_params_map["constraints"] = PARAM_OPTIONAL;
 }
 
-int AddEntity::construct_protobuf(PMGDQuery& tx,
+int AddEntity::construct_protobuf(PMGDQuery& query,
     const Json::Value& jsoncmd,
     const std::string& blob,
     int grp_id,
     Json::Value& error)
 {
-    const Json::Value &cmd = jsoncmd[_cmd_name];
+    const Json::Value& cmd = jsoncmd[_cmd_name];
 
-    std::string tag = cmd["class"].asString();
-
-    int node_ref = -1;
-    if (cmd.isMember("_ref")) {
-        node_ref = cmd["_ref"].asInt();
-    }
-
-    Json::Value props;
-    if (cmd.isMember("properties")) {
-        props = cmd["properties"];
-    }
-
-    // Check if conditional add
-    bool unique = false;
-    if (cmd.isMember("unique")) {
-        unique = cmd["unique"].asBool();
-    }
-
-    Json::Value constraints;
-    if (cmd.isMember("constraints")) {
-        constraints = cmd["constraints"];
-    }
-
-    tx.AddNode(node_ref, tag, props, constraints, unique);
+    query.AddNode(
+            get_value<int>(cmd, "_ref", -1),
+            get_value<std::string>(cmd, "class", ""),
+            get_value<Json::Value>(cmd, "properties", Json::Value()),
+            get_value<Json::Value>(cmd, "constraints", Json::Value()),
+            get_value<bool>(cmd, "unique", false)
+            );
 
     return 0;
 }
 
 Json::Value AddEntity::construct_responses(
     Json::Value& response,
-    const Json::Value &json,
+    const Json::Value& json,
     protobufs::queryMessage &query_res)
 {
     assert(response.size() == 1);
@@ -135,35 +159,30 @@ Connect::Connect() : RSCommand("Connect")
 }
 
 int Connect::construct_protobuf(
-        PMGDQuery& tx,
+        PMGDQuery& query,
         const Json::Value& jsoncmd,
         const std::string& blob,
         int grp_id,
         Json::Value& error)
 {
-    const Json::Value &cmd = jsoncmd[_cmd_name];
-
-    int edge_ref = -1;
-    if (cmd.isMember("_ref")) {
-        edge_ref = cmd["_ref"].asInt();
-    }
+    const Json::Value& cmd = jsoncmd[_cmd_name];
 
     Json::Value props;
-    if (cmd.isMember("properties")) {
-        props = cmd["properties"];
-    }
 
-    int src = cmd["ref1"].asInt();
-    int dst = cmd["ref2"].asInt();
-    const std::string &tag = cmd["class"].asString();
+    query.AddEdge(
+            get_value<int>(cmd, "_ref", -1),
+            get_value<int>(cmd, "ref1", -1), // src
+            get_value<int>(cmd, "ref2", -1), // dst
+            get_value<std::string>(cmd, "class", ""), // tag
+            get_value<Json::Value>(cmd, "properties", props)
+            );
 
-    tx.AddEdge(edge_ref, src, dst, tag, props);
     return 0;
 }
 
 Json::Value Connect::construct_responses(
     Json::Value& response,
-    const Json::Value &json,
+    const Json::Value& json,
     protobufs::queryMessage &query_res)
 {
     assert(response.size() == 1);
@@ -186,49 +205,29 @@ FindEntity::FindEntity() : RSCommand("FindEntity")
 }
 
 int FindEntity::construct_protobuf(
-    PMGDQuery& tx,
+    PMGDQuery& query,
     const Json::Value& jsoncmd,
     const std::string& blob,
     int grp_id,
     Json::Value& error)
 {
-    const Json::Value &cmd = jsoncmd[_cmd_name];
+    const Json::Value& cmd = jsoncmd[_cmd_name];
 
-    int node_ref = -1;
-    if (cmd.isMember("_ref")) {
-        node_ref = cmd["_ref"].asInt();
-    }
-
-    const std::string& tag = cmd["class"].asString();
-
-    bool unique = false;
-    if (cmd.isMember("unique")) {
-        unique = cmd["unique"].asBool();
-    }
-
-    Json::Value link;
-    if (cmd.isMember("link")) {
-        link = cmd["link"];
-    }
-
-    Json::Value constraints;
-    if (cmd.isMember("constraints")) {
-        constraints = cmd["constraints"];
-    }
-
-    Json::Value results;
-    if (cmd.isMember("results")) {
-        results = cmd["results"];
-    }
-
-    tx.QueryNode(node_ref, tag, link, constraints, results, unique);
+    query.QueryNode(
+            get_value<int>(cmd, "_ref", -1),
+            get_value<std::string>(cmd, "class", ""),
+            get_value<Json::Value>(cmd, "link", ""),
+            get_value<Json::Value>(cmd, "constraints", Json::Value()),
+            get_value<Json::Value>(cmd, "results", Json::Value()),
+            get_value<bool>(cmd, "unique", false)
+            );
 
     return 0;
 }
 
 Json::Value FindEntity::construct_responses(
     Json::Value& response,
-    const Json::Value &json,
+    const Json::Value& json,
     protobufs::queryMessage &query_res)
 {
     assert(response.size() == 1);

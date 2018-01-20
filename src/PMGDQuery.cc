@@ -426,10 +426,10 @@ void PMGDQuery::parse_query_results (const Json::Value& result_type,
 }
 
 void PMGDQuery::AddNode(int ref,
-                            const std::string &tag,
-                            const Json::Value& props,
-                            Json::Value constraints,
-                            bool unique)
+                        const std::string &tag,
+                        const Json::Value& props,
+                        const Json::Value& constraints,
+                        bool unique)
 {
     PMGDCommand* cmdadd = new PMGDCommand();
     cmdadd->set_cmd_id(PMGDCommand::AddNode);
@@ -461,9 +461,9 @@ void PMGDQuery::AddNode(int ref,
 }
 
 void PMGDQuery::AddEdge(int ident,
-                              int src, int dst,
-                              const std::string &tag,
-                              Json::Value& props)
+                        int src, int dst,
+                        const std::string &tag,
+                        const Json::Value& props)
 {
     PMGDCommand* cmdedge = new PMGDCommand();
     cmdedge->set_cmd_grp_id(_current_group);
@@ -485,11 +485,11 @@ void PMGDQuery::AddEdge(int ident,
 }
 
 void PMGDQuery::QueryNode(int ref,
-                              const std::string& tag,
-                              Json::Value& link,
-                              Json::Value& constraints,
-                              Json::Value& results,
-                              bool unique)
+                          const std::string& tag,
+                          const Json::Value& link,
+                          const Json::Value& constraints,
+                          const Json::Value& results,
+                          bool unique)
 {
     PMGDCommand* cmdquery = new PMGDCommand();
     cmdquery->set_cmd_id(PMGDCommand::QueryNode);
