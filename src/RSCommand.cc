@@ -11,6 +11,18 @@ RSCommand::RSCommand(const std::string& cmd_name):
 {
 }
 
+Json::Value RSCommand::construct_responses(
+    Json::Value& response,
+    const Json::Value& json,
+    protobufs::queryMessage &query_res)
+{
+    assert(response.size() == 1);
+
+    Json::Value ret;
+    ret[_cmd_name] = response[0];
+    return ret;
+}
+
 bool RSCommand::check_params(const Json::Value& cmd, Json::Value& error)
 {
     std::map<std::string, int> valid = _valid_params_map;
@@ -136,18 +148,6 @@ int AddEntity::construct_protobuf(PMGDQuery& query,
     return 0;
 }
 
-Json::Value AddEntity::construct_responses(
-    Json::Value& response,
-    const Json::Value& json,
-    protobufs::queryMessage &query_res)
-{
-    assert(response.size() == 1);
-
-    Json::Value addEntity;
-    addEntity[_cmd_name] = response[0];
-    return addEntity;
-}
-
 //========= Connect definitions =========
 
 Connect::Connect() : RSCommand("Connect")
@@ -178,18 +178,6 @@ int Connect::construct_protobuf(
             );
 
     return 0;
-}
-
-Json::Value Connect::construct_responses(
-    Json::Value& response,
-    const Json::Value& json,
-    protobufs::queryMessage &query_res)
-{
-    assert(response.size() == 1);
-
-    Json::Value ret;
-    ret[_cmd_name] = response[0];
-    return ret;
 }
 
 //========= FindEntity definitions =========
@@ -223,16 +211,4 @@ int FindEntity::construct_protobuf(
             );
 
     return 0;
-}
-
-Json::Value FindEntity::construct_responses(
-    Json::Value& response,
-    const Json::Value& json,
-    protobufs::queryMessage &query_res)
-{
-    assert(response.size() == 1);
-
-    Json::Value ret;
-    ret[_cmd_name] = response[0];
-    return ret;
 }

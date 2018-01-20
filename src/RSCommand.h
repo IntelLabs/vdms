@@ -58,7 +58,7 @@ namespace athena {
         virtual Json::Value construct_responses(
             Json::Value& json_responses,
             const Json::Value& json,
-            protobufs::queryMessage &response) = 0;
+            protobufs::queryMessage &response);
     };
 
     class AddEntity : public RSCommand
@@ -70,11 +70,6 @@ namespace athena {
                                const std::string& blob,
                                int grp_id,
                                Json::Value& error);
-
-        Json::Value construct_responses(
-            Json::Value& json_responses,
-            const Json::Value& json,
-            protobufs::queryMessage &response);
     };
 
     class Connect : public RSCommand
@@ -86,11 +81,6 @@ namespace athena {
                                const std::string& blob,
                                int grp_id,
                                Json::Value& error);
-
-        Json::Value construct_responses(
-                Json::Value& json_responses,
-                const Json::Value& json,
-                protobufs::queryMessage &response);
     };
 
     class FindEntity : public RSCommand
@@ -102,11 +92,6 @@ namespace athena {
                                const std::string& blob,
                                int grp_id,
                                Json::Value& error);
-
-        Json::Value construct_responses(
-            Json::Value& json_responses,
-            const Json::Value& json,
-            protobufs::queryMessage &response);
     };
 
 }; // namespace athena
