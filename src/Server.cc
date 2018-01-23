@@ -5,6 +5,7 @@
 #include "Exception.h"
 
 #include "AthenaConfig.h"
+#include "QueryHandler.h"
 
 #include "protobuf/pmgdMessages.pb.h" // Protobuff implementation
 
@@ -19,6 +20,8 @@ Server::Server(std::string config_file)
                         ->get_string_value("pmgd_path", "default_pmgd");
     _server_port = AthenaConfig::instance()
                         ->get_int_value("port", DEFAULT_PORT);
+
+    QueryHandler::init();
 
     // Verify that the version of the library that we linked against is
     // compatible with the version of the headers we compiled against.

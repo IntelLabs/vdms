@@ -19,8 +19,9 @@ using namespace athena;
 std::ofstream GENERIC_LOGGER("log.log", std::fstream::app);
 // #define GENERIC_LOGGER std::cout
 
-QueryHandler::QueryHandler(Jarvis::Graph *db, std::mutex *mtx)
-    : _pmgd_qh(db, mtx)
+std::unordered_map<std::string, RSCommand *> QueryHandler::_rs_cmds;
+
+void QueryHandler::init()
 {
     _rs_cmds["AddEntity"]  = new AddEntity();
     _rs_cmds["Connect"]    = new Connect();
@@ -29,11 +30,13 @@ QueryHandler::QueryHandler(Jarvis::Graph *db, std::mutex *mtx)
     _rs_cmds["FindImage"]  = new FindImage();
 }
 
+QueryHandler::QueryHandler(Jarvis::Graph *db, std::mutex *mtx)
+    : _pmgd_qh(db, mtx)
+{
+}
+
 QueryHandler::~QueryHandler()
 {
-    for (auto cmd: _rs_cmds) {
-        delete cmd.second;
-    }
 }
 
 void QueryHandler::process_connection(comm::Connection *c)

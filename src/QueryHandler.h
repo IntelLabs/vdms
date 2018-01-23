@@ -21,8 +21,8 @@ typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
     {
         friend class QueryHandlerTester;
 
+        static std::unordered_map<std::string, RSCommand *> _rs_cmds;
         PMGDQueryHandler _pmgd_qh;
-        std::unordered_map<std::string, RSCommand *> _rs_cmds;
 
         bool syntax_checker(const Json::Value &root, Json::Value& error);
         int parse_commands(const std::string& commands, Json::Value& root);
@@ -30,6 +30,8 @@ typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
                            protobufs::queryMessage& response);
 
     public:
+        static void init();
+
         QueryHandler(Jarvis::Graph *db, std::mutex *mtx);
         ~QueryHandler();
 
