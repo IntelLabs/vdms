@@ -14,6 +14,16 @@
 #include <mach/mach.h>
 #endif
 
+#ifdef CHRONO_TIMING
+	#define CHRONO_TIC(NAME) NAME.tic();
+	#define CHRONO_TAC(NAME) NAME.tac();
+	#define CHRONO_PRINT_LAST_MS(NAME) NAME.printLastTime_ms();
+#else
+    #define CHRONO_TIC(NAME)
+    #define CHRONO_TAC(NAME)
+    #define CHRONO_PRINT_LAST_MS(NAME)
+#endif
+
 // ***************************************************************************
 // Chrono Base class
 // ***************************************************************************
