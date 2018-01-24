@@ -7,6 +7,7 @@
 #include "PMGDQueryHandler.h" // to provide the database connection
 #include "RSCommand.h"
 #include "comm/Connection.h"
+#include "chrono/Chrono.h"
 
 // Json parsing files
 #include <jsoncpp/json/value.h>
@@ -35,11 +36,17 @@ typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
         valijson::Validator _validator;
         static valijson::Schema* _schema;
 
+        #ifdef CHRONO_TIMING
+            ChronoCpu ch_tx_total;
+            ChronoCpu ch_tx_query;
+            ChronoCpu ch_tx_send;
+        #endif
+
+
     public:
         static void init();
 
         QueryHandler(Jarvis::Graph *db, std::mutex *mtx);
-        ~QueryHandler();
 
         void process_connection(comm::Connection *c);
     };

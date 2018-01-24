@@ -58,10 +58,11 @@ void QueryHandler::init()
 QueryHandler::QueryHandler(Jarvis::Graph *db, std::mutex *mtx)
     : _pmgd_qh(db, mtx),
     _validator(valijson::Validator::kWeakTypes)
-{
-}
-
-QueryHandler::~QueryHandler()
+#ifdef CHRONO_TIMING
+    ,ch_tx_total("ch_tx_total")
+    ,ch_tx_query("ch_tx_query")
+    ,ch_tx_send("ch_tx_send")
+#endif
 {
 }
 
@@ -73,8 +74,20 @@ void QueryHandler::process_connection(comm::Connection *c)
         while (true) {
             protobufs::queryMessage response;
             protobufs::queryMessage query = msgs.get_query();
+            CHRONO_TIC(ch_tx_total);
+
+            CHRONO_TIC(ch_tx_query);
             process_query(query, response);
+            CHRONO_TAC(ch_tx_query);
+
+            CHRONO_TIC(ch_tx_send);
             msgs.send_response(response);
+            CHRONO_TAC(ch_tx_send);
+
+            CHRONO_TAC(ch_tx_total);
+            CHRONO_PRINT_LAST_MS(ch_tx_total);
+            CHRONO_PRINT_LAST_MS(ch_tx_query);
+            CHRONO_PRINT_LAST_MS(ch_tx_send);
         }
     } catch (comm::ExceptionComm e) {
         print_exception(e);

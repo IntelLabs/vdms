@@ -1,5 +1,7 @@
 # We need to add this dependecy.
 import os
+AddOption('--timing', action='append_const', dest='cflags',
+                      const='-DCHRONO_TIMING')
 
 def buildServer(intel_path, env):
 
@@ -50,6 +52,7 @@ def buildServer(intel_path, env):
                           intel_path + 'vcl/src',
                           intel_path + 'jarvis/util', ],
                           CXXFLAGS="-std=c++11 -g -O3")
+  testenv.MergeFlags(GetOption('cflags'))
 
   test_sources = ['tests/main.cc',
                   'tests/pmgd_queries.cc',
@@ -85,6 +88,7 @@ else:
 
 # Enviroment use by all the builds
 env = Environment(CXXFLAGS="-std=c++11 -O3")
+env.MergeFlags(GetOption('cflags'))
 
 SConscript(os.path.join('utils', 'SConscript'), exports=['env'])
 SConscript(os.path.join('client','SConscript'), exports=['env'])
