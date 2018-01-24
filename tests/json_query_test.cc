@@ -86,6 +86,7 @@ TEST(QueryHandler, addTest){
     mutex dblock;
 
     AthenaConfig::init("config-tests.json");
+    QueryHandler::init();
 
     QueryHandler qh_base(&db, &dblock);
     QueryHandlerTester query_handler(qh_base);

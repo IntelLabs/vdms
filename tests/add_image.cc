@@ -37,6 +37,7 @@ TEST(AddImage, simpleAdd)
     // int i = system("rm -r simpleAdd_db");
     Graph db("simpleAdd_db", Graph::Create);
     AthenaConfig::init("./addImage-config.json");
+    QueryHandler::init();
 
     std::mutex mu;
 
@@ -86,6 +87,7 @@ TEST(AddImage, simpleAddx10)
     Graph db("simpleAddx10_db", Graph::Create);
 
     AthenaConfig::init("./addImage-config.json");
+    QueryHandler::init();
 
     std::mutex mu;
     QueryHandler qh_base(&db, &mu);

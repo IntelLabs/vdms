@@ -10,6 +10,8 @@
 
 // Json parsing files
 #include <jsoncpp/json/value.h>
+#include <valijson/schema.hpp>
+#include <valijson/validator.hpp>
 
 namespace athena {
 
@@ -21,13 +23,17 @@ typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
     {
         friend class QueryHandlerTester;
 
-        static std::unordered_map<std::string, RSCommand *> _rs_cmds;
+        static std::unordered_map<std::string, RSCommand* > _rs_cmds;
         PMGDQueryHandler _pmgd_qh;
 
         bool syntax_checker(const Json::Value &root, Json::Value& error);
         int parse_commands(const std::string& commands, Json::Value& root);
         void process_query(protobufs::queryMessage& proto_query,
                            protobufs::queryMessage& response);
+
+        // valijson
+        valijson::Validator _validator;
+        static valijson::Schema* _schema;
 
     public:
         static void init();

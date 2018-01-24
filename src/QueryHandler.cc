@@ -1,8 +1,8 @@
 #include <string>
+#include <sstream>
 #include <fstream>
 #include "QueryHandler.h"
 
-#include "RSCommand.h"
 #include "ImageCommand.h"
 #include "ExceptionsCommand.h"
 
@@ -11,7 +11,11 @@
 #include "jarvis.h"
 #include "util.h"
 
+#include "APISchema.h"
 #include <jsoncpp/json/writer.h>
+#include <valijson/adapters/jsoncpp_adapter.hpp>
+#include <valijson/utils/jsoncpp_utils.hpp>
+#include <valijson/schema_parser.hpp>
 
 using namespace athena;
 
@@ -20,6 +24,7 @@ std::ofstream GENERIC_LOGGER("log.log", std::fstream::app);
 // #define GENERIC_LOGGER std::cout
 
 std::unordered_map<std::string, RSCommand *> QueryHandler::_rs_cmds;
+valijson::Schema* QueryHandler::_schema = new valijson::Schema;
 
 void QueryHandler::init()
 {
@@ -28,10 +33,31 @@ void QueryHandler::init()
     _rs_cmds["FindEntity"] = new FindEntity();
     _rs_cmds["AddImage"]   = new AddImage();
     _rs_cmds["FindImage"]  = new FindImage();
+
+    // Load the document containing the schema
+    Json::Reader reader;
+    Json::Value schemaDocument;
+    bool parseSuccess = reader.parse(schema_json.c_str(), schemaDocument);
+    if (!parseSuccess) {
+        std::cerr << "Failed to load schema document." << std::endl;
+        exit(0);
+    }
+
+    // Parse the json schema into an internal schema format
+    valijson::SchemaParser parser;
+    valijson::adapters::JsonCppAdapter schemaDocumentAdapter(schemaDocument);
+    try {
+        parser.populateSchema(schemaDocumentAdapter, *_schema);
+    }
+    catch (std::exception &e) {
+        std::cerr << "Failed to parse schema: " << e.what() << std::endl;
+        exit(0);
+    }
 }
 
 QueryHandler::QueryHandler(Jarvis::Graph *db, std::mutex *mtx)
-    : _pmgd_qh(db, mtx)
+    : _pmgd_qh(db, mtx),
+    _validator(valijson::Validator::kWeakTypes)
 {
 }
 
@@ -57,25 +83,48 @@ void QueryHandler::process_connection(comm::Connection *c)
 
 bool QueryHandler::syntax_checker(const Json::Value& root, Json::Value& error)
 {
-    for (int j = 0; j < root.size(); j++) {
-        const Json::Value& query = root[j];
-        if (query.getMemberNames().size() != 1) {
-            error["info"] = "Error: Only one command per element allowed";
-            return false;
+    valijson::ValidationResults results;
+    valijson::adapters::JsonCppAdapter targetDocumentAdapter(root);
+    if (!_validator.validate(*_schema, targetDocumentAdapter, &results)) {
+        GENERIC_LOGGER << "API validation failed for:" << std::endl;
+        Json::StyledWriter swriter;
+        GENERIC_LOGGER << swriter.write(root) << std::endl;
+
+        // Will attempt to find the simple error
+        // To avoid valijson dump
+        for (int j = 0; j < root.size(); j++) {
+            const Json::Value& query = root[j];
+            if (query.getMemberNames().size() != 1) {
+                error["info"] = "Error: Only one command per element allowed";
+                return false;
+            }
+
+            const std::string cmd_str = query.getMemberNames()[0];
+            auto it = _rs_cmds.find(cmd_str);
+            if (it == _rs_cmds.end()) {
+                error["info"] = cmd_str + ": Command not found!";
+                return false;
+            }
         }
 
-        const std::string cmd_str = query.getMemberNames()[0];
-        auto it = _rs_cmds.find(cmd_str);
-        if (it == _rs_cmds.end()) {
-            error["info"] = cmd_str + ": Command not found!";
-            return false;
-        }
+        valijson::ValidationResults::Error va_error;
+        unsigned int errorNum = 1;
+        std::stringstream str_error;
+        while (results.popError(va_error)) {
+            std::string context;
+            std::vector<std::string>::iterator itr = va_error.context.begin();
+            for (; itr != va_error.context.end(); itr++) {
+                context += *itr;
+            }
 
-        bool flag_error = (*it).second->check_params(query[cmd_str], error);
-
-        if (!flag_error) {
-            return false;
+            str_error << "Error #" << errorNum << std::endl
+                 << "  context: " << context << std::endl
+                 << "  desc:    " << va_error.description << std::endl;
+            ++errorNum;
         }
+        GENERIC_LOGGER << str_error.str();
+        error["info"] = str_error.str();
+        return false;
     }
 
     return true;
@@ -96,15 +145,12 @@ int QueryHandler::parse_commands(const std::string& commands,
         }
 
         Json::Value error;
-
         if (!syntax_checker(root, error)) {
             root = error;
             root["status"] = RSCommand::Error;
             return -1;
         }
 
-        // Json::StyledWriter swriter;
-        // GENERIC_LOGGER << swriter.write(root) << std::endl;
     } catch (Json::Exception const&) {
         root["info"] = "Json Exception at Parsing";
         root["status"] = RSCommand::Error;
@@ -155,7 +201,7 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
 
             int group_count = pmgd_query.add_group();
 
-            RSCommand *rscmd = _rs_cmds[cmd];
+            RSCommand* rscmd = _rs_cmds[cmd];
 
             const std::string& blob = rscmd->need_blob() ?
                                       proto_query.blobs(blob_count++) : "";

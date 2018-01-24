@@ -23,33 +23,6 @@ Json::Value RSCommand::construct_responses(
     return ret;
 }
 
-bool RSCommand::check_params(const Json::Value& cmd, Json::Value& error)
-{
-    std::map<std::string, int> valid = _valid_params_map;
-    std::map<std::string, int> params_map;
-
-    for (auto& param : cmd.getMemberNames()) {
-        params_map[param] += 1;
-    }
-
-    for (auto& param : params_map) {
-        auto it = valid.find(param.first);
-        if ( it == valid.end() ) {
-            error["info"] = _cmd_name + " does allow param: " + param.first;
-            return false;
-        }
-        valid[param.first] = 0;
-    }
-
-    for (auto& param : valid) {
-        if (param.second > 1) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
 Json::Value RSCommand::check_responses(Json::Value& responses)
 {
     bool flag_error = false;
@@ -123,10 +96,6 @@ Json::Value RSCommand::get_value(const Json::Value& json,
 
 AddEntity::AddEntity() : RSCommand("AddEntity")
 {
-    _valid_params_map["class"]       = PARAM_MANDATORY;
-    _valid_params_map["_ref"]        = PARAM_OPTIONAL;
-    _valid_params_map["properties"]  = PARAM_OPTIONAL;
-    _valid_params_map["constraints"] = PARAM_OPTIONAL;
 }
 
 int AddEntity::construct_protobuf(PMGDQuery& query,
@@ -152,10 +121,6 @@ int AddEntity::construct_protobuf(PMGDQuery& query,
 
 Connect::Connect() : RSCommand("Connect")
 {
-    _valid_params_map["ref1"]       = PARAM_MANDATORY;
-    _valid_params_map["ref2"]       = PARAM_MANDATORY;
-    _valid_params_map["class"]      = PARAM_OPTIONAL;
-    _valid_params_map["properties"] = PARAM_OPTIONAL;
 }
 
 int Connect::construct_protobuf(
@@ -184,12 +149,6 @@ int Connect::construct_protobuf(
 
 FindEntity::FindEntity() : RSCommand("FindEntity")
 {
-    _valid_params_map["class"]       = PARAM_OPTIONAL;
-    _valid_params_map["_ref"]        = PARAM_OPTIONAL;
-    _valid_params_map["constraints"] = PARAM_OPTIONAL;
-    _valid_params_map["results"]     = PARAM_OPTIONAL;
-    _valid_params_map["unique"]      = PARAM_OPTIONAL;
-    _valid_params_map["link"]        = PARAM_OPTIONAL;
 }
 
 int FindEntity::construct_protobuf(

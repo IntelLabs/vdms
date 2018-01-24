@@ -42,12 +42,6 @@ void ImageCommand::run_operations(VCL::Image& vclimg, const Json::Value& op)
 
 AddImage::AddImage() : ImageCommand("AddImage")
 {
-    _valid_params_map["collections"] = PARAM_OPTIONAL;
-    _valid_params_map["properties"]  = PARAM_OPTIONAL;
-    _valid_params_map["operations"]  = PARAM_OPTIONAL;
-    _valid_params_map["link"]        = PARAM_OPTIONAL;
-    _valid_params_map["format"]      = PARAM_OPTIONAL;
-
     _storage_tdb = AthenaConfig::instance()
                 ->get_string_value("tiledb_database", DEFAULT_TDB_PATH);
     _storage_png = AthenaConfig::instance()
@@ -182,13 +176,6 @@ Json::Value AddImage::construct_responses(
 
 FindImage::FindImage() : ImageCommand("FindImage")
 {
-    _valid_params_map["_ref"]        = PARAM_OPTIONAL;
-    _valid_params_map["constraints"] = PARAM_OPTIONAL;
-    _valid_params_map["collections"] = PARAM_OPTIONAL;
-    _valid_params_map["operations"]  = PARAM_OPTIONAL;
-    _valid_params_map["unique"]      = PARAM_OPTIONAL;
-    _valid_params_map["link"]        = PARAM_OPTIONAL;
-    _valid_params_map["results"]     = PARAM_OPTIONAL;
 }
 
 int FindImage::construct_protobuf(

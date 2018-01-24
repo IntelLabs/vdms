@@ -45,8 +45,6 @@ namespace athena {
 
         RSCommand(const std::string& cmd_name);
 
-        bool check_params(const Json::Value& cmd, Json::Value& error);
-
         virtual bool need_blob() { return false; }
 
         virtual int construct_protobuf(
