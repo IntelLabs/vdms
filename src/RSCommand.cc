@@ -108,9 +108,9 @@ int AddEntity::construct_protobuf(PMGDQuery& query,
 
     query.AddNode(
             get_value<int>(cmd, "_ref", -1),
-            get_value<std::string>(cmd, "class", ""),
-            get_value<Json::Value>(cmd, "properties", Json::Value()),
-            get_value<Json::Value>(cmd, "constraints", Json::Value()),
+            get_value<std::string>(cmd, "class"),
+            get_value<Json::Value>(cmd, "properties"),
+            get_value<Json::Value>(cmd, "constraints"),
             get_value<bool>(cmd, "unique", false)
             );
 
@@ -132,14 +132,12 @@ int Connect::construct_protobuf(
 {
     const Json::Value& cmd = jsoncmd[_cmd_name];
 
-    Json::Value props;
-
     query.AddEdge(
             get_value<int>(cmd, "_ref", -1),
             get_value<int>(cmd, "ref1", -1), // src
             get_value<int>(cmd, "ref2", -1), // dst
-            get_value<std::string>(cmd, "class", ""), // tag
-            get_value<Json::Value>(cmd, "properties", props)
+            get_value<std::string>(cmd, "class"), // tag
+            get_value<Json::Value>(cmd, "properties")
             );
 
     return 0;
@@ -162,10 +160,10 @@ int FindEntity::construct_protobuf(
 
     query.QueryNode(
             get_value<int>(cmd, "_ref", -1),
-            get_value<std::string>(cmd, "class", ""),
-            get_value<Json::Value>(cmd, "link", ""),
-            get_value<Json::Value>(cmd, "constraints", Json::Value()),
-            get_value<Json::Value>(cmd, "results", Json::Value()),
+            get_value<std::string>(cmd, "class"),
+            get_value<Json::Value>(cmd, "link"),
+            get_value<Json::Value>(cmd, "constraints"),
+            get_value<Json::Value>(cmd, "results"),
             get_value<bool>(cmd, "unique", false)
             );
 

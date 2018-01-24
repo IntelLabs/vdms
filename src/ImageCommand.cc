@@ -16,23 +16,24 @@ ImageCommand::ImageCommand(const std::string &cmd_name):
 {
 }
 
-void ImageCommand::run_operations(VCL::Image& vclimg, const Json::Value& op)
+void ImageCommand::run_operations(VCL::Image& vclimg, const Json::Value& ops)
 {
-    for (auto& operation : op) {
-        std::string type = operation["type"].asString();
+    // Correct operation type and parameters are guaranteed at this point
+    for (auto& op : ops) {
+        std::string type = get_value<std::string>(op, "type");
         if (type == "threshold") {
-            vclimg.threshold(operation["value"].asInt());
+            vclimg.threshold(get_value<int>(op, "value"));
         }
         else if (type == "resize") {
-            vclimg.resize(operation["height"].asInt(),
-                    operation["width" ].asInt());
+            vclimg.resize(get_value<int>(op, "height"),
+                          get_value<int>(op, "width") );
         }
         else if (type == "crop") {
             vclimg.crop(VCL::Rectangle (
-                        operation["x"].asInt(),
-                        operation["y"].asInt(),
-                        operation["height"].asInt(),
-                        operation["width" ].asInt()));
+                        get_value<int>(op, "x"),
+                        get_value<int>(op, "y"),
+                        get_value<int>(op, "width"),
+                        get_value<int>(op, "height") ));
         }
         else {
             throw ExceptionCommand(ImageError, "Operation not defined");
@@ -58,7 +59,7 @@ int AddImage::construct_protobuf(PMGDQuery& query,
 {
     const Json::Value &cmd = jsoncmd[_cmd_name];
 
-    int node_ref = get_value<int>(cmd, "_ref", STATIC_IDENTIFIER++);
+    int node_ref = get_value<int>(cmd, "_ref", ATOMIC_ID.fetch_add(1));
 
     VCL::Image vclimg((void*)blob.data(), blob.size());
 
@@ -70,7 +71,7 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     VCL::ImageFormat vcl_format = VCL::TDB;
 
     if (cmd.isMember("format")) {
-        std::string format = cmd["format"].asString();
+        std::string format = get_value<std::string>(cmd, "format");
 
         if (format == "png") {
             vcl_format = VCL::PNG;
@@ -94,16 +95,11 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     std::string file_name = vclimg.create_unique(img_root, vcl_format);
 
     Json::Value props =
-            get_value<Json::Value>(cmd, "properties", Json::Value());
+            get_value<Json::Value>(cmd, "properties");
     props[ATHENA_IM_PATH_PROP] = file_name;
 
     // Add Image node
-    query.AddNode(
-            node_ref,
-            ATHENA_IM_TAG,
-            props,
-            Json::Value()
-            );
+    query.AddNode(node_ref, ATHENA_IM_TAG, props, Json::Value());
 
     vclimg.store(file_name, vcl_format);
 
@@ -114,17 +110,17 @@ int AddImage::construct_protobuf(PMGDQuery& query,
 
             int src, dst;
             if (link.isMember("direction") && link["direction"] == "in") {
-                src = link["ref"].asUInt();
+                src = get_value<int>(link,"ref");
                 dst = node_ref;
             }
             else {
-                dst = link["ref"].asUInt();
+                dst = get_value<int>(link,"ref");
                 src = node_ref;
             }
 
             query.AddEdge(-1, src, dst,
                 get_value<std::string>(link, "class", ATHENA_IM_EDGE),
-                get_value<Json::Value>(link, "properties", Json::Value())
+                get_value<Json::Value>(link, "properties")
                 );
         }
     }
@@ -134,7 +130,7 @@ int AddImage::construct_protobuf(PMGDQuery& query,
 
         for (auto col : collections) {
 
-            int col_ref = STATIC_IDENTIFIER++;
+            int col_ref = ATOMIC_ID.fetch_add(1);
 
             std::string col_tag = ATHENA_COL_TAG;
 
@@ -188,23 +184,23 @@ int FindImage::construct_protobuf(
     const Json::Value &cmd = jsoncmd[_cmd_name];
 
     Json::Value results =
-                    get_value<Json::Value>(cmd, "results", Json::Value());
+                    get_value<Json::Value>(cmd, "results");
     results["list"].append(ATHENA_IM_PATH_PROP);
 
     // if (find_img.isMember("collections")) {
     //     Json::Value collections = find_img["collections"];
-
     //     for (auto col : collections) {
     //         // Do stuff with the collections
     //         // Here we will need and/or etc.
+    //         // Need PMGD support for this.
     //     }
     // }
 
     query.QueryNode(
             get_value<int>(cmd, "_ref", -1),
             ATHENA_IM_TAG,
-            get_value<Json::Value>(cmd, "link", ""),
-            get_value<Json::Value>(cmd, "constraints", Json::Value()),
+            get_value<Json::Value>(cmd, "link"),
+            get_value<Json::Value>(cmd, "constraints"),
             results,
             get_value<bool>(cmd, "unique", false)
             );

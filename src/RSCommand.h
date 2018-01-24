@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <atomic>
 #include <unordered_map>
 
 #include "PMGDQuery.h"
@@ -18,7 +19,7 @@
 
 namespace athena {
 
-    static uint32_t STATIC_IDENTIFIER = 0;
+    static std::atomic<uint32_t> ATOMIC_ID;
 
 // Helper classes for handling various JSON commands.
     class RSCommand
@@ -29,7 +30,8 @@ namespace athena {
         std::map<std::string, int> _valid_params_map;
 
         template <typename T>
-        T get_value(const Json::Value& json, const std::string& key, const T& def);
+        T get_value(const Json::Value& json, const std::string& key,
+                    const T& def = T());
 
         virtual Json::Value check_responses(Json::Value& responses);
 
