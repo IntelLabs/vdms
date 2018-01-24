@@ -136,7 +136,6 @@
 
 {
   "FindEntity" : {
-        "_ref": -1,
         "class" :  "Patient",
         "constraints": {
          "Age":  [">", 0, "<=", 180 ]
@@ -149,7 +148,6 @@
 
  {
    "FindEntity" : {
-         "_ref" : -1,
          "class" :  "Patient",
          "constraints": {
            "avg": [">", 1.6],
@@ -169,7 +167,6 @@
 },
 {
    "FindEntity" : {
-         "_ref" : -1,
          "class" :  "Patient",
          "constraints": {
          "Email":[">", "g"]
@@ -188,7 +185,6 @@
 
 {
   "FindEntity" : {
-        "_ref": -1,
         "class" :  "Patient",
         "constraints": {
          "Age":  [">", 0, "<=", 100 ]
@@ -201,7 +197,6 @@
 },
 {
    "FindEntity" : {
-         "_ref" : -1,
          "class" :  "Patient",
 
        "link": {

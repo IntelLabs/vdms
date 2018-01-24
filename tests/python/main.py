@@ -13,7 +13,7 @@ port = 55557
 
 class TestMultiClient(unittest.TestCase):
 
-    def addEntitiy(self, thID):
+    def addEntity(self, thID=0):
 
         db = athena.Athena()
         db.connect(hostname, port)
@@ -76,7 +76,7 @@ class TestMultiClient(unittest.TestCase):
         simultaneous = 1000;
         thread_arr = []
         for i in range(1,simultaneous):
-            thread_add = Thread(target=self.addEntitiy,args=(i,) )
+            thread_add = Thread(target=self.addEntity,args=(i,) )
             thread_add.start()
             thread_arr.append(thread_add)
 
@@ -87,6 +87,10 @@ class TestMultiClient(unittest.TestCase):
 
         for th in thread_arr:
             th.join();
+
+    def test_addFindEntity(self):
+        self.addEntity(9000);
+        self.findEntity(9000);
 
 class TestAddImage(unittest.TestCase):
 
@@ -156,14 +160,13 @@ class TestAddImage(unittest.TestCase):
             all_queries.append(query)
 
         response, img_array = db.query(all_queries, [imgs_arr])
-        # print athena.aux_print_json(response)
 
         response = json.loads(response)
         self.assertEqual(len(response), number_of_inserts)
         for i in range(0, number_of_inserts):
             self.assertEqual(response[i]["AddImage"]["status"], 0)
 
-    def test_findEntity(self):
+    def test_findEntityImage(self):
         db = athena.Athena()
         db.connect(hostname, port)
 
