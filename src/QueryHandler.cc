@@ -257,7 +257,7 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
             // This has to go on the controls
             assert(proto_query.blobs().size() > blob_count-1);
 
-            const std::string& blob = rscmd->need_blob() ?
+            const std::string& blob = rscmd->need_blob(query) ?
                                       proto_query.blobs(blob_count++) : "";
 
             int ret_code = rscmd->construct_protobuf(pmgd_query, query, blob,

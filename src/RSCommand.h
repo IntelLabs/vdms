@@ -72,7 +72,7 @@ namespace VDMS {
 
         RSCommand(const std::string& cmd_name);
 
-        virtual bool need_blob() { return false; }
+        virtual bool need_blob(const Json::Value& cmd) { return false; }
 
         virtual int construct_protobuf(
                                 PMGDQuery& query,
@@ -96,6 +96,10 @@ namespace VDMS {
                                const std::string& blob,
                                int grp_id,
                                Json::Value& error);
+
+        bool need_blob(const Json::Value& cmd){
+            return cmd.isMember("blob");
+        }
     };
 
     class Connect : public RSCommand
