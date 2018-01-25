@@ -46,7 +46,7 @@ namespace athena {
     {
 
     protected:
-        void run_operations(VCL::Image& vclimg, const Json::Value& op);
+        void run_operations(VCL::Image& img, const Json::Value& op);
 
     public:
 

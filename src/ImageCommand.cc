@@ -47,20 +47,20 @@ ImageCommand::ImageCommand(const std::string &cmd_name):
 {
 }
 
-void ImageCommand::run_operations(VCL::Image& vclimg, const Json::Value& ops)
+void ImageCommand::run_operations(VCL::Image& img, const Json::Value& ops)
 {
     // Correct operation type and parameters are guaranteed at this point
     for (auto& op : ops) {
         std::string type = get_value<std::string>(op, "type");
         if (type == "threshold") {
-            vclimg.threshold(get_value<int>(op, "value"));
+            img.threshold(get_value<int>(op, "value"));
         }
         else if (type == "resize") {
-            vclimg.resize(get_value<int>(op, "height"),
+            img.resize(get_value<int>(op, "height"),
                           get_value<int>(op, "width") );
         }
         else if (type == "crop") {
-            vclimg.crop(VCL::Rectangle (
+            img.crop(VCL::Rectangle (
                         get_value<int>(op, "x"),
                         get_value<int>(op, "y"),
                         get_value<int>(op, "width"),
@@ -92,10 +92,10 @@ int AddImage::construct_protobuf(PMGDQuery& query,
 
     int node_ref = get_value<int>(cmd, "_ref", ATOMIC_ID.fetch_add(1));
 
-    VCL::Image vclimg((void*)blob.data(), blob.size());
+    VCL::Image img((void*)blob.data(), blob.size());
 
     if (cmd.isMember("operations")) {
-        run_operations(vclimg, cmd["operations"]);
+        run_operations(img, cmd["operations"]);
     }
 
     std::string img_root = _storage_tdb;
@@ -123,7 +123,7 @@ int AddImage::construct_protobuf(PMGDQuery& query,
         }
     }
 
-    std::string file_name = vclimg.create_unique(img_root, vcl_format);
+    std::string file_name = img.create_unique(img_root, vcl_format);
 
     Json::Value props =
             get_value<Json::Value>(cmd, "properties");
@@ -132,7 +132,7 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     // Add Image node
     query.AddNode(node_ref, ATHENA_IM_TAG, props, Json::Value());
 
-    vclimg.store(file_name, vcl_format);
+    img.store(file_name, vcl_format);
 
     if (cmd.isMember("link")) {
         const Json::Value& link = cmd["link"];
@@ -276,14 +276,14 @@ Json::Value FindImage::construct_responses(
             assert(ent.isMember(ATHENA_IM_PATH_PROP));
             std::string im_path = ent[ATHENA_IM_PATH_PROP].asString();
             try {
-                VCL::Image vclimg(im_path);
+                VCL::Image img(im_path);
 
                 if (cmd.isMember("operations")) {
-                    run_operations(vclimg, cmd["operations"]);
+                    run_operations(img, cmd["operations"]);
                 }
 
                 std::vector<unsigned char> img_enc;
-                img_enc = vclimg.get_encoded_image(VCL::PNG);
+                img_enc = img.get_encoded_image(VCL::PNG);
                 if (!img_enc.empty()) {
                     std::string img_str((const char*)
                                         img_enc.data(),
