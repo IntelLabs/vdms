@@ -47,7 +47,7 @@ ImageCommand::ImageCommand(const std::string &cmd_name):
 {
 }
 
-void ImageCommand::run_operations(VCL::Image& img, const Json::Value& ops)
+void ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
 {
     // Correct operation type and parameters are guaranteed at this point
     for (auto& op : ops) {
@@ -95,7 +95,7 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     VCL::Image img((void*)blob.data(), blob.size());
 
     if (cmd.isMember("operations")) {
-        run_operations(img, cmd["operations"]);
+        enqueue_operations(img, cmd["operations"]);
     }
 
     std::string img_root = _storage_tdb;
@@ -248,7 +248,7 @@ Json::Value FindImage::construct_responses(
             VCL::Image img(im_path);
 
             if (cmd.isMember("operations")) {
-                run_operations(img, cmd["operations"]);
+                enqueue_operations(img, cmd["operations"]);
             }
 
             std::vector<unsigned char> img_enc;
