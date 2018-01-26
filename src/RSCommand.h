@@ -41,13 +41,6 @@
 // Json parsing files
 #include <jsoncpp/json/value.h>
 
-#define PARAM_MANDATORY 2
-#define PARAM_OPTIONAL  1
-
-#define ATHENA_COL_TAG          "AT:COLLECTION"
-#define ATHENA_COL_NAME_PROP    "name"
-#define ATHENA_COL_EDGE_TAG     "collection_tag"
-
 namespace athena {
 
     static std::atomic<uint32_t> ATOMIC_ID;

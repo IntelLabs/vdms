@@ -88,7 +88,7 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     int grp_id,
     Json::Value& error)
 {
-    const Json::Value &cmd = jsoncmd[_cmd_name];
+    const Json::Value& cmd = jsoncmd[_cmd_name];
 
     int node_ref = get_value<int>(cmd, "_ref", ATOMIC_ID.fetch_add(1));
 
@@ -125,8 +125,7 @@ int AddImage::construct_protobuf(PMGDQuery& query,
 
     std::string file_name = img.create_unique(img_root, vcl_format);
 
-    Json::Value props =
-            get_value<Json::Value>(cmd, "properties");
+    Json::Value props = get_value<Json::Value>(cmd, "properties");
     props[ATHENA_IM_PATH_PROP] = file_name;
 
     // Add Image node
@@ -156,40 +155,12 @@ int AddImage::construct_protobuf(PMGDQuery& query,
         }
     }
 
-    if (cmd.isMember("collections")) {
-        Json::Value collections = cmd["collections"];
-
-        for (auto col : collections) {
-
-            int col_ref = ATOMIC_ID.fetch_add(1);
-
-            std::string col_tag = ATHENA_COL_TAG;
-
-            Json::Value props_col;
-            props_col[ATHENA_COL_NAME_PROP] = col.asString();
-
-            Json::Value constraints;
-            Json::Value arr;
-            arr.append("==");
-            arr.append(col.asString());
-            constraints[ATHENA_COL_NAME_PROP] = arr;
-
-            bool unique = true;
-
-            // Conditional adding node
-            query.AddNode(col_ref, col_tag, props_col, constraints, unique);
-
-            // Add edge between collection and image
-            query.AddEdge(-1, col_ref, node_ref, ATHENA_COL_EDGE_TAG, props_col);
-        }
-    }
-
     return 0;
 }
 
 Json::Value AddImage::construct_responses(
     Json::Value& response,
-    const Json::Value &json,
+    const Json::Value& json,
     protobufs::queryMessage &query_res)
 {
     Json::Value resp = check_responses(response);
@@ -212,20 +183,10 @@ int FindImage::construct_protobuf(
     int grp_id,
     Json::Value& error)
 {
-    const Json::Value &cmd = jsoncmd[_cmd_name];
+    const Json::Value& cmd = jsoncmd[_cmd_name];
 
-    Json::Value results =
-                    get_value<Json::Value>(cmd, "results");
+    Json::Value results = get_value<Json::Value>(cmd, "results");
     results["list"].append(ATHENA_IM_PATH_PROP);
-
-    // if (find_img.isMember("collections")) {
-    //     Json::Value collections = find_img["collections"];
-    //     for (auto col : collections) {
-    //         // Do stuff with the collections
-    //         // Here we will need and/or etc.
-    //         // Need PMGD support for this.
-    //     }
-    // }
 
     query.QueryNode(
             get_value<int>(cmd, "_ref", -1),
@@ -240,88 +201,78 @@ int FindImage::construct_protobuf(
 }
 
 Json::Value FindImage::construct_responses(
-    Json::Value &responses,
-    const Json::Value &json,
+    Json::Value& responses,
+    const Json::Value& json,
     protobufs::queryMessage &query_res)
 {
-    Json::Value findImage;
-    const Json::Value &cmd = json[_cmd_name];
+    const Json::Value& cmd = json[_cmd_name];
 
     Json::Value ret;
 
-    bool flag_error = false;
-
-    if (responses.size() == 0) {
-        findImage["status"]  = RSCommand::Error;
-        findImage["info"] = "Not Found!";
-        flag_error = true;
-        ret[_cmd_name] = findImage;
+    auto error = [&](Json::Value& res)
+    {
+        ret[_cmd_name] = res;
         return ret;
+    };
+
+    if (responses.size() != 1) {
+        Json::Value return_error;
+        return_error["status"]  = RSCommand::Error;
+        return_error["info"] = "PMGD Response Bad Size";
+        error(return_error);
     }
 
-    for (auto res : responses) {
+    Json::Value& findImage = responses[0];
 
-        if (res["status"] != 0) {
-            flag_error = true;
-            break;
-        }
+    assert(findImage.isMember("entities"));
 
-        if (!res.isMember("entities"))
-            continue;
-
-        findImage = res;
-
-        for (auto& ent : findImage["entities"]) {
-
-            assert(ent.isMember(ATHENA_IM_PATH_PROP));
-            std::string im_path = ent[ATHENA_IM_PATH_PROP].asString();
-            try {
-                VCL::Image img(im_path);
-
-                if (cmd.isMember("operations")) {
-                    run_operations(img, cmd["operations"]);
-                }
-
-                std::vector<unsigned char> img_enc;
-                img_enc = img.get_encoded_image(VCL::PNG);
-                if (!img_enc.empty()) {
-                    std::string img_str((const char*)
-                                        img_enc.data(),
-                                        img_enc.size());
-
-                    query_res.add_blobs(img_str);
-                }
-            } catch (VCL::Exception e) {
-                print_exception(e);
-                findImage["status"] = RSCommand::Error;
-                findImage["info"]   = "VCL Exception";
-                flag_error = true;
-                break;
-            }
-        }
+    if (findImage["status"] != 0) {
+        findImage["status"]  = RSCommand::Error;
+        // Uses PMGD info error.
+        error(findImage);
     }
 
-    if (!flag_error) {
-        findImage["status"] = RSCommand::Success;
-    }
-
-    // In case no properties asked by the user
-    // TODO: This is more like a hack. I don;t like it
-    bool empty_flag = false;
+    bool flag_empty = true;
 
     for (auto& ent : findImage["entities"]) {
+
+        assert(ent.isMember(ATHENA_IM_PATH_PROP));
+        std::string im_path = ent[ATHENA_IM_PATH_PROP].asString();
         ent.removeMember(ATHENA_IM_PATH_PROP);
-        if (ent.getMemberNames().size() == 0) {
-            empty_flag = true;
-            break;
+
+        if (ent.getMemberNames().size() > 0) {
+            flag_empty = false;
+        }
+
+        try {
+            VCL::Image img(im_path);
+
+            if (cmd.isMember("operations")) {
+                run_operations(img, cmd["operations"]);
+            }
+
+            std::vector<unsigned char> img_enc;
+            img_enc = img.get_encoded_image(VCL::PNG);
+            if (!img_enc.empty()) {
+                std::string img_str((const char*)
+                                    img_enc.data(),
+                                    img_enc.size());
+
+                query_res.add_blobs(img_str);
+            }
+        } catch (VCL::Exception e) {
+            print_exception(e);
+            Json::Value return_error;
+            return_error["status"]  = RSCommand::Error;
+            return_error["info"] = "VCL Exception";
+            error(return_error);
         }
     }
 
-    if (empty_flag) {
+    if (!flag_empty) {
         findImage.removeMember("entities");
     }
 
     ret[_cmd_name] = findImage;
-
     return ret;
 }
