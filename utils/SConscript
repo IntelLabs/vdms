@@ -3,7 +3,6 @@ Import('env')
 def compileProtoFiles(utils_env):
   #Compile .proto file to generate protobuf files (.h and .cc).
 
-  #TODO: This is a bit hacky, but will fail otherwise.
   protoQuery = utils_env.Command (
              ['include/protobuf/queryMessage.pb.h',
               'src/protobuf/queryMessage.pb.cc',
@@ -28,6 +27,14 @@ def compileProtoFiles(utils_env):
                  utils/include/protobuf/pmgdMessages.pb.h'
               )
 
+def createAPISchemaString(utils_env):
+  api_schema = utils_env.Command (
+              'include/api_schema/APISchema.h',        # $TARGET
+              ['src/api_schema/api_schema.json',
+               'src/api_schema/createApiString.py'], # $SOURCE
+              'python utils/src/api_schema/createApiString.py $SOURCE $TARGET'
+              )
+
 utils_env = env.Clone()
 utils_env.Append(CPPPATH=
             ['include/comm',
@@ -43,6 +50,7 @@ comm_cc = ['src/comm/Connection.cc',
           ]
 
 compileProtoFiles(utils_env)
+createAPISchemaString(utils_env)
 
 protobuf_cc = ['src/protobuf/queryMessage.pb.cc',
                'src/protobuf/pmgdMessages.pb.cc']

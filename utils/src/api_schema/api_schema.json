@@ -22,6 +22,12 @@
       "minimum": 1
     },
 
+    "refInt": {
+      "type": "integer",
+      "minimum": 1,
+      "maximun": 10000
+    },
+
     "nonNegativeInt": {
       "type": "integer",
       "minimum": 0

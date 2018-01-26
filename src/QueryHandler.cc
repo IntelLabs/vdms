@@ -42,7 +42,7 @@
 #include "jarvis.h"
 #include "util.h"
 
-#include "APISchema.h"
+#include "api_schema/APISchema.h"
 #include <jsoncpp/json/writer.h>
 #include <valijson/adapters/jsoncpp_adapter.hpp>
 #include <valijson/utils/jsoncpp_utils.hpp>
