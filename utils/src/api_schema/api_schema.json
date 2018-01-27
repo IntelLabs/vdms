@@ -22,6 +22,11 @@
       "minimum": 1
     },
 
+    "formatString": {
+      "type": "string",
+      "enum": ["png", "jpg"]
+    },
+
     "refInt": {
       "type": "integer",
       "minimum": 1,
@@ -169,7 +174,7 @@
     "AddImage": {
       "properties": {
         "_ref": { "$ref": "#/definitions/positiveInt" },
-        "format": { "type": "string" },
+        "format": { "$ref": "#/definitions/formatString" },
         "link": { "type": "object" },
         "operations": { "$ref": "#/definitions/blockOperations" },
         "properties": { "type": "object" },
@@ -183,6 +188,7 @@
         "_ref": { "$ref": "#/definitions/positiveInt" },
         "constraints": { "type": "object" },
         "operations": { "$ref": "#/definitions/blockOperations" },
+        "format": { "$ref": "#/definitions/formatString" },
         "results": { "type": "object" },
         "unique": { "type": "boolean" }
       },

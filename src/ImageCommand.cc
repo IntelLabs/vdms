@@ -251,8 +251,32 @@ Json::Value FindImage::construct_responses(
                 enqueue_operations(img, cmd["operations"]);
             }
 
+            // We will return the image in the format the user
+            // request, or on its format in disk, except for the case
+            // of .tdb, where we will encode as png.
+            VCL::ImageFormat format = img.get_image_format() != VCL::TDB ?
+                                      img.get_image_format() : VCL::PNG;
+
+            if (cmd.isMember("format")) {
+                std::string requested_format =
+                            get_value<std::string>(cmd, "format");
+
+                if (requested_format == "png") {
+                    format = VCL::PNG;
+                }
+                else if (requested_format == "jpg") {
+                    format = VCL::JPG;
+                }
+                else {
+                    Json::Value return_error;
+                    return_error["status"]  = RSCommand::Error;
+                    return_error["info"] = "Invalid Format for FindImage";
+                    error(return_error);
+                }
+            }
+
             std::vector<unsigned char> img_enc;
-            img_enc = img.get_encoded_image(VCL::PNG);
+            img_enc = img.get_encoded_image(format);
 
             if (!img_enc.empty()) {
 
