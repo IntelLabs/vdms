@@ -253,12 +253,21 @@ Json::Value FindImage::construct_responses(
 
             std::vector<unsigned char> img_enc;
             img_enc = img.get_encoded_image(VCL::PNG);
-            if (!img_enc.empty()) {
-                std::string img_str((const char*)
-                                    img_enc.data(),
-                                    img_enc.size());
 
-                query_res.add_blobs(img_str);
+            if (!img_enc.empty()) {
+
+                std::string* img_str = query_res.add_blobs();
+                img_str->resize(img_enc.size());
+                std::memcpy((void*)img_str->data(),
+                            (void*)img_enc.data(),
+                            img_enc.size());
+
+            }
+            else {
+                Json::Value return_error;
+                return_error["status"]  = RSCommand::Error;
+                return_error["info"] = "Image Data not found";
+                error(return_error);
             }
         } catch (VCL::Exception e) {
             print_exception(e);
