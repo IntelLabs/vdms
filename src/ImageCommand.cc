@@ -138,14 +138,11 @@ int AddImage::construct_protobuf(PMGDQuery& query,
 
         if (link.isMember("ref")) {
 
-            int src, dst;
+            int dst = get_value<int>(link,"ref"); // Default is "out"
+            int src = node_ref;
             if (link.isMember("direction") && link["direction"] == "in") {
-                src = get_value<int>(link,"ref");
+                src = dst;
                 dst = node_ref;
-            }
-            else {
-                dst = get_value<int>(link,"ref");
-                src = node_ref;
             }
 
             query.AddEdge(-1, src, dst,
@@ -285,7 +282,6 @@ Json::Value FindImage::construct_responses(
                 std::memcpy((void*)img_str->data(),
                             (void*)img_enc.data(),
                             img_enc.size());
-
             }
             else {
                 Json::Value return_error;
