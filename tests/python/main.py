@@ -241,6 +241,63 @@ class TestAddImage(unittest.TestCase):
         # self.assertEqual(response[1]["FindImage"]["entities"][0]["name"], prefix_name + "1")
         self.assertEqual(len(img_array), 2)
 
+    def test_addEntityWithLink(self):
+        db = athena.Athena()
+        db.connect(hostname, port)
+
+        all_queries = []
+
+        props = {}
+        props["name"] = "Luis"
+        props["lastname"] = "Ferro"
+        props["age"] = 27
+
+        addEntity = {}
+        addEntity["_ref"] = 32
+        addEntity["properties"] = props
+        addEntity["class"] = "AwesomePeople"
+
+        query = {}
+        query["AddEntity"] = addEntity
+
+        all_queries.append(query)
+
+        props = {}
+        props["name"] = "Luis"
+        props["lastname"] = "Malo"
+        props["age"] = 27
+
+        link = {}
+        link["ref"] = 32
+        link["direction"] = "in"
+        link["class"] = "Friends"
+
+        addImage = {}
+        addImage["properties"] = props
+        addImage["link"] = link
+
+        imgs_arr = []
+
+        fd = open("../test_images/brain.png")
+        imgs_arr.append(fd.read())
+
+        img_params = {}
+
+        query = {}
+        query["AddImage"] = addImage
+
+        all_queries.append(query)
+
+        # print json.dumps(all_queries)
+        # athena.aux_print_json(all_queries)
+
+        response, res_arr = db.query(all_queries, [imgs_arr])
+        response = json.loads(response)
+        # athena.aux_print_json(response)
+
+        self.assertEqual(response[0]["AddEntity"]["status"], 0)
+        self.assertEqual(response[1]["AddImage"]["status"], 0)
+
     def test_findImage_multiple_res(self):
         db = athena.Athena()
         db.connect(hostname, port)
