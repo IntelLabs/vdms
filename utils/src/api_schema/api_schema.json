@@ -3,6 +3,7 @@
   "type": "array",
   "minItems": 1,
   "items": {
+    "type": "object",
     "anyOf": [
       { "$ref": "#/definitions/AddEntityTop" },
       { "$ref": "#/definitions/FindEntityTop" },
@@ -22,9 +23,15 @@
       "minimum": 1
     },
 
-    "formatString": {
-      "type": "string",
-      "enum": ["png", "jpg"]
+    "nonNegativeInt": {
+      "type": "integer",
+      "minimum": 0
+    },
+
+    "stringArray":  {
+      "type": "array",
+      "items": {"type": "string"},
+      "minimum": 1
     },
 
     "refInt": {
@@ -33,18 +40,28 @@
       "maximun": 10000
     },
 
-    "nonNegativeInt": {
-      "type": "integer",
-      "minimum": 0
+    "formatString": {
+      "type": "string",
+      "enum": ["png", "jpg"]
     },
 
-    "stringArray": {
-      "type": "array",
-      "items": {"type": "string"},
-      "minimum": 1
+    "edgeDirectionString": {
+      "type": "string",
+      "enum": ["in", "out", "any"]
     },
 
-    // operations
+    // Blocks
+
+    "blockLink": {
+      "type": "object",
+      "properties": {
+        "ref":       { "$ref": "#/definitions/refInt" },
+        "direction": { "$ref": "#/definitions/edgeDirectionString" },
+        "class":     { "type": "string" }
+      },
+      "required": ["ref"],
+      "additionalProperties": false
+    },
 
     "blockOperations": {
       "type": "array",
@@ -59,11 +76,13 @@
       "uniqueItems": false
     },
 
+    // Operations
+
     "operationThreshold": {
       "type": "object",
       "properties": {
-        "type": { "enum": [ "threshold" ] },
-        "value" : { "$ref": "#/definitions/nonNegativeInt" }
+        "type":  { "enum": [ "threshold" ] },
+        "value": { "$ref": "#/definitions/nonNegativeInt" }
       },
       "required": ["type", "value"],
       "additionalProperties": false
@@ -72,9 +91,9 @@
     "operationResize": {
       "type": "object",
       "properties": {
-        "type": { "enum": [ "resize" ] },
-        "height" : { "$ref": "#/definitions/positiveInt" },
-        "width"  : { "$ref": "#/definitions/positiveInt" }
+        "type":   { "enum": [ "resize" ] },
+        "height": { "$ref": "#/definitions/positiveInt" },
+        "width":  { "$ref": "#/definitions/positiveInt" }
       },
       "required": ["type", "height", "width"],
       "additionalProperties": false
@@ -83,52 +102,49 @@
     "operationCrop": {
       "type": "object",
       "properties": {
-        "type": { "enum": [ "crop" ] },
-        "x" : { "$ref": "#/definitions/nonNegativeInt" },
-        "y" : { "$ref": "#/definitions/nonNegativeInt" },
-        "height" : { "$ref": "#/definitions/positiveInt" },
-        "width"  : { "$ref": "#/definitions/positiveInt" }
+        "type":   { "enum": [ "crop" ] },
+        "x":      { "$ref": "#/definitions/nonNegativeInt" },
+        "y":      { "$ref": "#/definitions/nonNegativeInt" },
+        "height": { "$ref": "#/definitions/positiveInt" },
+        "width":  { "$ref": "#/definitions/positiveInt" }
       },
       "required": ["type", "x", "y", "height", "width"],
       "additionalProperties": false
     },
 
+    // Top-Level Commands (needed for the Schema)
+
     "AddEntityTop": {
-      "type": "object",
       "properties": {
-        "AddEntity" : { "$ref": "#/definitions/AddEntity" }
+        "AddEntity" : { "type": "object", "$ref": "#/definitions/AddEntity" }
       },
       "additionalProperties": false
     },
 
     "FindEntityTop": {
-      "type": "object",
       "properties": {
-        "FindEntity" : { "$ref": "#/definitions/FindEntity" }
+        "FindEntity" : { "type": "object", "$ref": "#/definitions/FindEntity" }
       },
       "additionalProperties": false
     },
 
     "ConnectTop": {
-      "type": "object",
       "properties": {
-        "Connect" : { "$ref": "#/definitions/Connect" }
+        "Connect" : { "type": "object", "$ref": "#/definitions/Connect" }
       },
       "additionalProperties": false
     },
 
     "AddImageTop": {
-      "type": "object",
       "properties": {
-        "AddImage" : { "$ref": "#/definitions/AddImage" }
+        "AddImage" : { "type": "object", "$ref": "#/definitions/AddImage" }
       },
       "additionalProperties": false
     },
 
     "FindImageTop": {
-      "type": "object",
       "properties": {
-        "FindImage" : { "$ref": "#/definitions/FindImage" }
+        "FindImage" : { "type": "object", "$ref": "#/definitions/FindImage" }
       },
       "additionalProperties": false
     },
@@ -137,9 +153,10 @@
 
     "AddEntity": {
       "properties": {
-        "class": { "type": "string" },
-        "_ref": { "$ref": "#/definitions/positiveInt" },
-        "properties": { "type": "object" },
+        "class":       { "type": "string" },
+        "_ref":        { "$ref": "#/definitions/refInt" },
+        "link":        { "$ref": "#/definitions/blockLink" },
+        "properties":  { "type": "object" },
         "constraints": { "type": "object" }
       },
       "required": ["class"],
@@ -148,9 +165,9 @@
 
     "Connect": {
       "properties": {
-        "class": { "type": "string" },
-        "ref1": { "type": "number" },
-        "ref2": { "type": "number" },
+        "class":      { "type": "string" },
+        "ref1":       { "$ref": "#/definitions/refInt" },
+        "ref2":       { "$ref": "#/definitions/refInt" },
         "properties": { "type": "object" }
       },
       "required": ["class", "ref1", "ref2"],
@@ -159,12 +176,12 @@
 
     "FindEntity": {
       "properties": {
-        "class": { "type": "string" },
-        "_ref": { "$ref": "#/definitions/positiveInt" },
+        "class":       { "type": "string" },
+        "_ref":        { "$ref": "#/definitions/refInt" },
+        "link":        { "$ref": "#/definitions/blockLink" },
         "constraints": { "type": "object" },
-        "results": { "type": "object" },
-        "link": { "type": "object" },
-        "unique": { "type": "boolean" }
+        "results":     { "type": "object" },
+        "unique":      { "type": "boolean" }
       },
 
       "required": ["class"],
@@ -173,24 +190,25 @@
 
     "AddImage": {
       "properties": {
-        "_ref": { "$ref": "#/definitions/positiveInt" },
-        "format": { "$ref": "#/definitions/formatString" },
-        "link": { "type": "object" },
+        "_ref":       { "$ref": "#/definitions/refInt" },
+        "format":     { "$ref": "#/definitions/formatString" },
+        "link":       { "$ref": "#/definitions/blockLink" },
         "operations": { "$ref": "#/definitions/blockOperations" },
-        "properties": { "type": "object" },
-        "collections": { "$ref": "#/definitions/stringArray" }
+        "collections":{ "$ref": "#/definitions/stringArray" },
+        "properties": { "type": "object" }
       },
       "additionalProperties": false
     },
 
     "FindImage": {
       "properties": {
-        "_ref": { "$ref": "#/definitions/positiveInt" },
+        "_ref":        { "$ref": "#/definitions/refInt" },
+        "link":        { "$ref": "#/definitions/blockLink" },
+        "operations":  { "$ref": "#/definitions/blockOperations" },
+        "format":      { "$ref": "#/definitions/formatString" },
         "constraints": { "type": "object" },
-        "operations": { "$ref": "#/definitions/blockOperations" },
-        "format": { "$ref": "#/definitions/formatString" },
-        "results": { "type": "object" },
-        "unique": { "type": "boolean" }
+        "results":     { "type": "object" },
+        "unique":      { "type": "boolean" }
       },
 
       "additionalProperties": false

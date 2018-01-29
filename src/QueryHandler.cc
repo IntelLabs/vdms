@@ -65,23 +65,25 @@ void QueryHandler::init()
     _rs_cmds["AddImage"]   = new AddImage();
     _rs_cmds["FindImage"]  = new FindImage();
 
-    // Load the document containing the schema
+    // Load the string containing the schema (api_schema/APISchema.h)
     Json::Reader reader;
-    Json::Value schemaDocument;
-    bool parseSuccess = reader.parse(schema_json.c_str(), schemaDocument);
+    Json::Value api_schema;
+    bool parseSuccess = reader.parse(schema_json.c_str(), api_schema);
     if (!parseSuccess) {
-        std::cerr << "Failed to load schema document." << std::endl;
+        std::cerr << "Failed to parse API reference schema." << std::endl;
+        std::cerr << "PANIC! Aborting." << std::endl;
         exit(0);
     }
 
     // Parse the json schema into an internal schema format
     valijson::SchemaParser parser;
-    valijson::adapters::JsonCppAdapter schemaDocumentAdapter(schemaDocument);
+    valijson::adapters::JsonCppAdapter schemaDocumentAdapter(api_schema);
     try {
         parser.populateSchema(schemaDocumentAdapter, *_schema);
     }
     catch (std::exception &e) {
-        std::cerr << "Failed to parse schema: " << e.what() << std::endl;
+        std::cerr << "Failed to load schema: " << e.what() << std::endl;
+        std::cerr << "PANIC! Aborting." << std::endl;
         exit(0);
     }
 }
@@ -128,8 +130,8 @@ void QueryHandler::process_connection(comm::Connection *c)
 bool QueryHandler::syntax_checker(const Json::Value& root, Json::Value& error)
 {
     valijson::ValidationResults results;
-    valijson::adapters::JsonCppAdapter targetDocumentAdapter(root);
-    if (!_validator.validate(*_schema, targetDocumentAdapter, &results)) {
+    valijson::adapters::JsonCppAdapter user_query(root);
+    if (!_validator.validate(*_schema, user_query, &results)) {
         GENERIC_LOGGER << "API validation failed for:" << std::endl;
         Json::StyledWriter swriter;
         GENERIC_LOGGER << swriter.write(root) << std::endl;
@@ -235,7 +237,7 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
         }
 
         PMGDQuery pmgd_query(_pmgd_qh);
-        unsigned blob_count = 0;
+        int blob_count = 0;
 
         //iterate over the list of the queries
         for (int j = 0; j < root.size(); j++) {
@@ -246,6 +248,9 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
             int group_count = pmgd_query.add_group();
 
             RSCommand* rscmd = _rs_cmds[cmd];
+
+            // This has to go on the controls
+            assert(proto_query.blobs().size() > blob_count-1);
 
             const std::string& blob = rscmd->need_blob() ?
                                       proto_query.blobs(blob_count++) : "";
