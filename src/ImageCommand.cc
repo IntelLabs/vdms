@@ -75,11 +75,11 @@ void ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
 AddImage::AddImage() : ImageCommand("AddImage")
 {
     _storage_tdb = AthenaConfig::instance()
-                ->get_string_value("tiledb_database", DEFAULT_TDB_PATH);
+                ->get_string_value("tdb_path", DEFAULT_TDB_PATH);
     _storage_png = AthenaConfig::instance()
-                ->get_string_value("png_database", DEFAULT_PNG_PATH);
+                ->get_string_value("png_path", DEFAULT_PNG_PATH);
     _storage_jpg = AthenaConfig::instance()
-                ->get_string_value("jpg_database", DEFAULT_JPG_PATH);
+                ->get_string_value("jpg_path", DEFAULT_JPG_PATH);
 }
 
 int AddImage::construct_protobuf(PMGDQuery& query,

@@ -1,18 +1,16 @@
 // Athena Config File
 // This is the run-time config file
 // Sets database paths and other parameters
-
 {
     // Network
     "port": 55555, // Default is 55555
     "max_simultaneous_clients": 20, // Default is 500
 
     // Database paths
-    "pmgd_path": "./db/hls-graph",
-    "png_database": "./db/native_format/pngs/",
-    "jpg_database": "./db/native_format/jpgs/",
-    "tiledb_database": "./db/tiledb/hls/",
-    "videos_database": "./videos_db",
+    "pmgd_path": "db/graph", // This will be an IP address in the future
+    "png_path": "db/images/pngs/",
+    "jpg_path": "db/images/jpgs/",
+    "tdb_path": "db/images/tiledb/tdb/",
 
     "support_info": "a-team@intel.com",
     "support_phone": "1-800-A-TEAM"
