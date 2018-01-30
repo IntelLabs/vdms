@@ -50,9 +50,6 @@ void add_patient(protobufs::Command &cmdadd, int id, string name, int age,
 
 TEST(PMGDQueryHandler, addTest)
 {
-    //printf("Testing PMGD add protobuf handler\n");
-
-    int ret = system("rm -r qhgraph");
     Graph db("qhgraph", Graph::Create);
 
     // Since PMGD is still single threaded, provide a lock for the DB
@@ -179,8 +176,6 @@ void print_property(const string &key, const protobufs::Property &p)
 
 TEST(PMGDQueryHandler, queryTestList)
 {
-    //printf("Testing PMGD query protobuf handler for list return\n");
-
     Graph db("qhgraph");
 
     // Since PMGD is still single threaded, provide a lock for the DB
@@ -257,8 +252,6 @@ TEST(PMGDQueryHandler, queryTestList)
 
 TEST(PMGDQueryHandler, queryTestAverage)
 {
-    //printf("Testing PMGD query protobuf handler for average return\n");
-
     Graph db("qhgraph");
 
     // Since PMGD is still single threaded, provide a lock for the DB
@@ -310,8 +303,6 @@ TEST(PMGDQueryHandler, queryTestAverage)
 
 TEST(PMGDQueryHandler, queryTestUnique)
 {
-    //printf("Testing PMGD query protobuf handler for unique query return\n");
-
     Graph db("qhgraph");
 
     // Since PMGD is still single threaded, provide a lock for the DB
@@ -376,8 +367,6 @@ TEST(PMGDQueryHandler, queryTestUnique)
 
 TEST(PMGDQueryHandler, queryNeighborTestList)
 {
-    //printf("Testing PMGD query protobuf handler for list return of neighbor\n");
-
     Graph db("qhgraph");
 
     // Since PMGD is still single threaded, provide a lock for the DB
@@ -471,8 +460,6 @@ TEST(PMGDQueryHandler, queryNeighborTestList)
 
 TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
 {
-    //printf("Testing PMGD query protobuf handler for list return of neighbors with constraints\n");
-
     Graph db("qhgraph");
 
     // Since PMGD is still single threaded, provide a lock for the DB
@@ -575,8 +562,6 @@ TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
 
 TEST(PMGDQueryHandler, queryNeighborTestSum)
 {
-    //printf("Testing PMGD query protobuf handler for summing of given neighbor property\n");
-
     Graph db("qhgraph");
 
     // Since PMGD is still single threaded, provide a lock for the DB
@@ -657,8 +642,6 @@ TEST(PMGDQueryHandler, queryNeighborTestSum)
 
 TEST(PMGDQueryHandler, addConstrainedTest)
 {
-    //printf("Testing PMGD add protobuf handler if node doesn't exist\n");
-
     Graph db("qhgraph");
 
     // Since PMGD is still single threaded, provide a lock for the DB
@@ -747,8 +730,6 @@ TEST(PMGDQueryHandler, addConstrainedTest)
 
 TEST(PMGDQueryHandler, queryNeighborLinksTestList)
 {
-    //printf("Testing PMGD query protobuf handler for list return of neighbors using two links\n");
-
     Graph db("qhgraph");
 
     // Since PMGD is still single threaded, provide a lock for the DB
@@ -858,8 +839,6 @@ TEST(PMGDQueryHandler, queryNeighborLinksTestList)
 
 TEST(PMGDQueryHandler, queryNeighborLinksReuseTestList)
 {
-    // printf("Testing PMGD query protobuf handler for list return of neighbors using two links with reuse\n");
-
     Graph db("qhgraph");
 
     // Since PMGD is still single threaded, provide a lock for the DB
@@ -984,8 +963,6 @@ TEST(PMGDQueryHandler, queryNeighborLinksReuseTestList)
 
 TEST(PMGDQueryHandler, querySortedNeighborLinksReuseTestList)
 {
-    // printf("Testing PMGD query protobuf handler for sorted list return of neighbors using two links\n");
-
     Graph db("qhgraph");
 
     // Since PMGD is still single threaded, provide a lock for the DB
@@ -1117,8 +1094,6 @@ TEST(PMGDQueryHandler, querySortedNeighborLinksReuseTestList)
 
 TEST(PMGDQueryHandler, queryTestListLimit)
 {
-    //printf("Testing PMGD query protobuf handler for list return with limit\n");
-
     Graph db("qhgraph");
 
     // Since PMGD is still single threaded, provide a lock for the DB
@@ -1188,8 +1163,6 @@ TEST(PMGDQueryHandler, queryTestListLimit)
 
 TEST(PMGDQueryHandler, queryTestSortedLimitedAverage)
 {
-    //printf("Testing PMGD query protobuf handler for average return on sorted and limited return\n");
-
     Graph db("qhgraph");
 
     // Since PMGD is still single threaded, provide a lock for the DB
@@ -1242,5 +1215,3 @@ TEST(PMGDQueryHandler, queryTestSortedLimitedAverage)
         }
     }
 }
-
-

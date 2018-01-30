@@ -56,8 +56,7 @@ def buildServer(intel_path, env):
 
   test_sources = ['tests/main.cc',
                   'tests/pmgd_queries.cc',
-                  'tests/add_image.cc',
-                  'tests/json_query_test.cc'
+                  'tests/json_queries.cc'
                  ]
 
   query_tests = testenv.Program(

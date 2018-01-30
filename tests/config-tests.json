@@ -6,5 +6,5 @@
     "port": 55555, // Default is 55555
 
     // Database paths
-    "pmgd_path": "test-graph",
+    "pmgd_path": "test-graph"
 }
