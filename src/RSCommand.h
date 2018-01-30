@@ -53,7 +53,7 @@ namespace athena {
 
         template <typename T>
         T get_value(const Json::Value& json, const std::string& key,
-                    const T& def = T());
+                    T def = T());
 
         void add_link(PMGDQuery& query, const Json::Value& link,
                       int node_ref, const std::string tag);

@@ -87,7 +87,7 @@ Json::Value RSCommand::check_responses(Json::Value& responses)
 namespace athena {
 template<>
 int RSCommand::get_value(const Json::Value& json, const std::string& key,
-                         const int& def)
+                         int def)
 {
     if (json.isMember(key))
         return json[key].asInt();
@@ -97,7 +97,7 @@ int RSCommand::get_value(const Json::Value& json, const std::string& key,
 
 template<>
 bool RSCommand::get_value(const Json::Value& json, const std::string& key,
-                          const bool& def)
+                          bool def)
 {
     if (json.isMember(key))
         return json[key].asBool();
@@ -108,7 +108,7 @@ bool RSCommand::get_value(const Json::Value& json, const std::string& key,
 template<>
 std::string RSCommand::get_value(const Json::Value& json,
                                  const std::string& key,
-                                 const std::string& def)
+                                 std::string def)
 {
     if (json.isMember(key))
         return json[key].asString();
@@ -119,7 +119,7 @@ std::string RSCommand::get_value(const Json::Value& json,
 template<>
 Json::Value RSCommand::get_value(const Json::Value& json,
                                  const std::string& key,
-                                 const Json::Value& def)
+                                 Json::Value def)
 {
     return json[key];
 }
@@ -138,7 +138,7 @@ void RSCommand::add_link(PMGDQuery& query, const Json::Value& link,
 
     query.AddEdge(-1, src, dst,
         get_value<std::string>(link, "class", tag),
-        get_value<Json::Value>(link, "properties")
+        link["properties"]
         );
 }
 
@@ -162,8 +162,8 @@ int AddEntity::construct_protobuf(PMGDQuery& query,
     query.AddNode(
             node_ref,
             get_value<std::string>(cmd, "class"),
-            get_value<Json::Value>(cmd, "properties"),
-            get_value<Json::Value>(cmd, "constraints"),
+            cmd["properties"],
+            cmd["constraints"],
             get_value<bool>(cmd, "unique", false)
             );
 
@@ -206,7 +206,7 @@ int Connect::construct_protobuf(
             get_value<int>(cmd, "ref1", -1), // src
             get_value<int>(cmd, "ref2", -1), // dst
             get_value<std::string>(cmd, "class"), // tag
-            get_value<Json::Value>(cmd, "properties")
+            cmd["properties"]
             );
 
     return 0;
@@ -230,9 +230,9 @@ int FindEntity::construct_protobuf(
     query.QueryNode(
             get_value<int>(cmd, "_ref", -1),
             get_value<std::string>(cmd, "class"),
-            get_value<Json::Value>(cmd, "link"),
-            get_value<Json::Value>(cmd, "constraints"),
-            get_value<Json::Value>(cmd, "results"),
+            cmd["link"],
+            cmd["constraints"],
+            cmd["results"],
             get_value<bool>(cmd, "unique", false)
             );
 

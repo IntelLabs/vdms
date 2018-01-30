@@ -126,6 +126,10 @@ int AddImage::construct_protobuf(PMGDQuery& query,
 
     std::string file_name = img.create_unique(img_root, vcl_format);
 
+    // Modifiyng the existing properties that the user gives
+    // is a good option to make the AddNode more simple.
+    // This is not ideal since we are manupulating with user's
+    // input, but for now it is an acceptable solution.
     Json::Value props = get_value<Json::Value>(cmd, "properties");
     props[ATHENA_IM_PATH_PROP] = file_name;
 
@@ -174,8 +178,8 @@ int FindImage::construct_protobuf(
     query.QueryNode(
             get_value<int>(cmd, "_ref", -1),
             ATHENA_IM_TAG,
-            get_value<Json::Value>(cmd, "link"),
-            get_value<Json::Value>(cmd, "constraints"),
+            cmd["link"],
+            cmd["constraints"],
             results,
             get_value<bool>(cmd, "unique", false)
             );
