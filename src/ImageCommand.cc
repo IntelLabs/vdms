@@ -135,22 +135,7 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     img.store(file_name, vcl_format);
 
     if (cmd.isMember("link")) {
-        const Json::Value& link = cmd["link"];
-
-        if (link.isMember("ref")) {
-
-            int dst = get_value<int>(link,"ref"); // Default is "out"
-            int src = node_ref;
-            if (link.isMember("direction") && link["direction"] == "in") {
-                src = dst;
-                dst = node_ref;
-            }
-
-            query.AddEdge(-1, src, dst,
-                get_value<std::string>(link, "class", ATHENA_IM_EDGE),
-                get_value<Json::Value>(link, "properties")
-                );
-        }
+        add_link(query, cmd["link"], node_ref, ATHENA_IM_EDGE);
     }
 
     return 0;

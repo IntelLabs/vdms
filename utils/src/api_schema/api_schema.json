@@ -57,6 +57,7 @@
       "properties": {
         "ref":       { "$ref": "#/definitions/refInt" },
         "direction": { "$ref": "#/definitions/edgeDirectionString" },
+        "properties":{ "type": "object" },
         "class":     { "type": "string" }
       },
       "required": ["ref"],

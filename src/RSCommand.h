@@ -55,6 +55,9 @@ namespace athena {
         T get_value(const Json::Value& json, const std::string& key,
                     const T& def = T());
 
+        void add_link(PMGDQuery& query, const Json::Value& link,
+                      int node_ref, const std::string tag);
+
         virtual Json::Value check_responses(Json::Value& responses);
 
     public:
@@ -93,6 +96,11 @@ namespace athena {
                                const std::string& blob,
                                int grp_id,
                                Json::Value& error);
+
+        Json::Value construct_responses(
+                Json::Value &json_responses,
+                const Json::Value &json,
+                protobufs::queryMessage &response);
     };
 
     class Connect : public RSCommand

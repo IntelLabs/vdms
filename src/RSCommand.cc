@@ -37,6 +37,8 @@
 
 using namespace athena;
 
+#define ATHENA_GENERIC_LINK  "AT:edge"
+
 RSCommand::RSCommand(const std::string& cmd_name):
     _cmd_name(cmd_name)
 {
@@ -123,6 +125,23 @@ Json::Value RSCommand::get_value(const Json::Value& json,
 }
 }
 
+void RSCommand::add_link(PMGDQuery& query, const Json::Value& link,
+                         int node_ref, const std::string tag)
+{
+    // ref is guaranteed to exist at this point
+    int dst = get_value<int>(link,"ref"); // Default is "out"
+    int src = node_ref;
+    if (link.isMember("direction") && link["direction"] == "in") {
+        src = dst;
+        dst = node_ref;
+    }
+
+    query.AddEdge(-1, src, dst,
+        get_value<std::string>(link, "class", tag),
+        get_value<Json::Value>(link, "properties")
+        );
+}
+
 //========= AddEntity definitions =========
 
 AddEntity::AddEntity() : RSCommand("AddEntity")
@@ -137,15 +156,34 @@ int AddEntity::construct_protobuf(PMGDQuery& query,
 {
     const Json::Value& cmd = jsoncmd[_cmd_name];
 
+    int node_ref = get_value<int>(cmd, "_ref",
+                                  query.get_available_reference());
+
     query.AddNode(
-            get_value<int>(cmd, "_ref", -1),
+            node_ref,
             get_value<std::string>(cmd, "class"),
             get_value<Json::Value>(cmd, "properties"),
             get_value<Json::Value>(cmd, "constraints"),
             get_value<bool>(cmd, "unique", false)
             );
 
+    if (cmd.isMember("link")) {
+        add_link(query, cmd["link"], node_ref, ATHENA_GENERIC_LINK);
+    }
+
     return 0;
+}
+
+Json::Value AddEntity::construct_responses(
+    Json::Value& response,
+    const Json::Value& json,
+    protobufs::queryMessage &query_res)
+{
+    Json::Value resp = check_responses(response);
+
+    Json::Value ret;
+    ret[_cmd_name] = resp;
+    return ret;
 }
 
 //========= Connect definitions =========
