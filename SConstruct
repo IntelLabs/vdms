@@ -1,81 +1,49 @@
 # We need to add this dependecy.
 import os
+AddOption('--no-server', action="store_false", dest="no-server",
+                      default = True,
+                      help='Only build client libraries')
 AddOption('--timing', action='append_const', dest='cflags',
-                      const='-DCHRONO_TIMING')
+                      const='-DCHRONO_TIMING',
+                      help= 'Build server with chronos')
 
 def buildServer(intel_path, env):
 
-  athena_env = env.Clone()
-  athena_env.Append(CPPPATH= ['src',
-                '/usr/include/jsoncpp/',
-                'utils/include',
-                intel_path + 'jarvis/include',
-                intel_path + 'jarvis/util',
-                intel_path + 'vcl/include',
-                intel_path + 'vcl/src',
-                ])
-
-  libs_paths = ['/usr/local/lib/', 'utils/',
+  env.Append(
+    CPPPATH= ['src', 'utils/include',
+              '/usr/include/jsoncpp/',
+              intel_path + 'jarvis/include',
+              intel_path + 'jarvis/util',
+              intel_path + 'vcl/include',
+              intel_path + 'vcl/src',
+             ],
+    LIBS = [ 'jarvis', 'jarvis-util',
+             'jsoncpp', 'protobuf',
+             'athena-utils', 'vcl', 'pthread',
+           ],
+    LIBPATH = ['/usr/local/lib/', 'utils/',
                intel_path + 'utils/',
                intel_path + 'vcl/',
                intel_path + 'jarvis/lib/'
                ]
+  )
 
   athena_server_files = [
+                  'src/athena.cc',
+                  'src/Server.cc',
                   'src/AthenaConfig.cc',
                   'src/QueryHandler.cc',
+                  'src/QueryMessage.cc',
+                  'src/CommunicationManager.cc',
+                  'src/PMGDQuery.cc',
                   'src/SearchExpression.cc',
                   'src/PMGDQueryHandler.cc',
-                  'src/PMGDQuery.cc',
                   'src/RSCommand.cc',
                   'src/ImageCommand.cc',
                   'src/ExceptionsCommand.cc',
-                  'src/QueryMessage.cc',
-                  'src/athena.cc',
-                  'src/Server.cc',
-                  'src/CommunicationManager.cc',
                 ]
 
-  athena = athena_env.Program('athena', athena_server_files,
-              LIBS = [
-                  'jarvis', 'jarvis-util',
-                  'jsoncpp',
-                  'athena-utils', 'protobuf',
-                  'vcl', 'pthread',
-                  ],
-              LIBPATH = libs_paths
-              )
-
-  testenv = Environment(CPPPATH = ['src', 'utils/include',
-                          intel_path + 'jarvis/include',
-                          intel_path + 'vcl/include',
-                          intel_path + 'vcl/src',
-                          intel_path + 'jarvis/util', ],
-                          CXXFLAGS="-std=c++11 -g -O3")
-  testenv.MergeFlags(GetOption('cflags'))
-
-  test_sources = ['tests/main.cc',
-                  'tests/pmgd_queries.cc',
-                  'tests/json_queries.cc'
-                 ]
-
-  query_tests = testenv.Program(
-                  'tests/query_tests',
-                  ['src/QueryHandler.o',
-                  'src/SearchExpression.o',
-                  'src/AthenaConfig.o',
-                  'src/RSCommand.o',
-                  'src/ImageCommand.o',
-                  'src/ExceptionsCommand.o',
-                  'src/PMGDQueryHandler.o',
-                  'src/PMGDQuery.o',
-                  'src/QueryMessage.o',
-                  test_sources ],
-                  LIBS = ['jarvis', 'jarvis-util', 'jsoncpp',
-                          'athena-utils', 'protobuf', 'vcl',
-                          'gtest', 'pthread' ],
-                  LIBPATH = libs_paths
-                 )
+  athena = env.Program('athena', athena_server_files)
 
 # Set INTEL_PATH. First check arguments, then enviroment, then default
 if ARGUMENTS.get('INTEL_PATH', '') != '':
@@ -92,5 +60,7 @@ env.MergeFlags(GetOption('cflags'))
 SConscript(os.path.join('utils', 'SConscript'), exports=['env'])
 SConscript(os.path.join('client','SConscript'), exports=['env'])
 
-if not ARGUMENTS.get('BUILD_SERVER', False):
+if GetOption('no-server'):
   buildServer(intel_path, env)
+  # Build tests only if server is built
+  SConscript(os.path.join('tests', 'SConscript'), exports=['env'])
