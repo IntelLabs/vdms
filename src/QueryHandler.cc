@@ -206,6 +206,14 @@ int QueryHandler::parse_commands(const std::string& commands,
     return 0;
 }
 
+void QueryHandler::cleanup_query(const std::vector<std::string>& images)
+{
+    for (auto& img_path : images) {
+        VCL::Image img(img_path);
+        img.delete_image();
+    }
+}
+
 void QueryHandler::process_query(protobufs::queryMessage& proto_query,
                                  protobufs::queryMessage& proto_res)
 {
@@ -217,10 +225,11 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
 
         Json::Value cmd_result;
         Json::Value cmd_current;
-        bool flag_error = false;
+        std::vector<std::string> images_log;
 
         auto error = [&](Json::Value& res, Json::Value& failed_command)
         {
+            cleanup_query(images_log);
             res["FailedCommand"] = failed_command;
             json_responses.clear();
             json_responses.append(res);
@@ -257,6 +266,10 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
 
             int ret_code = rscmd->construct_protobuf(pmgd_query, query, blob,
                                                      group_count, cmd_result);
+
+            if (cmd_result.isMember("image_added")) {
+                images_log.push_back(cmd_result["image_added"].asString());
+            }
 
             if (ret_code != 0) {
                 error(cmd_result, root[j]);

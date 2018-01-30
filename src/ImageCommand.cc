@@ -138,6 +138,9 @@ int AddImage::construct_protobuf(PMGDQuery& query,
 
     img.store(file_name, vcl_format);
 
+    // In case we need to cleanup the query
+    error["image_added"] = file_name;
+
     if (cmd.isMember("link")) {
         add_link(query, cmd["link"], node_ref, ATHENA_IM_EDGE);
     }
