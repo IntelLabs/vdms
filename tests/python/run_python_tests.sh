@@ -1,10 +1,11 @@
 rm log.log screen.log dump.log
-rm -r test-graph
-rm -r native_format
-mkdir native_format
-mkdir native_format/pngs
-mkdir native_format/jpgs
-mkdir native_format/descriptors
+rm -r db
+mkdir db
+mkdir db/test-graph
+mkdir db/images
+mkdir db/images/pngs
+mkdir db/images/jpgs
+mkdir db/descriptors
 
 ../../athena -cfg config-tests.json > screen.log &
 python main.py -v

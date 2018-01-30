@@ -86,7 +86,7 @@ TEST(AddImage, simpleAddx10)
     // int i = system("rm -r simpleAddx10_db");
     Graph db("simpleAddx10_db", Graph::Create);
 
-    AthenaConfig::init("./addImage-config.json");
+    AthenaConfig::init("./config-test.json");
     QueryHandler::init();
 
     std::mutex mu;
