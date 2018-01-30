@@ -90,7 +90,8 @@ int AddImage::construct_protobuf(PMGDQuery& query,
 {
     const Json::Value& cmd = jsoncmd[_cmd_name];
 
-    int node_ref = get_value<int>(cmd, "_ref", ATOMIC_ID.fetch_add(1));
+    int node_ref = get_value<int>(cmd, "_ref",
+                                  query.get_available_reference());
 
     VCL::Image img((void*)blob.data(), blob.size());
 

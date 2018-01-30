@@ -43,8 +43,6 @@
 
 namespace athena {
 
-    static std::atomic<uint32_t> ATOMIC_ID;
-
 // Helper classes for handling various JSON commands.
     class RSCommand
     {

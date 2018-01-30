@@ -55,6 +55,7 @@ typedef pmgd::protobufs::Property PMGDProp;
         unsigned _group_count;
         unsigned _current_group;
         PMGDQueryHandler& _pmgd_qh;
+        unsigned _current_ref;
 
         std::vector<std::vector<PMGDCmdResponse* >> _pmgd_responses;
         Json::Value _json_responses;
@@ -62,16 +63,16 @@ typedef pmgd::protobufs::Property PMGDProp;
         void set_property(PMGDProp* p, const char* key, Json::Value val);
         void add_link(const Json::Value& link, pmgd::protobufs::QueryNode* qn);
         void parse_query_constraints(const Json::Value& constraints,
-                                       pmgd::protobufs::QueryNode* query_node);
+                                     pmgd::protobufs::QueryNode* query_node);
 
         void parse_query_results(const Json::Value& result_type,
-                                    pmgd::protobufs::QueryNode* query_node);
+                                 pmgd::protobufs::QueryNode* query_node);
 
         void set_operand(PMGDProp* p, const Json::Value& operand);
 
         void get_response_type(const Json::Value& result_type_array,
-            std::string response,
-            pmgd::protobufs::QueryNode* query_node);
+                               std::string response,
+                               pmgd::protobufs::QueryNode* query_node);
 
         Json::Value parse_response(PMGDCmdResponse* response);
 
@@ -84,8 +85,9 @@ typedef pmgd::protobufs::Property PMGDProp;
         PMGDQuery(PMGDQueryHandler& pmgd_qh);
         ~PMGDQuery();
 
-        unsigned add_group()     {return ++_current_group;}
-        unsigned current_group() {return _current_group;}
+        unsigned add_group()     { return ++_current_group; }
+        unsigned current_group() { return _current_group; }
+        unsigned get_available_reference() { return _current_ref++; }
 
         Json::Value& run();
 

@@ -40,8 +40,11 @@
 
 using namespace athena;
 
+// This is for internal reference of the transaction
+#define REFERENCE_RANGE_START   20000
+
 PMGDQuery::PMGDQuery(PMGDQueryHandler& pmgd_qh) :
-    _pmgd_qh(pmgd_qh)
+    _pmgd_qh(pmgd_qh), _current_ref(REFERENCE_RANGE_START)
 {
     _current_group = 0;
     //this command to start a new transaction
