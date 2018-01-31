@@ -31,9 +31,11 @@
 
 #include <string>
 #include <iostream>
+#include <cstring>
 
-#include "PMGDQueryHandler.h" // to provide the database connection
-#include "PMGDQuery.h" // to provide the database connection
+#include "PMGDQueryHandler.h"
+#include "PMGDQuery.h"
+#include "ExceptionsCommand.h"
 
 #include <jsoncpp/json/json.h>
 #include <jsoncpp/json/value.h>
@@ -48,9 +50,9 @@ PMGDQuery::PMGDQuery(PMGDQueryHandler& pmgd_qh) :
 {
     _current_group = 0;
     //this command to start a new transaction
-    PMGDCommand* cmdtx = new PMGDCommand;
+    PMGDCmd* cmdtx = new PMGDCmd;
     //this the protobuf of a new TxBegin
-    cmdtx->set_cmd_id(PMGDCommand::TxBegin);
+    cmdtx->set_cmd_id(PMGDCmd::TxBegin);
     cmdtx->set_cmd_grp_id(_current_group); //give it an ID
     _cmds.push_back(cmdtx); //push the creating command to the vector
 }
@@ -75,9 +77,9 @@ Json::Value& PMGDQuery::run()
     add_group(); // will set _current_group correctly
 
     // End of the transaction
-    PMGDCommand* cmdtxend = new PMGDCommand;
+    PMGDCmd* cmdtxend = new PMGDCmd;
     // Commit here doesn't change anything. Just indicates end of TX
-    cmdtxend->set_cmd_id(PMGDCommand::TxCommit);
+    cmdtxend->set_cmd_id(PMGDCmd::TxCommit);
     cmdtxend->set_cmd_grp_id(_current_group);
     _cmds.push_back(cmdtxend);
 
@@ -85,7 +87,6 @@ Json::Value& PMGDQuery::run()
     _pmgd_responses = _pmgd_qh.process_queries(_cmds, _current_group + 1);
 
     if (_pmgd_responses.size() != _current_group + 1) {
-        // TODO: This is where we will need request server rollback code.
         _json_responses["status"] = -1;
         _json_responses["info"] = "PMGD Transacion Error";
         return _json_responses;
@@ -104,12 +105,13 @@ Json::Value& PMGDQuery::run()
     return _json_responses;
 }
 
-void PMGDQuery::add_link(const Json::Value& link, PMGD::protobufs::QueryNode *qn)
+void PMGDQuery::add_link(const Json::Value& link, PMGDQueryNode* qn)
 {
     PMGD::protobufs::LinkInfo *qnb = qn->mutable_link();
     if (link.isMember("ref")) {
         qnb->set_start_identifier(link["ref"].asInt());
     }
+
     if (link.isMember("direction")) {
         if (link["direction"]== "out")
             qnb->set_dir(PMGD::protobufs::LinkInfo::Outgoing);
@@ -118,47 +120,44 @@ void PMGDQuery::add_link(const Json::Value& link, PMGD::protobufs::QueryNode *qn
         else if ( link["direction"] == "any" )
             qnb->set_dir(PMGD::protobufs::LinkInfo::Any);
     }
+
     if (link.isMember("unique"))
         qnb->set_nb_unique(link["unique"].asBool());
+
     if (link.isMember("class"))
          qnb->set_e_tag(link["class"].asCString());
 }
 
-Json::Value PMGDQuery::print_properties(const std::string &key,
-                            const PMGDProp &p)
+void PMGDQuery::set_value(const std::string& key, const PMGDProp& p,
+                          Json::Value& prop)
 {
-    Json::Value result;
     switch(p.type()) {
         case PMGDProp::BooleanType:
-            result[key]= p.bool_value();
+            prop[key]= p.bool_value();
             break;
 
         case PMGDProp::IntegerType:
-            result[key]= (Json::Value::UInt64) p.int_value();
+            prop[key]= (Json::Value::UInt64) p.int_value();
             break;
 
         case PMGDProp::StringType:
-            result[key]= p.string_value();
+            prop[key]= p.string_value();
             break;
 
         case PMGDProp::TimeType:
-            result[key]= p.string_value();
+            prop[key]= p.string_value();
             break;
 
         case PMGDProp::FloatType:
-            result[key] = p.float_value();
+            prop[key] = p.float_value();
             break;
 
         default:
-            // TODO, THROW
-            std::cout << "RSCommand::print_properties: Unknown\n";
+            throw ExceptionCommand(PMGDTransactiontError, "Type Error");
     }
-
-    return result[key];
 }
 
-void PMGDQuery::set_property(PMGDProp *p,
-        const char *key, Json::Value val)
+void PMGDQuery::set_property(PMGDProp* p, const char* key, Json::Value val)
 {
     if (val.isObject()) {
         if (val.isMember("_date")) {
@@ -167,7 +166,8 @@ void PMGDQuery::set_property(PMGDProp *p,
             p->set_string_value(val["_date"].asString());
         }
 
-        if (val.isMember("_blob")) { //the blob value is read and stored as a string otherwose it is not shown in the graph.
+        if (val.isMember("_blob")) {
+            // the blob value is read and stored as a string
             p->set_type(PMGDProp::StringType);
             p->set_key(key);
             p->set_string_value(val["_blob"].asString());
@@ -206,109 +206,101 @@ Json::Value PMGDQuery::construct_error_response(PMGDCmdResponse *response)
 Json::Value PMGDQuery::parse_response(PMGDCmdResponse* response)
 {
     Json::Value ret;
-    // We down-cast from uint64 to int
-    int return_val  = response->op_int_value();
     int return_code = response->error_code();
 
-    bool flag_error = false;
+    auto response_success_or_exists = [&return_code]() {
+        return return_code == PMGDCmdResponse::Success &&
+               return_code == PMGDCmdResponse::Exists;
+    };
+
+    auto response_success = [&return_code]() {
+        return return_code == PMGDCmdResponse::Success;
+    };
 
     switch (response->r_type()) {
 
         case PMGD::protobufs::NodeID:
-            if (return_code != PMGDCmdResponse::Success &&
-                return_code != PMGDCmdResponse::Exists ) {
-                flag_error = true;
+            if (!response_success_or_exists()) {
+                return construct_error_response(response);
             }
             break;
 
         case PMGD::protobufs::EdgeID:
-            if (return_code != PMGDCmdResponse::Success &&
-                return_code != PMGDCmdResponse::Exists ) {
-                flag_error = true;
+            if (!response_success_or_exists()) {
+                return construct_error_response(response);
             }
             break;
 
         case PMGD::protobufs::Cached:
-            if (return_code != PMGDCmdResponse::Success)
-                flag_error = true;
+            if (!response_success())
+                return construct_error_response(response);
             break;
 
         case PMGD::protobufs::List:
-            if (return_code == PMGDCmdResponse::Success) {
+            if (response_success()) {
                 Json::Value list;
                 auto& mymap = response->prop_values();
 
-                int count = 0;
-
-                for (auto& key : mymap) {
-                    count = key.second.values().size();
-                    break;
-                }
+                assert(mymap.size() > 0);
+                int count = mymap.begin()->second.values().size();
 
                 if (count > 0) {
                     for (int i = 0; i < count; ++i) {
                         Json::Value prop;
 
                         for (auto& key : mymap) {
-                            const PMGDPropList &p = key.second;
-                            prop[key.first] = print_properties(
-                                                key.first.c_str(),
-                                                p.values(i));
+                            const PMGDPropList& p = key.second;
+                            set_value(key.first, p.values(i), prop);
                         }
 
                         list.append(prop);
                     }
-                    ret["returned"] = return_val;
+                    ret["returned"] = (Json::UInt64) response->op_int_value();
                     ret["entities"] = list;
                }
             }
             else {
-                flag_error = true;
+                return construct_error_response(response);
             }
             break;
 
         case PMGD::protobufs::Average:
-            if (return_code == PMGDCmdResponse::Success) {
-                float average = response->op_float_value();
+            if (response_success()) {
+                assert(response->op_oneof_case() == PMGDCmdResponse::kOpFloatValue);
+                double average = response->op_float_value();
                 ret["average"] = double(average);
             }
             else {
-                flag_error = true;
+                return construct_error_response(response);
             }
             break;
 
         case PMGD::protobufs::Sum:
-
-            if (return_code == PMGDCmdResponse::Success) {
-                // We down-cast from uint64 to int64
-                Json::Int64 sum = response->op_int_value();
-                ret["sum"]= sum;
+            if (response_success()) {
+                if (response->op_oneof_case() == PMGDCmdResponse::kOpFloatValue)
+                    ret["sum"] = response->op_float_value();
+                else
+                    ret["sum"] = (Json::UInt64)response->op_int_value();
             }
             else {
-                flag_error = true;
+                return construct_error_response(response);
             }
             break;
 
         case PMGD::protobufs::Count:
-            if (return_code == PMGDCmdResponse::Success) {
-                ret["count"] = return_val;
+            if (response_success()) {
+                ret["count"] = (Json::UInt64) response->op_int_value();
             }
             else {
-                flag_error = true;
+                return construct_error_response(response);
             }
             break;
 
         default:
-            flag_error = true;
+            return construct_error_response(response);
     }
 
-    if (flag_error) {
-        return construct_error_response(response);
-    }
-    else {
-        ret["status"] = PMGDCmdResponse::Success;
-    }
-
+    ret["status"] = PMGDCmdResponse::Success;
     return ret;
 }
 
@@ -336,89 +328,78 @@ void PMGDQuery::set_operand(PMGDProp* p, const Json::Value& operand)
 }
 
 void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
-                                       PMGD::protobufs::QueryNode* query_node)
+                                       PMGDQueryNode* query_node)
 {
     for (auto &key : constraints.getMemberNames()) {
 
-        PMGDPropPred *pp = query_node->add_predicates();
-        const Json::Value &predicate = constraints[key];
+        const Json::Value& predicate = constraints[key];
 
-        assert(predicate.size() > 1);
+        // Will either have 2 or 4 arguments
+        assert(predicate.isArray());
+        assert(predicate.size() == 2 || predicate.size() == 4);
 
+        PMGDPropPred::Op op;
+        if (predicate.size() == 4) {
+            if (strcmp(predicate[0].asCString(), ">") == 0 &&
+                strcmp(predicate[2].asCString(), "<") == 0)
+                op = PMGDPropPred::GtLt;
+            else if (strcmp(predicate[0].asCString(), ">=") == 0 &&
+                     strcmp(predicate[2].asCString(), "<") == 0)
+                op = PMGDPropPred::GeLt;
+            else if (strcmp(predicate[0].asCString(), ">" ) == 0 &&
+                     strcmp(predicate[2].asCString(), "<=") == 0)
+                op = PMGDPropPred::GtLe;
+            else if (strcmp(predicate[0].asCString(), ">=") == 0 &&
+                     strcmp(predicate[2].asCString(), "<=") == 0)
+                op = PMGDPropPred::GeLe;
+        }
+        else {
+            if (strcmp(predicate[0].asCString(), ">" ) == 0)
+                op = PMGDPropPred::Gt;
+            else if (strcmp(predicate[0].asCString(), ">=") == 0)
+                op = PMGDPropPred::Ge;
+            else if (strcmp(predicate[0].asCString(), "<") == 0)
+                op = PMGDPropPred::Lt;
+            else if (strcmp(predicate[0].asCString(), "<=") == 0)
+                op = PMGDPropPred::Le;
+            else if (strcmp(predicate[0].asCString(), "==") == 0)
+                op = PMGDPropPred::Eq;
+            else if(strcmp(predicate[0].asCString(), "!=") == 0)
+                op = PMGDPropPred::Ne;
+        }
+
+        PMGDPropPred* pp = query_node->add_predicates();
         pp->set_key(key);  //assign the property predicate key
-        std::vector<std::string> operators;
-        std::vector<Json::Value> operands;
+        pp->set_op(op);
 
-        PMGDProp *p1;
-        PMGDProp *p2 ;
-
-        //iterate over the key elements
-        for (int k=0; k < predicate.size(); k++) {
-            if ((predicate[k] == ">=") ||
-                (predicate[k] == "<=") ||
-                (predicate[k] == "==") ||
-                (predicate[k] == "!=") ||
-                (predicate[k] == "<") ||
-                (predicate[k] == ">")
-              )
-                operators.push_back(predicate[k].asCString());
-            else
-                operands.push_back(predicate[k]);
-        }
-        if (operators.size() > 1) {
-            if (operators[0 ] ==">" && operators[1] == "<")
-                pp->set_op(PMGDPropPred::GtLt);
-            else if (operators[0] == ">=" && operators[1] == "<")
-                pp->set_op(PMGDPropPred::GeLt);
-            else if (operators[0] == ">" && operators[1] == "<=")
-                pp->set_op(PMGDPropPred::GtLe);
-            else if (operators[0] == ">=" && operators[1] == "<=")
-                pp->set_op(PMGDPropPred::GeLe);
-        } //if two operations are involved
-        else if (operators.size() == 1) {
-            if (operators[0] == ">" )
-                pp->set_op(PMGDPropPred::Gt);
-            else if (operators[0] == ">=")
-                pp->set_op(PMGDPropPred::Ge);
-            else if (operators[0] == "<")
-                pp->set_op(PMGDPropPred::Lt);
-            else if (operators[0] == "<=")
-                pp->set_op(PMGDPropPred::Le);
-            else if (operators[0] == "==")
-                pp->set_op(PMGDPropPred::Eq);
-            else if(operators[0] == "!=")
-                pp->set_op(PMGDPropPred::Ne);
-        }
-
-        p1 = pp->mutable_v1();
+        PMGDProp* p1 = pp->mutable_v1();
         p1->set_key(key);
-        set_operand(p1, operands[0]);
+        set_operand(p1, predicate[1]);
 
-        if (operands.size() > 1) { //two operands per operator
-
-            p2 = pp->mutable_v2();
+        if (predicate.size() == 4) {
+            PMGDProp* p2 = pp->mutable_v2();
             p2->set_key(key);
-            set_operand(p2, operands[1]);
+            set_operand(p2, predicate[3]);
         }
     }
 }
 
-void PMGDQuery::get_response_type(const Json::Value& result_type_array,
-            std::string response,
-            PMGD::protobufs::QueryNode *query_node)
+void PMGDQuery::get_response_type(const Json::Value& res_types,
+            const std::string& response,
+            PMGDQueryNode *query_node)
 {
-    for (auto response_key=0; response_key!=result_type_array[response].size();
-            response_key++) {
+    for (auto response_key=0; response_key != res_types[response].size();
+         response_key++) {
         std::string *r_key= query_node->add_response_keys();
-        *r_key = result_type_array[response][response_key].asString();
+        *r_key = res_types[response][response_key].asString();
     }
 }
 
 void PMGDQuery::parse_query_results (const Json::Value& result_type,
-                                    PMGD::protobufs::QueryNode *query_node)
+                                    PMGDQueryNode *query_node)
 {
-    for (auto response_type =result_type.begin();
-            response_type!=result_type.end(); response_type++) {
+    for (auto response_type = result_type.begin();
+            response_type != result_type.end(); response_type++) {
 
         if (response_type.key().asString() == "list") {
             query_node->set_r_type(PMGD::protobufs::List);
@@ -446,27 +427,28 @@ void PMGDQuery::parse_query_results (const Json::Value& result_type,
         }
 
         else if (response_type.key().asString() == "average") {
-
             query_node->set_r_type(PMGD::protobufs::Average);
             get_response_type(result_type, response_type.key().asString(), query_node);
         }
 
-        else if (response_type.key().asString() == "EntityID")
+        else if (response_type.key().asString() == "EntityID") {
             query_node->set_r_type(PMGD::protobufs::NodeID);
+        }
 
-        else if (response_type.key().asString() == "ConnectionID")
+        else if (response_type.key().asString() == "ConnectionID") {
             query_node->set_r_type(PMGD::protobufs::EdgeID);
+        }
     }
 }
 
 void PMGDQuery::AddNode(int ref,
-                        const std::string &tag,
+                        const std::string& tag,
                         const Json::Value& props,
                         const Json::Value& constraints,
                         bool unique)
 {
-    PMGDCommand* cmdadd = new PMGDCommand();
-    cmdadd->set_cmd_id(PMGDCommand::AddNode);
+    PMGDCmd* cmdadd = new PMGDCmd();
+    cmdadd->set_cmd_id(PMGDCmd::AddNode);
     cmdadd->set_cmd_grp_id(_current_group);
     PMGD::protobufs::AddNode *an = cmdadd->mutable_add_node();
     an->set_identifier(ref);
@@ -476,13 +458,13 @@ void PMGDQuery::AddNode(int ref,
 
     if(!props.isNull()) {
         for (auto m : props.getMemberNames()) {
-            PMGDProp *p = n->add_properties();
+            PMGDProp* p = n->add_properties();
             set_property(p, m.c_str(), props[m]);
         }
     }
 
     if(!constraints.isNull()) {
-        PMGD::protobufs::QueryNode *qn = an->mutable_query_node();
+        PMGDQueryNode *qn = an->mutable_query_node();
         qn->set_identifier(-1);
         qn->set_tag(tag.c_str());
         qn->set_unique(unique);
@@ -496,12 +478,12 @@ void PMGDQuery::AddNode(int ref,
 
 void PMGDQuery::AddEdge(int ident,
                         int src, int dst,
-                        const std::string &tag,
+                        const std::string& tag,
                         const Json::Value& props)
 {
-    PMGDCommand* cmdedge = new PMGDCommand();
+    PMGDCmd* cmdedge = new PMGDCmd();
     cmdedge->set_cmd_grp_id(_current_group);
-    cmdedge->set_cmd_id(PMGDCommand::AddEdge);
+    cmdedge->set_cmd_id(PMGDCmd::AddEdge);
     PMGD::protobufs::AddEdge *ae = cmdedge->mutable_add_edge();
     ae->set_identifier(ident);
 
@@ -511,7 +493,7 @@ void PMGDQuery::AddEdge(int ident,
     e->set_dst(dst);
 
     for (auto m : props.getMemberNames()) {
-        PMGDProp *p = e->add_properties();
+        PMGDProp* p = e->add_properties();
         set_property(p, m.c_str(), props[m]);
     }
 
@@ -525,11 +507,11 @@ void PMGDQuery::QueryNode(int ref,
                           const Json::Value& results,
                           bool unique)
 {
-    PMGDCommand* cmdquery = new PMGDCommand();
-    cmdquery->set_cmd_id(PMGDCommand::QueryNode);
+    PMGDCmd* cmdquery = new PMGDCmd();
+    cmdquery->set_cmd_id(PMGDCmd::QueryNode);
     cmdquery->set_cmd_grp_id(_current_group);
 
-    PMGD::protobufs::QueryNode *qn = cmdquery->mutable_query_node();
+    PMGDQueryNode *qn = cmdquery->mutable_query_node();
 
     qn->set_identifier(ref);
     qn->set_tag(tag.c_str());

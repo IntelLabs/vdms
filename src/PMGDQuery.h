@@ -39,11 +39,12 @@
 
 namespace VDMS {
 
-typedef PMGD::protobufs::Command PMGDCommand;
-typedef PMGD::protobufs::CommandResponse PMGDCmdResponse;
+typedef PMGD::protobufs::Command           PMGDCmd;
+typedef PMGD::protobufs::CommandResponse   PMGDCmdResponse;
 typedef PMGD::protobufs::PropertyPredicate PMGDPropPred;
-typedef PMGD::protobufs::PropertyList PMGDPropList;
-typedef PMGD::protobufs::Property PMGDProp;
+typedef PMGD::protobufs::PropertyList      PMGDPropList;
+typedef PMGD::protobufs::Property          PMGDProp;
+typedef PMGD::protobufs::QueryNode         PMGDQueryNode;
 
     /* This class takes care of the transaction and conversion
         from Protobuf data structures used by PMGD to Json structures
@@ -51,7 +52,7 @@ typedef PMGD::protobufs::Property PMGDProp;
     */
     class PMGDQuery
     {
-        std::vector<PMGDCommand* > _cmds;
+        std::vector<PMGDCmd* > _cmds;
         unsigned _group_count;
         unsigned _current_group;
         PMGDQueryHandler& _pmgd_qh;
@@ -71,13 +72,13 @@ typedef PMGD::protobufs::Property PMGDProp;
         void set_operand(PMGDProp* p, const Json::Value& operand);
 
         void get_response_type(const Json::Value& result_type_array,
-                               std::string response,
+                               const std::string& response,
                                PMGD::protobufs::QueryNode* query_node);
 
         Json::Value parse_response(PMGDCmdResponse* response);
 
-        Json::Value print_properties(const std::string& key,
-                                     const PMGDProp& p);
+        void set_value(const std::string& key, const PMGDProp& p,
+                       Json::Value& prop);
 
         Json::Value construct_error_response(PMGDCmdResponse* response);
 

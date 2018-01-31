@@ -42,6 +42,7 @@ namespace VDMS {
         ImageError,
         DescriptorError,
         DescriptorSetError,
+        PMGDTransactiontError,
 
         Undefined = 100,// Any undefined error
     };
