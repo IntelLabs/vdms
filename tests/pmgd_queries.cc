@@ -12,7 +12,7 @@
 using namespace pmgd;
 // TODO Need the following namespace just for now.
 using namespace Jarvis;
-using namespace athena;
+using namespace vdms;
 using namespace std;
 
 #define MALE 0

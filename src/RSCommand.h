@@ -41,7 +41,7 @@
 // Json parsing files
 #include <jsoncpp/json/value.h>
 
-namespace athena {
+namespace vdms {
 
 // Helper classes for handling various JSON commands.
     class RSCommand
@@ -125,4 +125,4 @@ namespace athena {
                                Json::Value& error);
     };
 
-}; // namespace athena
+}; // namespace vdms

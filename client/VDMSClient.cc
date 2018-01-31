@@ -1,10 +1,10 @@
-#include "AthenaClient.h"
+#include "VDMSClient.h"
 #include "protobuf/queryMessage.pb.h"
 
-using namespace athena;
+using namespace vdms;
 using namespace std;
 
-const string AthenaClient::query(const string &json)
+const string VDMSClient::query(const string &json)
 {
     protobufs::queryMessage cmd;
     cmd.set_json(json);
@@ -22,7 +22,7 @@ const string AthenaClient::query(const string &json)
     return resp.json();
 }
 
-const string AthenaClient::query(const string &json, const vector<string *> blobs)
+const string VDMSClient::query(const string &json, const vector<string *> blobs)
 {
     protobufs::queryMessage cmd;
     cmd.set_json(json);

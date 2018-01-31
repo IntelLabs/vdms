@@ -41,7 +41,7 @@
 #include "jarvis.h"
 #include "SearchExpression.h"
 
-namespace athena {
+namespace vdms {
     // Instance created per worker thread to handle all transactions on a given
     // connection.
     class PMGDQueryHandler

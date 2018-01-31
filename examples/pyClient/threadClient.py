@@ -5,11 +5,11 @@ import os
 import urllib
 import time
 
-import athena # Import athena
+import vdms # Import vdms
 
 def clientThread(thId):
 
-    response = athena.query(
+    response = vdms.query(
             "{HERE GOES YOUR JSON QUERY from Th " + str(thId) + "}")
 
     print "Thread " + str(thId) + ": " + response

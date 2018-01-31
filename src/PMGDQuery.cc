@@ -38,7 +38,7 @@
 #include <jsoncpp/json/json.h>
 #include <jsoncpp/json/value.h>
 
-using namespace athena;
+using namespace vdms;
 
 // This is for internal reference of the transaction
 #define REFERENCE_RANGE_START   20000

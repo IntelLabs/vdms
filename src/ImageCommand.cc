@@ -32,13 +32,13 @@
 #include <iostream>
 
 #include "ImageCommand.h"
-#include "AthenaConfig.h"
+#include "VDMSConfig.h"
 
-using namespace athena;
+using namespace vdms;
 
-#define ATHENA_IM_TAG           "AT:IMAGE"
-#define ATHENA_IM_PATH_PROP     "imgPath"
-#define ATHENA_IM_EDGE          "AT:IMG_LINK"
+#define VDMS_IM_TAG           "AT:IMAGE"
+#define VDMS_IM_PATH_PROP     "imgPath"
+#define VDMS_IM_EDGE          "AT:IMG_LINK"
 
 //========= AddImage definitions =========
 
@@ -74,11 +74,11 @@ void ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
 
 AddImage::AddImage() : ImageCommand("AddImage")
 {
-    _storage_tdb = AthenaConfig::instance()
+    _storage_tdb = VDMSConfig::instance()
                 ->get_string_value("tdb_path", DEFAULT_TDB_PATH);
-    _storage_png = AthenaConfig::instance()
+    _storage_png = VDMSConfig::instance()
                 ->get_string_value("png_path", DEFAULT_PNG_PATH);
-    _storage_jpg = AthenaConfig::instance()
+    _storage_jpg = VDMSConfig::instance()
                 ->get_string_value("jpg_path", DEFAULT_JPG_PATH);
 }
 
@@ -131,10 +131,10 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     // This is not ideal since we are manupulating with user's
     // input, but for now it is an acceptable solution.
     Json::Value props = get_value<Json::Value>(cmd, "properties");
-    props[ATHENA_IM_PATH_PROP] = file_name;
+    props[VDMS_IM_PATH_PROP] = file_name;
 
     // Add Image node
-    query.AddNode(node_ref, ATHENA_IM_TAG, props, Json::Value());
+    query.AddNode(node_ref, VDMS_IM_TAG, props, Json::Value());
 
     img.store(file_name, vcl_format);
 
@@ -142,7 +142,7 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     error["image_added"] = file_name;
 
     if (cmd.isMember("link")) {
-        add_link(query, cmd["link"], node_ref, ATHENA_IM_EDGE);
+        add_link(query, cmd["link"], node_ref, VDMS_IM_EDGE);
     }
 
     return 0;
@@ -176,11 +176,11 @@ int FindImage::construct_protobuf(
     const Json::Value& cmd = jsoncmd[_cmd_name];
 
     Json::Value results = get_value<Json::Value>(cmd, "results");
-    results["list"].append(ATHENA_IM_PATH_PROP);
+    results["list"].append(VDMS_IM_PATH_PROP);
 
     query.QueryNode(
             get_value<int>(cmd, "_ref", -1),
-            ATHENA_IM_TAG,
+            VDMS_IM_TAG,
             cmd["link"],
             cmd["constraints"],
             results,
@@ -226,9 +226,9 @@ Json::Value FindImage::construct_responses(
 
     for (auto& ent : findImage["entities"]) {
 
-        assert(ent.isMember(ATHENA_IM_PATH_PROP));
-        std::string im_path = ent[ATHENA_IM_PATH_PROP].asString();
-        ent.removeMember(ATHENA_IM_PATH_PROP);
+        assert(ent.isMember(VDMS_IM_PATH_PROP));
+        std::string im_path = ent[VDMS_IM_PATH_PROP].asString();
+        ent.removeMember(VDMS_IM_PATH_PROP);
 
         if (ent.getMemberNames().size() > 0) {
             flag_empty = false;

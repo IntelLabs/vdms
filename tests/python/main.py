@@ -6,7 +6,7 @@ import time
 import json
 import unittest
 import numpy as np
-import athena # Yeah, baby
+import vdms
 
 hostname = "localhost"
 port = 55557
@@ -15,7 +15,7 @@ class TestMultiClient(unittest.TestCase):
 
     def addEntity(self, thID=0):
 
-        db = athena.Athena()
+        db = vdms.VDMS()
         db.connect(hostname, port)
 
         props = {}
@@ -41,7 +41,7 @@ class TestMultiClient(unittest.TestCase):
 
     def findEntity(self, thID):
 
-        db = athena.Athena()
+        db = vdms.VDMS()
         db.connect(hostname, port)
 
         constraints = {}
@@ -63,7 +63,7 @@ class TestMultiClient(unittest.TestCase):
 
         response, res_arr = db.query(all_queries)
         response = json.loads(response)
-        # print athena.aux_print_json(response)
+        # print vdms.aux_print_json(response)
 
         self.assertEqual(response[0]["FindEntity"]["status"], 0)
         self.assertEqual(response[0]["FindEntity"]["entities"][0]
@@ -71,7 +71,7 @@ class TestMultiClient(unittest.TestCase):
         self.assertEqual(response[0]["FindEntity"]["entities"][0]
                                     ["threadid"], thID)
 
-    def test_runMultipleAdds(self):
+    def ztest_runMultipleAdds(self):
 
         simultaneous = 1000;
         thread_arr = []
@@ -93,7 +93,7 @@ class TestMultiClient(unittest.TestCase):
         self.findEntity(9000);
 
     def test_addEntityWithLink(self):
-        db = athena.Athena()
+        db = vdms.VDMS()
         db.connect(hostname, port)
 
         all_queries = []
@@ -136,11 +136,11 @@ class TestMultiClient(unittest.TestCase):
         all_queries.append(query)
 
         # print json.dumps(all_queries)
-        # athena.aux_print_json(all_queries)
+        # vdms.aux_print_json(all_queries)
 
         response, res_arr = db.query(all_queries)
         response = json.loads(response)
-        # athena.aux_print_json(response)
+        # vdms.aux_print_json(response)
 
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
         self.assertEqual(response[1]["AddEntity"]["status"], 0)
@@ -180,7 +180,7 @@ class TestAddImage(unittest.TestCase):
         self.assertEqual(response[0]["AddImage"]["status"], 0)
 
     def test_addImage(self):
-        db = athena.Athena()
+        db = vdms.VDMS()
         db.connect(hostname, port)
 
         all_queries = []
@@ -220,7 +220,7 @@ class TestAddImage(unittest.TestCase):
             self.assertEqual(response[i]["AddImage"]["status"], 0)
 
     def test_findEntityImage(self):
-        db = athena.Athena()
+        db = vdms.VDMS()
         db.connect(hostname, port)
 
         prefix_name = "fent_brain_"
@@ -250,7 +250,7 @@ class TestAddImage(unittest.TestCase):
             all_queries.append(query)
 
         response, img_array = db.query(all_queries)
-        # print athena.aux_print_json(response)
+        # print vdms.aux_print_json(response)
 
         response = json.loads(response)
         self.assertEqual(response[0]["FindEntity"]["status"], 0)
@@ -259,7 +259,7 @@ class TestAddImage(unittest.TestCase):
         self.assertEqual(response[1]["FindEntity"]["entities"][0]["name"], prefix_name + "1")
 
     def test_findImage(self):
-        db = athena.Athena()
+        db = vdms.VDMS()
         db.connect(hostname, port)
 
         prefix_name = "fimg_brain_"
@@ -285,7 +285,7 @@ class TestAddImage(unittest.TestCase):
             all_queries.append(query)
 
         response, img_array = db.query(all_queries)
-        # print athena.aux_print_json(response)
+        # print vdms.aux_print_json(response)
 
         response = json.loads(response)
         self.assertEqual(response[0]["FindImage"]["status"], 0)
@@ -295,7 +295,7 @@ class TestAddImage(unittest.TestCase):
         self.assertEqual(len(img_array), 2)
 
     def test_addImageWithLink(self):
-        db = athena.Athena()
+        db = vdms.VDMS()
         db.connect(hostname, port)
 
         all_queries = []
@@ -342,17 +342,17 @@ class TestAddImage(unittest.TestCase):
         all_queries.append(query)
 
         # print json.dumps(all_queries)
-        # athena.aux_print_json(all_queries)
+        # vdms.aux_print_json(all_queries)
 
         response, res_arr = db.query(all_queries, [imgs_arr])
         response = json.loads(response)
-        # athena.aux_print_json(response)
+        # vdms.aux_print_json(response)
 
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
         self.assertEqual(response[1]["AddImage"]["status"], 0)
 
     def test_findImage_multiple_res(self):
-        db = athena.Athena()
+        db = vdms.VDMS()
         db.connect(hostname, port)
 
         prefix_name = "fimg_brain_multiple"
@@ -379,7 +379,7 @@ class TestAddImage(unittest.TestCase):
         all_queries.append(query)
 
         response, img_array = db.query(all_queries)
-        # print athena.aux_print_json(response)
+        # print vdms.aux_print_json(response)
 
         response = json.loads(response)
         self.assertEqual(len(img_array), number_of_inserts)
@@ -388,7 +388,7 @@ class TestAddImage(unittest.TestCase):
 
     # This test is failing.
     def ztest_zFindImageWithCollection(self):
-        db = athena.Athena()
+        db = vdms.VDMS()
         db.connect(hostname, port)
 
         prefix_name = "fimg_brain_collection_"
@@ -420,7 +420,7 @@ class TestAddImage(unittest.TestCase):
             all_queries.append(query)
 
         response, img_array = db.query(all_queries)
-        # print athena.aux_print_json(response)
+        # print vdms.aux_print_json(response)
 
         response = json.loads(response)
         self.assertEqual(response[0]["FindImage"]["status"], 0)

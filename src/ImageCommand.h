@@ -38,7 +38,7 @@
 #include "RSCommand.h"
 #include "ExceptionsCommand.h"
 
-namespace athena {
+namespace vdms {
 
 // Helper classes for handling various JSON commands.
 
@@ -109,4 +109,4 @@ namespace athena {
                 protobufs::queryMessage &response);
     };
 
-}; // namespace athena
+}; // namespace vdms

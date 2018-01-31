@@ -7,7 +7,7 @@ import time
 import json
 import unittest
 
-import athena
+import vdms
 
 
 if len(sys.argv) != 2:
@@ -15,11 +15,11 @@ if len(sys.argv) != 2:
 else:
     hostname = "localhost"
 
-    db = athena.Athena()
+    db = vdms.VDMS()
     db.connect(hostname)
 
     with open(sys.argv[1]) as json_file:
       query = json.load(json_file)
 
     response, img_array = db.query(query)
-    print athena.aux_print_json(response)
+    print vdms.aux_print_json(response)

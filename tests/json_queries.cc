@@ -9,10 +9,10 @@
 #include <jsoncpp/json/writer.h>
 
 #include "jarvis.h"
-#include "AthenaConfig.h"
+#include "VDMSConfig.h"
 #include "QueryHandlerTester.h"
 
-using namespace athena;
+using namespace vdms;
 using namespace Jarvis;
 using namespace std;
 
@@ -39,7 +39,7 @@ TEST(AddImage, simpleAdd)
     addImg += "[" + singleAddImage + "]";
 
     Graph db("simpleAdd_db", Graph::Create);
-    AthenaConfig::init("config-tests.json");
+    VDMSConfig::init("config-tests.json");
     QueryHandler::init();
 
     std::mutex mu;
@@ -88,7 +88,7 @@ TEST(AddImage, simpleAddx10)
 
     Graph db("simpleAddx10_db", Graph::Create);
 
-    AthenaConfig::init("config-tests.json");
+    VDMSConfig::init("config-tests.json");
     QueryHandler::init();
 
     std::mutex mu;
@@ -193,7 +193,7 @@ TEST(QueryHandler, AddAndFind){
 
     mutex dblock;
 
-    AthenaConfig::init("config-tests.json");
+    VDMSConfig::init("config-tests.json");
     QueryHandler::init();
 
     QueryHandler qh_base(&db, &dblock);

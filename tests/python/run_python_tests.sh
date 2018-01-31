@@ -7,10 +7,10 @@ mkdir db/images/pngs
 mkdir db/images/jpgs
 mkdir db/descriptors
 
-../../athena -cfg config-tests.json > screen.log &
+../../vdms -cfg config-tests.json > screen.log &
 python main.py -v
 
 sleep 1
-pkill athena
+pkill vdms
 
 dumpg test-graph > dump.log

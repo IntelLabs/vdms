@@ -16,7 +16,7 @@ query_tests = testenv.Program(
                 'query_tests',
                 [ '../src/QueryHandler.o',
                   '../src/SearchExpression.o',
-                  '../src/AthenaConfig.o',
+                  '../src/VDMSConfig.o',
                   '../src/RSCommand.o',
                   '../src/ImageCommand.o',
                   '../src/ExceptionsCommand.o',

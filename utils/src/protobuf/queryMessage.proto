@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package athena.protobufs;
+package vdms.protobufs;
 
 message queryMessage {
     string json = 1;

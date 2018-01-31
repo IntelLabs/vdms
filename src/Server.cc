@@ -35,21 +35,21 @@
 #include "comm/Connection.h"
 #include "Exception.h"
 
-#include "AthenaConfig.h"
+#include "VDMSConfig.h"
 #include "QueryHandler.h"
 
 #include "protobuf/pmgdMessages.pb.h" // Protobuff implementation
 
-using namespace athena;
+using namespace vdms;
 
 bool Server::shutdown = false;
 
 Server::Server(std::string config_file)
 {
-    AthenaConfig::init(config_file);
-    std::string dbname = AthenaConfig::instance()
+    VDMSConfig::init(config_file);
+    std::string dbname = VDMSConfig::instance()
                         ->get_string_value("pmgd_path", "default_pmgd");
-    _server_port = AthenaConfig::instance()
+    _server_port = VDMSConfig::instance()
                         ->get_int_value("port", DEFAULT_PORT);
 
     QueryHandler::init();

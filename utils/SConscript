@@ -6,12 +6,12 @@ def compileProtoFiles(utils_env):
   protoQuery = utils_env.Command (
              ['include/protobuf/queryMessage.pb.h',
               'src/protobuf/queryMessage.pb.cc',
-              '../python/athena/queryMessage_pb2.py',
+              '../python/vdms/queryMessage_pb2.py',
              ], # TARGET
               'src/protobuf/queryMessage.proto', # $SOURCE
               'protoc \
               -I=utils/src/protobuf --cpp_out=utils/src/protobuf/ \
-              --python_out=python/athena/  $SOURCE && \
+              --python_out=python/vdms/  $SOURCE && \
               mv utils/src/protobuf/queryMessage.pb.h \
                  utils/include/protobuf/queryMessage.pb.h'
               )
@@ -60,7 +60,7 @@ chrono_cc = ['src/chrono/Chrono.cc']
 utils_source_files = [comm_cc, protobuf_cc, chrono_cc]
 
 utils_env.ParseConfig('pkg-config --cflags --libs protobuf')
-utils_env.SharedLibrary('athena-utils', utils_source_files)
+utils_env.SharedLibrary('vdms-utils', utils_source_files)
 
 # Comm Testing
 comm_test_env = Environment(CPPPATH=['include/comm'],
@@ -68,6 +68,6 @@ comm_test_env = Environment(CPPPATH=['include/comm'],
 
 comm_test_source_files = "test/comm/UnitTests.cc";
 comm_test_env.Program('test/comm/comm_test', comm_test_source_files,
-            LIBS = ['athena-utils', 'pthread', 'gtest'],
+            LIBS = ['vdms-utils', 'pthread', 'gtest'],
             LIBPATH = ['.']
             )

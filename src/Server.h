@@ -36,7 +36,7 @@
 #include "jarvis.h"
 #include "CommunicationManager.h"
 
-namespace athena {
+namespace vdms {
     class Server
     {
         static const int DEFAULT_PORT = 55555;

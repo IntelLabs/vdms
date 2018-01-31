@@ -1,5 +1,5 @@
 /**
- * @file   athena.cc
+ * @file   vdms.cc
  *
  * @section LICENSE
  *
@@ -30,7 +30,7 @@
  */
 
 /*
-    Athena Server Application
+    VDMS Server Application
 */
 #include <iostream>
 
@@ -38,19 +38,19 @@
 
 void printUsage()
 {
-    std::cout << "Usage: athena -cfg config-file.json" << std::endl;
+    std::cout << "Usage: vdms -cfg config-file.json" << std::endl;
     exit(0);
 }
 
 int main(int argc, char **argv)
 {
-    printf("Athena Server\n");
+    printf("VDMS Server\n");
 
     if (argc != 3 && argc != 1) {
         printUsage();
     }
 
-    std::string config_file = "config-athena.json";
+    std::string config_file = "config-vdms.json";
 
     if (argc == 3){
         std::string option(argv[1]);
@@ -61,7 +61,7 @@ int main(int argc, char **argv)
     }
 
     printf("Server will start processing requests... \n");
-    athena::Server server(config_file);
+    vdms::Server server(config_file);
     server.process_requests();
 
     printf("Server shutting down... \n");

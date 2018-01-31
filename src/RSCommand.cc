@@ -35,9 +35,9 @@
 #include "QueryHandler.h"
 #include "ExceptionsCommand.h"
 
-using namespace athena;
+using namespace vdms;
 
-#define ATHENA_GENERIC_LINK  "AT:edge"
+#define VDMS_GENERIC_LINK  "AT:edge"
 
 RSCommand::RSCommand(const std::string& cmd_name):
     _cmd_name(cmd_name)
@@ -84,7 +84,7 @@ Json::Value RSCommand::check_responses(Json::Value& responses)
     return ret;
 }
 
-namespace athena {
+namespace vdms {
 template<>
 int RSCommand::get_value(const Json::Value& json, const std::string& key,
                          int def)
@@ -168,7 +168,7 @@ int AddEntity::construct_protobuf(PMGDQuery& query,
             );
 
     if (cmd.isMember("link")) {
-        add_link(query, cmd["link"], node_ref, ATHENA_GENERIC_LINK);
+        add_link(query, cmd["link"], node_ref, VDMS_GENERIC_LINK);
     }
 
     return 0;

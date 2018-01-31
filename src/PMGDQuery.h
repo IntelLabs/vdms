@@ -37,7 +37,7 @@
 #include <jsoncpp/json/json.h>
 #include <jsoncpp/json/value.h>
 
-namespace athena {
+namespace vdms {
 
 typedef pmgd::protobufs::Command PMGDCommand;
 typedef pmgd::protobufs::CommandResponse PMGDCmdResponse;

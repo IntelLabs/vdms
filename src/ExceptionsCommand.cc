@@ -32,7 +32,7 @@
 
 #include "ExceptionsCommand.h"
 
-void print_exception(const athena::ExceptionCommand &e, FILE *f)
+void print_exception(const vdms::ExceptionCommand &e, FILE *f)
 {
     fprintf(f, "[ExceptionCommand] %s at %s:%d\n", e.name, e.file, e.line);
     if (e.errno_val != 0)

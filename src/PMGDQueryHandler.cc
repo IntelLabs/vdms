@@ -33,12 +33,12 @@
 #include "PMGDQueryHandler.h"
 #include "util.h"   // Jarvis util
 
-// TODO In the complete version of Athena, this file will live
+// TODO In the complete version of VDMS, this file will live
 // within PMGD which would replace the Jarvis namespace. Some of
 // these code pieces are temporary.
 using namespace pmgd;
 using namespace Jarvis;
-using namespace athena;
+using namespace vdms;
 
 PMGDQueryHandler::PMGDQueryHandler(Graph *db, std::mutex *mtx)
 {
@@ -396,7 +396,7 @@ void PMGDQueryHandler::construct_protobuf_property(const Property &j_p, protobuf
     }
 }
 
-namespace athena {
+namespace vdms {
 template void PMGDQueryHandler::build_results<Jarvis::NodeIterator>(Jarvis::NodeIterator &ni,
                                                       const protobufs::QueryNode &qn,
                                                       protobufs::CommandResponse *response);

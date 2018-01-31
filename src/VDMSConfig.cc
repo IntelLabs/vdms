@@ -1,5 +1,5 @@
 /**
- * @file   AthenaConfig.h
+ * @file   VDMSConfig.cc
  *
  * @section LICENSE
  *
@@ -29,29 +29,55 @@
  *
  */
 
-#pragma once
+#include <map>
+#include <sstream>
+#include <fstream>
+#include <iostream>
 
-#include <string>
-#include <jsoncpp/json/value.h>
+#include <jsoncpp/json/json.h>
 
-namespace athena{
+#include "VDMSConfig.h"
 
-    class AthenaConfig
-    {
+using namespace vdms;
 
-    public:
-        static bool init(std::string config_file);
-        static AthenaConfig* instance();
+VDMSConfig* VDMSConfig::cfg;
 
-    private:
-        static AthenaConfig* cfg;
-        Json::Value json_config;
+bool VDMSConfig::init(std::string config_file)
+{
+    if(cfg)
+        return false;
 
-        AthenaConfig(std::string config_file);
+    cfg = new VDMSConfig(config_file);
+    return true;
+}
 
-    public:
-        int get_int_value(std::string val, int def);
-        std::string get_string_value(std::string val, std::string def);
-    };
+VDMSConfig* VDMSConfig::instance()
+{
+    if(cfg)
+        return cfg;
 
-}; // athena namespace
+    std::cout << "ERROR: Config not init" << std::endl;
+    return NULL;
+}
+
+VDMSConfig::VDMSConfig(std::string config_file)
+{
+    Json::Reader reader;
+    std::ifstream file(config_file);
+
+    bool parsingSuccessful = reader.parse(file, json_config);
+
+    if (!parsingSuccessful){
+        std::cout << "Error parsing config file" << std::endl;
+    }
+}
+
+int VDMSConfig::get_int_value(std::string val, int def)
+{
+    return json_config.get(val, def).asInt();
+}
+
+std::string VDMSConfig::get_string_value(std::string val, std::string def)
+{
+    return json_config.get(val, def).asString();
+}

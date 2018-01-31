@@ -1,7 +1,7 @@
 #pragma once
 #include "QueryHandler.h"
 
-namespace athena {
+namespace vdms {
     class QueryHandlerTester
     {
         QueryHandler& _qh;

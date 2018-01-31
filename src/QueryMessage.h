@@ -34,7 +34,7 @@
 #include "comm/Connection.h"
 #include "protobuf/queryMessage.pb.h"
 
-namespace athena {
+namespace vdms {
     class QueryMessage
     {
         comm::Connection* _conn;

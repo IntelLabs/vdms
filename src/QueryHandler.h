@@ -45,7 +45,7 @@
 #include <valijson/schema.hpp>
 #include <valijson/validator.hpp>
 
-namespace athena {
+namespace vdms {
 
 typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
 

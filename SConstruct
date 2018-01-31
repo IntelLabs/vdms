@@ -19,7 +19,7 @@ def buildServer(intel_path, env):
              ],
     LIBS = [ 'jarvis', 'jarvis-util',
              'jsoncpp', 'protobuf',
-             'athena-utils', 'vcl', 'pthread',
+             'vdms-utils', 'vcl', 'pthread',
            ],
     LIBPATH = ['/usr/local/lib/', 'utils/',
                intel_path + 'utils/',
@@ -28,10 +28,10 @@ def buildServer(intel_path, env):
                ]
   )
 
-  athena_server_files = [
-                  'src/athena.cc',
+  vdms_server_files = [
+                  'src/vdms.cc',
                   'src/Server.cc',
-                  'src/AthenaConfig.cc',
+                  'src/VDMSConfig.cc',
                   'src/QueryHandler.cc',
                   'src/QueryMessage.cc',
                   'src/CommunicationManager.cc',
@@ -43,7 +43,7 @@ def buildServer(intel_path, env):
                   'src/ExceptionsCommand.cc',
                 ]
 
-  athena = env.Program('athena', athena_server_files)
+  vdms = env.Program('vdms', vdms_server_files)
 
 # Set INTEL_PATH. First check arguments, then enviroment, then default
 if ARGUMENTS.get('INTEL_PATH', '') != '':

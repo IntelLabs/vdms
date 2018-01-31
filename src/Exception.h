@@ -34,7 +34,7 @@
 #include <string>
 
 
-namespace athena {
+namespace vdms {
 
     enum ExceptionServerType {
         FATAL_Server_Error,
@@ -82,7 +82,7 @@ namespace athena {
     };
 
 #define ExceptionServer(name, ...) \
-    ExceptionServer(athena::name, #name, ##__VA_ARGS__, __FILE__, __LINE__)
+    ExceptionServer(vdms::name, #name, ##__VA_ARGS__, __FILE__, __LINE__)
 };
 
-extern void print_exception(const athena::ExceptionServer &e, FILE *f = stdout);
+extern void print_exception(const vdms::ExceptionServer &e, FILE *f = stdout);

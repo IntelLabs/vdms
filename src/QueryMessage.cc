@@ -32,7 +32,7 @@
 #include "QueryMessage.h"
 #include "Exception.h"
 
-using namespace athena;
+using namespace vdms;
 
 QueryMessage::QueryMessage(comm::Connection* conn):
 		_conn(conn)

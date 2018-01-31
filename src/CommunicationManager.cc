@@ -32,15 +32,15 @@
 #include "CommunicationManager.h"
 #include "QueryHandler.h"
 
-#include "AthenaConfig.h"
+#include "VDMSConfig.h"
 
-using namespace athena;
+using namespace vdms;
 using namespace Jarvis;
 
 CommunicationManager::CommunicationManager(Jarvis::Graph *db,std::mutex *mtx):
     _db(db), _dblock(mtx)
 {
-    _num_threads = AthenaConfig::instance() ->get_int_value(
+    _num_threads = VDMSConfig::instance() ->get_int_value(
                                         "max_simultaneous_clients",
                                         MAX_CONNECTED_CLIENTS);
 

@@ -33,7 +33,7 @@
 
 #include <string>
 
-namespace athena {
+namespace vdms {
 
     enum ExceptionCommandType {
         FATAL_Query_Handler_Error,
@@ -83,7 +83,7 @@ namespace athena {
     };
 
 #define ExceptionCommand(name, ...) \
-    ExceptionCommand(athena::name, #name, ##__VA_ARGS__, __FILE__, __LINE__)
+    ExceptionCommand(vdms::name, #name, ##__VA_ARGS__, __FILE__, __LINE__)
 };
 
-extern void print_exception(const athena::ExceptionCommand &e, FILE *f = stdout);
+extern void print_exception(const vdms::ExceptionCommand &e, FILE *f = stdout);

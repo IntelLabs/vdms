@@ -41,7 +41,7 @@
 #include "comm/Connection.h"
 #include "jarvis.h"
 
-namespace athena {
+namespace vdms {
     class CommunicationManager
     {
         static const int MAX_CONNECTED_CLIENTS = 500;
