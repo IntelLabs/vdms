@@ -13,4 +13,4 @@ python main.py -v
 sleep 1
 pkill vdms
 
-dumpg test-graph > dump.log
+dumpg db/test-graph > dump.log
