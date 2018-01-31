@@ -34,7 +34,7 @@
 #include <string>
 #include <jsoncpp/json/value.h>
 
-namespace vdms{
+namespace VDMS{
 
     class VDMSConfig
     {

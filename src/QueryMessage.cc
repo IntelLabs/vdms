@@ -32,7 +32,7 @@
 #include "QueryMessage.h"
 #include "Exception.h"
 
-using namespace vdms;
+using namespace VDMS;
 
 QueryMessage::QueryMessage(comm::Connection* conn):
 		_conn(conn)

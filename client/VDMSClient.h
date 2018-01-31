@@ -4,7 +4,7 @@
 #include <vector>
 #include "comm/Connection.h"
 
-namespace vdms {
+namespace VDMS {
     class VDMSClient {
         static const int VDMS_PORT = 55555;
 

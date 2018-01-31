@@ -34,7 +34,7 @@
 
 #include "VDMSConfig.h"
 
-using namespace vdms;
+using namespace VDMS;
 using namespace PMGD;
 
 CommunicationManager::CommunicationManager(PMGD::Graph *db,std::mutex *mtx):

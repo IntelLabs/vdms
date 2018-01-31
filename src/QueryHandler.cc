@@ -48,7 +48,7 @@
 #include <valijson/utils/jsoncpp_utils.hpp>
 #include <valijson/schema_parser.hpp>
 
-using namespace vdms;
+using namespace VDMS;
 
 // TODO This will be later replaced by a real logger
 std::ofstream GENERIC_LOGGER("log.log", std::fstream::app);

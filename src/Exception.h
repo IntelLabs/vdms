@@ -34,7 +34,7 @@
 #include <string>
 
 
-namespace vdms {
+namespace VDMS {
 
     enum ExceptionServerType {
         FATAL_Server_Error,
@@ -82,7 +82,7 @@ namespace vdms {
     };
 
 #define ExceptionServer(name, ...) \
-    ExceptionServer(vdms::name, #name, ##__VA_ARGS__, __FILE__, __LINE__)
+    ExceptionServer(VDMS::name, #name, ##__VA_ARGS__, __FILE__, __LINE__)
 };
 
-extern void print_exception(const vdms::ExceptionServer &e, FILE *f = stdout);
+extern void print_exception(const VDMS::ExceptionServer &e, FILE *f = stdout);

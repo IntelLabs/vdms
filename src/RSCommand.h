@@ -41,7 +41,7 @@
 // Json parsing files
 #include <jsoncpp/json/value.h>
 
-namespace vdms {
+namespace VDMS {
 
 // Helper classes for handling various JSON commands.
     class RSCommand
@@ -125,4 +125,4 @@ namespace vdms {
                                Json::Value& error);
     };
 
-}; // namespace vdms
+}; // namespace VDMS

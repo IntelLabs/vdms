@@ -41,7 +41,7 @@
 #include "comm/Connection.h"
 #include "pmgd.h"
 
-namespace vdms {
+namespace VDMS {
     class CommunicationManager
     {
         static const int MAX_CONNECTED_CLIENTS = 500;

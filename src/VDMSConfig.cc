@@ -38,7 +38,7 @@
 
 #include "VDMSConfig.h"
 
-using namespace vdms;
+using namespace VDMS;
 
 VDMSConfig* VDMSConfig::cfg;
 

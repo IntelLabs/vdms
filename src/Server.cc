@@ -40,7 +40,7 @@
 
 #include "protobuf/pmgdMessages.pb.h" // Protobuff implementation
 
-using namespace vdms;
+using namespace VDMS;
 
 bool Server::shutdown = false;
 

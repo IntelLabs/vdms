@@ -36,7 +36,7 @@
 #include "pmgd.h"
 #include "CommunicationManager.h"
 
-namespace vdms {
+namespace VDMS {
     class Server
     {
         static const int DEFAULT_PORT = 55555;

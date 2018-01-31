@@ -38,7 +38,7 @@
 #include "RSCommand.h"
 #include "ExceptionsCommand.h"
 
-namespace vdms {
+namespace VDMS {
 
 // Helper classes for handling various JSON commands.
 
@@ -109,4 +109,4 @@ namespace vdms {
                 protobufs::queryMessage &response);
     };
 
-}; // namespace vdms
+}; // namespace VDMS

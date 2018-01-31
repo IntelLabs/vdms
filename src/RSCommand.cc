@@ -35,7 +35,7 @@
 #include "QueryHandler.h"
 #include "ExceptionsCommand.h"
 
-using namespace vdms;
+using namespace VDMS;
 
 #define VDMS_GENERIC_LINK  "AT:edge"
 
@@ -84,7 +84,7 @@ Json::Value RSCommand::check_responses(Json::Value& responses)
     return ret;
 }
 
-namespace vdms {
+namespace VDMS {
 template<>
 int RSCommand::get_value(const Json::Value& json, const std::string& key,
                          int def)

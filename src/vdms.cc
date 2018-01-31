@@ -61,7 +61,7 @@ int main(int argc, char **argv)
     }
 
     printf("Server will start processing requests... \n");
-    vdms::Server server(config_file);
+    VDMS::Server server(config_file);
     server.process_requests();
 
     printf("Server shutting down... \n");

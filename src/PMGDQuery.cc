@@ -38,7 +38,7 @@
 #include <jsoncpp/json/json.h>
 #include <jsoncpp/json/value.h>
 
-using namespace vdms;
+using namespace VDMS;
 
 // This is for internal reference of the transaction
 #define REFERENCE_RANGE_START   20000
@@ -104,19 +104,19 @@ Json::Value& PMGDQuery::run()
     return _json_responses;
 }
 
-void PMGDQuery::add_link(const Json::Value& link, pmgd::protobufs::QueryNode *qn)
+void PMGDQuery::add_link(const Json::Value& link, PMGD::protobufs::QueryNode *qn)
 {
-    pmgd::protobufs::LinkInfo *qnb = qn->mutable_link();
+    PMGD::protobufs::LinkInfo *qnb = qn->mutable_link();
     if (link.isMember("ref")) {
         qnb->set_start_identifier(link["ref"].asInt());
     }
     if (link.isMember("direction")) {
         if (link["direction"]== "out")
-            qnb->set_dir(pmgd::protobufs::LinkInfo::Outgoing);
+            qnb->set_dir(PMGD::protobufs::LinkInfo::Outgoing);
         else if ( link["direction"] =="in" )
-            qnb->set_dir(pmgd::protobufs::LinkInfo::Incoming);
+            qnb->set_dir(PMGD::protobufs::LinkInfo::Incoming);
         else if ( link["direction"] == "any" )
-            qnb->set_dir(pmgd::protobufs::LinkInfo::Any);
+            qnb->set_dir(PMGD::protobufs::LinkInfo::Any);
     }
     if (link.isMember("unique"))
         qnb->set_nb_unique(link["unique"].asBool());
@@ -214,26 +214,26 @@ Json::Value PMGDQuery::parse_response(PMGDCmdResponse* response)
 
     switch (response->r_type()) {
 
-        case pmgd::protobufs::NodeID:
+        case PMGD::protobufs::NodeID:
             if (return_code != PMGDCmdResponse::Success &&
                 return_code != PMGDCmdResponse::Exists ) {
                 flag_error = true;
             }
             break;
 
-        case pmgd::protobufs::EdgeID:
+        case PMGD::protobufs::EdgeID:
             if (return_code != PMGDCmdResponse::Success &&
                 return_code != PMGDCmdResponse::Exists ) {
                 flag_error = true;
             }
             break;
 
-        case pmgd::protobufs::Cached:
+        case PMGD::protobufs::Cached:
             if (return_code != PMGDCmdResponse::Success)
                 flag_error = true;
             break;
 
-        case pmgd::protobufs::List:
+        case PMGD::protobufs::List:
             if (return_code == PMGDCmdResponse::Success) {
                 Json::Value list;
                 auto& mymap = response->prop_values();
@@ -267,7 +267,7 @@ Json::Value PMGDQuery::parse_response(PMGDCmdResponse* response)
             }
             break;
 
-        case pmgd::protobufs::Average:
+        case PMGD::protobufs::Average:
             if (return_code == PMGDCmdResponse::Success) {
                 float average = response->op_float_value();
                 ret["average"] = double(average);
@@ -277,7 +277,7 @@ Json::Value PMGDQuery::parse_response(PMGDCmdResponse* response)
             }
             break;
 
-        case pmgd::protobufs::Sum:
+        case PMGD::protobufs::Sum:
 
             if (return_code == PMGDCmdResponse::Success) {
                 // We down-cast from uint64 to int64
@@ -289,7 +289,7 @@ Json::Value PMGDQuery::parse_response(PMGDCmdResponse* response)
             }
             break;
 
-        case pmgd::protobufs::Count:
+        case PMGD::protobufs::Count:
             if (return_code == PMGDCmdResponse::Success) {
                 ret["count"] = return_val;
             }
@@ -336,7 +336,7 @@ void PMGDQuery::set_operand(PMGDProp* p, const Json::Value& operand)
 }
 
 void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
-                                       pmgd::protobufs::QueryNode* query_node)
+                                       PMGD::protobufs::QueryNode* query_node)
 {
     for (auto &key : constraints.getMemberNames()) {
 
@@ -405,7 +405,7 @@ void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
 
 void PMGDQuery::get_response_type(const Json::Value& result_type_array,
             std::string response,
-            pmgd::protobufs::QueryNode *query_node)
+            PMGD::protobufs::QueryNode *query_node)
 {
     for (auto response_key=0; response_key!=result_type_array[response].size();
             response_key++) {
@@ -415,23 +415,23 @@ void PMGDQuery::get_response_type(const Json::Value& result_type_array,
 }
 
 void PMGDQuery::parse_query_results (const Json::Value& result_type,
-                                    pmgd::protobufs::QueryNode *query_node)
+                                    PMGD::protobufs::QueryNode *query_node)
 {
     for (auto response_type =result_type.begin();
             response_type!=result_type.end(); response_type++) {
 
         if (response_type.key().asString() == "list") {
-            query_node->set_r_type(pmgd::protobufs::List);
+            query_node->set_r_type(PMGD::protobufs::List);
             get_response_type(result_type, response_type.key().asString(), query_node);
         }
 
         else if (response_type.key().asString() == "count") {
-            query_node->set_r_type(pmgd::protobufs::Count);
+            query_node->set_r_type(PMGD::protobufs::Count);
             get_response_type (result_type, response_type.key().asString(), query_node);
         }
 
         else if (response_type.key().asString() == "sum") {
-            query_node->set_r_type(pmgd::protobufs::Sum);
+            query_node->set_r_type(PMGD::protobufs::Sum);
             get_response_type (result_type, response_type.key().asString(), query_node);
         }
 
@@ -447,15 +447,15 @@ void PMGDQuery::parse_query_results (const Json::Value& result_type,
 
         else if (response_type.key().asString() == "average") {
 
-            query_node->set_r_type(pmgd::protobufs::Average);
+            query_node->set_r_type(PMGD::protobufs::Average);
             get_response_type(result_type, response_type.key().asString(), query_node);
         }
 
         else if (response_type.key().asString() == "EntityID")
-            query_node->set_r_type(pmgd::protobufs::NodeID);
+            query_node->set_r_type(PMGD::protobufs::NodeID);
 
         else if (response_type.key().asString() == "ConnectionID")
-            query_node->set_r_type(pmgd::protobufs::EdgeID);
+            query_node->set_r_type(PMGD::protobufs::EdgeID);
     }
 }
 
@@ -468,10 +468,10 @@ void PMGDQuery::AddNode(int ref,
     PMGDCommand* cmdadd = new PMGDCommand();
     cmdadd->set_cmd_id(PMGDCommand::AddNode);
     cmdadd->set_cmd_grp_id(_current_group);
-    pmgd::protobufs::AddNode *an = cmdadd->mutable_add_node();
+    PMGD::protobufs::AddNode *an = cmdadd->mutable_add_node();
     an->set_identifier(ref);
 
-    pmgd::protobufs::Node *n = an->mutable_node();
+    PMGD::protobufs::Node *n = an->mutable_node();
     n->set_tag(tag.c_str());
 
     if(!props.isNull()) {
@@ -482,12 +482,12 @@ void PMGDQuery::AddNode(int ref,
     }
 
     if(!constraints.isNull()) {
-        pmgd::protobufs::QueryNode *qn = an->mutable_query_node();
+        PMGD::protobufs::QueryNode *qn = an->mutable_query_node();
         qn->set_identifier(-1);
         qn->set_tag(tag.c_str());
         qn->set_unique(unique);
-        qn->set_p_op(pmgd::protobufs::And);
-        qn->set_r_type(pmgd::protobufs::Count);
+        qn->set_p_op(PMGD::protobufs::And);
+        qn->set_r_type(PMGD::protobufs::Count);
         parse_query_constraints(constraints, qn);
     }
 
@@ -502,10 +502,10 @@ void PMGDQuery::AddEdge(int ident,
     PMGDCommand* cmdedge = new PMGDCommand();
     cmdedge->set_cmd_grp_id(_current_group);
     cmdedge->set_cmd_id(PMGDCommand::AddEdge);
-    pmgd::protobufs::AddEdge *ae = cmdedge->mutable_add_edge();
+    PMGD::protobufs::AddEdge *ae = cmdedge->mutable_add_edge();
     ae->set_identifier(ident);
 
-    pmgd::protobufs::Edge *e = ae->mutable_edge();
+    PMGD::protobufs::Edge *e = ae->mutable_edge();
     e->set_tag(tag.c_str());
     e->set_src(src);
     e->set_dst(dst);
@@ -529,7 +529,7 @@ void PMGDQuery::QueryNode(int ref,
     cmdquery->set_cmd_id(PMGDCommand::QueryNode);
     cmdquery->set_cmd_grp_id(_current_group);
 
-    pmgd::protobufs::QueryNode *qn = cmdquery->mutable_query_node();
+    PMGD::protobufs::QueryNode *qn = cmdquery->mutable_query_node();
 
     qn->set_identifier(ref);
     qn->set_tag(tag.c_str());
@@ -539,7 +539,7 @@ void PMGDQuery::QueryNode(int ref,
         add_link(link, qn);
 
     // TODO: We always assume AND, we need to change that
-    qn->set_p_op(pmgd::protobufs::And);
+    qn->set_p_op(PMGD::protobufs::And);
     if (!constraints.isNull())
         parse_query_constraints(constraints, qn);
 

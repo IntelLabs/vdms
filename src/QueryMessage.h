@@ -34,7 +34,7 @@
 #include "comm/Connection.h"
 #include "protobuf/queryMessage.pb.h"
 
-namespace vdms {
+namespace VDMS {
     class QueryMessage
     {
         comm::Connection* _conn;

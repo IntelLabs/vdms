@@ -34,7 +34,7 @@
 #include "ImageCommand.h"
 #include "VDMSConfig.h"
 
-using namespace vdms;
+using namespace VDMS;
 
 #define VDMS_IM_TAG           "AT:IMAGE"
 #define VDMS_IM_PATH_PROP     "imgPath"

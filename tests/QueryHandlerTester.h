@@ -1,7 +1,7 @@
 #pragma once
 #include "QueryHandler.h"
 
-namespace vdms {
+namespace VDMS {
     class QueryHandlerTester
     {
         QueryHandler& _qh;

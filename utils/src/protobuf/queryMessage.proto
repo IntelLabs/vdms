@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package vdms.protobufs;
+package VDMS.protobufs;
 
 message queryMessage {
     string json = 1;

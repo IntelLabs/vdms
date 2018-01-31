@@ -12,7 +12,7 @@
 #include "VDMSConfig.h"
 #include "QueryHandlerTester.h"
 
-using namespace vdms;
+using namespace VDMS;
 using namespace PMGD;
 using namespace std;
 
@@ -47,7 +47,7 @@ TEST(AddImage, simpleAdd)
     QueryHandler qh_base(&db, &mu);
     QueryHandlerTester query_handler(qh_base);
 
-    protobufs::queryMessage proto_query;
+    VDMS::protobufs::queryMessage proto_query;
     proto_query.set_json(addImg);
 
     std::string image;
@@ -62,7 +62,7 @@ TEST(AddImage, simpleAdd)
 
     proto_query.add_blobs(image);
 
-    protobufs::queryMessage response;
+    VDMS::protobufs::queryMessage response;
     query_handler.pq(proto_query, response);
 
     Json::Reader json_reader;
@@ -95,7 +95,7 @@ TEST(AddImage, simpleAddx10)
     QueryHandler qh_base(&db, &mu);
     QueryHandlerTester query_handler(qh_base);
 
-    protobufs::queryMessage proto_query;
+    VDMS::protobufs::queryMessage proto_query;
     proto_query.set_json(string_query);
 
     std::string image;
@@ -112,7 +112,7 @@ TEST(AddImage, simpleAddx10)
         proto_query.add_blobs(image);
     }
 
-    protobufs::queryMessage response;
+    VDMS::protobufs::queryMessage response;
     query_handler.pq(proto_query, response);
 
     Json::Reader json_reader;
@@ -199,9 +199,9 @@ TEST(QueryHandler, AddAndFind){
     QueryHandler qh_base(&db, &dblock);
     QueryHandlerTester query_handler(qh_base);
 
-    protobufs::queryMessage proto_query;
+    VDMS::protobufs::queryMessage proto_query;
     proto_query.set_json(json_query);
-    protobufs::queryMessage response;
+    VDMS::protobufs::queryMessage response;
 
     query_handler.pq(proto_query, response );
 

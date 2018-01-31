@@ -33,7 +33,7 @@
 
 #include <string>
 
-namespace vdms {
+namespace VDMS {
 
     enum ExceptionCommandType {
         FATAL_Query_Handler_Error,
@@ -83,7 +83,7 @@ namespace vdms {
     };
 
 #define ExceptionCommand(name, ...) \
-    ExceptionCommand(vdms::name, #name, ##__VA_ARGS__, __FILE__, __LINE__)
+    ExceptionCommand(VDMS::name, #name, ##__VA_ARGS__, __FILE__, __LINE__)
 };
 
-extern void print_exception(const vdms::ExceptionCommand &e, FILE *f = stdout);
+extern void print_exception(const VDMS::ExceptionCommand &e, FILE *f = stdout);

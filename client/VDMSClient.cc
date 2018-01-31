@@ -1,7 +1,7 @@
 #include "VDMSClient.h"
 #include "protobuf/queryMessage.pb.h"
 
-using namespace vdms;
+using namespace VDMS;
 using namespace std;
 
 const string VDMSClient::query(const string &json)

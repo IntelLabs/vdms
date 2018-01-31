@@ -9,10 +9,8 @@
 
 #include <stdlib.h>     /* system, NULL, EXIT_FAILURE */
 
-using namespace pmgd;
-// TODO Need the following namespace just for now.
 using namespace PMGD;
-using namespace vdms;
+using namespace VDMS;
 using namespace std;
 
 #define MALE 0

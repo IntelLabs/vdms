@@ -37,13 +37,13 @@
 #include <jsoncpp/json/json.h>
 #include <jsoncpp/json/value.h>
 
-namespace vdms {
+namespace VDMS {
 
-typedef pmgd::protobufs::Command PMGDCommand;
-typedef pmgd::protobufs::CommandResponse PMGDCmdResponse;
-typedef pmgd::protobufs::PropertyPredicate PMGDPropPred;
-typedef pmgd::protobufs::PropertyList PMGDPropList;
-typedef pmgd::protobufs::Property PMGDProp;
+typedef PMGD::protobufs::Command PMGDCommand;
+typedef PMGD::protobufs::CommandResponse PMGDCmdResponse;
+typedef PMGD::protobufs::PropertyPredicate PMGDPropPred;
+typedef PMGD::protobufs::PropertyList PMGDPropList;
+typedef PMGD::protobufs::Property PMGDProp;
 
     /* This class takes care of the transaction and conversion
         from Protobuf data structures used by PMGD to Json structures
@@ -61,18 +61,18 @@ typedef pmgd::protobufs::Property PMGDProp;
         Json::Value _json_responses;
 
         void set_property(PMGDProp* p, const char* key, Json::Value val);
-        void add_link(const Json::Value& link, pmgd::protobufs::QueryNode* qn);
+        void add_link(const Json::Value& link, PMGD::protobufs::QueryNode* qn);
         void parse_query_constraints(const Json::Value& constraints,
-                                     pmgd::protobufs::QueryNode* query_node);
+                                     PMGD::protobufs::QueryNode* query_node);
 
         void parse_query_results(const Json::Value& result_type,
-                                 pmgd::protobufs::QueryNode* query_node);
+                                 PMGD::protobufs::QueryNode* query_node);
 
         void set_operand(PMGDProp* p, const Json::Value& operand);
 
         void get_response_type(const Json::Value& result_type_array,
                                std::string response,
-                               pmgd::protobufs::QueryNode* query_node);
+                               PMGD::protobufs::QueryNode* query_node);
 
         Json::Value parse_response(PMGDCmdResponse* response);
 

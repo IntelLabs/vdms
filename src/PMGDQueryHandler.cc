@@ -36,9 +36,8 @@
 // TODO In the complete version of VDMS, this file will live
 // within PMGD which would replace the PMGD namespace. Some of
 // these code pieces are temporary.
-using namespace pmgd;
 using namespace PMGD;
-using namespace vdms;
+using namespace VDMS;
 
 PMGDQueryHandler::PMGDQueryHandler(Graph *db, std::mutex *mtx)
 {
@@ -396,7 +395,7 @@ void PMGDQueryHandler::construct_protobuf_property(const Property &j_p, protobuf
     }
 }
 
-namespace vdms {
+namespace VDMS {
 template void PMGDQueryHandler::build_results<PMGD::NodeIterator>(PMGD::NodeIterator &ni,
                                                       const protobufs::QueryNode &qn,
                                                       protobufs::CommandResponse *response);
