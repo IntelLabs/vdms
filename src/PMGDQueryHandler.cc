@@ -31,13 +31,13 @@
 
 #include <limits>
 #include "PMGDQueryHandler.h"
-#include "util.h"   // Jarvis util
+#include "util.h"   // PMGD util
 
 // TODO In the complete version of VDMS, this file will live
-// within PMGD which would replace the Jarvis namespace. Some of
+// within PMGD which would replace the PMGD namespace. Some of
 // these code pieces are temporary.
 using namespace pmgd;
-using namespace Jarvis;
+using namespace PMGD;
 using namespace vdms;
 
 PMGDQueryHandler::PMGDQueryHandler(Graph *db, std::mutex *mtx)
@@ -200,7 +200,7 @@ void PMGDQueryHandler::set_property(Element &e, const protobufs::Property &p)
         break;
     }
     case protobufs::Property::BlobType:
-        throw JarvisException(NotImplemented, "Blob type not implemented");
+        throw PMGDException(NotImplemented, "Blob type not implemented");
     }
 }
 
@@ -209,7 +209,7 @@ void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
 {
     long id = cn.identifier();
     if (id >= 0 && mNodes.find(id) != mNodes.end())
-        throw JarvisException(UndefinedException, "Reuse of _ref value\n");
+        throw PMGDException(UndefinedException, "Reuse of _ref value\n");
 
     if (cn.has_query_node()) {
         const protobufs::QueryNode &qn = cn.query_node();
@@ -224,7 +224,7 @@ void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
         SearchExpression search(*_db, search_node_tag);
 
         if (qn.p_op() == protobufs::Or)
-            throw JarvisException(NotImplemented, "Or operator not implemented");
+            throw PMGDException(NotImplemented, "Or operator not implemented");
 
         for (int i = 0; i < qn.predicates_size(); ++i) {
             const protobufs::PropertyPredicate &p_pp = qn.predicates(i);
@@ -352,7 +352,7 @@ Property PMGDQueryHandler::construct_search_property(const protobufs::Property &
         return Property(t_e);
     }
     case protobufs::Property::BlobType:
-        throw JarvisException(PropertyTypeInvalid, "Search on blob property not permitted");
+        throw PMGDException(PropertyTypeInvalid, "Search on blob property not permitted");
     }
 }
 
@@ -392,12 +392,12 @@ void PMGDQueryHandler::construct_protobuf_property(const Property &j_p, protobuf
         p_p->set_time_value(time_to_string(j_p.time_value()));
         break;
     case PropertyType::Blob:
-        throw JarvisException(PropertyTypeInvalid, "Blob property not supported");
+        throw PMGDException(PropertyTypeInvalid, "Blob property not supported");
     }
 }
 
 namespace vdms {
-template void PMGDQueryHandler::build_results<Jarvis::NodeIterator>(Jarvis::NodeIterator &ni,
+template void PMGDQueryHandler::build_results<PMGD::NodeIterator>(PMGD::NodeIterator &ni,
                                                       const protobufs::QueryNode &qn,
                                                       protobufs::CommandResponse *response);
 template void PMGDQueryHandler::build_results<PMGDQueryHandler::ReusableNodeIterator>(
@@ -498,15 +498,15 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
                                     protobufs::CommandResponse *response)
 {
     ReusableNodeIterator *start_ni = NULL;
-    Jarvis::Direction dir;
+    PMGD::Direction dir;
     StringID edge_tag;
 
     if (qn.p_op() == protobufs::Or)
-        throw JarvisException(NotImplemented, "Or operation not implemented");
+        throw PMGDException(NotImplemented, "Or operation not implemented");
 
     long id = qn.identifier();
     if (id >= 0 && mNodes.find(id) != mNodes.end())
-        throw JarvisException(UndefinedException, "Reuse of _ref value\n");
+        throw PMGDException(UndefinedException, "Reuse of _ref value\n");
 
     bool has_link = qn.has_link();
     if (has_link)  { // case where link is used.
@@ -518,9 +518,9 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         }
         long start_id = link.start_identifier();
         if (start_id < 0 || mNodes.find(start_id) == mNodes.end())
-            throw JarvisException(UndefinedException, "Undefined _ref value used in link\n");
+            throw PMGDException(UndefinedException, "Undefined _ref value used in link\n");
 
-        dir = (Jarvis::Direction)link.dir();
+        dir = (PMGD::Direction)link.dir();
         edge_tag = (link.e_tagid() == 4) ? StringID(link.e_tagid())
                         : StringID(link.e_tag().c_str());
         start_ni = mNodes[start_id];
@@ -541,7 +541,7 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     }
 
     NodeIterator ni = has_link ?
-                       Jarvis::NodeIterator(new MultiNeighborIteratorImpl(start_ni, search, dir, edge_tag))
+                       PMGD::NodeIterator(new MultiNeighborIteratorImpl(start_ni, search, dir, edge_tag))
                        : search.eval_nodes();
     if (!bool(ni)) {
         response->set_error_code(protobufs::CommandResponse::Empty);

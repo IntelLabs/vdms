@@ -4,14 +4,14 @@
 #include <vector>
 
 #include "protobuf/pmgdMessages.pb.h" // Protobuff implementation
-#include "jarvis.h"
+#include "pmgd.h"
 #include "PMGDQueryHandler.h"
 
 #include <stdlib.h>     /* system, NULL, EXIT_FAILURE */
 
 using namespace pmgd;
 // TODO Need the following namespace just for now.
-using namespace Jarvis;
+using namespace PMGD;
 using namespace vdms;
 using namespace std;
 

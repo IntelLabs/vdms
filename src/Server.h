@@ -33,7 +33,7 @@
 
 #include <csignal>
 
-#include "jarvis.h"
+#include "pmgd.h"
 #include "CommunicationManager.h"
 
 namespace vdms {
@@ -45,7 +45,7 @@ namespace vdms {
 
         // TODO: Partitioner here
         //until we have a separate PMGD server this db lives here
-        Jarvis::Graph *_db;
+        PMGD::Graph *_db;
         // Aux lock, not in use
         std::mutex *_dblock;
 

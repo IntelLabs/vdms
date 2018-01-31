@@ -35,9 +35,9 @@
 #include "VDMSConfig.h"
 
 using namespace vdms;
-using namespace Jarvis;
+using namespace PMGD;
 
-CommunicationManager::CommunicationManager(Jarvis::Graph *db,std::mutex *mtx):
+CommunicationManager::CommunicationManager(PMGD::Graph *db,std::mutex *mtx):
     _db(db), _dblock(mtx)
 {
     _num_threads = VDMSConfig::instance() ->get_int_value(

@@ -61,7 +61,7 @@ Server::Server(std::string config_file)
     install_handler();
 
     //creating a db
-    _db = new Jarvis::Graph(dbname.c_str(), Jarvis::Graph::Create);
+    _db = new PMGD::Graph(dbname.c_str(), PMGD::Graph::Create);
     // Create the query handler here assuming database is valid now.
     _dblock = new std::mutex();
     _cm = new CommunicationManager(_db, _dblock);

@@ -8,12 +8,12 @@
 #include "gtest/gtest.h"
 #include <jsoncpp/json/writer.h>
 
-#include "jarvis.h"
+#include "pmgd.h"
 #include "VDMSConfig.h"
 #include "QueryHandlerTester.h"
 
 using namespace vdms;
-using namespace Jarvis;
+using namespace PMGD;
 using namespace std;
 
 std::string singleAddImage(" \

@@ -39,7 +39,7 @@
 
 #include "PMGDQuery.h"
 #include "QueryMessage.h"
-#include "jarvis.h"
+#include "pmgd.h"
 #include "util.h"
 
 #include "api_schema/APISchema.h"
@@ -88,7 +88,7 @@ void QueryHandler::init()
     }
 }
 
-QueryHandler::QueryHandler(Jarvis::Graph *db, std::mutex *mtx)
+QueryHandler::QueryHandler(PMGD::Graph *db, std::mutex *mtx)
     : _pmgd_qh(db, mtx),
     _validator(valijson::Validator::kWeakTypes)
 #ifdef CHRONO_TIMING
@@ -316,7 +316,7 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
         print_exception(e);
         GENERIC_LOGGER << "FATAL ERROR: VCL Exception at QH" << std::endl;
         exit(0);
-    } catch (Jarvis::Exception e) {
+    } catch (PMGD::Exception e) {
         print_exception(e);
         GENERIC_LOGGER << "FATAL ERROR: PMGD Exception at QH" << std::endl;
         exit(0);

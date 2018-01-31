@@ -3,7 +3,7 @@ VDMS: Your Favourite Visual Data Management System
 
 VDMS is a tiered storage design to enable storing and processing of large
 scale visual data. We use an in-persistent-memory graph database developed in
-our team called Jarvis Lake as the metadata tier and are exploring the use of
+our team called PMGD Lake as the metadata tier and are exploring the use of
 TileDB and other formats for images and videos as part of our Visual Compute
 Library (VCL). This project will research the use of a scalable multi-node
 graph based metadata store as part of a hierarchical storage framework

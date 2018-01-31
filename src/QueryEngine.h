@@ -1,10 +1,10 @@
 /*
- * This test checks Jarvis iterator filters
+ * This test checks PMGD iterator filters
  */
 
 #define __STDC_FORMAT_MACROS
 #include <inttypes.h>
-#include "jarvis.h"
+#include "pmgd.h"
 #include "util.h"
 #include <sstream>
 #include <iostream>
@@ -18,13 +18,13 @@
 class QueryEngine
 {
 
-private: 
+private:
 
 	uint32_t port;
 	uint32_t portCounter;
 	uint32_t taskIdSeed;
 
-public: 
+public:
 
 	QueryEngine();
 	~QueryEngine();

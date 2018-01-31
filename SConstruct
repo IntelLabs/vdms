@@ -12,19 +12,19 @@ def buildServer(intel_path, env):
   env.Append(
     CPPPATH= ['src', 'utils/include',
               '/usr/include/jsoncpp/',
-              intel_path + 'jarvis/include',
-              intel_path + 'jarvis/util',
+              intel_path + 'pmgd/include',
+              intel_path + 'pmgd/util',
               intel_path + 'vcl/include',
               intel_path + 'vcl/src',
              ],
-    LIBS = [ 'jarvis', 'jarvis-util',
+    LIBS = [ 'pmgd', 'pmgd-util',
              'jsoncpp', 'protobuf',
              'vdms-utils', 'vcl', 'pthread',
            ],
     LIBPATH = ['/usr/local/lib/', 'utils/',
                intel_path + 'utils/',
                intel_path + 'vcl/',
-               intel_path + 'jarvis/lib/'
+               intel_path + 'pmgd/lib/'
                ]
   )
 

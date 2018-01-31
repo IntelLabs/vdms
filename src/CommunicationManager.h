@@ -39,7 +39,7 @@
 #include <condition_variable>
 
 #include "comm/Connection.h"
-#include "jarvis.h"
+#include "pmgd.h"
 
 namespace vdms {
     class CommunicationManager
@@ -60,14 +60,14 @@ namespace vdms {
 
         bool _shutdown;
         //until we have a separate PMGD server this db lives here
-        Jarvis::Graph *_db;
+        PMGD::Graph *_db;
 
         // Need this lock till we have concurrency support in JL
         // TODO: Make this reader writer.
         std::mutex *_dblock;
 
     public:
-        CommunicationManager(Jarvis::Graph *db, std::mutex *mtx);
+        CommunicationManager(PMGD::Graph *db, std::mutex *mtx);
         ~CommunicationManager();
         void process_queue();
         void add_connection(comm::Connection *c);
