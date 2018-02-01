@@ -148,18 +148,6 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     return 0;
 }
 
-Json::Value AddImage::construct_responses(
-    Json::Value& response,
-    const Json::Value& json,
-    protobufs::queryMessage &query_res)
-{
-    Json::Value resp = check_responses(response);
-
-    Json::Value ret;
-    ret[_cmd_name] = resp;
-    return ret;
-}
-
 //========= FindImage definitions =========
 
 FindImage::FindImage() : ImageCommand("FindImage")
@@ -295,6 +283,6 @@ Json::Value FindImage::construct_responses(
         findImage.removeMember("entities");
     }
 
-    ret[_cmd_name] = findImage;
+    ret[_cmd_name].swap(findImage);
     return ret;
 }

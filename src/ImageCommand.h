@@ -59,11 +59,6 @@ namespace VDMS {
                                Json::Value& error) = 0;
 
         virtual bool need_blob() { return false; }
-
-        virtual Json::Value construct_responses(
-                Json::Value &json_responses,
-                const Json::Value &json,
-                protobufs::queryMessage &response) = 0;
     };
 
     class AddImage: public ImageCommand
@@ -86,11 +81,6 @@ namespace VDMS {
                                Json::Value& error);
 
         bool need_blob() { return true; }
-
-        Json::Value construct_responses(
-                Json::Value &json_responses,
-                const Json::Value &json,
-                protobufs::queryMessage &response);
     };
 
     class FindImage: public ImageCommand

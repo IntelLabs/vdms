@@ -49,10 +49,9 @@ Json::Value RSCommand::construct_responses(
     const Json::Value& json,
     protobufs::queryMessage &query_res)
 {
-    assert(response.size() == 1);
-
     Json::Value ret;
-    ret[_cmd_name] = response[0];
+    ret[_cmd_name] = check_responses(response);
+
     return ret;
 }
 
@@ -62,7 +61,7 @@ Json::Value RSCommand::check_responses(Json::Value& responses)
     Json::Value ret;
 
     if (responses.size() == 0) {
-        ret["status"] = PMGDCmdResponse::Error;
+        ret["status"] = RSCommand::Error;
         ret["info"]   = "No responses!";
         return ret;
     }
@@ -78,7 +77,7 @@ Json::Value RSCommand::check_responses(Json::Value& responses)
     }
 
     if (!flag_error) {
-        ret["status"] = PMGDCmdResponse::Success;
+        ret["status"] = RSCommand::Success;
     }
 
     return ret;
@@ -174,18 +173,6 @@ int AddEntity::construct_protobuf(PMGDQuery& query,
     return 0;
 }
 
-Json::Value AddEntity::construct_responses(
-    Json::Value& response,
-    const Json::Value& json,
-    protobufs::queryMessage &query_res)
-{
-    Json::Value resp = check_responses(response);
-
-    Json::Value ret;
-    ret[_cmd_name] = resp;
-    return ret;
-}
-
 //========= Connect definitions =========
 
 Connect::Connect() : RSCommand("Connect")
@@ -237,4 +224,20 @@ int FindEntity::construct_protobuf(
             );
 
     return 0;
+}
+
+Json::Value FindEntity::construct_responses(
+    Json::Value& response,
+    const Json::Value& json,
+    protobufs::queryMessage &query_res)
+{
+    assert(response.size() == 1);
+
+    Json::Value ret;
+
+    // This will change the response tree,
+    // but it is ok and avoids a copy
+    ret[_cmd_name].swap(response[0]);
+
+    return ret;
 }
