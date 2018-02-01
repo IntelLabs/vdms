@@ -71,7 +71,7 @@ class TestMultiClient(unittest.TestCase):
         self.assertEqual(response[0]["FindEntity"]["entities"][0]
                                     ["threadid"], thID)
 
-    def ztest_runMultipleAdds(self):
+    def test_runMultipleAdds(self):
 
         simultaneous = 1000;
         thread_arr = []
