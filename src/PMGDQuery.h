@@ -61,19 +61,17 @@ typedef PMGD::protobufs::QueryNode         PMGDQueryNode;
         std::vector<std::vector<PMGDCmdResponse* >> _pmgd_responses;
         Json::Value _json_responses;
 
-        void set_property(PMGDProp* p, const char* key, Json::Value val);
-        void add_link(const Json::Value& link, PMGD::protobufs::QueryNode* qn);
+        void set_property(PMGDProp* p, const std::string& key,
+                          const Json::Value& val);
+        void add_link(const Json::Value& link, PMGDQueryNode* qn);
         void parse_query_constraints(const Json::Value& constraints,
-                                     PMGD::protobufs::QueryNode* query_node);
+                                     PMGDQueryNode* qn);
 
         void parse_query_results(const Json::Value& result_type,
-                                 PMGD::protobufs::QueryNode* query_node);
+                                 PMGDQueryNode* qn);
 
         void set_operand(PMGDProp* p, const Json::Value& operand);
-
-        void get_response_type(const Json::Value& result_type_array,
-                               const std::string& response,
-                               PMGD::protobufs::QueryNode* query_node);
+        void get_response_type(const Json::Value& res, PMGDQueryNode* qn);
 
         Json::Value parse_response(PMGDCmdResponse* response);
 
