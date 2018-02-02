@@ -50,10 +50,6 @@
 
 using namespace VDMS;
 
-// TODO This will be later replaced by a real logger
-std::ofstream GENERIC_LOGGER("log.log", std::fstream::app);
-// #define GENERIC_LOGGER std::cout
-
 std::unordered_map<std::string, RSCommand *> QueryHandler::_rs_cmds;
 valijson::Schema* QueryHandler::_schema = new valijson::Schema;
 
@@ -132,9 +128,9 @@ bool QueryHandler::syntax_checker(const Json::Value& root, Json::Value& error)
     valijson::ValidationResults results;
     valijson::adapters::JsonCppAdapter user_query(root);
     if (!_validator.validate(*_schema, user_query, &results)) {
-        GENERIC_LOGGER << "API validation failed for:" << std::endl;
+        std::cerr << "API validation failed for:" << std::endl;
         Json::StyledWriter swriter;
-        GENERIC_LOGGER << swriter.write(root) << std::endl;
+        std::cerr << swriter.write(root) << std::endl;
 
         // Will attempt to find the simple error
         // To avoid valijson dump
@@ -168,7 +164,7 @@ bool QueryHandler::syntax_checker(const Json::Value& root, Json::Value& error)
                  << "  desc:    " << va_error.description << std::endl;
             ++errorNum;
         }
-        GENERIC_LOGGER << str_error.str();
+        std::cerr << str_error.str();
         error["info"] = str_error.str();
         return false;
     }
@@ -236,7 +232,7 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
             proto_res.clear_blobs();
             proto_res.set_json(fastWriter.write(json_responses));
             Json::StyledWriter w;
-            GENERIC_LOGGER << w.write(json_responses);
+            std::cerr << w.write(json_responses);
         };
 
         if (parse_commands(proto_query.json(), root) != 0) {
@@ -314,26 +310,26 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
 
     } catch (VCL::Exception e) {
         print_exception(e);
-        GENERIC_LOGGER << "FATAL ERROR: VCL Exception at QH" << std::endl;
+        std::cerr << "FATAL ERROR: VCL Exception at QH" << std::endl;
         exit(0);
     } catch (PMGD::Exception e) {
         print_exception(e);
-        GENERIC_LOGGER << "FATAL ERROR: PMGD Exception at QH" << std::endl;
+        std::cerr << "FATAL ERROR: PMGD Exception at QH" << std::endl;
         exit(0);
     } catch (ExceptionCommand e) {
         print_exception(e);
-        GENERIC_LOGGER << "FATAL ERROR: Command Exception at QH" << std::endl;
+        std::cerr << "FATAL ERROR: Command Exception at QH" << std::endl;
         exit(0);
     } catch (Json::Exception const&) {
         // Should not happen
         // In case of error on the last fastWriter
-        GENERIC_LOGGER << "FATAL: Json Exception!" << std::endl;
+        std::cerr << "FATAL: Json Exception!" << std::endl;
         Json::Value error;
         error["info"] = "Internal Server Error: Json Exception";
         error["status"] = RSCommand::Error;
         proto_res.set_json(fastWriter.write(error));
     } catch (const std::invalid_argument& ex) {
-        GENERIC_LOGGER << "Invalid argument: " << ex.what() << '\n';
+        std::cerr << "Invalid argument: " << ex.what() << '\n';
         exit(0);
     }
 }
