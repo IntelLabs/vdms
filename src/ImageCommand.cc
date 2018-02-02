@@ -51,7 +51,7 @@ void ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
 {
     // Correct operation type and parameters are guaranteed at this point
     for (auto& op : ops) {
-        std::string type = get_value<std::string>(op, "type");
+        const std::string& type = get_value<std::string>(op, "type");
         if (type == "threshold") {
             img.threshold(get_value<int>(op, "value"));
         }

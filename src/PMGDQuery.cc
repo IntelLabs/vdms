@@ -454,7 +454,7 @@ void PMGDQuery::AddNode(int ref,
     an->set_identifier(ref);
 
     PMGD::protobufs::Node *n = an->mutable_node();
-    n->set_tag(tag.c_str());
+    n->set_tag(tag);
 
     for (auto it = props.begin(); it != props.end(); ++it) {
         PMGDProp* p = n->add_properties();
@@ -464,7 +464,7 @@ void PMGDQuery::AddNode(int ref,
     if(!constraints.isNull()) {
         PMGDQueryNode *qn = an->mutable_query_node();
         qn->set_identifier(-1);
-        qn->set_tag(tag.c_str());
+        qn->set_tag(tag);
         qn->set_unique(unique);
         qn->set_p_op(PMGD::protobufs::And);
         qn->set_r_type(PMGD::protobufs::Count);
@@ -486,7 +486,7 @@ void PMGDQuery::AddEdge(int ident,
     ae->set_identifier(ident);
 
     PMGD::protobufs::Edge *e = ae->mutable_edge();
-    e->set_tag(tag.c_str());
+    e->set_tag(tag);
     e->set_src(src);
     e->set_dst(dst);
 
@@ -512,7 +512,7 @@ void PMGDQuery::QueryNode(int ref,
     PMGDQueryNode *qn = cmdquery->mutable_query_node();
 
     qn->set_identifier(ref);
-    qn->set_tag(tag.c_str());
+    qn->set_tag(tag);
     qn->set_unique(unique);
 
     if (!link.isNull())

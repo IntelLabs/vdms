@@ -66,7 +66,7 @@ Json::Value RSCommand::check_responses(Json::Value& responses)
         return ret;
     }
 
-    for (auto res : responses) {
+    for (auto& res : responses) {
         if (res["status"] != PMGDCmdResponse::Success
             &&
             res["status"] != PMGDCmdResponse::Exists)
