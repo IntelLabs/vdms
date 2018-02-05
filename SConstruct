@@ -58,7 +58,7 @@ env = Environment(CXXFLAGS="-std=c++11 -O3")
 env.MergeFlags(GetOption('cflags'))
 
 SConscript(os.path.join('utils', 'SConscript'), exports=['env'])
-SConscript(os.path.join('client','SConscript'), exports=['env'])
+SConscript(os.path.join('client/cpp','SConscript'), exports=['env'])
 
 if GetOption('no-server'):
   buildServer(intel_path, env)

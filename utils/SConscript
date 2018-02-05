@@ -6,12 +6,12 @@ def compileProtoFiles(utils_env):
   protoQuery = utils_env.Command (
              ['include/protobuf/queryMessage.pb.h',
               'src/protobuf/queryMessage.pb.cc',
-              '../python/vdms/queryMessage_pb2.py',
+              '../client/python/vdms/queryMessage_pb2.py',
              ], # TARGET
               'src/protobuf/queryMessage.proto', # $SOURCE
               'protoc \
               -I=utils/src/protobuf --cpp_out=utils/src/protobuf/ \
-              --python_out=python/vdms/  $SOURCE && \
+              --python_out=client/python/vdms/  $SOURCE && \
               mv utils/src/protobuf/queryMessage.pb.h \
                  utils/include/protobuf/queryMessage.pb.h'
               )
@@ -29,10 +29,10 @@ def compileProtoFiles(utils_env):
 
 def createAPISchemaString(utils_env):
   api_schema = utils_env.Command (
-              'include/api_schema/APISchema.h',        # $TARGET
+              'include/api_schema/APISchema.h',      # $TARGET
               ['src/api_schema/api_schema.json',
                'src/api_schema/createApiString.py'], # $SOURCE
-              'python utils/src/api_schema/createApiString.py $SOURCE $TARGET'
+               'python utils/src/api_schema/createApiString.py $SOURCE $TARGET'
               )
 
 utils_env = env.Clone()

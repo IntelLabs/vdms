@@ -1,7 +1,7 @@
 # We need to add this dependecy.
 # utils = SConscript(['utils/SConstruct'])
 
-client_env = Environment(CPPPATH = [ '../utils/include' ],
+client_env = Environment(CPPPATH = [ '../../utils/include' ],
                         CXXFLAGS="-std=c++11 -O3")
 
 client_sources = [ 'VDMSClient.cc' ]
