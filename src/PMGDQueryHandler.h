@@ -44,9 +44,17 @@
 namespace VDMS {
     // Instance created per worker thread to handle all transactions on a given
     // connection.
+
+    typedef PMGD::protobufs::Command           PMGDCmd;
+    typedef PMGD::protobufs::CommandResponse   PMGDCmdResponse;
+    typedef PMGD::protobufs::PropertyPredicate PMGDPropPred;
+    typedef PMGD::protobufs::PropertyList      PMGDPropList;
+    typedef PMGD::protobufs::Property          PMGDProp;
+    typedef PMGD::protobufs::QueryNode         PMGDQueryNode;
+
     class PMGDQueryHandler
     {
-        public:
+        private:
         class ReusableNodeIterator
         {
             // Iterator for the starting nodes.
@@ -58,9 +66,6 @@ namespace VDMS {
 
             // Current postion of list iterator
             std::list<PMGD::Node *>::iterator _it;
-
-            // Optional in case sort required
-            PMGD::StringID _sortkey;
 
             bool _next()
             {
@@ -228,18 +233,18 @@ namespace VDMS {
         // Not really used at this point.
         std::unordered_map<int, PMGD::Edge *> mEdges;
 
-        template <class Element> void set_property(Element &e, const PMGD::protobufs::Property &p);
-        void add_node(const PMGD::protobufs::AddNode &cn, PMGD::protobufs::CommandResponse *response);
-        void add_edge(const PMGD::protobufs::AddEdge &ce, PMGD::protobufs::CommandResponse *response);
-        PMGD::Property construct_search_property(const PMGD::protobufs::Property &p);
+        template <class Element> void set_property(Element &e, const PMGDProp&p);
+        void add_node(const PMGD::protobufs::AddNode &cn, PMGDCmdResponse *response);
+        void add_edge(const PMGD::protobufs::AddEdge &ce, PMGDCmdResponse *response);
+        PMGD::Property construct_search_property(const PMGDProp&p);
         PMGD::PropertyPredicate construct_search_term(const PMGD::protobufs::PropertyPredicate &p_pp);
-        void construct_protobuf_property(const PMGD::Property &j_p, PMGD::protobufs::Property *p_p);
-        void query_node(const PMGD::protobufs::QueryNode &qn, PMGD::protobufs::CommandResponse *response);
-        // void query_neighbor(const PMGD::protobufs::QueryNeighbor &qnb, PMGD::protobufs::CommandResponse *response);
-        void process_query(PMGD::protobufs::Command *cmd, PMGD::protobufs::CommandResponse *response);
+        void construct_protobuf_property(const PMGD::Property &j_p, PMGDProp*p_p);
+        void query_node(const PMGDQueryNode &qn, PMGDCmdResponse *response);
+        // void query_neighbor(const PMGD::protobufs::QueryNeighbor &qnb, PMGDCmdResponse *response);
+        void process_query(PMGDCmd *cmd, PMGDCmdResponse *response);
         template <class Iterator> void build_results(Iterator &ni,
-                                                      const PMGD::protobufs::QueryNode &qn,
-                                                      PMGD::protobufs::CommandResponse *response);
+                                                    const PMGDQueryNode &qn,
+                                                    PMGDCmdResponse *response);
 
     public:
         PMGDQueryHandler(PMGD::Graph *db, std::mutex *mtx);
@@ -253,8 +258,8 @@ namespace VDMS {
         // than the number of commands.
         // Ensure that the cmd_grp_id, that is the query number are in increasing
         // order and account for the TxBegin and TxEnd in numbering.
-        std::vector<std::vector<PMGD::protobufs::CommandResponse *>> process_queries(
-                                           std::vector<PMGD::protobufs::Command *> cmds,
+        std::vector<std::vector<PMGDCmdResponse *>> process_queries(
+                                           std::vector<PMGDCmd *> cmds,
                                            int num_queries);
     };
 };

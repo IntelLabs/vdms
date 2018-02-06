@@ -39,13 +39,6 @@
 
 namespace VDMS {
 
-typedef PMGD::protobufs::Command           PMGDCmd;
-typedef PMGD::protobufs::CommandResponse   PMGDCmdResponse;
-typedef PMGD::protobufs::PropertyPredicate PMGDPropPred;
-typedef PMGD::protobufs::PropertyList      PMGDPropList;
-typedef PMGD::protobufs::Property          PMGDProp;
-typedef PMGD::protobufs::QueryNode         PMGDQueryNode;
-
     /* This class takes care of the transaction and conversion
         from Protobuf data structures used by PMGD to Json structures
         used by the QueryHandler

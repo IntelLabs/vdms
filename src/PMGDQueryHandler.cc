@@ -46,15 +46,15 @@ PMGDQueryHandler::PMGDQueryHandler(Graph *db, std::mutex *mtx)
     _tx = NULL;
 }
 
-std::vector<std::vector<protobufs::CommandResponse *>>
-              PMGDQueryHandler::process_queries(std::vector<protobufs::Command *> cmds,
+std::vector<std::vector<PMGDCmdResponse *>>
+              PMGDQueryHandler::process_queries(std::vector<PMGDCmd *> cmds,
               int num_groups)
 {
-    std::vector<std::vector<protobufs::CommandResponse *>> responses(num_groups);
+    std::vector<std::vector<PMGDCmdResponse *>> responses(num_groups);
 
     for (auto cmd : cmds) {
-        protobufs::CommandResponse *response = new protobufs::CommandResponse();
-        std::vector<protobufs::CommandResponse *> &resp_v = responses[cmd->cmd_grp_id()];
+        PMGDCmdResponse *response = new PMGDCmdResponse();
+        std::vector<PMGDCmdResponse *> &resp_v = responses[cmd->cmd_grp_id()];
         try {
             process_query(cmd, response);
         }
@@ -72,7 +72,7 @@ std::vector<std::vector<protobufs::CommandResponse *>>
             // Since we have shortened the container, this reference will still remain
             // valid. So we can reuse the 0th spot.
             response->set_cmd_grp_id(0);
-            std::vector<protobufs::CommandResponse *> resp_v1;
+            std::vector<PMGDCmdResponse *> resp_v1;
             resp_v1.push_back(response);
             responses.push_back(resp_v1);
             break;  // Goto cleanup site.
@@ -100,43 +100,43 @@ std::vector<std::vector<protobufs::CommandResponse *>>
     return responses;
 }
 
-void PMGDQueryHandler::process_query(protobufs::Command *cmd,
-                                     protobufs::CommandResponse *response)
+void PMGDQueryHandler::process_query(PMGDCmd *cmd,
+                                     PMGDCmdResponse *response)
 {
     try {
         int code = cmd->cmd_id();
         response->set_cmd_grp_id(cmd->cmd_grp_id());
         switch (code) {
-            case protobufs::Command::TxBegin:
+            case PMGDCmd::TxBegin:
             {
                 _dblock->lock();
 
                 // TODO: Needs to distinguish transaction parameters like RO/RW
                 _tx = new Transaction(*_db, Transaction::ReadWrite);
-                response->set_error_code(protobufs::CommandResponse::Success);
+                response->set_error_code(PMGDCmdResponse::Success);
                 response->set_r_type(protobufs::TX);
                 break;
             }
-            case protobufs::Command::TxCommit:
+            case PMGDCmd::TxCommit:
             {
                 _tx->commit();
                 _dblock->unlock();
-                response->set_error_code(protobufs::CommandResponse::Success);
+                response->set_error_code(PMGDCmdResponse::Success);
                 response->set_r_type(protobufs::TX);
                 break;
             }
-            case protobufs::Command::TxAbort:
+            case PMGDCmd::TxAbort:
             {
                 _dblock->unlock();
-                response->set_error_code(protobufs::CommandResponse::Abort);
+                response->set_error_code(PMGDCmdResponse::Abort);
                 response->set_error_msg("Abort called");
                 response->set_r_type(protobufs::TX);
                 break;
             }
-            case protobufs::Command::AddNode:
+            case PMGDCmd::AddNode:
                 add_node(cmd->add_node(), response);
                 break;
-            case protobufs::Command::AddEdge:
+            case PMGDCmd::AddEdge:
                 add_edge(cmd->add_edge(), response);
                 break;
                 //     case Command::CreateIndex:
@@ -145,7 +145,7 @@ void PMGDQueryHandler::process_query(protobufs::Command *cmd,
                 //     case Command::SetProperty:
                 //         SetProperty();
                 //         break;
-            case protobufs::Command::QueryNode:
+            case PMGDCmd::QueryNode:
                 query_node(cmd->query_node(), response);
                 break;
                 //     case Command::RemoveNode:
@@ -167,29 +167,29 @@ void PMGDQueryHandler::process_query(protobufs::Command *cmd,
     }
     catch (Exception e) {
         _dblock->unlock();
-        response->set_error_code(protobufs::CommandResponse::Exception);
+        response->set_error_code(PMGDCmdResponse::Exception);
         response->set_error_msg(e.name + std::string(": ") +  e.msg);
         throw e;
     }
 }
 
 template <class Element>
-void PMGDQueryHandler::set_property(Element &e, const protobufs::Property &p)
+void PMGDQueryHandler::set_property(Element &e, const PMGDProp &p)
 {
     switch(p.type()) {
-    case protobufs::Property::BooleanType:
+    case PMGDProp::BooleanType:
         e.set_property(p.key().c_str(), p.bool_value());
         break;
-    case protobufs::Property::IntegerType:
+    case PMGDProp::IntegerType:
         e.set_property(p.key().c_str(), (long long)p.int_value());
         break;
-    case protobufs::Property::StringType:
+    case PMGDProp::StringType:
         e.set_property(p.key().c_str(), p.string_value());
         break;
-    case protobufs::Property::FloatType:
+    case PMGDProp::FloatType:
         e.set_property(p.key().c_str(), p.float_value());
         break;
-    case protobufs::Property::TimeType:
+    case PMGDProp::TimeType:
     {
         struct tm tm_e;
         int hr, min;
@@ -198,13 +198,13 @@ void PMGDQueryHandler::set_property(Element &e, const protobufs::Property &p)
         e.set_property(p.key().c_str(), t_e);
         break;
     }
-    case protobufs::Property::BlobType:
+    case PMGDProp::BlobType:
         throw PMGDException(NotImplemented, "Blob type not implemented");
     }
 }
 
 void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
-                                  protobufs::CommandResponse *response)
+                                  PMGDCmdResponse *response)
 {
     long id = cn.identifier();
     if (id >= 0 && mNodes.find(id) != mNodes.end())
@@ -226,7 +226,7 @@ void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
             throw PMGDException(NotImplemented, "Or operator not implemented");
 
         for (int i = 0; i < qn.predicates_size(); ++i) {
-            const protobufs::PropertyPredicate &p_pp = qn.predicates(i);
+            const PMGDPropPred &p_pp = qn.predicates(i);
             PropertyPredicate j_pp = construct_search_term(p_pp);
             search.add(j_pp);
         }
@@ -240,7 +240,7 @@ void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
             // Check unique
             ni->next();
             if (bool(*ni)) {  // Not unique and that is an error here.
-                response->set_error_code(protobufs::CommandResponse::NotUnique);
+                response->set_error_code(PMGDCmdResponse::NotUnique);
                 response->set_error_msg("No unique node found for the add node\n");
                 delete ni;
                 return;
@@ -252,7 +252,7 @@ void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
             }
             else
                 delete ni;
-            response->set_error_code(protobufs::CommandResponse::Exists);
+            response->set_error_code(PMGDCmdResponse::Exists);
             response->set_r_type(protobufs::NodeID);
             return;
         }
@@ -265,11 +265,11 @@ void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
         mNodes[id] = new ReusableNodeIterator(&n);
 
     for (int i = 0; i < cn.node().properties_size(); ++i) {
-        const protobufs::Property &p = cn.node().properties(i);
+        const PMGDProp &p = cn.node().properties(i);
         set_property(n, p);
     }
 
-    response->set_error_code(protobufs::CommandResponse::Success);
+    response->set_error_code(PMGDCmdResponse::Success);
     response->set_r_type(protobufs::NodeID);
     // TODO: Partition code goes here
     // For now, fill in the single system node id
@@ -277,7 +277,7 @@ void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
 }
 
 void PMGDQueryHandler::add_edge(const protobufs::AddEdge &ce,
-                                  protobufs::CommandResponse *response)
+                                  PMGDCmdResponse *response)
 {
     // Presumably this node gets placed here.
     StringID sid(ce.edge().tag().c_str());
@@ -295,12 +295,12 @@ void PMGDQueryHandler::add_edge(const protobufs::AddEdge &ce,
         dstni = dstit->second;
     }
     else {
-        response->set_error_code(protobufs::CommandResponse::Error);
+        response->set_error_code(PMGDCmdResponse::Error);
         response->set_error_msg("Source/destination node references not found");
         return;
     }
     if (!bool(*srcni) || !bool(dstni)) {
-        response->set_error_code(protobufs::CommandResponse::Empty);
+        response->set_error_code(PMGDCmdResponse::Empty);
         response->set_error_msg("Empty node iterators for adding edge");
         return;
     }
@@ -312,7 +312,7 @@ void PMGDQueryHandler::add_edge(const protobufs::AddEdge &ce,
             Node &dst = **dstni;
             Edge &e = _db->add_edge(src, dst, sid);
             for (int i = 0; i < ce.edge().properties_size(); ++i) {
-                const protobufs::Property &p = ce.edge().properties(i);
+                const PMGDProp &p = ce.edge().properties(i);
                 set_property(e, p);
             }
 
@@ -323,7 +323,7 @@ void PMGDQueryHandler::add_edge(const protobufs::AddEdge &ce,
     }
     srcni->reset();
 
-    response->set_error_code(protobufs::CommandResponse::Success);
+    response->set_error_code(PMGDCmdResponse::Success);
     response->set_r_type(protobufs::EdgeID);
     // ID of the last edge added
     response->set_op_int_value(eid);
@@ -331,18 +331,18 @@ void PMGDQueryHandler::add_edge(const protobufs::AddEdge &ce,
 
 // TODO: Do we need a separate function here or should we try to combine
 // this with the set_property(). Avoids extra property copies?
-Property PMGDQueryHandler::construct_search_property(const protobufs::Property &p)
+Property PMGDQueryHandler::construct_search_property(const PMGDProp &p)
 {
     switch(p.type()) {
-    case protobufs::Property::BooleanType:
+    case PMGDProp::BooleanType:
         return Property(p.bool_value());
-    case protobufs::Property::IntegerType:
+    case PMGDProp::IntegerType:
         return Property((long long)p.int_value());
-    case protobufs::Property::StringType:
+    case PMGDProp::StringType:
         return Property(p.string_value());
-    case protobufs::Property::FloatType:
+    case PMGDProp::FloatType:
         return Property(p.float_value());
-    case protobufs::Property::TimeType:
+    case PMGDProp::TimeType:
     {
         struct tm tm_e;
         int hr, min;
@@ -350,12 +350,12 @@ Property PMGDQueryHandler::construct_search_property(const protobufs::Property &
         Time t_e(&tm_e, hr, min);  // time diff
         return Property(t_e);
     }
-    case protobufs::Property::BlobType:
+    case PMGDProp::BlobType:
         throw PMGDException(PropertyTypeInvalid, "Search on blob property not permitted");
     }
 }
 
-PropertyPredicate PMGDQueryHandler::construct_search_term(const protobufs::PropertyPredicate &p_pp)
+PropertyPredicate PMGDQueryHandler::construct_search_term(const PMGDPropPred &p_pp)
 {
     StringID key = (p_pp.key_oneof_case() == 2) ? StringID(p_pp.keyid()) : StringID(p_pp.key().c_str());
 
@@ -370,10 +370,10 @@ PropertyPredicate PMGDQueryHandler::construct_search_term(const protobufs::Prope
                                construct_search_property(p_pp.v2()));
 }
 
-void PMGDQueryHandler::construct_protobuf_property(const Property &j_p, protobufs::Property *p_p)
+void PMGDQueryHandler::construct_protobuf_property(const Property &j_p, PMGDProp *p_p)
 {
     // Assumes matching enum values!
-    p_p->set_type((protobufs::Property::PropertyType)j_p.type());
+    p_p->set_type((PMGDProp::PropertyType)j_p.type());
     switch(j_p.type()) {
     case PropertyType::Boolean:
         p_p->set_bool_value(j_p.bool_value());
@@ -398,17 +398,17 @@ void PMGDQueryHandler::construct_protobuf_property(const Property &j_p, protobuf
 namespace VDMS {
 template void PMGDQueryHandler::build_results<PMGD::NodeIterator>(PMGD::NodeIterator &ni,
                                                       const protobufs::QueryNode &qn,
-                                                      protobufs::CommandResponse *response);
+                                                      PMGDCmdResponse *response);
 template void PMGDQueryHandler::build_results<PMGDQueryHandler::ReusableNodeIterator>(
                                                       PMGDQueryHandler::ReusableNodeIterator &ni,
                                                       const protobufs::QueryNode &qn,
-                                                      protobufs::CommandResponse *response);
+                                                      PMGDCmdResponse *response);
 };
 
 template <class Iterator>
 void PMGDQueryHandler::build_results(Iterator &ni,
                                       const protobufs::QueryNode &qn,
-                                      protobufs::CommandResponse *response)
+                                      PMGDCmdResponse *response)
 {
     // TODO This should really be translated at some global level. Either
     // this class or maybe even the request server main handler.
@@ -417,7 +417,7 @@ void PMGDQueryHandler::build_results(Iterator &ni,
         keyids.push_back(StringID(qn.response_keys(i).c_str()));
 
     response->set_r_type(qn.r_type());
-    response->set_error_code(protobufs::CommandResponse::Success);
+    response->set_error_code(PMGDCmdResponse::Success);
 
     bool avg = false;
     size_t limit = qn.limit() > 0 ? qn.limit() : std::numeric_limits<size_t>::max();
@@ -431,8 +431,8 @@ void PMGDQueryHandler::build_results(Iterator &ni,
                 Property j_p;
                 if (!ni->check_property(keyids[i], j_p))
                     continue;
-                protobufs::PropertyList &list = rmap[qn.response_keys(i)];
-                protobufs::Property *p_p = list.add_values();
+                PMGDPropList &list = rmap[qn.response_keys(i)];
+                PMGDProp *p_p = list.add_values();
                 construct_protobuf_property(j_p, p_p);
             }
             count++;
@@ -482,19 +482,19 @@ void PMGDQueryHandler::build_results(Iterator &ni,
                 response->set_op_float_value(sum);
         }
         else {
-            response->set_error_code(protobufs::CommandResponse::Error);
+            response->set_error_code(PMGDCmdResponse::Error);
             response->set_error_msg("Wrong first property for sum/average\n");
         }
         break;
     }
     default:
-        response->set_error_code(protobufs::CommandResponse::Error);
+        response->set_error_code(PMGDCmdResponse::Error);
         response->set_error_msg("Unknown operation type for query\n");
     }
 }
 
 void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
-                                    protobufs::CommandResponse *response)
+                                    PMGDCmdResponse *response)
 {
     ReusableNodeIterator *start_ni = NULL;
     PMGD::Direction dir;
@@ -511,7 +511,7 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     if (has_link)  { // case where link is used.
         const protobufs::LinkInfo &link = qn.link();
         if (link.nb_unique()) {  // TODO Add support for unique neighbors across iterators
-            response->set_error_code(protobufs::CommandResponse::Error);
+            response->set_error_code(PMGDCmdResponse::Error);
             response->set_error_msg("Non-repeated neighbors not supported\n");
             return;
         }
@@ -534,7 +534,7 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     SearchExpression search(*_db, search_node_tag);
 
     for (int i = 0; i < qn.predicates_size(); ++i) {
-        const protobufs::PropertyPredicate &p_pp = qn.predicates(i);
+        const PMGDPropPred &p_pp = qn.predicates(i);
         PropertyPredicate j_pp = construct_search_term(p_pp);
         search.add(j_pp);
     }
@@ -543,7 +543,7 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
                        PMGD::NodeIterator(new MultiNeighborIteratorImpl(start_ni, search, dir, edge_tag))
                        : search.eval_nodes();
     if (!bool(ni)) {
-        response->set_error_code(protobufs::CommandResponse::Empty);
+        response->set_error_code(PMGDCmdResponse::Empty);
         response->set_error_msg("Null search iterator\n");
         return;
     }
@@ -567,7 +567,7 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     if (qn.unique()) {
         tni->next();
         if (bool(*tni)) {  // Not unique and that is an error here.
-            response->set_error_code(protobufs::CommandResponse::NotUnique);
+            response->set_error_code(PMGDCmdResponse::NotUnique);
             response->set_error_msg("Query response not unique\n");
             delete tni;
             return;
@@ -579,7 +579,7 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
 
         // Set these in case there is no results block.
         response->set_r_type(protobufs::Cached);
-        response->set_error_code(protobufs::CommandResponse::Success);
+        response->set_error_code(PMGDCmdResponse::Success);
     }
     if (qn.sort())
         tni->sort(qn.sort_key().c_str());
