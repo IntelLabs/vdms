@@ -48,12 +48,12 @@ using namespace VDMS;
 PMGDQuery::PMGDQuery(PMGDQueryHandler& pmgd_qh) :
     _pmgd_qh(pmgd_qh), _current_ref(REFERENCE_RANGE_START)
 {
-    _current_group = 0;
+    _current_group_id = 0;
     //this command to start a new transaction
     PMGDCmd* cmdtx = new PMGDCmd;
     //this the protobuf of a new TxBegin
     cmdtx->set_cmd_id(PMGDCmd::TxBegin);
-    cmdtx->set_cmd_grp_id(_current_group); //give it an ID
+    cmdtx->set_cmd_grp_id(_current_group_id); //give it an ID
     _cmds.push_back(cmdtx); //push the creating command to the vector
 }
 
@@ -62,31 +62,29 @@ PMGDQuery::~PMGDQuery()
     for (auto cmd : _cmds) {
         delete cmd;
     }
-
-    for (unsigned i = 0; i < _pmgd_responses.size(); ++i) {
-        for (unsigned j = 0; j < _pmgd_responses[i].size(); ++j) {
-            if (_pmgd_responses[i][j] != NULL)
-                delete _pmgd_responses[i][j];
-        }
-        _pmgd_responses[i].clear();
-    }
 }
 
 Json::Value& PMGDQuery::run()
 {
-    add_group(); // will set _current_group correctly
+    add_group(); // will set _current_group_id correctly
 
     // End of the transaction
     PMGDCmd* cmdtxend = new PMGDCmd;
     // Commit here doesn't change anything. Just indicates end of TX
     cmdtxend->set_cmd_id(PMGDCmd::TxCommit);
-    cmdtxend->set_cmd_grp_id(_current_group);
+    cmdtxend->set_cmd_grp_id(_current_group_id);
     _cmds.push_back(cmdtxend);
 
     // execute the queries using the PMGDQueryHandler object
-    _pmgd_responses = _pmgd_qh.process_queries(_cmds, _current_group + 1);
+    std::vector<std::vector<PMGDCmdResponse* >> _pmgd_responses;
+    _pmgd_responses = _pmgd_qh.process_queries(_cmds, _current_group_id + 1);
 
-    if (_pmgd_responses.size() != _current_group + 1) {
+    if (_pmgd_responses.size() != _current_group_id + 1) {
+        if (_pmgd_responses.size() == 1 && _pmgd_responses[0].size() == 1) {
+            _json_responses["status"] = -1;
+            _json_responses["info"] = _pmgd_responses[0][0]->error_msg();
+            return _json_responses;
+        }
         _json_responses["status"] = -1;
         _json_responses["info"] = "PMGD Transacion Error";
         return _json_responses;
@@ -100,6 +98,13 @@ Json::Value& PMGDQuery::run()
             arr.append(parse_response(response));
         }
         _json_responses.append(arr);
+    }
+
+    for (auto& group : _pmgd_responses) {
+        for (auto ptr : group) {
+            delete ptr;
+        }
+        group.clear();
     }
 
     return _json_responses;
@@ -161,43 +166,43 @@ void PMGDQuery::set_value(const std::string& key, const PMGDProp& p,
 void PMGDQuery::set_property(PMGDProp* p, const std::string& key,
                              const Json::Value& val)
 {
+    p->set_key(key);
+
     switch (val.type()) {
         case Json::intValue:
             p->set_type(PMGDProp::IntegerType);
-            p->set_key(key);
             p->set_int_value(val.asInt());
             break;
 
         case Json::booleanValue:
             p->set_type(PMGDProp::BooleanType);
-            p->set_key(key);
             p->set_bool_value(val.asBool());
             break;
 
         case Json::realValue:
             p->set_type(PMGDProp::FloatType);
-            p->set_key(key);
             p->set_float_value(val.asDouble());
             break;
 
         case Json::stringValue:
             p->set_type(PMGDProp::StringType);
-            p->set_key(key);
             p->set_string_value(val.asString());
             break;
 
         case Json::objectValue:
             if (val.isMember("_date")) {
                 p->set_type(PMGDProp::TimeType);
-                p->set_key(key);
                 p->set_string_value(val["_date"].asString());
             }
-
-            if (val.isMember("_blob")) {
+            else if (val.isMember("_blob")) {
                 // the blob value is read and stored as a string
                 p->set_type(PMGDProp::StringType);
-                p->set_key(key);
                 p->set_string_value(val["_blob"].asString());
+            }
+            else {
+                printf("%s\n", key.c_str());
+                throw ExceptionCommand(PMGDTransactiontError,
+                                       "Object Type Error");
             }
             break;
 
@@ -316,34 +321,6 @@ Json::Value PMGDQuery::parse_response(PMGDCmdResponse* response)
     return ret;
 }
 
-void PMGDQuery::set_operand(PMGDProp* p, const Json::Value& operand)
-{
-    switch (operand.type()) {
-        case Json::intValue:
-            p->set_type(PMGDProp::IntegerType);
-            p->set_int_value((operand.asInt()));
-            break;
-
-        case Json::booleanValue:
-            p->set_type(PMGDProp::BooleanType);
-            p->set_bool_value((operand.asBool()));
-            break;
-
-        case Json::realValue:
-            p->set_type(PMGDProp::FloatType);
-            p->set_float_value((operand.asDouble()));
-            break;
-
-        case Json::stringValue:
-            p->set_type(PMGDProp::StringType);
-            p->set_string_value((operand.asString()));
-            break;
-
-        default:
-            p->set_type(PMGDProp::NoValueType);
-    }
-}
-
 void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
                                         PMGDQueryNode* qn)
 {
@@ -360,8 +337,7 @@ void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
         pp->set_key(key);  //assign the property predicate key
 
         PMGDProp* p1 = pp->mutable_v1();
-        p1->set_key(key);
-        set_operand(p1, predicate[1]);
+        set_property(p1, key, predicate[1]);
 
         PMGDPropPred::Op op;
         const std::string& pred1 = predicate[0].asString();
@@ -382,8 +358,7 @@ void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
         }
         else {
             PMGDProp* p2 = pp->mutable_v2();
-            p2->set_key(key);
-            set_operand(p2, predicate[3]);
+            set_property(p2, key, predicate[3]);
 
             const std::string& pred2 = predicate[2].asString();
 
@@ -449,7 +424,7 @@ void PMGDQuery::AddNode(int ref,
 {
     PMGDCmd* cmdadd = new PMGDCmd();
     cmdadd->set_cmd_id(PMGDCmd::AddNode);
-    cmdadd->set_cmd_grp_id(_current_group);
+    cmdadd->set_cmd_grp_id(_current_group_id);
     PMGD::protobufs::AddNode *an = cmdadd->mutable_add_node();
     an->set_identifier(ref);
 
@@ -480,7 +455,7 @@ void PMGDQuery::AddEdge(int ident,
                         const Json::Value& props)
 {
     PMGDCmd* cmdedge = new PMGDCmd();
-    cmdedge->set_cmd_grp_id(_current_group);
+    cmdedge->set_cmd_grp_id(_current_group_id);
     cmdedge->set_cmd_id(PMGDCmd::AddEdge);
     PMGD::protobufs::AddEdge *ae = cmdedge->mutable_add_edge();
     ae->set_identifier(ident);
@@ -507,7 +482,7 @@ void PMGDQuery::QueryNode(int ref,
 {
     PMGDCmd* cmdquery = new PMGDCmd();
     cmdquery->set_cmd_id(PMGDCmd::QueryNode);
-    cmdquery->set_cmd_grp_id(_current_group);
+    cmdquery->set_cmd_grp_id(_current_group_id);
 
     PMGDQueryNode *qn = cmdquery->mutable_query_node();
 

@@ -53,12 +53,10 @@ typedef PMGD::protobufs::QueryNode         PMGDQueryNode;
     class PMGDQuery
     {
         std::vector<PMGDCmd* > _cmds;
-        unsigned _group_count;
-        unsigned _current_group;
+        unsigned _current_group_id;
         PMGDQueryHandler& _pmgd_qh;
         unsigned _current_ref;
 
-        std::vector<std::vector<PMGDCmdResponse* >> _pmgd_responses;
         Json::Value _json_responses;
 
         void set_property(PMGDProp* p, const std::string& key,
@@ -70,7 +68,6 @@ typedef PMGD::protobufs::QueryNode         PMGDQueryNode;
         void parse_query_results(const Json::Value& result_type,
                                  PMGDQueryNode* qn);
 
-        void set_operand(PMGDProp* p, const Json::Value& operand);
         void get_response_type(const Json::Value& res, PMGDQueryNode* qn);
 
         Json::Value parse_response(PMGDCmdResponse* response);
@@ -84,8 +81,8 @@ typedef PMGD::protobufs::QueryNode         PMGDQueryNode;
         PMGDQuery(PMGDQueryHandler& pmgd_qh);
         ~PMGDQuery();
 
-        unsigned add_group()     { return ++_current_group; }
-        unsigned current_group() { return _current_group; }
+        unsigned add_group()     { return ++_current_group_id; }
+        unsigned current_group() { return _current_group_id; }
         unsigned get_available_reference() { return _current_ref++; }
 
         Json::Value& run();
@@ -93,6 +90,7 @@ typedef PMGD::protobufs::QueryNode         PMGDQueryNode;
         //This is a reference to avoid copies
         Json::Value& get_json_responses() {return _json_responses;}
 
+        // If constraints is not null, this becomes a conditional AddNode
         void AddNode(int ref,
                     const std::string& tag,
                     const Json::Value& props,
