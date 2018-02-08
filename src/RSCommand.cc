@@ -38,11 +38,9 @@
 #include "ExceptionsCommand.h"
 #include "VDMSConfig.h"
 #include "VCL.h"
+#include "defines.h"
 
 using namespace VDMS;
-
-#define VDMS_GENERIC_LINK   "VDMS:LINK"
-#define VDMS_BLOB_PATH_PROP "VDMS:blobPath"
 
 RSCommand::RSCommand(const std::string& cmd_name):
     _cmd_name(cmd_name)
@@ -52,7 +50,8 @@ RSCommand::RSCommand(const std::string& cmd_name):
 Json::Value RSCommand::construct_responses(
     Json::Value& response,
     const Json::Value& json,
-    protobufs::queryMessage &query_res)
+    protobufs::queryMessage &query_res,
+    const std::string& blob)
 {
     Json::Value ret;
     ret[_cmd_name] = check_responses(response);
@@ -183,7 +182,7 @@ int AddEntity::construct_protobuf(PMGDQuery& query,
         oss << std::hex << VCL::get_uint64();
         std::string file_name = _storage_blob + "/" + oss.str();
 
-        props[VDMS_BLOB_PATH_PROP] = file_name;
+        props[VDMS_EN_BLOB_PATH_PROP] = file_name;
 
         std::ofstream file;
         file.open(file_name);
@@ -249,7 +248,7 @@ int FindEntity::construct_protobuf(
     Json::Value results = get_value<Json::Value>(cmd, "results");
 
     if (get_value<bool>(results, "blob", false)){
-        results["list"].append(VDMS_BLOB_PATH_PROP);
+        results["list"].append(VDMS_EN_BLOB_PATH_PROP);
     }
 
     query.QueryNode(
@@ -267,7 +266,8 @@ int FindEntity::construct_protobuf(
 Json::Value FindEntity::construct_responses(
     Json::Value& response,
     const Json::Value& json,
-    protobufs::queryMessage &query_res)
+    protobufs::queryMessage &query_res,
+    const std::string &blob)
 {
     assert(response.size() == 1);
 
@@ -279,9 +279,9 @@ Json::Value FindEntity::construct_responses(
     if (get_value<bool>(cmd["results"], "blob", false)) {
         for (auto& ent : findEnt["entities"]) {
 
-            if(ent.isMember(VDMS_BLOB_PATH_PROP)) {
-                std::string blob_path = ent[VDMS_BLOB_PATH_PROP].asString();
-                ent.removeMember(VDMS_BLOB_PATH_PROP);
+            if(ent.isMember(VDMS_EN_BLOB_PATH_PROP)) {
+                std::string blob_path = ent[VDMS_EN_BLOB_PATH_PROP].asString();
+                ent.removeMember(VDMS_EN_BLOB_PATH_PROP);
 
                 std::string* blob_str = query_res.add_blobs();
                 std::ifstream t(blob_path);

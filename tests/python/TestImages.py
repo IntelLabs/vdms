@@ -134,7 +134,7 @@ class TestAddImage(unittest.TestCase):
             img_params = {}
             img_params["constraints"] = constraints
             img_params["results"] = results
-            img_params["class"] = "VDMS:IMG"
+            img_params["class"] = "VD:IMG"
 
             query = {}
             query["FindEntity"] = img_params
@@ -243,7 +243,7 @@ class TestAddImage(unittest.TestCase):
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
         self.assertEqual(response[1]["AddImage"]["status"], 0)
 
-    def test_findImage_multiple_res(self):
+    def test_findImage_multiple_results(self):
         db = vdms.VDMS()
         db.connect(hostname, port)
 

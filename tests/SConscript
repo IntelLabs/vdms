@@ -34,6 +34,8 @@ query_tests = testenv.Program(
                   '../src/PMGDQueryHandler.o',
                   '../src/PMGDQuery.o',
                   '../src/QueryMessage.o',
+                  '../src/DescriptorsManager.o',
+                  '../src/DescriptorsCommand.o',
                   test_sources
                 ],
                )

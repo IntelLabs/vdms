@@ -35,6 +35,7 @@
 #include "QueryHandler.h"
 
 #include "ImageCommand.h"
+#include "DescriptorsCommand.h"
 #include "ExceptionsCommand.h"
 
 #include "PMGDQuery.h"
@@ -55,11 +56,16 @@ valijson::Schema* QueryHandler::_schema = new valijson::Schema;
 
 void QueryHandler::init()
 {
+    DescriptorsManager::init();
+
     _rs_cmds["AddEntity"]  = new AddEntity();
     _rs_cmds["Connect"]    = new Connect();
     _rs_cmds["FindEntity"] = new FindEntity();
     _rs_cmds["AddImage"]   = new AddImage();
     _rs_cmds["FindImage"]  = new FindImage();
+    _rs_cmds["AddDescriptorSet"]   = new AddDescriptorSet();
+    _rs_cmds["AddDescriptor"]      = new AddDescriptor();
+    _rs_cmds["ClassifyDescriptor"] = new ClassifyDescriptor();
 
     // Load the string containing the schema (api_schema/APISchema.h)
     Json::Reader reader;
@@ -93,6 +99,12 @@ QueryHandler::QueryHandler()
     ,ch_tx_send("ch_tx_send")
 #endif
 {
+    ((DescriptorsCommand*)_rs_cmds["AddDescriptorSet"])
+                            ->set_pmgd_qh(&_pmgd_qh);
+    ((DescriptorsCommand*)_rs_cmds["AddDescriptor"])
+                            ->set_pmgd_qh(&_pmgd_qh);
+    ((DescriptorsCommand*)_rs_cmds["ClassifyDescriptor"])
+                            ->set_pmgd_qh(&_pmgd_qh);
 }
 
 void QueryHandler::process_connection(comm::Connection *c)
@@ -237,6 +249,16 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
 {
     Json::FastWriter fastWriter;
 
+    Json::Value exception_error;
+    std::stringstream error_msg;
+    auto exception_handler = [&]() {
+        // When exception is catched, we return the message.
+        std::cerr << error_msg.str();
+        exception_error["info"] = error_msg.str();
+        exception_error["status"] = RSCommand::Error;
+        proto_res.set_json(fastWriter.write(exception_error));
+    };
+
     try {
         Json::Value json_responses;
         Json::Value root;
@@ -298,16 +320,25 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
             cmd_result = tx_responses;
             cmd_result["info"] = "Failed PMGDTransaction";
             cmd_result["status"] = RSCommand::Error;
+            Json::StyledWriter w;
+            std::cerr << w.write(tx_responses);
             error(cmd_result, cmd_current);
             return;
         }
         else {
+            blob_count = 0;
             for (int j = 0; j < root.size(); j++) {
-                std::string cmd = root[j].getMemberNames()[0];
+                const Json::Value& query = root[j];
+                std::string cmd = query.getMemberNames()[0];
 
-                cmd_result = _rs_cmds[cmd]->construct_responses(
-                                            tx_responses[j],
-                                            root[j], proto_res);
+                RSCommand* rscmd = _rs_cmds[cmd];
+
+                const std::string& blob = rscmd->need_blob(query) ?
+                                          proto_query.blobs(blob_count++) : "";
+
+                cmd_result = rscmd->construct_responses(
+                                        tx_responses[j],
+                                        root[j], proto_res, blob);
 
                 // This is for error handling
                 if (cmd_result.isMember("status")) {
@@ -326,28 +357,33 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
 
         proto_res.set_json(fastWriter.write(json_responses));
 
-    } catch (VCL::Exception e) {
+    } catch (VCL::Exception& e) {
         print_exception(e);
-        std::cerr << "FATAL ERROR: VCL Exception at QH" << std::endl;
-        exit(0);
-    } catch (PMGD::Exception e) {
+        error_msg << "Internal Server Error: VCL Exception at QH" << std::endl;
+        exception_handler();
+    } catch (PMGD::Exception& e) {
         print_exception(e);
-        std::cerr << "FATAL ERROR: PMGD Exception at QH" << std::endl;
-        exit(0);
-    } catch (ExceptionCommand e) {
+        error_msg << "Internal Server Error: PMGD Exception at QH"
+                  << std::endl;
+        exception_handler();
+    } catch (ExceptionCommand& e) {
         print_exception(e);
-        std::cerr << "FATAL ERROR: Command Exception at QH" << std::endl;
-        exit(0);
+        error_msg << "Internal Server Error: Command Exception at QH"
+                  << std::endl;
+        exception_handler();
     } catch (Json::Exception const& e) {
-        // Should not happen
         // In case of error on the last fastWriter
-        std::cerr << "FATAL: Json Exception:" << e.what() << std::endl;
-        Json::Value error;
-        error["info"] = "Internal Server Error: Json Exception";
-        error["status"] = RSCommand::Error;
-        proto_res.set_json(fastWriter.write(error));
-    } catch (const std::invalid_argument& ex) {
-        std::cerr << "Invalid argument: " << ex.what() << '\n';
-        exit(0);
+        error_msg << "Internal Server Error: Json Exception: "
+                  << e.what() << std::endl;
+        exception_handler();
+    } catch (google::protobuf::FatalException& e) {
+        // Need to be carefull with this, may lead to memory leak.
+        // Protoubuf is not exception safe.
+        error_msg << "Internal Server Error: Protobuf Exception: "
+                  << e.what() << std::endl;
+        exception_handler();
+    } catch (const std::invalid_argument& e) {
+        error_msg << "FATAL: Invalid argument: " << e.what() << std::endl;
+        exception_handler();
     }
 }

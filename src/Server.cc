@@ -37,6 +37,7 @@
 
 #include "VDMSConfig.h"
 #include "QueryHandler.h"
+#include "DescriptorsManager.h"
 
 #include "protobuf/pmgdMessages.pb.h" // Protobuff implementation
 
@@ -104,4 +105,5 @@ Server::~Server()
 {
     _cm->shutdown();
     delete _cm;
+    DescriptorsManager::instance()->flush();
 }

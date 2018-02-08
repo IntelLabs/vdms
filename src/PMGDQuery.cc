@@ -116,6 +116,7 @@ void PMGDQuery::add_link(const Json::Value& link, PMGDQueryNode* qn)
     PMGD::protobufs::LinkInfo *qnl = qn->mutable_link();
 
     qnl->set_start_identifier(link["ref"].asInt());
+    qnl->set_dir(PMGD::protobufs::LinkInfo::Any);
 
     if (link.isMember("direction")) {
         const std::string& direction = link["direction"].asString();
@@ -124,12 +125,12 @@ void PMGDQuery::add_link(const Json::Value& link, PMGDQueryNode* qn)
             qnl->set_dir(PMGD::protobufs::LinkInfo::Outgoing);
         else if ( direction == "in")
             qnl->set_dir(PMGD::protobufs::LinkInfo::Incoming);
-        else
-            qnl->set_dir(PMGD::protobufs::LinkInfo::Any);
     }
 
     if (link.isMember("unique"))
         qnl->set_nb_unique(link["unique"].asBool());
+    else
+        qnl->set_nb_unique(false);
 
     if (link.isMember("class"))
          qnl->set_e_tag(link["class"].asString());
@@ -258,7 +259,7 @@ Json::Value PMGDQuery::parse_response(PMGDCmdResponse* response)
                 Json::Value list(Json::arrayValue);
                 auto& mymap = response->prop_values();
 
-                assert(mymap.size() > 0);
+                // assert(mymap.size() > 0);
 
                 uint64_t count = response->op_int_value();
 
@@ -494,8 +495,9 @@ void PMGDQuery::QueryNode(int ref,
     qn->set_tag(tag);
     qn->set_unique(unique);
 
-    if (!link.isNull())
+    if (!link.isNull()) {
         add_link(link, qn);
+    }
 
     // TODO: We always assume AND, we need to change that
     qn->set_p_op(PMGD::protobufs::And);

@@ -38,7 +38,10 @@
       { "$ref": "#/definitions/FindEntityTop" },
       { "$ref": "#/definitions/ConnectTop" },
       { "$ref": "#/definitions/AddImageTop" },
-      { "$ref": "#/definitions/FindImageTop" }
+      { "$ref": "#/definitions/FindImageTop" },
+      { "$ref": "#/definitions/AddDescriptorSetTop" },
+      { "$ref": "#/definitions/AddDescriptorTop" },
+      { "$ref": "#/definitions/ClassifyDescriptorTop" }
     ]
   },
   "uniqueItems": false,
@@ -55,6 +58,11 @@
     "nonNegativeInt": {
       "type": "integer",
       "minimum": 0
+    },
+
+    "positiveDouble": {
+      "type": "double",
+      "minimum": 0.0
     },
 
     "stringArray":  {
@@ -197,6 +205,29 @@
       "additionalProperties": false
     },
 
+    "AddDescriptorTop": {
+      "properties": {
+        "AddDescriptor" : { "type": "object",
+                            "$ref": "#/definitions/AddDescriptor" }
+      },
+      "additionalProperties": false
+    },
+
+    "AddDescriptorSetTop": {
+      "properties": {
+        "AddDescriptorSet" : { "type": "object",
+                               "$ref": "#/definitions/AddDescriptorSet" }
+      },
+      "additionalProperties": false
+    },
+
+    "ClassifyDescriptorTop": {
+      "properties": {
+        "ClassifyDescriptor" : { "type": "object", "$ref": "#/definitions/ClassifyDescriptor" }
+      },
+      "additionalProperties": false
+    },
+
     // Commands
 
     "AddEntity": {
@@ -258,6 +289,39 @@
         "unique":      { "type": "boolean" }
       },
 
+      "additionalProperties": false
+    },
+
+    "AddDescriptorSet": {
+      "properties": {
+        "name":       { "type": "string" },
+        "dimensions": { "$ref": "#/definitions/refInt" },
+        "link":        { "$ref": "#/definitions/blockLink" },
+        "properties": { "type": "object" }
+      },
+      "required": ["name", "dimensions"],
+      "additionalProperties": false
+    },
+
+    "AddDescriptor": {
+      "properties": {
+        "set":        { "type": "string" },
+        "label":      { "type": "string" },
+        "_ref":       { "$ref": "#/definitions/refInt" },
+        "link":       { "$ref": "#/definitions/blockLink" },
+        "properties": { "type": "object" }
+      },
+      "required": ["set"],
+      "additionalProperties": false
+    },
+
+    "ClassifyDescriptor": {
+      "properties": {
+        "set":        { "type": "string" },
+        "_ref":       { "$ref": "#/definitions/refInt" },
+        "k_neighbors":{ "$ref": "#/definitions/positiveInt" }
+      },
+      "required": ["set"],
       "additionalProperties": false
     }
   }

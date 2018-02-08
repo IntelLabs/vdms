@@ -3,12 +3,5 @@
 // Sets database paths and other parameters
 {
     // Network
-    "port": 55557, // Default is 55555
-
-    // Database paths
-    "pmgd_path": "db/test-graph",
-    "png_path": "db/images/pngs/",
-    "jpg_path": "db/images/jpgs/",
-    "tdb_path": "db/images/tiledb/tdb",
-    "blob_path": "db/blobs/"
+    "port": 55557 // Default is 55555
 }

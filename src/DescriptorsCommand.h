@@ -1,0 +1,148 @@
+/**
+ * @file   DescriptorsCommand.h
+ *
+ * @section LICENSE
+ *
+ * The MIT License
+ *
+ * @copyright Copyright (c) 2017 Intel Corporation
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify,
+ * merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ *
+ */
+
+#pragma once
+#include <string>
+#include <mutex>
+#include <vector>
+#include <unordered_map>
+
+#include <jsoncpp/json/value.h>
+#include <jsoncpp/json/json.h>
+
+#include "QueryHandler.h" // to provide the database connection
+#include "DescriptorsManager.h"
+
+namespace VDMS{
+
+    // This class encapsulates common behavior of Descriptors-related cmds.
+    class DescriptorsCommand : public RSCommand
+    {
+    protected:
+        DescriptorsManager* _dm;
+        PMGDQueryHandler* _pmgd_qh; // This needs to make read-transcations.
+
+        // Will return the path to the set and the dimensions
+        std::string check_set(const std::string& set, int& dim);
+
+    public:
+        DescriptorsCommand(const std::string& cmd_name);
+
+        void set_pmgd_qh(PMGDQueryHandler* pmgd_qh)
+        {
+          // TODO: this is for the time being.
+          _pmgd_qh = pmgd_qh;
+        }
+
+        virtual bool need_blob(const Json::Value& cmd) { return false; }
+
+        virtual int construct_protobuf(PMGDQuery& tx,
+                               const Json::Value& root,
+                               const std::string& blob,
+                               int grp_id,
+                               Json::Value& error) = 0;
+
+        virtual Json::Value construct_responses(
+                Json::Value& json_responses,
+                const Json::Value &json,
+                protobufs::queryMessage &response,
+                const std::string &blob) = 0;
+    };
+
+    class AddDescriptorSet: public DescriptorsCommand
+    {
+        std::string _storage_sets;
+        const std::string DEFAULT_DESCRIPTORS_PATH = "db/descriptors";
+
+    public:
+        AddDescriptorSet();
+
+        int construct_protobuf(PMGDQuery& tx,
+                               const Json::Value& root,
+                               const std::string& blob,
+                               int grp_id,
+                               Json::Value& error);
+
+        Json::Value construct_responses(
+                Json::Value& json_responses,
+                const Json::Value &json,
+                protobufs::queryMessage &response,
+                const std::string &blob);
+    };
+
+    class AddDescriptor: public DescriptorsCommand
+    {
+        int insert_descriptor(const std::string& blob,
+                               const std::string& path,
+                               int dim,
+                               const std::string& label,
+                               Json::Value& error);
+
+    public:
+        AddDescriptor();
+
+        int construct_protobuf(PMGDQuery& tx,
+                               const Json::Value& root,
+                               const std::string& blob,
+                               int grp_id,
+                               Json::Value& error);
+
+        bool need_blob(const Json::Value& cmd) { return true; }
+
+        Json::Value construct_responses(
+                Json::Value& json_responses,
+                const Json::Value &json,
+                protobufs::queryMessage &response,
+                const std::string &blob);
+    };
+
+    class ClassifyDescriptor: public DescriptorsCommand
+    {
+
+    public:
+        ClassifyDescriptor();
+
+        int construct_protobuf(PMGDQuery& tx,
+                               const Json::Value& root,
+                               const std::string& blob,
+                               int grp_id,
+                               Json::Value& error);
+
+        bool need_blob(const Json::Value& cmd) { return true; }
+
+        Json::Value construct_responses(
+                Json::Value& json_responses,
+                const Json::Value &json,
+                protobufs::queryMessage &response,
+                const std::string &blob);
+
+    };
+  }

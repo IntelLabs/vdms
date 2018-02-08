@@ -42,6 +42,8 @@ def buildServer(env):
                   'src/RSCommand.cc',
                   'src/ImageCommand.cc',
                   'src/ExceptionsCommand.cc',
+                  'src/DescriptorsManager.cc',
+                  'src/DescriptorsCommand.cc',
                 ]
 
   vdms = env.Program('vdms', vdms_server_files)
