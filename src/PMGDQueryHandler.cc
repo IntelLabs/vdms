@@ -48,7 +48,7 @@ RWLock *PMGDQueryHandler::_dblock;
 void PMGDQueryHandler::init()
 {
     std::string dbname = VDMSConfig::instance()
-                        ->get_string_value("pmgd_path", "default_pmgd");
+                        ->get_string_value("pmgd_path", "db/graph");
     unsigned attempts = VDMSConfig::instance()
                         ->get_int_value("max_lock_attempts",
                                         RWLock::MAX_ATTEMPTS);

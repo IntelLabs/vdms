@@ -18,7 +18,7 @@ def buildServer(env):
               os.path.join(env['INTEL_PATH'], 'vcl/src'),
              ],
     LIBS = [ 'pmgd', 'pmgd-util',
-             'jsoncpp', 'protobuf',
+             'jsoncpp', 'protobuf', 'tbb',
              'vdms-utils', 'vcl', 'pthread',
            ],
     LIBPATH = ['/usr/local/lib/', 'utils/',
@@ -42,6 +42,8 @@ def buildServer(env):
                   'src/RSCommand.cc',
                   'src/ImageCommand.cc',
                   'src/ExceptionsCommand.cc',
+                  'src/DescriptorsManager.cc',
+                  'src/DescriptorsCommand.cc',
                 ]
 
   vdms = env.Program('vdms', vdms_server_files)

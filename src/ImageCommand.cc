@@ -33,12 +33,11 @@
 
 #include "ImageCommand.h"
 #include "VDMSConfig.h"
+#include "defines.h"
 
 using namespace VDMS;
 
-#define VDMS_IM_TAG           "VDMS:IMG"
-#define VDMS_IM_EDGE          "VDMS:IMGLINK"
-#define VDMS_IM_PATH_PROP     "VDMS:imgPath"
+//========= AddImage definitions =========
 
 ImageCommand::ImageCommand(const std::string &cmd_name):
     RSCommand(cmd_name)
@@ -142,7 +141,7 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     error["image_added"] = file_name;
 
     if (cmd.isMember("link")) {
-        add_link(query, cmd["link"], node_ref, VDMS_IM_EDGE);
+        add_link(query, cmd["link"], node_ref, VDMS_IM_EDGE_TAG);
     }
 
     return 0;
@@ -210,7 +209,8 @@ int FindImage::construct_protobuf(
 Json::Value FindImage::construct_responses(
     Json::Value& responses,
     const Json::Value& json,
-    protobufs::queryMessage &query_res)
+    protobufs::queryMessage &query_res,
+    const std::string &blob)
 {
     const Json::Value& cmd = json[_cmd_name];
 
@@ -226,7 +226,7 @@ Json::Value FindImage::construct_responses(
         Json::Value return_error;
         return_error["status"]  = RSCommand::Error;
         return_error["info"] = "PMGD Response Bad Size";
-        error(return_error);
+        return error(return_error);
     }
 
     Json::Value& findImage = responses[0];
@@ -236,7 +236,7 @@ Json::Value FindImage::construct_responses(
     if (findImage["status"] != 0) {
         findImage["status"]  = RSCommand::Error;
         // Uses PMGD info error.
-        error(findImage);
+        return error(findImage);
     }
 
     bool flag_empty = true;
@@ -280,7 +280,7 @@ Json::Value FindImage::construct_responses(
                     Json::Value return_error;
                     return_error["status"]  = RSCommand::Error;
                     return_error["info"] = "Invalid Format for FindImage";
-                    error(return_error);
+                    return error(return_error);
                 }
             }
 
@@ -299,14 +299,14 @@ Json::Value FindImage::construct_responses(
                 Json::Value return_error;
                 return_error["status"]  = RSCommand::Error;
                 return_error["info"] = "Image Data not found";
-                error(return_error);
+                return error(return_error);
             }
         } catch (VCL::Exception e) {
             print_exception(e);
             Json::Value return_error;
             return_error["status"]  = RSCommand::Error;
             return_error["info"] = "VCL Exception";
-            error(return_error);
+            return error(return_error);
         }
     }
 
