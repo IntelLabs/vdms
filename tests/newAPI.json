@@ -55,7 +55,7 @@
 
           "properties": {
               "Email":"ast@rashed.com",
-              "Age": 86,
+              "Age": 56,
               "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
                "Study": false,
                "avg": 32.4,
@@ -99,27 +99,51 @@
 
  {
    "FindEntity" : {
-         "_ref" : 2,
+         "_ref" : 1,
          "class" :  "Patient",
          "constraints": {
-           "Age":  [">", 10, "<=", 100 ]
+
+          "Age":  [">", 20, "<", 80 ]
+
 
        },
              "results": {
-             "count":["Age"]
+             "list":["Age"]
              }
 }
 },
 {
   "FindEntity" : {
-        "_ref" : 2,
+        "_ref": -1,
         "class" :  "Patient",
         "constraints": {
          "Age":  [">", 20, "<=", 90 ]
       },
             "results": {
-            "list":["name","Age"]
+            "average":["Age"]
             }
+}
+},
+ {
+   "FindEntity" : {
+         "_ref" : 6,
+         "class" :  "Patient",
+         "constraints": {
+
+
+           "Email":[">", "g"]
+
+
+       },
+       "link": {
+        "direction": "any",
+        "class": "Patient",
+        "ref": 1
+        },
+       "results": {
+
+       "list":["Age","name", "Email"]
+       }
 }
 }
 
