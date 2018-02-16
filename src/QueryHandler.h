@@ -22,22 +22,19 @@ namespace athena {
          void set_property(pmgd::protobufs::Property *p,
                                     const char * prop_name,
                                     Json::Value );
-
     public:
+
         virtual int construct_protobuf(
                             std::vector<pmgd::protobufs::Command*> &cmds,
                             const Json::Value& root,
                             const std::string& blob,
                             int txid) = 0;
 
-        // virtual Json::Value send_response();
-
         void run_operations(VCL::Image& vclimg, const Json::Value& op);
 
         virtual bool need_blob() { return false; }
 
-        virtual Json::Value
-            send_response(std::vector<pmgd::protobufs::CommandResponse*> &cmds);
+        virtual Json::Value construct_responses(std::vector<pmgd::protobufs::CommandResponse *> &cmds);
      };
 
     // Low-level API
@@ -48,7 +45,6 @@ namespace athena {
                                 const Json::Value& root,
                                 const std::string& blob,
                                 int txid);
-        // Json::Value send_response();
     };
 
     class AddEdge : public RSCommand
@@ -58,8 +54,8 @@ namespace athena {
                                 const Json::Value& root,
                                 const std::string& blob,
                                 int txid);
-        // Json::Value send_response();
     };
+
     class QueryNode : public RSCommand{
     public:
         int construct_protobuf( std::vector<pmgd::protobufs::Command*> &cmds,
@@ -87,7 +83,7 @@ namespace athena {
                                 int txid);
         bool need_blob() { return true; }
 
-        Json::Value send_response(std::vector<pmgd::protobufs::CommandResponse*> &cmds);
+        Json::Value construct_responses(std::vector<pmgd::protobufs::CommandResponse*> &cmds);
     };
 
     class FindImage: public RSCommand
@@ -102,7 +98,7 @@ namespace athena {
                                 int txid);
         bool need_blob() { return false; }
 
-        Json::Value send_response(std::vector<pmgd::protobufs::CommandResponse*> &cmds);
+        Json::Value construct_responses(std::vector<pmgd::protobufs::CommandResponse *> &cmds);
     };
 
     // Instance created per worker thread to handle all transactions on a given
@@ -111,6 +107,8 @@ namespace athena {
     {
         PMGDQueryHandler _pmgd_qh;
         std::unordered_map<std::string, RSCommand *> _rs_cmds;
+
+        std::string Json_output;
 
     public:
         QueryHandler(Jarvis::Graph *db, std::mutex *mtx);
