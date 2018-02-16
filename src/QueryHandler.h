@@ -12,8 +12,6 @@ namespace athena {
     // connection.
     class QueryHandler
     {
-        // GraphDb stuff sent along by the server
-        Jarvis::Graph *_db;
         // Need this lock till we have concurrency support in JL
         // TODO: Make this reader writer.
         std::mutex *_dblock;
@@ -26,7 +24,7 @@ namespace athena {
         // void create_node(CommandHandler &handler, const protobufs::CreateNode &cn);
 
     public:
-        QueryHandler(Jarvis::Graph *db, std::mutex *mtx);
+        QueryHandler(std::mutex *mtx);
         void process_query(comm::Connection *c);
     };
 };
