@@ -42,3 +42,18 @@ athena = env.Program('athena', source_files,
                        intel_root + 'utils/', # for athena-utils
                        ]
             )
+
+testenv = Environment(CPPPATH = [ 'include', 'src', 'utils/include',
+                        intel_root + 'jarvis/include',
+                        intel_root + 'jarvis/util', ],
+                        CXXFLAGS="-std=c++11 -O3")
+
+test_sources = [ 'src/PMGDQueryHandler.cc', 'tests/pmgd_queries.cc' ]
+
+pmgd_query_test = testenv.Program( 'pmgd_query_test', test_sources,
+                    LIBS = [
+                        'jarvis', 'jarvis-util', 'jsoncpp', 'athena-utils', 'protobuf' ],
+                    LIBPATH = ['/usr/local/lib/',
+                       intel_root + 'utils/', # for athena-utils
+                       intel_root + 'jarvis/lib/' ]
+                   )

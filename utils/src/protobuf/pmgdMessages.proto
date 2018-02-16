@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package pmgd.protobufs;
+
+message Property
+{
+    enum PropertyType{
+        BooleanType  = 0x00;
+        IntegerType  = 0x01;
+        StringType   = 0x02;
+        FloatType    = 0x03;
+        TimeType     = 0x04;
+        BlobType     = 0x05;
+    }
+
+    PropertyType type = 1;
+    string key  = 2;
+
+    bool bool_value = 3;
+    int64 int_value = 4;
+    string string_value = 5;
+    double float_value = 6;
+    string time_value = 7;
+    bytes blob_value = 8;
+}
+
+message Node {
+    string tag = 1;
+    uint64 id  = 2;  //this will be GlobalID or local to the client
+    repeated Property properties = 3;
+}
+
+message Edge {
+    uint64 src = 1; //this will be GlobalID or local to the client
+    uint64 dst = 2; //this will be GlobalID or local to the client
+    string tag = 3;
+    repeated Property properties = 4;
+}
+
+message AddNode
+{
+    uint64 identifier = 1;
+    Node node = 2;
+}
+
+message AddEdge
+{
+    uint64 identifier = 1;
+    Edge edge = 2;
+}
+
+message Command
+{
+    enum CommandId {
+        TxBegin      = 0x0;
+        TxEnd        = 0x1;
+
+        AddNode   = 0x21;
+        AddEdge   = 0x22;
+        CreateIndex  = 0x23;
+
+        SetProperty  = 0x30;
+        Query        = 0x40;
+        Next         = 0x41;
+
+    }
+
+    // We will switch over this value
+    CommandId cmd_id = 1;
+    uint64    tx_id  = 2;
+
+    //Since all fields are optional,
+    //we define all cmds type here.
+    AddNode add_node    = 10;
+    AddEdge add_edge    = 11;
+}
+
+message CommandResponse
+{
+    enum ErrorCode {
+        Success = 0;
+        Abort   = 1;
+    }
+
+    // We will switch over this value
+    ErrorCode error_code =1;
+}
