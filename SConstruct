@@ -7,24 +7,24 @@ AddOption('--timing', action='append_const', dest='cflags',
                       const='-DCHRONO_TIMING',
                       help= 'Build server with chronos')
 
-def buildServer(intel_path, env):
+def buildServer(env):
 
   env.Append(
     CPPPATH= ['src', 'utils/include',
               '/usr/include/jsoncpp/',
-              intel_path + 'pmgd/include',
-              intel_path + 'pmgd/util',
-              intel_path + 'vcl/include',
-              intel_path + 'vcl/src',
+              os.path.join(env['INTEL_PATH'], 'pmgd/include'),
+              os.path.join(env['INTEL_PATH'], 'pmgd/util'),
+              os.path.join(env['INTEL_PATH'], 'vcl/include'),
+              os.path.join(env['INTEL_PATH'], 'vcl/src'),
              ],
     LIBS = [ 'pmgd', 'pmgd-util',
              'jsoncpp', 'protobuf',
              'vdms-utils', 'vcl', 'pthread',
            ],
     LIBPATH = ['/usr/local/lib/', 'utils/',
-               intel_path + 'utils/',
-               intel_path + 'vcl/',
-               intel_path + 'pmgd/lib/'
+               os.path.join(env['INTEL_PATH'], 'utils/'),
+               os.path.join(env['INTEL_PATH'], 'vcl/'),
+               os.path.join(env['INTEL_PATH'], 'pmgd/lib/')
                ]
   )
 
@@ -55,12 +55,13 @@ else:
 
 # Enviroment use by all the builds
 env = Environment(CXXFLAGS="-std=c++11 -O3")
+env.Append(INTEL_PATH= intel_path)
 env.MergeFlags(GetOption('cflags'))
 
 SConscript(os.path.join('utils', 'SConscript'), exports=['env'])
 SConscript(os.path.join('client/cpp','SConscript'), exports=['env'])
 
 if GetOption('no-server'):
-  buildServer(intel_path, env)
+  buildServer(env)
   # Build tests only if server is built
   SConscript(os.path.join('tests', 'SConscript'), exports=['env'])

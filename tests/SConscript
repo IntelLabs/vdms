@@ -1,9 +1,19 @@
 # We need to add this dependecy.
 Import('env')
+import os
 
 testenv = env.Clone()
+
+testenv.Replace(
+    CPPPATH= ['../src', '../utils/include',
+              '/usr/include/jsoncpp/',
+              os.path.join(env['INTEL_PATH'], 'pmgd/include'),
+              os.path.join(env['INTEL_PATH'], 'pmgd/util'),
+              os.path.join(env['INTEL_PATH'], 'vcl/include'),
+              os.path.join(env['INTEL_PATH'], 'vcl/src'),
+             ])
+
 testenv.Append(
-      CPPPATH= ['../src', '../utils/include'],
       LIBS = ['gtest'],
       LIBPATH = ['../utils/']
       )
