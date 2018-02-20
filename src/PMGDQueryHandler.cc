@@ -193,13 +193,14 @@ void PMGDQueryHandler::set_property(Element &e, const PMGDProp &p)
     {
         struct tm tm_e;
         int hr, min;
-        string_to_tm(p.time_value(), &tm_e, &hr, &min);
-        Time t_e(&tm_e, hr, min);  // time diff
+        unsigned long usec;
+        string_to_tm(p.time_value(), &tm_e, &usec, &hr, &min);
+        Time t_e(&tm_e, usec, hr, min);  // time diff
         e.set_property(p.key().c_str(), t_e);
         break;
     }
     case PMGDProp::BlobType:
-        throw PMGDException(NotImplemented, "Blob type not implemented");
+        e.set_property(p.key().c_str(), p.blob_value());
     }
 }
 
@@ -346,8 +347,9 @@ Property PMGDQueryHandler::construct_search_property(const PMGDProp &p)
     {
         struct tm tm_e;
         int hr, min;
-        string_to_tm(p.time_value(), &tm_e, &hr, &min);
-        Time t_e(&tm_e, hr, min);  // time diff
+        unsigned long usec;
+        string_to_tm(p.time_value(), &tm_e, &usec, &hr, &min);
+        Time t_e(&tm_e, usec, hr, min);  // time diff
         return Property(t_e);
     }
     case PMGDProp::BlobType:
@@ -391,7 +393,7 @@ void PMGDQueryHandler::construct_protobuf_property(const Property &j_p, PMGDProp
         p_p->set_time_value(time_to_string(j_p.time_value()));
         break;
     case PropertyType::Blob:
-        throw PMGDException(PropertyTypeInvalid, "Blob property not supported");
+        p_p->set_blob_value(j_p.blob_value().value, j_p.blob_value().size);
     }
 }
 
