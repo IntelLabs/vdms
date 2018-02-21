@@ -52,9 +52,11 @@ namespace VDMS {
     typedef PMGD::protobufs::Property          PMGDProp;
     typedef PMGD::protobufs::QueryNode         PMGDQueryNode;
 
+    typedef std::vector<PMGDCmd *>             PMGDCmds;
+    typedef std::vector<PMGDCmdResponse *>     PMGDCmdResponses;
+
     class PMGDQueryHandler
     {
-        private:
         class ReusableNodeIterator
         {
             // Iterator for the starting nodes.
@@ -122,6 +124,11 @@ namespace VDMS {
             PMGD::Node &operator *() { return *ref(); }
             PMGD::Node *operator ->() { return ref(); }
             void reset() { _it = _traversed.begin(); }
+            void traverse_all()
+            {
+                for( ; _ni; _ni.next())
+                    _traversed.insert(_traversed.end(), &*_ni);
+            }
 
             // Sort the list. Once the list is sorted, all operations
             // following that happen in a sorted manner. And this function
@@ -131,29 +138,26 @@ namespace VDMS {
             // Hopefully that won't happen.
             void sort(PMGD::StringID sortkey)
             {
-                // TODO First finish traversal?
-                for( ; _ni; _ni.next())
-                    _traversed.insert(_traversed.end(), &*_ni);
+                // First finish traversal
+                traverse_all();
                 _traversed.sort(compare_propkey{sortkey});
                 _it = _traversed.begin();
             }
         };
 
-        private:
         class MultiNeighborIteratorImpl : public PMGD::NodeIteratorImplIntf
         {
             // Iterator for the starting nodes.
             ReusableNodeIterator *_start_ni;
             SearchExpression _search_neighbors;
-            PMGD::NodeIterator *_neighb_i;     // TODO: Does this work properly?
+            PMGD::NodeIterator *_neighb_i;
             PMGD::Direction _dir;
             PMGD::StringID _edge_tag;
 
             bool _next()
             {
-                while (bool(*_start_ni)) {
-                    if (_neighb_i != NULL)
-                        delete _neighb_i;
+                while (_start_ni != NULL && bool(*_start_ni)) {
+                    delete _neighb_i;
 
                     // TODO Maybe unique can have a default value of false.
                     // TODO No support in case unique is true but get it from LDBC.
@@ -166,6 +170,7 @@ namespace VDMS {
                     if (bool(*_neighb_i))
                         return true;
                 }
+                _start_ni = NULL;
                 return false;
             }
 
@@ -185,9 +190,7 @@ namespace VDMS {
 
             ~MultiNeighborIteratorImpl()
             {
-                if (_neighb_i != NULL)
-                    delete _neighb_i;
-                _neighb_i = NULL;
+                delete _neighb_i;
             }
 
             operator bool() const { return _neighb_i != NULL ? bool(*_neighb_i) : false; }
@@ -206,7 +209,6 @@ namespace VDMS {
             PMGD::Node *ref() { return &**_neighb_i; }
         };
 
-        private:
         // This class is instantiated by the server each time there is a new
         // connection. So someone needs to pass a handle to the graph db itself.
         PMGD::Graph *_db;
@@ -225,26 +227,19 @@ namespace VDMS {
         // one to keep the code uniform. In a chained query, there is no way
         // of finding out if the reference is for an AddNode or a QueryNode
         // and rather than searching multiple maps, we keep it uniform here.
-        // TODO this might have to map to a Global ID in the distributed setting.
-        std::unordered_map<int, ReusableNodeIterator *> mNodes;
+        std::unordered_map<int, ReusableNodeIterator *> _cached_nodes;
 
-        // Map an integer ID to an Edge (reset at the end of each transaction).
-        // TODO this might have to map to a Global ID in the distributed setting.
-        // Not really used at this point.
-        std::unordered_map<int, PMGD::Edge *> mEdges;
-
-        template <class Element> void set_property(Element &e, const PMGDProp&p);
+        void process_query(const PMGDCmd *cmd, PMGDCmdResponse *response);
         void add_node(const PMGD::protobufs::AddNode &cn, PMGDCmdResponse *response);
         void add_edge(const PMGD::protobufs::AddEdge &ce, PMGDCmdResponse *response);
-        PMGD::Property construct_search_property(const PMGDProp&p);
-        PMGD::PropertyPredicate construct_search_term(const PMGD::protobufs::PropertyPredicate &p_pp);
-        void construct_protobuf_property(const PMGD::Property &j_p, PMGDProp*p_p);
+        template <class Element> void set_property(Element &e, const PMGDProp&p);
         void query_node(const PMGDQueryNode &qn, PMGDCmdResponse *response);
-        // void query_neighbor(const PMGD::protobufs::QueryNeighbor &qnb, PMGDCmdResponse *response);
-        void process_query(PMGDCmd *cmd, PMGDCmdResponse *response);
+        PMGD::PropertyPredicate construct_search_term(const PMGDPropPred &p_pp);
+        PMGD::Property construct_search_property(const PMGDProp&p);
         template <class Iterator> void build_results(Iterator &ni,
                                                     const PMGDQueryNode &qn,
                                                     PMGDCmdResponse *response);
+        void construct_protobuf_property(const PMGD::Property &j_p, PMGDProp*p_p);
 
     public:
         PMGDQueryHandler(PMGD::Graph *db, std::mutex *mtx);
@@ -258,8 +253,6 @@ namespace VDMS {
         // than the number of commands.
         // Ensure that the cmd_grp_id, that is the query number are in increasing
         // order and account for the TxBegin and TxEnd in numbering.
-        std::vector<std::vector<PMGDCmdResponse *>> process_queries(
-                                           std::vector<PMGDCmd *> cmds,
-                                           int num_queries);
+        std::vector<PMGDCmdResponses> process_queries(const PMGDCmds &cmds, int num_groups);
     };
 };
