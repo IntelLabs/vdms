@@ -30,6 +30,7 @@ query_tests = testenv.Program(
                   '../src/RSCommand.o',
                   '../src/ImageCommand.o',
                   '../src/ExceptionsCommand.o',
+                  '../src/PMGDIterators.o',
                   '../src/PMGDQueryHandler.o',
                   '../src/PMGDQuery.o',
                   '../src/QueryMessage.o',

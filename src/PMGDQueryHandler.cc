@@ -32,6 +32,7 @@
 #include <limits>
 #include "PMGDQueryHandler.h"
 #include "util.h"   // PMGD util
+#include "PMGDIterators.h"
 
 // TODO In the complete version of VDMS, this file will live
 // within PMGD which would replace the PMGD namespace. Some of
