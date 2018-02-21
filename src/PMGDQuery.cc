@@ -419,8 +419,7 @@ void PMGDQuery::parse_query_results(const Json::Value& results,
 void PMGDQuery::AddNode(int ref,
                         const std::string& tag,
                         const Json::Value& props,
-                        const Json::Value& constraints,
-                        bool unique)
+                        const Json::Value& constraints)
 {
     PMGDCmd* cmdadd = new PMGDCmd();
     cmdadd->set_cmd_id(PMGDCmd::AddNode);
@@ -438,11 +437,11 @@ void PMGDQuery::AddNode(int ref,
 
     if(!constraints.isNull()) {
         PMGDQueryNode *qn = an->mutable_query_node();
-        qn->set_identifier(-1);
+        qn->set_identifier(ref); // Use the same ref to cache if node exists.
         qn->set_tag(tag);
-        qn->set_unique(unique);
+        qn->set_unique(true);
         qn->set_p_op(PMGD::protobufs::And);
-        qn->set_r_type(PMGD::protobufs::Count);
+        qn->set_r_type(PMGD::protobufs::NodeID); // Since PMGD returns ids.
         parse_query_constraints(constraints, qn);
     }
 

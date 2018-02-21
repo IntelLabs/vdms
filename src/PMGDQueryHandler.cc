@@ -212,51 +212,24 @@ void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
         throw PMGDException(UndefinedException, "Reuse of _ref value\n");
 
     if (cn.has_query_node()) {
-        const protobufs::QueryNode &qn = cn.query_node();
-        // Have to query and check if this node is present.
-        // TODO For now, assuming that this is the ID in JL String Table.
-        // I think this should be a client specified identifier which is maintained
-        // in a map of (client string id, StringID &)
-        StringID search_node_tag = (qn.tag_oneof_case() == 4) ? StringID(qn.tagid())
-                                    : StringID(qn.tag().c_str());
+        query_node(cn.query_node(), response);
 
-        // TODO Make a function or something out of this sequence.
-        SearchExpression search(*_db, search_node_tag);
-
-        if (qn.p_op() == protobufs::Or)
-            throw PMGDException(NotImplemented, "Or operator not implemented");
-
-        for (int i = 0; i < qn.predicates_size(); ++i) {
-            const PMGDPropPred &p_pp = qn.predicates(i);
-            PropertyPredicate j_pp = construct_search_term(p_pp);
-            search.add(j_pp);
-        }
-
-        ReusableNodeIterator *ni = new ReusableNodeIterator(search.eval_nodes());
-        if (bool(*ni)) {
-            // TODO: Partition code goes here
-            // For now, fill in the single system node id
-            response->set_op_int_value(_db->get_id(**ni));
-
-            // Check unique
-            ni->next();
-            if (bool(*ni)) {  // Not unique and that is an error here.
-                response->set_error_code(PMGDCmdResponse::NotUnique);
-                response->set_error_msg("No unique node found for the add node\n");
-                delete ni;
-                return;
-            }
-
-            if (id >= 0) {
-                ni->reset();
-                mNodes[id] = ni;
-            }
-            else
-                delete ni;
+        // If we found the node we needed and it is unique, then this
+        // is the expected response. Just change the error code to exists
+        // as expected by an add_node return instead of Success as done
+        // in usual query_node.
+        if (response->r_type() == protobufs::NodeID &&
+                response->error_code() == PMGDCmdResponse::Success) {
             response->set_error_code(PMGDCmdResponse::Exists);
-            response->set_r_type(protobufs::NodeID);
             return;
         }
+
+        // The only situation where we would have to take further
+        // action is if the iterator was empty. If we were supposed to cache
+        // the result, it should be done already. And if there was some
+        // error like !unique, then we need to return the response as is.
+        if (response->error_code() != PMGDCmdResponse::Empty)
+            return;
     }
 
     // Since the node wasn't found, now add it.
@@ -487,6 +460,14 @@ void PMGDQueryHandler::build_results(Iterator &ni,
             response->set_error_code(PMGDCmdResponse::Error);
             response->set_error_msg("Wrong first property for sum/average\n");
         }
+        break;
+    }
+    case protobufs::NodeID:
+    {
+        // Makes sense only when unique was used. Otherwise it sets the
+        // int value to the global id of the last node in the iterator.
+        for (; ni; ni.next())
+            response->set_op_int_value(ni->get_id());
         break;
     }
     default:

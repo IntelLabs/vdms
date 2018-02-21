@@ -698,6 +698,7 @@ TEST(PMGDQueryHandler, addConstrainedTest)
         qn->set_tag("Patient");
         qn->set_unique(true);
         qn->set_p_op(protobufs::And);
+        qn->set_r_type(protobufs::NodeID);
         protobufs::PropertyPredicate *pp = qn->add_predicates();
         pp->set_key("Email");
         pp->set_op(protobufs::PropertyPredicate::Eq);

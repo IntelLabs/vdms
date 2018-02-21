@@ -162,8 +162,7 @@ int AddEntity::construct_protobuf(PMGDQuery& query,
             node_ref,
             get_value<std::string>(cmd, "class"),
             cmd["properties"],
-            cmd["constraints"],
-            get_value<bool>(cmd, "unique", false)
+            cmd["constraints"]
             );
 
     if (cmd.isMember("link")) {
