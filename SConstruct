@@ -51,7 +51,7 @@ if ARGUMENTS.get('INTEL_PATH', '') != '':
 elif os.environ.get('INTEL_PATH', '') != '':
   intel_path = os.environ.get('INTEL_PATH', '')
 else:
-  intel_path = './'
+  intel_path = os.getcwd()
 
 # Enviroment use by all the builds
 env = Environment(CXXFLAGS="-std=c++11 -O3")
