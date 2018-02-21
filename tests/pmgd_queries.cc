@@ -380,13 +380,12 @@ TEST(PMGDQueryHandler, queryTestUnique)
         query_count++;
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count);
-        for (int i = 0; i < query_count; ++i) {
+        ASSERT_EQ(responses.size(), 1) << "Expecting an error return situation";
+        for (int i = 0; i < responses.size(); ++i) {
             vector<protobufs::CommandResponse *> response = responses[i];
             for (auto it : response) {
-                if (i == 1)  // that's the unique query test
+                if (i == 0)  // that's the unique query test
                     EXPECT_EQ(it->error_code(), protobufs::CommandResponse::NotUnique) << "Was expecting the not unique msg";
-                else
-                    ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
             }
         }
     }

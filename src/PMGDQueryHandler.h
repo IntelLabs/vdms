@@ -45,11 +45,13 @@ namespace VDMS {
     // connection.
 
     typedef PMGD::protobufs::Command           PMGDCmd;
-    typedef PMGD::protobufs::CommandResponse   PMGDCmdResponse;
     typedef PMGD::protobufs::PropertyPredicate PMGDPropPred;
     typedef PMGD::protobufs::PropertyList      PMGDPropList;
     typedef PMGD::protobufs::Property          PMGDProp;
     typedef PMGD::protobufs::QueryNode         PMGDQueryNode;
+    typedef PMGD::protobufs::CommandResponse   PMGDCmdResponse;
+    typedef PMGD::protobufs::ResponseType      PMGDRespType;
+    typedef PMGDCmdResponse::ErrorCode         PMGDCmdErrorCode;
 
     typedef std::vector<PMGDCmd *>             PMGDCmds;
     typedef std::vector<PMGDCmdResponse *>     PMGDCmdResponses;
@@ -79,17 +81,40 @@ namespace VDMS {
         // and rather than searching multiple maps, we keep it uniform here.
         std::unordered_map<int, ReusableNodeIterator *> _cached_nodes;
 
-        void process_query(const PMGDCmd *cmd, PMGDCmdResponse *response);
-        void add_node(const PMGD::protobufs::AddNode &cn, PMGDCmdResponse *response);
-        void add_edge(const PMGD::protobufs::AddEdge &ce, PMGDCmdResponse *response);
+        int process_query(const PMGDCmd *cmd, PMGDCmdResponse *response);
+        void error_cleanup(std::vector<PMGDCmdResponses> &responses, PMGDCmdResponse *last_resp);
+        int add_node(const PMGD::protobufs::AddNode &cn, PMGDCmdResponse *response);
+        int add_edge(const PMGD::protobufs::AddEdge &ce, PMGDCmdResponse *response);
         template <class Element> void set_property(Element &e, const PMGDProp&p);
-        void query_node(const PMGDQueryNode &qn, PMGDCmdResponse *response);
+        int query_node(const PMGDQueryNode &qn, PMGDCmdResponse *response);
         PMGD::PropertyPredicate construct_search_term(const PMGDPropPred &p_pp);
         PMGD::Property construct_search_property(const PMGDProp&p);
         template <class Iterator> void build_results(Iterator &ni,
                                                     const PMGDQueryNode &qn,
                                                     PMGDCmdResponse *response);
         void construct_protobuf_property(const PMGD::Property &j_p, PMGDProp*p_p);
+
+        void set_response(PMGDCmdResponse *response, PMGDCmdErrorCode error_code,
+                            std::string error_msg)
+        {
+            response->set_error_code(error_code);
+            response->set_error_msg(error_msg);
+        }
+
+        void set_response(PMGDCmdResponse *response, PMGDRespType type,
+                            PMGDCmdErrorCode error_code)
+        {
+            response->set_r_type(type);
+            response->set_error_code(error_code);
+        }
+
+        void set_response(PMGDCmdResponse *response, PMGDRespType type,
+                            PMGDCmdErrorCode error_code, std::string error_msg)
+        {
+            response->set_r_type(type);
+            response->set_error_code(error_code);
+            response->set_error_msg(error_msg);
+        }
 
     public:
         PMGDQueryHandler(PMGD::Graph *db, std::mutex *mtx);

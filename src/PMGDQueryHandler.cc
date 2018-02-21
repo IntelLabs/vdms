@@ -56,29 +56,17 @@ std::vector<PMGDCmdResponses>
     assert(_tx == NULL);
     for (const auto cmd : cmds) {
         PMGDCmdResponse *response = new PMGDCmdResponse();
-        PMGDCmdResponses &resp_v = responses[cmd->cmd_grp_id()];
         try {
-            process_query(cmd, response);
+            if (process_query(cmd, response) < 0) {
+                error_cleanup(responses, response);
+                break;  // Goto cleanup site.
+            }
         }
         catch (Exception e) {
-            for (unsigned i = 0; i < num_groups; ++i) {
-                unsigned size = responses[i].size();
-                for (unsigned j = 0; j < size; ++j) {
-                    if (responses[i][j] != NULL)
-                        delete responses[i][j];
-                }
-                responses[i].clear();
-            }
-            responses.clear();
-
-            // Since we have shortened the container, this reference will still remain
-            // valid. So we can reuse the 0th spot.
-            response->set_cmd_grp_id(0);
-            PMGDCmdResponses resp_v1;
-            resp_v1.push_back(response);
-            responses.push_back(resp_v1);
+            error_cleanup(responses, response);
             break;  // Goto cleanup site.
         }
+        PMGDCmdResponses &resp_v = responses[cmd->cmd_grp_id()];
         resp_v.push_back(response);
     }
 
@@ -96,9 +84,32 @@ std::vector<PMGDCmdResponses>
     return responses;
 }
 
-void PMGDQueryHandler::process_query(const PMGDCmd *cmd,
+void PMGDQueryHandler::error_cleanup(std::vector<PMGDCmdResponses> &responses,
+                                PMGDCmdResponse *last_resp)
+{
+    int num_groups = responses.size();
+    for (unsigned i = 0; i < num_groups; ++i) {
+        unsigned size = responses[i].size();
+        for (unsigned j = 0; j < size; ++j) {
+            if (responses[i][j] != NULL)
+                delete responses[i][j];
+        }
+        responses[i].clear();
+    }
+    responses.clear();
+
+    // Since we have shortened the container, this reference will still remain
+    // valid. So we can reuse the 0th spot.
+    last_resp->set_cmd_grp_id(0);
+    PMGDCmdResponses resp_v1;
+    resp_v1.push_back(last_resp);
+    responses.push_back(resp_v1);
+}
+
+int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
                                      PMGDCmdResponse *response)
 {
+    int retval = 0;
     try {
         int code = cmd->cmd_id();
         response->set_cmd_grp_id(cmd->cmd_grp_id());
@@ -109,16 +120,14 @@ void PMGDQueryHandler::process_query(const PMGDCmd *cmd,
 
                 // TODO: Needs to distinguish transaction parameters like RO/RW
                 _tx = new Transaction(*_db, Transaction::ReadWrite);
-                response->set_error_code(PMGDCmdResponse::Success);
-                response->set_r_type(protobufs::TX);
+                set_response(response, protobufs::TX, PMGDCmdResponse::Success);
                 break;
             }
             case PMGDCmd::TxCommit:
             {
                 _tx->commit();
                 _dblock->unlock();
-                response->set_error_code(PMGDCmdResponse::Success);
-                response->set_r_type(protobufs::TX);
+                set_response(response, protobufs::TX, PMGDCmdResponse::Success);
                 break;
             }
             case PMGDCmd::TxAbort:
@@ -126,36 +135,42 @@ void PMGDQueryHandler::process_query(const PMGDCmd *cmd,
                 delete _tx;
                 _tx = NULL;
                 _dblock->unlock();
-                response->set_error_code(PMGDCmdResponse::Abort);
-                response->set_error_msg("Abort called");
-                response->set_r_type(protobufs::TX);
+                set_response(response, protobufs::TX, PMGDCmdResponse::Abort,
+                                "Abort called");
+                retval = -1;
                 break;
             }
             case PMGDCmd::AddNode:
-                add_node(cmd->add_node(), response);
+                retval = add_node(cmd->add_node(), response);
                 break;
             case PMGDCmd::AddEdge:
-                add_edge(cmd->add_edge(), response);
+                retval = add_edge(cmd->add_edge(), response);
                 break;
             case PMGDCmd::QueryNode:
-                query_node(cmd->query_node(), response);
+                retval = query_node(cmd->query_node(), response);
                 break;
         }
     }
     catch (Exception e) {
+        delete _tx;
+        _tx = NULL;
         _dblock->unlock();
-        response->set_error_code(PMGDCmdResponse::Exception);
-        response->set_error_msg(e.name + std::string(": ") +  e.msg);
+        set_response(response, PMGDCmdResponse::Exception,
+                        e.name + std::string(": ") +  e.msg);
         throw e;
     }
+
+    return retval;
 }
 
-void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
+int PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
                                   PMGDCmdResponse *response)
 {
     long id = cn.identifier();
-    if (id >= 0 && _cached_nodes.find(id) != _cached_nodes.end())
-        throw PMGDException(UndefinedException, "Reuse of _ref value\n");
+    if (id >= 0 && _cached_nodes.find(id) != _cached_nodes.end()) {
+        set_response(response, PMGDCmdResponse::Error, "Reuse of _ref value\n");
+        return -1;
+    }
 
     if (cn.has_query_node()) {
         query_node(cn.query_node(), response);
@@ -163,19 +178,19 @@ void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
         // If we found the node we needed and it is unique, then this
         // is the expected response. Just change the error code to exists
         // as expected by an add_node return instead of Success as done
-        // in usual query_node.
+        // in usual query_node. If we were supposed to cache
+        // the result, it should be done already.
         if (response->r_type() == protobufs::NodeID &&
                 response->error_code() == PMGDCmdResponse::Success) {
             response->set_error_code(PMGDCmdResponse::Exists);
-            return;
+            return 0;
         }
 
         // The only situation where we would have to take further
-        // action is if the iterator was empty. If we were supposed to cache
-        // the result, it should be done already. And if there was some
+        // action is if the iterator was empty. And if there was some
         // error like !unique, then we need to return the response as is.
         if (response->error_code() != PMGDCmdResponse::Empty)
-            return;
+            return -1;
     }
 
     // Since the node wasn't found, now add it.
@@ -189,23 +204,22 @@ void PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
         set_property(n, p);
     }
 
-    response->set_error_code(PMGDCmdResponse::Success);
-    response->set_r_type(protobufs::NodeID);
+    set_response(response, protobufs::NodeID, PMGDCmdResponse::Success);
 
     // TODO: Partition code goes here
     // For now, fill in the single system node id
     response->set_op_int_value(_db->get_id(n));
+    return 0;
 }
 
-void PMGDQueryHandler::add_edge(const protobufs::AddEdge &ce,
+int PMGDQueryHandler::add_edge(const protobufs::AddEdge &ce,
                                   PMGDCmdResponse *response)
 {
     // Presumably this node gets placed here.
     StringID sid(ce.edge().tag().c_str());
 
     // Assumes there could be multiple.
-    ReusableNodeIterator *srcni;
-    ReusableNodeIterator *dstni;
+    ReusableNodeIterator *srcni, *dstni;
 
     // Since _ref is optional, need to make sure the map has the
     // right reference.
@@ -216,14 +230,15 @@ void PMGDQueryHandler::add_edge(const protobufs::AddEdge &ce,
         dstni = dstit->second;
     }
     else {
-        response->set_error_code(PMGDCmdResponse::Error);
-        response->set_error_msg("Source/destination node references not found");
-        return;
+        set_response(response, PMGDCmdResponse::Error,
+                        "Source/destination node references not found");
+        return -1;
     }
+
     if (srcni == NULL || dstni == NULL || !bool(*srcni) || !bool(*dstni)) {
-        response->set_error_code(PMGDCmdResponse::Empty);
-        response->set_error_msg("Empty node iterators for adding edge");
-        return;
+        set_response(response, PMGDCmdResponse::Empty,
+                        "Empty node iterators for adding edge");
+        return -1;
     }
 
     long eid = 0;
@@ -244,10 +259,10 @@ void PMGDQueryHandler::add_edge(const protobufs::AddEdge &ce,
     }
     srcni->reset();
 
-    response->set_error_code(PMGDCmdResponse::Success);
-    response->set_r_type(protobufs::EdgeID);
+    set_response(response, protobufs::EdgeID, PMGDCmdResponse::Success);
     // ID of the last edge added
     response->set_op_int_value(eid);
+    return 0;
 }
 
 template <class Element>
@@ -281,32 +296,41 @@ void PMGDQueryHandler::set_property(Element &e, const PMGDProp &p)
     }
 }
 
-void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
+int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
                                     PMGDCmdResponse *response)
 {
     ReusableNodeIterator *start_ni = NULL;
     PMGD::Direction dir;
     StringID edge_tag;
 
-    if (qn.p_op() == protobufs::Or)
-        throw PMGDException(NotImplemented, "Or operation not implemented");
+    if (qn.p_op() == protobufs::Or) {
+        set_response(response, PMGDCmdResponse::Error,
+                       "Or operation not implemented\n");
+        return -1;
+    }
 
     long id = qn.identifier();
-    if (id >= 0 && _cached_nodes.find(id) != _cached_nodes.end())
-        throw PMGDException(UndefinedException, "Reuse of _ref value\n");
+    if (id >= 0 && _cached_nodes.find(id) != _cached_nodes.end()) {
+        set_response(response, PMGDCmdResponse::Error,
+                       "Reuse of _ref value\n");
+        return -1;
+    }
 
     bool has_link = qn.has_link();
     if (has_link)  { // case where link is used.
         const protobufs::LinkInfo &link = qn.link();
         if (link.nb_unique()) {  // TODO Add support for unique neighbors across iterators
-            response->set_error_code(PMGDCmdResponse::Error);
-            response->set_error_msg("Non-repeated neighbors not supported\n");
-            return;
+            set_response(response, PMGDCmdResponse::Error,
+                           "Non-repeated neighbors not supported\n");
+            return -1;
         }
         long start_id = link.start_identifier();
         auto start = _cached_nodes.find(start_id);
-        if (start == _cached_nodes.end())
-            throw PMGDException(UndefinedException, "Undefined _ref value used in link\n");
+        if (start == _cached_nodes.end()) {
+            set_response(response, PMGDCmdResponse::Error,
+                           "Undefined _ref value used in link\n");
+            return -1;
+        }
         start_ni = start->second;
 
         dir = (PMGD::Direction)link.dir();
@@ -331,14 +355,13 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
                        PMGD::NodeIterator(new MultiNeighborIteratorImpl(start_ni, search, dir, edge_tag))
                        : search.eval_nodes();
     if (!bool(ni)) {
-        response->set_error_code(PMGDCmdResponse::Empty);
-        response->set_error_msg("Null search iterator\n");
-        return;
+        set_response(response, PMGDCmdResponse::Empty,
+                       "Null search iterator\n");
+        return -1;
     }
 
     // Set these in case there is no results block.
-    response->set_r_type(qn.r_type());
-    response->set_error_code(PMGDCmdResponse::Success);
+    set_response(response, qn.r_type(), PMGDCmdResponse::Success);
 
     // TODO: Also, this triggers a copy of the SearchExpression object
     // via the SearchExpressionIterator class, which might be slow,
@@ -351,7 +374,7 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         // Make sure the starting iterator is reset for later use.
         if (has_link)
             start_ni->reset();
-        return;
+        return 0;
     }
 
     ReusableNodeIterator *tni =  new ReusableNodeIterator(ni);
@@ -359,10 +382,10 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     if (qn.unique()) {
         tni->next();
         if (bool(*tni)) {  // Not unique and that is an error here.
-            response->set_error_code(PMGDCmdResponse::NotUnique);
-            response->set_error_msg("Query response not unique\n");
+            set_response(response, PMGDCmdResponse::NotUnique,
+                           "Query response not unique\n");
             delete tni;
-            return;
+            return -1;
         }
         tni->reset();
     }
@@ -388,7 +411,7 @@ void PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     if (has_link)
         start_ni->reset();
 
-    return;
+    return 0;
 }
 
 PropertyPredicate PMGDQueryHandler::construct_search_term(const PMGDPropPred &p_pp)
@@ -521,8 +544,8 @@ void PMGDQueryHandler::build_results(Iterator &ni,
                 response->set_op_float_value(sum);
         }
         else {
-            response->set_error_code(PMGDCmdResponse::Error);
-            response->set_error_msg("Wrong first property for sum/average\n");
+            set_response(response, PMGDCmdResponse::Error,
+                           "Wrong first property for sum/average\n");
         }
         break;
     }
@@ -535,8 +558,8 @@ void PMGDQueryHandler::build_results(Iterator &ni,
         break;
     }
     default:
-        response->set_error_code(PMGDCmdResponse::Error);
-        response->set_error_msg("Unknown operation type for query\n");
+        set_response(response, PMGDCmdResponse::Error,
+                       "Unknown operation type for query\n");
     }
 }
 
@@ -564,6 +587,3 @@ void PMGDQueryHandler::construct_protobuf_property(const Property &j_p, PMGDProp
         p_p->set_blob_value(j_p.blob_value().value, j_p.blob_value().size);
     }
 }
-
-
-
