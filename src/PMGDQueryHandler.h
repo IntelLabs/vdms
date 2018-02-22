@@ -61,13 +61,12 @@ namespace VDMS {
         class ReusableNodeIterator;
         class MultiNeighborIteratorImpl;
 
-        // This class is instantiated by the server each time there is a new
-        // connection. So someone needs to pass a handle to the graph db itself.
-        PMGD::Graph *_db;
+        // Until we have a separate PMGD server this db lives here
+        static PMGD::Graph *_db;
 
-        // Need this lock till we have concurrency support in JL
+        // Need this lock till we have concurrency support in PMGD
         // TODO: Make this reader writer.
-        std::mutex *_dblock;
+        static std::mutex *_dblock;
 
         PMGD::Transaction *_tx;
 
@@ -117,7 +116,8 @@ namespace VDMS {
         }
 
     public:
-        PMGDQueryHandler(PMGD::Graph *db, std::mutex *mtx);
+        static void init();
+        PMGDQueryHandler() { _tx = NULL; }
 
         // The vector here can contain just one JL command but will be surrounded by
         // TX begin and end. So just expose one call to the QueryHandler for

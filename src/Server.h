@@ -44,10 +44,6 @@ namespace VDMS {
         CommunicationManager *_cm;
 
         // TODO: Partitioner here
-        //until we have a separate PMGD server this db lives here
-        PMGD::Graph *_db;
-        // Aux lock, not in use
-        std::mutex *_dblock;
 
         int _server_port;
 

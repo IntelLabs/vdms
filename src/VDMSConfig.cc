@@ -51,6 +51,14 @@ bool VDMSConfig::init(std::string config_file)
     return true;
 }
 
+void VDMSConfig::destroy()
+{
+    if (cfg) {
+        delete cfg;
+        cfg = NULL;
+    }
+}
+
 VDMSConfig* VDMSConfig::instance()
 {
     if(cfg)

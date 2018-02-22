@@ -41,6 +41,7 @@ namespace VDMS{
 
     public:
         static bool init(std::string config_file);
+        static void destroy();
         static VDMSConfig* instance();
 
     private:

@@ -6,5 +6,5 @@
     "port": 55555, // Default is 55555
 
     // Database paths
-    "pmgd_path": "simpleAdd_db"
+    "pmgd_path": "simpleAddx10_db"
 }

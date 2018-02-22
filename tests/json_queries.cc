@@ -67,13 +67,11 @@ TEST(AddImage, simpleAdd)
     std::string addImg;
     addImg += "[" + singleAddImage + "]";
 
-    Graph db("simpleAdd_db", Graph::Create);
     VDMSConfig::init("config-tests.json");
+    PMGDQueryHandler::init();
     QueryHandler::init();
 
-    std::mutex mu;
-
-    QueryHandler qh_base(&db, &mu);
+    QueryHandler qh_base;
     QueryHandlerTester query_handler(qh_base);
 
     VDMS::protobufs::queryMessage proto_query;
@@ -101,6 +99,7 @@ TEST(AddImage, simpleAdd)
     json_reader.parse(response.json(), json_response);
 
     EXPECT_EQ(json_response[0]["AddImage"]["status"].asString(), "0");
+    VDMSConfig::destroy();
 }
 
 TEST(AddImage, simpleAddx10)
@@ -115,13 +114,11 @@ TEST(AddImage, simpleAddx10)
     }
     string_query += "]";
 
-    Graph db("simpleAddx10_db", Graph::Create);
-
-    VDMSConfig::init("config-tests.json");
+    VDMSConfig::init("config-add10-tests.json");
+    PMGDQueryHandler::init();
     QueryHandler::init();
 
-    std::mutex mu;
-    QueryHandler qh_base(&db, &mu);
+    QueryHandler qh_base;
     QueryHandlerTester query_handler(qh_base);
 
     VDMS::protobufs::queryMessage proto_query;
@@ -153,6 +150,7 @@ TEST(AddImage, simpleAddx10)
     for (int i = 0; i < total_images; ++i) {
         EXPECT_EQ(json_response[i]["AddImage"]["status"].asString(), "0");
     }
+    VDMSConfig::destroy();
 }
 
 TEST(QueryHandler, AddAndFind){
@@ -218,14 +216,11 @@ TEST(QueryHandler, AddAndFind){
           in_props=query["properties"].size();
     }
 
-    Graph db("jsongraph", Graph::Create);
-
-    mutex dblock;
-
-    VDMSConfig::init("config-tests.json");
+    VDMSConfig::init("config-addfind-tests.json");
+    PMGDQueryHandler::init();
     QueryHandler::init();
 
-    QueryHandler qh_base(&db, &dblock);
+    QueryHandler qh_base;
     QueryHandlerTester query_handler(qh_base);
 
     VDMS::protobufs::queryMessage proto_query;
@@ -268,7 +263,7 @@ TEST(QueryHandler, AddAndFind){
             count_value = query[cmd]["count"].asInt();
        }
 
-     }
+    }
 
     int total_success = out_node_num + out_query_num + out_edge_num;
 
@@ -279,4 +274,5 @@ TEST(QueryHandler, AddAndFind){
     EXPECT_EQ(average_found_before, average_found_after);
     EXPECT_EQ(sum_found_before, sum_found_after);
     EXPECT_EQ(count_found_before, count_found_after);
+    VDMSConfig::destroy();
 }

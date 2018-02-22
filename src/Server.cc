@@ -47,11 +47,10 @@ bool Server::shutdown = false;
 Server::Server(std::string config_file)
 {
     VDMSConfig::init(config_file);
-    std::string dbname = VDMSConfig::instance()
-                        ->get_string_value("pmgd_path", "default_pmgd");
     _server_port = VDMSConfig::instance()
                         ->get_int_value("port", DEFAULT_PORT);
 
+    PMGDQueryHandler::init();
     QueryHandler::init();
 
     // Verify that the version of the library that we linked against is
@@ -60,11 +59,7 @@ Server::Server(std::string config_file)
 
     install_handler();
 
-    //creating a db
-    _db = new PMGD::Graph(dbname.c_str(), PMGD::Graph::Create);
-    // Create the query handler here assuming database is valid now.
-    _dblock = new std::mutex();
-    _cm = new CommunicationManager(_db, _dblock);
+    _cm = new CommunicationManager();
 }
 
 void Server::process_requests()
@@ -109,6 +104,4 @@ Server::~Server()
 {
     _cm->shutdown();
     delete _cm;
-    delete _db;
-    delete _dblock;
 }

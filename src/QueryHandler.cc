@@ -84,8 +84,8 @@ void QueryHandler::init()
     }
 }
 
-QueryHandler::QueryHandler(PMGD::Graph *db, std::mutex *mtx)
-    : _pmgd_qh(db, mtx),
+QueryHandler::QueryHandler()
+    : _pmgd_qh(),
     _validator(valijson::Validator::kWeakTypes)
 #ifdef CHRONO_TIMING
     ,ch_tx_total("ch_tx_total")

@@ -32,6 +32,7 @@
 #include <mutex>
 #include <vector>
 
+#include "VDMSConfig.h"
 #include "protobuf/pmgdMessages.pb.h" // Protobuff implementation
 #include "pmgd.h"
 #include "PMGDQueryHandler.h"
@@ -77,11 +78,9 @@ void add_patient(protobufs::Command &cmdadd, int id, string name, int age,
 
 TEST(PMGDQueryHandler, addTest)
 {
-    Graph db("qhgraph", Graph::Create);
-
-    // Since PMGD is still single threaded, provide a lock for the DB
-    mutex dblock;
-    PMGDQueryHandler qh(&db, &dblock);
+    VDMSConfig::init("config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
 
     vector<protobufs::Command *> cmds;
 
@@ -176,6 +175,7 @@ TEST(PMGDQueryHandler, addTest)
             }
         }
     }
+    VDMSConfig::destroy();
 }
 
 void print_property(const string &key, const protobufs::Property &p)
@@ -203,11 +203,9 @@ void print_property(const string &key, const protobufs::Property &p)
 
 TEST(PMGDQueryHandler, queryTestList)
 {
-    Graph db("qhgraph");
-
-    // Since PMGD is still single threaded, provide a lock for the DB
-    mutex dblock;
-    PMGDQueryHandler qh(&db, &dblock);
+    VDMSConfig::init("config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
 
     vector<protobufs::Command *> cmds;
 
@@ -275,16 +273,15 @@ TEST(PMGDQueryHandler, queryTestList)
         EXPECT_EQ(nodecount, 2) << "Not enough nodes found";
         EXPECT_EQ(propcount, 2) << "Not enough properties read";
     }
+    VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryTestAverage)
 {
-    Graph db("qhgraph");
-
-    // Since PMGD is still single threaded, provide a lock for the DB
-    mutex dblock;
-    PMGDQueryHandler qh(&db, &dblock);
-
+    VDMSConfig::init("config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
+    
     vector<protobufs::Command *> cmds;
 
     {
@@ -326,16 +323,15 @@ TEST(PMGDQueryHandler, queryTestAverage)
             }
         }
     }
+    VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryTestUnique)
 {
-    Graph db("qhgraph");
-
-    // Since PMGD is still single threaded, provide a lock for the DB
-    mutex dblock;
-    PMGDQueryHandler qh(&db, &dblock);
-
+    VDMSConfig::init("config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
+    
     vector<protobufs::Command *> cmds;
 
     {
@@ -389,15 +385,14 @@ TEST(PMGDQueryHandler, queryTestUnique)
             }
         }
     }
+    VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryNeighborTestList)
 {
-    Graph db("qhgraph");
-
-    // Since PMGD is still single threaded, provide a lock for the DB
-    mutex dblock;
-    PMGDQueryHandler qh(&db, &dblock);
+    VDMSConfig::init("config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
 
     vector<protobufs::Command *> cmds;
 
@@ -482,15 +477,14 @@ TEST(PMGDQueryHandler, queryNeighborTestList)
         EXPECT_EQ(nodecount, 2) << "Not enough nodes found";
         EXPECT_EQ(propcount, 1) << "Not enough properties read";
     }
+    VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
 {
-    Graph db("qhgraph");
-
-    // Since PMGD is still single threaded, provide a lock for the DB
-    mutex dblock;
-    PMGDQueryHandler qh(&db, &dblock);
+    VDMSConfig::init("config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
 
     vector<protobufs::Command *> cmds;
 
@@ -584,15 +578,14 @@ TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
         EXPECT_EQ(nodecount, 1) << "Not enough nodes found";
         EXPECT_EQ(propcount, 1) << "Not enough properties read";
     }
+    VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryNeighborTestSum)
 {
-    Graph db("qhgraph");
-
-    // Since PMGD is still single threaded, provide a lock for the DB
-    mutex dblock;
-    PMGDQueryHandler qh(&db, &dblock);
+    VDMSConfig::init("config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
 
     vector<protobufs::Command *> cmds;
 
@@ -664,15 +657,14 @@ TEST(PMGDQueryHandler, queryNeighborTestSum)
             }
         }
     }
+    VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, addConstrainedTest)
 {
-    Graph db("qhgraph");
-
-    // Since PMGD is still single threaded, provide a lock for the DB
-    mutex dblock;
-    PMGDQueryHandler qh(&db, &dblock);
+    VDMSConfig::init("config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
 
     vector<protobufs::Command *> cmds;
 
@@ -753,15 +745,14 @@ TEST(PMGDQueryHandler, addConstrainedTest)
         ASSERT_EQ(resp->error_code(), protobufs::CommandResponse::Success) << resp->error_msg();
         EXPECT_EQ(resp->op_int_value(), 3) << "Unexpected edge id for add";
     }
+    VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryNeighborLinksTestList)
 {
-    Graph db("qhgraph");
-
-    // Since PMGD is still single threaded, provide a lock for the DB
-    mutex dblock;
-    PMGDQueryHandler qh(&db, &dblock);
+    VDMSConfig::init("config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
 
     vector<protobufs::Command *> cmds;
 
@@ -862,15 +853,14 @@ TEST(PMGDQueryHandler, queryNeighborLinksTestList)
         EXPECT_EQ(nodecount, 1) << "Not enough nodes found";
         EXPECT_EQ(propcount, 1) << "Not enough properties read";
     }
+    VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryNeighborLinksReuseTestList)
 {
-    Graph db("qhgraph");
-
-    // Since PMGD is still single threaded, provide a lock for the DB
-    mutex dblock;
-    PMGDQueryHandler qh(&db, &dblock);
+    VDMSConfig::init("config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
 
     vector<protobufs::Command *> cmds;
 
@@ -986,15 +976,14 @@ TEST(PMGDQueryHandler, queryNeighborLinksReuseTestList)
         EXPECT_EQ(totnodecount, 4) << "Not enough total nodes found";
         EXPECT_EQ(totpropcount, 3) << "Not enough total properties read";
     }
+    VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, querySortedNeighborLinksReuseTestList)
 {
-    Graph db("qhgraph");
-
-    // Since PMGD is still single threaded, provide a lock for the DB
-    mutex dblock;
-    PMGDQueryHandler qh(&db, &dblock);
+    VDMSConfig::init("config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
 
     vector<protobufs::Command *> cmds;
 
@@ -1117,15 +1106,14 @@ TEST(PMGDQueryHandler, querySortedNeighborLinksReuseTestList)
         EXPECT_EQ(totnodecount, 4) << "Not enough total nodes found";
         EXPECT_EQ(totpropcount, 3) << "Not enough total properties read";
     }
+    VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryTestListLimit)
 {
-    Graph db("qhgraph");
-
-    // Since PMGD is still single threaded, provide a lock for the DB
-    mutex dblock;
-    PMGDQueryHandler qh(&db, &dblock);
+    VDMSConfig::init("config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
 
     vector<protobufs::Command *> cmds;
 
@@ -1186,15 +1174,14 @@ TEST(PMGDQueryHandler, queryTestListLimit)
         EXPECT_EQ(nodecount, 4) << "Incorrect number of nodes found";
         EXPECT_EQ(propcount, 2) << "Not enough properties read";
     }
+    VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryTestSortedLimitedAverage)
 {
-    Graph db("qhgraph");
-
-    // Since PMGD is still single threaded, provide a lock for the DB
-    mutex dblock;
-    PMGDQueryHandler qh(&db, &dblock);
+    VDMSConfig::init("config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
 
     vector<protobufs::Command *> cmds;
 
@@ -1241,4 +1228,5 @@ TEST(PMGDQueryHandler, queryTestSortedLimitedAverage)
             }
         }
     }
+    VDMSConfig::destroy();
 }

@@ -30,6 +30,7 @@
  */
 
 #include <limits>
+#include "VDMSConfig.h"
 #include "PMGDQueryHandler.h"
 #include "util.h"   // PMGD util
 #include "PMGDIterators.h"
@@ -40,11 +41,19 @@
 using namespace PMGD;
 using namespace VDMS;
 
-PMGDQueryHandler::PMGDQueryHandler(Graph *db, std::mutex *mtx)
+PMGD::Graph *PMGDQueryHandler::_db;
+std::mutex *PMGDQueryHandler::_dblock;
+
+void PMGDQueryHandler::init()
 {
-    _db = db;
-    _dblock = mtx;
-    _tx = NULL;
+    std::string dbname = VDMSConfig::instance()
+                        ->get_string_value("pmgd_path", "default_pmgd");
+ 
+    // Create a db
+    _db = new PMGD::Graph(dbname.c_str(), PMGD::Graph::Create);
+
+    // Create the query handler here assuming database is valid now.
+    _dblock = new std::mutex();
 }
 
 std::vector<PMGDCmdResponses>
