@@ -87,8 +87,7 @@ namespace VDMS {
         void AddNode(int ref,
                     const std::string& tag,
                     const Json::Value& props,
-                    const Json::Value& constraints,
-                    bool unique = false);
+                    const Json::Value& constraints);
 
         void AddEdge(int ident,
                     int src, int dst,

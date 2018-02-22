@@ -78,7 +78,7 @@ typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
     public:
         static void init();
 
-        QueryHandler(PMGD::Graph *db, std::mutex *mtx);
+        QueryHandler();
 
         void process_connection(comm::Connection *c);
     };

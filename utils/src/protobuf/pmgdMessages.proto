@@ -121,15 +121,14 @@ message PropertyPredicate
 
 // Indicate what to do with the responses.
 enum ResponseType {
-    List = 0;
+    // Indicate that we just need the results cached.
+    Cached = 0;
     Count = 1;
     Sum = 2;
     Average = 3;
     NodeID = 4;
     EdgeID = 5;
-
-    // Indicate that we just need the results cached.
-    Cached = 6;
+    List = 6;
 
     // Just introduce a TX response type
     TX = 7;

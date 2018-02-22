@@ -39,181 +39,34 @@
 
 #include "protobuf/pmgdMessages.pb.h" // Protobuff implementation
 #include "pmgd.h"
-#include "SearchExpression.h"
 
 namespace VDMS {
     // Instance created per worker thread to handle all transactions on a given
     // connection.
 
     typedef PMGD::protobufs::Command           PMGDCmd;
-    typedef PMGD::protobufs::CommandResponse   PMGDCmdResponse;
     typedef PMGD::protobufs::PropertyPredicate PMGDPropPred;
     typedef PMGD::protobufs::PropertyList      PMGDPropList;
     typedef PMGD::protobufs::Property          PMGDProp;
     typedef PMGD::protobufs::QueryNode         PMGDQueryNode;
+    typedef PMGD::protobufs::CommandResponse   PMGDCmdResponse;
+    typedef PMGD::protobufs::ResponseType      PMGDRespType;
+    typedef PMGDCmdResponse::ErrorCode         PMGDCmdErrorCode;
+
+    typedef std::vector<PMGDCmd *>             PMGDCmds;
+    typedef std::vector<PMGDCmdResponse *>     PMGDCmdResponses;
 
     class PMGDQueryHandler
     {
-        private:
-        class ReusableNodeIterator
-        {
-            // Iterator for the starting nodes.
-            PMGD::NodeIterator _ni;
+        class ReusableNodeIterator;
+        class MultiNeighborIteratorImpl;
 
-            // TODO Is list the best data structure if we could potentially
-            // sort?
-            std::list<PMGD::Node *> _traversed;
+        // Until we have a separate PMGD server this db lives here
+        static PMGD::Graph *_db;
 
-            // Current postion of list iterator
-            std::list<PMGD::Node *>::iterator _it;
-
-            bool _next()
-            {
-                if (_it != _traversed.end()) {
-                    ++_it;
-                    if (_it != _traversed.end())
-                        return true;
-                }
-                if (bool(_ni)) {
-                    _it = _traversed.insert(_traversed.end(), &*_ni);
-                    _ni.next();
-                    return true;
-                }
-                return false;
-            }
-
-            PMGD::Node *ref()
-            {
-                if (!bool(*this))
-                    throw PMGDException(NullIterator, "Null impl");
-                return *_it;
-            }
-
-            // TODO Is this the best way to do this
-            struct compare_propkey
-            {
-                PMGD::StringID _propid;
-                bool operator()(const PMGD::Node *n1, const PMGD::Node *n2)
-                {
-                   // if (n1 == NULL || n2 == NULL)
-                     //   throw PMGDException(NullIterator, "Comparing at least one null node");
-                    return n1->get_property(_propid) < n2->get_property(_propid);
-                }
-            };
-
-        public:
-            // Make sure this is not auto-declared. The move one won't be.
-            ReusableNodeIterator(const ReusableNodeIterator &) = delete;
-            ReusableNodeIterator(PMGD::NodeIterator ni)
-                : _ni(ni),
-                  _it(_traversed.begin())
-            {
-                _next();
-            }
-
-            // Add this to clean up the NewNodeIterator requirement
-            ReusableNodeIterator(PMGD::Node *n)
-                : _ni(NULL),
-                  _it(_traversed.insert(_traversed.end(), n))
-              {}
-
-            operator bool() const { return _it != _traversed.end(); }
-            bool next() { return _next(); }
-            PMGD::Node &operator *() { return *ref(); }
-            PMGD::Node *operator ->() { return ref(); }
-            void reset() { _it = _traversed.begin(); }
-
-            // Sort the list. Once the list is sorted, all operations
-            // following that happen in a sorted manner. And this function
-            // resets the iterator to the beginning.
-            // TODO It might be possible to avoid this if the first iterator
-            // was build out of an index sorted on the same key been sought here.
-            // Hopefully that won't happen.
-            void sort(PMGD::StringID sortkey)
-            {
-                // TODO First finish traversal?
-                for( ; _ni; _ni.next())
-                    _traversed.insert(_traversed.end(), &*_ni);
-                _traversed.sort(compare_propkey{sortkey});
-                _it = _traversed.begin();
-            }
-        };
-
-        private:
-        class MultiNeighborIteratorImpl : public PMGD::NodeIteratorImplIntf
-        {
-            // Iterator for the starting nodes.
-            ReusableNodeIterator *_start_ni;
-            SearchExpression _search_neighbors;
-            PMGD::NodeIterator *_neighb_i;     // TODO: Does this work properly?
-            PMGD::Direction _dir;
-            PMGD::StringID _edge_tag;
-
-            bool _next()
-            {
-                while (bool(*_start_ni)) {
-                    if (_neighb_i != NULL)
-                        delete _neighb_i;
-
-                    // TODO Maybe unique can have a default value of false.
-                    // TODO No support in case unique is true but get it from LDBC.
-                    // Eventually need to add a get_union(NodeIterator, vector<Constraints>)
-                    // call to PMGD.
-                    // TODO Any way to skip new?
-                    _neighb_i = new PMGD::NodeIterator(_search_neighbors.eval_nodes(**_start_ni,
-                                               _dir, _edge_tag));
-                    _start_ni->next();
-                    if (bool(*_neighb_i))
-                        return true;
-                }
-                return false;
-            }
-
-        public:
-            MultiNeighborIteratorImpl(ReusableNodeIterator *start_ni,
-                                      SearchExpression search_neighbors,
-                                      PMGD::Direction dir,
-                                      PMGD::StringID edge_tag)
-                : _start_ni(start_ni),
-                  _search_neighbors(search_neighbors),
-                  _neighb_i(NULL),
-                  _dir(dir),
-                  _edge_tag(edge_tag)
-            {
-                _next();
-            }
-
-            ~MultiNeighborIteratorImpl()
-            {
-                if (_neighb_i != NULL)
-                    delete _neighb_i;
-                _neighb_i = NULL;
-            }
-
-            operator bool() const { return _neighb_i != NULL ? bool(*_neighb_i) : false; }
-
-            /// No next matching node
-            bool next()
-            {
-                if (_neighb_i != NULL && bool(*_neighb_i)) {
-                    _neighb_i->next();
-                    if (bool(*_neighb_i))
-                        return true;
-                }
-                return _next();
-            }
-
-            PMGD::Node *ref() { return &**_neighb_i; }
-        };
-
-        private:
-        // This class is instantiated by the server each time there is a new
-        // connection. So someone needs to pass a handle to the graph db itself.
-        PMGD::Graph *_db;
-
-        // Need this lock till we have concurrency support in JL
+        // Need this lock till we have concurrency support in PMGD
         // TODO: Make this reader writer.
-        std::mutex *_dblock;
+        static std::mutex *_dblock;
 
         PMGD::Transaction *_tx;
 
@@ -225,29 +78,46 @@ namespace VDMS {
         // one to keep the code uniform. In a chained query, there is no way
         // of finding out if the reference is for an AddNode or a QueryNode
         // and rather than searching multiple maps, we keep it uniform here.
-        // TODO this might have to map to a Global ID in the distributed setting.
-        std::unordered_map<int, ReusableNodeIterator *> mNodes;
+        std::unordered_map<int, ReusableNodeIterator *> _cached_nodes;
 
-        // Map an integer ID to an Edge (reset at the end of each transaction).
-        // TODO this might have to map to a Global ID in the distributed setting.
-        // Not really used at this point.
-        std::unordered_map<int, PMGD::Edge *> mEdges;
-
+        int process_query(const PMGDCmd *cmd, PMGDCmdResponse *response);
+        void error_cleanup(std::vector<PMGDCmdResponses> &responses, PMGDCmdResponse *last_resp);
+        int add_node(const PMGD::protobufs::AddNode &cn, PMGDCmdResponse *response);
+        int add_edge(const PMGD::protobufs::AddEdge &ce, PMGDCmdResponse *response);
         template <class Element> void set_property(Element &e, const PMGDProp&p);
-        void add_node(const PMGD::protobufs::AddNode &cn, PMGDCmdResponse *response);
-        void add_edge(const PMGD::protobufs::AddEdge &ce, PMGDCmdResponse *response);
+        int query_node(const PMGDQueryNode &qn, PMGDCmdResponse *response);
+        PMGD::PropertyPredicate construct_search_term(const PMGDPropPred &p_pp);
         PMGD::Property construct_search_property(const PMGDProp&p);
-        PMGD::PropertyPredicate construct_search_term(const PMGD::protobufs::PropertyPredicate &p_pp);
-        void construct_protobuf_property(const PMGD::Property &j_p, PMGDProp*p_p);
-        void query_node(const PMGDQueryNode &qn, PMGDCmdResponse *response);
-        // void query_neighbor(const PMGD::protobufs::QueryNeighbor &qnb, PMGDCmdResponse *response);
-        void process_query(PMGDCmd *cmd, PMGDCmdResponse *response);
         template <class Iterator> void build_results(Iterator &ni,
                                                     const PMGDQueryNode &qn,
                                                     PMGDCmdResponse *response);
+        void construct_protobuf_property(const PMGD::Property &j_p, PMGDProp*p_p);
+
+        void set_response(PMGDCmdResponse *response, PMGDCmdErrorCode error_code,
+                            std::string error_msg)
+        {
+            response->set_error_code(error_code);
+            response->set_error_msg(error_msg);
+        }
+
+        void set_response(PMGDCmdResponse *response, PMGDRespType type,
+                            PMGDCmdErrorCode error_code)
+        {
+            response->set_r_type(type);
+            response->set_error_code(error_code);
+        }
+
+        void set_response(PMGDCmdResponse *response, PMGDRespType type,
+                            PMGDCmdErrorCode error_code, std::string error_msg)
+        {
+            response->set_r_type(type);
+            response->set_error_code(error_code);
+            response->set_error_msg(error_msg);
+        }
 
     public:
-        PMGDQueryHandler(PMGD::Graph *db, std::mutex *mtx);
+        static void init();
+        PMGDQueryHandler() { _tx = NULL; }
 
         // The vector here can contain just one JL command but will be surrounded by
         // TX begin and end. So just expose one call to the QueryHandler for
@@ -258,8 +128,6 @@ namespace VDMS {
         // than the number of commands.
         // Ensure that the cmd_grp_id, that is the query number are in increasing
         // order and account for the TxBegin and TxEnd in numbering.
-        std::vector<std::vector<PMGDCmdResponse *>> process_queries(
-                                           std::vector<PMGDCmd *> cmds,
-                                           int num_queries);
+        std::vector<PMGDCmdResponses> process_queries(const PMGDCmds &cmds, int num_groups);
     };
 };

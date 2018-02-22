@@ -37,6 +37,7 @@ def buildServer(env):
                   'src/CommunicationManager.cc',
                   'src/PMGDQuery.cc',
                   'src/SearchExpression.cc',
+                  'src/PMGDIterators.cc',
                   'src/PMGDQueryHandler.cc',
                   'src/RSCommand.cc',
                   'src/ImageCommand.cc',

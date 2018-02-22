@@ -59,15 +59,9 @@ namespace VDMS {
         std::queue<comm::Connection *> _workq;
 
         bool _shutdown;
-        //until we have a separate PMGD server this db lives here
-        PMGD::Graph *_db;
-
-        // Need this lock till we have concurrency support in JL
-        // TODO: Make this reader writer.
-        std::mutex *_dblock;
-
+        
     public:
-        CommunicationManager(PMGD::Graph *db, std::mutex *mtx);
+        CommunicationManager();
         ~CommunicationManager();
         void process_queue();
         void add_connection(comm::Connection *c);

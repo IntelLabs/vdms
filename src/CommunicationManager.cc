@@ -37,8 +37,7 @@
 using namespace VDMS;
 using namespace PMGD;
 
-CommunicationManager::CommunicationManager(PMGD::Graph *db,std::mutex *mtx):
-    _db(db), _dblock(mtx)
+CommunicationManager::CommunicationManager()
 {
     _num_threads = VDMSConfig::instance() ->get_int_value(
                                         "max_simultaneous_clients",
@@ -69,7 +68,7 @@ void CommunicationManager::process_queue()
             auto c_it = _conn_list.insert(_conn_list.begin(), c);
             _conn_list_lock.unlock();
 
-            QueryHandler qh(_db, _dblock);
+            QueryHandler qh;
             printf("Connection received...\n");
             qh.process_connection(c);
 
