@@ -10,7 +10,7 @@
               "Email":"rst@rashed.com",
               "Age": 86,
               "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
-              "name":"Mark",
+              "Name":"Mark",
                "fv": {"_blob":"Raghed----ghjhsglfhwa"}
           }
       }
@@ -27,7 +27,7 @@
               "Age": 80,
               "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
               "fv":{"_blob" :"Ahmad----ghjhsglfhwa"},
-               "name": "Kai"
+               "Name": "Kai"
 
           }
       }
@@ -56,14 +56,14 @@
           "properties": {
               "Email":"ast@rashed.com",
               "Age": 56,
-              "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
+              "Birthday":{"_date":"Sat Oct 7 17:59:24 PDT 1946"},
                "Study": false,
                "avg": 32.4,
-                "name": "Mathias",
+                "Name": "Mathias",
                 "fv": {"_blob":"----ghjhsglfhwa"}
           },
           "constraints":
-          { "name": ["==", "Mathias"]
+          { "Name": ["==", "Mathias"]
           }
       }
 
@@ -80,7 +80,7 @@
                "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
                "Study": true,
                "avg": 21.6,
-               "name": "Alin",
+               "Name": "Alin",
                 "fv": {"_blob":"----ghjhsglfhwa"}
 
           }
@@ -112,7 +112,7 @@
        },
 
        "results": {
-       "list": ["name"]
+       "list": ["Name"]
      }
   }
 },
@@ -129,7 +129,7 @@
        },
 
        "results": {
-       "list": ["name"]
+       "list": ["Name"]
      }
   }
 },
@@ -141,7 +141,7 @@
          "Age":  [">", 0, "<=", 180 ]
       },
             "results": {
-            "list":["name","Age"]
+            "list":["Name","Age"]
          }
   }
 },
@@ -159,7 +159,7 @@
         },
        "results": {
 
-       "list":["Age","name", "Email"],
+       "list":["Age","Name", "Email"],
        "limit" :3
 
        }
@@ -177,7 +177,7 @@
         },
        "results": {
 
-       "list":["Age","name", "Email"],
+       "list":["Age","Name", "Email"],
        "sort":"Email"
       }
   }
@@ -190,7 +190,7 @@
          "Age":  [">", 0, "<=", 100 ]
       },
         "results": {
-            "list":["name","Age","Email"],
+            "list":["Name","Age","Email"],
             "sort" :"Age"
           }
     }
@@ -205,7 +205,7 @@
         },
        "results": {
 
-       "list":["Age","name", "Email"],
+       "list":["Age","Name", "Email", "Birthday"],
        "limit":2
 
 
