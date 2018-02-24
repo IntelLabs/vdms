@@ -25,7 +25,7 @@
 * valijson
   * git clone https://github.com/tristanpenman/valijson.git
   * cd valijson
-  * cp include/* /usr/local/include
+  * cp -r include/* /usr/local/include (may need to run as sudo)
   * This is a headers-only library, no compilation/installation necessary
 
 * Persistent Memory Graph Database (PMGD)
@@ -38,14 +38,13 @@
 
 ### Requirement for Python Client
 
-    sudo apt-get install pip
-    pip install protobuf
+    sudo apt-get install python-pip
+    pip install protobuf (may need to run as sudo)
 
     Add VDMS Python module to PYPATH:
-    export PYTHONPATH="${PYTHONPATH}:<path_to_vdms>/python/vdms"
+    export PYTHONPATH="${PYTHONPATH}:<path_to_vdms>/client/python/vdms"
     # Example:
-    export PYTHONPATH="${PYTHONPATH}:/opt/intel/vdms/python/vdms"
-
+    export PYTHONPATH="${PYTHONPATH}:/opt/intel/vdms/client/python/vdms"
 
 ### Compilation
 
