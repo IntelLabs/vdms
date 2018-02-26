@@ -48,7 +48,7 @@ void PMGDQueryHandler::init()
 {
     std::string dbname = VDMSConfig::instance()
                         ->get_string_value("pmgd_path", "default_pmgd");
- 
+
     // Create a db
     _db = new PMGD::Graph(dbname.c_str(), PMGD::Graph::Create);
 
@@ -167,6 +167,12 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
         set_response(response, PMGDCmdResponse::Exception,
                         e.name + std::string(": ") +  e.msg);
         throw e;
+    }
+
+    if (retval < 0) {
+        delete _tx;
+        _tx = NULL;
+        _dblock->unlock();
     }
 
     return retval;
