@@ -178,10 +178,10 @@ int AddEntity::construct_protobuf(PMGDQuery& query,
     // input, but for now it is an acceptable solution.
     Json::Value props = get_value<Json::Value>(cmd, "properties");
 
-    if (cmd.isMember("blob")) {
+    if (get_value<bool>(cmd, "blob", false)) {
         std::ostringstream oss;
         oss << std::hex << VCL::get_int64();
-        std::string file_name = _storage_blob + oss.str();
+        std::string file_name = _storage_blob + "/" + oss.str();
 
         props[VDMS_BLOB_PATH_PROP] = file_name;
 
@@ -246,12 +246,18 @@ int FindEntity::construct_protobuf(
 {
     const Json::Value& cmd = jsoncmd[_cmd_name];
 
+    Json::Value results = get_value<Json::Value>(cmd, "results");
+
+    if (get_value<bool>(results, "blob", false)){
+        results["list"].append(VDMS_BLOB_PATH_PROP);
+    }
+
     query.QueryNode(
             get_value<int>(cmd, "_ref", -1),
             get_value<std::string>(cmd, "class"),
             cmd["link"],
             cmd["constraints"],
-            cmd["results"],
+            results,
             get_value<bool>(cmd, "unique", false)
             );
 
@@ -266,10 +272,31 @@ Json::Value FindEntity::construct_responses(
     assert(response.size() == 1);
 
     Json::Value ret;
+    Json::Value& findEnt = response[0];
+
+    const Json::Value& cmd = json[_cmd_name];
+
+    if (get_value<bool>(cmd["results"], "blob", false)) {
+        for (auto& ent : findEnt["entities"]) {
+
+            if(ent.isMember(VDMS_BLOB_PATH_PROP)) {
+                std::string blob_path = ent[VDMS_BLOB_PATH_PROP].asString();
+                ent.removeMember(VDMS_BLOB_PATH_PROP);
+
+                std::string* blob_str = query_res.add_blobs();
+                std::ifstream t(blob_path);
+                t.seekg(0, std::ios::end);
+                size_t size = t.tellg();
+                blob_str->resize(size);
+                t.seekg(0);
+                t.read((char*)blob_str->data(), size);
+            }
+        }
+    }
 
     // This will change the response tree,
     // but it is ok and avoids a copy
-    ret[_cmd_name].swap(response[0]);
+    ret[_cmd_name].swap(findEnt);
 
     return ret;
 }
