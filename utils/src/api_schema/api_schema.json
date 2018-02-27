@@ -63,6 +63,10 @@
       "minimum": 1
     },
 
+    "blob":  {
+      "type": "boolean"
+    },
+
     "refInt": {
       "type": "integer",
       "minimum": 1,
@@ -186,6 +190,7 @@
         "class":       { "type": "string" },
         "_ref":        { "$ref": "#/definitions/refInt" },
         "link":        { "$ref": "#/definitions/blockLink" },
+        "blob":        { "$ref": "#/definitions/blob" },
         "properties":  { "type": "object" },
         "constraints": { "type": "object" }
       },

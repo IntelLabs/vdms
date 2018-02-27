@@ -31,13 +31,19 @@
 
 #include <string>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include "QueryHandler.h"
 #include "ExceptionsCommand.h"
+#include "VDMSConfig.h"
+#include "VCL.h"
 
 using namespace VDMS;
 
-#define VDMS_GENERIC_LINK  "AT:edge"
+#define VDMS_GENERIC_LINK   "AT:edge"
+#define VDMS_BLOB_PATH_PROP "blobPath"
+
 
 RSCommand::RSCommand(const std::string& cmd_name):
     _cmd_name(cmd_name)
@@ -145,6 +151,14 @@ void RSCommand::add_link(PMGDQuery& query, const Json::Value& link,
 
 AddEntity::AddEntity() : RSCommand("AddEntity")
 {
+    _storage_blob = VDMSConfig::instance()
+                ->get_string_value("blob_path", DEFAULT_BLOB_PATH);
+}
+
+bool AddEntity::need_blob(const Json::Value& jsoncmd)
+{
+    const Json::Value& cmd = jsoncmd[_cmd_name];
+    return get_value<bool>(cmd, "blob", false);
 }
 
 int AddEntity::construct_protobuf(PMGDQuery& query,
@@ -158,10 +172,29 @@ int AddEntity::construct_protobuf(PMGDQuery& query,
     int node_ref = get_value<int>(cmd, "_ref",
                                   query.get_available_reference());
 
+    // Modifiyng the existing properties that the user gives
+    // is a good option to make the AddNode more simple.
+    // This is not ideal since we are manupulating with user's
+    // input, but for now it is an acceptable solution.
+    Json::Value props = get_value<Json::Value>(cmd, "properties");
+
+    if (cmd.isMember("blob")) {
+        std::ostringstream oss;
+        oss << std::hex << VCL::get_int64();
+        std::string file_name = _storage_blob + oss.str();
+
+        props[VDMS_BLOB_PATH_PROP] = file_name;
+
+        std::ofstream file;
+        file.open(file_name);
+        file << blob;
+        file.close();
+    }
+
     query.AddNode(
             node_ref,
             get_value<std::string>(cmd, "class"),
-            cmd["properties"],
+            props,
             cmd["constraints"]
             );
 

@@ -89,6 +89,11 @@ namespace VDMS {
 
     class AddEntity : public RSCommand
     {
+    private:
+        const std::string DEFAULT_BLOB_PATH = "blobs/";
+
+        std::string _storage_blob;
+
     public:
         AddEntity();
         int construct_protobuf(PMGDQuery& query,
@@ -97,9 +102,7 @@ namespace VDMS {
                                int grp_id,
                                Json::Value& error);
 
-        bool need_blob(const Json::Value& cmd){
-            return cmd.isMember("blob");
-        }
+        bool need_blob(const Json::Value& jsoncmd);
     };
 
     class Connect : public RSCommand
