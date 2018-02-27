@@ -172,10 +172,11 @@ bool QueryHandler::syntax_checker(const Json::Value& root, Json::Value& error)
     return true;
 }
 
-int QueryHandler::parse_commands(const std::string& commands,
+int QueryHandler::parse_commands(const protobufs::queryMessage& proto_query,
                                  Json::Value& root)
 {
     Json::Reader reader;
+    const std::string commands = proto_query.json();
 
     try {
         bool parseSuccess = reader.parse(commands.c_str(), root);
@@ -190,6 +191,27 @@ int QueryHandler::parse_commands(const std::string& commands,
         if (!syntax_checker(root, error)) {
             root = error;
             root["status"] = RSCommand::Error;
+            return -1;
+        }
+
+        unsigned blob_counter = 0;
+        for (int j = 0; j < root.size(); j++) {
+            const Json::Value& query = root[j];
+            assert(query.getMemberNames().size() == 1);
+            std::string cmd = query.getMemberNames()[0];
+
+            if (_rs_cmds[cmd]->need_blob(query))
+                blob_counter++;
+        }
+
+        if (blob_counter != proto_query.blobs().size()) {
+            root = error;
+            root["info"] = std::string("Expected blobs: " +
+                                std::to_string(blob_counter) +
+                                ". Recieved blobs: " +
+                                std::to_string(proto_query.blobs().size()));
+            root["status"] = RSCommand::Error;
+            std::cerr << "Not enough blobs!" << std::endl;
             return -1;
         }
 
@@ -235,7 +257,7 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
             std::cerr << w.write(json_responses);
         };
 
-        if (parse_commands(proto_query.json(), root) != 0) {
+        if (parse_commands(proto_query, root) != 0) {
             cmd_current = "Transaction";
             error(root, cmd_current);
             return;
@@ -247,15 +269,11 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
         //iterate over the list of the queries
         for (int j = 0; j < root.size(); j++) {
             const Json::Value& query = root[j];
-            assert(query.getMemberNames().size() == 1);
             std::string cmd = query.getMemberNames()[0];
 
             int group_count = pmgd_query.add_group();
 
             RSCommand* rscmd = _rs_cmds[cmd];
-
-            // This has to go on the controls
-            assert(proto_query.blobs().size() > blob_count-1);
 
             const std::string& blob = rscmd->need_blob(query) ?
                                       proto_query.blobs(blob_count++) : "";
@@ -320,10 +338,10 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
         print_exception(e);
         std::cerr << "FATAL ERROR: Command Exception at QH" << std::endl;
         exit(0);
-    } catch (Json::Exception const&) {
+    } catch (Json::Exception const& e) {
         // Should not happen
         // In case of error on the last fastWriter
-        std::cerr << "FATAL: Json Exception!" << std::endl;
+        std::cerr << "FATAL: Json Exception:" << e.what() << std::endl;
         Json::Value error;
         error["info"] = "Internal Server Error: Json Exception";
         error["status"] = RSCommand::Error;
