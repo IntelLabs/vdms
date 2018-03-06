@@ -63,15 +63,10 @@ std::vector<PMGDCmdResponses>
     std::vector<PMGDCmdResponses> responses(num_groups);
 
     assert(_tx == NULL);
+    _dblock->lock();
     for (const auto cmd : cmds) {
         PMGDCmdResponse *response = new PMGDCmdResponse();
-        try {
-            if (process_query(cmd, response) < 0) {
-                error_cleanup(responses, response);
-                break;  // Goto cleanup site.
-            }
-        }
-        catch (Exception e) {
+        if (process_query(cmd, response) < 0) {
             error_cleanup(responses, response);
             break;  // Goto cleanup site.
         }
@@ -90,6 +85,7 @@ std::vector<PMGDCmdResponses>
         _tx = NULL;
     }
 
+    _dblock->unlock();
     return responses;
 }
 
@@ -125,7 +121,6 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
         switch (code) {
             case PMGDCmd::TxBegin:
             {
-                _dblock->lock();
 
                 // TODO: Needs to distinguish transaction parameters like RO/RW
                 _tx = new Transaction(*_db, Transaction::ReadWrite);
@@ -135,15 +130,11 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
             case PMGDCmd::TxCommit:
             {
                 _tx->commit();
-                _dblock->unlock();
                 set_response(response, protobufs::TX, PMGDCmdResponse::Success);
                 break;
             }
             case PMGDCmd::TxAbort:
             {
-                delete _tx;
-                _tx = NULL;
-                _dblock->unlock();
                 set_response(response, protobufs::TX, PMGDCmdResponse::Abort,
                                 "Abort called");
                 retval = -1;
@@ -161,12 +152,9 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
         }
     }
     catch (Exception e) {
-        delete _tx;
-        _tx = NULL;
-        _dblock->unlock();
         set_response(response, PMGDCmdResponse::Exception,
                         e.name + std::string(": ") +  e.msg);
-        throw e;
+        retval = -1;
     }
 
     return retval;
