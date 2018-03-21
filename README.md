@@ -32,6 +32,15 @@ how it enables efficient vision analytics.
 Here is our [ATC HotStorage '17 Position Paper](https://www.usenix.org/system/files/conference/hotstorage17/hotstorage17-paper-gupta-cledat.pdf).
 Also, take a look at our [presentation](https://www.usenix.org/conference/hotstorage17/program/presentation/gupta-cledat).
 
+## Get Started
+
+To get started, take a look at the [INSTALL.md](INSTALL.md) file, where
+you will find instructions on how to install and run the server.
+
+Also, visit our [wiki](https://github.com/IntelLabs/vdms/wiki)
+to learn more about the VDMS API, and take a look at some of
+the examples/tutorials.
+
 ## Cite
 
 Feel free to include our work into your research!

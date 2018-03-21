@@ -60,3 +60,20 @@ Flag | Explanation
 --timing    | Compiles server with chronos for internal timing.
 -jX         | Compiles in parallel, using X cores
 INTEL_PATH=path  | Path to the root folder containing pmgd and vcl. Default is "./" which is pmgd and vcl inside vdms folder. Example: scons INTEL_PATH=/opt/intel/
+
+### Running The VDMS Server
+
+The config-vdms.json file contains the configuration of the server.
+Some of the parameters include the TCP port that will be use for incoming
+connections, maximun number of simultaneous clients, and paths to the
+folders where data/metadata will be stored.
+
+**Note:** The folders must already exists in the filesystem.
+
+We provide a script (run_server.sh) that will create some default directories,
+corresponding the default values in the config-vdms.json.
+
+To run the server using the default directories and port, simply run:
+
+    sh run_server.sh
+
