@@ -1,7 +1,6 @@
-rm log.log screen.log dump.log
-rm -r test-graph
-rm -r native_format
-mkdir native_format
-mkdir native_format/pngs
-mkdir native_format/jpgs
-mkdir native_format/descriptors
+rm log.log screen.log
+rm -r db
+mkdir db
+mkdir db/images
+mkdir db/images/pngs
+mkdir db/images/jpgs

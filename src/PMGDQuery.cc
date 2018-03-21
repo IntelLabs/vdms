@@ -151,7 +151,7 @@ void PMGDQuery::set_value(const std::string& key, const PMGDProp& p,
             break;
 
         case PMGDProp::TimeType:
-            prop[key] = p.string_value();
+            prop[key] = p.time_value();
             break;
 
         case PMGDProp::FloatType:
@@ -192,7 +192,7 @@ void PMGDQuery::set_property(PMGDProp* p, const std::string& key,
         case Json::objectValue:
             if (val.isMember("_date")) {
                 p->set_type(PMGDProp::TimeType);
-                p->set_string_value(val["_date"].asString());
+                p->set_time_value(val["_date"].asString());
             }
             else if (val.isMember("_blob")) {
                 // the blob value is read and stored as a string

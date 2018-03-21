@@ -7,10 +7,7 @@
 
     // Database paths
     "pmgd_path": "db/test-graph",
-    "tdb_path": "db/tdb/test",
     "png_path": "db/images/pngs/",
     "jpg_path": "db/images/jpgs/",
-
-    "support_info": "A-team",
-    "support_phone": "1-800-a-team"
+    "tdb_path": "db/images/tiledb/tdb"
 }

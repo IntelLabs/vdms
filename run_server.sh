@@ -1,9 +1,8 @@
-scons -j123
 rm log.log
 rm -r db
 mkdir db
-mkdir db/native_format
-mkdir db/native_format/pngs
-mkdir db/native_format/jpgs
-mkdir db/native_format/descriptors
+mkdir db/images
+mkdir db/images/pngs
+mkdir db/images/jpgs
+
 ./vdms 2> log.log

@@ -244,6 +244,13 @@ TEST(QueryHandler, AddAndFind){
         if (cmd =="FindEntity")
             out_query_num++;
 
+        if (j == 12) { // Last FindEntiyu
+            EXPECT_EQ(query["FindEntity"]["entities"][0]["Birthday"].asString(),
+              "1946-10-07T17:59:24-07:00");
+
+            EXPECT_EQ(query["FindEntity"]["entities"][1]["Birthday"].asString(),
+              "1936-10-01T17:59:24-07:00");
+        }
         if ( query[cmd]["status"] == 0)
             success++;
 
