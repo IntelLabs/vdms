@@ -41,9 +41,8 @@
 
 using namespace VDMS;
 
-#define VDMS_GENERIC_LINK   "AT:edge"
-#define VDMS_BLOB_PATH_PROP "blobPath"
-
+#define VDMS_GENERIC_LINK   "VDMS:LINK"
+#define VDMS_BLOB_PATH_PROP "VDMS:blobPath"
 
 RSCommand::RSCommand(const std::string& cmd_name):
     _cmd_name(cmd_name)

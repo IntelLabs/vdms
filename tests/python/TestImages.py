@@ -134,7 +134,7 @@ class TestAddImage(unittest.TestCase):
             img_params = {}
             img_params["constraints"] = constraints
             img_params["results"] = results
-            img_params["class"] = "AT:IMAGE"
+            img_params["class"] = "VDMS:IMG"
 
             query = {}
             query["FindEntity"] = img_params
