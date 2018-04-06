@@ -105,6 +105,22 @@ namespace VDMS {
         bool need_blob(const Json::Value& jsoncmd);
     };
 
+    class UpdateEntity : public RSCommand
+    {
+    public:
+        UpdateEntity();
+        int construct_protobuf(PMGDQuery& query,
+                               const Json::Value& root,
+                               const std::string& blob,
+                               int grp_id,
+                               Json::Value& error);
+
+        Json::Value construct_responses(
+            Json::Value& json_responses,
+            const Json::Value& json,
+            protobufs::queryMessage &response);
+    };
+
     class Connect : public RSCommand
     {
     public:

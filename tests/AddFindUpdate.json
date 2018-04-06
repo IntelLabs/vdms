@@ -1,0 +1,70 @@
+[
+    {
+        "AddEntity":
+        {
+
+            "_ref": 1,
+            "class": "Patient",
+
+            "properties": {
+                "Email":"rst@rashed.com",
+                "Age": 86,
+                "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
+                "Name":"Mark",
+                "fv": {"_blob":"Raghed----ghjhsglfhwa"}
+            }
+        }
+
+    },
+    {
+        "AddEntity":
+        {
+            "_ref": 2,
+            "class": "Patient",
+
+            "properties": {
+                "Email":"gst@raghehed.com1",
+                "Age": 80,
+                "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
+                "fv":{"_blob" :"Ahmad----ghjhsglfhwa"},
+                "Name": "Kai"
+
+            }
+        }
+    },
+    {
+        "UpdateEntity" : {
+            "class" :  "Patient",
+
+            "constraints": {
+                "Name" : [ "==",  "Kai" ]
+            },
+
+            "properties": {
+                "City" : "Atlanta"
+            }
+        }
+    },
+    {
+        "UpdateEntity" : {
+            "_ref" : 1,
+
+            "properties": {
+                "City" : "Houston",
+                "Name" : "Mark Hammond"
+            },
+
+            "remove_props" : [ "fv" ]
+        }
+    },
+    {
+        "FindEntity" : {
+            "constraints" : {
+                "Age" : [ ">=", 80 ]
+            },
+            "results" : {
+                "list" : [ "fv" ]
+            }
+        }
+    }
+]

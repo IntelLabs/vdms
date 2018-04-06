@@ -35,6 +35,7 @@
     "type": "object",
     "anyOf": [
       { "$ref": "#/definitions/AddEntityTop" },
+      { "$ref": "#/definitions/UpdateEntityTop" },
       { "$ref": "#/definitions/FindEntityTop" },
       { "$ref": "#/definitions/ConnectTop" },
       { "$ref": "#/definitions/AddImageTop" },
@@ -169,6 +170,13 @@
       "additionalProperties": false
     },
 
+    "UpdateEntityTop": {
+      "properties": {
+        "UpdateEntity" : { "type": "object", "$ref": "#/definitions/UpdateEntity" }
+      },
+      "additionalProperties": false
+    },
+
     "FindEntityTop": {
       "properties": {
         "FindEntity" : { "type": "object", "$ref": "#/definitions/FindEntity" }
@@ -209,6 +217,17 @@
         "constraints": { "type": "object" }
       },
       "required": ["class"],
+      "additionalProperties": false
+    },
+
+    "UpdateEntity": {
+      "properties": {
+        "class":        { "type": "string" },
+        "_ref":         { "$ref": "#/definitions/refInt" },
+        "properties":   { "type": "object" },
+        "remove_props": { "$ref": "#/definitions/stringArray" },
+        "constraints":  { "type": "object" }
+      },
       "additionalProperties": false
     },
 

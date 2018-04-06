@@ -56,6 +56,7 @@ valijson::Schema* QueryHandler::_schema = new valijson::Schema;
 void QueryHandler::init()
 {
     _rs_cmds["AddEntity"]  = new AddEntity();
+    _rs_cmds["UpdateEntity"]  = new UpdateEntity();
     _rs_cmds["Connect"]    = new Connect();
     _rs_cmds["FindEntity"] = new FindEntity();
     _rs_cmds["AddImage"]   = new AddImage();

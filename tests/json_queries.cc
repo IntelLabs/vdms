@@ -103,6 +103,63 @@ TEST(AddImage, simpleAdd)
     PMGDQueryHandler::destroy();
 }
 
+TEST(UpdateEntity, simpleAddUpdate)
+{
+
+    Json::StyledWriter writer;
+
+    std::ifstream ifile;
+    int fsize;
+    char * inBuf;
+    ifile.open("AddFindUpdate.json", std::ifstream::in);
+    ifile.seekg(0, std::ios::end);
+    fsize = (int)ifile.tellg();
+    ifile.seekg(0, std::ios::beg);
+    inBuf = new char[fsize];
+    ifile.read(inBuf, fsize);
+    std::string json_query = std::string(inBuf);
+    ifile.close();
+    delete[] inBuf;
+
+    Json::Reader reader;
+    Json::Value root;
+    Json::Value parsed;
+
+    VDMSConfig::init("config-update-tests.json");
+    PMGDQueryHandler::init();
+    QueryHandler::init();
+
+    QueryHandler qh_base;
+    QueryHandlerTester query_handler(qh_base);
+
+    VDMS::protobufs::queryMessage proto_query;
+    proto_query.set_json(json_query);
+    VDMS::protobufs::queryMessage response;
+
+    query_handler.pq(proto_query, response );
+
+    reader.parse(response.json().c_str(), parsed);
+    // std::cout << writer.write(parsed) << std::endl;
+
+    // Verify results returned.
+    for (int j = 0; j < parsed.size(); j++) {
+        const Json::Value& query = parsed[j];
+        ASSERT_EQ(query.getMemberNames().size(), 1);
+        std::string cmd = query.getMemberNames()[0];
+
+        if (cmd == "UpdateEntity")
+            EXPECT_EQ(query[cmd]["count"].asInt(), 1);
+        if (cmd == "FindEntity") {
+            EXPECT_EQ(query[cmd]["returned"].asInt(), 2);
+            EXPECT_EQ(query["FindEntity"]["entities"][0]["fv"].asString(),
+              "Missing property");
+        }
+    }
+
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}
+
 TEST(AddImage, simpleAddx10)
 {
     int total_images = 10;
@@ -155,8 +212,8 @@ TEST(AddImage, simpleAddx10)
     PMGDQueryHandler::destroy();
 }
 
-TEST(QueryHandler, AddAndFind){
-
+TEST(QueryHandler, AddAndFind)
+{
     Json::StyledWriter writer;
 
     std::ifstream ifile;

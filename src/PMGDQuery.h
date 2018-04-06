@@ -90,6 +90,13 @@ namespace VDMS {
                     const Json::Value& props,
                     const Json::Value& constraints);
 
+        void UpdateNode(int ref,
+                    const std::string& tag,
+                    const Json::Value& props,
+                    const Json::Value& remove_props,
+                    const Json::Value& constraints,
+                    bool unique);
+
         void AddEdge(int ident,
                     int src, int dst,
                     const std::string& tag,
