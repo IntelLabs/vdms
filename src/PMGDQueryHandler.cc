@@ -181,6 +181,9 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
             case PMGDCmd::QueryNode:
                 retval = query_node(cmd->query_node(), response);
                 break;
+            case PMGDCmd::UpdateNode:
+                update_node(cmd->update_node(), response);
+                break;
         }
     }
     catch (Exception e) {
@@ -238,6 +241,50 @@ int PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
     // TODO: Partition code goes here
     // For now, fill in the single system node id
     response->set_op_int_value(_db->get_id(n));
+    return 0;
+}
+
+int PMGDQueryHandler::update_node(const protobufs::UpdateNode &un,
+                    protobufs::CommandResponse *response)
+{
+    long id = un.identifier();
+    bool query = un.has_query_node();
+
+    // Make sure there is either an id or a query node
+    if (id < 0 && !query) {
+        set_response(response, PMGDCmdResponse::Error, "No way to find update node\n");
+        return -1;
+    }
+
+    auto it = _cached_nodes.find(id);
+    if (it == _cached_nodes.end()) {
+        if (!query) {
+            set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update\n");
+            return -1;
+        }
+        else {
+            query_node(un.query_node(), response);
+            if (response->error_code() != PMGDCmdResponse::Success)
+                return -1;
+            it = _cached_nodes.find(un.query_node().identifier());  // id could have been -ve
+        }
+    }
+
+    auto nit = it->second;
+    long updated = 0;
+    for ( ; *nit; nit->next()) {
+        Node &n = **nit;
+        updated++;
+        for (int i = 0; i < un.properties_size(); ++i) {
+            const protobufs::Property &p = un.properties(i);
+            set_property(n, p);
+        }
+        for (int i = 0; i < un.remove_props_size(); ++i)
+            n.remove_property(un.remove_props(i).c_str());
+    }
+    nit->reset();
+    set_response(response, protobufs::Count, PMGDCmdResponse::Success);
+    response->set_op_int_value(updated);
     return 0;
 }
 

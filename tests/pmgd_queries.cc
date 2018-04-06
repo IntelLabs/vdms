@@ -47,7 +47,7 @@ using namespace std;
 #define FEMALE 1
 
 void add_patient(protobufs::Command &cmdadd, int id, string name, int age,
-                  string dob, string email, int sex)
+        string dob, string email, int sex)
 {
     cmdadd.set_cmd_id(protobufs::Command::AddNode);
     protobufs::AddNode *an = cmdadd.mutable_add_node();
@@ -74,6 +74,10 @@ void add_patient(protobufs::Command &cmdadd, int id, string name, int age,
     p->set_type(protobufs::Property::IntegerType);
     p->set_key("Sex");
     p->set_int_value(sex);
+    p = n->add_properties();
+    p->set_type(protobufs::Property::StringType);
+    p->set_key("RemoveViaUpdate");
+    p->set_string_value("Random");
 }
 
 TEST(PMGDQueryHandler, addTest)
@@ -95,14 +99,14 @@ TEST(PMGDQueryHandler, addTest)
         protobufs::Command cmdadd;
         cmdadd.set_tx_id(txid);
         add_patient(cmdadd, patientid++, "John Doe", 86, "Sat Nov 1 18:59:24 PDT 1930",
-                  "john.doe@abc.com", MALE);
+                "john.doe@abc.com", MALE);
         cmds.push_back(&cmdadd);
         query_count++;
 
         protobufs::Command cmdadd1;
         cmdadd1.set_tx_id(txid);
         add_patient(cmdadd1, patientid++, "Jane Doe", 80, "Sat Oct 1 17:59:24 PDT 1936",
-                  "jane.doe@abc.com", FEMALE);
+                "jane.doe@abc.com", FEMALE);
         cmds.push_back(&cmdadd1);
         query_count++;
 
@@ -125,14 +129,14 @@ TEST(PMGDQueryHandler, addTest)
         protobufs::Command cmdadd2;
         cmdadd2.set_tx_id(txid);
         add_patient(cmdadd2, patientid++, "Alice Crypto", 70, "Sat Nov 1 17:59:24 PDT 1946",
-                  "alice.crypto@xyz.com", FEMALE);
+                "alice.crypto@xyz.com", FEMALE);
         cmds.push_back(&cmdadd2);
         query_count++;
 
         protobufs::Command cmdadd3;
         cmdadd3.set_tx_id(txid);
         add_patient(cmdadd3, patientid++, "Bob Crypto", 70, "Sat Nov 30 7:59:24 PDT 1946",
-                  "bob.crypto@xyz.com", MALE);
+                "bob.crypto@xyz.com", MALE);
         cmds.push_back(&cmdadd3);
         query_count++;
 
@@ -183,21 +187,21 @@ void print_property(const string &key, const protobufs::Property &p)
 {
 #ifdef PRINT_PROPERTY
     switch(p.type()) {
-    case protobufs::Property::BooleanType:
-        printf("key: %s, value: %d\n", key.c_str(), p.bool_value());
-        break;
-    case protobufs::Property::IntegerType:
-        printf("key: %s, value: %ld\n", key.c_str(), p.int_value());
-        break;
-    case protobufs::Property::StringType:
-    case protobufs::Property::TimeType:
-        printf("key: %s, value: %s\n", key.c_str(), p.string_value().c_str());
-        break;
-    case protobufs::Property::FloatType:
-        printf("key: %s, value: %lf\n", key.c_str(), p.float_value());
-        break;
-    default:
-        printf("Unknown\n");
+        case protobufs::Property::BooleanType:
+            printf("key: %s, value: %d\n", key.c_str(), p.bool_value());
+            break;
+        case protobufs::Property::IntegerType:
+            printf("key: %s, value: %ld\n", key.c_str(), p.int_value());
+            break;
+        case protobufs::Property::StringType:
+        case protobufs::Property::TimeType:
+            printf("key: %s, value: %s\n", key.c_str(), p.string_value().c_str());
+            break;
+        case protobufs::Property::FloatType:
+            printf("key: %s, value: %lf\n", key.c_str(), p.float_value());
+            break;
+        default:
+            printf("Unknown\n");
     }
 #endif
 }
@@ -283,7 +287,7 @@ TEST(PMGDQueryHandler, queryTestAverage)
     VDMSConfig::init("config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
-    
+
     vector<protobufs::Command *> cmds;
 
     {
@@ -334,7 +338,7 @@ TEST(PMGDQueryHandler, queryTestUnique)
     VDMSConfig::init("config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
-    
+
     vector<protobufs::Command *> cmds;
 
     {
@@ -688,7 +692,7 @@ TEST(PMGDQueryHandler, addConstrainedTest)
         cmdadd.set_tx_id(txid);
         cmdadd.set_cmd_grp_id(query_count);
         add_patient(cmdadd, patientid, "John Doe", 86, "Sat Nov 1 18:59:24 PDT 1930",
-                  "john.doe@abc.com", MALE);
+                "john.doe@abc.com", MALE);
         // Add a test to verify this node doesn't exist
         protobufs::AddNode *an = cmdadd.mutable_add_node();
         protobufs::QueryNode *qn = an->mutable_query_node();
@@ -712,7 +716,7 @@ TEST(PMGDQueryHandler, addConstrainedTest)
         cmdadd1.set_tx_id(txid);
         cmdadd1.set_cmd_grp_id(query_count);
         add_patient(cmdadd1, patientid++, "Janice Doe", 40, "Fri Oct 1 1:59:24 PDT 1976",
-                  "janice.doe@abc.com", FEMALE);
+                "janice.doe@abc.com", FEMALE);
         cmds.push_back(&cmdadd1);
         query_count++;
 
@@ -1237,6 +1241,190 @@ TEST(PMGDQueryHandler, queryTestSortedLimitedAverage)
                 if (it->r_type() == protobufs::Average) {
                     EXPECT_EQ(static_cast<int>(it->op_float_value()), 73) << "Average didn't match expected for three middle patients' age";
                 }
+            }
+        }
+    }
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}
+
+TEST(PMGDQueryHandler, queryUpdateTest)
+{
+    //printf("Testing PMGD query protobuf handler for list return of neighbors with constraints\n");
+
+    VDMSConfig::init("config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
+
+    vector<protobufs::Command *> cmds;
+    {
+        int txid = 1, query_count = 0;
+        protobufs::Command cmdtx;
+        cmdtx.set_cmd_id(protobufs::Command::TxBegin);
+        cmdtx.set_tx_id(txid);
+        cmds.push_back(&cmdtx);
+        query_count++;
+
+        // Set parameters to find the starting node(s)
+        protobufs::Command cmdstartquery;
+        cmdstartquery.set_cmd_id(protobufs::Command::QueryNode);
+        cmdstartquery.set_tx_id(txid);
+        protobufs::QueryNode *qn = cmdstartquery.mutable_query_node();
+        qn->set_identifier(1);
+        qn->set_tag("Patient");
+        qn->set_p_op(protobufs::And);
+        protobufs::PropertyPredicate *pp = qn->add_predicates();
+        pp->set_key("Sex");
+        pp->set_op(protobufs::PropertyPredicate::Eq);
+        protobufs::Property *p = pp->mutable_v1();
+        p->set_type(protobufs::Property::IntegerType);
+        // I think the key is not required here.
+        p->set_key("Sex");
+        p->set_int_value(MALE);
+        cmds.push_back(&cmdstartquery);
+        query_count++;
+
+        protobufs::Command cmdupdate;
+        cmdupdate.set_cmd_id(protobufs::Command::UpdateNode);
+        cmdupdate.set_tx_id(txid);
+        protobufs::UpdateNode *un = cmdupdate.mutable_update_node();
+
+        // The identifier here will be the identifier used for search
+        // since we are going to update properties of the nodes found
+        // in the previous search
+        un->set_identifier(qn->identifier());
+        p = un->add_properties();
+        p->set_type(protobufs::Property::StringType);
+        p->set_key("Hospital");
+        p->set_string_value("Kaiser1");
+        p = un->add_properties();
+        p->set_type(protobufs::Property::BooleanType);
+        p->set_key("Treated");
+        p->set_bool_value(true);
+
+        // Remove the extra properties
+        un->add_remove_props("RemoveViaUpdate");
+
+        cmds.push_back(&cmdupdate);
+        query_count++;
+
+        // Also make sure the removed property doesn't show up anymore
+        protobufs::Command cmdcheckquery;
+        cmdcheckquery.set_cmd_id(protobufs::Command::QueryNode);
+        cmdcheckquery.set_tx_id(txid);
+        qn = cmdcheckquery.mutable_query_node();
+        qn->set_identifier(-1);
+        qn->set_tag("Patient");
+        qn->set_p_op(protobufs::And);
+        pp = qn->add_predicates();
+        pp->set_key("RemoveViaUpdate");
+        pp->set_op(protobufs::PropertyPredicate::Eq);
+        p = pp->mutable_v1();
+        p->set_type(protobufs::Property::StringType);
+        // I think the key is not required here.
+        p->set_key("RemoveViaUpdate");
+        p->set_string_value("Random");
+        qn->set_r_type(protobufs::List);
+        string *key = qn->add_response_keys();
+        *key = "Email";
+        cmds.push_back(&cmdcheckquery);
+        query_count++;
+
+        // No need to commit in this case. So just end TX
+        protobufs::Command cmdtxend;
+        // Commit here doesn't change anything. Just indicates end of TX
+        cmdtxend.set_cmd_id(protobufs::Command::TxCommit);
+        cmdtxend.set_tx_id(txid);
+        cmds.push_back(&cmdtxend);
+        query_count++;
+
+        vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, false);
+        for (int i = 0; i < query_count; ++i) {
+            vector<protobufs::CommandResponse *> response = responses[i];
+            for (auto it : response) {
+                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                if (it->r_type() == protobufs::Count) {
+                    EXPECT_EQ(it->op_int_value(), 2) << "Doesn't match expected count";
+                }
+                if (it->r_type() == protobufs::List) {
+                    EXPECT_EQ(it->op_int_value(), 3) << "Doesn't match expected count for prop match";
+                }
+                //printf("\n");
+            }
+        }
+    }
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}
+
+TEST(PMGDQueryHandler, queryUpdateConstraintTest)
+{
+    //printf("Testing PMGD query protobuf handler for list return of neighbors with constraints\n");
+
+    VDMSConfig::init("config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
+
+    vector<protobufs::Command *> cmds;
+    {
+        int txid = 1, query_count = 0;
+        protobufs::Command cmdtx;
+        cmdtx.set_cmd_id(protobufs::Command::TxBegin);
+        cmdtx.set_tx_id(txid);
+        cmds.push_back(&cmdtx);
+        query_count++;
+
+        // Try with constraints inside the update command
+        protobufs::Command cmdupdate;
+        cmdupdate.set_cmd_id(protobufs::Command::UpdateNode);
+        cmdupdate.set_tx_id(txid);
+        protobufs::UpdateNode *un = cmdupdate.mutable_update_node();
+        un->set_identifier(1);
+
+        // Set parameters to find the starting node(s)
+        protobufs::QueryNode *qn = un->mutable_query_node();
+        qn->set_tag("Patient");
+        qn->set_p_op(protobufs::And);
+        qn->set_identifier(un->identifier());
+        protobufs::PropertyPredicate *pp = qn->add_predicates();
+        pp->set_key("Sex");
+        pp->set_op(protobufs::PropertyPredicate::Eq);
+        protobufs::Property *p = pp->mutable_v1();
+        p->set_type(protobufs::Property::IntegerType);
+        // I think the key is not required here.
+        p->set_key("Sex");
+        p->set_int_value(FEMALE);
+
+        // Set properties to be updated when nodes are found.
+        p = un->add_properties();
+        p->set_type(protobufs::Property::StringType);
+        p->set_key("Hospital");
+        p->set_string_value("Kaiser2");
+        p = un->add_properties();
+        p->set_type(protobufs::Property::BooleanType);
+        p->set_key("Treated");
+        p->set_bool_value(true);
+
+        cmds.push_back(&cmdupdate);
+        query_count++;
+
+        // No need to commit in this case. So just end TX
+        protobufs::Command cmdtxend;
+        // Commit here doesn't change anything. Just indicates end of TX
+        cmdtxend.set_cmd_id(protobufs::Command::TxCommit);
+        cmdtxend.set_tx_id(txid);
+        cmds.push_back(&cmdtxend);
+        query_count++;
+
+        vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, false);
+        for (int i = 0; i < query_count; ++i) {
+            vector<protobufs::CommandResponse *> response = responses[i];
+            for (auto it : response) {
+                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                if (it->r_type() == protobufs::Count) {
+                    EXPECT_EQ(it->op_int_value(), 3) << "Doesn't match expected count";
+                }
+                //printf("\n");
             }
         }
     }
