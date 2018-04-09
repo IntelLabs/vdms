@@ -155,8 +155,7 @@ int AddEntity::construct_protobuf(PMGDQuery& query,
 {
     const Json::Value& cmd = jsoncmd[_cmd_name];
 
-    int node_ref = get_value<int>(cmd, "_ref",
-                                  query.get_available_reference());
+    int node_ref = get_value<int>(cmd, "_ref", -1);
 
     query.AddNode(
             node_ref,
