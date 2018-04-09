@@ -154,9 +154,10 @@ int AddEntity::construct_protobuf(PMGDQuery& query,
     Json::Value& error)
 {
     const Json::Value& cmd = jsoncmd[_cmd_name];
+    bool link = cmd.isMember("link");
 
     int node_ref = get_value<int>(cmd, "_ref",
-                                  query.get_available_reference());
+                                  link ? query.get_available_reference() : -1);
 
     query.AddNode(
             node_ref,
@@ -165,7 +166,7 @@ int AddEntity::construct_protobuf(PMGDQuery& query,
             cmd["constraints"]
             );
 
-    if (cmd.isMember("link")) {
+    if (link) {
         add_link(query, cmd["link"], node_ref, VDMS_GENERIC_LINK);
     }
 
