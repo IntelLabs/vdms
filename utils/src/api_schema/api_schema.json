@@ -213,8 +213,6 @@
         "results":     { "type": "object" },
         "unique":      { "type": "boolean" }
       },
-
-      "required": ["class"],
       "additionalProperties": false
     },
 
