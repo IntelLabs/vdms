@@ -34,6 +34,7 @@
 #include "PMGDQueryHandler.h"
 #include "util.h"   // PMGD util
 #include "PMGDIterators.h"
+#include "RWLock.h"
 
 // TODO In the complete version of VDMS, this file will live
 // within PMGD which would replace the PMGD namespace. Some of
@@ -42,7 +43,7 @@ using namespace PMGD;
 using namespace VDMS;
 
 PMGD::Graph *PMGDQueryHandler::_db;
-std::mutex *PMGDQueryHandler::_dblock;
+RWLock *PMGDQueryHandler::_dblock;
 
 void PMGDQueryHandler::init()
 {
@@ -53,17 +54,24 @@ void PMGDQueryHandler::init()
     _db = new PMGD::Graph(dbname.c_str(), PMGD::Graph::Create);
 
     // Create the query handler here assuming database is valid now.
-    _dblock = new std::mutex();
+    _dblock = new RWLock();
 }
 
 std::vector<PMGDCmdResponses>
               PMGDQueryHandler::process_queries(const PMGDCmds &cmds,
-              int num_groups)
+              int num_groups, bool readonly)
 {
     std::vector<PMGDCmdResponses> responses(num_groups);
 
     assert(_tx == NULL);
-    _dblock->lock();
+
+    // Assuming one query handler handles one TX at a time.
+    _readonly = readonly;
+    if (_readonly)
+        _dblock->read_lock();
+    else
+        _dblock->write_lock();
+
     for (const auto cmd : cmds) {
         PMGDCmdResponse *response = new PMGDCmdResponse();
         if (process_query(cmd, response) < 0) {
@@ -85,7 +93,10 @@ std::vector<PMGDCmdResponses>
         _tx = NULL;
     }
 
-    _dblock->unlock();
+    if (_readonly)
+        _dblock->read_unlock();
+    else
+        _dblock->write_unlock();
     return responses;
 }
 
@@ -121,9 +132,8 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
         switch (code) {
             case PMGDCmd::TxBegin:
             {
-
-                // TODO: Needs to distinguish transaction parameters like RO/RW
-                _tx = new Transaction(*_db, Transaction::ReadWrite);
+                int tx_options = _readonly ? Transaction::ReadOnly : Transaction::ReadWrite;
+                _tx = new Transaction(*_db, tx_options);
                 set_response(response, protobufs::TX, PMGDCmdResponse::Success);
                 break;
             }
