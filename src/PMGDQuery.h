@@ -49,6 +49,7 @@ namespace VDMS {
         unsigned _current_group_id;
         PMGDQueryHandler& _pmgd_qh;
         unsigned _current_ref;
+        bool _readonly;    // Stays true unless some write cmd sets it to false.
 
         Json::Value _json_responses;
 

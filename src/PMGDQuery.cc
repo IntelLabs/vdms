@@ -46,7 +46,8 @@ using namespace VDMS;
 #define REFERENCE_RANGE_START   20000
 
 PMGDQuery::PMGDQuery(PMGDQueryHandler& pmgd_qh) :
-    _pmgd_qh(pmgd_qh), _current_ref(REFERENCE_RANGE_START)
+    _pmgd_qh(pmgd_qh), _current_ref(REFERENCE_RANGE_START),
+    _readonly(true)
 {
     _current_group_id = 0;
     //this command to start a new transaction
@@ -77,7 +78,7 @@ Json::Value& PMGDQuery::run()
 
     // execute the queries using the PMGDQueryHandler object
     std::vector<std::vector<PMGDCmdResponse* >> _pmgd_responses;
-    _pmgd_responses = _pmgd_qh.process_queries(_cmds, _current_group_id + 1);
+    _pmgd_responses = _pmgd_qh.process_queries(_cmds, _current_group_id + 1, _readonly);
 
     if (_pmgd_responses.size() != _current_group_id + 1) {
         if (_pmgd_responses.size() == 1 && _pmgd_responses[0].size() == 1) {
@@ -421,6 +422,8 @@ void PMGDQuery::AddNode(int ref,
                         const Json::Value& props,
                         const Json::Value& constraints)
 {
+    _readonly = false;
+
     PMGDCmd* cmdadd = new PMGDCmd();
     cmdadd->set_cmd_id(PMGDCmd::AddNode);
     cmdadd->set_cmd_grp_id(_current_group_id);
@@ -453,6 +456,8 @@ void PMGDQuery::AddEdge(int ident,
                         const std::string& tag,
                         const Json::Value& props)
 {
+    _readonly = false;
+
     PMGDCmd* cmdedge = new PMGDCmd();
     cmdedge->set_cmd_grp_id(_current_group_id);
     cmdedge->set_cmd_id(PMGDCmd::AddEdge);
