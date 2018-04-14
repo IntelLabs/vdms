@@ -56,6 +56,8 @@ namespace VDMS {
     typedef std::vector<PMGDCmd *>             PMGDCmds;
     typedef std::vector<PMGDCmdResponse *>     PMGDCmdResponses;
 
+    class RWLock;
+
     class PMGDQueryHandler
     {
         class ReusableNodeIterator;
@@ -65,10 +67,10 @@ namespace VDMS {
         static PMGD::Graph *_db;
 
         // Need this lock till we have concurrency support in PMGD
-        // TODO: Make this reader writer.
-        static std::mutex *_dblock;
+        static RWLock *_dblock;
 
         PMGD::Transaction *_tx;
+        bool _readonly;  // Variable changes per TX based on process_queries parameter.
 
         // Map an integer ID to a NodeIterator (reset at the end of each transaction).
         // This works for Adds and Queries. We assume that the client or
@@ -117,7 +119,7 @@ namespace VDMS {
 
     public:
         static void init();
-        PMGDQueryHandler() { _tx = NULL; }
+        PMGDQueryHandler() { _tx = NULL; _readonly = true; }
 
         // The vector here can contain just one JL command but will be surrounded by
         // TX begin and end. So just expose one call to the QueryHandler for
@@ -128,6 +130,7 @@ namespace VDMS {
         // than the number of commands.
         // Ensure that the cmd_grp_id, that is the query number are in increasing
         // order and account for the TxBegin and TxEnd in numbering.
-        std::vector<PMGDCmdResponses> process_queries(const PMGDCmds &cmds, int num_groups);
+        std::vector<PMGDCmdResponses> process_queries(const PMGDCmds &cmds,
+                                                      int num_groups, bool readonly);
     };
 };
