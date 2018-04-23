@@ -37,9 +37,9 @@ import vdms
 hostname = "localhost"
 port = 55557
 
-class TestEntitiesBlob(unittest.TestCase):
+class TestEntities(unittest.TestCase):
 
-    def test_addEntityWithBlob(self, thID=0):
+    def addEntity(self, thID=0):
 
         db = vdms.VDMS()
         db.connect(hostname, port)
@@ -53,7 +53,6 @@ class TestEntitiesBlob(unittest.TestCase):
         addEntity = {}
         addEntity["properties"] = props
         addEntity["class"] = "AwesomePeople"
-        addEntity["blob"] = True
 
         query = {}
         query["AddEntity"] = addEntity
@@ -61,104 +60,113 @@ class TestEntitiesBlob(unittest.TestCase):
         all_queries = []
         all_queries.append(query)
 
-        blob_arr = []
-        fd = open("../test_images/brain.png")
-        blob_arr.append(fd.read())
-
-        response, res_arr = db.query(all_queries, [blob_arr])
+        response, res_arr = db.query(all_queries)
         response = json.loads(response)
 
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
 
-    def test_addEntityWithBlobNoBlob(self, thID=0):
+    def findEntity(self, thID):
 
         db = vdms.VDMS()
         db.connect(hostname, port)
+
+        constraints = {}
+        constraints["threadid"] = ["==",thID]
+
+        findEntity = {}
+        findEntity["constraints"] = constraints
+        findEntity["class"] = "AwesomePeople"
+
+        results = {}
+        results["list"] = ["name", "lastname", "threadid"]
+        findEntity["results"] = results
+
+        query = {}
+        query["FindEntity"] = findEntity
+
+        all_queries = []
+        all_queries.append(query)
+
+        response, res_arr = db.query(all_queries)
+        response = json.loads(response)
+        # print vdms.aux_print_json(response)
+
+        self.assertEqual(response[0]["FindEntity"]["status"], 0)
+        self.assertEqual(response[0]["FindEntity"]["entities"][0]
+                                    ["lastname"], "Ferro")
+        self.assertEqual(response[0]["FindEntity"]["entities"][0]
+                                    ["threadid"], thID)
+
+    def test_runMultipleAdds(self):
+
+        simultaneous = 1000;
+        thread_arr = []
+        for i in range(1,simultaneous):
+            thread_add = Thread(target=self.addEntity,args=(i,) )
+            thread_add.start()
+            thread_arr.append(thread_add)
+
+        for i in range(1,simultaneous):
+            thread_find = Thread(target=self.findEntity,args=(i,) )
+            thread_find.start()
+            thread_arr.append(thread_find)
+
+        for th in thread_arr:
+            th.join();
+
+    def test_addFindEntity(self):
+        self.addEntity(9000);
+        self.findEntity(9000);
+
+    def test_addEntityWithLink(self):
+        db = vdms.VDMS()
+        db.connect(hostname, port)
+
+        all_queries = []
 
         props = {}
         props["name"] = "Luis"
         props["lastname"] = "Ferro"
         props["age"] = 27
-        props["threadid"] = thID
 
         addEntity = {}
+        addEntity["_ref"] = 32
         addEntity["properties"] = props
         addEntity["class"] = "AwesomePeople"
-        addEntity["blob"] = True
 
         query = {}
         query["AddEntity"] = addEntity
 
-        all_queries = []
         all_queries.append(query)
+
+        props = {}
+        props["name"] = "Luis"
+        props["lastname"] = "Bueno"
+        props["age"] = 27
+
+        link = {}
+        link["ref"] = 32
+        link["direction"] = "in"
+        link["class"] = "Friends"
+
+        addEntity = {}
+        addEntity["properties"] = props
+        addEntity["class"] = "AwesomePeople"
+        addEntity["link"] = link
+
+        img_params = {}
+
+        query = {}
+        query["AddEntity"] = addEntity
+
+        all_queries.append(query)
+
+        # print json.dumps(all_queries)
+        # vdms.aux_print_json(all_queries)
 
         response, res_arr = db.query(all_queries)
         response = json.loads(response)
         # vdms.aux_print_json(response)
 
-        self.assertEqual(response[0]["status"], -1)
-        self.assertEqual(response[0]["info"],
-                         "Expected blobs: 1. Recieved blobs: 0")
-
-
-    def test_addEntityWithBlobAndFind(self, thID=0):
-
-        db = vdms.VDMS()
-        db.connect(hostname, port)
-
-        props = {}
-        props["name"] = "Tom"
-        props["lastname"] = "Slash"
-        props["age"] = 27
-        props["id"] = 45334
-
-        addEntity = {}
-        addEntity["properties"] = props
-        addEntity["class"] = "NotSoAwesome"
-        addEntity["blob"] = True
-
-        query = {}
-        query["AddEntity"] = addEntity
-
-        all_queries = []
-        all_queries.append(query)
-
-        blob_arr = []
-        fd = open("../test_images/brain.png")
-        blob_arr.append(fd.read())
-
-        response, res_arr = db.query(all_queries, [blob_arr])
-        response = json.loads(response)
-
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
-
-        constraints = {}
-        constraints["id"] = ["==", 45334]
-
-        results = {}
-        results["return_blob"] = True
-        results["list"] = ["name"]
-
-        FindEntity = {}
-        FindEntity["constraints"] = constraints
-        FindEntity["class"] = "NotSoAwesome"
-        FindEntity["results"] = results
-
-        query = {}
-        query["FindEntity"] = FindEntity
-
-        all_queries = []
-        all_queries.append(query)
-
-        blob_arr = []
-        fd = open("../test_images/brain.png")
-        blob_arr.append(fd.read())
-
-        response, res_arr = db.query(all_queries)
-
-        self.assertEqual(len(res_arr), len(blob_arr))
-        self.assertEqual(len(res_arr[0]), len(blob_arr[0]))
-        self.assertEqual((res_arr[0]), (blob_arr[0]))
-
-
-
+        self.assertEqual(response[1]["AddEntity"]["status"], 0)

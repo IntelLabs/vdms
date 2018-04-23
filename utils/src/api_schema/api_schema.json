@@ -97,6 +97,20 @@
       "additionalProperties": false
     },
 
+    "blockResults": {
+      "type": "object",
+      "properties": {
+        "list":     { "type": "array" },
+        "average":  { "type": "string" },
+        "count":    { "type": "string" },
+        "sum":      { "type": "string" },
+        "limit":      { "$ref": "#/definitions/positiveInt" },
+        "sort":       { "type": "string" },
+        "return_blob":{ "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+
     "blockOperations": {
       "type": "array",
       "minItems": 1,
@@ -215,7 +229,7 @@
         "_ref":        { "$ref": "#/definitions/refInt" },
         "link":        { "$ref": "#/definitions/blockLink" },
         "constraints": { "type": "object" },
-        "results":     { "type": "object" },
+        "results":     { "$ref": "#/definitions/blockResults" },
         "unique":      { "type": "boolean" }
       },
 
@@ -242,7 +256,7 @@
         "operations":  { "$ref": "#/definitions/blockOperations" },
         "format":      { "$ref": "#/definitions/formatString" },
         "constraints": { "type": "object" },
-        "results":     { "type": "object" },
+        "results":     { "$ref": "#/definitions/blockResults" },
         "unique":      { "type": "boolean" }
       },
 

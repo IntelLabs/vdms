@@ -247,7 +247,7 @@ int FindEntity::construct_protobuf(
 
     Json::Value results = get_value<Json::Value>(cmd, "results");
 
-    if (get_value<bool>(results, "blob", false)){
+    if (get_value<bool>(results, "return_blob", true)){
         results["list"].append(VDMS_BLOB_PATH_PROP);
     }
 
@@ -275,7 +275,7 @@ Json::Value FindEntity::construct_responses(
 
     const Json::Value& cmd = json[_cmd_name];
 
-    if (get_value<bool>(cmd["results"], "blob", false)) {
+    if (get_value<bool>(cmd["results"], "return_blob", true)) {
         for (auto& ent : findEnt["entities"]) {
 
             if(ent.isMember(VDMS_BLOB_PATH_PROP)) {
@@ -289,6 +289,10 @@ Json::Value FindEntity::construct_responses(
                 blob_str->resize(size);
                 t.seekg(0);
                 t.read((char*)blob_str->data(), size);
+
+                // For those cases the entity does not have a blob.
+                // We need to indicate which entities have blobs.
+                findEnt["entities"]["blob"] = true;
             }
         }
     }
