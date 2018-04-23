@@ -31,13 +31,18 @@
 
 #include <string>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include "QueryHandler.h"
 #include "ExceptionsCommand.h"
+#include "VDMSConfig.h"
+#include "VCL.h"
 
 using namespace VDMS;
 
-#define VDMS_GENERIC_LINK  "AT:edge"
+#define VDMS_GENERIC_LINK   "VDMS:LINK"
+#define VDMS_BLOB_PATH_PROP "VDMS:blobPath"
 
 RSCommand::RSCommand(const std::string& cmd_name):
     _cmd_name(cmd_name)
@@ -145,6 +150,14 @@ void RSCommand::add_link(PMGDQuery& query, const Json::Value& link,
 
 AddEntity::AddEntity() : RSCommand("AddEntity")
 {
+    _storage_blob = VDMSConfig::instance()
+                ->get_string_value("blob_path", DEFAULT_BLOB_PATH);
+}
+
+bool AddEntity::need_blob(const Json::Value& jsoncmd)
+{
+    const Json::Value& cmd = jsoncmd[_cmd_name];
+    return get_value<bool>(cmd, "blob", false);
 }
 
 int AddEntity::construct_protobuf(PMGDQuery& query,
@@ -158,10 +171,29 @@ int AddEntity::construct_protobuf(PMGDQuery& query,
     int node_ref = get_value<int>(cmd, "_ref",
                                   query.get_available_reference());
 
+    // Modifiyng the existing properties that the user gives
+    // is a good option to make the AddNode more simple.
+    // This is not ideal since we are manupulating with user's
+    // input, but for now it is an acceptable solution.
+    Json::Value props = get_value<Json::Value>(cmd, "properties");
+
+    if (get_value<bool>(cmd, "blob", false)) {
+        std::ostringstream oss;
+        oss << std::hex << VCL::get_int64();
+        std::string file_name = _storage_blob + "/" + oss.str();
+
+        props[VDMS_BLOB_PATH_PROP] = file_name;
+
+        std::ofstream file;
+        file.open(file_name);
+        file << blob;
+        file.close();
+    }
+
     query.AddNode(
             node_ref,
             get_value<std::string>(cmd, "class"),
-            cmd["properties"],
+            props,
             cmd["constraints"]
             );
 
@@ -213,12 +245,18 @@ int FindEntity::construct_protobuf(
 {
     const Json::Value& cmd = jsoncmd[_cmd_name];
 
+    Json::Value results = get_value<Json::Value>(cmd, "results");
+
+    if (get_value<bool>(results, "return_blob", true)){
+        results["list"].append(VDMS_BLOB_PATH_PROP);
+    }
+
     query.QueryNode(
             get_value<int>(cmd, "_ref", -1),
             get_value<std::string>(cmd, "class"),
             cmd["link"],
             cmd["constraints"],
-            cmd["results"],
+            results,
             get_value<bool>(cmd, "unique", false)
             );
 
@@ -233,10 +271,35 @@ Json::Value FindEntity::construct_responses(
     assert(response.size() == 1);
 
     Json::Value ret;
+    Json::Value& findEnt = response[0];
+
+    const Json::Value& cmd = json[_cmd_name];
+
+    if (get_value<bool>(cmd["results"], "return_blob", true)) {
+        for (auto& ent : findEnt["entities"]) {
+
+            if(ent.isMember(VDMS_BLOB_PATH_PROP)) {
+                std::string blob_path = ent[VDMS_BLOB_PATH_PROP].asString();
+                ent.removeMember(VDMS_BLOB_PATH_PROP);
+
+                std::string* blob_str = query_res.add_blobs();
+                std::ifstream t(blob_path);
+                t.seekg(0, std::ios::end);
+                size_t size = t.tellg();
+                blob_str->resize(size);
+                t.seekg(0);
+                t.read((char*)blob_str->data(), size);
+
+                // For those cases the entity does not have a blob.
+                // We need to indicate which entities have blobs.
+                findEnt["entities"]["blob"] = true;
+            }
+        }
+    }
 
     // This will change the response tree,
     // but it is ok and avoids a copy
-    ret[_cmd_name].swap(response[0]);
+    ret[_cmd_name].swap(findEnt);
 
     return ret;
 }

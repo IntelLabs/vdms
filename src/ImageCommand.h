@@ -58,7 +58,7 @@ namespace VDMS {
                                int grp_id,
                                Json::Value& error) = 0;
 
-        virtual bool need_blob() { return false; }
+        virtual bool need_blob(const Json::Value& cmd) { return false; }
     };
 
     class AddImage: public ImageCommand
@@ -80,7 +80,7 @@ namespace VDMS {
                                int grp_id,
                                Json::Value& error);
 
-        bool need_blob() { return true; }
+        bool need_blob(const Json::Value& cmd) { return true; }
     };
 
     class FindImage: public ImageCommand
