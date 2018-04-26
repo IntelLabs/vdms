@@ -92,6 +92,7 @@ namespace VDMS {
                                                     const PMGDQueryNode &qn,
                                                     PMGDCmdResponse *response);
         void construct_protobuf_property(const PMGD::Property &j_p, PMGDProp*p_p);
+        void construct_missing_property(PMGDProp *p_p);
 
         void set_response(PMGDCmdResponse *response, PMGDCmdErrorCode error_code,
                             std::string error_msg)

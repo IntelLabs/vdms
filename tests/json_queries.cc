@@ -244,7 +244,15 @@ TEST(QueryHandler, AddAndFind){
         if (cmd =="FindEntity")
             out_query_num++;
 
-        if (j == 12) { // Last FindEntiyu
+        if (j == 11) { // Second Last FindEntity
+            EXPECT_EQ(query["FindEntity"]["entities"][2]["Study"].asString(),
+              "Missing property");
+
+            EXPECT_EQ(query["FindEntity"]["entities"][3]["Study"].asString(),
+              "Missing property");
+        }
+
+        if (j == 12) { // Last FindEntiy
             EXPECT_EQ(query["FindEntity"]["entities"][0]["Birthday"].asString(),
               "1946-10-07T17:59:24-07:00");
 
