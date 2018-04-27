@@ -43,6 +43,8 @@ namespace VDMS {
         DescriptorError,
         DescriptorSetError,
         PMGDTransactiontError,
+        LockTimeout,
+        LockError,
 
         Undefined = 100,// Any undefined error
     };
