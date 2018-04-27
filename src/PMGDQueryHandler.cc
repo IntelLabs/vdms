@@ -484,10 +484,12 @@ void PMGDQueryHandler::build_results(Iterator &ni,
         for (; ni; ni.next()) {
             for (int i = 0; i < keyids.size(); ++i) {
                 Property j_p;
-                if (!ni->check_property(keyids[i], j_p))
-                    continue;
                 PMGDPropList &list = rmap[qn.response_keys(i)];
                 PMGDProp *p_p = list.add_values();
+                if (!ni->check_property(keyids[i], j_p)) {
+                    construct_missing_property(p_p);
+                    continue;
+                }
                 construct_protobuf_property(j_p, p_p);
             }
             count++;
@@ -583,4 +585,11 @@ void PMGDQueryHandler::construct_protobuf_property(const Property &j_p, PMGDProp
     case PropertyType::Blob:
         p_p->set_blob_value(j_p.blob_value().value, j_p.blob_value().size);
     }
+}
+
+void PMGDQueryHandler::construct_missing_property(PMGDProp *p_p)
+{
+    // Assumes matching enum values!
+    p_p->set_type(PMGDProp::StringType);
+    p_p->set_string_value("Missing property");
 }

@@ -190,7 +190,7 @@
          "Age":  [">", 0, "<=", 100 ]
       },
         "results": {
-            "list":["Name","Age","Email"],
+            "list":["Name","Age","Email", "Study"],
             "sort" :"Age"
           }
     }
