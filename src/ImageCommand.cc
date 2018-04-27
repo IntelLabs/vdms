@@ -36,9 +36,9 @@
 
 using namespace VDMS;
 
-#define VDMS_IM_TAG           "AT:IMAGE"
-#define VDMS_IM_PATH_PROP     "imgPath"
-#define VDMS_IM_EDGE          "AT:IMG_LINK"
+#define VDMS_IM_TAG           "VDMS:IMG"
+#define VDMS_IM_EDGE          "VDMS:IMGLINK"
+#define VDMS_IM_PATH_PROP     "VDMS:imgPath"
 
 //========= AddImage definitions =========
 
