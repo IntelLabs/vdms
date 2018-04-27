@@ -4,3 +4,5 @@ mkdir db
 mkdir db/images
 mkdir db/images/pngs
 mkdir db/images/jpgs
+mkdir db/images/tiledb/
+mkdir db/blobs

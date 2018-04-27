@@ -208,7 +208,7 @@ int QueryHandler::parse_commands(const protobufs::queryMessage& proto_query,
             root = error;
             root["info"] = std::string("Expected blobs: " +
                                 std::to_string(blob_counter) +
-                                ". Recieved blobs: " +
+                                ". Received blobs: " +
                                 std::to_string(proto_query.blobs().size()));
             root["status"] = RSCommand::Error;
             std::cerr << "Not enough blobs!" << std::endl;
