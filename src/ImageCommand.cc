@@ -164,7 +164,11 @@ int FindImage::construct_protobuf(
     const Json::Value& cmd = jsoncmd[_cmd_name];
 
     Json::Value results = get_value<Json::Value>(cmd, "results");
-    results["list"].append(VDMS_IM_PATH_PROP);
+
+    // Unless otherwhis specified, we return the blob.
+    if (get_value<bool>(results, "blob", true)){
+        results["list"].append(VDMS_IM_PATH_PROP);
+    }
 
     query.QueryNode(
             get_value<int>(cmd, "_ref", -1),
@@ -214,7 +218,9 @@ Json::Value FindImage::construct_responses(
 
     for (auto& ent : findImage["entities"]) {
 
-        assert(ent.isMember(VDMS_IM_PATH_PROP));
+        if(!ent.isMember(VDMS_IM_PATH_PROP)){
+            continue;
+        }
         std::string im_path = ent[VDMS_IM_PATH_PROP].asString();
         ent.removeMember(VDMS_IM_PATH_PROP);
 

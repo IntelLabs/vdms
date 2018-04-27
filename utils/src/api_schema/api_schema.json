@@ -63,6 +63,10 @@
       "minimum": 1
     },
 
+    "blob":  {
+      "type": "boolean"
+    },
+
     "refInt": {
       "type": "integer",
       "minimum": 1,
@@ -90,6 +94,20 @@
         "class":     { "type": "string" }
       },
       "required": ["ref"],
+      "additionalProperties": false
+    },
+
+    "blockResults": {
+      "type": "object",
+      "properties": {
+        "list":     { "type": "array" },
+        "average":  { "type": "string" },
+        "count":    { "type": "string" },
+        "sum":      { "type": "string" },
+        "limit":    { "$ref": "#/definitions/positiveInt" },
+        "sort":     { "type": "string" },
+        "blob":     { "type": "boolean" }
+      },
       "additionalProperties": false
     },
 
@@ -186,6 +204,7 @@
         "class":       { "type": "string" },
         "_ref":        { "$ref": "#/definitions/refInt" },
         "link":        { "$ref": "#/definitions/blockLink" },
+        "blob":        { "$ref": "#/definitions/blob" },
         "properties":  { "type": "object" },
         "constraints": { "type": "object" }
       },
@@ -210,7 +229,7 @@
         "_ref":        { "$ref": "#/definitions/refInt" },
         "link":        { "$ref": "#/definitions/blockLink" },
         "constraints": { "type": "object" },
-        "results":     { "type": "object" },
+        "results":     { "$ref": "#/definitions/blockResults" },
         "unique":      { "type": "boolean" }
       },
       "additionalProperties": false
@@ -235,7 +254,7 @@
         "operations":  { "$ref": "#/definitions/blockOperations" },
         "format":      { "$ref": "#/definitions/formatString" },
         "constraints": { "type": "object" },
-        "results":     { "type": "object" },
+        "results":     { "$ref": "#/definitions/blockResults" },
         "unique":      { "type": "boolean" }
       },
 

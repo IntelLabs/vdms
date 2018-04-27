@@ -11,6 +11,7 @@
     "png_path": "db/images/pngs/",
     "jpg_path": "db/images/jpgs/",
     "tdb_path": "db/images/tiledb/tdb/",
+    "blob_path":"db/blobs/",
 
     "support_info": "a-team@intel.com",
     "support_phone": "1-800-A-TEAM"
