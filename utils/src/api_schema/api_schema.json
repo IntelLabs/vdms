@@ -37,7 +37,7 @@
       { "$ref": "#/definitions/AddEntityTop" },
       { "$ref": "#/definitions/UpdateEntityTop" },
       { "$ref": "#/definitions/FindEntityTop" },
-      { "$ref": "#/definitions/ConnectTop" },
+      { "$ref": "#/definitions/AddConnectionTop" },
       { "$ref": "#/definitions/AddImageTop" },
       { "$ref": "#/definitions/FindImageTop" }
     ]
@@ -184,9 +184,9 @@
       "additionalProperties": false
     },
 
-    "ConnectTop": {
+    "AddConnectionTop": {
       "properties": {
-        "Connect" : { "type": "object", "$ref": "#/definitions/Connect" }
+        "AddConnection" : { "type": "object", "$ref": "#/definitions/AddConnection" }
       },
       "additionalProperties": false
     },
@@ -231,7 +231,7 @@
       "additionalProperties": false
     },
 
-    "Connect": {
+    "AddConnection": {
       "properties": {
         "class":      { "type": "string" },
         "ref1":       { "$ref": "#/definitions/refInt" },

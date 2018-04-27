@@ -249,13 +249,13 @@ Json::Value UpdateEntity::construct_responses(
     return ret;
 }
 
-//========= Connect definitions =========
+//========= AddConnection definitions =========
 
-Connect::Connect() : RSCommand("Connect")
+AddConnection::AddConnection() : RSCommand("AddConnection")
 {
 }
 
-int Connect::construct_protobuf(
+int AddConnection::construct_protobuf(
         PMGDQuery& query,
         const Json::Value& jsoncmd,
         const std::string& blob,

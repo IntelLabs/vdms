@@ -121,10 +121,10 @@ namespace VDMS {
             protobufs::queryMessage &response);
     };
 
-    class Connect : public RSCommand
+    class AddConnection : public RSCommand
     {
     public:
-        Connect();
+        AddConnection();
         int construct_protobuf(PMGDQuery& query,
                                const Json::Value& root,
                                const std::string& blob,

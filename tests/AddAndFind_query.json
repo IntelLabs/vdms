@@ -34,7 +34,7 @@
 
   },
   {
-      "Connect":
+      "AddConnection":
       {
           "ref1" : 1,
           "ref2" : 2,
@@ -88,7 +88,7 @@
 
   },
   {
-      "Connect":
+      "AddConnection":
       {
           "ref1" : 3,
           "ref2" : 4,
