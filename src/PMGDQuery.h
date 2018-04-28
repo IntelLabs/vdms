@@ -57,12 +57,12 @@ namespace VDMS {
                           const Json::Value& val);
         void add_link(const Json::Value& link, PMGDQueryNode* qn);
         void parse_query_constraints(const Json::Value& constraints,
-                                     PMGDQueryNode* qn);
+                                     PMGDQueryConstraints* qc);
 
         void parse_query_results(const Json::Value& result_type,
-                                 PMGDQueryNode* qn);
+                                 PMGDQueryResultInfo* qr);
 
-        void get_response_type(const Json::Value& res, PMGDQueryNode* qn);
+        void get_response_type(const Json::Value& res, PMGDQueryResultInfo* qn);
 
         Json::Value parse_response(PMGDCmdResponse* response);
 

@@ -378,8 +378,10 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     ReusableNodeIterator *start_ni = NULL;
     PMGD::Direction dir;
     StringID edge_tag;
+    const PMGDQueryConstraints &qc = qn.constraints();
+    const PMGDQueryResultInfo &qr = qn.results();
 
-    if (qn.p_op() == protobufs::Or) {
+    if (qc.p_op() == protobufs::Or) {
         set_response(response, PMGDCmdResponse::Error,
                        "Or operation not implemented\n");
         return -1;
@@ -415,14 +417,14 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
                         : StringID(link.e_tag().c_str());
     }
 
-    StringID search_node_tag = (qn.tag_oneof_case() == PMGDQueryNode::kTagid)
-                                ? StringID(qn.tagid())
-                                : StringID(qn.tag().c_str());
+    StringID search_node_tag = (qc.tag_oneof_case() == PMGDQueryConstraints::kTagid)
+                                ? StringID(qc.tagid())
+                                : StringID(qc.tag().c_str());
 
     SearchExpression search(*_db, search_node_tag);
 
-    for (int i = 0; i < qn.predicates_size(); ++i) {
-        const PMGDPropPred &p_pp = qn.predicates(i);
+    for (int i = 0; i < qc.predicates_size(); ++i) {
+        const PMGDPropPred &p_pp = qc.predicates(i);
         PropertyPredicate j_pp = construct_search_term(p_pp);
         search.add(j_pp);
     }
@@ -439,15 +441,15 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     }
 
     // Set these in case there is no results block.
-    set_response(response, qn.r_type(), PMGDCmdResponse::Success);
+    set_response(response, qr.r_type(), PMGDCmdResponse::Success);
 
     // TODO: Also, this triggers a copy of the SearchExpression object
     // via the SearchExpressionIterator class, which might be slow,
     // especially with a lot of property constraints. Might need another
     // way for it.
-    if (!(id >= 0 || qn.unique() || qn.sort())) {
+    if (!(id >= 0 || qc.unique() || qr.sort())) {
         // If not reusable
-        build_results<NodeIterator>(ni, qn, response);
+        build_results<NodeIterator>(ni, qr, response);
 
         // Make sure the starting iterator is reset for later use.
         if (has_link)
@@ -457,7 +459,7 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
 
     ReusableNodeIterator *tni =  new ReusableNodeIterator(ni);
 
-    if (qn.unique()) {
+    if (qc.unique()) {
         tni->next();
         if (bool(*tni)) {  // Not unique and that is an error here.
             set_response(response, PMGDCmdResponse::NotUnique,
@@ -470,11 +472,11 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         tni->reset();
     }
 
-    if (qn.sort())
-        tni->sort(qn.sort_key().c_str());
+    if (qr.sort())
+        tni->sort(qr.sort_key().c_str());
 
-    if (qn.r_type() != protobufs::Cached)
-        build_results<ReusableNodeIterator>(*tni, qn, response);
+    if (qr.r_type() != protobufs::Cached)
+        build_results<ReusableNodeIterator>(*tni, qr, response);
 
     if (id >= 0) {
         // We have to traverse the current iterator fully, so we can
@@ -539,18 +541,18 @@ Property PMGDQueryHandler::construct_search_property(const PMGDProp &p)
 namespace VDMS {
     template
     void PMGDQueryHandler::build_results<PMGD::NodeIterator>(PMGD::NodeIterator &ni,
-                                                  const protobufs::QueryNode &qn,
+                                                  const protobufs::ResultInfo &qn,
                                                   PMGDCmdResponse *response);
     template
     void PMGDQueryHandler::build_results<PMGDQueryHandler::ReusableNodeIterator>(
                                                   PMGDQueryHandler::ReusableNodeIterator &ni,
-                                                  const protobufs::QueryNode &qn,
+                                                  const protobufs::ResultInfo &qn,
                                                   PMGDCmdResponse *response);
 };
 
 template <class Iterator>
 void PMGDQueryHandler::build_results(Iterator &ni,
-                                      const protobufs::QueryNode &qn,
+                                      const protobufs::ResultInfo &qn,
                                       PMGDCmdResponse *response)
 {
     bool avg = false;

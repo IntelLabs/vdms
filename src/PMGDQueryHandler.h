@@ -47,6 +47,8 @@ namespace VDMS {
     typedef PMGD::protobufs::PropertyPredicate PMGDPropPred;
     typedef PMGD::protobufs::PropertyList      PMGDPropList;
     typedef PMGD::protobufs::Property          PMGDProp;
+    typedef PMGD::protobufs::Constraints       PMGDQueryConstraints;
+    typedef PMGD::protobufs::ResultInfo        PMGDQueryResultInfo;
     typedef PMGD::protobufs::QueryNode         PMGDQueryNode;
     typedef PMGD::protobufs::CommandResponse   PMGDCmdResponse;
     typedef PMGD::protobufs::ResponseType      PMGDRespType;
@@ -91,7 +93,7 @@ namespace VDMS {
         PMGD::PropertyPredicate construct_search_term(const PMGDPropPred &p_pp);
         PMGD::Property construct_search_property(const PMGDProp&p);
         template <class Iterator> void build_results(Iterator &ni,
-                                                    const PMGDQueryNode &qn,
+                                                    const PMGDQueryResultInfo &qn,
                                                     PMGDCmdResponse *response);
         void construct_protobuf_property(const PMGD::Property &j_p, PMGDProp*p_p);
         void construct_missing_property(PMGDProp *p_p);

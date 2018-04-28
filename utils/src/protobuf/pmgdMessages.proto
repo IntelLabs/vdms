@@ -194,18 +194,9 @@ message LinkInfo
     bool nb_unique = 14;
 }
 
-message QueryNode
+// Define a standard constraint block that can be used by QueryNode and Edge
+message Constraints
 {
-    // _ref for this search.
-    // TODO Support caching for the neighbor version of this call too
-    int64 identifier = 1;
-
-    // For the version of FindEntity that has link in it, this
-    // member will be defined. Rest of the tag and property
-    // constraints will then apply to the neighbors, not the start
-    // node, except the unique constraint.
-    LinkInfo link = 2;
-
     // In case of QueryNeighbor, this is the tag constrait for the
     // found neighbors. Similarly for the remaining variables here.
     oneof tag_oneof {
@@ -219,6 +210,15 @@ message QueryNode
     PredicateOp p_op = 7;
     repeated PropertyPredicate predicates = 8;
 
+    // Indicate whether we should make sure there was only one value
+    // that matched the constraints.
+    // TODO Support this for QueryNeighbor
+    bool unique = 12;
+}
+
+// Define a results block also to be shared across.
+message ResultInfo
+{
     // Specify what to do with the responses. If the option is
     // list, the response properties will indicate list of what
     // properties.
@@ -230,11 +230,6 @@ message QueryNode
     // repeated properties
     repeated string response_keys = 11;
 
-    // Indicate whether we should make sure there was only one value
-    // that matched the constraints.
-    // TODO Support this for QueryNeighbor
-    bool unique = 12;
-
     // Should the results be sorted? Default is false.
     // If sort is true, it will sort in all cases. Whether it is to
     // count or to calculate an average.
@@ -244,6 +239,25 @@ message QueryNode
 
     // Limit the number of results returned or used for calculations
     uint64 limit = 18;
+}
+
+message QueryNode
+{
+    // _ref for this search.
+    // TODO Support caching for the neighbor version of this call too
+    int64 identifier = 1;
+
+    // For the version of FindEntity that has link in it, this
+    // member will be defined. Rest of the tag and property
+    // constraints will then apply to the neighbors, not the start
+    // node, except the unique constraint.
+    LinkInfo link = 2;
+
+    // Specify query constraints
+    Constraints constraints = 3;
+
+    // Specify how we want results
+    ResultInfo results = 4;
 }
 
 message Command

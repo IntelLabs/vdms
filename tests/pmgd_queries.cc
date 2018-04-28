@@ -226,10 +226,12 @@ TEST(PMGDQueryHandler, queryTestList)
         cmdquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdquery.set_tx_id(txid);
         protobufs::QueryNode *qn = cmdquery.mutable_query_node();
+        protobufs::Constraints *qc = qn->mutable_constraints();
+        protobufs::ResultInfo *qr = qn->mutable_results();
         qn->set_identifier(-1);
-        qn->set_tag("Patient");
-        qn->set_p_op(protobufs::And);
-        protobufs::PropertyPredicate *pp = qn->add_predicates();
+        qc->set_tag("Patient");
+        qc->set_p_op(protobufs::And);
+        protobufs::PropertyPredicate *pp = qc->add_predicates();
         pp->set_key("Email");
         pp->set_op(protobufs::PropertyPredicate::Gt);
         protobufs::Property *p = pp->mutable_v1();
@@ -237,10 +239,10 @@ TEST(PMGDQueryHandler, queryTestList)
         // I think the key is not required here.
         p->set_key("Email");
         p->set_string_value("j");
-        qn->set_r_type(protobufs::List);
-        string *key = qn->add_response_keys();
+        qr->set_r_type(protobufs::List);
+        string *key = qr->add_response_keys();
         *key = "Email";
-        key = qn->add_response_keys();
+        key = qr->add_response_keys();
         *key = "Age";
         cmds.push_back(&cmdquery);
         query_count++;
@@ -302,10 +304,12 @@ TEST(PMGDQueryHandler, queryTestAverage)
         cmdquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdquery.set_tx_id(txid);
         protobufs::QueryNode *qn = cmdquery.mutable_query_node();
+        protobufs::Constraints *qc = qn->mutable_constraints();
+        protobufs::ResultInfo *qr = qn->mutable_results();
         qn->set_identifier(-1);
-        qn->set_tag("Patient");
-        qn->set_r_type(protobufs::Average);
-        string *key = qn->add_response_keys();
+        qc->set_tag("Patient");
+        qr->set_r_type(protobufs::Average);
+        string *key = qr->add_response_keys();
         *key = "Age";
         cmds.push_back(&cmdquery);
         query_count++;
@@ -355,11 +359,13 @@ TEST(PMGDQueryHandler, queryTestUnique)
         cmdquery.set_tx_id(txid);
         cmdquery.set_cmd_grp_id(query_count);
         protobufs::QueryNode *qn = cmdquery.mutable_query_node();
+        protobufs::Constraints *qc = qn->mutable_constraints();
+        protobufs::ResultInfo *qr = qn->mutable_results();
         qn->set_identifier(-1);
-        qn->set_tag("Patient");
-        qn->set_p_op(protobufs::And);
-        qn->set_unique(true);
-        protobufs::PropertyPredicate *pp = qn->add_predicates();
+        qc->set_tag("Patient");
+        qc->set_p_op(protobufs::And);
+        qc->set_unique(true);
+        protobufs::PropertyPredicate *pp = qc->add_predicates();
         pp->set_key("Email");
         pp->set_op(protobufs::PropertyPredicate::Gt);
         protobufs::Property *p = pp->mutable_v1();
@@ -367,8 +373,8 @@ TEST(PMGDQueryHandler, queryTestUnique)
         // I think the key is not required here.
         p->set_key("Email");
         p->set_string_value("j");
-        qn->set_r_type(protobufs::List);
-        string *key = qn->add_response_keys();
+        qr->set_r_type(protobufs::List);
+        string *key = qr->add_response_keys();
         *key = "Email";
         cmds.push_back(&cmdquery);
         query_count++;
@@ -417,10 +423,12 @@ TEST(PMGDQueryHandler, queryNeighborTestList)
         cmdstartquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdstartquery.set_tx_id(txid);
         protobufs::QueryNode *qn = cmdstartquery.mutable_query_node();
+        protobufs::Constraints *qc = qn->mutable_constraints();
+        protobufs::ResultInfo *qr = qn->mutable_results();
         qn->set_identifier(1);
-        qn->set_tag("Patient");
-        qn->set_p_op(protobufs::And);
-        protobufs::PropertyPredicate *pp = qn->add_predicates();
+        qc->set_tag("Patient");
+        qc->set_p_op(protobufs::And);
+        protobufs::PropertyPredicate *pp = qc->add_predicates();
         pp->set_key("Sex");
         pp->set_op(protobufs::PropertyPredicate::Eq);
         protobufs::Property *p = pp->mutable_v1();
@@ -435,6 +443,8 @@ TEST(PMGDQueryHandler, queryNeighborTestList)
         cmdquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdquery.set_tx_id(txid);
         qn = cmdquery.mutable_query_node();
+        qc = qn->mutable_constraints();
+        qr = qn->mutable_results();
         qn->set_identifier(-1);
         protobufs::LinkInfo *qnb = qn->mutable_link();
         // Now set parameters for neighbor traversal
@@ -443,11 +453,11 @@ TEST(PMGDQueryHandler, queryNeighborTestList)
         qnb->set_dir(protobufs::LinkInfo::Any);
         qnb->set_nb_unique(false);
 
-        qn->set_p_op(protobufs::And);
-        qn->set_tagid(0);
-        qn->set_unique(false);
-        qn->set_r_type(protobufs::List);
-        string *key = qn->add_response_keys();
+        qc->set_p_op(protobufs::And);
+        qc->set_tagid(0);
+        qc->set_unique(false);
+        qr->set_r_type(protobufs::List);
+        string *key = qr->add_response_keys();
         *key = "Name";
         cmds.push_back(&cmdquery);
         query_count++;
@@ -510,10 +520,12 @@ TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
         cmdstartquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdstartquery.set_tx_id(txid);
         protobufs::QueryNode *qn = cmdstartquery.mutable_query_node();
+        protobufs::Constraints *qc = qn->mutable_constraints();
+        protobufs::ResultInfo *qr = qn->mutable_results();
         qn->set_identifier(1);
-        qn->set_tag("Patient");
-        qn->set_p_op(protobufs::And);
-        protobufs::PropertyPredicate *pp = qn->add_predicates();
+        qc->set_tag("Patient");
+        qc->set_p_op(protobufs::And);
+        protobufs::PropertyPredicate *pp = qc->add_predicates();
         pp->set_key("Sex");
         pp->set_op(protobufs::PropertyPredicate::Eq);
         protobufs::Property *p = pp->mutable_v1();
@@ -528,6 +540,8 @@ TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
         cmdquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdquery.set_tx_id(txid);
         qn = cmdquery.mutable_query_node();
+        qc = qn->mutable_constraints();
+        qr = qn->mutable_results();
         qn->set_identifier(-1);
         protobufs::LinkInfo *qnb = qn->mutable_link();
         // Now set parameters for neighbor traversal
@@ -536,9 +550,9 @@ TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
         qnb->set_dir(protobufs::LinkInfo::Any);
         qnb->set_nb_unique(false);
 
-        qn->set_tag("Patient");
-        qn->set_p_op(protobufs::And);
-        pp = qn->add_predicates();
+        qc->set_tag("Patient");
+        qc->set_p_op(protobufs::And);
+        pp = qc->add_predicates();
         pp->set_key("Age");
         pp->set_op(protobufs::PropertyPredicate::Lt);
         p = pp->mutable_v1();
@@ -547,9 +561,9 @@ TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
         p->set_key("Age");
         p->set_int_value(80);
 
-        qn->set_unique(false);
-        qn->set_r_type(protobufs::List);
-        string *key = qn->add_response_keys();
+        qc->set_unique(false);
+        qr->set_r_type(protobufs::List);
+        string *key = qr->add_response_keys();
         *key = "Name";
         cmds.push_back(&cmdquery);
         query_count++;
@@ -612,12 +626,14 @@ TEST(PMGDQueryHandler, queryNeighborTestSum)
         cmdstartquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdstartquery.set_tx_id(txid);
         protobufs::QueryNode *qn = cmdstartquery.mutable_query_node();
+        protobufs::Constraints *qc = qn->mutable_constraints();
+        protobufs::ResultInfo *qr = qn->mutable_results();
         // Set parameters to find the starting node(s)
         qn->set_identifier(1);
-        qn->set_tag("Patient");
-        qn->set_p_op(protobufs::And);
-        qn->set_unique(false);
-        protobufs::PropertyPredicate *pp = qn->add_predicates();
+        qc->set_tag("Patient");
+        qc->set_p_op(protobufs::And);
+        qc->set_unique(false);
+        protobufs::PropertyPredicate *pp = qc->add_predicates();
         pp->set_key("Sex");
         pp->set_op(protobufs::PropertyPredicate::Eq);
         protobufs::Property *p = pp->mutable_v1();
@@ -632,6 +648,8 @@ TEST(PMGDQueryHandler, queryNeighborTestSum)
         cmdquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdquery.set_tx_id(txid);
         qn = cmdquery.mutable_query_node();
+        qc = qn->mutable_constraints();
+        qr = qn->mutable_results();
         qn->set_identifier(-1);
         protobufs::LinkInfo *qnb = qn->mutable_link();
         // Now set parameters for neighbor traversal
@@ -639,10 +657,10 @@ TEST(PMGDQueryHandler, queryNeighborTestSum)
         qnb->set_e_tag("Married");
         qnb->set_dir(protobufs::LinkInfo::Any);
         qnb->set_nb_unique(false);
-        qn->set_tag("Patient");
-        qn->set_p_op(protobufs::And);
-        qn->set_r_type(protobufs::Sum);
-        string *key = qn->add_response_keys();
+        qc->set_tag("Patient");
+        qc->set_p_op(protobufs::And);
+        qr->set_r_type(protobufs::Sum);
+        string *key = qr->add_response_keys();
         *key = "Age";
         cmds.push_back(&cmdquery);
         query_count++;
@@ -696,12 +714,14 @@ TEST(PMGDQueryHandler, addConstrainedTest)
         // Add a test to verify this node doesn't exist
         protobufs::AddNode *an = cmdadd.mutable_add_node();
         protobufs::QueryNode *qn = an->mutable_query_node();
+        protobufs::Constraints *qc = qn->mutable_constraints();
+        protobufs::ResultInfo *qr = qn->mutable_results();
         qn->set_identifier(patientid++);  // ref for caching in case found.
-        qn->set_tag("Patient");
-        qn->set_unique(true);
-        qn->set_p_op(protobufs::And);
-        qn->set_r_type(protobufs::NodeID);
-        protobufs::PropertyPredicate *pp = qn->add_predicates();
+        qc->set_tag("Patient");
+        qc->set_unique(true);
+        qc->set_p_op(protobufs::And);
+        qr->set_r_type(protobufs::NodeID);
+        protobufs::PropertyPredicate *pp = qc->add_predicates();
         pp->set_key("Email");
         pp->set_op(protobufs::PropertyPredicate::Eq);
         protobufs::Property *p = pp->mutable_v1();
@@ -781,10 +801,12 @@ TEST(PMGDQueryHandler, queryNeighborLinksTestList)
         cmdstartquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdstartquery.set_tx_id(txid);
         protobufs::QueryNode *qn = cmdstartquery.mutable_query_node();
+        protobufs::Constraints *qc = qn->mutable_constraints();
+        protobufs::ResultInfo *qr = qn->mutable_results();
         qn->set_identifier(1);
-        qn->set_tag("Patient");
-        qn->set_p_op(protobufs::And);
-        protobufs::PropertyPredicate *pp = qn->add_predicates();
+        qc->set_tag("Patient");
+        qc->set_p_op(protobufs::And);
+        protobufs::PropertyPredicate *pp = qc->add_predicates();
         pp->set_key("Sex");
         pp->set_op(protobufs::PropertyPredicate::Eq);
         protobufs::Property *p = pp->mutable_v1();
@@ -799,6 +821,8 @@ TEST(PMGDQueryHandler, queryNeighborLinksTestList)
         cmdquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdquery.set_tx_id(txid);
         qn = cmdquery.mutable_query_node();
+        qc = qn->mutable_constraints();
+        qr = qn->mutable_results();
         qn->set_identifier(2);
         protobufs::LinkInfo *qnb = qn->mutable_link();
         // Now set parameters for neighbor traversal
@@ -806,9 +830,9 @@ TEST(PMGDQueryHandler, queryNeighborLinksTestList)
         qnb->set_e_tag("Married");
         qnb->set_dir(protobufs::LinkInfo::Any);
         qnb->set_nb_unique(false);
-        qn->set_tagid(0);
-        qn->set_unique(false);
-        qn->set_p_op(protobufs::And);
+        qc->set_tagid(0);
+        qc->set_unique(false);
+        qc->set_p_op(protobufs::And);
         cmds.push_back(&cmdquery);
         query_count++;
 
@@ -816,6 +840,8 @@ TEST(PMGDQueryHandler, queryNeighborLinksTestList)
         cmdfollquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdfollquery.set_tx_id(txid);
         qn = cmdfollquery.mutable_query_node();
+        qc = qn->mutable_constraints();
+        qr = qn->mutable_results();
         qn->set_identifier(-1);
         qnb = qn->mutable_link();
         // Now set parameters for neighbor traversal
@@ -823,11 +849,11 @@ TEST(PMGDQueryHandler, queryNeighborLinksTestList)
         qnb->set_e_tag("Daughter");
         qnb->set_dir(protobufs::LinkInfo::Any);
         qnb->set_nb_unique(false);
-        qn->set_tagid(0);
-        qn->set_unique(false);
-        qn->set_p_op(protobufs::And);
-        qn->set_r_type(protobufs::List);
-        string *key = qn->add_response_keys();
+        qc->set_tagid(0);
+        qc->set_unique(false);
+        qc->set_p_op(protobufs::And);
+        qr->set_r_type(protobufs::List);
+        string *key = qr->add_response_keys();
         *key = "Name";
         cmds.push_back(&cmdfollquery);
         query_count++;
@@ -890,10 +916,12 @@ TEST(PMGDQueryHandler, queryNeighborLinksReuseTestList)
         cmdstartquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdstartquery.set_tx_id(txid);
         protobufs::QueryNode *qn = cmdstartquery.mutable_query_node();
+        protobufs::Constraints *qc = qn->mutable_constraints();
+        protobufs::ResultInfo *qr = qn->mutable_results();
         qn->set_identifier(1);
-        qn->set_tag("Patient");
-        qn->set_p_op(protobufs::And);
-        protobufs::PropertyPredicate *pp = qn->add_predicates();
+        qc->set_tag("Patient");
+        qc->set_p_op(protobufs::And);
+        protobufs::PropertyPredicate *pp = qc->add_predicates();
         pp->set_key("Sex");
         pp->set_op(protobufs::PropertyPredicate::Eq);
         protobufs::Property *p = pp->mutable_v1();
@@ -901,8 +929,8 @@ TEST(PMGDQueryHandler, queryNeighborLinksReuseTestList)
         // I think the key is not required here.
         p->set_key("Sex");
         p->set_int_value(FEMALE);
-        qn->set_r_type(protobufs::List);
-        string *key = qn->add_response_keys();
+        qr->set_r_type(protobufs::List);
+        string *key = qr->add_response_keys();
         *key = "Email";
         cmds.push_back(&cmdstartquery);
         query_count++;
@@ -911,6 +939,8 @@ TEST(PMGDQueryHandler, queryNeighborLinksReuseTestList)
         cmdquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdquery.set_tx_id(txid);
         qn = cmdquery.mutable_query_node();
+        qc = qn->mutable_constraints();
+        qr = qn->mutable_results();
         qn->set_identifier(2);
         protobufs::LinkInfo *qnb = qn->mutable_link();
         // Now set parameters for neighbor traversal
@@ -918,10 +948,10 @@ TEST(PMGDQueryHandler, queryNeighborLinksReuseTestList)
         qnb->set_e_tag("Married");
         qnb->set_dir(protobufs::LinkInfo::Any);
         qnb->set_nb_unique(false);
-        qn->set_tagid(0);
-        qn->set_unique(false);
-        qn->set_p_op(protobufs::And);
-        qn->set_r_type(protobufs::Count);
+        qc->set_tagid(0);
+        qc->set_unique(false);
+        qc->set_p_op(protobufs::And);
+        qr->set_r_type(protobufs::Count);
         cmds.push_back(&cmdquery);
         query_count++;
 
@@ -929,6 +959,8 @@ TEST(PMGDQueryHandler, queryNeighborLinksReuseTestList)
         cmdfollquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdfollquery.set_tx_id(txid);
         qn = cmdfollquery.mutable_query_node();
+        qc = qn->mutable_constraints();
+        qr = qn->mutable_results();
         qn->set_identifier(-1);
         qnb = qn->mutable_link();
         // Now set parameters for neighbor traversal
@@ -936,13 +968,13 @@ TEST(PMGDQueryHandler, queryNeighborLinksReuseTestList)
         qnb->set_e_tag("Daughter");
         qnb->set_dir(protobufs::LinkInfo::Any);
         qnb->set_nb_unique(false);
-        qn->set_tagid(0);
-        qn->set_unique(false);
-        qn->set_p_op(protobufs::And);
-        qn->set_r_type(protobufs::List);
-        key = qn->add_response_keys();
+        qc->set_tagid(0);
+        qc->set_unique(false);
+        qc->set_p_op(protobufs::And);
+        qr->set_r_type(protobufs::List);
+        key = qr->add_response_keys();
         *key = "Name";
-        key = qn->add_response_keys();
+        key = qr->add_response_keys();
         *key = "Email";
         cmds.push_back(&cmdfollquery);
         query_count++;
@@ -1014,10 +1046,12 @@ TEST(PMGDQueryHandler, querySortedNeighborLinksReuseTestList)
         cmdstartquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdstartquery.set_tx_id(txid);
         protobufs::QueryNode *qn = cmdstartquery.mutable_query_node();
+        protobufs::Constraints *qc = qn->mutable_constraints();
+        protobufs::ResultInfo *qr = qn->mutable_results();
         qn->set_identifier(1);
-        qn->set_tag("Patient");
-        qn->set_p_op(protobufs::And);
-        protobufs::PropertyPredicate *pp = qn->add_predicates();
+        qc->set_tag("Patient");
+        qc->set_p_op(protobufs::And);
+        protobufs::PropertyPredicate *pp = qc->add_predicates();
         pp->set_key("Sex");
         pp->set_op(protobufs::PropertyPredicate::Eq);
         protobufs::Property *p = pp->mutable_v1();
@@ -1025,11 +1059,11 @@ TEST(PMGDQueryHandler, querySortedNeighborLinksReuseTestList)
         // I think the key is not required here.
         p->set_key("Sex");
         p->set_int_value(FEMALE);
-        qn->set_r_type(protobufs::List);
-        string *key = qn->add_response_keys();
+        qr->set_r_type(protobufs::List);
+        string *key = qr->add_response_keys();
         *key = "Email";
-        qn->set_sort(true);
-        qn->set_sort_key("Email");
+        qr->set_sort(true);
+        qr->set_sort_key("Email");
         cmds.push_back(&cmdstartquery);
         query_count++;
 
@@ -1037,6 +1071,8 @@ TEST(PMGDQueryHandler, querySortedNeighborLinksReuseTestList)
         cmdquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdquery.set_tx_id(txid);
         qn = cmdquery.mutable_query_node();
+        qc = qn->mutable_constraints();
+        qr = qn->mutable_results();
         qn->set_identifier(2);
         protobufs::LinkInfo *qnb = qn->mutable_link();
         // Now set parameters for neighbor traversal
@@ -1044,10 +1080,10 @@ TEST(PMGDQueryHandler, querySortedNeighborLinksReuseTestList)
         qnb->set_e_tag("Married");
         qnb->set_dir(protobufs::LinkInfo::Any);
         qnb->set_nb_unique(false);
-        qn->set_tagid(0);
-        qn->set_unique(false);
-        qn->set_p_op(protobufs::And);
-        qn->set_r_type(protobufs::Count);
+        qc->set_tagid(0);
+        qc->set_unique(false);
+        qc->set_p_op(protobufs::And);
+        qr->set_r_type(protobufs::Count);
         cmds.push_back(&cmdquery);
         query_count++;
 
@@ -1055,6 +1091,8 @@ TEST(PMGDQueryHandler, querySortedNeighborLinksReuseTestList)
         cmdfollquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdfollquery.set_tx_id(txid);
         qn = cmdfollquery.mutable_query_node();
+        qc = qn->mutable_constraints();
+        qr = qn->mutable_results();
         qn->set_identifier(-1);
         qnb = qn->mutable_link();
         // Now set parameters for neighbor traversal
@@ -1062,13 +1100,13 @@ TEST(PMGDQueryHandler, querySortedNeighborLinksReuseTestList)
         qnb->set_e_tag("Daughter");
         qnb->set_dir(protobufs::LinkInfo::Any);
         qnb->set_nb_unique(false);
-        qn->set_tagid(0);
-        qn->set_unique(false);
-        qn->set_p_op(protobufs::And);
-        qn->set_r_type(protobufs::List);
-        key = qn->add_response_keys();
+        qc->set_tagid(0);
+        qc->set_unique(false);
+        qc->set_p_op(protobufs::And);
+        qr->set_r_type(protobufs::List);
+        key = qr->add_response_keys();
         *key = "Name";
-        key = qn->add_response_keys();
+        key = qr->add_response_keys();
         *key = "Email";
         cmds.push_back(&cmdfollquery);
         query_count++;
@@ -1144,15 +1182,17 @@ TEST(PMGDQueryHandler, queryTestListLimit)
         cmdquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdquery.set_tx_id(txid);
         protobufs::QueryNode *qn = cmdquery.mutable_query_node();
+        protobufs::Constraints *qc = qn->mutable_constraints();
+        protobufs::ResultInfo *qr = qn->mutable_results();
         qn->set_identifier(-1);
-        qn->set_tag("Patient");
-        qn->set_p_op(protobufs::And);
-        qn->set_r_type(protobufs::List);
-        string *key = qn->add_response_keys();
+        qc->set_tag("Patient");
+        qc->set_p_op(protobufs::And);
+        qr->set_r_type(protobufs::List);
+        string *key = qr->add_response_keys();
         *key = "Email";
-        key = qn->add_response_keys();
+        key = qr->add_response_keys();
         *key = "Age";
-        qn->set_limit(4);
+        qr->set_limit(4);
         cmds.push_back(&cmdquery);
         query_count++;
 
@@ -1213,15 +1253,17 @@ TEST(PMGDQueryHandler, queryTestSortedLimitedAverage)
         cmdquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdquery.set_tx_id(txid);
         protobufs::QueryNode *qn = cmdquery.mutable_query_node();
+        protobufs::Constraints *qc = qn->mutable_constraints();
+        protobufs::ResultInfo *qr = qn->mutable_results();
         qn->set_identifier(-1);
-        qn->set_tag("Patient");
-        qn->set_r_type(protobufs::Average);
-        string *key = qn->add_response_keys();
+        qc->set_tag("Patient");
+        qr->set_r_type(protobufs::Average);
+        string *key = qr->add_response_keys();
         *key = "Age";
-        qn->set_sort(true);
-        qn->set_sort_key("Email");
+        qr->set_sort(true);
+        qr->set_sort_key("Email");
         // Average over 5 patients age is 69.2
-        qn->set_limit(3);
+        qr->set_limit(3);
         cmds.push_back(&cmdquery);
         query_count++;
 
@@ -1270,10 +1312,12 @@ TEST(PMGDQueryHandler, queryUpdateTest)
         cmdstartquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdstartquery.set_tx_id(txid);
         protobufs::QueryNode *qn = cmdstartquery.mutable_query_node();
+        protobufs::Constraints *qc = qn->mutable_constraints();
+        protobufs::ResultInfo *qr = qn->mutable_results();
         qn->set_identifier(1);
-        qn->set_tag("Patient");
-        qn->set_p_op(protobufs::And);
-        protobufs::PropertyPredicate *pp = qn->add_predicates();
+        qc->set_tag("Patient");
+        qc->set_p_op(protobufs::And);
+        protobufs::PropertyPredicate *pp = qc->add_predicates();
         pp->set_key("Sex");
         pp->set_op(protobufs::PropertyPredicate::Eq);
         protobufs::Property *p = pp->mutable_v1();
@@ -1313,10 +1357,12 @@ TEST(PMGDQueryHandler, queryUpdateTest)
         cmdcheckquery.set_cmd_id(protobufs::Command::QueryNode);
         cmdcheckquery.set_tx_id(txid);
         qn = cmdcheckquery.mutable_query_node();
+        qc = qn->mutable_constraints();
+        qr = qn->mutable_results();
         qn->set_identifier(-1);
-        qn->set_tag("Patient");
-        qn->set_p_op(protobufs::And);
-        pp = qn->add_predicates();
+        qc->set_tag("Patient");
+        qc->set_p_op(protobufs::And);
+        pp = qc->add_predicates();
         pp->set_key("RemoveViaUpdate");
         pp->set_op(protobufs::PropertyPredicate::Eq);
         p = pp->mutable_v1();
@@ -1324,8 +1370,8 @@ TEST(PMGDQueryHandler, queryUpdateTest)
         // I think the key is not required here.
         p->set_key("RemoveViaUpdate");
         p->set_string_value("Random");
-        qn->set_r_type(protobufs::List);
-        string *key = qn->add_response_keys();
+        qr->set_r_type(protobufs::List);
+        string *key = qr->add_response_keys();
         *key = "Email";
         cmds.push_back(&cmdcheckquery);
         query_count++;
@@ -1383,10 +1429,12 @@ TEST(PMGDQueryHandler, queryUpdateConstraintTest)
 
         // Set parameters to find the starting node(s)
         protobufs::QueryNode *qn = un->mutable_query_node();
-        qn->set_tag("Patient");
-        qn->set_p_op(protobufs::And);
+        protobufs::Constraints *qc = qn->mutable_constraints();
+        protobufs::ResultInfo *qr = qn->mutable_results();
         qn->set_identifier(un->identifier());
-        protobufs::PropertyPredicate *pp = qn->add_predicates();
+        qc->set_tag("Patient");
+        qc->set_p_op(protobufs::And);
+        protobufs::PropertyPredicate *pp = qc->add_predicates();
         pp->set_key("Sex");
         pp->set_op(protobufs::PropertyPredicate::Eq);
         protobufs::Property *p = pp->mutable_v1();

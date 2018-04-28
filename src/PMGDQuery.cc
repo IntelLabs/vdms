@@ -323,7 +323,7 @@ Json::Value PMGDQuery::parse_response(PMGDCmdResponse* response)
 }
 
 void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
-                                        PMGDQueryNode* qn)
+                                        PMGDQueryConstraints* qn)
 {
     for (auto it = constraints.begin(); it != constraints.end(); ++it) {
 
@@ -376,7 +376,7 @@ void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
     }
 }
 
-void PMGDQuery::get_response_type(const Json::Value& res, PMGDQueryNode *qn)
+void PMGDQuery::get_response_type(const Json::Value& res, PMGDQueryResultInfo *qn)
 {
     for (auto it = res.begin(); it != res.end(); it++) {
         std::string *r_key= qn->add_response_keys();
@@ -385,7 +385,7 @@ void PMGDQuery::get_response_type(const Json::Value& res, PMGDQueryNode *qn)
 }
 
 void PMGDQuery::parse_query_results(const Json::Value& results,
-                                    PMGDQueryNode *qn)
+                                    PMGDQueryResultInfo *qn)
 {
     for (auto it = results.begin(); it != results.end(); it++) {
         const std::string& key = it.key().asString();
@@ -441,11 +441,13 @@ void PMGDQuery::AddNode(int ref,
     if(!constraints.isNull()) {
         PMGDQueryNode *qn = an->mutable_query_node();
         qn->set_identifier(ref); // Use the same ref to cache if node exists.
-        qn->set_tag(tag);
-        qn->set_unique(true);
-        qn->set_p_op(PMGD::protobufs::And);
-        qn->set_r_type(PMGD::protobufs::NodeID); // Since PMGD returns ids.
-        parse_query_constraints(constraints, qn);
+        PMGDQueryConstraints *qc = qn->mutable_constraints();
+        qc->set_tag(tag);
+        qc->set_unique(true);
+        qc->set_p_op(PMGD::protobufs::And);
+        parse_query_constraints(constraints, qc);
+        PMGDQueryResultInfo *qr = qn->mutable_results();
+        qr->set_r_type(PMGD::protobufs::NodeID); // Since PMGD returns ids.
     }
 
     _cmds.push_back(cmdadd);
@@ -477,11 +479,13 @@ void PMGDQuery::UpdateNode(int ref,
     if(!constraints.isNull()) {
         PMGDQueryNode *qn = un->mutable_query_node();
         qn->set_identifier(ref < 0 ? get_available_reference() : ref);
-        qn->set_tag(tag);
-        qn->set_unique(unique);
-        qn->set_p_op(PMGD::protobufs::And);
-        qn->set_r_type(PMGD::protobufs::Count);
-        parse_query_constraints(constraints, qn);
+        PMGDQueryConstraints *qc = qn->mutable_constraints();
+        qc->set_tag(tag);
+        qc->set_unique(unique);
+        qc->set_p_op(PMGD::protobufs::And);
+        parse_query_constraints(constraints, qc);
+        PMGDQueryResultInfo *qr = qn->mutable_results();
+        qr->set_r_type(PMGD::protobufs::NodeID); // Since PMGD returns ids.
     }
 
     _cmds.push_back(cmdupdate);
@@ -527,19 +531,23 @@ void PMGDQuery::QueryNode(int ref,
     PMGDQueryNode *qn = cmdquery->mutable_query_node();
 
     qn->set_identifier(ref);
-    qn->set_tag(tag);
-    qn->set_unique(unique);
+
+    PMGDQueryConstraints *qc = qn->mutable_constraints();
+    qc->set_tag(tag);
+    qc->set_unique(unique);
 
     if (!link.isNull())
         add_link(link, qn);
 
     // TODO: We always assume AND, we need to change that
-    qn->set_p_op(PMGD::protobufs::And);
+    qc->set_p_op(PMGD::protobufs::And);
     if (!constraints.isNull())
-        parse_query_constraints(constraints, qn);
+        parse_query_constraints(constraints, qc);
 
+    PMGDQueryResultInfo *qr = qn->mutable_results();
     if (!results.isNull())
-        parse_query_results(results, qn);
+        parse_query_results(results, qr);
 
     _cmds.push_back(cmdquery);
 }
+
