@@ -180,7 +180,7 @@ int AddEntity::construct_protobuf(PMGDQuery& query,
 
     if (get_value<bool>(cmd, "blob", false)) {
         std::ostringstream oss;
-        oss << std::hex << VCL::get_int64();
+        oss << std::hex << VCL::get_uint64();
         std::string file_name = _storage_blob + "/" + oss.str();
 
         props[VDMS_BLOB_PATH_PROP] = file_name;
