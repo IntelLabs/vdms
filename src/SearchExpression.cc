@@ -33,6 +33,8 @@
 #include "pmgd.h"
 #include "neighbor.h"
 
+using namespace VDMS;
+
 class SearchExpression::SearchExpressionIterator : public PMGD::NodeIteratorImplIntf
 {
     /// Reference to expression to evaluate
@@ -111,64 +113,6 @@ public:
     PMGD::Node *ref() { return &*mNodeIt; }
 };
 
-// *** Could find a template way of combining Node and Edge iterator.
-class SearchExpression::EdgeSearchExpressionIterator : public PMGD::EdgeIteratorImplIntf
-{
-    /// Reference to expression to evaluate
-    const SearchExpression &_expr;
-
-    /// Node iterator on the first property predicate
-    PMGD::EdgeIterator mEdgeIt;
-
-    /// Advance to the next matching node
-    /// @returns true if we find a matching node
-    /// Precondition: mNodeIt points to the next possible node
-    /// candidate
-    bool _next()
-    {
-        for (; mEdgeIt; mEdgeIt.next()) {
-            for (std::size_t i = 1; i < _expr._predicates.size(); i++) {
-                PMGD::PropertyFilter<PMGD::Edge> pf(_expr._predicates.at(i));
-                if (pf(*mEdgeIt) == PMGD::DontPass)
-                    goto continueEdgeIt;
-            }
-            return true;
-        continueEdgeIt:;
-        }
-        return false;
-    }
-
-public:
-    /// Construct an iterator given the search expression
-    ///
-    /// Postcondition: mEdgeIt points to the first matching edge, or
-    /// returns NULL.
-    EdgeSearchExpressionIterator(const SearchExpression &expr)
-        : _expr(expr),
-        mEdgeIt(_expr._db.get_edges(_expr.tag(),
-                    (_expr._predicates.empty() ? PMGD::PropertyPredicate()
-                         : _expr._predicates.at(0))))
-    {
-        _next();
-    }
-
-    operator bool() const { return bool(mEdgeIt); }
-
-    /// Advance to the next node
-    /// @returns true if such a next node exists
-    bool next()
-    {
-        mEdgeIt.next();
-        return _next();
-    }
-
-    PMGD::EdgeRef *ref() { return &*mEdgeIt; }
-    PMGD::StringID get_tag() const { return mEdgeIt->get_tag(); }
-    PMGD::Node &get_source() const { return mEdgeIt->get_source(); }
-    PMGD::Node &get_destination() const { return mEdgeIt->get_destination(); }
-    PMGD::Edge *get_edge() const { return &static_cast<PMGD::Edge &>(*mEdgeIt); }
-};
-
 /// Evaluate the associated search expression
 /// @returns an iterator over the search expression
 PMGD::NodeIterator SearchExpression::eval_nodes()
@@ -182,11 +126,4 @@ PMGD::NodeIterator SearchExpression::eval_nodes(const PMGD::Node &node, PMGD::Di
                                                    PMGD::StringID edgetag, bool unique)
 {
     return PMGD::NodeIterator(new SearchExpressionIterator(node, dir, edgetag, unique, *this));
-}
-
-/// Evaluate the associated search expression
-/// @returns an iterator over the search expression
-PMGD::EdgeIterator SearchExpression::eval_edges()
-{
-    return PMGD::EdgeIterator(new EdgeSearchExpressionIterator(*this));
 }

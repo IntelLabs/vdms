@@ -123,6 +123,10 @@ TEST(PMGDQueryHandler, addTest)
         p->set_type(protobufs::Property::TimeType);
         p->set_key("Since");
         p->set_time_value("Sat Sep 1 19:59:24 PDT 1956");
+        p = e->add_properties();
+        p->set_type(protobufs::Property::StringType);
+        p->set_key("Status");
+        p->set_string_value("Old Adult");
         cmds.push_back(&cmdedge1);
         query_count++;
 
@@ -153,6 +157,10 @@ TEST(PMGDQueryHandler, addTest)
         p->set_type(protobufs::Property::TimeType);
         p->set_key("Since");
         p->set_time_value("Wed Dec 2 19:59:24 PDT 1970");
+        p = e->add_properties();
+        p->set_type(protobufs::Property::StringType);
+        p->set_key("Status");
+        p->set_string_value("Old Adult");
         cmds.push_back(&cmdedge2);
         query_count++;
 
@@ -750,6 +758,10 @@ TEST(PMGDQueryHandler, addConstrainedTest)
         e->set_src(1);
         e->set_dst(2);
         e->set_tag("Daughter");
+        p = e->add_properties();
+        p->set_type(protobufs::Property::StringType);
+        p->set_key("Status");
+        p->set_string_value("Young Adult");
         cmds.push_back(&cmdedge1);
         query_count++;
 
@@ -1475,6 +1487,386 @@ TEST(PMGDQueryHandler, queryUpdateConstraintTest)
                 //printf("\n");
             }
         }
+    }
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}
+
+TEST(PMGDQueryHandler, queryEdgeTestList)
+{
+    VDMSConfig::init("config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
+
+    vector<protobufs::Command *> cmds;
+
+    {
+        int txid = 1, query_count = 0;
+        protobufs::Command cmdtx;
+        cmdtx.set_cmd_id(protobufs::Command::TxBegin);
+        cmdtx.set_tx_id(txid);
+        cmds.push_back(&cmdtx);
+        query_count++;
+
+        protobufs::Command cmdquery;
+        cmdquery.set_cmd_id(protobufs::Command::QueryEdge);
+        cmdquery.set_tx_id(txid);
+        protobufs::QueryEdge *qn = cmdquery.mutable_query_edge();
+        protobufs::Constraints *qc = qn->mutable_constraints();
+        protobufs::ResultInfo *qr = qn->mutable_results();
+        qn->set_identifier(-1);
+        qc->set_tag("");
+        qc->set_p_op(protobufs::And);
+        protobufs::PropertyPredicate *pp = qc->add_predicates();
+        pp->set_key("Status");
+        pp->set_op(protobufs::PropertyPredicate::Eq);
+        protobufs::Property *p = pp->mutable_v1();
+        p->set_type(protobufs::Property::StringType);
+        // I think the key is not required here.
+        p->set_key("Status");
+        p->set_string_value("Young Adult");
+        qr->set_r_type(protobufs::List);
+        string *key = qr->add_response_keys();
+        *key = "Status";
+        cmds.push_back(&cmdquery);
+        query_count++;
+
+        // No need to commit in this case. So just end TX
+        protobufs::Command cmdtxend;
+        // Commit here doesn't change anything. Just indicates end of TX
+        cmdtxend.set_cmd_id(protobufs::Command::TxCommit);
+        cmdtxend.set_tx_id(txid);
+        cmds.push_back(&cmdtxend);
+        query_count++;
+
+        vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
+        int edgecount, propcount = 0;
+        for (int q = 0; q < query_count; ++q) {
+            vector<protobufs::CommandResponse *> response = responses[q];
+            for (auto it : response) {
+                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                if (it->r_type() == protobufs::List) {
+                    auto mymap = it->prop_values();
+                    for(auto m_it : mymap) {
+                        // Assuming string for now
+                        protobufs::PropertyList &p = m_it.second;
+                        edgecount = 0;
+                        for (int i = 0; i < p.values_size(); ++i) {
+                            print_property(m_it.first, p.values(i));
+                            edgecount++;
+                        }
+                        propcount++;
+                    }
+                }
+                //printf("\n");
+            }
+        }
+        EXPECT_EQ(edgecount, 1) << "Not enough edges found";
+        EXPECT_EQ(propcount, 1) << "Not enough properties read";
+    }
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}
+
+TEST(PMGDQueryHandler, queryEdgeTestSortList)
+{
+    // Way to test the reusable iterator
+    VDMSConfig::init("config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
+
+    vector<protobufs::Command *> cmds;
+
+    {
+        int txid = 1, query_count = 0;
+        protobufs::Command cmdtx;
+        cmdtx.set_cmd_id(protobufs::Command::TxBegin);
+        cmdtx.set_tx_id(txid);
+        cmds.push_back(&cmdtx);
+        query_count++;
+
+        protobufs::Command cmdquery;
+        cmdquery.set_cmd_id(protobufs::Command::QueryEdge);
+        cmdquery.set_tx_id(txid);
+        protobufs::QueryEdge *qn = cmdquery.mutable_query_edge();
+        protobufs::Constraints *qc = qn->mutable_constraints();
+        protobufs::ResultInfo *qr = qn->mutable_results();
+        qn->set_identifier(-1);
+        qc->set_tag("");
+        qc->set_p_op(protobufs::And);
+        qr->set_r_type(protobufs::List);
+        string *key = qr->add_response_keys();
+        *key = "Status";
+        key = qr->add_response_keys();
+        *key = "Since";
+        qr->set_sort(true);
+        qr->set_sort_key("Status");
+        cmds.push_back(&cmdquery);
+        query_count++;
+
+        // No need to commit in this case. So just end TX
+        protobufs::Command cmdtxend;
+        // Commit here doesn't change anything. Just indicates end of TX
+        cmdtxend.set_cmd_id(protobufs::Command::TxCommit);
+        cmdtxend.set_tx_id(txid);
+        cmds.push_back(&cmdtxend);
+        query_count++;
+
+        vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
+        int edgecount, propcount = 0;
+        for (int q = 0; q < query_count; ++q) {
+            vector<protobufs::CommandResponse *> response = responses[q];
+            for (auto it : response) {
+                EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                if (it->r_type() == protobufs::List) {
+                    auto mymap = it->prop_values();
+                    for(auto m_it : mymap) {
+                        // Assuming string for now
+                        protobufs::PropertyList &p = m_it.second;
+                        edgecount = 0;
+                        for (int i = 0; i < p.values_size(); ++i) {
+                            if (m_it.first == "Status") {
+                                if (i <= 1)
+                                    EXPECT_EQ(p.values(i).string_value(), "Old Adult");
+                                else
+                                    EXPECT_EQ(p.values(i).string_value(), "Young Adult");
+                            }
+                            print_property(m_it.first, p.values(i));
+                            edgecount++;
+                        }
+                        propcount++;
+                    }
+                }
+                //printf("\n");
+            }
+        }
+        EXPECT_EQ(edgecount, 3) << "Not enough edges found";
+        EXPECT_EQ(propcount, 2) << "Not enough properties read";
+    }
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}
+
+TEST(PMGDQueryHandler, queryNodeEdgeTestList)
+{
+    VDMSConfig::init("config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
+
+    vector<protobufs::Command *> cmds;
+
+    {
+        int txid = 1, query_count = 0;
+        protobufs::Command cmdtx;
+        cmdtx.set_cmd_id(protobufs::Command::TxBegin);
+        cmdtx.set_tx_id(txid);
+        cmds.push_back(&cmdtx);
+        query_count++;
+
+        // Constrain the starting nodes for the edge we want to access
+        protobufs::Command cmdstartquery;
+        cmdstartquery.set_cmd_id(protobufs::Command::QueryNode);
+        cmdstartquery.set_tx_id(txid);
+        protobufs::QueryNode *qn = cmdstartquery.mutable_query_node();
+        protobufs::Constraints *qc = qn->mutable_constraints();
+        protobufs::ResultInfo *qr = qn->mutable_results();
+        qn->set_identifier(1);
+        qc->set_tag("Patient");
+        qc->set_p_op(protobufs::And);
+        protobufs::PropertyPredicate *pp = qc->add_predicates();
+        pp->set_key("Email");
+        pp->set_op(protobufs::PropertyPredicate::Eq);
+        protobufs::Property *p = pp->mutable_v1();
+        p->set_type(protobufs::Property::StringType);
+        // I think the key is not required here.
+        p->set_key("Email");
+        p->set_string_value("john.doe@abc.com");
+        cmds.push_back(&cmdstartquery);
+        query_count++;
+
+        protobufs::Command cmdquery;
+        cmdquery.set_cmd_id(protobufs::Command::QueryEdge);
+        cmdquery.set_tx_id(txid);
+        protobufs::QueryEdge *qe = cmdquery.mutable_query_edge();
+        qc = qe->mutable_constraints();
+        qr = qe->mutable_results();
+        qe->set_identifier(-1);
+        qe->set_src_node_id(1);
+        qe->set_dest_node_id(-1);
+        qc->set_tag("");
+        qc->set_p_op(protobufs::And);
+        pp = qc->add_predicates();
+        pp->set_key("Status");
+        pp->set_op(protobufs::PropertyPredicate::Eq);
+        p = pp->mutable_v1();
+        p->set_type(protobufs::Property::StringType);
+        // I think the key is not required here.
+        p->set_key("Status");
+        p->set_string_value("Old Adult");
+        qr->set_r_type(protobufs::List);
+        string *key = qr->add_response_keys();
+        *key = "Status";
+        cmds.push_back(&cmdquery);
+        query_count++;
+
+        // No need to commit in this case. So just end TX
+        protobufs::Command cmdtxend;
+        // Commit here doesn't change anything. Just indicates end of TX
+        cmdtxend.set_cmd_id(protobufs::Command::TxCommit);
+        cmdtxend.set_tx_id(txid);
+        cmds.push_back(&cmdtxend);
+        query_count++;
+
+        vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
+        int edgecount, propcount = 0;
+        for (int q = 0; q < query_count; ++q) {
+            vector<protobufs::CommandResponse *> response = responses[q];
+            for (auto it : response) {
+                EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                if (it->r_type() == protobufs::List) {
+                    auto mymap = it->prop_values();
+                    for(auto m_it : mymap) {
+                        // Assuming string for now
+                        protobufs::PropertyList &p = m_it.second;
+                        edgecount = 0;
+                        for (int i = 0; i < p.values_size(); ++i) {
+                            print_property(m_it.first, p.values(i));
+                            edgecount++;
+                        }
+                        propcount++;
+                    }
+                }
+                //printf("\n");
+            }
+        }
+        EXPECT_EQ(edgecount, 1) << "Not enough edges found";
+        EXPECT_EQ(propcount, 1) << "Not enough properties read";
+    }
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}
+
+TEST(PMGDQueryHandler, queryNodeEdgeDestTestList)
+{
+    VDMSConfig::init("config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
+
+    vector<protobufs::Command *> cmds;
+
+    {
+        int txid = 1, query_count = 0;
+        protobufs::Command cmdtx;
+        cmdtx.set_cmd_id(protobufs::Command::TxBegin);
+        cmdtx.set_tx_id(txid);
+        cmds.push_back(&cmdtx);
+        query_count++;
+
+        // Constrain the starting nodes for the edge we want to access
+        protobufs::Command cmdstartquery;
+        cmdstartquery.set_cmd_id(protobufs::Command::QueryNode);
+        cmdstartquery.set_tx_id(txid);
+        protobufs::QueryNode *qn = cmdstartquery.mutable_query_node();
+        protobufs::Constraints *qc = qn->mutable_constraints();
+        protobufs::ResultInfo *qr = qn->mutable_results();
+        qn->set_identifier(1);
+        qc->set_tag("Patient");
+        qc->set_p_op(protobufs::And);
+        protobufs::PropertyPredicate *pp = qc->add_predicates();
+        pp->set_key("Email");
+        pp->set_op(protobufs::PropertyPredicate::Eq);
+        protobufs::Property *p = pp->mutable_v1();
+        p->set_type(protobufs::Property::StringType);
+        // I think the key is not required here.
+        p->set_key("Email");
+        p->set_string_value("john.doe@abc.com");
+        cmds.push_back(&cmdstartquery);
+        query_count++;
+
+        protobufs::Command cmdadd;
+        cmdadd.set_tx_id(txid);
+        add_patient(cmdadd, 2, "Jane Foster", 70, "Tue Oct 1 13:59:24 PDT 1946",
+                "jane.foster@pqr.com", FEMALE);
+        cmds.push_back(&cmdadd);
+        query_count++;
+
+        protobufs::Command cmdedge;
+        cmdedge.set_tx_id(txid);
+        cmdedge.set_cmd_id(protobufs::Command::AddEdge);
+        protobufs::AddEdge *ae = cmdedge.mutable_add_edge();
+        ae->set_identifier(-1);
+        protobufs::Edge *e = ae->mutable_edge();
+        e->set_src(1);
+        e->set_dst(2);
+        e->set_tag("Friend");
+        p = e->add_properties();
+        p->set_type(protobufs::Property::TimeType);
+        p->set_key("Since");
+        p->set_time_value("Sat Sep 1 19:59:24 PDT 1956");
+        p = e->add_properties();
+        p->set_type(protobufs::Property::StringType);
+        p->set_key("Status");
+        p->set_string_value("Old Adult");
+        cmds.push_back(&cmdedge);
+        query_count++;
+
+        protobufs::Command cmdquery;
+        cmdquery.set_cmd_id(protobufs::Command::QueryEdge);
+        cmdquery.set_tx_id(txid);
+        protobufs::QueryEdge *qe = cmdquery.mutable_query_edge();
+        qc = qe->mutable_constraints();
+        qr = qe->mutable_results();
+        qe->set_identifier(-1);
+        qe->set_src_node_id(1);
+        qe->set_dest_node_id(2);
+        qc->set_tag("");
+        qc->set_p_op(protobufs::And);
+        pp = qc->add_predicates();
+        pp->set_key("Status");
+        pp->set_op(protobufs::PropertyPredicate::Eq);
+        p = pp->mutable_v1();
+        p->set_type(protobufs::Property::StringType);
+        // I think the key is not required here.
+        p->set_key("Status");
+        p->set_string_value("Old Adult");
+        qr->set_r_type(protobufs::List);
+        string *key = qr->add_response_keys();
+        *key = "Status";
+        cmds.push_back(&cmdquery);
+        query_count++;
+
+        // No need to commit in this case. So just end TX
+        protobufs::Command cmdtxend;
+        // Commit here doesn't change anything. Just indicates end of TX
+        cmdtxend.set_cmd_id(protobufs::Command::TxCommit);
+        cmdtxend.set_tx_id(txid);
+        cmds.push_back(&cmdtxend);
+        query_count++;
+
+        vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, false);
+        int edgecount, propcount = 0;
+        for (int q = 0; q < query_count; ++q) {
+            vector<protobufs::CommandResponse *> response = responses[q];
+            for (auto it : response) {
+                EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                if (it->r_type() == protobufs::List) {
+                    auto mymap = it->prop_values();
+                    for(auto m_it : mymap) {
+                        // Assuming string for now
+                        protobufs::PropertyList &p = m_it.second;
+                        edgecount = 0;
+                        for (int i = 0; i < p.values_size(); ++i) {
+                            print_property(m_it.first, p.values(i));
+                            edgecount++;
+                        }
+                        propcount++;
+                    }
+                }
+                //printf("\n");
+            }
+        }
+        EXPECT_EQ(edgecount, 1) << "Not enough edges found";
+        EXPECT_EQ(propcount, 1) << "Not enough properties read";
     }
     VDMSConfig::destroy();
     PMGDQueryHandler::destroy();

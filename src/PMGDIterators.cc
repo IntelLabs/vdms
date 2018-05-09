@@ -89,3 +89,74 @@ bool PMGDQueryHandler::MultiNeighborIteratorImpl::next()
     return _next();
 }
 
+bool PMGDQueryHandler::ReusableEdgeIterator::_next()
+{
+    if (_it != _traversed.end()) {
+        ++_it;
+        if (_it != _traversed.end())
+            return true;
+    }
+    if (bool(_ei)) {
+        _it = _traversed.insert(_traversed.end(), &static_cast<PMGD::Edge &>(*_ei));
+        _ei.next();
+        return true;
+    }
+    return false;
+}
+
+// TODO It might be possible to avoid this if the first iterator
+// was build out of an index sorted on the same key been sought here.
+// Hopefully that won't happen.
+void PMGDQueryHandler::ReusableEdgeIterator::sort(PMGD::StringID sortkey)
+{
+    // First finish traversal
+    traverse_all();
+    _traversed.sort(compare_propkey{sortkey});
+    _it = _traversed.begin();
+}
+
+bool PMGDQueryHandler::NodeEdgeIteratorImpl::next()
+{
+    _edge_it->next();
+    while (_edge_it != NULL && bool(*_edge_it)) {
+        if (check_predicates())
+            return true;
+        _edge_it->next();
+    }
+    return _next();
+}
+
+bool PMGDQueryHandler::NodeEdgeIteratorImpl::_next()
+{
+    while (_src_ni != NULL && bool(*_src_ni)) {
+        delete _edge_it;
+        _src_ni->next();
+        if (bool(*_src_ni)) {
+            _edge_it = new PMGD::EdgeIterator((*_src_ni)->get_edges(_dir, _expr.tag()));
+            while (_edge_it != NULL && bool(*_edge_it)) {
+                if (check_predicates())
+                    return true;
+                _edge_it->next();
+            }
+        }
+        else
+            break;
+    }
+    return false;
+}
+
+bool PMGDQueryHandler::NodeEdgeIteratorImpl::check_predicates()
+{
+    PMGD::Edge *e = get_edge();
+    for (std::size_t i = _pred_start; i < _num_predicates; i++) {
+        PMGD::PropertyFilter<PMGD::Edge> pf(_expr.predicate(i));
+        if (pf(*e) == PMGD::DontPass)
+            return false;
+    }
+    if (_check_dest &&
+            _dest_nodes.find(&(e->get_destination()) ) == _dest_nodes.end())
+        return false;;
+    return true;
+}
+
+

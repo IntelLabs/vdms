@@ -260,6 +260,29 @@ message QueryNode
     ResultInfo results = 4;
 }
 
+message QueryEdge
+{
+    // _ref for this search.
+    // TODO Support caching for the neighbor version of this call too
+    int64 identifier = 1;
+
+    // Specify query constraints
+    Constraints constraints = 3;
+
+    // Specify how we want results
+    ResultInfo results = 4;
+
+    // If you want to match source and/or destination nodes,
+    // we need ref/id value to find nodes for those.
+    // The src_node_id is where we will start traversing the
+    // edges from and determine if they meet the search criteria
+    // given above. The destination nodes will then be searched
+    // for the matching edges out of the ones cached for the
+    // given destination node reference.
+    int64 src_node_id = 5;
+    int64 dest_node_id = 6;
+}
+
 message Command
 {
     enum CommandId {
@@ -272,6 +295,7 @@ message Command
         UpdateNode   = 0x23;
 
         QueryNode = 0x30;
+        QueryEdge = 0x31;
     }
 
     // TODO Might need a transaction object here or maybe just another variable
@@ -292,6 +316,7 @@ message Command
     AddEdge add_edge    = 11;
     UpdateNode update_node = 12;
     QueryNode query_node = 15;
+    QueryEdge query_edge = 16;
 }
 
 message PropertyList
@@ -344,4 +369,8 @@ message CommandResponse
     // For the query, multiple nodes could have met the condition
     // and therefore there can be a list per property key.
     map<string,PropertyList> prop_values = 7;
+
+    // Indicate if the response is for a node or edge so we can populate
+    // JSON correctly, especially for queries.
+    bool node_edge = 8;
 }

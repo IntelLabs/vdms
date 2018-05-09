@@ -275,7 +275,10 @@ Json::Value PMGDQuery::parse_response(PMGDCmdResponse* response)
 
                 // if count <= 0, we return an empty list (json array)
                 ret["returned"] = (Json::UInt64) count;
-                ret["entities"] = list;
+                if (response->node_edge())
+                    ret["entities"] = list;
+                else
+                    ret["connections"] = list;
             }
             else {
                 return construct_error_response(response);
