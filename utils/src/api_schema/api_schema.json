@@ -38,6 +38,7 @@
       { "$ref": "#/definitions/UpdateEntityTop" },
       { "$ref": "#/definitions/FindEntityTop" },
       { "$ref": "#/definitions/AddConnectionTop" },
+      { "$ref": "#/definitions/FindConnectionTop" },
       { "$ref": "#/definitions/AddImageTop" },
       { "$ref": "#/definitions/FindImageTop" }
     ]
@@ -191,6 +192,13 @@
       "additionalProperties": false
     },
 
+    "FindConnectionTop": {
+      "properties": {
+        "FindConnection" : { "type": "object", "$ref": "#/definitions/FindConnection" }
+      },
+      "additionalProperties": false
+    },
+
     "AddImageTop": {
       "properties": {
         "AddImage" : { "type": "object", "$ref": "#/definitions/AddImage" }
@@ -249,6 +257,19 @@
         "link":        { "$ref": "#/definitions/blockLink" },
         "constraints": { "type": "object" },
         "results":     { "$ref": "#/definitions/blockResults" },
+        "unique":      { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+
+    "FindConnection": {
+      "properties": {
+        "class":       { "type": "string" },
+        "_ref":        { "$ref": "#/definitions/refInt" },
+        "ref1":       { "$ref": "#/definitions/refInt" },
+        "ref2":       { "$ref": "#/definitions/refInt" },
+        "constraints": { "type": "object" },
+        "results":     { "type": "object" },
         "unique":      { "type": "boolean" }
       },
       "additionalProperties": false

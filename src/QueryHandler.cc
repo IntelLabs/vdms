@@ -59,6 +59,7 @@ void QueryHandler::init()
     _rs_cmds["UpdateEntity"]  = new UpdateEntity();
     _rs_cmds["AddConnection"] = new AddConnection();
     _rs_cmds["FindEntity"] = new FindEntity();
+    _rs_cmds["FindConnection"] = new FindConnection();
     _rs_cmds["AddImage"]   = new AddImage();
     _rs_cmds["FindImage"]  = new FindImage();
 

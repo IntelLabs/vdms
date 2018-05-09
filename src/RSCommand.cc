@@ -348,3 +348,47 @@ Json::Value FindEntity::construct_responses(
 
     return ret;
 }
+
+//========= FindConnection definitions =========
+
+FindConnection::FindConnection() : RSCommand("FindConnection")
+{
+}
+
+int FindConnection::construct_protobuf(
+    PMGDQuery& query,
+    const Json::Value& jsoncmd,
+    const std::string& blob,
+    int grp_id,
+    Json::Value& error)
+{
+    const Json::Value& cmd = jsoncmd[_cmd_name];
+
+    query.QueryEdge(
+            get_value<int>(cmd, "_ref", -1),
+            get_value<int>(cmd, "ref1", -1),
+            get_value<int>(cmd, "ref2", -1),
+            get_value<std::string>(cmd, "class"),
+            cmd["constraints"],
+            cmd["results"],
+            get_value<bool>(cmd, "unique", false)
+            );
+
+    return 0;
+}
+
+Json::Value FindConnection::construct_responses(
+    Json::Value& response,
+    const Json::Value& json,
+    protobufs::queryMessage &query_res)
+{
+    assert(response.size() == 1);
+
+    Json::Value ret;
+
+    // This will change the response tree,
+    // but it is ok and avoids a copy
+    ret[_cmd_name].swap(response[0]);
+
+    return ret;
+}

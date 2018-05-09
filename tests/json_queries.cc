@@ -273,6 +273,8 @@ TEST(QueryHandler, AddAndFind)
         }
         else if (query.isMember("properties"))
           in_props=query["properties"].size();
+        else if (cmd == "FindConnection")
+          in_query_num++;
     }
 
     VDMSConfig::init("config-addfind-tests.json");
@@ -300,7 +302,7 @@ TEST(QueryHandler, AddAndFind)
             out_node_num++;
         if (cmd=="AddConnection")
             out_edge_num++;
-        if (cmd =="FindEntity")
+        if (cmd == "FindEntity" || cmd == "FindConnection")
             out_query_num++;
 
         if (j == 11) { // Second Last FindEntity
@@ -317,6 +319,13 @@ TEST(QueryHandler, AddAndFind)
 
             EXPECT_EQ(query["FindEntity"]["entities"][1]["Birthday"].asString(),
               "1936-10-01T17:59:24-07:00");
+        }
+        if (j == 13) { // FindConnection
+            EXPECT_EQ(query["FindConnection"]["connections"][0]["location"].asString(),
+              "residence");
+
+            EXPECT_EQ(query["FindConnection"]["connections"][0]["city"].asString(),
+              "Boston");
         }
         if ( query[cmd]["status"] == 0)
             success++;

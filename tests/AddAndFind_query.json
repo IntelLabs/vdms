@@ -1,217 +1,232 @@
 [
-  {
-      "AddEntity":
-      {
+    {
+        "AddEntity":
+        {
 
-          "_ref": 1,
-          "class": "Patient",
+            "_ref": 1,
+            "class": "Patient",
 
-          "properties": {
-              "Email":"rst@rashed.com",
-              "Age": 86,
-              "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
-              "Name":"Mark",
-               "fv": {"_blob":"Raghed----ghjhsglfhwa"}
-          }
-      }
+            "properties": {
+                "Email":"rst@rashed.com",
+                "Age": 86,
+                "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
+                "Name":"Mark",
+                "fv": {"_blob":"Raghed----ghjhsglfhwa"}
+            }
+        }
 
-  },
-  {
-      "AddEntity":
-      {
-          "_ref": 2,
-          "class": "Patient",
+    },
+    {
+        "AddEntity":
+        {
+            "_ref": 2,
+            "class": "Patient",
 
-          "properties": {
-              "Email":"gst@raghehed.com1",
-              "Age": 80,
-              "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
-              "fv":{"_blob" :"Ahmad----ghjhsglfhwa"},
-               "Name": "Kai"
+            "properties": {
+                "Email":"gst@raghehed.com1",
+                "Age": 80,
+                "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
+                "fv":{"_blob" :"Ahmad----ghjhsglfhwa"},
+                "Name": "Kai"
 
-          }
-      }
+            }
+        }
 
-  },
-  {
-      "AddConnection":
-      {
-          "ref1" : 1,
-          "ref2" : 2,
-          "class":  "Married",
-          "properties":{
-              "since" : {"_date":"Sat Sep 1 19:59:24 PDT 1956"},
-              "fv": {"_blob":"----ghjhsglfhwa"}
-          }
-      }
+    },
+    {
+        "AddConnection":
+        {
+            "ref1" : 1,
+            "ref2" : 2,
+            "class":  "Married",
+            "properties":{
+                "since" : {"_date":"Sat Sep 1 19:59:24 PDT 1956"},
+                "fv": {"_blob":"----ghjhsglfhwa"},
+                "city" : "Boston",
+                "location" : "residence"
+            }
+        }
 
-  },
-  {
-      "AddEntity":
-      {
+    },
+    {
+        "AddEntity":
+        {
 
-          "_ref": 3,
-          "class": "Patient",
+            "_ref": 3,
+            "class": "Patient",
 
-          "properties": {
-              "Email":"ast@rashed.com",
-              "Age": 56,
-              "Birthday":{"_date":"Sat Oct 7 17:59:24 PDT 1946"},
-               "Study": false,
-               "avg": 32.4,
+            "properties": {
+                "Email":"ast@rashed.com",
+                "Age": 56,
+                "Birthday":{"_date":"Sat Oct 7 17:59:24 PDT 1946"},
+                "Study": false,
+                "avg": 32.4,
                 "Name": "Mathias",
                 "fv": {"_blob":"----ghjhsglfhwa"}
-          },
-          "constraints":
-          { "Name": ["==", "Mathias"]
-          }
-      }
+            },
+            "constraints":
+            { "Name": ["==", "Mathias"]
+            }
+        }
 
-  },
-  {
-      "AddEntity":
-      {
-          "_ref": 4,
-          "class": "Patient",
+    },
+    {
+        "AddEntity":
+        {
+            "_ref": 4,
+            "class": "Patient",
 
-          "properties": {
-              "Email":"qst@raghehed.com1",
-              "Age": 25,
-               "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
-               "Study": true,
-               "avg": 21.6,
-               "Name": "Alin",
+            "properties": {
+                "Email":"qst@raghehed.com1",
+                "Age": 25,
+                "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
+                "Study": true,
+                "avg": 21.6,
+                "Name": "Alin",
                 "fv": {"_blob":"----ghjhsglfhwa"}
 
-          }
-      }
+            }
+        }
 
-  },
-  {
-      "AddConnection":
-      {
-          "ref1" : 3,
-          "ref2" : 4,
-          "class":  "Married",
-          "properties":{
-              "since" : {"_date":"Sat Sep 1 19:59:24 PDT 1956"}
-          }
-      }
+    },
+    {
+        "AddConnection":
+        {
+            "ref1" : 3,
+            "ref2" : 4,
+            "class":  "Married",
+            "properties":{
+                "since" : {"_date":"Sat Sep 1 19:59:24 PDT 1956"},
+                "city" : "Chicago",
+                "location" : "hotel"
+            }
+        }
 
-  },
+    },
 
- {
-   "FindEntity" : {
-         "_ref" : 15,
-         "class" :  "Patient",
-         "constraints": {
+    {
+        "FindEntity" : {
+            "_ref" : 15,
+            "class" :  "Patient",
+            "constraints": {
 
-          "Age":  [">", 0, "<", 80 ]
-
-
-       },
-
-       "results": {
-       "list": ["Name"]
-     }
-  }
-},
-
-{
-   "FindEntity" : {
-         "_ref" : 16,
-         "class" :  "Patient",
-         "constraints": {
-
-          "Age":  [">", 0, "<", 80 ]
+                "Age":  [">", 0, "<", 80 ]
 
 
-       },
+            },
 
-       "results": {
-       "list": ["Name"]
-     }
-  }
-},
-
-{
-  "FindEntity" : {
-        "class" :  "Patient",
-        "constraints": {
-         "Age":  [">", 0, "<=", 180 ]
-      },
             "results": {
-            "list":["Name","Age"]
-         }
-  }
-},
+                "list": ["Name"]
+            }
+        }
+    },
 
- {
-   "FindEntity" : {
-         "class" :  "Patient",
-         "constraints": {
-           "avg": [">", 1.6],
-           "Email":[">", "g"]
-       },
-       "link": {
-        "direction": "any",
-        "ref": 15
-        },
-       "results": {
+    {
+        "FindEntity" : {
+            "_ref" : 16,
+            "class" :  "Patient",
+            "constraints": {
 
-       "list":["Age","Name", "Email"],
-       "limit" :3
+                "Age":  [">", 0, "<", 80 ]
 
-       }
-   }
-},
-{
-   "FindEntity" : {
-         "class" :  "Patient",
-         "constraints": {
-         "Email":[">", "g"]
-     },
-       "link": {
-        "direction": "any",
-         "ref": 1
-        },
-       "results": {
 
-       "list":["Age","Name", "Email"],
-       "sort":"Email"
-      }
-  }
-},
+            },
 
-{
-  "FindEntity" : {
-        "class" :  "Patient",
-        "constraints": {
-         "Age":  [">", 0, "<=", 100 ]
-      },
-        "results": {
-            "list":["Name","Age","Email", "Study"],
-            "sort" :"Age"
-          }
+            "results": {
+                "list": ["Name"]
+            }
+        }
+    },
+
+    {
+        "FindEntity" : {
+            "class" :  "Patient",
+            "constraints": {
+                "Age":  [">", 0, "<=", 180 ]
+            },
+            "results": {
+                "list":["Name","Age"]
+            }
+        }
+    },
+
+    {
+        "FindEntity" : {
+            "class" :  "Patient",
+            "constraints": {
+                "avg": [">", 1.6],
+                "Email":[">", "g"]
+            },
+            "link": {
+                "direction": "any",
+                "ref": 15
+            },
+            "results": {
+
+                "list":["Age","Name", "Email"],
+                "limit" :3
+
+            }
+        }
+    },
+    {
+        "FindEntity" : {
+            "class" :  "Patient",
+            "constraints": {
+                "Email":[">", "g"]
+            },
+            "link": {
+                "direction": "any",
+                "ref": 1
+            },
+            "results": {
+
+                "list":["Age","Name", "Email"],
+                "sort":"Email"
+            }
+        }
+    },
+
+    {
+        "FindEntity" : {
+            "class" :  "Patient",
+            "constraints": {
+                "Age":  [">", 0, "<=", 100 ]
+            },
+            "results": {
+                "list":["Name","Age","Email", "Study"],
+                "sort" :"Age"
+            }
+        }
+    },
+    {
+        "FindEntity" : {
+            "class" :  "Patient",
+
+            "link": {
+                "direction": "any",
+                "ref":16
+            },
+            "results": {
+
+                "list":["Age","Name", "Email", "Birthday"],
+                "limit":2
+
+
+            }
+        }
+    },
+    {
+        "FindConnection" : {
+            "class" :  "Married",
+
+            "constraints": {
+                "city":  ["==", "Boston" ]
+            },
+            "results": {
+                "list":["location", "city"]
+            }
+        }
     }
-},
-{
-   "FindEntity" : {
-         "class" :  "Patient",
-
-       "link": {
-        "direction": "any",
-        "ref":16
-        },
-       "results": {
-
-       "list":["Age","Name", "Email", "Birthday"],
-       "limit":2
-
-
-       }
-   }
-}
-
 ]
 
