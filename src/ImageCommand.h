@@ -63,9 +63,9 @@ namespace VDMS {
 
     class AddImage: public ImageCommand
     {
-        const std::string DEFAULT_TDB_PATH = "images/tdb/database";
-        const std::string DEFAULT_PNG_PATH = "images/png_database";
-        const std::string DEFAULT_JPG_PATH = "images/jpg_database";
+        const std::string DEFAULT_TDB_PATH = "db/images/tiledb/tdb";
+        const std::string DEFAULT_PNG_PATH = "db/images/png";
+        const std::string DEFAULT_JPG_PATH = "db/images/jpg";
 
         std::string _storage_tdb;
         std::string _storage_png;
@@ -96,7 +96,8 @@ namespace VDMS {
         Json::Value construct_responses(
                 Json::Value &json_responses,
                 const Json::Value &json,
-                protobufs::queryMessage &response);
+                protobufs::queryMessage &response,
+                const std::string &blob);
     };
 
 }; // namespace VDMS

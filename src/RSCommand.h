@@ -84,13 +84,14 @@ namespace VDMS {
         virtual Json::Value construct_responses(
             Json::Value& json_responses,
             const Json::Value& json,
-            protobufs::queryMessage &response);
+            protobufs::queryMessage &response,
+            const std::string &blob);
     };
 
     class AddEntity : public RSCommand
     {
     private:
-        const std::string DEFAULT_BLOB_PATH = "blobs/";
+        const std::string DEFAULT_BLOB_PATH = "db/blobs";
 
         std::string _storage_blob;
 
@@ -129,7 +130,8 @@ namespace VDMS {
         Json::Value construct_responses(
             Json::Value& json_responses,
             const Json::Value& json,
-            protobufs::queryMessage &response);
+            protobufs::queryMessage &response,
+            const std::string &blob);
     };
 
 }; // namespace VDMS

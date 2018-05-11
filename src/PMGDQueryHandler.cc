@@ -48,8 +48,8 @@ RWLock *PMGDQueryHandler::_dblock;
 void PMGDQueryHandler::init()
 {
     std::string dbname = VDMSConfig::instance()
-                        ->get_string_value("pmgd_path", "default_pmgd");
- 
+                        ->get_string_value("pmgd_path", "db/graph");
+
     // Create a db
     _db = new PMGD::Graph(dbname.c_str(), PMGD::Graph::Create);
 

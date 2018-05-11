@@ -6,13 +6,6 @@
     "port": 55555, // Default is 55555
     "max_simultaneous_clients": 20, // Default is 500
 
-    // Database paths
-    "pmgd_path": "db/graph", // This will be an IP address in the future
-    "png_path": "db/images/pngs/",
-    "jpg_path": "db/images/jpgs/",
-    "tdb_path": "db/images/tiledb/tdb/",
-    "blob_path":"db/blobs/",
-
     "support_info": "a-team@intel.com",
     "support_phone": "1-800-A-TEAM"
 }

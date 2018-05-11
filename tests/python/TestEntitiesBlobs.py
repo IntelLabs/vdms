@@ -127,6 +127,7 @@ class TestEntitiesBlob(unittest.TestCase):
         blob_arr.append(fd.read())
 
         response, res_arr = db.query(all_queries, [blob_arr])
+        # vdms.aux_print_json(str(response))
         response = json.loads(response)
 
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
@@ -149,11 +150,11 @@ class TestEntitiesBlob(unittest.TestCase):
         all_queries = []
         all_queries.append(query)
 
-        blob_arr = []
-        fd = open("../test_images/brain.png")
-        blob_arr.append(fd.read())
-
         response, res_arr = db.query(all_queries)
+        # vdms.aux_print_json(str(response))
+        response = json.loads(response)
+
+        self.assertEqual(response[0]["FindEntity"]["entities"][0]["blob"], True)
 
         self.assertEqual(len(res_arr), len(blob_arr))
         self.assertEqual(len(res_arr[0]), len(blob_arr[0]))
