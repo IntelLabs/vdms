@@ -83,6 +83,23 @@ namespace VDMS {
         bool need_blob(const Json::Value& cmd) { return true; }
     };
 
+    class UpdateImage: public ImageCommand
+    {
+    public:
+        UpdateImage();
+
+        int construct_protobuf(PMGDQuery& tx,
+                               const Json::Value& root,
+                               const std::string& blob,
+                               int grp_id,
+                               Json::Value& error);
+
+        Json::Value construct_responses(
+                Json::Value &json_responses,
+                const Json::Value &json,
+                protobufs::queryMessage &response);
+    };
+
     class FindImage: public ImageCommand
     {
     public:

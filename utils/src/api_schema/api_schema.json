@@ -40,6 +40,7 @@
       { "$ref": "#/definitions/AddConnectionTop" },
       { "$ref": "#/definitions/FindConnectionTop" },
       { "$ref": "#/definitions/AddImageTop" },
+      { "$ref": "#/definitions/UpdateImageTop" },
       { "$ref": "#/definitions/FindImageTop" }
     ]
   },
@@ -206,7 +207,14 @@
       "additionalProperties": false
     },
 
-    "FindImageTop": {
+    "UpdateImageTop": {
+      "properties": {
+        "UpdateImage" : { "type": "object", "$ref": "#/definitions/UpdateImage" }
+      },
+      "additionalProperties": false
+    },
+
+   "FindImageTop": {
       "properties": {
         "FindImage" : { "type": "object", "$ref": "#/definitions/FindImage" }
       },
@@ -283,6 +291,18 @@
         "operations": { "$ref": "#/definitions/blockOperations" },
         "collections":{ "$ref": "#/definitions/stringArray" },
         "properties": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+
+    "UpdateImage": {
+      "properties": {
+        "_ref":         { "$ref": "#/definitions/refInt" },
+        //"format":       { "$ref": "#/definitions/formatString" },
+        //"operations":   { "$ref": "#/definitions/blockOperations" },
+        "properties":   { "type": "object" },
+        "remove_props": { "$ref": "#/definitions/stringArray" },
+        "constraints":  { "type": "object" }
       },
       "additionalProperties": false
     },

@@ -40,8 +40,6 @@ using namespace VDMS;
 #define VDMS_IM_EDGE          "VDMS:IMGLINK"
 #define VDMS_IM_PATH_PROP     "VDMS:imgPath"
 
-//========= AddImage definitions =========
-
 ImageCommand::ImageCommand(const std::string &cmd_name):
     RSCommand(cmd_name)
 {
@@ -71,6 +69,8 @@ void ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
         }
     }
 }
+
+//========= AddImage definitions =========
 
 AddImage::AddImage() : ImageCommand("AddImage")
 {
@@ -146,6 +146,53 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     }
 
     return 0;
+}
+
+//========= UpdateImage definitions =========
+
+UpdateImage::UpdateImage() : ImageCommand("UpdateImage")
+{
+}
+
+int UpdateImage::construct_protobuf(PMGDQuery& query,
+    const Json::Value& jsoncmd,
+    const std::string& blob,
+    int grp_id,
+    Json::Value& error)
+{
+    const Json::Value& cmd = jsoncmd[_cmd_name];
+
+    int node_ref = get_value<int>(cmd, "_ref", -1);
+
+    Json::Value constraints = get_value<Json::Value>(cmd, "constraints");
+
+    Json::Value props = get_value<Json::Value>(cmd, "properties");
+
+    Json::Value remove_props = get_value<Json::Value>(cmd, "remove_props");
+
+    // Update Image node
+    query.UpdateNode(node_ref, VDMS_IM_TAG, props,
+                        remove_props,
+                        constraints,
+                        get_value<bool>(cmd, "unique", false));
+
+    return 0;
+}
+
+Json::Value UpdateImage::construct_responses(
+    Json::Value& responses,
+    const Json::Value& json,
+    protobufs::queryMessage &query_res)
+{
+    assert(responses.size() == 1);
+
+    Json::Value ret;
+
+    // TODO In order to support "format" or "operations", we could
+    // implement VCL save operation here.
+
+    ret[_cmd_name].swap(responses[0]);
+    return ret;
 }
 
 //========= FindImage definitions =========

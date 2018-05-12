@@ -463,6 +463,8 @@ void PMGDQuery::UpdateNode(int ref,
                         const Json::Value& constraints,
                         bool unique)
 {
+    _readonly = false;
+
     PMGDCmd* cmdupdate = new PMGDCmd();
     cmdupdate->set_cmd_id(PMGDCmd::UpdateNode);
     cmdupdate->set_cmd_grp_id(_current_group_id);
