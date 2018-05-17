@@ -119,6 +119,7 @@ namespace VDMS {
 
     public:
         static void init();
+        static void destroy();
         PMGDQueryHandler() { _tx = NULL; _readonly = true; }
 
         // The vector here can contain just one JL command but will be surrounded by

@@ -57,6 +57,16 @@ void PMGDQueryHandler::init()
     _dblock = new RWLock();
 }
 
+void PMGDQueryHandler::destroy()
+{
+    if (_db) {
+        delete _db;
+        delete _dblock;
+        _db = NULL;
+        _dblock = NULL;
+    }
+}
+
 std::vector<PMGDCmdResponses>
               PMGDQueryHandler::process_queries(const PMGDCmds &cmds,
               int num_groups, bool readonly)

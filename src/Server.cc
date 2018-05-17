@@ -104,4 +104,6 @@ Server::~Server()
 {
     _cm->shutdown();
     delete _cm;
+    PMGDQueryHandler::destroy();
+    VDMSConfig::destroy();
 }
