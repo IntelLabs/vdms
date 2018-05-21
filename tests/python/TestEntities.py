@@ -98,13 +98,13 @@ class TestEntities(unittest.TestCase):
                                     ["threadid"], thID)
 
     def test_runMultipleAdds(self):
-
         simultaneous = 1000;
         thread_arr = []
         for i in range(1,simultaneous):
             thread_add = Thread(target=self.addEntity,args=(i,) )
             thread_add.start()
             thread_arr.append(thread_add)
+            time.sleep(0.002)
 
         for i in range(1,simultaneous):
             thread_find = Thread(target=self.findEntity,args=(i,) )
