@@ -103,6 +103,21 @@ message UpdateNode
     repeated string remove_props = 4;
 }
 
+message UpdateEdge
+{
+    // Specify an identifier previously found or -1 for no caching
+    int64 identifier = 1;
+
+    // Give a query constraint if id < 0 or no QueryEdge before.
+    QueryEdge query_edge = 2;
+
+    // Specify properties to update.
+    repeated Property properties = 3;
+
+    // Specify properties to remove
+    repeated string remove_props = 4;
+}
+
 message PropertyPredicate
 {
     // These op values need to keep matching the PMGD counterparts.
@@ -293,6 +308,7 @@ message Command
         AddNode   = 0x21;
         AddEdge   = 0x22;
         UpdateNode   = 0x23;
+        UpdateEdge   = 0x24;
 
         QueryNode = 0x30;
         QueryEdge = 0x31;
@@ -315,6 +331,7 @@ message Command
     AddNode add_node    = 10;
     AddEdge add_edge    = 11;
     UpdateNode update_node = 12;
+    UpdateEdge update_edge = 13;
     QueryNode query_node = 15;
     QueryEdge query_edge = 16;
 }

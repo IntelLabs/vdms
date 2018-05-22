@@ -188,6 +188,9 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
             case PMGDCmd::UpdateNode:
                 update_node(cmd->update_node(), response);
                 break;
+            case PMGDCmd::UpdateEdge:
+                update_edge(cmd->update_edge(), response);
+                break;
         }
     }
     catch (Exception e) {
@@ -363,6 +366,51 @@ int PMGDQueryHandler::add_edge(const protobufs::AddEdge &ce,
     // ID of the last edge added
     response->set_op_int_value(eid);
     return 0;
+}
+
+int PMGDQueryHandler::update_edge(const protobufs::UpdateEdge &ue,
+                                  PMGDCmdResponse *response)
+{
+    long id = ue.identifier();
+    bool query = ue.has_query_edge();
+
+    // Make sure there is either an id or a query node
+    if (id < 0 && !query) {
+        set_response(response, PMGDCmdResponse::Error, "No way to find edges to be updated\n");
+        return -1;
+    }
+
+    auto it = _cached_edges.find(id);
+    if (it == _cached_edges.end()) {
+        if (!query) {
+            set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update\n");
+            return -1;
+        }
+        else {
+            query_edge(ue.query_edge(), response);
+            if (response->error_code() != PMGDCmdResponse::Success)
+                return -1;
+            it = _cached_edges.find(ue.query_edge().identifier());  // id could have been -ve
+        }
+    }
+
+    auto eit = it->second;
+    long updated = 0;
+    for ( ; *eit; eit->next()) {
+        Edge &e = **eit;
+        updated++;
+        for (int i = 0; i < ue.properties_size(); ++i) {
+            const protobufs::Property &p = ue.properties(i);
+            set_property(e, p);
+        }
+        for (int i = 0; i < ue.remove_props_size(); ++i)
+            e.remove_property(ue.remove_props(i).c_str());
+    }
+    eit->reset();
+    set_response(response, protobufs::Count, PMGDCmdResponse::Success);
+    response->set_op_int_value(updated);
+    return 0;
+
 }
 
 template <class Element>

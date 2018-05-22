@@ -91,6 +91,7 @@ namespace VDMS {
         int add_node(const PMGD::protobufs::AddNode &cn, PMGDCmdResponse *response);
         int update_node(const PMGD::protobufs::UpdateNode &un, PMGDCmdResponse *response);
         int add_edge(const PMGD::protobufs::AddEdge &ce, PMGDCmdResponse *response);
+        int update_edge(const PMGD::protobufs::UpdateEdge &ue, PMGDCmdResponse *response);
         template <class Element> void set_property(Element &e, const PMGDProp&p);
         int query_node(const PMGDQueryNode &qn, PMGDCmdResponse *response);
         int query_edge(const PMGDQueryEdge &qe, PMGDCmdResponse *response);
