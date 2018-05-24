@@ -386,6 +386,8 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     if (!bool(ni)) {
         set_response(response, PMGDCmdResponse::Empty,
                        "Null search iterator\n");
+        if (has_link)
+            start_ni->reset();
         return -1;
     }
 
@@ -413,6 +415,8 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         if (bool(*tni)) {  // Not unique and that is an error here.
             set_response(response, PMGDCmdResponse::NotUnique,
                            "Query response not unique\n");
+            if (has_link)
+                start_ni->reset();
             delete tni;
             return -1;
         }
