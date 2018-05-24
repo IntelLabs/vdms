@@ -251,8 +251,8 @@ TEST(PMGDQueryHandler, queryTestList)
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
         int nodecount, propcount = 0;
-        for (int i = 0; i < query_count; ++i) {
-            vector<protobufs::CommandResponse *> response = responses[i];
+        for (int q = 0; q < query_count; ++q) {
+            vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
                 EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
                 if (it->r_type() == protobufs::List) {
@@ -458,8 +458,8 @@ TEST(PMGDQueryHandler, queryNeighborTestList)
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
         int nodecount, propcount = 0;
-        for (int i = 0; i < query_count; ++i) {
-            vector<protobufs::CommandResponse *> response = responses[i];
+        for (int q = 0; q < query_count; ++q) {
+            vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
                 EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
                 if (it->r_type() == protobufs::List) {
@@ -560,8 +560,8 @@ TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
         int nodecount, propcount = 0;
-        for (int i = 0; i < query_count; ++i) {
-            vector<protobufs::CommandResponse *> response = responses[i];
+        for (int q = 0; q < query_count; ++q) {
+            vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
                 EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
                 if (it->r_type() == protobufs::List) {
@@ -838,8 +838,8 @@ TEST(PMGDQueryHandler, queryNeighborLinksTestList)
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
         int nodecount, propcount = 0;
-        for (int i = 0; i < query_count; ++i) {
-            vector<protobufs::CommandResponse *> response = responses[i];
+        for (int q = 0; q < query_count; ++q) {
+            vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
                 EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
                 if (it->r_type() == protobufs::List) {
@@ -954,8 +954,8 @@ TEST(PMGDQueryHandler, queryNeighborLinksReuseTestList)
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
         int nodecount = 0, propcount = 0;
         int totnodecount = 0, totpropcount = 0;
-        for (int i = 0; i < query_count; ++i) {
-            vector<protobufs::CommandResponse *> response = responses[i];
+        for (int q = 0; q < query_count; ++q) {
+            vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
                 EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
                 if (it->r_type() == protobufs::List) {
@@ -1081,8 +1081,8 @@ TEST(PMGDQueryHandler, querySortedNeighborLinksReuseTestList)
         int nodecount = 0, propcount = 0;
         int totnodecount = 0, totpropcount = 0;
         bool firstquery = true;
-        for (int i = 0; i < query_count; ++i) {
-            vector<protobufs::CommandResponse *> response = responses[i];
+        for (int q = 0; q < query_count; ++q) {
+            vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
                 EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
                 if (it->r_type() == protobufs::List) {
@@ -1162,8 +1162,8 @@ TEST(PMGDQueryHandler, queryTestListLimit)
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
         int nodecount, propcount = 0;
-        for (int i = 0; i < query_count; ++i) {
-            vector<protobufs::CommandResponse *> response = responses[i];
+        for (int q = 0; q < query_count; ++q) {
+            vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
                 EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
                 if (it->r_type() == protobufs::List) {
