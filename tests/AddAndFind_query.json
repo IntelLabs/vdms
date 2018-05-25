@@ -218,6 +218,7 @@
     },
     {
         "FindConnection" : {
+            "_ref" : 25,
             "class" :  "Married",
 
             "constraints": {
@@ -225,6 +226,15 @@
             },
             "results": {
                 "list":["location", "city"]
+            }
+        }
+    },
+    {
+        "UpdateConnection" : {
+            "_ref" : 25,
+
+            "properties": {
+                "city" : "Atlanta"
             }
         }
     }

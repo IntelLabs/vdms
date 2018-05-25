@@ -132,6 +132,22 @@ namespace VDMS {
                                Json::Value& error);
     };
 
+    class UpdateConnection : public RSCommand
+    {
+    public:
+        UpdateConnection();
+        int construct_protobuf(PMGDQuery& query,
+                               const Json::Value& root,
+                               const std::string& blob,
+                               int grp_id,
+                               Json::Value& error);
+
+        Json::Value construct_responses(
+            Json::Value& json_responses,
+            const Json::Value& json,
+            protobufs::queryMessage &response);
+    };
+
     class FindEntity : public RSCommand
     {
     public:

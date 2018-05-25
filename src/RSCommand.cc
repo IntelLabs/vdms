@@ -275,6 +275,52 @@ int AddConnection::construct_protobuf(
     return 0;
 }
 
+//========= UpdateConnection definitions =========
+
+UpdateConnection::UpdateConnection() : RSCommand("UpdateConnection")
+{
+}
+
+int UpdateConnection::construct_protobuf(PMGDQuery& query,
+    const Json::Value& jsoncmd,
+    const std::string& blob,
+    int grp_id,
+    Json::Value& error)
+{
+    const Json::Value& cmd = jsoncmd[_cmd_name];
+
+    int edge_ref = get_value<int>(cmd, "_ref", -1);
+
+    query.UpdateEdge(
+            edge_ref,
+            get_value<int>(cmd, "ref1", -1),
+            get_value<int>(cmd, "ref2", -1),
+            get_value<std::string>(cmd, "class"),
+            cmd["properties"],
+            cmd["remove_props"],
+            cmd["constraints"],
+            get_value<bool>(cmd, "unique", false)
+            );
+
+    return 0;
+}
+
+Json::Value UpdateConnection::construct_responses(
+    Json::Value& response,
+    const Json::Value& json,
+    protobufs::queryMessage &query_res)
+{
+    assert(response.size() == 1);
+
+    Json::Value ret;
+
+    // This will change the response tree,
+    // but it is ok and avoids a copy
+    ret[_cmd_name].swap(response[0]);
+
+    return ret;
+}
+
 //========= FindEntity definitions =========
 
 FindEntity::FindEntity() : RSCommand("FindEntity")

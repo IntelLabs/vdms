@@ -522,6 +522,48 @@ void PMGDQuery::AddEdge(int ident,
     _cmds.push_back(cmdedge);
 }
 
+void PMGDQuery::UpdateEdge(int ref, int src_ref, int dest_ref,
+                        const std::string& tag,
+                        const Json::Value& props,
+                        const Json::Value& remove_props,
+                        const Json::Value& constraints,
+                        bool unique)
+{
+    _readonly = false;
+
+    PMGDCmd* cmdupdate = new PMGDCmd();
+    cmdupdate->set_cmd_id(PMGDCmd::UpdateEdge);
+    cmdupdate->set_cmd_grp_id(_current_group_id);
+    PMGD::protobufs::UpdateEdge *ue = cmdupdate->mutable_update_edge();
+    ue->set_identifier(ref);
+
+    for (auto it = props.begin(); it != props.end(); ++it) {
+        PMGDProp* p = ue->add_properties();
+        set_property(p, it.key().asString(), *it);
+    }
+
+    for (auto it = remove_props.begin(); it != remove_props.end(); it++) {
+        std::string *r_key= ue->add_remove_props();
+        *r_key = (*it).asString();
+    }
+
+    if(!constraints.isNull()) {
+        PMGDQueryEdge *qe = ue->mutable_query_edge();
+        qe->set_identifier(ref < 0 ? get_available_reference() : ref);
+        qe->set_src_node_id(src_ref);
+        qe->set_dest_node_id(dest_ref);
+        PMGDQueryConstraints *qc = qe->mutable_constraints();
+        qc->set_tag(tag);
+        qc->set_unique(unique);
+        qc->set_p_op(PMGD::protobufs::And);
+        parse_query_constraints(constraints, qc);
+        PMGDQueryResultInfo *qr = qe->mutable_results();
+        qr->set_r_type(PMGD::protobufs::EdgeID); // Since PMGD returns ids.
+    }
+
+    _cmds.push_back(cmdupdate);
+}
+
 void PMGDQuery::QueryNode(int ref,
                           const std::string& tag,
                           const Json::Value& link,

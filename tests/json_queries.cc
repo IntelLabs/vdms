@@ -275,6 +275,10 @@ TEST(QueryHandler, AddAndFind)
           in_props=query["properties"].size();
         else if (cmd == "FindConnection")
           in_query_num++;
+        else if (cmd == "UpdateConnection") {
+            count_found_before=true;
+            in_edge_num++;
+        }
     }
 
     VDMSConfig::init("config-addfind-tests.json");
@@ -301,6 +305,8 @@ TEST(QueryHandler, AddAndFind)
         if (cmd=="AddEntity")
             out_node_num++;
         if (cmd=="AddConnection")
+            out_edge_num++;
+        if (cmd == "UpdateConnection")
             out_edge_num++;
         if (cmd == "FindEntity" || cmd == "FindConnection")
             out_query_num++;
