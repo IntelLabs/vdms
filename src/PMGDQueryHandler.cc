@@ -50,7 +50,8 @@ void PMGDQueryHandler::init()
     std::string dbname = VDMSConfig::instance()
                         ->get_string_value("pmgd_path", "default_pmgd");
     unsigned attempts = VDMSConfig::instance()
-                        ->get_int_value("max_lock_attempts", RWLock::MAX_ATTEMPTS);
+                        ->get_int_value("max_lock_attempts",
+                                        RWLock::MAX_ATTEMPTS);
 
     // Create a db
     _db = new PMGD::Graph(dbname.c_str(), PMGD::Graph::Create);
@@ -467,12 +468,6 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     const PMGDQueryConstraints &qc = qn.constraints();
     const PMGDQueryResultInfo &qr = qn.results();
 
-    if (qc.p_op() == protobufs::Or) {
-        set_response(response, PMGDCmdResponse::Error,
-                       "Or operation not implemented\n");
-        return -1;
-    }
-
     long id = qn.identifier();
     if (id >= 0 && _cached_nodes.find(id) != _cached_nodes.end()) {
         set_response(response, PMGDCmdResponse::Error,
@@ -483,11 +478,14 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     bool has_link = qn.has_link();
     if (has_link)  { // case where link is used.
         const protobufs::LinkInfo &link = qn.link();
-        if (link.nb_unique()) {  // TODO Add support for unique neighbors across iterators
+
+        if (link.nb_unique()) {
+            // TODO Add support for unique neighbors across iterators
             set_response(response, PMGDCmdResponse::Error,
                            "Non-repeated neighbors not supported\n");
             return -1;
         }
+
         long start_id = link.start_identifier();
         auto start = _cached_nodes.find(start_id);
         if (start == _cached_nodes.end()) {
@@ -507,7 +505,8 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
                                 ? StringID(qc.tagid())
                                 : StringID(qc.tag().c_str());
 
-    SearchExpression search(*_db, search_node_tag);
+    SearchExpression search(*_db, search_node_tag,
+                            qn.constraints().p_op() == protobufs::Or);
 
     for (int i = 0; i < qc.predicates_size(); ++i) {
         const PMGDPropPred &p_pp = qc.predicates(i);
@@ -515,7 +514,7 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         search.add(j_pp);
     }
 
-    NodeIterator ni = has_link ?
+    PMGD::NodeIterator ni = has_link ?
                        PMGD::NodeIterator(new MultiNeighborIteratorImpl(start_ni, search, dir, edge_tag))
                        : search.eval_nodes();
     if (!bool(ni)) {
@@ -626,7 +625,7 @@ int PMGDQueryHandler::query_edge(const protobufs::QueryEdge &qe,
                                 ? StringID(qc.tagid())
                                 : StringID(qc.tag().c_str());
 
-    SearchExpression search(*_db, search_edge_tag);
+    SearchExpression search(*_db, search_edge_tag, false);
 
     for (int i = 0; i < qc.predicates_size(); ++i) {
         const PMGDPropPred &p_pp = qc.predicates(i);

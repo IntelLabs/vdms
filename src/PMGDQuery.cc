@@ -87,7 +87,7 @@ Json::Value& PMGDQuery::run()
             return _json_responses;
         }
         _json_responses["status"] = -1;
-        _json_responses["info"] = "PMGD Transacion Error";
+        _json_responses["info"] = "PMGDQuery: PMGD Transacion Error";
         return _json_responses;
     }
 
@@ -337,16 +337,49 @@ void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
         assert(predicate.isArray());
         assert(predicate.size() == 2 || predicate.size() == 4);
 
-        PMGDPropPred* pp = qn->add_predicates();
-        pp->set_key(key);  //assign the property predicate key
+        if (predicate.size() == 2 && predicate[1].isArray()) {
 
-        PMGDProp* p1 = pp->mutable_v1();
-        set_property(p1, key, predicate[1]);
+            // This will make the entire query OR,
+            // not sure if it is right.
+            qn->set_p_op(PMGD::protobufs::Or);
 
-        PMGDPropPred::Op op;
-        const std::string& pred1 = predicate[0].asString();
+            const std::string& pred1 = predicate[0].asString();
 
-        if (predicate.size() == 2) {
+            PMGDPropPred::Op op;
+
+            if (pred1 == ">")
+                op = PMGDPropPred::Gt;
+            else if (pred1 == ">=")
+                op = PMGDPropPred::Ge;
+            else if (pred1 == "<")
+                op = PMGDPropPred::Lt;
+            else if (pred1 == "<=")
+                op = PMGDPropPred::Le;
+            else if (pred1 == "==")
+                op = PMGDPropPred::Eq;
+            else if (pred1 == "!=")
+                op = PMGDPropPred::Ne;
+
+            for (auto& value : predicate[1]) {
+
+                PMGDPropPred* pp = qn->add_predicates();
+                pp->set_key(key);  //assign the property predicate key
+                pp->set_op(op);
+                PMGDProp* p1 = pp->mutable_v1();
+                set_property(p1, key, value);
+            }
+
+        }
+        else if (predicate.size() == 2) {
+
+            PMGDPropPred* pp = qn->add_predicates();
+            pp->set_key(key);  //assign the property predicate key
+
+            PMGDProp* p1 = pp->mutable_v1();
+            set_property(p1, key, predicate[1]);
+
+            const std::string& pred1 = predicate[0].asString();
+
             if (pred1 == ">")
                 pp->set_op(PMGDPropPred::Gt);
             else if (pred1 == ">=")
@@ -361,6 +394,15 @@ void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
                 pp->set_op(PMGDPropPred::Ne);
         }
         else {
+
+            PMGDPropPred* pp = qn->add_predicates();
+            pp->set_key(key);  //assign the property predicate key
+
+            PMGDProp* p1 = pp->mutable_v1();
+            set_property(p1, key, predicate[1]);
+
+            const std::string& pred1 = predicate[0].asString();
+
             PMGDProp* p2 = pp->mutable_v2();
             set_property(p2, key, predicate[3]);
 
