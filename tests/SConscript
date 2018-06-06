@@ -9,13 +9,13 @@ testenv.Replace(
               '/usr/include/jsoncpp/',
               os.path.join(env['INTEL_PATH'], 'pmgd/include'),
               os.path.join(env['INTEL_PATH'], 'pmgd/util'),
-              os.path.join(env['INTEL_PATH'], 'vcl/include'),
-              os.path.join(env['INTEL_PATH'], 'vcl/src'),
+              os.path.join(env['INTEL_PATH'], 'dev_vcl/include'),
+              os.path.join(env['INTEL_PATH'], 'dev_vcl/src'),
              ])
 
 testenv.Append(
       LIBS = ['gtest'],
-      LIBPATH = ['../utils/']
+      LIBPATH = ['/usr/local/lib/','../utils/']
       )
 
 testenv.MergeFlags(GetOption('cflags'))
