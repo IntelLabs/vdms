@@ -16,6 +16,7 @@
     "jpg_path": "db/images/jpgs/",
     "tdb_path": "db/images/tiledb/tdb/",
     "blob_path":"db/blobs/",
+    "video_path" : "db/videos/" ,
 
     "support_info": "a-team@intel.com",
     "support_phone": "1-800-A-TEAM"

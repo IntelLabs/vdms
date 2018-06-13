@@ -9,8 +9,8 @@ testenv.Replace(
               '/usr/include/jsoncpp/',
               os.path.join(env['INTEL_PATH'], 'pmgd/include'),
               os.path.join(env['INTEL_PATH'], 'pmgd/util'),
-              os.path.join(env['INTEL_PATH'], 'dev_vcl/include'),
-              os.path.join(env['INTEL_PATH'], 'dev_vcl/src'),
+              os.path.join(env['INTEL_PATH'], 'vcl/include'),
+              os.path.join(env['INTEL_PATH'], 'vcl/src'),
              ])
 
 testenv.Append(
@@ -20,7 +20,10 @@ testenv.Append(
 
 testenv.MergeFlags(GetOption('cflags'))
 
-test_sources = ['main.cc', 'pmgd_queries.cc', 'json_queries.cc']
+test_sources = ['main.cc',
+                #'pmgd_queries.cc',
+                'json_queries.cc'
+                ]
 
 query_tests = testenv.Program(
                 'query_tests',
@@ -29,6 +32,7 @@ query_tests = testenv.Program(
                   '../src/VDMSConfig.o',
                   '../src/RSCommand.o',
                   '../src/ImageCommand.o',
+                  '../src/VideoCommand.o',
                   '../src/ExceptionsCommand.o',
                   '../src/PMGDIterators.o',
                   '../src/PMGDQueryHandler.o',

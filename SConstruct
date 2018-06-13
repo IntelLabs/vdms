@@ -14,8 +14,8 @@ def buildServer(env):
               '/usr/include/jsoncpp/',
               os.path.join(env['INTEL_PATH'], 'pmgd/include'),
               os.path.join(env['INTEL_PATH'], 'pmgd/util'),
-              os.path.join(env['INTEL_PATH'], 'dev_vcl/include'),
-              os.path.join(env['INTEL_PATH'], 'dev_vcl/src'),
+              os.path.join(env['INTEL_PATH'], 'vcl/include'),
+              os.path.join(env['INTEL_PATH'], 'vcl/src'),
              ],
     LIBS = [ 'pmgd', 'pmgd-util',
              'jsoncpp', 'protobuf', 'tbb',
@@ -23,7 +23,7 @@ def buildServer(env):
            ],
     LIBPATH = ['/usr/local/lib/', 'utils/',
                os.path.join(env['INTEL_PATH'], 'utils/'),
-               os.path.join(env['INTEL_PATH'], 'dev_vcl/'),
+               os.path.join(env['INTEL_PATH'], 'vcl/'),
                os.path.join(env['INTEL_PATH'], 'pmgd/lib/')
                ]
   )
@@ -41,9 +41,10 @@ def buildServer(env):
                   'src/PMGDQueryHandler.cc',
                   'src/RSCommand.cc',
                   'src/ImageCommand.cc',
-                  'src/ExceptionsCommand.cc',
                   'src/DescriptorsManager.cc',
                   'src/DescriptorsCommand.cc',
+                  'src/VideoCommand.cc',
+                  'src/ExceptionsCommand.cc'
                 ]
 
   vdms = env.Program('vdms', vdms_server_files)

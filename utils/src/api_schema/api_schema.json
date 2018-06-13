@@ -47,6 +47,12 @@
       { "$ref": "#/definitions/AddDescriptorTop" },
       { "$ref": "#/definitions/ClassifyDescriptorTop" },
       { "$ref": "#/definitions/FindDescriptorTop" }
+      { "$ref": "#/definitions/AddVideoTop" },
+      { "$ref": "#/definitions/UpdateVideoTop" },
+      { "$ref": "#/definitions/FindVideoTop" },
+      { "$ref": "#/definitions/AddFrameTop" },
+      { "$ref": "#/definitions/UpdateFrameTop" },
+      { "$ref": "#/definitions/FindFrameTop" }
     ]
   },
   "uniqueItems": false,
@@ -268,6 +274,48 @@
       "additionalProperties": false
     },
 
+    "AddVideoTop": {
+      "properties": {
+        "AddVideo" : { "type": "object", "$ref": "#/definitions/AddVideo" }
+      },
+      "additionalProperties": false
+    },
+
+    "UpdateVideoTop": {
+      "properties": {
+        "UpdateVideo" : { "type": "object", "$ref": "#/definitions/UpdateVideo" }
+      },
+      "additionalProperties": false
+    },
+
+    "FindVideoTop": {
+      "properties": {
+        "FindVideo" : { "type": "object", "$ref": "#/definitions/FindVideo" }
+      },
+      "additionalProperties": false
+    },
+
+    "AddFrameTop": {
+      "properties": {
+        "AddFrame" : { "type": "object", "$ref": "#/definitions/AddFrame" }
+      },
+      "additionalProperties": false
+    },
+
+    "UpdateFrameTop": {
+      "properties": {
+        "UpdateFrame" : { "type": "object", "$ref": "#/definitions/UpdateFrame" }
+      },
+      "additionalProperties": false
+    },
+
+   "FindFrameTop": {
+      "properties": {
+        "FindFrame" : { "type": "object", "$ref": "#/definitions/FindFrame" }
+      },
+      "additionalProperties": false
+    },
+
     // Commands
 
     "AddEntity": {
@@ -424,6 +472,82 @@
         "properties":  { "type": "object" }
       },
       "required": ["set"],
+      "additionalProperties": false
+    },
+
+    "AddVideo": {
+      "properties": {
+        "_ref":       { "$ref": "#/definitions/refInt" },
+        "format":     { "$ref": "#/definitions/formatString" },
+        "link":       { "$ref": "#/definitions/blockLink" },
+        "operations": { "$ref": "#/definitions/blockOperations" },
+        "collections":{ "$ref": "#/definitions/stringArray" },
+        "properties": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+
+    "UpdateVideo": {
+      "properties": {
+        "_ref":         { "$ref": "#/definitions/refInt" },
+        //"format":       { "$ref": "#/definitions/formatString" },
+        //"operations":   { "$ref": "#/definitions/blockOperations" },
+        "properties":   { "type": "object" },
+        "remove_props": { "$ref": "#/definitions/stringArray" },
+        "constraints":  { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+
+    "FindVideo": {
+      "properties": {
+        "_ref":        { "$ref": "#/definitions/refInt" },
+        "link":        { "$ref": "#/definitions/blockLink" },
+        "operations":  { "$ref": "#/definitions/blockOperations" },
+        "format":      { "$ref": "#/definitions/formatString" },
+        "constraints": { "type": "object" },
+        "results":     { "$ref": "#/definitions/blockResults" },
+        "unique":      { "type": "boolean" }
+      },
+
+      "additionalProperties": false
+    },
+
+    "AddFrame": {
+      "properties": {
+        "_ref":       { "$ref": "#/definitions/refInt" },
+        "format":     { "$ref": "#/definitions/formatString" },
+        "link":       { "$ref": "#/definitions/blockLink" },
+        "operations": { "$ref": "#/definitions/blockOperations" },
+        "collections":{ "$ref": "#/definitions/stringArray" },
+        "properties": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+
+    "UpdateFrame": {
+      "properties": {
+        "_ref":         { "$ref": "#/definitions/refInt" },
+        //"format":       { "$ref": "#/definitions/formatString" },
+        //"operations":   { "$ref": "#/definitions/blockOperations" },
+        "properties":   { "type": "object" },
+        "remove_props": { "$ref": "#/definitions/stringArray" },
+        "constraints":  { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+
+    "FindFrame": {
+      "properties": {
+        "_ref":        { "$ref": "#/definitions/refInt" },
+        "link":        { "$ref": "#/definitions/blockLink" },
+        "operations":  { "$ref": "#/definitions/blockOperations" },
+        "format":      { "$ref": "#/definitions/formatString" },
+        "constraints": { "type": "object" },
+        "results":     { "$ref": "#/definitions/blockResults" },
+        "unique":      { "type": "boolean" }
+      },
+
       "additionalProperties": false
     }
 

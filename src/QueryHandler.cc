@@ -36,6 +36,7 @@
 
 #include "ImageCommand.h"
 #include "DescriptorsCommand.h"
+#include "VideoCommand.h"
 #include "ExceptionsCommand.h"
 
 #include "PMGDQuery.h"
@@ -71,6 +72,12 @@ void QueryHandler::init()
     _rs_cmds["AddDescriptor"]      = new AddDescriptor();
     _rs_cmds["ClassifyDescriptor"] = new ClassifyDescriptor();
     _rs_cmds["FindDescriptor"]     = new FindDescriptor();
+
+    _rs_cmds["AddVideo"]   = new AddVideo();
+    _rs_cmds["UpdateVideo"]   = new UpdateVideo();
+    _rs_cmds["FindVideo"]  = new FindVideo();
+    _rs_cmds["FindFrame"]  = new FindFrame();
+    _rs_cmds["AddFrame"]  = new AddFrame();
 
     // Load the string containing the schema (api_schema/APISchema.h)
     Json::Reader reader;
@@ -248,6 +255,14 @@ void QueryHandler::cleanup_query(const std::vector<std::string>& images)
     for (auto& img_path : images) {
         VCL::Image img(img_path);
         img.delete_image();
+    }
+}
+
+void QueryHandler::cleanup_videos_query(const std::vector<std::string>& videos)
+{
+    for (auto& video_path : videos) {
+        VCL::Video video(video_path);
+        //video.delete_video();
     }
 }
 
