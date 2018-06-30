@@ -120,7 +120,7 @@ TEST(AddVideo, simpleAddFile)
     std::ifstream ifile;
     int fsize;
     char * inBuf;
-    ifile.open("VideoAdd.json", std::ifstream::in);
+    ifile.open("tests/VideoAdd.json", std::ifstream::in);
     ifile.seekg(0, std::ios::end);
     fsize = (int)ifile.tellg();
     ifile.seekg(0, std::ios::beg);
@@ -140,7 +140,7 @@ TEST(AddVideo, simpleAddFile)
     Json::Value parsed;
 
     std::cout << json_query << std::endl;
-    VDMSConfig::init("config-tests.json");
+    VDMSConfig::init("tests/config-tests.json");
     PMGDQueryHandler::init();
     QueryHandler::init();
 
@@ -151,7 +151,7 @@ TEST(AddVideo, simpleAddFile)
     proto_query.set_json(string_query);
 
     std::string video;
-    std::ifstream file("test_videos/Megamind.avi",
+    std::ifstream file("tests/test_videos/Megamind.avi",
                     std::ios::in | std::ios::binary | std::ios::ate);
 
     video.resize(file.tellg());
@@ -259,7 +259,7 @@ TEST(AddVideo, simpleAddx10)
      std::ifstream ifile;
     int fsize;
     char * inBuf;
-    ifile.open("VideoAdd.json", std::ifstream::in);
+    ifile.open("tests/VideoAdd.json", std::ifstream::in);
     ifile.seekg(0, std::ios::end);
     fsize = (int)ifile.tellg();
     ifile.seekg(0, std::ios::beg);
@@ -288,7 +288,7 @@ TEST(AddVideo, simpleAddx10)
     Json::Value root;
     Json::Value parsed;
 
-    VDMSConfig::init("config-tests.json");
+    VDMSConfig::init("tests/config-tests.json");
     PMGDQueryHandler::init();
     QueryHandler::init();
 
@@ -302,7 +302,7 @@ TEST(AddVideo, simpleAddx10)
 
 
     std::string video;
-    std::ifstream file("test_videos/Megamind.avi",
+    std::ifstream file("tests/test_videos/Megamind.avi",
                     std::ios::in | std::ios::binary | std::ios::ate);
 
     video.resize(file.tellg());

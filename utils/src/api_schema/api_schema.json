@@ -149,7 +149,10 @@
       "type": "object",
       "properties": {
         "type":  { "enum": [ "threshold" ] },
-        "value": { "$ref": "#/definitions/nonNegativeInt" }
+        "value": { "$ref": "#/definitions/nonNegativeInt" },
+        "start":     { "$ref": "#/definitions/nonNegativeInt" },
+        "stop":      { "$ref": "#/definitions/nonNegativeInt" },
+         "step":      { "$ref": "#/definitions/nonNegativeInt" }
       },
       "required": ["type", "value"],
       "additionalProperties": false
@@ -160,7 +163,10 @@
       "properties": {
         "type":   { "enum": [ "resize" ] },
         "height": { "$ref": "#/definitions/positiveInt" },
-        "width":  { "$ref": "#/definitions/positiveInt" }
+        "width":  { "$ref": "#/definitions/positiveInt" },
+        "start":     { "$ref": "#/definitions/nonNegativeInt" },
+        "stop":      { "$ref": "#/definitions/nonNegativeInt" },
+        "step":      { "$ref": "#/definitions/nonNegativeInt" }
       },
       "required": ["type", "height", "width"],
       "additionalProperties": false
@@ -173,10 +179,13 @@
         "x":      { "$ref": "#/definitions/nonNegativeInt" },
         "y":      { "$ref": "#/definitions/nonNegativeInt" },
         "height": { "$ref": "#/definitions/positiveInt" },
-        "width":  { "$ref": "#/definitions/positiveInt" }
+        "width":  { "$ref": "#/definitions/positiveInt" },
+        "start":     { "$ref": "#/definitions/nonNegativeInt" },
+        "stop":      { "$ref": "#/definitions/nonNegativeInt" },
+         "step":      { "$ref": "#/definitions/nonNegativeInt" }
       },
       "required": ["type", "x", "y", "height", "width"],
-      "additionalProperties": false
+      "additionalProperties": true
     },
 
     // Top-Level Commands (needed for the Schema)

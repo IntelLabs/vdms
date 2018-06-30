@@ -1,0 +1,70 @@
+[
+    {
+        "AddVideo":
+        {
+
+            "_ref": 1,
+            "class": "Video",
+
+            "properties": {
+                "Email":"rst@rashed.com",
+                "Age": 86,
+                "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
+                "Name":"Mark"
+            }
+        }
+
+    },
+    {
+        "AddVideo":
+        {
+            "_ref": 2,
+            "class": "Video",
+
+            "properties": {
+                "Email":"gst@raghehed.com1",
+                "Age": 80,
+                "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
+                "Name": "Kai"
+
+            }
+        }
+    },
+    {
+        "UpdateVideo" : {
+            "class" :  "Video",
+
+            "constraints": {
+                "Name" : [ "==",  "Kai" ]
+            },
+
+            "properties": {
+                "City" : "Atlanta",
+                "Name": "Kai1"
+
+            }
+        }
+    },
+    {
+        "UpdateVideo" : {
+            "_ref" : 1,
+
+            "properties": {
+                "City" : "Houston",
+                "Name" : "Mark Hammond"
+            },
+
+            "remove_props" : [ "fv" ]
+        }
+    },
+    {
+        "FindVideo" : {
+            "constraints" : {
+                "Age" : [ ">=", 80 ]
+            },
+            "results" : {
+                "list" : [ "fv" ]
+            }
+        }
+    }
+]

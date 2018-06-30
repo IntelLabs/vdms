@@ -51,7 +51,10 @@ void VideoCommand::enqueue_operations(VCL::Video& video, const Json::Value& ops)
     for (auto& op : ops) {
         const std::string& type = get_value<std::string>(op, "type");
         if (type == "threshold") {
-            video.threshold(get_value<int>(op, "value"));
+            video.threshold(get_value<int>(op, "value"),
+                            get_value<int>(op, "start"),
+                            get_value<int>(op, "stop"),
+                            get_value<int>(op, "step") );
         }
         else if (type == "interval") {
         //   video.interval(get_value<int>(op, "from"),
@@ -59,14 +62,22 @@ void VideoCommand::enqueue_operations(VCL::Video& video, const Json::Value& ops)
         }
         else if (type == "resize") {
              video.resize(get_value<int>(op, "height"),
-                           get_value<int>(op, "width") );
+                           get_value<int>(op, "width") ,
+                           get_value<int>(op, "start"),
+                          get_value<int>(op, "stop"),
+                          get_value<int>(op, "step"));
         }
         else if (type == "crop") {
-            // video.crop(VCL::Rectangle (
-            //             get_value<int>(op, "x"),
-            //             get_value<int>(op, "y"),
-            //             get_value<int>(op, "width"),
-            //             get_value<int>(op, "height") ));
+            video.crop(VCL::Rectangle (
+                        get_value<int>(op, "x"),
+                        get_value<int>(op, "y"),
+                        get_value<int>(op, "width"),
+                        get_value<int>(op, "height") ),
+                        get_value<int>(op, "start"),
+                        get_value<int>(op, "stop"),
+                        get_value<int>(op, "step")
+
+            );
         }
         else {
             throw ExceptionCommand(ImageError, "Operation not defined");
@@ -142,7 +153,7 @@ int AddVideo::construct_protobuf(PMGDQuery& query,
     // Add Video node
     query.AddNode(node_ref, VDMS_VIDEO_TAG, props, Json::Value());
 
-    video.store(file_name, vcl_format);
+    video.store(file_name, vcl_format, 10, 100, 1);
 
     // In case we need to cleanup the query
     error["video_added"] = file_name;
@@ -170,7 +181,7 @@ int AddFrame::construct_protobuf(PMGDQuery& query,
     int node_ref = get_value<int>(cmd, "_ref",
                                   query.get_available_reference());
 
-    VCL::Video video((void*)blob.data(), blob.size());
+
 
     if (cmd.isMember("operations")) {
        // enqueue_operations(video, cmd["operations"]);
@@ -202,7 +213,7 @@ int AddFrame::construct_protobuf(PMGDQuery& query,
         }
 
     }
-
+    VCL::Video video((void*)blob.data(), blob.size());
     std::string file_name = video.create_unique(video_root, vcl_format);
 
     // Modifiyng the existing properties that the user gives
