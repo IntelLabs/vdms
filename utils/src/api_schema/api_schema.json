@@ -152,7 +152,7 @@
         "value": { "$ref": "#/definitions/nonNegativeInt" },
         "start":     { "$ref": "#/definitions/nonNegativeInt" },
         "stop":      { "$ref": "#/definitions/nonNegativeInt" },
-         "step":      { "$ref": "#/definitions/nonNegativeInt" }
+        "step":      { "$ref": "#/definitions/nonNegativeInt" }
       },
       "required": ["type", "value"],
       "additionalProperties": false

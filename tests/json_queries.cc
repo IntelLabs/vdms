@@ -151,7 +151,7 @@ TEST(AddVideo, simpleAddFile)
     proto_query.set_json(string_query);
 
     std::string video;
-    std::ifstream file("tests/test_videos/Megamind.avi",
+    std::ifstream file("tests/test_videos/pedestrian1.avi",
                     std::ios::in | std::ios::binary | std::ios::ate);
 
     video.resize(file.tellg());
@@ -302,7 +302,7 @@ TEST(AddVideo, simpleAddx10)
 
 
     std::string video;
-    std::ifstream file("tests/test_videos/Megamind.avi",
+    std::ifstream file("tests/test_videos/pedestrian1.avi",
                     std::ios::in | std::ios::binary | std::ios::ate);
 
     video.resize(file.tellg());
