@@ -49,12 +49,24 @@ void PMGDQueryHandler::init()
 {
     std::string dbname = VDMSConfig::instance()
                         ->get_string_value("pmgd_path", "default_pmgd");
+    unsigned attempts = VDMSConfig::instance()
+                        ->get_int_value("max_lock_attempts", RWLock::MAX_ATTEMPTS);
  
     // Create a db
     _db = new PMGD::Graph(dbname.c_str(), PMGD::Graph::Create);
 
     // Create the query handler here assuming database is valid now.
-    _dblock = new RWLock();
+    _dblock = new RWLock(attempts);
+}
+
+void PMGDQueryHandler::destroy()
+{
+    if (_db) {
+        delete _db;
+        delete _dblock;
+        _db = NULL;
+        _dblock = NULL;
+    }
 }
 
 std::vector<PMGDCmdResponses>
@@ -67,10 +79,20 @@ std::vector<PMGDCmdResponses>
 
     // Assuming one query handler handles one TX at a time.
     _readonly = readonly;
-    if (_readonly)
-        _dblock->read_lock();
-    else
-        _dblock->write_lock();
+    try {
+        if (_readonly)
+            _dblock->read_lock();
+        else
+            _dblock->write_lock();
+    }
+    catch (Exception e) {
+        PMGDCmdResponses &resp_v = responses[0];
+        PMGDCmdResponse *response = new PMGDCmdResponse();
+        set_response(response, PMGDCmdResponse::Exception,
+                        e.name + std::string(": ") +  e.msg);
+        resp_v.push_back(response);
+        return responses;
+    }
 
     for (const auto cmd : cmds) {
         PMGDCmdResponse *response = new PMGDCmdResponse();
@@ -364,6 +386,8 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     if (!bool(ni)) {
         set_response(response, PMGDCmdResponse::Empty,
                        "Null search iterator\n");
+        if (has_link)
+            start_ni->reset();
         return -1;
     }
 
@@ -391,6 +415,8 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         if (bool(*tni)) {  // Not unique and that is an error here.
             set_response(response, PMGDCmdResponse::NotUnique,
                            "Query response not unique\n");
+            if (has_link)
+                start_ni->reset();
             delete tni;
             return -1;
         }

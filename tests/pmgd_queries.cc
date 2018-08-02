@@ -163,7 +163,7 @@ TEST(PMGDQueryHandler, addTest)
         for (int i = 0; i < query_count; ++i) {
             vector<protobufs::CommandResponse *> response = responses[i];
             for (auto it : response) {
-                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << "Unsuccessful TX";
+                EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << "Unsuccessful TX";
                 if (it->r_type() == protobufs::NodeID) {
                     long nodeid = it->op_int_value();
                     EXPECT_EQ(nodeid, nodeids++) << "Unexpected node id";
@@ -176,6 +176,7 @@ TEST(PMGDQueryHandler, addTest)
         }
     }
     VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
 }
 
 void print_property(const string &key, const protobufs::Property &p)
@@ -250,10 +251,10 @@ TEST(PMGDQueryHandler, queryTestList)
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
         int nodecount, propcount = 0;
-        for (int i = 0; i < query_count; ++i) {
-            vector<protobufs::CommandResponse *> response = responses[i];
+        for (int q = 0; q < query_count; ++q) {
+            vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
-                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
                 if (it->r_type() == protobufs::List) {
                     auto mymap = it->prop_values();
                     for(auto m_it : mymap) {
@@ -274,6 +275,7 @@ TEST(PMGDQueryHandler, queryTestList)
         EXPECT_EQ(propcount, 2) << "Not enough properties read";
     }
     VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
 }
 
 TEST(PMGDQueryHandler, queryTestAverage)
@@ -316,7 +318,7 @@ TEST(PMGDQueryHandler, queryTestAverage)
         for (int i = 0; i < query_count; ++i) {
             vector<protobufs::CommandResponse *> response = responses[i];
             for (auto it : response) {
-                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
                 if (it->r_type() == protobufs::Average) {
                     EXPECT_EQ(it->op_float_value(), 76.5) << "Average didn't match expected for four patients' age";
                 }
@@ -324,6 +326,7 @@ TEST(PMGDQueryHandler, queryTestAverage)
         }
     }
     VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
 }
 
 TEST(PMGDQueryHandler, queryTestUnique)
@@ -376,7 +379,7 @@ TEST(PMGDQueryHandler, queryTestUnique)
         query_count++;
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
-        ASSERT_EQ(responses.size(), 1) << "Expecting an error return situation";
+        EXPECT_EQ(responses.size(), 1) << "Expecting an error return situation";
         for (int i = 0; i < responses.size(); ++i) {
             vector<protobufs::CommandResponse *> response = responses[i];
             for (auto it : response) {
@@ -386,6 +389,7 @@ TEST(PMGDQueryHandler, queryTestUnique)
         }
     }
     VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
 }
 
 TEST(PMGDQueryHandler, queryNeighborTestList)
@@ -454,10 +458,10 @@ TEST(PMGDQueryHandler, queryNeighborTestList)
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
         int nodecount, propcount = 0;
-        for (int i = 0; i < query_count; ++i) {
-            vector<protobufs::CommandResponse *> response = responses[i];
+        for (int q = 0; q < query_count; ++q) {
+            vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
-                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
                 if (it->r_type() == protobufs::List) {
                     auto mymap = it->prop_values();
                     for(auto m_it : mymap) {
@@ -478,6 +482,7 @@ TEST(PMGDQueryHandler, queryNeighborTestList)
         EXPECT_EQ(propcount, 1) << "Not enough properties read";
     }
     VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
 }
 
 TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
@@ -555,10 +560,10 @@ TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
         int nodecount, propcount = 0;
-        for (int i = 0; i < query_count; ++i) {
-            vector<protobufs::CommandResponse *> response = responses[i];
+        for (int q = 0; q < query_count; ++q) {
+            vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
-                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
                 if (it->r_type() == protobufs::List) {
                     auto mymap = it->prop_values();
                     for(auto m_it : mymap) {
@@ -579,6 +584,7 @@ TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
         EXPECT_EQ(propcount, 1) << "Not enough properties read";
     }
     VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
 }
 
 TEST(PMGDQueryHandler, queryNeighborTestSum)
@@ -650,7 +656,7 @@ TEST(PMGDQueryHandler, queryNeighborTestSum)
         for (int i = 0; i < query_count; ++i) {
             vector<protobufs::CommandResponse *> response = responses[i];
             for (auto it : response) {
-                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
                 if (it->r_type() == protobufs::Sum) {
                     EXPECT_EQ(it->op_int_value(), 150) << "Sum didn't match expected for two patients' age";
                 }
@@ -658,6 +664,7 @@ TEST(PMGDQueryHandler, queryNeighborTestSum)
         }
     }
     VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
 }
 
 TEST(PMGDQueryHandler, addConstrainedTest)
@@ -734,18 +741,19 @@ TEST(PMGDQueryHandler, addConstrainedTest)
         // Since PMGD queries always generate one response per command,
         // we can do the following:
         protobufs::CommandResponse *resp = responses[0][0];  // TxBegin
-        ASSERT_EQ(resp->error_code(), protobufs::CommandResponse::Success) << "Unsuccessful TX";
+        EXPECT_EQ(resp->error_code(), protobufs::CommandResponse::Success) << "Unsuccessful TX";
         resp = responses[1][0];  // Conditional add
-        ASSERT_EQ(resp->error_code(), protobufs::CommandResponse::Exists) << resp->error_msg();
+        EXPECT_EQ(resp->error_code(), protobufs::CommandResponse::Exists) << resp->error_msg();
         EXPECT_EQ(resp->op_int_value(), 1) << "Unexpected node id for conditional add";
         resp = responses[2][0];  // Regular add
-        ASSERT_EQ(resp->error_code(), protobufs::CommandResponse::Success) << resp->error_msg();
+        EXPECT_EQ(resp->error_code(), protobufs::CommandResponse::Success) << resp->error_msg();
         EXPECT_EQ(resp->op_int_value(), 5) << "Unexpected node id for add";
         resp = responses[3][0];  // Regular add edge
-        ASSERT_EQ(resp->error_code(), protobufs::CommandResponse::Success) << resp->error_msg();
+        EXPECT_EQ(resp->error_code(), protobufs::CommandResponse::Success) << resp->error_msg();
         EXPECT_EQ(resp->op_int_value(), 3) << "Unexpected edge id for add";
     }
     VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
 }
 
 TEST(PMGDQueryHandler, queryNeighborLinksTestList)
@@ -830,10 +838,10 @@ TEST(PMGDQueryHandler, queryNeighborLinksTestList)
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
         int nodecount, propcount = 0;
-        for (int i = 0; i < query_count; ++i) {
-            vector<protobufs::CommandResponse *> response = responses[i];
+        for (int q = 0; q < query_count; ++q) {
+            vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
-                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
                 if (it->r_type() == protobufs::List) {
                     auto mymap = it->prop_values();
                     for(auto m_it : mymap) {
@@ -854,6 +862,7 @@ TEST(PMGDQueryHandler, queryNeighborLinksTestList)
         EXPECT_EQ(propcount, 1) << "Not enough properties read";
     }
     VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
 }
 
 TEST(PMGDQueryHandler, queryNeighborLinksReuseTestList)
@@ -945,10 +954,10 @@ TEST(PMGDQueryHandler, queryNeighborLinksReuseTestList)
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
         int nodecount = 0, propcount = 0;
         int totnodecount = 0, totpropcount = 0;
-        for (int i = 0; i < query_count; ++i) {
-            vector<protobufs::CommandResponse *> response = responses[i];
+        for (int q = 0; q < query_count; ++q) {
+            vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
-                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
                 if (it->r_type() == protobufs::List) {
                     propcount = 0;
                     auto mymap = it->prop_values();
@@ -977,6 +986,7 @@ TEST(PMGDQueryHandler, queryNeighborLinksReuseTestList)
         EXPECT_EQ(totpropcount, 3) << "Not enough total properties read";
     }
     VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
 }
 
 TEST(PMGDQueryHandler, querySortedNeighborLinksReuseTestList)
@@ -1071,10 +1081,10 @@ TEST(PMGDQueryHandler, querySortedNeighborLinksReuseTestList)
         int nodecount = 0, propcount = 0;
         int totnodecount = 0, totpropcount = 0;
         bool firstquery = true;
-        for (int i = 0; i < query_count; ++i) {
-            vector<protobufs::CommandResponse *> response = responses[i];
+        for (int q = 0; q < query_count; ++q) {
+            vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
-                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
                 if (it->r_type() == protobufs::List) {
                     propcount = 0;
                     auto mymap = it->prop_values();
@@ -1107,6 +1117,7 @@ TEST(PMGDQueryHandler, querySortedNeighborLinksReuseTestList)
         EXPECT_EQ(totpropcount, 3) << "Not enough total properties read";
     }
     VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
 }
 
 TEST(PMGDQueryHandler, queryTestListLimit)
@@ -1151,10 +1162,10 @@ TEST(PMGDQueryHandler, queryTestListLimit)
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
         int nodecount, propcount = 0;
-        for (int i = 0; i < query_count; ++i) {
-            vector<protobufs::CommandResponse *> response = responses[i];
+        for (int q = 0; q < query_count; ++q) {
+            vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
-                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
                 if (it->r_type() == protobufs::List) {
                     auto mymap = it->prop_values();
                     for(auto m_it : mymap) {
@@ -1175,6 +1186,7 @@ TEST(PMGDQueryHandler, queryTestListLimit)
         EXPECT_EQ(propcount, 2) << "Not enough properties read";
     }
     VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
 }
 
 TEST(PMGDQueryHandler, queryTestSortedLimitedAverage)
@@ -1221,7 +1233,7 @@ TEST(PMGDQueryHandler, queryTestSortedLimitedAverage)
         for (int i = 0; i < query_count; ++i) {
             vector<protobufs::CommandResponse *> response = responses[i];
             for (auto it : response) {
-                ASSERT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
+                EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success) << it->error_msg();
                 if (it->r_type() == protobufs::Average) {
                     EXPECT_EQ(static_cast<int>(it->op_float_value()), 73) << "Average didn't match expected for three middle patients' age";
                 }
@@ -1229,4 +1241,5 @@ TEST(PMGDQueryHandler, queryTestSortedLimitedAverage)
         }
     }
     VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
 }

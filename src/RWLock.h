@@ -52,8 +52,7 @@ namespace VDMS {
         // Backoff variables.
         // *** Tune experimentally
         static const size_t MIN_BACKOFF_DELAY = 100000;
-        static const size_t MAX_BACKOFF_DELAY = 50000000;
-        static const unsigned MAX_ATTEMPTS      = 10;
+        static const size_t MAX_BACKOFF_DELAY = 500000000;
 
         uint16_t xadd(volatile uint16_t &m, uint16_t v)
             { return ::xadd<uint16_t>(m, v); }
@@ -61,6 +60,7 @@ namespace VDMS {
             { ::atomic_and<uint16_t>(m, v); }
 
         volatile uint16_t _rw_lock;
+        const unsigned _max_attempts;
 
         // Ideas from here: https://geidav.wordpress.com/tag/exponential-back-off
         void backoff(size_t &cur_max_delay)
@@ -80,7 +80,9 @@ namespace VDMS {
         }
 
     public:
-        RWLock() : _rw_lock(0) {}
+        static const unsigned MAX_ATTEMPTS      = 10;
+
+        RWLock(unsigned max_attempts) : _rw_lock(0), _max_attempts(max_attempts) {}
 
         void read_lock()
         {
@@ -99,7 +101,7 @@ namespace VDMS {
 
                 // Wait for any active writers
                 while (_rw_lock & WRITE_LOCK) {
-                    if (++attempts > MAX_ATTEMPTS)
+                    if (++attempts > _max_attempts)
                         throw ExceptionCommand(LockTimeout);
                     backoff(cur_max_delay);
                 }
@@ -125,7 +127,7 @@ namespace VDMS {
 
                     // Wait for any active readers
                     while(_rw_lock & LOCK_READER_MASK) {
-                        if (++attempts > MAX_ATTEMPTS) {
+                        if (++attempts > _max_attempts) {
                             atomic_and(_rw_lock, LOCK_READER_MASK);
                             throw ExceptionCommand(LockTimeout);
                         }
@@ -136,7 +138,7 @@ namespace VDMS {
 
                 // Wait for any active writers
                 while (_rw_lock & WRITE_LOCK) {
-                    if (++attempts > MAX_ATTEMPTS) {
+                    if (++attempts > _max_attempts) {
                         throw ExceptionCommand(LockTimeout);
                     }
                     backoff(cur_max_delay);
@@ -159,7 +161,7 @@ namespace VDMS {
 
                     // Wait for any active readers
                     while ((_rw_lock & LOCK_READER_MASK) > 1) {
-                        if (++attempts > MAX_ATTEMPTS) {
+                        if (++attempts > _max_attempts) {
                             atomic_and(_rw_lock, LOCK_READER_MASK);
                             throw ExceptionCommand(LockTimeout);
                         }
@@ -174,7 +176,7 @@ namespace VDMS {
                 // Wait for any active writers
                 // Give this another extra attempt
                 while (_rw_lock & WRITE_LOCK) {
-                    if (attempts++ > MAX_ATTEMPTS) {
+                    if (attempts++ > _max_attempts) {
                         throw ExceptionCommand(LockTimeout);
                     }
                     backoff(cur_max_delay);

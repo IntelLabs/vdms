@@ -100,6 +100,7 @@ TEST(AddImage, simpleAdd)
 
     EXPECT_EQ(json_response[0]["AddImage"]["status"].asString(), "0");
     VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
 }
 
 TEST(AddImage, simpleAddx10)
@@ -151,6 +152,7 @@ TEST(AddImage, simpleAddx10)
         EXPECT_EQ(json_response[i]["AddImage"]["status"].asString(), "0");
     }
     VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
 }
 
 TEST(QueryHandler, AddAndFind){
@@ -290,4 +292,5 @@ TEST(QueryHandler, AddAndFind){
     EXPECT_EQ(sum_found_before, sum_found_after);
     EXPECT_EQ(count_found_before, count_found_after);
     VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
 }
