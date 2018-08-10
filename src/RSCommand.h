@@ -105,6 +105,17 @@ namespace VDMS {
         bool need_blob(const Json::Value& jsoncmd);
     };
 
+    class AddConnection : public RSCommand
+    {
+    public:
+        AddConnection();
+        int construct_protobuf(PMGDQuery& query,
+                               const Json::Value& root,
+                               const std::string& blob,
+                               int grp_id,
+                               Json::Value& error);
+    };
+
     class UpdateEntity : public RSCommand
     {
     public:
@@ -115,21 +126,6 @@ namespace VDMS {
                                int grp_id,
                                Json::Value& error);
 
-        Json::Value construct_responses(
-            Json::Value& json_responses,
-            const Json::Value& json,
-            protobufs::queryMessage &response);
-    };
-
-    class AddConnection : public RSCommand
-    {
-    public:
-        AddConnection();
-        int construct_protobuf(PMGDQuery& query,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error);
     };
 
     class UpdateConnection : public RSCommand
@@ -142,10 +138,6 @@ namespace VDMS {
                                int grp_id,
                                Json::Value& error);
 
-        Json::Value construct_responses(
-            Json::Value& json_responses,
-            const Json::Value& json,
-            protobufs::queryMessage &response);
     };
 
     class FindEntity : public RSCommand
@@ -174,9 +166,5 @@ namespace VDMS {
                                int grp_id,
                                Json::Value& error);
 
-        Json::Value construct_responses(
-            Json::Value& json_responses,
-            const Json::Value& json,
-            protobufs::queryMessage &response);
     };
 }; // namespace VDMS

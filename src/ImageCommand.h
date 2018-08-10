@@ -94,10 +94,8 @@ namespace VDMS {
                                int grp_id,
                                Json::Value& error);
 
-        Json::Value construct_responses(
-                Json::Value &json_responses,
-                const Json::Value &json,
-                protobufs::queryMessage &response);
+        // TODO In order to support "format" or "operations", we could
+        // implement VCL save operation by adding construct_responses method.
     };
 
     class FindImage: public ImageCommand

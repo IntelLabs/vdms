@@ -162,37 +162,15 @@ int UpdateImage::construct_protobuf(PMGDQuery& query,
 {
     const Json::Value& cmd = jsoncmd[_cmd_name];
 
-    int node_ref = get_value<int>(cmd, "_ref", -1);
-
-    Json::Value constraints = get_value<Json::Value>(cmd, "constraints");
-
-    Json::Value props = get_value<Json::Value>(cmd, "properties");
-
-    Json::Value remove_props = get_value<Json::Value>(cmd, "remove_props");
-
     // Update Image node
-    query.UpdateNode(node_ref, VDMS_IM_TAG, props,
-                        remove_props,
-                        constraints,
-                        get_value<bool>(cmd, "unique", false));
+    query.UpdateNode(get_value<int>(cmd, "_ref", -1),
+                     VDMS_IM_TAG,
+                     cmd["properties"],
+                     cmd["remove_props"],
+                     cmd["constraints"],
+                     get_value<bool>(cmd, "unique", false));
 
     return 0;
-}
-
-Json::Value UpdateImage::construct_responses(
-    Json::Value& responses,
-    const Json::Value& json,
-    protobufs::queryMessage &query_res)
-{
-    assert(responses.size() == 1);
-
-    Json::Value ret;
-
-    // TODO In order to support "format" or "operations", we could
-    // implement VCL save operation here.
-
-    ret[_cmd_name].swap(responses[0]);
-    return ret;
 }
 
 //========= FindImage definitions =========
