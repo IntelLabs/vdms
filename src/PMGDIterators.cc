@@ -33,30 +33,24 @@
 
 using namespace VDMS;
 
-bool PMGDQueryHandler::ReusableNodeIterator::_next()
+namespace VDMS {
+
+template <>
+PMGDQueryHandler::ReusableIterator<PMGD::Edge, PMGD::EdgeIterator>::
+ReusableIterator() :
+        _ti(NULL),
+        _it(_traversed.end())
 {
-    if (_it != _traversed.end()) {
-        ++_it;
-        if (_it != _traversed.end())
-            return true;
-    }
-    if (bool(_ni)) {
-        _it = _traversed.insert(_traversed.end(), &*_ni);
-        _ni.next();
-        return true;
-    }
-    return false;
 }
 
-// TODO It might be possible to avoid this if the first iterator
-// was build out of an index sorted on the same key been sought here.
-// Hopefully that won't happen.
-void PMGDQueryHandler::ReusableNodeIterator::sort(PMGD::StringID sortkey)
+template<>
+void PMGDQueryHandler::ReusableIterator<PMGD::Edge, PMGD::EdgeIterator>::add(PMGD::Edge *e)
 {
-    // First finish traversal
-    traverse_all();
-    _traversed.sort(compare_propkey{sortkey});
-    _it = _traversed.begin();
+    // Easiest to add to the end of list. If we are in middle of
+    // traversal, then this edge might get skipped. Use this function
+    // with that understanding ***
+    _traversed.insert(_traversed.end(), e);
+}
 }
 
 bool PMGDQueryHandler::MultiNeighborIteratorImpl::_next()
@@ -89,3 +83,46 @@ bool PMGDQueryHandler::MultiNeighborIteratorImpl::next()
     return _next();
 }
 
+bool PMGDQueryHandler::NodeEdgeIteratorImpl::next()
+{
+    _edge_it->next();
+    while (_edge_it != NULL && bool(*_edge_it)) {
+        if (check_predicates())
+            return true;
+        _edge_it->next();
+    }
+    return _next();
+}
+
+bool PMGDQueryHandler::NodeEdgeIteratorImpl::_next()
+{
+    while (_src_ni != NULL && bool(*_src_ni)) {
+        delete _edge_it;
+        _src_ni->next();
+        if (bool(*_src_ni)) {
+            _edge_it = new PMGD::EdgeIterator((*_src_ni)->get_edges(_dir, _expr.tag()));
+            while (_edge_it != NULL && bool(*_edge_it)) {
+                if (check_predicates())
+                    return true;
+                _edge_it->next();
+            }
+        }
+        else
+            break;
+    }
+    return false;
+}
+
+bool PMGDQueryHandler::NodeEdgeIteratorImpl::check_predicates()
+{
+    PMGD::Edge *e = get_edge();
+    for (std::size_t i = _pred_start; i < _num_predicates; i++) {
+        PMGD::PropertyFilter<PMGD::Edge> pf(_expr.predicate(i));
+        if (pf(*e) == PMGD::DontPass)
+            return false;
+    }
+    if (_check_dest &&
+            _dest_nodes.find(&(e->get_destination()) ) == _dest_nodes.end())
+        return false;
+    return true;
+}

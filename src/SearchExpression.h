@@ -44,31 +44,35 @@
 /// predicates.
 ///
 /// Calling Eval() returns a node iterator.
-class SearchExpression {
-    PMGD::StringID _tag;
+namespace VDMS {
+    class SearchExpression
+    {
+        PMGD::StringID _tag;
 
-    /// Opaque definition of a node iterator
-    class SearchExpressionIterator;
+        /// Opaque definition of a node iterator
+        class SearchExpressionIterator;
 
-    /// Opaque definition of an edge iterator
-    class EdgeSearchExpressionIterator;
+        /// Opaque definition of an edge iterator
+        class EdgeSearchExpressionIterator;
 
-    /// The conjunctions of property predicates
-    std::vector<PMGD::PropertyPredicate> _predicates;
+        /// The conjunctions of property predicates
+        std::vector<PMGD::PropertyPredicate> _predicates;
 
-    /// A pointer to the database
-    PMGD::Graph &_db;
+        /// A pointer to the database
+        PMGD::Graph &_db;
 
-public:
-    /// Construction requires a handle to a database
-    SearchExpression(PMGD::Graph &db, PMGD::StringID tag) : _db(db), _tag(tag) {}
+    public:
+        /// Construction requires a handle to a database
+        SearchExpression(PMGD::Graph &db, PMGD::StringID tag) : _db(db), _tag(tag) {}
 
-    void add(PMGD::PropertyPredicate pp) { _predicates.push_back(pp); }
-    const PMGD::StringID tag() const { return _tag; };
+        void add(PMGD::PropertyPredicate pp) { _predicates.push_back(pp); }
+        const PMGD::StringID tag() const { return _tag; };
+        PMGD::Graph &db() const { return _db; }
+        const PMGD::PropertyPredicate &predicate(int i) const { return _predicates.at(i); }
+        const size_t num_predicates() const { return _predicates.size(); }
 
-    PMGD::NodeIterator eval_nodes();
-    PMGD::NodeIterator eval_nodes(const PMGD::Node &node, PMGD::Direction dir = PMGD::Any,
-                                       PMGD::StringID edgetag = 0, bool unique = true);
-
-    PMGD::EdgeIterator eval_edges();
+        PMGD::NodeIterator eval_nodes();
+        PMGD::NodeIterator eval_nodes(const PMGD::Node &node, PMGD::Direction dir = PMGD::Any,
+                                           PMGD::StringID edgetag = 0, bool unique = true);
+    };
 };

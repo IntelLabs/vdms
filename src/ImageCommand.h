@@ -83,6 +83,21 @@ namespace VDMS {
         bool need_blob(const Json::Value& cmd) { return true; }
     };
 
+    class UpdateImage: public ImageCommand
+    {
+    public:
+        UpdateImage();
+
+        int construct_protobuf(PMGDQuery& tx,
+                               const Json::Value& root,
+                               const std::string& blob,
+                               int grp_id,
+                               Json::Value& error);
+
+        // TODO In order to support "format" or "operations", we could
+        // implement VCL save operation by adding construct_responses method.
+    };
+
     class FindImage: public ImageCommand
     {
     public:

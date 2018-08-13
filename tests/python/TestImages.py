@@ -316,6 +316,41 @@ class TestAddImage(unittest.TestCase):
         self.assertEqual(response[1]["FindImage"]["status"], 0)
         self.assertEqual(len(img_array), 0)
 
+    def test_updateImage(self):
+        db = vdms.VDMS()
+        db.connect(hostname, port)
+
+        prefix_name = "fimg_update_"
+
+        for i in range(0,2):
+            props = {}
+            props["name"] = prefix_name + str(i)
+            self.insertImage(db, props=props)
+
+        all_queries = []
+
+        constraints = {}
+        constraints["name"] = ["==", prefix_name + str(0)]
+
+        props = {}
+        props["name"] = "simg_update_0"
+
+        img_params = {}
+        img_params["constraints"] = constraints
+        img_params["properties"] = props
+
+        query = {}
+        query["UpdateImage"] = img_params
+
+        all_queries.append(query)
+
+        response, img_array = db.query(all_queries)
+        # print vdms.aux_print_json(response)
+
+        response = json.loads(response)
+        self.assertEqual(response[0]["UpdateImage"]["count"], 1)
+        self.assertEqual(len(img_array), 0)
+
     def ztest_zFindImageWithCollection(self):
         db = vdms.VDMS()
         db.connect(hostname, port)

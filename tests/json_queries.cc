@@ -103,6 +103,63 @@ TEST(AddImage, simpleAdd)
     PMGDQueryHandler::destroy();
 }
 
+TEST(UpdateEntity, simpleAddUpdate)
+{
+
+    Json::StyledWriter writer;
+
+    std::ifstream ifile;
+    int fsize;
+    char * inBuf;
+    ifile.open("AddFindUpdate.json", std::ifstream::in);
+    ifile.seekg(0, std::ios::end);
+    fsize = (int)ifile.tellg();
+    ifile.seekg(0, std::ios::beg);
+    inBuf = new char[fsize];
+    ifile.read(inBuf, fsize);
+    std::string json_query = std::string(inBuf);
+    ifile.close();
+    delete[] inBuf;
+
+    Json::Reader reader;
+    Json::Value root;
+    Json::Value parsed;
+
+    VDMSConfig::init("config-update-tests.json");
+    PMGDQueryHandler::init();
+    QueryHandler::init();
+
+    QueryHandler qh_base;
+    QueryHandlerTester query_handler(qh_base);
+
+    VDMS::protobufs::queryMessage proto_query;
+    proto_query.set_json(json_query);
+    VDMS::protobufs::queryMessage response;
+
+    query_handler.pq(proto_query, response );
+
+    reader.parse(response.json().c_str(), parsed);
+    // std::cout << writer.write(parsed) << std::endl;
+
+    // Verify results returned.
+    for (int j = 0; j < parsed.size(); j++) {
+        const Json::Value& query = parsed[j];
+        ASSERT_EQ(query.getMemberNames().size(), 1);
+        std::string cmd = query.getMemberNames()[0];
+
+        if (cmd == "UpdateEntity")
+            EXPECT_EQ(query[cmd]["count"].asInt(), 1);
+        if (cmd == "FindEntity") {
+            EXPECT_EQ(query[cmd]["returned"].asInt(), 2);
+            EXPECT_EQ(query["FindEntity"]["entities"][0]["fv"].asString(),
+              "Missing property");
+        }
+    }
+
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}
+
 TEST(AddImage, simpleAddx10)
 {
     int total_images = 10;
@@ -155,8 +212,8 @@ TEST(AddImage, simpleAddx10)
     PMGDQueryHandler::destroy();
 }
 
-TEST(QueryHandler, AddAndFind){
-
+TEST(QueryHandler, AddAndFind)
+{
     Json::StyledWriter writer;
 
     std::ifstream ifile;
@@ -196,7 +253,7 @@ TEST(QueryHandler, AddAndFind){
         if (cmd=="AddEntity")
           in_node_num++;
 
-        else if (cmd == "Connect")
+        else if (cmd == "AddConnection")
           in_edge_num++;
 
         else if (cmd == "FindEntity") {
@@ -216,6 +273,12 @@ TEST(QueryHandler, AddAndFind){
         }
         else if (query.isMember("properties"))
           in_props=query["properties"].size();
+        else if (cmd == "FindConnection")
+          in_query_num++;
+        else if (cmd == "UpdateConnection") {
+            count_found_before=true;
+            in_edge_num++;
+        }
     }
 
     VDMSConfig::init("config-addfind-tests.json");
@@ -241,9 +304,11 @@ TEST(QueryHandler, AddAndFind){
 
         if (cmd=="AddEntity")
             out_node_num++;
-        if (cmd=="Connect")
+        if (cmd=="AddConnection")
             out_edge_num++;
-        if (cmd =="FindEntity")
+        if (cmd == "UpdateConnection")
+            out_edge_num++;
+        if (cmd == "FindEntity" || cmd == "FindConnection")
             out_query_num++;
 
         if (j == 11) { // Second Last FindEntity
@@ -260,6 +325,13 @@ TEST(QueryHandler, AddAndFind){
 
             EXPECT_EQ(query["FindEntity"]["entities"][1]["Birthday"].asString(),
               "1936-10-01T17:59:24-07:00");
+        }
+        if (j == 13) { // FindConnection
+            EXPECT_EQ(query["FindConnection"]["connections"][0]["location"].asString(),
+              "residence");
+
+            EXPECT_EQ(query["FindConnection"]["connections"][0]["city"].asString(),
+              "Boston");
         }
         if ( query[cmd]["status"] == 0)
             success++;

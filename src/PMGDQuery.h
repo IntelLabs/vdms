@@ -57,12 +57,12 @@ namespace VDMS {
                           const Json::Value& val);
         void add_link(const Json::Value& link, PMGDQueryNode* qn);
         void parse_query_constraints(const Json::Value& constraints,
-                                     PMGDQueryNode* qn);
+                                     PMGDQueryConstraints* qc);
 
         void parse_query_results(const Json::Value& result_type,
-                                 PMGDQueryNode* qn);
+                                 PMGDQueryResultInfo* qr);
 
-        void get_response_type(const Json::Value& res, PMGDQueryNode* qn);
+        void get_response_type(const Json::Value& res, PMGDQueryResultInfo* qn);
 
         Json::Value parse_response(PMGDCmdResponse* response);
 
@@ -90,14 +90,34 @@ namespace VDMS {
                     const Json::Value& props,
                     const Json::Value& constraints);
 
+        void UpdateNode(int ref,
+                    const std::string& tag,
+                    const Json::Value& props,
+                    const Json::Value& remove_props,
+                    const Json::Value& constraints,
+                    bool unique);
+
         void AddEdge(int ident,
                     int src, int dst,
                     const std::string& tag,
                     const Json::Value& props);
 
+        void UpdateEdge(int ref, int src_ref, int dest_ref,
+                    const std::string& tag,
+                    const Json::Value& props,
+                    const Json::Value& remove_props,
+                    const Json::Value& constraints,
+                    bool unique);
+
         void QueryNode(int ref,
                     const std::string& tag,
                     const Json::Value& link,
+                    const Json::Value& constraints,
+                    const Json::Value& results,
+                    bool unique = false);
+
+        void QueryEdge(int ref, int src_ref, int dest_ref,
+                    const std::string& tag,
                     const Json::Value& constraints,
                     const Json::Value& results,
                     bool unique = false);

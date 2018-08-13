@@ -35,9 +35,13 @@
     "type": "object",
     "anyOf": [
       { "$ref": "#/definitions/AddEntityTop" },
+      { "$ref": "#/definitions/UpdateEntityTop" },
       { "$ref": "#/definitions/FindEntityTop" },
-      { "$ref": "#/definitions/ConnectTop" },
+      { "$ref": "#/definitions/AddConnectionTop" },
+      { "$ref": "#/definitions/UpdateConnectionTop" },
+      { "$ref": "#/definitions/FindConnectionTop" },
       { "$ref": "#/definitions/AddImageTop" },
+      { "$ref": "#/definitions/UpdateImageTop" },
       { "$ref": "#/definitions/FindImageTop" }
     ]
   },
@@ -169,6 +173,13 @@
       "additionalProperties": false
     },
 
+    "UpdateEntityTop": {
+      "properties": {
+        "UpdateEntity" : { "type": "object", "$ref": "#/definitions/UpdateEntity" }
+      },
+      "additionalProperties": false
+    },
+
     "FindEntityTop": {
       "properties": {
         "FindEntity" : { "type": "object", "$ref": "#/definitions/FindEntity" }
@@ -176,9 +187,23 @@
       "additionalProperties": false
     },
 
-    "ConnectTop": {
+    "AddConnectionTop": {
       "properties": {
-        "Connect" : { "type": "object", "$ref": "#/definitions/Connect" }
+        "AddConnection" : { "type": "object", "$ref": "#/definitions/AddConnection" }
+      },
+      "additionalProperties": false
+    },
+
+    "UpdateConnectionTop": {
+      "properties": {
+        "UpdateConnection" : { "type": "object", "$ref": "#/definitions/UpdateConnection" }
+      },
+      "additionalProperties": false
+    },
+
+    "FindConnectionTop": {
+      "properties": {
+        "FindConnection" : { "type": "object", "$ref": "#/definitions/FindConnection" }
       },
       "additionalProperties": false
     },
@@ -190,7 +215,14 @@
       "additionalProperties": false
     },
 
-    "FindImageTop": {
+    "UpdateImageTop": {
+      "properties": {
+        "UpdateImage" : { "type": "object", "$ref": "#/definitions/UpdateImage" }
+      },
+      "additionalProperties": false
+    },
+
+   "FindImageTop": {
       "properties": {
         "FindImage" : { "type": "object", "$ref": "#/definitions/FindImage" }
       },
@@ -212,7 +244,18 @@
       "additionalProperties": false
     },
 
-    "Connect": {
+    "UpdateEntity": {
+      "properties": {
+        "class":        { "type": "string" },
+        "_ref":         { "$ref": "#/definitions/refInt" },
+        "properties":   { "type": "object" },
+        "remove_props": { "$ref": "#/definitions/stringArray" },
+        "constraints":  { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+
+    "AddConnection": {
       "properties": {
         "class":      { "type": "string" },
         "ref1":       { "$ref": "#/definitions/refInt" },
@@ -220,6 +263,19 @@
         "properties": { "type": "object" }
       },
       "required": ["class", "ref1", "ref2"],
+      "additionalProperties": false
+    },
+
+    "UpdateConnection": {
+      "properties": {
+        "class":        { "type": "string" },
+        "_ref":         { "$ref": "#/definitions/refInt" },
+        "ref1":         { "$ref": "#/definitions/refInt" },
+        "ref2":         { "$ref": "#/definitions/refInt" },
+        "properties":   { "type": "object" },
+        "remove_props": { "$ref": "#/definitions/stringArray" },
+        "constraints":  { "type": "object" }
+      },
       "additionalProperties": false
     },
 
@@ -235,6 +291,19 @@
       "additionalProperties": false
     },
 
+    "FindConnection": {
+      "properties": {
+        "class":       { "type": "string" },
+        "_ref":        { "$ref": "#/definitions/refInt" },
+        "ref1":       { "$ref": "#/definitions/refInt" },
+        "ref2":       { "$ref": "#/definitions/refInt" },
+        "constraints": { "type": "object" },
+        "results":     { "type": "object" },
+        "unique":      { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+
     "AddImage": {
       "properties": {
         "_ref":       { "$ref": "#/definitions/refInt" },
@@ -243,6 +312,18 @@
         "operations": { "$ref": "#/definitions/blockOperations" },
         "collections":{ "$ref": "#/definitions/stringArray" },
         "properties": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+
+    "UpdateImage": {
+      "properties": {
+        "_ref":         { "$ref": "#/definitions/refInt" },
+        //"format":       { "$ref": "#/definitions/formatString" },
+        //"operations":   { "$ref": "#/definitions/blockOperations" },
+        "properties":   { "type": "object" },
+        "remove_props": { "$ref": "#/definitions/stringArray" },
+        "constraints":  { "type": "object" }
       },
       "additionalProperties": false
     },

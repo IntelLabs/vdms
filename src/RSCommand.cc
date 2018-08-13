@@ -81,6 +81,8 @@ Json::Value RSCommand::check_responses(Json::Value& responses)
         }
     }
 
+    ret = responses[0];
+
     if (!flag_error) {
         ret["status"] = RSCommand::Success;
     }
@@ -205,13 +207,39 @@ int AddEntity::construct_protobuf(PMGDQuery& query,
     return 0;
 }
 
-//========= Connect definitions =========
+//========= UpdateEntity definitions =========
 
-Connect::Connect() : RSCommand("Connect")
+UpdateEntity::UpdateEntity() : RSCommand("UpdateEntity")
 {
 }
 
-int Connect::construct_protobuf(
+int UpdateEntity::construct_protobuf(PMGDQuery& query,
+    const Json::Value& jsoncmd,
+    const std::string& blob,
+    int grp_id,
+    Json::Value& error)
+{
+    const Json::Value& cmd = jsoncmd[_cmd_name];
+
+    query.UpdateNode(
+            get_value<int>(cmd, "_ref", -1),
+            get_value<std::string>(cmd, "class"),
+            cmd["properties"],
+            cmd["remove_props"],
+            cmd["constraints"],
+            get_value<bool>(cmd, "unique", false)
+            );
+
+    return 0;
+}
+
+//========= AddConnection definitions =========
+
+AddConnection::AddConnection() : RSCommand("AddConnection")
+{
+}
+
+int AddConnection::construct_protobuf(
         PMGDQuery& query,
         const Json::Value& jsoncmd,
         const std::string& blob,
@@ -226,6 +254,34 @@ int Connect::construct_protobuf(
             get_value<int>(cmd, "ref2", -1), // dst
             get_value<std::string>(cmd, "class"), // tag
             cmd["properties"]
+            );
+
+    return 0;
+}
+
+//========= UpdateConnection definitions =========
+
+UpdateConnection::UpdateConnection() : RSCommand("UpdateConnection")
+{
+}
+
+int UpdateConnection::construct_protobuf(PMGDQuery& query,
+    const Json::Value& jsoncmd,
+    const std::string& blob,
+    int grp_id,
+    Json::Value& error)
+{
+    const Json::Value& cmd = jsoncmd[_cmd_name];
+
+    query.UpdateEdge(
+            get_value<int>(cmd, "_ref", -1),
+            get_value<int>(cmd, "ref1", -1),
+            get_value<int>(cmd, "ref2", -1),
+            get_value<std::string>(cmd, "class"),
+            cmd["properties"],
+            cmd["remove_props"],
+            cmd["constraints"],
+            get_value<bool>(cmd, "unique", false)
             );
 
     return 0;
@@ -303,4 +359,32 @@ Json::Value FindEntity::construct_responses(
     ret[_cmd_name].swap(findEnt);
 
     return ret;
+}
+
+//========= FindConnection definitions =========
+
+FindConnection::FindConnection() : RSCommand("FindConnection")
+{
+}
+
+int FindConnection::construct_protobuf(
+    PMGDQuery& query,
+    const Json::Value& jsoncmd,
+    const std::string& blob,
+    int grp_id,
+    Json::Value& error)
+{
+    const Json::Value& cmd = jsoncmd[_cmd_name];
+
+    query.QueryEdge(
+            get_value<int>(cmd, "_ref", -1),
+            get_value<int>(cmd, "ref1", -1),
+            get_value<int>(cmd, "ref2", -1),
+            get_value<std::string>(cmd, "class"),
+            cmd["constraints"],
+            cmd["results"],
+            get_value<bool>(cmd, "unique", false)
+            );
+
+    return 0;
 }

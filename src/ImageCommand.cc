@@ -40,8 +40,6 @@ using namespace VDMS;
 #define VDMS_IM_EDGE          "VDMS:IMGLINK"
 #define VDMS_IM_PATH_PROP     "VDMS:imgPath"
 
-//========= AddImage definitions =========
-
 ImageCommand::ImageCommand(const std::string &cmd_name):
     RSCommand(cmd_name)
 {
@@ -71,6 +69,8 @@ void ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
         }
     }
 }
+
+//========= AddImage definitions =========
 
 AddImage::AddImage() : ImageCommand("AddImage")
 {
@@ -144,6 +144,31 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     if (cmd.isMember("link")) {
         add_link(query, cmd["link"], node_ref, VDMS_IM_EDGE);
     }
+
+    return 0;
+}
+
+//========= UpdateImage definitions =========
+
+UpdateImage::UpdateImage() : ImageCommand("UpdateImage")
+{
+}
+
+int UpdateImage::construct_protobuf(PMGDQuery& query,
+    const Json::Value& jsoncmd,
+    const std::string& blob,
+    int grp_id,
+    Json::Value& error)
+{
+    const Json::Value& cmd = jsoncmd[_cmd_name];
+
+    // Update Image node
+    query.UpdateNode(get_value<int>(cmd, "_ref", -1),
+                     VDMS_IM_TAG,
+                     cmd["properties"],
+                     cmd["remove_props"],
+                     cmd["constraints"],
+                     get_value<bool>(cmd, "unique", false));
 
     return 0;
 }
