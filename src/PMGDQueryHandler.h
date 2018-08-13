@@ -62,9 +62,13 @@ namespace VDMS {
 
     class PMGDQueryHandler
     {
-        class ReusableNodeIterator;
+        template <typename T, typename Ti>
+        class ReusableIterator;
+
+        typedef ReusableIterator<PMGD::Node, PMGD::NodeIterator> ReusableNodeIterator;
+        typedef ReusableIterator<PMGD::Edge, PMGD::EdgeIterator> ReusableEdgeIterator;
+
         class MultiNeighborIteratorImpl;
-        class ReusableEdgeIterator;
 
         // Until we have a separate PMGD server this db lives here
         static PMGD::Graph *_db;

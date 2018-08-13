@@ -38,21 +38,37 @@
 #include "SearchExpression.h"
 
 namespace VDMS {
-    class PMGDQueryHandler::ReusableNodeIterator
+
+    template <typename T, typename Ti>
+    class PMGDQueryHandler::ReusableIterator
     {
         // Iterator for the starting nodes.
-        PMGD::NodeIterator _ni;
+        Ti _ti; // Type Iterator
 
-        // TODO Is list the best data structure if we could potentially
-        // sort?
-        std::list<PMGD::Node *> _traversed;
+        // TODO Is list the best data structure
+        // if we could potentially sort?
+        typedef std::list<T* > base_container;
+        base_container _traversed;
 
         // Current postion of list iterator
-        std::list<PMGD::Node *>::iterator _it;
+        typedef typename base_container::iterator list_iterator;
+        list_iterator _it;
 
-        bool _next();
+        bool _next() {
+            if (_it != _traversed.end()) {
+                ++_it;
+                if (_it != _traversed.end())
+                    return true;
+            }
+            if (bool(_ti)) {
+                _it = _traversed.insert(_traversed.end(), &static_cast<T &>(*_ti));
+                _ti.next();
+                return true;
+            }
+            return false;
+        }
 
-        PMGD::Node *ref()
+        T *ref()
         {
             if (!bool(*this))
                 throw PMGDException(NullIterator, "Null impl");
@@ -63,40 +79,65 @@ namespace VDMS {
         struct compare_propkey
         {
             PMGD::StringID _propid;
-            bool operator()(const PMGD::Node *n1, const PMGD::Node *n2)
+            bool operator()(const T *n1, const T *n2)
               { return n1->get_property(_propid) < n2->get_property(_propid); }
         };
 
     public:
         // Make sure this is not auto-declared. The move one won't be.
-        ReusableNodeIterator(const ReusableNodeIterator &) = delete;
-        ReusableNodeIterator(PMGD::NodeIterator ni)
-            : _ni(ni),
+        ReusableIterator(const ReusableIterator &) = delete;
+        ReusableIterator(Ti ti)
+            : _ti(ti),
             _it(_traversed.begin())
         { _next(); }
 
         // Add this to clean up the NewNodeIterator requirement
-        ReusableNodeIterator(PMGD::Node *n)
-            : _ni(NULL),
+        ReusableIterator(T *n)
+            : _ti(NULL),
             _it(_traversed.insert(_traversed.end(), n))
         {}
 
+        ReusableIterator();
+
         operator bool() const { return _it != _traversed.end(); }
         bool next() { return _next(); }
-        PMGD::Node &operator *() { return *ref(); }
-        PMGD::Node *operator ->() { return ref(); }
+        T &operator *() { return *ref(); }
+        T *operator ->() { return ref(); }
         void reset() { _it = _traversed.begin(); }
         void traverse_all()
         {
-            for( ; _ni; _ni.next())
-                _traversed.insert(_traversed.end(), &*_ni);
+            for( ; _ti; _ti.next())
+                _traversed.insert(_traversed.end(), &static_cast<T &>(*_ti));
         }
 
         // Sort the list. Once the list is sorted, all operations
         // following that happen in a sorted manner. And this function
         // resets the iterator to the beginning.
-        void sort(PMGD::StringID sortkey);
+        void sort(PMGD::StringID sortkey){
+            // First finish traversal
+            traverse_all();
+            _traversed.sort(compare_propkey{sortkey});
+            _it = _traversed.begin();
+        }
+
+        // Allow adding of edges as we construct this iterator in add_edge
+        // call. This is different than add_node since once add_edge can
+        // cause multiple edges to be created depending on how many nodes
+        // matched the source/destination conditions
+        void add(T *t);
     };
+
+    // Specialization for PMGDQueryHandler::ReusableIterator
+
+    template <>
+    PMGDQueryHandler::ReusableIterator<PMGD::Edge, PMGD::EdgeIterator>::
+    ReusableIterator();
+
+    template<>
+    void PMGDQueryHandler::ReusableIterator<PMGD::Edge, PMGD::EdgeIterator>::
+    add(PMGD::Edge *e);
+
+    // End of specialization for PMGDQueryHandler::ReusableIterator
 
     class PMGDQueryHandler::MultiNeighborIteratorImpl :
                             public PMGD::NodeIteratorImplIntf
@@ -171,15 +212,25 @@ namespace VDMS {
                     _dest_ni = NULL;
                 }
             }
-            return (_src_ni == NULL || !bool(*_src_ni)) ? _expr.db().get_edges(_expr.tag(),
-                        (_num_predicates <= 0 ? PMGD::PropertyPredicate()
-                             : _expr.predicate(0))) :
-                        (*_src_ni)->get_edges(_dir, _expr.tag());
+
+            // !bool(*_src_ni) will never be empty because of how the code is
+            // right now, but we should change in the future because we want
+            // to continue with the transaction even if some querynode did not
+            // find anything. We leave it for now.
+            if (_src_ni == NULL || !bool(*_src_ni)) {
+                PMGD::PropertyPredicate pp;
+                if (_num_predicates > 0)
+                    pp = _expr.predicate(0);
+                return _expr.db().get_edges(_expr.tag(), pp);
+            }
+            else {
+                return (*_src_ni)->get_edges(_dir, _expr.tag());
+            }
         }
 
     public:
         NodeEdgeIteratorImpl(const SearchExpression &expr,
-                             ReusableNodeIterator *src_ni,
+                             ReusableNodeIterator *src_ni = NULL,
                              ReusableNodeIterator *dest_ni = NULL)
             : _expr(expr), _num_predicates(_expr.num_predicates()),
               _src_ni(src_ni), _dest_ni(dest_ni),
@@ -205,81 +256,5 @@ namespace VDMS {
         PMGD::Node &get_source() const { return (*_edge_it)->get_source(); }
         PMGD::Node &get_destination() const { return (*_edge_it)->get_destination(); }
         PMGD::Edge *get_edge() const { return &static_cast<PMGD::Edge &>(**_edge_it); }
-    };
-
-    class PMGDQueryHandler::ReusableEdgeIterator
-    {
-        // Iterator for the starting nodes.
-        PMGD::EdgeIterator _ei;
-
-        // TODO Is list the best data structure if we could potentially
-        // sort?
-        std::list<PMGD::Edge *> _traversed;
-
-        // Current postion of list iterator
-        std::list<PMGD::Edge *>::iterator _it;
-
-        bool _next();
-
-        PMGD::Edge *ref()
-        {
-            if (!bool(*this))
-                throw PMGDException(NullIterator, "Null edge impl");
-            return *_it;
-        }
-
-        // TODO Is this the best way to do this
-        struct compare_propkey
-        {
-            PMGD::StringID _propid;
-            bool operator()(const PMGD::Edge *e1, const PMGD::Edge *e2)
-              { return e1->get_property(_propid) < e2->get_property(_propid); }
-        };
-
-    public:
-        // Make sure this is not auto-declared. The move one won't be.
-        ReusableEdgeIterator(const ReusableEdgeIterator &) = delete;
-        ReusableEdgeIterator(PMGD::EdgeIterator &ei)
-            : _ei(ei),
-              _it(_traversed.begin())
-          { _next(); }
-
-        ReusableEdgeIterator(PMGD::Edge *e)
-            : _ei(NULL),
-            _it(_traversed.insert(_traversed.end(), e))
-          {}
-
-        // Add this to support adding of edges while traversing in add_edge
-        ReusableEdgeIterator() : _ei(NULL), _it(_traversed.end())
-          {}
-
-        operator bool() const { return _it != _traversed.end(); }
-        bool next() { return _next(); }
-        PMGD::Edge &operator *() { return *ref(); }
-        PMGD::Edge *operator ->() { return ref(); }
-        void reset() { _it = _traversed.begin(); }
-        void traverse_all()
-        {
-            for( ; _ei; _ei.next()) {
-                _traversed.insert(_traversed.end(), &static_cast<PMGD::Edge &>(*_ei));
-            }
-        }
-
-        // Allow adding of edges as we construct this iterator in add_edge
-        // call. This is different than add_node since once add_edge can
-        // cause multiple edges to be created depending on how many nodes
-        // matched the source/destination conditions
-        void add_edge(PMGD::Edge *e)
-        {
-            // Easiest to add to the end of list. If we are in middle of
-            // traversal, then this edge might get skipped. Use this function
-            // with that understanding ***
-            _traversed.insert(_traversed.end(), e);
-        }
-
-        // Sort the list. Once the list is sorted, all operations
-        // following that happen in a sorted manner. And this function
-        // resets the iterator to the beginning.
-        void sort(PMGD::StringID sortkey);
     };
 }

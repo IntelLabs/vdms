@@ -51,7 +51,7 @@ void PMGDQueryHandler::init()
                         ->get_string_value("pmgd_path", "default_pmgd");
     unsigned attempts = VDMSConfig::instance()
                         ->get_int_value("max_lock_attempts", RWLock::MAX_ATTEMPTS);
- 
+
     // Create a db
     _db = new PMGD::Graph(dbname.c_str(), PMGD::Graph::Create);
 
@@ -257,13 +257,12 @@ int PMGDQueryHandler::update_node(const protobufs::UpdateNode &un,
     long id = un.identifier();
     bool query = un.has_query_node();
 
-    // Make sure there is either an id or a query node
-    if (id < 0 && !query) {
-        set_response(response, PMGDCmdResponse::Error, "No way to find update node\n");
-        return -1;
-    }
+    auto it = _cached_nodes.end();
 
-    auto it = _cached_nodes.find(id);
+    // If both _ref and query are defined, _ref will have priority.
+    if (id >= 0)
+        it = _cached_nodes.find(id);
+
     if (it == _cached_nodes.end()) {
         if (!query) {
             set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update\n");
@@ -273,7 +272,13 @@ int PMGDQueryHandler::update_node(const protobufs::UpdateNode &un,
             query_node(un.query_node(), response);
             if (response->error_code() != PMGDCmdResponse::Success)
                 return -1;
-            it = _cached_nodes.find(un.query_node().identifier());  // id could have been -ve
+            long qn_id = un.query_node().identifier();
+            if (qn_id >= 0)
+                it = _cached_nodes.find(qn_id);
+            else {
+                set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update\n");
+                return -1;
+            }
         }
     }
 
@@ -333,7 +338,7 @@ int PMGDQueryHandler::add_edge(const protobufs::AddEdge &ce,
 
     ReusableEdgeIterator *rei = NULL;
     if (id >= 0)
-        rei = new ReusableEdgeIterator(); 
+        rei = new ReusableEdgeIterator();
 
     long eid = 0;
     // TODO: Partition code goes here
@@ -343,7 +348,7 @@ int PMGDQueryHandler::add_edge(const protobufs::AddEdge &ce,
             Node &dst = **dstni;
             Edge &e = _db->add_edge(src, dst, sid);
             if (id >= 0)
-                rei->add_edge(&e);
+                rei->add(&e);
 
             for (int i = 0; i < ce.edge().properties_size(); ++i) {
                 const PMGDProp &p = ce.edge().properties(i);
@@ -374,13 +379,11 @@ int PMGDQueryHandler::update_edge(const protobufs::UpdateEdge &ue,
     long id = ue.identifier();
     bool query = ue.has_query_edge();
 
-    // Make sure there is either an id or a query node
-    if (id < 0 && !query) {
-        set_response(response, PMGDCmdResponse::Error, "No way to find edges to be updated\n");
-        return -1;
-    }
+    auto it = _cached_edges.end();
 
-    auto it = _cached_edges.find(id);
+    if (id >= 0)
+        it = _cached_edges.find(id);
+
     if (it == _cached_edges.end()) {
         if (!query) {
             set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update\n");
@@ -390,7 +393,13 @@ int PMGDQueryHandler::update_edge(const protobufs::UpdateEdge &ue,
             query_edge(ue.query_edge(), response);
             if (response->error_code() != PMGDCmdResponse::Success)
                 return -1;
-            it = _cached_edges.find(ue.query_edge().identifier());  // id could have been -ve
+            long qe_id = ue.query_edge().identifier();
+            if (qe_id >= 0)
+                it = _cached_edges.find(qe_id);
+            else {
+                set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update\n");
+                return -1;
+            }
         }
     }
 
@@ -404,6 +413,11 @@ int PMGDQueryHandler::update_edge(const protobufs::UpdateEdge &ue,
             set_property(e, p);
         }
         for (int i = 0; i < ue.remove_props_size(); ++i)
+            // TODO: If many nodes/edges are being updated,
+            // it would be advantageous
+            // to get the StringIDs for the properties in advance instead of
+            // converting each property name to a StringID
+            // every time it is used.
             e.remove_property(ue.remove_props(i).c_str());
     }
     eit->reset();
