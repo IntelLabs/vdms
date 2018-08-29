@@ -147,4 +147,5 @@ namespace VDMS {
         std::vector<PMGDCmdResponses> process_queries(const PMGDCmds &cmds,
                                                       int num_groups, bool readonly);
     };
-};
+
+}; // end VDMS namespace
