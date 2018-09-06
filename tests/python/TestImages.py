@@ -182,8 +182,45 @@ class TestAddImage(unittest.TestCase):
         response = json.loads(response)
         self.assertEqual(response[0]["FindImage"]["status"], 0)
         self.assertEqual(response[1]["FindImage"]["status"], 0)
-        # self.assertEqual(response[0]["FindImage"]["entities"][0]["name"], prefix_name + "0")
-        # self.assertEqual(response[1]["FindImage"]["entities"][0]["name"], prefix_name + "1")
+        self.assertEqual(len(img_array), 2)
+
+    def test_findImageResults(self):
+        db = vdms.VDMS()
+        db.connect(hostname, port)
+
+        prefix_name = "fimg_results_"
+
+        for i in range(0,2):
+            props = {}
+            props["name"] = prefix_name + str(i)
+            self.insertImage(db, props=props)
+
+        all_queries = []
+
+        for i in range(0,2):
+            constraints = {}
+            constraints["name"] = ["==", prefix_name + str(i)]
+
+            results = {}
+            results["list"] = ["name"]
+
+            img_params = {}
+            img_params["constraints"] = constraints
+            img_params["results"] = results
+
+            query = {}
+            query["FindImage"] = img_params
+
+            all_queries.append(query)
+
+        response, img_array = db.query(all_queries)
+        # print vdms.aux_print_json(str(response))
+
+        response = json.loads(response)
+        self.assertEqual(response[0]["FindImage"]["status"], 0)
+        self.assertEqual(response[1]["FindImage"]["status"], 0)
+        self.assertEqual(response[0]["FindImage"]["entities"][0]["name"], prefix_name + "0")
+        self.assertEqual(response[1]["FindImage"]["entities"][0]["name"], prefix_name + "1")
         self.assertEqual(len(img_array), 2)
 
     def test_addImageWithLink(self):
