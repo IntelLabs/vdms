@@ -310,7 +310,7 @@ Json::Value FindImage::construct_responses(
         }
     }
 
-    if (!flag_empty) {
+    if (flag_empty) {
         findImage.removeMember("entities");
     }
 
