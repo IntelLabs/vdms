@@ -111,81 +111,81 @@ using namespace std;
 // }
 
 
-/*******************************/
-TEST(AddVideo, simpleAddFile)
-{
+// /*******************************/
+// TEST(AddVideo, simpleAddFile)
+// {
 
-    Json::StyledWriter writer;
+//     Json::StyledWriter writer;
 
-    std::ifstream ifile;
-    int fsize;
-    char * inBuf;
-    ifile.open("tests/VideoAdd.json", std::ifstream::in);
-    ifile.seekg(0, std::ios::end);
-    fsize = (int)ifile.tellg();
-    ifile.seekg(0, std::ios::beg);
-    inBuf = new char[fsize];
-    ifile.read(inBuf, fsize);
-    std::string json_query = std::string(inBuf);
-    ifile.close();
-    delete[] inBuf;
+//     std::ifstream ifile;
+//     int fsize;
+//     char * inBuf;
+//     ifile.open("tests/VideoAdd.json", std::ifstream::in);
+//     ifile.seekg(0, std::ios::end);
+//     fsize = (int)ifile.tellg();
+//     ifile.seekg(0, std::ios::beg);
+//     inBuf = new char[fsize];
+//     ifile.read(inBuf, fsize);
+//     std::string json_query = std::string(inBuf);
+//     ifile.close();
+//     delete[] inBuf;
 
 
-    std::string string_query("[");
-    string_query +=json_query;
-    string_query += "]";
+//     std::string string_query("[");
+//     string_query +=json_query;
+//     string_query += "]";
 
-    Json::Reader reader;
-    Json::Value root;
-    Json::Value parsed;
+//     Json::Reader reader;
+//     Json::Value root;
+//     Json::Value parsed;
 
-    std::cout << json_query << std::endl;
-    VDMSConfig::init("tests/config-tests.json");
-    PMGDQueryHandler::init();
-    QueryHandler::init();
+//     std::cout << json_query << std::endl;
+//     VDMSConfig::init("tests/config-tests.json");
+//     PMGDQueryHandler::init();
+//     QueryHandler::init();
 
-    QueryHandler qh_base;
-    QueryHandlerTester query_handler(qh_base);
+//     QueryHandler qh_base;
+//     QueryHandlerTester query_handler(qh_base);
 
-    VDMS::protobufs::queryMessage proto_query;
-    proto_query.set_json(string_query);
+//     VDMS::protobufs::queryMessage proto_query;
+//     proto_query.set_json(string_query);
 
-    std::string video;
-    std::ifstream file("tests/test_videos/pedestrian1.avi",
-                    std::ios::in | std::ios::binary | std::ios::ate);
+//     std::string video;
+//     std::ifstream file("tests/test_videos/pedestrian1.avi",
+//                     std::ios::in | std::ios::binary | std::ios::ate);
 
-    video.resize(file.tellg());
+//     video.resize(file.tellg());
 
-    file.seekg(0, std::ios::beg);
-    if( !file.read(&video[ 0 ], video.size()))
-        std::cout << "error" << std::endl;
-    proto_query.add_blobs(video);
+//     file.seekg(0, std::ios::beg);
+//     if( !file.read(&video[ 0 ], video.size()))
+//         std::cout << "error" << std::endl;
+//     proto_query.add_blobs(video);
 
-    VDMS::protobufs::queryMessage response;
+//     VDMS::protobufs::queryMessage response;
 
-    query_handler.pq(proto_query, response );
+//     query_handler.pq(proto_query, response );
 
-    reader.parse(response.json().c_str(), parsed);
-    std::cout << writer.write(parsed) << std::endl;
+//     reader.parse(response.json().c_str(), parsed);
+//     std::cout << writer.write(parsed) << std::endl;
 
-    // Verify results returned.
-    // for (int j = 0; j < parsed.size(); j++) {
-    //     const Json::Value& query = parsed[j];
-    //     ASSERT_EQ(query.getMemberNames().size(), 1);
-    //     std::string cmd = query.getMemberNames()[0];
+//     // Verify results returned.
+//     // for (int j = 0; j < parsed.size(); j++) {
+//     //     const Json::Value& query = parsed[j];
+//     //     ASSERT_EQ(query.getMemberNames().size(), 1);
+//     //     std::string cmd = query.getMemberNames()[0];
 
-    //     if (cmd == "AddEntity")
-    //         EXPECT_EQ(query[cmd]["count"].asInt(), 1);
-    //     if (cmd == "FindEntity") {
-    //         EXPECT_EQ(query[cmd]["returned"].asInt(), 2);
-    //         EXPECT_EQ(query["FindEntity"]["entities"][0]["fv"].asString(),
-    //           "Missing property");
-    //     }
-    // }
+//     //     if (cmd == "AddEntity")
+//     //         EXPECT_EQ(query[cmd]["count"].asInt(), 1);
+//     //     if (cmd == "FindEntity") {
+//     //         EXPECT_EQ(query[cmd]["returned"].asInt(), 2);
+//     //         EXPECT_EQ(query["FindEntity"]["entities"][0]["fv"].asString(),
+//     //           "Missing property");
+//     //     }
+//     // }
 
-    VDMSConfig::destroy();
-    PMGDQueryHandler::destroy();
-}
+//     VDMSConfig::destroy();
+//     PMGDQueryHandler::destroy();
+// }
 
 
 /*****************************/
@@ -249,9 +249,95 @@ std::string singleAddImage(" \
 // }
 /**********************************/
 
-TEST(AddVideo, simpleAddx10)
+// TEST(AddVideo, simpleAddx10)
+// {
+//     int total_videos = 10;
+
+
+
+
+//      std::ifstream ifile;
+//     int fsize;
+//     char * inBuf;
+//     ifile.open("tests/VideoAdd.json", std::ifstream::in);
+//     ifile.seekg(0, std::ios::end);
+//     fsize = (int)ifile.tellg();
+//     ifile.seekg(0, std::ios::beg);
+//     inBuf = new char[fsize];
+//     ifile.read(inBuf, fsize);
+//     std::string json_query  = std::string(inBuf);
+//     ifile.close();
+
+//     delete[] inBuf;
+//     std::string string_query("[");
+
+//     for (int i = 0; i < total_videos; ++i) {
+
+//         string_query +=json_query;
+//         if (i != total_videos - 1)
+//             string_query += ",";
+// }
+//     string_query += "]";
+
+
+//     std::cout<<string_query<<std::endl;
+//     Json::StyledWriter writer;
+
+
+//     Json::Reader reader;
+//     Json::Value root;
+//     Json::Value parsed;
+
+//     VDMSConfig::init("tests/config-tests.json");
+//     PMGDQueryHandler::init();
+//     QueryHandler::init();
+
+//     QueryHandler qh_base;
+//     QueryHandlerTester query_handler(qh_base);
+
+//     VDMS::protobufs::queryMessage proto_query;
+//     proto_query.set_json(string_query);
+//     VDMS::protobufs::queryMessage response;
+
+
+
+//     std::string video;
+//     std::ifstream file("tests/test_videos/pedestrian1.avi",
+//                     std::ios::in | std::ios::binary | std::ios::ate);
+
+//     video.resize(file.tellg());
+
+//     file.seekg(0, std::ios::beg);
+//     if( !file.read(&video[ 0 ], video.size()))
+//         std::cout << "error" << std::endl;
+
+//     for (int i = 0; i < total_videos; ++i) {
+//        proto_query.add_blobs(video);
+//     }
+
+//     query_handler.pq(proto_query, response );
+
+//     reader.parse(response.json().c_str(), parsed);
+//     std::cout << writer.write(parsed) << std::endl;
+
+
+//     Json::Reader json_reader;
+//     Json::Value json_response;
+
+//     // std::cout << response.json() << std::endl;
+//     json_reader.parse(response.json(), json_response);
+
+//     for (int i = 0; i < total_videos; ++i) {
+//         EXPECT_EQ(json_response[i]["AddVideo"]["status"].asString(), "0");
+//     }
+//     VDMSConfig::destroy();
+//     PMGDQueryHandler::destroy();
+// }
+
+
+TEST(AddVideo, simple3Videos)
 {
-    int total_videos = 10;
+    int total_videos = 3;
 
 
 
@@ -259,7 +345,7 @@ TEST(AddVideo, simpleAddx10)
      std::ifstream ifile;
     int fsize;
     char * inBuf;
-    ifile.open("tests/VideoAdd.json", std::ifstream::in);
+    ifile.open("tests/Add3Videos.json", std::ifstream::in);
     ifile.seekg(0, std::ios::end);
     fsize = (int)ifile.tellg();
     ifile.seekg(0, std::ios::beg);
@@ -269,18 +355,18 @@ TEST(AddVideo, simpleAddx10)
     ifile.close();
 
     delete[] inBuf;
-    std::string string_query("[");
+//     std::string string_query("[");
 
-    for (int i = 0; i < total_videos; ++i) {
+//     for (int i = 0; i < total_videos; ++i) {
 
-        string_query +=json_query;
-        if (i != total_videos - 1)
-            string_query += ",";
-}
-    string_query += "]";
+//         string_query +=json_query;
+//         if (i != total_videos - 1)
+//             string_query += ",";
+// }
+//     string_query += "]";
 
 
-    std::cout<<string_query<<std::endl;
+    std::cout<<json_query<<std::endl;
     Json::StyledWriter writer;
 
 
@@ -296,7 +382,7 @@ TEST(AddVideo, simpleAddx10)
     QueryHandlerTester query_handler(qh_base);
 
     VDMS::protobufs::queryMessage proto_query;
-    proto_query.set_json(string_query);
+    proto_query.set_json(json_query);
     VDMS::protobufs::queryMessage response;
 
 
@@ -329,6 +415,72 @@ TEST(AddVideo, simpleAddx10)
 
     for (int i = 0; i < total_videos; ++i) {
         EXPECT_EQ(json_response[i]["AddVideo"]["status"].asString(), "0");
+    }
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}
+
+TEST(AddVideo, FindVideo)
+{
+    int total_videos=1;
+
+     std::ifstream ifile;
+    int fsize;
+    char * inBuf;
+    ifile.open("tests/FindVideo.json", std::ifstream::in);
+    ifile.seekg(0, std::ios::end);
+    fsize = (int)ifile.tellg();
+    ifile.seekg(0, std::ios::beg);
+    inBuf = new char[fsize];
+    ifile.read(inBuf, fsize);
+    std::string json_query  = std::string(inBuf);
+    ifile.close();
+
+    delete[] inBuf;
+//     std::string string_query("[");
+
+//     for (int i = 0; i < total_videos; ++i) {
+
+//         string_query +=json_query;
+//         if (i != total_videos - 1)
+//             string_query += ",";
+// }
+//     string_query += "]";
+
+
+    std::cout<<json_query<<std::endl;
+    Json::StyledWriter writer;
+
+
+    Json::Reader reader;
+    Json::Value root;
+    Json::Value parsed;
+
+    VDMSConfig::init("tests/config-tests.json");
+    PMGDQueryHandler::init();
+    QueryHandler::init();
+
+    QueryHandler qh_base;
+    QueryHandlerTester query_handler(qh_base);
+
+    VDMS::protobufs::queryMessage proto_query;
+    proto_query.set_json(json_query);
+    VDMS::protobufs::queryMessage response;
+
+     query_handler.pq(proto_query, response );
+
+    reader.parse(response.json().c_str(), parsed);
+    std::cout << writer.write(parsed) << std::endl;
+
+
+    Json::Reader json_reader;
+    Json::Value json_response;
+
+    // std::cout << response.json() << std::endl;
+    json_reader.parse(response.json(), json_response);
+
+    for (int i = 0; i < total_videos; ++i) {
+        EXPECT_EQ(json_response[i]["FindVideo"]["status"].asString(), "0");
     }
     VDMSConfig::destroy();
     PMGDQueryHandler::destroy();

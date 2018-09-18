@@ -97,6 +97,12 @@
       "enum": ["png", "jpg"]
     },
 
+    "unitString": {
+      "type": "string",
+      "enum": ["frames", "seconds"]
+    },
+
+
     "edgeDirectionString": {
       "type": "string",
       "enum": ["in", "out", "any"]
@@ -144,6 +150,21 @@
     },
 
     // Operations
+
+
+    "operationInterval": {
+      "type": "object",
+      "properties": {
+        "type":  { "enum": [ "interval" ] },
+        "unit":     { "$ref": "#/definitions/unitString" },
+        "start":     { "$ref": "#/definitions/nonNegativeInt" },
+        "stop":      { "$ref": "#/definitions/nonNegativeInt" },
+        "step":      { "$ref": "#/definitions/nonNegativeInt" }
+      },
+      "required": ["type"],
+      "additionalProperties": false
+    },
+
 
     "operationThreshold": {
       "type": "object",

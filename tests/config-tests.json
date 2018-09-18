@@ -7,5 +7,5 @@
 
     // Database paths
     "pmgd_path": "simpleAdd_db",
-    "video_path": "db/videos/"
+    "video_path": "tests/db/videos/"
 }
