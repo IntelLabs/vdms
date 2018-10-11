@@ -14,7 +14,7 @@ port = 55557
 class TestFindDescriptors(unittest.TestCase):
 
     def create_set_and_insert(self, set_name, dims, total):
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         all_queries = []
@@ -30,14 +30,13 @@ class TestFindDescriptors(unittest.TestCase):
         all_queries.append(query)
 
         response, img_array = db.query(all_queries)
-        response = json.loads(response)
         self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
 
         all_queries = []
         descriptor_blob = []
 
         class_counter = -1
-        for i in xrange(0,total-1):
+        for i in range(0,total-1):
             if ((i % 4) == 0):
                 class_counter += 1
 
@@ -62,9 +61,7 @@ class TestFindDescriptors(unittest.TestCase):
         response, img_array = db.query(all_queries, [descriptor_blob])
 
         # Check success
-        response = json.loads(response)
-        # print vdms.aux_print_json(response)
-        for x in xrange(0,total-1):
+        for x in range(0,total-1):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
 
     def test_findDescByConstraints(self):
@@ -75,7 +72,7 @@ class TestFindDescriptors(unittest.TestCase):
         total = 100
         self.create_set_and_insert(set_name, dims, total)
 
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         all_queries = []
@@ -100,8 +97,6 @@ class TestFindDescriptors(unittest.TestCase):
         response, img_array = db.query(all_queries)
 
         # Check success
-        response = json.loads(response)
-        # print vdms.aux_print_json(response)
         self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
         self.assertEqual(response[0]["FindDescriptor"]["returned"], 1)
         self.assertEqual(response[0]["FindDescriptor"]
@@ -116,7 +111,7 @@ class TestFindDescriptors(unittest.TestCase):
         total = 100
         self.create_set_and_insert(set_name, dims, total)
 
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         all_queries = []
@@ -141,8 +136,6 @@ class TestFindDescriptors(unittest.TestCase):
         response, img_array = db.query(all_queries)
 
         # Check success
-        response = json.loads(response)
-        # print vdms.aux_print_json(response)
         self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
         self.assertEqual(response[0]["FindDescriptor"]["returned"], 1)
         self.assertEqual(response[0]["FindDescriptor"]
@@ -156,7 +149,7 @@ class TestFindDescriptors(unittest.TestCase):
         total = 100
         self.create_set_and_insert(set_name, dims, total)
 
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         kn = 3
@@ -190,8 +183,6 @@ class TestFindDescriptors(unittest.TestCase):
         self.assertEqual(descriptor_blob[0], blob_array[0])
 
         # Check success
-        response = json.loads(response)
-        # print vdms.aux_print_json(response)
         self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
         self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
 
@@ -210,7 +201,7 @@ class TestFindDescriptors(unittest.TestCase):
         total = 100
         self.create_set_and_insert(set_name, dims, total)
 
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         kn = 1
@@ -239,8 +230,6 @@ class TestFindDescriptors(unittest.TestCase):
 
         response, blob_array = db.query(all_queries, [descriptor_blob])
 
-        response = json.loads(response)
-        # print vdms.aux_print_json(response)
 
         # Check success
         self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
@@ -256,7 +245,7 @@ class TestFindDescriptors(unittest.TestCase):
     #     total = 100
     #     self.create_set_and_insert(set_name, dims, total)
 
-    #     db = vdms.VDMS()
+    #     db = vdms.vdms()
     #     db.connect(hostname, port)
 
     #     kn = 3
@@ -294,8 +283,6 @@ class TestFindDescriptors(unittest.TestCase):
     #     self.assertEqual(descriptor_blob[0], blob_array[0])
 
     #     # Check success
-    #     response = json.loads(response)
-    #     # print vdms.aux_print_json(response)
     #     self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
     #     self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
 
@@ -314,7 +301,7 @@ class TestFindDescriptors(unittest.TestCase):
         dims = 128
         total = 100
 
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         all_queries = []
@@ -330,14 +317,13 @@ class TestFindDescriptors(unittest.TestCase):
         all_queries.append(query)
 
         response, img_array = db.query(all_queries)
-        response = json.loads(response)
         self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
 
         all_queries = []
         descriptor_blob = []
 
         class_counter = -1
-        for i in xrange(0,total-1):
+        for i in range(0,total-1):
             if ((i % 4) == 0):
                 class_counter += 1
 
@@ -378,13 +364,10 @@ class TestFindDescriptors(unittest.TestCase):
 
             all_queries.append(query)
 
-        # print vdms.aux_print_json(all_queries)
         response, img_array = db.query(all_queries, [descriptor_blob])
 
         # Check success
-        # print vdms.aux_print_json(response)
-        response = json.loads(response)
-        for x in xrange(0,total-1,2):
+        for x in range(0,total-1,2):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
             self.assertEqual(response[x+1]["AddEntity"]  ["status"], 0)
 
@@ -437,8 +420,6 @@ class TestFindDescriptors(unittest.TestCase):
         self.assertEqual(descriptor_blob[0], blob_array[0])
 
         # Check success
-        response = json.loads(response)
-        # print vdms.aux_print_json(response)
         self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
         self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
 

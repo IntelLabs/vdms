@@ -14,7 +14,7 @@ port = 55557
 class TestDescriptors(unittest.TestCase):
 
     def test_addSet(self):
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         all_queries = []
@@ -28,16 +28,13 @@ class TestDescriptors(unittest.TestCase):
 
         all_queries.append(query)
 
-        # print vdms.aux_print_json(json.dumps(all_queries))
         response, img_array = db.query(all_queries)
 
         # Check success
-        response = json.loads(response)
-        # print vdms.aux_print_json(response)
         self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
 
     def test_addSetAndDescriptors(self):
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         all_queries = []
@@ -55,7 +52,6 @@ class TestDescriptors(unittest.TestCase):
         all_queries.append(query)
 
         response, img_array = db.query(all_queries)
-        response = json.loads(response)
         self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
 
         # Add Descriptors
@@ -79,12 +75,10 @@ class TestDescriptors(unittest.TestCase):
         response, img_array = db.query(all_queries, [descriptor_blob])
 
         # Check success
-        response = json.loads(response)
-        # print vdms.aux_print_json(response)
         self.assertEqual(response[0]["AddDescriptor"]["status"], 0)
 
     def test_addDescriptorsx1000(self):
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         all_queries = []
@@ -102,8 +96,6 @@ class TestDescriptors(unittest.TestCase):
         all_queries.append(query)
 
         response, img_array = db.query(all_queries)
-        response = json.loads(response)
-        # print vdms.aux_print_json(response)
         self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
 
         all_queries = []
@@ -111,7 +103,7 @@ class TestDescriptors(unittest.TestCase):
 
         total = 1000;
 
-        for i in xrange(1,total):
+        for i in range(1,total):
             x = np.ones(dims)
             x[2] = 2.34 + i*20
             x = x.astype('float32')
@@ -129,14 +121,12 @@ class TestDescriptors(unittest.TestCase):
         response, img_array = db.query(all_queries, [descriptor_blob])
 
         # Check success
-        response = json.loads(response)
-        # print vdms.aux_print_json(response)
-        for x in xrange(0,total-1):
+        for x in range(0,total-1):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
 
 
     def test_classifyDescriptor(self):
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         all_queries = []
@@ -154,7 +144,6 @@ class TestDescriptors(unittest.TestCase):
         all_queries.append(query)
 
         response, img_array = db.query(all_queries)
-        response = json.loads(response)
         self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
 
         all_queries = []
@@ -163,7 +152,7 @@ class TestDescriptors(unittest.TestCase):
         total = 1000;
 
         class_counter = -1
-        for i in xrange(0,total-1):
+        for i in range(0,total-1):
             if ((i % 4) == 0):
                 class_counter += 1
 
@@ -184,9 +173,7 @@ class TestDescriptors(unittest.TestCase):
         response, img_array = db.query(all_queries, [descriptor_blob])
 
         # Check success
-        response = json.loads(response)
-        # print vdms.aux_print_json(response)
-        for x in xrange(0,total-1):
+        for x in range(0,total-1):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
 
 
@@ -196,7 +183,7 @@ class TestDescriptors(unittest.TestCase):
         query = {}
         query["ClassifyDescriptor"] = descriptor
 
-        for i in xrange(2, total/10, 4):
+        for i in range(2, total//10, 4):
             all_queries = []
             descriptor_blob = []
 
@@ -210,8 +197,6 @@ class TestDescriptors(unittest.TestCase):
             response, img_array = db.query(all_queries, [descriptor_blob])
 
             # Check success
-            response = json.loads(response)
-            # print vdms.aux_print_json(response)
             self.assertEqual(response[0]["ClassifyDescriptor"]["status"], 0)
             self.assertEqual(response[0]["ClassifyDescriptor"]
                                       ["label"], "class" + str(int(i/4)))

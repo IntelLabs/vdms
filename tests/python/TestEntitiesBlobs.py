@@ -41,7 +41,7 @@ class TestEntitiesBlob(unittest.TestCase):
 
     def test_addEntityWithBlob(self, thID=0):
 
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         props = {}
@@ -62,17 +62,17 @@ class TestEntitiesBlob(unittest.TestCase):
         all_queries.append(query)
 
         blob_arr = []
-        fd = open("../test_images/brain.png")
+        fd = open("../test_images/brain.png", 'rb')
         blob_arr.append(fd.read())
+        fd.close()
 
         response, res_arr = db.query(all_queries, [blob_arr])
-        response = json.loads(response)
 
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
 
     def test_addEntityWithBlobNoBlob(self, thID=0):
 
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         props = {}
@@ -93,8 +93,6 @@ class TestEntitiesBlob(unittest.TestCase):
         all_queries.append(query)
 
         response, res_arr = db.query(all_queries)
-        response = json.loads(response)
-        # vdms.aux_print_json(response)
 
         self.assertEqual(response[0]["status"], -1)
         self.assertEqual(response[0]["info"],
@@ -102,7 +100,7 @@ class TestEntitiesBlob(unittest.TestCase):
 
     def test_addEntityWithBlobAndFind(self, thID=0):
 
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         props = {}
@@ -123,12 +121,11 @@ class TestEntitiesBlob(unittest.TestCase):
         all_queries.append(query)
 
         blob_arr = []
-        fd = open("../test_images/brain.png")
+        fd = open("../test_images/brain.png", 'rb')
         blob_arr.append(fd.read())
+        fd.close()
 
         response, res_arr = db.query(all_queries, [blob_arr])
-        # vdms.aux_print_json(str(response))
-        response = json.loads(response)
 
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
 
@@ -151,8 +148,6 @@ class TestEntitiesBlob(unittest.TestCase):
         all_queries.append(query)
 
         response, res_arr = db.query(all_queries)
-        # vdms.aux_print_json(str(response))
-        response = json.loads(response)
 
         self.assertEqual(response[0]["FindEntity"]["entities"][0]["blob"], True)
 
