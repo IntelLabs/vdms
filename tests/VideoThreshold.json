@@ -1,0 +1,17 @@
+[
+{
+        "AddVideo":
+        {
+            "operations": [
+             	 {
+                    "value": 100
+                    ,"type": "threshold"
+          }],
+            "properties": {
+                "Year": 1986,
+                "release":{"_date":"Sat Oct 1 17:59:24 PDT 1996"},
+                "Name":"Gone With the Wind Part1"
+            }
+        }
+    }
+]

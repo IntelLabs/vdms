@@ -1,0 +1,23 @@
+[
+{
+        "AddVideo":
+        {
+            "operations": [
+            	    	 {
+                      "x": 0
+                    , "y": 0
+                    ,"width": 100
+                    ,"type": "crop"
+                    ,"height": 100
+
+                }
+
+            ],
+            "properties": {
+                "Year": 1999,
+                "release":{"_date":"Sat Oct 1 17:59:24 PDT 1996"},
+                "Name":"Gone With the Wind PArt3"
+            }
+        }
+    }
+]
