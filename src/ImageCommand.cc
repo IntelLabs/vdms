@@ -63,6 +63,13 @@ void ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
                         get_value<int>(op, "width"),
                         get_value<int>(op, "height") ));
         }
+        else if (type == "flip") {
+            img.flip(get_value<int>(op, "code"));
+        }
+        else if (type == "rotate") {
+            img.rotate(get_value<double>(op, "angle"),
+                       get_value<bool>(op, "resize"));
+        }
         else {
             throw ExceptionCommand(ImageError, "Operation not defined");
         }
