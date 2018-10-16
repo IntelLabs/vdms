@@ -701,272 +701,272 @@ TEST(AddVideo, VideoCrop)
 }
 
 
-// TEST(AddVideo, VideoCropResizeThreshold)
-// {
-//     int total_videos = 1;
-//     std::ifstream ifile;
-//     int fsize;
-//     char * inBuf;
-//     ifile.open("tests/VideoCropResizeThreshold.json", std::ifstream::in);
-//     ifile.seekg(0, std::ios::end);
-//     fsize = (int)ifile.tellg();
-//     ifile.seekg(0, std::ios::beg);
-//     inBuf = new char[fsize];
-//     ifile.read(inBuf, fsize);
-//     std::string json_query  = std::string(inBuf);
-//     ifile.close();
+TEST(AddVideo, VideoCropResizeThreshold)
+{
+    int total_videos = 1;
+    std::ifstream ifile;
+    int fsize;
+    char * inBuf;
+    ifile.open("tests/VideoCropResizeThreshold.json", std::ifstream::in);
+    ifile.seekg(0, std::ios::end);
+    fsize = (int)ifile.tellg();
+    ifile.seekg(0, std::ios::beg);
+    inBuf = new char[fsize];
+    ifile.read(inBuf, fsize);
+    std::string json_query  = std::string(inBuf);
+    ifile.close();
 
-//     delete[] inBuf;
-//     std::cout<<json_query<<std::endl;
-//     Json::StyledWriter writer;
+    delete[] inBuf;
+    std::cout<<json_query<<std::endl;
+    Json::StyledWriter writer;
 
 
-//     Json::Reader reader;
-//     Json::Value root;
-//     Json::Value parsed;
+    Json::Reader reader;
+    Json::Value root;
+    Json::Value parsed;
 
-//     VDMSConfig::init("tests/config-tests.json");
-//     PMGDQueryHandler::init();
-//     QueryHandler::init();
+    VDMSConfig::init("tests/config-tests.json");
+    PMGDQueryHandler::init();
+    QueryHandler::init();
 
-//     QueryHandler qh_base;
-//     QueryHandlerTester query_handler(qh_base);
+    QueryHandler qh_base;
+    QueryHandlerTester query_handler(qh_base);
 
-//     VDMS::protobufs::queryMessage proto_query;
-//     proto_query.set_json(json_query);
-//     VDMS::protobufs::queryMessage response;
+    VDMS::protobufs::queryMessage proto_query;
+    proto_query.set_json(json_query);
+    VDMS::protobufs::queryMessage response;
 
 
 
-//     std::string video;
-//     std::ifstream file("tests/test_videos/Megamind.avi",
-//                     std::ios::in | std::ios::binary | std::ios::ate);
+    std::string video;
+    std::ifstream file("tests/test_videos/Megamind.avi",
+                    std::ios::in | std::ios::binary | std::ios::ate);
 
-//     video.resize(file.tellg());
+    video.resize(file.tellg());
 
-//     file.seekg(0, std::ios::beg);
-//     if( !file.read(&video[ 0 ], video.size()))
-//         std::cout << "error" << std::endl;
+    file.seekg(0, std::ios::beg);
+    if( !file.read(&video[ 0 ], video.size()))
+        std::cout << "error" << std::endl;
 
-//     for (int i = 0; i < total_videos; ++i) {
-//        proto_query.add_blobs(video);
-//     }
+    for (int i = 0; i < total_videos; ++i) {
+       proto_query.add_blobs(video);
+    }
 
-//     query_handler.pq(proto_query, response );
+    query_handler.pq(proto_query, response );
 
-//     reader.parse(response.json().c_str(), parsed);
-//     std::cout << writer.write(parsed) << std::endl;
+    reader.parse(response.json().c_str(), parsed);
+    std::cout << writer.write(parsed) << std::endl;
 
 
-//     Json::Reader json_reader;
-//     Json::Value json_response;
+    Json::Reader json_reader;
+    Json::Value json_response;
 
-//     // std::cout << response.json() << std::endl;
-//     json_reader.parse(response.json(), json_response);
+    // std::cout << response.json() << std::endl;
+    json_reader.parse(response.json(), json_response);
 
-//     for (int i = 0; i < total_videos; ++i) {
-//         EXPECT_EQ(json_response[i]["AddVideo"]["status"].asString(), "0");
-//     }
-//     VDMSConfig::destroy();
-//     PMGDQueryHandler::destroy();
-// }
+    for (int i = 0; i < total_videos; ++i) {
+        EXPECT_EQ(json_response[i]["AddVideo"]["status"].asString(), "0");
+    }
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}
 
 
-// TEST(AddVideo, Add3Videos)
-// {
-//     int total_videos = 3;
-//     std::ifstream ifile;
-//     int fsize;
-//     char * inBuf;
-//     ifile.open("tests/Add3Videos.json", std::ifstream::in);
-//     ifile.seekg(0, std::ios::end);
-//     fsize = (int)ifile.tellg();
-//     ifile.seekg(0, std::ios::beg);
-//     inBuf = new char[fsize];
-//     ifile.read(inBuf, fsize);
-//     std::string json_query  = std::string(inBuf);
-//     ifile.close();
+TEST(AddVideo, Add3Videos)
+{
+    int total_videos = 3;
+    std::ifstream ifile;
+    int fsize;
+    char * inBuf;
+    ifile.open("tests/Add3Videos.json", std::ifstream::in);
+    ifile.seekg(0, std::ios::end);
+    fsize = (int)ifile.tellg();
+    ifile.seekg(0, std::ios::beg);
+    inBuf = new char[fsize];
+    ifile.read(inBuf, fsize);
+    std::string json_query  = std::string(inBuf);
+    ifile.close();
 
-//     delete[] inBuf;
-//     std::cout<<json_query<<std::endl;
-//     Json::StyledWriter writer;
+    delete[] inBuf;
+    std::cout<<json_query<<std::endl;
+    Json::StyledWriter writer;
 
 
-//     Json::Reader reader;
-//     Json::Value root;
-//     Json::Value parsed;
+    Json::Reader reader;
+    Json::Value root;
+    Json::Value parsed;
 
-//     VDMSConfig::init("tests/config-tests.json");
-//     PMGDQueryHandler::init();
-//     QueryHandler::init();
+    VDMSConfig::init("tests/config-tests.json");
+    PMGDQueryHandler::init();
+    QueryHandler::init();
 
-//     QueryHandler qh_base;
-//     QueryHandlerTester query_handler(qh_base);
+    QueryHandler qh_base;
+    QueryHandlerTester query_handler(qh_base);
 
-//     VDMS::protobufs::queryMessage proto_query;
-//     proto_query.set_json(json_query);
-//     VDMS::protobufs::queryMessage response;
+    VDMS::protobufs::queryMessage proto_query;
+    proto_query.set_json(json_query);
+    VDMS::protobufs::queryMessage response;
 
 
 
-//     std::string video;
-//     std::ifstream file("tests/test_videos/Megamind.avi",
-//                     std::ios::in | std::ios::binary | std::ios::ate);
+    std::string video;
+    std::ifstream file("tests/test_videos/Megamind.avi",
+                    std::ios::in | std::ios::binary | std::ios::ate);
 
-//     video.resize(file.tellg());
+    video.resize(file.tellg());
 
-//     file.seekg(0, std::ios::beg);
-//     if( !file.read(&video[ 0 ], video.size()))
-//         std::cout << "error" << std::endl;
+    file.seekg(0, std::ios::beg);
+    if( !file.read(&video[ 0 ], video.size()))
+        std::cout << "error" << std::endl;
 
-//     for (int i = 0; i < total_videos; ++i) {
-//        proto_query.add_blobs(video);
-//     }
+    for (int i = 0; i < total_videos; ++i) {
+       proto_query.add_blobs(video);
+    }
 
-//     query_handler.pq(proto_query, response );
+    query_handler.pq(proto_query, response );
 
-//     reader.parse(response.json().c_str(), parsed);
-//     std::cout << writer.write(parsed) << std::endl;
+    reader.parse(response.json().c_str(), parsed);
+    std::cout << writer.write(parsed) << std::endl;
 
 
-//     Json::Reader json_reader;
-//     Json::Value json_response;
+    Json::Reader json_reader;
+    Json::Value json_response;
 
-//     // std::cout << response.json() << std::endl;
-//     json_reader.parse(response.json(), json_response);
+    // std::cout << response.json() << std::endl;
+    json_reader.parse(response.json(), json_response);
 
-//     for (int i = 0; i < total_videos; ++i) {
-//         EXPECT_EQ(json_response[i]["AddVideo"]["status"].asString(), "0");
-//     }
-//     VDMSConfig::destroy();
-//     PMGDQueryHandler::destroy();
-// }
+    for (int i = 0; i < total_videos; ++i) {
+        EXPECT_EQ(json_response[i]["AddVideo"]["status"].asString(), "0");
+    }
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}
 
 
-// TEST(AddVideo, VideoThresholdInterval)
-// {
-//     int total_videos = 1;
-//     std::ifstream ifile;
-//     int fsize;
-//     char * inBuf;
-//     ifile.open("tests/VideoThresholdInterval.json", std::ifstream::in);
-//     ifile.seekg(0, std::ios::end);
-//     fsize = (int)ifile.tellg();
-//     ifile.seekg(0, std::ios::beg);
-//     inBuf = new char[fsize];
-//     ifile.read(inBuf, fsize);
-//     std::string json_query  = std::string(inBuf);
-//     ifile.close();
+TEST(AddVideo, VideoThresholdInterval)
+{
+    int total_videos = 1;
+    std::ifstream ifile;
+    int fsize;
+    char * inBuf;
+    ifile.open("tests/VideoThresholdInterval.json", std::ifstream::in);
+    ifile.seekg(0, std::ios::end);
+    fsize = (int)ifile.tellg();
+    ifile.seekg(0, std::ios::beg);
+    inBuf = new char[fsize];
+    ifile.read(inBuf, fsize);
+    std::string json_query  = std::string(inBuf);
+    ifile.close();
 
-//     delete[] inBuf;
-//     std::cout<<json_query<<std::endl;
-//     Json::StyledWriter writer;
+    delete[] inBuf;
+    std::cout<<json_query<<std::endl;
+    Json::StyledWriter writer;
 
 
-//     Json::Reader reader;
-//     Json::Value root;
-//     Json::Value parsed;
+    Json::Reader reader;
+    Json::Value root;
+    Json::Value parsed;
 
-//     VDMSConfig::init("tests/config-tests.json");
-//     PMGDQueryHandler::init();
-//     QueryHandler::init();
+    VDMSConfig::init("tests/config-tests.json");
+    PMGDQueryHandler::init();
+    QueryHandler::init();
 
-//     QueryHandler qh_base;
-//     QueryHandlerTester query_handler(qh_base);
+    QueryHandler qh_base;
+    QueryHandlerTester query_handler(qh_base);
 
-//     VDMS::protobufs::queryMessage proto_query;
-//     proto_query.set_json(json_query);
-//     VDMS::protobufs::queryMessage response;
+    VDMS::protobufs::queryMessage proto_query;
+    proto_query.set_json(json_query);
+    VDMS::protobufs::queryMessage response;
 
 
 
-//     std::string video;
-//     std::ifstream file("tests/test_videos/Megamind.avi",
-//                     std::ios::in | std::ios::binary | std::ios::ate);
+    std::string video;
+    std::ifstream file("tests/test_videos/Megamind.avi",
+                    std::ios::in | std::ios::binary | std::ios::ate);
 
-//     video.resize(file.tellg());
+    video.resize(file.tellg());
 
-//     file.seekg(0, std::ios::beg);
-//     if( !file.read(&video[ 0 ], video.size()))
-//         std::cout << "error" << std::endl;
+    file.seekg(0, std::ios::beg);
+    if( !file.read(&video[ 0 ], video.size()))
+        std::cout << "error" << std::endl;
 
-//     for (int i = 0; i < total_videos; ++i) {
-//        proto_query.add_blobs(video);
-//     }
+    for (int i = 0; i < total_videos; ++i) {
+       proto_query.add_blobs(video);
+    }
 
-//     query_handler.pq(proto_query, response );
+    query_handler.pq(proto_query, response );
 
-//     reader.parse(response.json().c_str(), parsed);
-//     std::cout << writer.write(parsed) << std::endl;
+    reader.parse(response.json().c_str(), parsed);
+    std::cout << writer.write(parsed) << std::endl;
 
 
-//     Json::Reader json_reader;
-//     Json::Value json_response;
+    Json::Reader json_reader;
+    Json::Value json_response;
 
-//     // std::cout << response.json() << std::endl;
-//     json_reader.parse(response.json(), json_response);
+    // std::cout << response.json() << std::endl;
+    json_reader.parse(response.json(), json_response);
 
-//     for (int i = 0; i < total_videos; ++i) {
-//         EXPECT_EQ(json_response[i]["AddVideo"]["status"].asString(), "0");
-//     }
-//     VDMSConfig::destroy();
-//     PMGDQueryHandler::destroy();
-// }
+    for (int i = 0; i < total_videos; ++i) {
+        EXPECT_EQ(json_response[i]["AddVideo"]["status"].asString(), "0");
+    }
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}
 
 
-// TEST(AddVideo, FindVideo)
-// {
-//     int total_videos=1;
+TEST(AddVideo, FindVideo)
+{
+    int total_videos=1;
 
-//      std::ifstream ifile;
-//     int fsize;
-//     char * inBuf;
-//     ifile.open("tests/FindVideo.json", std::ifstream::in);
-//     ifile.seekg(0, std::ios::end);
-//     fsize = (int)ifile.tellg();
-//     ifile.seekg(0, std::ios::beg);
-//     inBuf = new char[fsize];
-//     ifile.read(inBuf, fsize);
-//     std::string json_query  = std::string(inBuf);
-//     ifile.close();
+     std::ifstream ifile;
+    int fsize;
+    char * inBuf;
+    ifile.open("tests/FindVideo.json", std::ifstream::in);
+    ifile.seekg(0, std::ios::end);
+    fsize = (int)ifile.tellg();
+    ifile.seekg(0, std::ios::beg);
+    inBuf = new char[fsize];
+    ifile.read(inBuf, fsize);
+    std::string json_query  = std::string(inBuf);
+    ifile.close();
 
-//     delete[] inBuf;
-//     std::cout<<json_query<<std::endl;
-//     Json::StyledWriter writer;
+    delete[] inBuf;
+    std::cout<<json_query<<std::endl;
+    Json::StyledWriter writer;
 
 
-//     Json::Reader reader;
-//     Json::Value root;
-//     Json::Value parsed;
+    Json::Reader reader;
+    Json::Value root;
+    Json::Value parsed;
 
-//     VDMSConfig::init("tests/config-tests.json");
-//     PMGDQueryHandler::init();
-//     QueryHandler::init();
+    VDMSConfig::init("tests/config-tests.json");
+    PMGDQueryHandler::init();
+    QueryHandler::init();
 
-//     QueryHandler qh_base;
-//     QueryHandlerTester query_handler(qh_base);
+    QueryHandler qh_base;
+    QueryHandlerTester query_handler(qh_base);
 
-//     VDMS::protobufs::queryMessage proto_query;
-//     proto_query.set_json(json_query);
-//     VDMS::protobufs::queryMessage response;
+    VDMS::protobufs::queryMessage proto_query;
+    proto_query.set_json(json_query);
+    VDMS::protobufs::queryMessage response;
 
-//      query_handler.pq(proto_query, response );
+     query_handler.pq(proto_query, response );
 
-//     reader.parse(response.json().c_str(), parsed);
-//     std::cout << writer.write(parsed) << std::endl;
+    reader.parse(response.json().c_str(), parsed);
+    std::cout << writer.write(parsed) << std::endl;
 
 
-//     Json::Reader json_reader;
-//     Json::Value json_response;
+    Json::Reader json_reader;
+    Json::Value json_response;
 
-//     json_reader.parse(response.json(), json_response);
+    json_reader.parse(response.json(), json_response);
 
-//     for (int i = 0; i < total_videos; ++i) {
-//         EXPECT_EQ(json_response[i]["FindVideo"]["status"].asString(), "0");
-//     }
-//     VDMSConfig::destroy();
-//     PMGDQueryHandler::destroy();
-// }
+    for (int i = 0; i < total_videos; ++i) {
+        EXPECT_EQ(json_response[i]["FindVideo"]["status"].asString(), "0");
+    }
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}
 
 
 TEST(AddVideo, FindVideoAllOperations)
