@@ -14,8 +14,8 @@ def buildServer(env):
               '/usr/include/jsoncpp/',
               os.path.join(env['INTEL_PATH'], 'pmgd/include'),
               os.path.join(env['INTEL_PATH'], 'pmgd/util'),
-              os.path.join(env['INTEL_PATH'], 'vcl-video/include'),
-              os.path.join(env['INTEL_PATH'], 'vcl-video/src'),
+              os.path.join(env['INTEL_PATH'], 'vcl/include'),
+              os.path.join(env['INTEL_PATH'], 'vcl/src'),
              ],
     LIBS = [ 'pmgd', 'pmgd-util',
              'jsoncpp', 'protobuf', 'tbb',
@@ -23,7 +23,7 @@ def buildServer(env):
            ],
     LIBPATH = ['/usr/local/lib/', 'utils/',
                os.path.join(env['INTEL_PATH'], 'utils/'),
-               os.path.join(env['INTEL_PATH'], 'vcl-video/'),
+               os.path.join(env['INTEL_PATH'], 'vcl/'),
                os.path.join(env['INTEL_PATH'], 'pmgd/lib/')
                ]
   )

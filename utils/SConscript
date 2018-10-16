@@ -70,4 +70,3 @@ comm_test_source_files = "test/comm/UnitTests.cc";
 comm_test_env.Program('test/comm/comm_test', comm_test_source_files,
             LIBS = ['vdms-utils', 'pthread', 'gtest'],
             LIBPATH = ['/usr/local/lib/','.'] )
-            )

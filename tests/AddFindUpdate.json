@@ -10,8 +10,8 @@
                 "Email":"rst@rashed.com",
                 "Age": 86,
                 "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
-                "Name":"Mark",
-                "fv": {"_blob":"Raghed----ghjhsglfhwa"}
+                "Name":"Mark"
+             //   "fv": {"_blob":"Raghed----ghjhsglfhwa"}
             }
         }
 
@@ -26,7 +26,7 @@
                 "Email":"gst@raghehed.com1",
                 "Age": 80,
                 "Birthday":{"_date":"Sat Oct 1 17:59:24 PDT 1936"},
-                "fv":{"_blob" :"Ahmad----ghjhsglfhwa"},
+             //   "fv":{"_blob" :"Ahmad----ghjhsglfhwa"},
                 "Name": "Kai"
 
             }
@@ -54,7 +54,7 @@
                 "Name" : "Mark Hammond"
             },
 
-            "remove_props" : [ "fv" ]
+            "remove_props" : [ "Age" ]
         }
     },
     {
@@ -63,7 +63,7 @@
                 "Age" : [ ">=", 80 ]
             },
             "results" : {
-                "list" : [ "fv" ]
+                "list" : [ "Age" ]
             }
         }
     }

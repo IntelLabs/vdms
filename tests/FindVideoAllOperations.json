@@ -1,0 +1,34 @@
+[
+{
+        "FindVideo":
+        {
+            "operations": [
+            	{
+                     "x": 0
+                    , "y": 0
+                    ,"width": 100
+                    ,"type": "crop"
+                    ,"height": 100
+
+                },
+                 {
+                    "width": 1000
+                    ,"type": "resize"
+                    ,"height": 1000
+                },
+
+              {
+                    "value": 10
+                    ,"type": "threshold"
+             }
+
+          ],
+
+         "constraints":{
+               "Year": [">=", 1985],
+               "Name" :["==","Gone With the Wind Part1"]
+
+          }
+        }
+    }
+]

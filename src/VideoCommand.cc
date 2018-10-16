@@ -53,9 +53,7 @@ void VideoCommand::enqueue_operations(VCL::Video& video, const Json::Value& ops)
          std::string unit ;
         if (type == "threshold") {
             video.threshold(get_value<int>(op, "value"));
-                            // get_value<int>(op, "start"),
-                            // get_value<int>(op, "stop"),
-                            // get_value<int>(op, "step") );
+
         }
         else if (type == "interval") {
              video.interval(
@@ -68,9 +66,7 @@ void VideoCommand::enqueue_operations(VCL::Video& video, const Json::Value& ops)
         else if (type == "resize") {
              video.resize(get_value<int>(op, "height"),
                            get_value<int>(op, "width") );
-                          //  get_value<int>(op, "start"),
-                          // get_value<int>(op, "stop"),
-                          // get_value<int>(op, "step"));
+
         }
         else if (type == "crop") {
             video.crop(VCL::Rectangle (
@@ -92,10 +88,7 @@ AddVideo::AddVideo() : VideoCommand("AddVideo")
 
     _storage_video = VDMSConfig::instance()
                   ->get_string_value("video_path", DEFAULT_VIDEO_PATH);
-    // _storage_png = VDMSConfig::instance()
-    //             ->get_string_value("png_path", DEFAULT_PNG_PATH);
-    // _storage_jpg = VDMSConfig::instance()
-    //             ->get_string_value("jpg_path", DEFAULT_JPG_PATH);
+
 }
 
 int AddVideo::construct_protobuf(PMGDQuery& query,
@@ -361,7 +354,7 @@ Json::Value FindVideo::construct_responses(
         if(!ent.isMember(VDMS_VIDEO_PATH_PROP)){
             continue;
         }
-        std::string im_path = ent[VDMS_VIDEO_PATH_PROP].asString();
+        std::string video_path = ent[VDMS_VIDEO_PATH_PROP].asString();
         ent.removeMember(VDMS_VIDEO_PATH_PROP);
 
         if (ent.getMemberNames().size() > 0) {
@@ -369,7 +362,7 @@ Json::Value FindVideo::construct_responses(
         }
 
         try {
-            VCL::Video video(im_path);
+            VCL::Video video(video_path);
 
             if (cmd.isMember("operations")) {
                 enqueue_operations(video, cmd["operations"]);
@@ -398,16 +391,16 @@ Json::Value FindVideo::construct_responses(
                 }
             }
 
-            std::vector<unsigned char> video_enc;
-           // video_enc = video.get_encoded_image(format);
+            char* video_enc = video.get_encoded_video(format);
+            int size = video.get_encoded_size();
 
-            if (!video_enc.empty()) {
+            if (video_enc != NULL) {
 
                 std::string* video_str = query_res.add_blobs();
-                video_str->resize(video_enc.size());
+                video_str->resize(size);
                 std::memcpy((void*)video_str->data(),
-                            (void*)video_enc.data(),
-                            video_enc.size());
+                            (void*)video_enc,
+                            size);
             }
             else {
                 Json::Value return_error;
@@ -432,7 +425,7 @@ Json::Value FindVideo::construct_responses(
     return ret;
 }
 //========= FindFrame definitions =========
-FindFrame::FindFrame() : VideoCommand("FindVideo")
+FindFrame::FindFrame() : VideoCommand("FindFrame")
 {
 
 }

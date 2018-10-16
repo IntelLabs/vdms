@@ -2,14 +2,10 @@
         "AddVideo":
         {
             "operations": [{
-                     // "x": 0,
-                    //  "y": 0,
+
                     "value": 100
                     ,"type": "threshold"
-                    //,"height": 100
-                    ,"start": 20
-                    , "stop" :1500
-                   ,  "step":10
+
                 }],
             "properties": {
                 "Year": 1986,
