@@ -45,8 +45,9 @@ class TestAddImage(unittest.TestCase):
         imgs_arr = []
         all_queries = []
 
-        fd = open("../test_images/brain.png")
+        fd = open("../test_images/brain.png", 'rb')
         imgs_arr.append(fd.read())
+        fd.close()
 
         img_params = {}
 
@@ -68,11 +69,10 @@ class TestAddImage(unittest.TestCase):
         response, res_arr = db.query(all_queries, [imgs_arr])
 
         # Check success
-        response = json.loads(response)
         self.assertEqual(response[0]["AddImage"]["status"], 0)
 
     def test_addImage(self):
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         all_queries = []
@@ -82,8 +82,9 @@ class TestAddImage(unittest.TestCase):
 
         for i in range(0,number_of_inserts):
             #Read Brain Image
-            fd = open("../test_images/brain.png")
+            fd = open("../test_images/brain.png", 'rb')
             imgs_arr.append(fd.read())
+            fd.close()
 
             op_params_resize = {}
             op_params_resize["height"] = 512
@@ -106,13 +107,12 @@ class TestAddImage(unittest.TestCase):
 
         response, img_array = db.query(all_queries, [imgs_arr])
 
-        response = json.loads(response)
         self.assertEqual(len(response), number_of_inserts)
         for i in range(0, number_of_inserts):
             self.assertEqual(response[i]["AddImage"]["status"], 0)
 
     def test_findEntityImage(self):
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         prefix_name = "fent_brain_"
@@ -142,16 +142,14 @@ class TestAddImage(unittest.TestCase):
             all_queries.append(query)
 
         response, img_array = db.query(all_queries)
-        # print vdms.aux_print_json(response)
 
-        response = json.loads(response)
         self.assertEqual(response[0]["FindEntity"]["status"], 0)
         self.assertEqual(response[1]["FindEntity"]["status"], 0)
         self.assertEqual(response[0]["FindEntity"]["entities"][0]["name"], prefix_name + "0")
         self.assertEqual(response[1]["FindEntity"]["entities"][0]["name"], prefix_name + "1")
 
     def test_findImage(self):
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         prefix_name = "fimg_brain_"
@@ -177,15 +175,13 @@ class TestAddImage(unittest.TestCase):
             all_queries.append(query)
 
         response, img_array = db.query(all_queries)
-        # print vdms.aux_print_json(response)
 
-        response = json.loads(response)
         self.assertEqual(response[0]["FindImage"]["status"], 0)
         self.assertEqual(response[1]["FindImage"]["status"], 0)
         self.assertEqual(len(img_array), 2)
 
     def test_findImageResults(self):
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         prefix_name = "fimg_results_"
@@ -214,9 +210,7 @@ class TestAddImage(unittest.TestCase):
             all_queries.append(query)
 
         response, img_array = db.query(all_queries)
-        # print vdms.aux_print_json(str(response))
 
-        response = json.loads(response)
         self.assertEqual(response[0]["FindImage"]["status"], 0)
         self.assertEqual(response[1]["FindImage"]["status"], 0)
         self.assertEqual(response[0]["FindImage"]["entities"][0]["name"], prefix_name + "0")
@@ -224,7 +218,7 @@ class TestAddImage(unittest.TestCase):
         self.assertEqual(len(img_array), 2)
 
     def test_addImageWithLink(self):
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         all_queries = []
@@ -260,8 +254,9 @@ class TestAddImage(unittest.TestCase):
 
         imgs_arr = []
 
-        fd = open("../test_images/brain.png")
+        fd = open("../test_images/brain.png", 'rb')
         imgs_arr.append(fd.read())
+        fd.close()
 
         img_params = {}
 
@@ -274,14 +269,13 @@ class TestAddImage(unittest.TestCase):
         # vdms.aux_print_json(all_queries)
 
         response, res_arr = db.query(all_queries, [imgs_arr])
-        response = json.loads(response)
         # vdms.aux_print_json(response)
 
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
         self.assertEqual(response[1]["AddImage"]["status"], 0)
 
     def test_findImage_multiple_results(self):
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         prefix_name = "fimg_brain_multiple"
@@ -308,15 +302,13 @@ class TestAddImage(unittest.TestCase):
         all_queries.append(query)
 
         response, img_array = db.query(all_queries)
-        # print vdms.aux_print_json(response)
 
-        response = json.loads(response)
         self.assertEqual(len(img_array), number_of_inserts)
         self.assertEqual(response[0]["FindImage"]["status"], 0)
         self.assertEqual(response[0]["FindImage"]["returned"], number_of_inserts)
 
     def test_findImageNoBlob(self):
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         prefix_name = "fimg_no_blob_"
@@ -346,15 +338,13 @@ class TestAddImage(unittest.TestCase):
             all_queries.append(query)
 
         response, img_array = db.query(all_queries)
-        # print vdms.aux_print_json(response)
 
-        response = json.loads(response)
         self.assertEqual(response[0]["FindImage"]["status"], 0)
         self.assertEqual(response[1]["FindImage"]["status"], 0)
         self.assertEqual(len(img_array), 0)
 
     def test_updateImage(self):
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         prefix_name = "fimg_update_"
@@ -382,14 +372,12 @@ class TestAddImage(unittest.TestCase):
         all_queries.append(query)
 
         response, img_array = db.query(all_queries)
-        # print vdms.aux_print_json(response)
 
-        response = json.loads(response)
         self.assertEqual(response[0]["UpdateImage"]["count"], 1)
         self.assertEqual(len(img_array), 0)
 
     def ztest_zFindImageWithCollection(self):
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         prefix_name = "fimg_brain_collection_"
@@ -421,8 +409,6 @@ class TestAddImage(unittest.TestCase):
             all_queries.append(query)
 
         response, img_array = db.query(all_queries)
-        # print vdms.aux_print_json(response)
 
-        response = json.loads(response)
         self.assertEqual(response[0]["FindImage"]["status"], 0)
         self.assertEqual(len(img_array), number_of_inserts)

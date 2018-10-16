@@ -41,7 +41,7 @@ class TestEntities(unittest.TestCase):
 
     def addEntity(self, thID=0):
 
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         props = {}
@@ -61,13 +61,13 @@ class TestEntities(unittest.TestCase):
         all_queries.append(query)
 
         response, res_arr = db.query(all_queries)
-        response = json.loads(response)
+        # print (db.get_last_response_str())
 
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
 
     def findEntity(self, thID):
 
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         constraints = {}
@@ -88,8 +88,6 @@ class TestEntities(unittest.TestCase):
         all_queries.append(query)
 
         response, res_arr = db.query(all_queries)
-        response = json.loads(response)
-        # print vdms.aux_print_json(response)
 
         self.assertEqual(response[0]["FindEntity"]["status"], 0)
         self.assertEqual(response[0]["FindEntity"]["entities"][0]
@@ -120,7 +118,7 @@ class TestEntities(unittest.TestCase):
         self.findEntity(9000);
 
     def test_addEntityWithLink(self):
-        db = vdms.VDMS()
+        db = vdms.vdms()
         db.connect(hostname, port)
 
         all_queries = []
@@ -162,12 +160,7 @@ class TestEntities(unittest.TestCase):
 
         all_queries.append(query)
 
-        # print json.dumps(all_queries)
-        # vdms.aux_print_json(all_queries)
-
         response, res_arr = db.query(all_queries)
-        response = json.loads(response)
-        # vdms.aux_print_json(response)
 
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
         self.assertEqual(response[1]["AddEntity"]["status"], 0)
