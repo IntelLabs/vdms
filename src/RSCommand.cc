@@ -101,6 +101,16 @@ int RSCommand::get_value(const Json::Value& json, const std::string& key,
 }
 
 template<>
+double RSCommand::get_value(const Json::Value& json, const std::string& key,
+                            double def)
+{
+    if (json.isMember(key))
+        return json[key].asDouble();
+
+    return def;
+}
+
+template<>
 bool RSCommand::get_value(const Json::Value& json, const std::string& key,
                           bool def)
 {

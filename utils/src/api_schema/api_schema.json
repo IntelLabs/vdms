@@ -131,7 +131,9 @@
         "anyOf": [
           { "$ref": "#/definitions/operationThreshold" },
           { "$ref": "#/definitions/operationResize" },
-          { "$ref": "#/definitions/operationCrop" }
+          { "$ref": "#/definitions/operationCrop" },
+          { "$ref": "#/definitions/operationFlip" },
+          { "$ref": "#/definitions/operationRotate" }
         ]
       },
       "uniqueItems": false
@@ -170,6 +172,28 @@
         "width":  { "$ref": "#/definitions/positiveInt" }
       },
       "required": ["type", "x", "y", "height", "width"],
+      "additionalProperties": false
+    },
+
+    "operationFlip": {
+      "type": "object",
+      "properties": {
+        "type":   { "enum": [ "flip" ] },
+        "code":   { "type": "integer" }
+      },
+      "required": ["type", "code"],
+      "additionalProperties": false
+    },
+
+    "operationRotate": {
+      "type": "object",
+      "properties": {
+        "type":   { "enum": [ "rotate" ] },
+        "angle":  { "type": "number" },
+        "resize": { "type": "boolean" }
+
+      },
+      "required": ["type", "angle", "resize"],
       "additionalProperties": false
     },
 
