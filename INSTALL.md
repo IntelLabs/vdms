@@ -36,15 +36,13 @@
   * Download version 0.1.0 from: https://github.com/IntelLabs/vcl/releases
   * Follow installation instructions
 
-### Requirement for Python Client
+### Python Client Module
 
-    sudo apt-get install python-pip
-    pip install protobuf (may need to run as sudo)
+VDMS offers the Python Client Module through the pip package manager, 
+and it is compatible with Python 2.7+ and 3.3+. 
+pip (or pip2 and pip3) will automatically install dependencies (protobuf).
 
-    Add VDMS Python module to PYPATH:
-    export PYTHONPATH="${PYTHONPATH}:<path_to_vdms>/client/python/vdms"
-    # Example:
-    export PYTHONPATH="${PYTHONPATH}:/opt/intel/vdms/client/python/vdms"
+    pip install vdms 
 
 ### Compilation
 
@@ -56,8 +54,8 @@
 
 Flag | Explanation
 ------------ | -------------
---no-server | Compiles client libraries (C++/Python) only. (will not compile neither server not tests)
---timing    | Compiles server with chronos for internal timing.
+--no-server | Compiles client libraries (C++/Python) only. (will not compile neither server nor tests)
+--timing    | Compiles server with chronos for internal timing, experimental.
 -jX         | Compiles in parallel, using X cores
 INTEL_PATH=path  | Path to the root folder containing pmgd and vcl. Default is "./" which is pmgd and vcl inside vdms folder. Example: scons INTEL_PATH=/opt/intel/
 
