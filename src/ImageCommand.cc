@@ -99,21 +99,21 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     }
 
     std::string img_root = _storage_tdb;
-    VCL::Format vcl_format = VCL::Format::TDB;
+    VCL::ImageFormat vcl_format = VCL::ImageFormat::TDB;
 
     if (cmd.isMember("format")) {
         std::string format = get_value<std::string>(cmd, "format");
 
         if (format == "png") {
-            vcl_format = VCL::Format::PNG;
+            vcl_format = VCL::ImageFormat::PNG;
             img_root = _storage_png;
         }
         else if (format == "tdb") {
-            vcl_format = VCL::Format::TDB;
+            vcl_format = VCL::ImageFormat::TDB;
             img_root = _storage_tdb;
         }
         else if (format == "jpg") {
-            vcl_format = VCL::Format::JPG;
+            vcl_format = VCL::ImageFormat::JPG;
             img_root = _storage_jpg;
         }
         else {
@@ -263,23 +263,23 @@ Json::Value FindImage::construct_responses(
             // We will return the image in the format the user
             // request, or on its format in disk, except for the case
             // of .tdb, where we will encode as png.
-            VCL::Format format = img.get_image_format() != VCL::Format::TDB ?
-                                      img.get_image_format() : VCL::Format::PNG;
+            VCL::ImageFormat format = img.get_image_format() != VCL::ImageFormat::TDB ?
+                                      img.get_image_format() : VCL::ImageFormat::PNG;
 
             if (cmd.isMember("format")) {
                 std::string requested_format =
                             get_value<std::string>(cmd, "format");
 
                 if (requested_format == "png") {
-                    format = VCL::Format::PNG;
+                    format = VCL::ImageFormat::PNG;
                 }
                 else if (requested_format == "jpg") {
-                    format = VCL::Format::JPG;
+                    format = VCL::ImageFormat::JPG;
                 }
                 else {
                     Json::Value return_error;
                     return_error["status"]  = RSCommand::Error;
-                    return_error["info"] = "Invalid Format for FindImage";
+                    return_error["info"] = "Invalid ImageFormat for FindImage";
                     return error(return_error);
                 }
             }

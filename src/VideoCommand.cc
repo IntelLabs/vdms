@@ -109,21 +109,21 @@ int AddVideo::construct_protobuf(PMGDQuery& query,
     }
 
     std::string video_root = _storage_video;
-    VCL::Format vcl_format  = VCL::Format::AVI;
+    VCL::VideoFormat vcl_format  = VCL::VideoFormat::AVI;
 
     if (cmd.isMember("format")) {
         std::string format = get_value<std::string>(cmd, "format");
 
         if (format == "mp4") {
-            vcl_format = VCL::Format::MP4;
+            vcl_format = VCL::VideoFormat::MP4;
             video_root = _storage_video;
         }
         else if (format == "avi") {
-            vcl_format = VCL::Format::AVI;
+            vcl_format = VCL::VideoFormat::AVI;
             video_root = _storage_video;
         }
         else if (format == "mpeg") {
-            vcl_format = VCL::Format::MPEG;
+            vcl_format = VCL::VideoFormat::MPEG;
             video_root = _storage_video;
         }
 
@@ -181,21 +181,21 @@ int AddFrame::construct_protobuf(PMGDQuery& query,
     }
 
     std::string video_root; // = _storage_tdb;
-    VCL::Format vcl_format ;// = VCL::TDB;
+    VCL::VideoFormat vcl_format ;// = VCL::TDB;
 
     if (cmd.isMember("format")) {
         std::string format = get_value<std::string>(cmd, "format");
 
         if (format == "mp4") {
-            vcl_format = VCL::Format::MP4;
+            vcl_format = VCL::VideoFormat::MP4;
             video_root = _storage_video;
         }
         else if (format == "avi") {
-            vcl_format = VCL::Format::AVI;
+            vcl_format = VCL::VideoFormat::AVI;
             video_root = _storage_video;
         }
         else if (format == "mpeg") {
-            vcl_format = VCL::Format::MPEG;
+            vcl_format = VCL::VideoFormat::MPEG;
             video_root = _storage_video;
         }
 
@@ -369,24 +369,24 @@ Json::Value FindVideo::construct_responses(
             }
 
 
-            VCL::Format format;
+            VCL::VideoFormat format;
             if (cmd.isMember("format")) {
                 std::string requested_format =
                             get_value<std::string>(cmd, "format");
 
                 if (requested_format == "mp4") {
-                    format = VCL::Format::MP4;
+                    format = VCL::VideoFormat::MP4;
                 }
                 else if (requested_format == "avi") {
-                    format = VCL::Format::AVI;
+                    format = VCL::VideoFormat::AVI;
                 }
                 else if (requested_format == "mpeg") {
-                    format = VCL::Format::MPEG;
+                    format = VCL::VideoFormat::MPEG;
                 }
                 else {
                     Json::Value return_error;
                     return_error["status"]  = RSCommand::Error;
-                    return_error["info"] = "Invalid Format for FindVideo";
+                    return_error["info"] = "Invalid VideoFormat for FindVideo";
                     error(return_error);
                 }
             }
