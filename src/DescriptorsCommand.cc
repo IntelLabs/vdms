@@ -620,11 +620,11 @@ int FindDescriptor::construct_protobuf(
             auto cache_obj_id = VCL::get_uint64();
             cp_result["cache_obj_id"] = Json::Int64(cache_obj_id);
 
-            _cache_map[cache_obj_id] = IDDistancePair();
+            _cache_map[cache_obj_id] = new IDDistancePair();
 
-            IDDistancePair& pair = _cache_map[cache_obj_id];
-            std::vector<long>&  ids       = pair.first;
-            std::vector<float>& distances = pair.second;
+            IDDistancePair* pair = _cache_map[cache_obj_id];
+            std::vector<long>&  ids       = pair->first;
+            std::vector<float>& distances = pair->second;
 
             set->search((float*)blob.data(), 1, k_neighbors, ids, distances);
 
@@ -802,9 +802,9 @@ Json::Value FindDescriptor::construct_responses(
         long cache_obj_id = cache["cache_obj_id"].asInt64();
 
         // Get from Cache
-        IDDistancePair& pair = _cache_map[cache_obj_id];
-        ids       = &pair.first;
-        distances = &pair.second;
+        IDDistancePair* pair = _cache_map[cache_obj_id];
+        ids       = &(pair->first);
+        distances = &(pair->second);
 
         findDesc = json_responses[1];
 
@@ -876,8 +876,11 @@ Json::Value FindDescriptor::construct_responses(
         }
 
         if (cache.isMember("cache_obj_id")) {
-            // TODO CHECK THIS UNSAFE ERASE
-            // _cache_map.unsafe_erase(cache["cache_obj_id"].asInt64());
+            // We remove the vectors associated with that entry to
+            // free memory, without removing the entry from _cache_map
+            // because tbb does not have a lock free way to do this.
+            IDDistancePair* pair = _cache_map[cache["cache_obj_id"].asInt64()];
+            delete pair;
         }
     }
 

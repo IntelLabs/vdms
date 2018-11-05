@@ -52,7 +52,10 @@ namespace VDMS{
     protected:
         DescriptorsManager* _dm;
 
-        tbb::concurrent_unordered_map<long, IDDistancePair> _cache_map;
+        // IDDistancePair is a pointer so that we can free its content
+        // without having to use erase methods, which are not lock free
+        // for this data structure in tbb
+        tbb::concurrent_unordered_map<long, IDDistancePair*> _cache_map;
 
         // Will return the path to the set and the dimensions
         std::string get_set_path(PMGDQuery& query_tx,
