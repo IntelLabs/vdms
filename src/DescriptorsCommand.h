@@ -51,23 +51,18 @@ namespace VDMS{
     {
     protected:
         DescriptorsManager* _dm;
-        PMGDQueryHandler* _pmgd_qh; // This needs to make read-transcations.
 
         tbb::concurrent_unordered_map<long, IDDistancePair> _cache_map;
 
         // Will return the path to the set and the dimensions
-        std::string get_set_path(const std::string& set, int& dim);
+        std::string get_set_path(PMGDQuery& query_tx,
+                                 const std::string& set, int& dim);
 
         bool check_blob_size(const std::string& blob, const int dimensions,
                              const long n_desc);
 
     public:
         DescriptorsCommand(const std::string& cmd_name);
-
-        void set_pmgd_qh(PMGDQueryHandler* pmgd_qh)
-        {
-          _pmgd_qh = pmgd_qh;
-        }
 
         virtual bool need_blob(const Json::Value& cmd) { return false; }
 

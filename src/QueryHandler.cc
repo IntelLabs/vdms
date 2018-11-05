@@ -104,14 +104,6 @@ QueryHandler::QueryHandler()
     ,ch_tx_send("ch_tx_send")
 #endif
 {
-    ((DescriptorsCommand*)_rs_cmds["AddDescriptorSet"])
-                            ->set_pmgd_qh(&_pmgd_qh);
-    ((DescriptorsCommand*)_rs_cmds["AddDescriptor"])
-                            ->set_pmgd_qh(&_pmgd_qh);
-    ((DescriptorsCommand*)_rs_cmds["ClassifyDescriptor"])
-                            ->set_pmgd_qh(&_pmgd_qh);
-    ((DescriptorsCommand*)_rs_cmds["FindDescriptor"])
-                            ->set_pmgd_qh(&_pmgd_qh);
 }
 
 void QueryHandler::process_connection(comm::Connection *c)

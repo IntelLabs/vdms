@@ -48,12 +48,13 @@ DescriptorsCommand::DescriptorsCommand(const std::string& cmd_name) :
 // but not when there is an input error (such as wrong set_name).
 // In case of wrong input, we need to inform to the user what
 // went wrong.
-std::string DescriptorsCommand::get_set_path(const std::string& set_name,
+std::string DescriptorsCommand::get_set_path(PMGDQuery &query_tx,
+                                             const std::string& set_name,
                                              int& dim)
 {
     // Will issue a read-only transaction to check
     // if the Set exists
-    PMGDQuery query(*_pmgd_qh);
+    PMGDQuery query(query_tx.get_pmgd_qh());
 
     Json::Value constraints, link;
     Json::Value name_arr;
@@ -271,7 +272,7 @@ int AddDescriptor::construct_protobuf(
     }
 
     int dimensions;
-    std::string set_path = get_set_path(set_name, dimensions);
+    std::string set_path = get_set_path(query, set_name, dimensions);
 
     if (set_path.empty()) {
         error["info"] = "Set " + set_name + " not found";
@@ -356,7 +357,7 @@ int ClassifyDescriptor::construct_protobuf(
     const std::string set_name = cmd["set"].asString();
 
     int dimensions;
-    const std::string set_path = get_set_path(set_name, dimensions);
+    const std::string set_path = get_set_path(query, set_name, dimensions);
 
     if (set_path.empty()) {
         error["status"] = RSCommand::Error;
@@ -482,7 +483,7 @@ int FindDescriptor::construct_protobuf(
     const std::string set_name = cmd["set"].asString();
 
     int dimensions;
-    const std::string set_path = get_set_path(set_name, dimensions);
+    const std::string set_path = get_set_path(query, set_name, dimensions);
 
     if (set_path.empty()) {
         cp_result["status"] = RSCommand::Error;
@@ -876,7 +877,7 @@ Json::Value FindDescriptor::construct_responses(
 
         if (cache.isMember("cache_obj_id")) {
             // TODO CHECK THIS UNSAFE ERASE
-            _cache_map.unsafe_erase(cache["cache_obj_id"].asInt64());
+            // _cache_map.unsafe_erase(cache["cache_obj_id"].asInt64());
         }
     }
 
