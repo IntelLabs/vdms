@@ -84,6 +84,8 @@ namespace VDMS {
         //This is a reference to avoid copies
         Json::Value& get_json_responses() {return _json_responses;}
 
+        PMGDQueryHandler& get_pmgd_qh() {return _pmgd_qh;}
+
         // If constraints is not null, this becomes a conditional AddNode
         void AddNode(int ref,
                     const std::string& tag,

@@ -39,7 +39,7 @@ port = 55557
 
 class TestEntities(unittest.TestCase):
 
-    def addEntity(self, thID=0):
+    def addEntity(self, thID, results):
 
         db = vdms.vdms()
         db.connect(hostname, port)
@@ -63,9 +63,14 @@ class TestEntities(unittest.TestCase):
         response, res_arr = db.query(all_queries)
         # print (db.get_last_response_str())
 
-        self.assertEqual(response[0]["AddEntity"]["status"], 0)
+        try:
+            self.assertEqual(response[0]["AddEntity"]["status"], 0)
+        except:
+            results[thID] = -1
 
-    def findEntity(self, thID):
+        results[thID] = 0
+
+    def findEntity(self, thID, results):
 
         db = vdms.vdms()
         db.connect(hostname, port)
@@ -89,33 +94,69 @@ class TestEntities(unittest.TestCase):
 
         response, res_arr = db.query(all_queries)
 
-        self.assertEqual(response[0]["FindEntity"]["status"], 0)
-        self.assertEqual(response[0]["FindEntity"]["entities"][0]
-                                    ["lastname"], "Ferro")
-        self.assertEqual(response[0]["FindEntity"]["entities"][0]
-                                    ["threadid"], thID)
+        try:
 
-    def ztest_runMultipleAdds(self):
+            self.assertEqual(response[0]["FindEntity"]["status"], 0)
+            self.assertEqual(response[0]["FindEntity"]["entities"][0]
+                                        ["lastname"], "Ferro")
+            self.assertEqual(response[0]["FindEntity"]["entities"][0]
+                                        ["threadid"], thID)
+        except:
+            results[thID] = -1
 
-        simultaneous = 1000;
+        results[thID] = 0
+
+    def test_runMultipleAdds(self):
+
+        # Test concurrent AddEntities
+        concurrency = 32
         thread_arr = []
-        for i in range(1,simultaneous):
-            thread_add = Thread(target=self.addEntity,args=(i,) )
+        results = [None] * concurrency
+        for i in range(0,concurrency):
+            thread_add = Thread(target=self.addEntity,args=(i, results) )
             thread_add.start()
             thread_arr.append(thread_add)
-            time.sleep(0.002)
 
-        for i in range(1,simultaneous):
-            thread_find = Thread(target=self.findEntity,args=(i,) )
+        idx = 0
+        error_counter = 0
+        for th in thread_arr:
+            th.join()
+            if (results[idx] == -1):
+                error_counter += 1
+            idx += 1
+
+        self.assertEqual(error_counter, 0)
+
+        thread_arr = []
+
+        # Tests concurrent AddEntities and FindEntities (that should exists)
+        results      = [None] * concurrency * 2
+        for i in range(0,concurrency):
+            addidx = concurrency + i
+            thread_add = Thread(target=self.addEntity,args=(addidx, results) )
+            thread_add.start()
+            thread_arr.append(thread_add)
+
+            thread_find = Thread(
+                            target=self.findEntity,args=(i, results) )
             thread_find.start()
             thread_arr.append(thread_find)
 
+        idx = 0
+        error_counter = 0
         for th in thread_arr:
             th.join();
+            if (results[idx] == -1):
+                error_counter += 1
+
+            idx += 1
+
+        self.assertEqual(error_counter, 0)
 
     def test_addFindEntity(self):
-        self.addEntity(9000);
-        self.findEntity(9000);
+        results      = [None] * 1
+        self.addEntity(0, results);
+        self.findEntity(0, results);
 
     def test_addEntityWithLink(self):
         db = vdms.vdms()
