@@ -58,8 +58,6 @@ namespace VDMS {
     typedef std::vector<PMGDCmd *>             PMGDCmds;
     typedef std::vector<PMGDCmdResponse *>     PMGDCmdResponses;
 
-    class RWLock;
-
     class PMGDQueryHandler
     {
         template <typename T, typename Ti>
@@ -72,9 +70,6 @@ namespace VDMS {
 
         // Until we have a separate PMGD server this db lives here
         static PMGD::Graph *_db;
-
-        // Need this lock till we have concurrency support in PMGD
-        static RWLock *_dblock;
 
         PMGD::Transaction *_tx;
         bool _readonly;  // Variable changes per TX based on process_queries parameter.
