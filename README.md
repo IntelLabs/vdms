@@ -29,9 +29,6 @@ propose a storage architecture designed for efficient visual data access
 that exploits next generation hardware and give preliminary results showing
 how it enables efficient vision analytics.
 
-Here is our [ATC HotStorage '17 Position Paper](https://www.usenix.org/system/files/conference/hotstorage17/hotstorage17-paper-gupta-cledat.pdf).
-Also, take a look at our [presentation](https://www.usenix.org/conference/hotstorage17/program/presentation/gupta-cledat).
-
 ## Get Started
 
 To get started, take a look at the [INSTALL.md](INSTALL.md) file, where
@@ -41,16 +38,9 @@ Also, visit our [wiki](https://github.com/IntelLabs/vdms/wiki)
 to learn more about the VDMS API, and take a look at some of
 the examples/tutorials.
 
-## Cite
+## Academic Papers
 
-Feel free to include our work into your research!
-
-    @inproceedings {203374,
-    author = {Vishakha Gupta-Cledat and Luis Remis and Christina R Strong},
-    title = {Addressing the Dark Side of Vision Research: Storage},
-    booktitle = {9th {USENIX} Workshop on Hot Topics in Storage and File Systems (HotStorage 17)},
-    year = {2017},
-    address = {Santa Clara, CA},
-    url = {https://www.usenix.org/conference/hotstorage17/program/presentation/gupta-cledat},
-    publisher = {{USENIX} Association},
-    }
+Conference | Links, Cite | Description
+------------ | ------------- | -------------
+Learning Systems @ NIPS 2018 | [Paper](https://export.arxiv.org/abs/1810.11832), [Cite](https://dblp.uni-trier.de/rec/bibtex/journals/corr/abs-1810-11832) | Systems for Machine Learning [Workshop](http://learningsys.org/nips18/cfp.html) @ NIPS
+HotStorage @ ATC 2017 | [Paper](https://www.usenix.org/conference/hotstorage17/program/presentation/gupta-cledat), [Presentation](https://www.usenix.org/conference/hotstorage17/program/presentation/gupta-cledat), [Cite](https://www.usenix.org/biblio/export/bibtex/203374)| Positioning Paper at USENIX ATC 2017 Workshop
