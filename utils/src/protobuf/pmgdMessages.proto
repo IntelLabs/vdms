@@ -252,6 +252,9 @@ message ResultInfo
     // Choose the property key to sort on.
     string sort_key = 14;
 
+    // Choose sorting order (default is false, i.e. ascending)
+    bool descending = 15;
+
     // Limit the number of results returned or used for calculations
     uint64 limit = 18;
 }

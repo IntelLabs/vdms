@@ -205,3 +205,135 @@ class TestEntities(unittest.TestCase):
 
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
         self.assertEqual(response[1]["AddEntity"]["status"], 0)
+
+    def test_FindWithSortKey(self):
+
+        db = vdms.vdms()
+        db.connect(hostname, port)
+
+        all_queries = []
+
+        number_of_inserts = 10
+
+        for i in range(0,number_of_inserts):
+
+            props = {}
+            props["name"] = "entity_" + str(i)
+            props["id"] = i
+
+            entity = {}
+            entity["properties"] = props
+            entity["class"] = "Random"
+
+            query = {}
+            query["AddEntity"] = entity
+
+            all_queries.append(query)
+
+        response, blob_arr = db.query(all_queries)
+
+        self.assertEqual(len(response), number_of_inserts)
+        for i in range(0, number_of_inserts):
+            self.assertEqual(response[i]["AddEntity"]["status"], 0)
+
+        all_queries = []
+
+        results = {}
+        results["list"] = ["name", "id"]
+        results["sort"] = "id"
+
+        entity = {}
+        entity["results"] = results
+        entity["class"] = "Random"
+
+        query = {}
+        query["FindEntity"] = entity
+
+        all_queries.append(query)
+
+        response, blob_arr = db.query(all_queries)
+
+        self.assertEqual(response[0]["FindEntity"]["status"], 0)
+        for i in range(0, number_of_inserts):
+            self.assertEqual(response[0]["FindEntity"]["entities"][i]["id"], i)
+
+    def test_FindWithSortBlock(self):
+
+        db = vdms.vdms()
+        db.connect(hostname, port)
+
+        all_queries = []
+
+        number_of_inserts = 10
+
+        for i in range(0,number_of_inserts):
+
+            props = {}
+            props["name"] = "entity_" + str(i)
+            props["id"] = i
+
+            entity = {}
+            entity["properties"] = props
+            entity["class"] = "SortBlock"
+
+            query = {}
+            query["AddEntity"] = entity
+
+            all_queries.append(query)
+
+        response, blob_arr = db.query(all_queries)
+
+        self.assertEqual(len(response), number_of_inserts)
+        for i in range(0, number_of_inserts):
+            self.assertEqual(response[i]["AddEntity"]["status"], 0)
+
+        all_queries = []
+
+        sort = {}
+        sort["key"] = "id"
+        sort["order"] = "ascending"
+
+        results = {}
+        results["list"] = ["name", "id"]
+        results["sort"] = sort
+
+        entity = {}
+        entity["results"] = results
+        entity["class"] = "SortBlock"
+
+        query = {}
+        query["FindEntity"] = entity
+
+        all_queries.append(query)
+
+        response, blob_arr = db.query(all_queries)
+
+        self.assertEqual(response[0]["FindEntity"]["status"], 0)
+        for i in range(0, number_of_inserts):
+            self.assertEqual(response[0]["FindEntity"]["entities"][i]["id"], i)
+
+        all_queries = []
+
+        sort = {}
+        sort["key"] = "id"
+        sort["order"] = "descending"
+
+        results = {}
+        results["list"] = ["name", "id"]
+        results["sort"] = sort
+
+        entity = {}
+        entity["results"] = results
+        entity["class"] = "SortBlock"
+
+        query = {}
+        query["FindEntity"] = entity
+
+        all_queries.append(query)
+
+        response, blob_arr = db.query(all_queries)
+
+        self.assertEqual(response[0]["FindEntity"]["status"], 0)
+        for i in range(0, number_of_inserts):
+            self.assertEqual(response[0]["FindEntity"]["entities"][i]["id"],
+                             number_of_inserts - 1 - i)

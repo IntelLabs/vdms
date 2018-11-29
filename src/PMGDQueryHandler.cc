@@ -558,7 +558,7 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     }
 
     if (qr.sort())
-        tni->sort(qr.sort_key().c_str());
+        tni->sort(qr.sort_key().c_str(), qr.descending());
 
     if (qr.r_type() != protobufs::Cached)
         build_results<ReusableNodeIterator>(*tni, qr, response);
@@ -673,7 +673,7 @@ int PMGDQueryHandler::query_edge(const protobufs::QueryEdge &qe,
     }
 
     if (qr.sort())
-        tei->sort(qr.sort_key().c_str());
+        tei->sort(qr.sort_key().c_str(), qr.descending());
 
     if (qr.r_type() != protobufs::Cached)
         build_results<ReusableEdgeIterator>(*tei, qr, response);

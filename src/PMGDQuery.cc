@@ -450,7 +450,22 @@ void PMGDQuery::parse_query_results(const Json::Value& results,
         else if (key == "sort") {
             qn->set_sort(true);
             std::string *sort_key= qn->mutable_sort_key();
-            *sort_key = (*it).asString();
+
+            if ((*it).isObject()) {
+                *sort_key = (*it)["key"].asString();
+                if ((*it).isMember("order")) {
+                    qn->set_descending((*it)["order"] == "descending" ?
+                                        true : false);
+                }
+                else {
+                    // Default is False (i.e. result in ascending order)
+                    qn->set_descending(false);
+                }
+            }
+            else {
+                *sort_key = (*it).asString();
+                qn->set_descending(false);
+            }
         }
         else if (key == "limit") {
             int limit = (*it).asUInt();
