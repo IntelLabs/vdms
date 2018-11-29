@@ -96,6 +96,26 @@
       "enum": ["in", "out", "any"]
     },
 
+    "sortOrder": {
+      "type": "string",
+      "enum": ["ascending", "descending"]
+    },
+
+    "sortBlock": {
+      "type": "object",
+      "properties": {
+        "key":    { "type": "string" },
+        "order":  { "$ref": "#/definitions/sortOrder" }
+      },
+      "required": ["key"],
+      "additionalProperties": false
+    },
+
+    "oneOfSort": {
+      "oneOf": [ {"type": "string" },
+                 {"$ref": "#/definitions/sortBlock" }]
+    },
+
     // Blocks
 
     "blockLink": {
@@ -113,13 +133,13 @@
     "blockResults": {
       "type": "object",
       "properties": {
-        "list":     { "type": "array" },
-        "average":  { "type": "string" },
-        "count":    { "type": "string" },
-        "sum":      { "type": "string" },
-        "limit":    { "$ref": "#/definitions/positiveInt" },
-        "sort":     { "type": "string" },
-        "blob":     { "type": "boolean" }
+        "list":       { "type": "array" },
+        "average":    { "type": "string" },
+        "count":      { "type": "string" },
+        "sum":        { "type": "string" },
+        "limit":      { "$ref": "#/definitions/positiveInt" },
+        "sort":       { "$ref": "#/definitions/oneOfSort"},
+        "blob":       { "$ref": "#/definitions/blob" }
       },
       "additionalProperties": false
     },

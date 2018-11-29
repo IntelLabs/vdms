@@ -76,11 +76,18 @@ namespace VDMS {
         }
 
         // TODO Is this the best way to do this
-        struct compare_propkey
+        struct compare_propkey_ascending
         {
             PMGD::StringID _propid;
             bool operator()(const T *n1, const T *n2)
               { return n1->get_property(_propid) < n2->get_property(_propid); }
+        };
+
+        struct compare_propkey_descending
+        {
+            PMGD::StringID _propid;
+            bool operator()(const T *n1, const T *n2)
+              { return n1->get_property(_propid) > n2->get_property(_propid); }
         };
 
     public:
@@ -113,10 +120,14 @@ namespace VDMS {
         // Sort the list. Once the list is sorted, all operations
         // following that happen in a sorted manner. And this function
         // resets the iterator to the beginning.
-        void sort(PMGD::StringID sortkey){
+        void sort(PMGD::StringID sortkey, bool descending = false){
             // First finish traversal
             traverse_all();
-            _traversed.sort(compare_propkey{sortkey});
+            if (descending)
+                _traversed.sort(compare_propkey_descending{sortkey});
+            else
+                _traversed.sort(compare_propkey_ascending{sortkey});
+
             _it = _traversed.begin();
         }
 
