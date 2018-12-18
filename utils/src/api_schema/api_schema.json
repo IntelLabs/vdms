@@ -46,7 +46,10 @@
       { "$ref": "#/definitions/AddDescriptorSetTop" },
       { "$ref": "#/definitions/AddDescriptorTop" },
       { "$ref": "#/definitions/ClassifyDescriptorTop" },
-      { "$ref": "#/definitions/FindDescriptorTop" }
+      { "$ref": "#/definitions/FindDescriptorTop" },
+      { "$ref": "#/definitions/AddBoundingBoxTop" },
+      { "$ref": "#/definitions/UpdateBoundingBoxTop" },
+      { "$ref": "#/definitions/FindBoundingBoxTop" }
     ]
   },
   "uniqueItems": false,
@@ -211,9 +214,22 @@
         "type":   { "enum": [ "rotate" ] },
         "angle":  { "type": "number" },
         "resize": { "type": "boolean" }
-
       },
       "required": ["type", "angle", "resize"],
+      "additionalProperties": false
+    },
+
+    // Shapes
+
+    "shapeRectangle": {
+      "type": "object",
+      "properties": {
+        "x":      { "$ref": "#/definitions/nonNegativeInt" },
+        "y":      { "$ref": "#/definitions/nonNegativeInt" },
+        "w":      { "$ref": "#/definitions/positiveInt" },
+        "h":      { "$ref": "#/definitions/positiveInt" }
+      },
+      "required": ["x", "y", "w", "h"],
       "additionalProperties": false
     },
 
@@ -312,6 +328,27 @@
       "additionalProperties": false
     },
 
+    "AddBoundingBoxTop": {
+      "properties": {
+        "AddBoundingBox" : { "type": "object", "$ref": "#/definitions/AddBoundingBox" }
+      },
+      "additionalProperties": false
+    },
+
+    "UpdateBoundingBoxTop": {
+      "properties": {
+        "UpdateBoundingBox" : { "type": "object", "$ref": "#/definitions/UpdateBoundingBox" }
+      },
+      "additionalProperties": false
+    },
+
+    "FindBoundingBoxTop": {
+      "properties": {
+        "FindBoundingBox" : { "type": "object", "$ref": "#/definitions/FindBoundingBox" }
+      },
+      "additionalProperties": false
+    },
+
     // Commands
 
     "AddEntity": {
@@ -378,8 +415,8 @@
       "properties": {
         "class":       { "type": "string" },
         "_ref":        { "$ref": "#/definitions/refInt" },
-        "ref1":       { "$ref": "#/definitions/refInt" },
-        "ref2":       { "$ref": "#/definitions/refInt" },
+        "ref1":        { "$ref": "#/definitions/refInt" },
+        "ref2":        { "$ref": "#/definitions/refInt" },
         "constraints": { "type": "object" },
         "results":     { "type": "object" },
         "unique":      { "type": "boolean" }
@@ -393,7 +430,6 @@
         "format":     { "$ref": "#/definitions/formatString" },
         "link":       { "$ref": "#/definitions/blockLink" },
         "operations": { "$ref": "#/definitions/blockOperations" },
-        "collections":{ "$ref": "#/definitions/stringArray" },
         "properties": { "type": "object" }
       },
       "additionalProperties": false
@@ -406,6 +442,7 @@
         //"operations":   { "$ref": "#/definitions/blockOperations" },
         "properties":   { "type": "object" },
         "remove_props": { "$ref": "#/definitions/stringArray" },
+        "unique":       { "type": "boolean" },
         "constraints":  { "type": "object" }
       },
       "additionalProperties": false
@@ -421,7 +458,6 @@
         "results":     { "$ref": "#/definitions/blockResults" },
         "unique":      { "type": "boolean" }
       },
-
       "additionalProperties": false
     },
 
@@ -469,7 +505,47 @@
       },
       "required": ["set"],
       "additionalProperties": false
-    }
+    },
 
+    "AddBoundingBox": {
+      "properties": {
+        "_ref":       { "$ref": "#/definitions/refInt" },
+        "rectangle":  { "$ref": "#/definitions/shapeRectangle" },
+        "image":      { "$ref": "#/definitions/refInt" },
+        "link":       { "$ref": "#/definitions/blockLink" },
+        "properties": { "type": "object" }
+      },
+      "required": ["rectangle"],
+      "additionalProperties": false
+    },
+
+    "UpdateBoundingBox": {
+      "properties": {
+        "_ref":         { "$ref": "#/definitions/refInt" },
+        "rectangle":    { "$ref": "#/definitions/shapeRectangle" },
+        "properties":   { "type": "object" },
+        "remove_props": { "$ref": "#/definitions/stringArray" },
+        "unique":       { "type": "boolean" },
+        "constraints":  { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+
+    "FindBoundingBox": {
+      "properties": {
+        "_ref":        { "$ref": "#/definitions/refInt" },
+        "rectangle":   { "$ref": "#/definitions/shapeRectangle" },
+        "image":       { "$ref": "#/definitions/refInt" },
+        "link":        { "$ref": "#/definitions/blockLink" },
+        "constraints": { "type": "object" },
+        "format":      { "$ref": "#/definitions/formatString" },
+        "results":     { "$ref": "#/definitions/blockResults" },
+        "unique":      { "type": "boolean" }
+      },
+      "not": {
+        "anyOf": [ {"required": ["image", "link"] } ]
+      },
+      "additionalProperties": false
+    }
   }
 }
