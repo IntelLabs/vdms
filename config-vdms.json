@@ -6,10 +6,6 @@
     "port": 55555, // Default is 55555
     "max_simultaneous_clients": 20, // Default is 500
 
-    // Tune the number of maximum attempts when acquiring the
-    // reader writer lock for metadata changes.
-    "max_lock_attempts": 10,
-
     // Database paths
     "pmgd_path": "db/graph", // This will be an IP address in the future
     "png_path": "db/images/pngs/",

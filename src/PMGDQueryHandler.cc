@@ -34,7 +34,6 @@
 #include "PMGDQueryHandler.h"
 #include "util.h"   // PMGD util
 #include "PMGDIterators.h"
-#include "RWLock.h"
 
 // TODO In the complete version of VDMS, this file will live
 // within PMGD which would replace the PMGD namespace. Some of
@@ -43,30 +42,21 @@ using namespace PMGD;
 using namespace VDMS;
 
 PMGD::Graph *PMGDQueryHandler::_db;
-RWLock *PMGDQueryHandler::_dblock;
 
 void PMGDQueryHandler::init()
 {
     std::string dbname = VDMSConfig::instance()
                         ->get_string_value("pmgd_path", "db/graph");
-    unsigned attempts = VDMSConfig::instance()
-                        ->get_int_value("max_lock_attempts",
-                                        RWLock::MAX_ATTEMPTS);
 
     // Create a db
     _db = new PMGD::Graph(dbname.c_str(), PMGD::Graph::Create);
-
-    // Create the query handler here assuming database is valid now.
-    _dblock = new RWLock(attempts);
 }
 
 void PMGDQueryHandler::destroy()
 {
     if (_db) {
         delete _db;
-        delete _dblock;
         _db = NULL;
-        _dblock = NULL;
     }
 }
 
@@ -80,20 +70,6 @@ std::vector<PMGDCmdResponses>
 
     // Assuming one query handler handles one TX at a time.
     _readonly = readonly;
-    try {
-        if (_readonly)
-            _dblock->read_lock();
-        else
-            _dblock->write_lock();
-    }
-    catch (Exception e) {
-        PMGDCmdResponses &resp_v = responses[0];
-        PMGDCmdResponse *response = new PMGDCmdResponse();
-        set_response(response, PMGDCmdResponse::Exception,
-                        e.name + std::string(": ") +  e.msg);
-        resp_v.push_back(response);
-        return responses;
-    }
 
     for (const auto cmd : cmds) {
         PMGDCmdResponse *response = new PMGDCmdResponse();
@@ -117,10 +93,6 @@ std::vector<PMGDCmdResponses>
         _tx = NULL;
     }
 
-    if (_readonly)
-        _dblock->read_unlock();
-    else
-        _dblock->write_unlock();
     return responses;
 }
 
