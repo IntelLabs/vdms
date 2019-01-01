@@ -36,6 +36,7 @@
 
 #include "ImageCommand.h"
 #include "DescriptorsCommand.h"
+#include "BoundingBoxCommand.h"
 #include "ExceptionsCommand.h"
 
 #include "PMGDQuery.h"
@@ -58,19 +59,22 @@ void QueryHandler::init()
 {
     DescriptorsManager::init();
 
-    _rs_cmds["AddEntity"]  = new AddEntity();
-    _rs_cmds["UpdateEntity"]  = new UpdateEntity();
-    _rs_cmds["AddConnection"] = new AddConnection();
-    _rs_cmds["UpdateConnection"]  = new UpdateConnection();
-    _rs_cmds["FindEntity"] = new FindEntity();
-    _rs_cmds["FindConnection"] = new FindConnection();
-    _rs_cmds["AddImage"]   = new AddImage();
-    _rs_cmds["UpdateImage"]   = new UpdateImage();
-    _rs_cmds["FindImage"]  = new FindImage();
+    _rs_cmds["AddEntity"]          = new AddEntity();
+    _rs_cmds["UpdateEntity"]       = new UpdateEntity();
+    _rs_cmds["AddConnection"]      = new AddConnection();
+    _rs_cmds["UpdateConnection"]   = new UpdateConnection();
+    _rs_cmds["FindEntity"]         = new FindEntity();
+    _rs_cmds["FindConnection"]     = new FindConnection();
+    _rs_cmds["AddImage"]           = new AddImage();
+    _rs_cmds["UpdateImage"]        = new UpdateImage();
+    _rs_cmds["FindImage"]          = new FindImage();
     _rs_cmds["AddDescriptorSet"]   = new AddDescriptorSet();
     _rs_cmds["AddDescriptor"]      = new AddDescriptor();
     _rs_cmds["ClassifyDescriptor"] = new ClassifyDescriptor();
     _rs_cmds["FindDescriptor"]     = new FindDescriptor();
+    _rs_cmds["AddBoundingBox"]     = new AddBoundingBox();
+    _rs_cmds["UpdateBoundingBox"]  = new UpdateBoundingBox();
+    _rs_cmds["FindBoundingBox"]    = new FindBoundingBox();
 
     // Load the string containing the schema (api_schema/APISchema.h)
     Json::Reader reader;
@@ -321,7 +325,6 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
         Json::Value& tx_responses = pmgd_query.run();
 
         if (tx_responses.size() != root.size()) { // error
-
             cmd_current = "Transaction";
             cmd_result = tx_responses;
             cmd_result["info"] = "Failed PMGDTransaction";

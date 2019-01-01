@@ -70,3 +70,14 @@
 #define VDMS_DESC_LABEL_TAG       "VD:DESCLABEL"
 #define VDMS_DESC_LABEL_NAME_PROP "VD:labelName"
 #define VDMS_DESC_LABEL_ID_PROP   "VD:labelId"
+
+// Regions
+
+#define VDMS_ROI_TAG        "VD:ROI"
+#define VDMS_ROI_EDGE_TAG   "VD:ROILINK"
+#define VDMS_ROI_IMAGE_EDGE "VD:ROIIMGLINK"
+
+#define VDMS_ROI_COORD_X_PROP "VD:x1"
+#define VDMS_ROI_COORD_Y_PROP "VD:y1"
+#define VDMS_ROI_WIDTH_PROP   "VD:width"
+#define VDMS_ROI_HEIGHT_PROP  "VD:height"

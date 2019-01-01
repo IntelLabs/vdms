@@ -36,6 +36,7 @@ query_tests = testenv.Program(
                   '../src/QueryMessage.o',
                   '../src/DescriptorsManager.o',
                   '../src/DescriptorsCommand.o',
+                  "../src/BoundingBoxCommand.o",
                   test_sources
                 ],
                )

@@ -44,6 +44,7 @@ def buildServer(env):
                   'src/ExceptionsCommand.cc',
                   'src/DescriptorsManager.cc',
                   'src/DescriptorsCommand.cc',
+                  'src/BoundingBoxCommand.cc',
                 ]
 
   vdms = env.Program('vdms', vdms_server_files)
