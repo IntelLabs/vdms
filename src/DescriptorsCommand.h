@@ -85,7 +85,6 @@ namespace VDMS{
     class AddDescriptorSet: public DescriptorsCommand
     {
         std::string _storage_sets;
-        const std::string DEFAULT_DESCRIPTORS_PATH = "db/descriptors";
 
     public:
         AddDescriptorSet();

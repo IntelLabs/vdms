@@ -63,10 +63,6 @@ namespace VDMS {
 
     class AddImage: public ImageCommand
     {
-        const std::string DEFAULT_TDB_PATH = "db/images/tiledb/tdb";
-        const std::string DEFAULT_PNG_PATH = "db/images/png";
-        const std::string DEFAULT_JPG_PATH = "db/images/jpg";
-
         std::string _storage_tdb;
         std::string _storage_png;
         std::string _storage_jpg;

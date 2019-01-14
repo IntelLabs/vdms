@@ -91,8 +91,6 @@ namespace VDMS {
     class AddEntity : public RSCommand
     {
     private:
-        const std::string DEFAULT_BLOB_PATH = "db/blobs";
-
         std::string _storage_blob;
 
     public:

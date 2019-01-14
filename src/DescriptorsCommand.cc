@@ -106,8 +106,7 @@ bool DescriptorsCommand::check_blob_size(const std::string& blob, const int dime
 AddDescriptorSet::AddDescriptorSet() :
     DescriptorsCommand("AddDescriptorSet")
 {
-    _storage_sets = VDMSConfig::instance()
-                ->get_string_value("descriptors", DEFAULT_DESCRIPTORS_PATH);
+    _storage_sets = VDMSConfig::instance()->get_path_descriptors();
 }
 
 int AddDescriptorSet::construct_protobuf(

@@ -80,12 +80,9 @@ void ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
 
 AddImage::AddImage() : ImageCommand("AddImage")
 {
-    _storage_tdb = VDMSConfig::instance()
-                ->get_string_value("tdb_path", DEFAULT_TDB_PATH);
-    _storage_png = VDMSConfig::instance()
-                ->get_string_value("png_path", DEFAULT_PNG_PATH);
-    _storage_jpg = VDMSConfig::instance()
-                ->get_string_value("jpg_path", DEFAULT_JPG_PATH);
+    _storage_tdb = VDMSConfig::instance()->get_path_tdb();
+    _storage_png = VDMSConfig::instance()->get_path_png();
+    _storage_jpg = VDMSConfig::instance()->get_path_jpg();
 }
 
 int AddImage::construct_protobuf(PMGDQuery& query,
