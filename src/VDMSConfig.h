@@ -44,6 +44,9 @@
 #define PARAM_DB_BLOBS          "blobs_path"
 #define PARAM_DB_DESCRIPTORS    "descriptors_path"
 
+#define PARAM_PMGD_NUM_ALLOCATORS   "pmgd_num_allocators"
+#define DEFAULT_PMGD_NUM_ALLOCATORS 1
+
 namespace VDMS{
 
     class VDMSConfig
