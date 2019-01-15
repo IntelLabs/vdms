@@ -161,8 +161,7 @@ void RSCommand::add_link(PMGDQuery& query, const Json::Value& link,
 
 AddEntity::AddEntity() : RSCommand("AddEntity")
 {
-    _storage_blob = VDMSConfig::instance()
-                ->get_string_value("blob_path", DEFAULT_BLOB_PATH);
+    _storage_blob = VDMSConfig::instance()->get_path_blobs();
 }
 
 bool AddEntity::need_blob(const Json::Value& jsoncmd)

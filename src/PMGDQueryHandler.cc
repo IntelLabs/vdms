@@ -45,8 +45,7 @@ PMGD::Graph *PMGDQueryHandler::_db;
 
 void PMGDQueryHandler::init()
 {
-    std::string dbname = VDMSConfig::instance()
-                        ->get_string_value("pmgd_path", "db/graph");
+    std::string dbname = VDMSConfig::instance()->get_path_pmgd();
 
     // Create a db
     _db = new PMGD::Graph(dbname.c_str(), PMGD::Graph::Create);

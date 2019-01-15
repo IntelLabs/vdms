@@ -3,5 +3,8 @@
 // Sets database paths and other parameters
 {
     // Network
-    "port": 55557 // Default is 55555
+    "port": 55557,
+    "db_root_path": "test_db",
+
+    "more-info": "github.com/IntelLabs/vdms"
 }

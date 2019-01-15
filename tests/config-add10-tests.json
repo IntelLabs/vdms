@@ -3,7 +3,7 @@
 // Sets database paths and other parameters
 {
     // Network
-    "port": 55555, // Default is 55555
+    "port": 55555,
 
     // Database paths
     "pmgd_path": "simpleAddx10_db"
