@@ -46,9 +46,18 @@ PMGD::Graph *PMGDQueryHandler::_db;
 void PMGDQueryHandler::init()
 {
     std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+    int nalloc = VDMSConfig::instance()->
+        get_int_value(PARAM_PMGD_NUM_ALLOCATORS, DEFAULT_PMGD_NUM_ALLOCATORS);
+
+    PMGD::Graph::Config config;
+    config.num_allocators = nalloc;
+
+    // TODO: Include allocators timeouts params as parameters for VDMS.
+    // These parameters can be loaded everytime VDMS is run.
+    // We need PMGD to support these as config params before we can do it here.
 
     // Create a db
-    _db = new PMGD::Graph(dbname.c_str(), PMGD::Graph::Create);
+    _db = new PMGD::Graph(dbname.c_str(), PMGD::Graph::Create, &config);
 }
 
 void PMGDQueryHandler::destroy()
