@@ -29,11 +29,11 @@
   * This is a headers-only library, no compilation/installation necessary
 
 * Persistent Memory Graph Database (PMGD)
-  * Download version 1.0.0 from: https://github.com/IntelLabs/pmgd/releases
+  * Download version 2.0.0 from: https://github.com/IntelLabs/pmgd/releases
   * Follow installation instructions
 
 * Visual Compute Library
-  * Download version 0.1.0 from: https://github.com/IntelLabs/vcl/releases
+  * Download version 1.0.0 from: https://github.com/IntelLabs/vcl/releases
   * Follow installation instructions
 
 ### Python Client Module
@@ -65,8 +65,6 @@ The config-vdms.json file contains the configuration of the server.
 Some of the parameters include the TCP port that will be use for incoming
 connections, maximun number of simultaneous clients, and paths to the
 folders where data/metadata will be stored.
-
-**Note:** The folders must already exists in the filesystem.
 
 We provide a script (run_server.sh) that will create some default directories,
 corresponding the default values in the config-vdms.json.
