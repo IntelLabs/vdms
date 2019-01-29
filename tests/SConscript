@@ -14,9 +14,9 @@ testenv.Replace(
              ])
 
 testenv.Append(
-      LIBS = ['gtest'],
-      LIBPATH = ['../utils/']
-      )
+        LIBS = ['gtest'],
+        LIBPATH = ['../utils/']
+        )
 
 testenv.MergeFlags(GetOption('cflags'))
 
@@ -29,6 +29,7 @@ query_tests = testenv.Program(
                   '../src/VDMSConfig.o',
                   '../src/RSCommand.o',
                   '../src/ImageCommand.o',
+                  '../src/VideoCommand.o',
                   '../src/ExceptionsCommand.o',
                   '../src/PMGDIterators.o',
                   '../src/PMGDQueryHandler.o',
