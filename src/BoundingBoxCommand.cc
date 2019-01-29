@@ -316,19 +316,19 @@ Json::Value FindBoundingBox::construct_responses(
                         get_value<int>(coords, "w"),
                         get_value<int>(coords, "h")));
 
-                    VCL::ImageFormat format =
-                                      img.get_image_format() != VCL::TDB ?
-                                      img.get_image_format() : VCL::PNG;
+                    VCL::Image::Format format =
+                        img.get_image_format() != VCL::Image::Format::TDB ?
+                        img.get_image_format() : VCL::Image::Format::PNG;
 
                     if (cmd.isMember("format")) {
                         std::string requested_format =
                                     get_value<std::string>(cmd, "format");
 
                         if (requested_format == "png") {
-                            format = VCL::PNG;
+                            format = VCL::Image::Format::PNG;
                         }
                         else if(requested_format == "jpg") {
-                            format = VCL::JPG;
+                            format = VCL::Image::Format::JPG;
                         }
                     }
 

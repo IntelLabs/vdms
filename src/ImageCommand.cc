@@ -103,21 +103,21 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     }
 
     std::string img_root = _storage_tdb;
-    VCL::ImageFormat vcl_format = VCL::TDB;
+    VCL::Image::Format vcl_format = VCL::Image::Format::TDB;
 
+    std::string format = get_value<std::string>(cmd, "format", "");
     if (cmd.isMember("format")) {
-        std::string format = get_value<std::string>(cmd, "format");
 
         if (format == "png") {
-            vcl_format = VCL::PNG;
+            vcl_format = VCL::Image::Format::PNG;
             img_root = _storage_png;
         }
         else if (format == "tdb") {
-            vcl_format = VCL::TDB;
+            vcl_format = VCL::Image::Format::TDB;
             img_root = _storage_tdb;
         }
         else if (format == "jpg") {
-            vcl_format = VCL::JPG;
+            vcl_format = VCL::Image::Format::JPG;
             img_root = _storage_jpg;
         }
         else {
@@ -127,7 +127,7 @@ int AddImage::construct_protobuf(PMGDQuery& query,
         }
     }
 
-    std::string file_name = img.create_unique(img_root, vcl_format);
+    std::string file_name = VCL::create_unique(img_root, format);
 
     // Modifiyng the existing properties that the user gives
     // is a good option to make the AddNode more simple.
@@ -267,18 +267,18 @@ Json::Value FindImage::construct_responses(
             // We will return the image in the format the user
             // request, or on its format in disk, except for the case
             // of .tdb, where we will encode as png.
-            VCL::ImageFormat format = img.get_image_format() != VCL::TDB ?
-                                      img.get_image_format() : VCL::PNG;
+            VCL::Image::Format format = img.get_image_format() != VCL::Image::Format::TDB ?
+                                      img.get_image_format() : VCL::Image::Format::PNG;
 
             if (cmd.isMember("format")) {
                 std::string requested_format =
                             get_value<std::string>(cmd, "format");
 
                 if (requested_format == "png") {
-                    format = VCL::PNG;
+                    format = VCL::Image::Format::PNG;
                 }
                 else if (requested_format == "jpg") {
-                    format = VCL::JPG;
+                    format = VCL::Image::Format::JPG;
                 }
                 else {
                     Json::Value return_error;
