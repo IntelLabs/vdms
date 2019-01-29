@@ -37,6 +37,8 @@
 #include "ImageCommand.h"
 #include "DescriptorsCommand.h"
 #include "BoundingBoxCommand.h"
+#include "VideoCommand.h"
+
 #include "ExceptionsCommand.h"
 
 #include "PMGDQuery.h"
@@ -61,20 +63,28 @@ void QueryHandler::init()
 
     _rs_cmds["AddEntity"]          = new AddEntity();
     _rs_cmds["UpdateEntity"]       = new UpdateEntity();
+    _rs_cmds["FindEntity"]         = new FindEntity();
+
     _rs_cmds["AddConnection"]      = new AddConnection();
     _rs_cmds["UpdateConnection"]   = new UpdateConnection();
-    _rs_cmds["FindEntity"]         = new FindEntity();
     _rs_cmds["FindConnection"]     = new FindConnection();
+
     _rs_cmds["AddImage"]           = new AddImage();
     _rs_cmds["UpdateImage"]        = new UpdateImage();
     _rs_cmds["FindImage"]          = new FindImage();
+
     _rs_cmds["AddDescriptorSet"]   = new AddDescriptorSet();
     _rs_cmds["AddDescriptor"]      = new AddDescriptor();
-    _rs_cmds["ClassifyDescriptor"] = new ClassifyDescriptor();
     _rs_cmds["FindDescriptor"]     = new FindDescriptor();
+    _rs_cmds["ClassifyDescriptor"] = new ClassifyDescriptor();
+
     _rs_cmds["AddBoundingBox"]     = new AddBoundingBox();
     _rs_cmds["UpdateBoundingBox"]  = new UpdateBoundingBox();
     _rs_cmds["FindBoundingBox"]    = new FindBoundingBox();
+
+    _rs_cmds["AddVideo"]           = new AddVideo();
+    _rs_cmds["UpdateVideo"]        = new UpdateVideo();
+    _rs_cmds["FindVideo"]          = new FindVideo();
 
     // Load the string containing the schema (api_schema/APISchema.h)
     Json::Reader reader;
@@ -239,11 +249,20 @@ int QueryHandler::parse_commands(const protobufs::queryMessage& proto_query,
     return 0;
 }
 
-void QueryHandler::cleanup_query(const std::vector<std::string>& images)
+// TODO create a better mechanism to cleanup queries that
+// includes feature vectors and user-defined blobs
+// For now, we do it for videos/images as a starting point.
+void QueryHandler::cleanup_query(const std::vector<std::string>& images,
+                                 const std::vector<std::string>& videos)
 {
     for (auto& img_path : images) {
         VCL::Image img(img_path);
         img.delete_image();
+    }
+
+    for (auto& vid_path : videos) {
+        VCL::Video img(vid_path);
+        img.delete_video();
     }
 }
 
@@ -272,11 +291,12 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
         Json::Value cmd_result;
         Json::Value cmd_current;
         std::vector<std::string> images_log;
+        std::vector<std::string> videos_log;
         std::vector<Json::Value> construct_results;
 
         auto error = [&](Json::Value& res, Json::Value& failed_command)
         {
-            cleanup_query(images_log);
+            cleanup_query(images_log, videos_log);
             res["FailedCommand"] = failed_command;
             json_responses.clear();
             json_responses.append(res);
@@ -312,6 +332,9 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
 
             if (cmd_result.isMember("image_added")) {
                 images_log.push_back(cmd_result["image_added"].asString());
+            }
+            if (cmd_result.isMember("video_added")) {
+                videos_log.push_back(cmd_result["video_added"].asString());
             }
 
             if (ret_code != 0) {

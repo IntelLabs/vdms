@@ -37,19 +37,27 @@
       { "$ref": "#/definitions/AddEntityTop" },
       { "$ref": "#/definitions/UpdateEntityTop" },
       { "$ref": "#/definitions/FindEntityTop" },
+
       { "$ref": "#/definitions/AddConnectionTop" },
       { "$ref": "#/definitions/UpdateConnectionTop" },
       { "$ref": "#/definitions/FindConnectionTop" },
+
       { "$ref": "#/definitions/AddImageTop" },
       { "$ref": "#/definitions/UpdateImageTop" },
       { "$ref": "#/definitions/FindImageTop" },
+
       { "$ref": "#/definitions/AddDescriptorSetTop" },
       { "$ref": "#/definitions/AddDescriptorTop" },
       { "$ref": "#/definitions/ClassifyDescriptorTop" },
       { "$ref": "#/definitions/FindDescriptorTop" },
+
       { "$ref": "#/definitions/AddBoundingBoxTop" },
       { "$ref": "#/definitions/UpdateBoundingBoxTop" },
-      { "$ref": "#/definitions/FindBoundingBoxTop" }
+      { "$ref": "#/definitions/FindBoundingBoxTop" },
+
+      { "$ref": "#/definitions/AddVideoTop" },
+      { "$ref": "#/definitions/UpdateVideoTop" },
+      { "$ref": "#/definitions/FindVideoTop" }
     ]
   },
   "uniqueItems": false,
@@ -89,10 +97,26 @@
       "maximun": 10000
     },
 
-    "formatString": {
+    "imgFormatString": {
       "type": "string",
       "enum": ["png", "jpg"]
     },
+
+    "vidCodecString": {
+      "type": "string",
+      "enum": ["xvid", "h264", "h263"]
+    },
+
+    "vidContainerString": {
+      "type": "string",
+      "enum": ["mp4", "avi", "mov"]
+    },
+
+    "unitString": {
+      "type": "string",
+      "enum": ["frames", "seconds"]
+    },
+
 
     "edgeDirectionString": {
       "type": "string",
@@ -147,7 +171,7 @@
       "additionalProperties": false
     },
 
-    "blockOperations": {
+    "blockImageOperations": {
       "type": "array",
       "minItems": 1,
       "items": {
@@ -162,14 +186,40 @@
       "uniqueItems": false
     },
 
+    "blockVideoOperations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "anyOf": [
+          { "$ref": "#/definitions/operationThreshold" },
+          { "$ref": "#/definitions/operationResize" },
+          { "$ref": "#/definitions/operationCrop" },
+          { "$ref": "#/definitions/operationInterval" }
+        ]
+      },
+      "uniqueItems": false
+    },
+
     // Operations
+
+    "operationInterval": {
+      "type": "object",
+      "properties": {
+        "type":  { "enum": [ "interval" ] },
+        "start": { "$ref": "#/definitions/nonNegativeInt" },
+        "stop":  { "$ref": "#/definitions/nonNegativeInt" },
+        "step":  { "$ref": "#/definitions/positiveInt" }
+      },
+      "required": ["type", "start", "stop"],
+      "additionalProperties": false
+    },
 
     "operationThreshold": {
       "type": "object",
       "properties": {
         "type":  { "enum": [ "threshold" ] },
         "value": { "$ref": "#/definitions/nonNegativeInt" }
-      },
+        },
       "required": ["type", "value"],
       "additionalProperties": false
     },
@@ -180,7 +230,7 @@
         "type":   { "enum": [ "resize" ] },
         "height": { "$ref": "#/definitions/positiveInt" },
         "width":  { "$ref": "#/definitions/positiveInt" }
-      },
+        },
       "required": ["type", "height", "width"],
       "additionalProperties": false
     },
@@ -193,7 +243,7 @@
         "y":      { "$ref": "#/definitions/nonNegativeInt" },
         "height": { "$ref": "#/definitions/positiveInt" },
         "width":  { "$ref": "#/definitions/positiveInt" }
-      },
+        },
       "required": ["type", "x", "y", "height", "width"],
       "additionalProperties": false
     },
@@ -349,6 +399,27 @@
       "additionalProperties": false
     },
 
+    "AddVideoTop": {
+      "properties": {
+        "AddVideo" : { "type": "object", "$ref": "#/definitions/AddVideo" }
+      },
+      "additionalProperties": false
+    },
+
+    "UpdateVideoTop": {
+      "properties": {
+        "UpdateVideo" : { "type": "object", "$ref": "#/definitions/UpdateVideo" }
+      },
+      "additionalProperties": false
+    },
+
+    "FindVideoTop": {
+      "properties": {
+        "FindVideo" : { "type": "object", "$ref": "#/definitions/FindVideo" }
+      },
+      "additionalProperties": false
+    },
+
     // Commands
 
     "AddEntity": {
@@ -427,9 +498,9 @@
     "AddImage": {
       "properties": {
         "_ref":       { "$ref": "#/definitions/refInt" },
-        "format":     { "$ref": "#/definitions/formatString" },
+        "format":     { "$ref": "#/definitions/imgFormatString" },
         "link":       { "$ref": "#/definitions/blockLink" },
-        "operations": { "$ref": "#/definitions/blockOperations" },
+        "operations": { "$ref": "#/definitions/blockImageOperations" },
         "properties": { "type": "object" }
       },
       "additionalProperties": false
@@ -438,8 +509,6 @@
     "UpdateImage": {
       "properties": {
         "_ref":         { "$ref": "#/definitions/refInt" },
-        //"format":       { "$ref": "#/definitions/formatString" },
-        //"operations":   { "$ref": "#/definitions/blockOperations" },
         "properties":   { "type": "object" },
         "remove_props": { "$ref": "#/definitions/stringArray" },
         "unique":       { "type": "boolean" },
@@ -452,8 +521,8 @@
       "properties": {
         "_ref":        { "$ref": "#/definitions/refInt" },
         "link":        { "$ref": "#/definitions/blockLink" },
-        "operations":  { "$ref": "#/definitions/blockOperations" },
-        "format":      { "$ref": "#/definitions/formatString" },
+        "operations":  { "$ref": "#/definitions/blockImageOperations" },
+        "format":      { "$ref": "#/definitions/imgFormatString" },
         "constraints": { "type": "object" },
         "results":     { "$ref": "#/definitions/blockResults" },
         "unique":      { "type": "boolean" }
@@ -538,7 +607,7 @@
         "image":       { "$ref": "#/definitions/refInt" },
         "link":        { "$ref": "#/definitions/blockLink" },
         "constraints": { "type": "object" },
-        "format":      { "$ref": "#/definitions/formatString" },
+        "format":      { "$ref": "#/definitions/imgFormatString" },
         "results":     { "$ref": "#/definitions/blockResults" },
         "unique":      { "type": "boolean" }
       },
@@ -546,6 +615,44 @@
         "anyOf": [ {"required": ["image", "link"] } ]
       },
       "additionalProperties": false
+    },
+
+    "AddVideo": {
+      "properties": {
+        "_ref":       { "$ref": "#/definitions/refInt" },
+        "codec":      { "$ref": "#/definitions/vidCodecString" },
+        "container":  { "$ref": "#/definitions/vidContainerString" },
+        "link":       { "$ref": "#/definitions/blockLink" },
+        "operations": { "$ref": "#/definitions/blockVideoOperations" },
+        "properties": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+
+    "UpdateVideo": {
+      "properties": {
+        "_ref":         { "$ref": "#/definitions/refInt" },
+        "properties":   { "type": "object" },
+        "remove_props": { "$ref": "#/definitions/stringArray" },
+        "constraints":  { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+
+    "FindVideo": {
+      "properties": {
+        "_ref":        { "$ref": "#/definitions/refInt" },
+        "link":        { "$ref": "#/definitions/blockLink" },
+        "operations":  { "$ref": "#/definitions/blockVideoOperations" },
+        "codec":       { "$ref": "#/definitions/vidCodecString" },
+        "container":   { "$ref": "#/definitions/vidContainerString" },
+        "constraints": { "type": "object" },
+        "results":     { "$ref": "#/definitions/blockResults" },
+        "unique":      { "type": "boolean" }
+      },
+
+      "additionalProperties": false
     }
+
   }
 }

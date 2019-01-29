@@ -42,6 +42,7 @@
 #define PARAM_DB_JPG            "jpg_path"
 #define PARAM_DB_TDB            "tdb_path"
 #define PARAM_DB_BLOBS          "blobs_path"
+#define PARAM_DB_VIDEOS         "videos_path"
 #define PARAM_DB_DESCRIPTORS    "descriptors_path"
 
 #define PARAM_PMGD_NUM_ALLOCATORS   "pmgd_num_allocators"
@@ -69,6 +70,7 @@ namespace VDMS{
         std::string path_jpg;
         std::string path_tdb;
         std::string path_blobs;
+        std::string path_videos;
         std::string path_descriptors;
 
         VDMSConfig(std::string config_file);
@@ -80,13 +82,14 @@ namespace VDMS{
     public:
         int get_int_value(std::string val, int def);
         std::string get_string_value(std::string val, std::string def);
-        std::string get_path_root()  {return path_root;}
-        std::string get_path_pmgd()  {return path_pmgd;}
-        std::string get_path_jpg()   {return path_jpg;}
-        std::string get_path_png()   {return path_png;}
-        std::string get_path_tdb()   {return path_tdb;}
-        std::string get_path_blobs() {return path_blobs;}
-        std::string get_path_descriptors() {return path_descriptors;}
+        const std::string& get_path_root()  {return path_root;}
+        const std::string& get_path_pmgd()  {return path_pmgd;}
+        const std::string& get_path_jpg()   {return path_jpg;}
+        const std::string& get_path_png()   {return path_png;}
+        const std::string& get_path_tdb()   {return path_tdb;}
+        const std::string& get_path_blobs() {return path_blobs;}
+        const std::string& get_path_videos(){return path_videos;}
+        const std::string& get_path_descriptors() {return path_descriptors;}
     };
 
 }; // vdms namespace
