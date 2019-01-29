@@ -1,9 +1,9 @@
 Import('env')
 
 def compileProtoFiles(utils_env):
-  #Compile .proto file to generate protobuf files (.h and .cc).
+    #Compile .proto file to generate protobuf files (.h and .cc).
 
-  protoQuery = utils_env.Command (
+    protoQuery = utils_env.Command (
              ['include/protobuf/queryMessage.pb.h',
               'src/protobuf/queryMessage.pb.cc',
               '../client/python/vdms/queryMessage_pb2.py',
@@ -16,7 +16,7 @@ def compileProtoFiles(utils_env):
                  utils/include/protobuf/queryMessage.pb.h'
               )
 
-  protoPMGD = utils_env.Command (
+    protoPMGD = utils_env.Command (
              ['include/protobuf/pmgdMessages.pb.h',
               'src/protobuf/pmgdMessages.pb.cc',
              ], # TARGET
@@ -28,7 +28,7 @@ def compileProtoFiles(utils_env):
               )
 
 def createAPISchemaString(utils_env):
-  api_schema = utils_env.Command (
+    api_schema = utils_env.Command (
               'include/api_schema/APISchema.h',      # $TARGET
               ['src/api_schema/api_schema.json',
                'src/api_schema/createApiString.py'], # $SOURCE
@@ -60,14 +60,13 @@ chrono_cc = ['src/chrono/Chrono.cc']
 utils_source_files = [comm_cc, protobuf_cc, chrono_cc]
 
 utils_env.ParseConfig('pkg-config --cflags --libs protobuf')
-utils_env.SharedLibrary('vdms-utils', utils_source_files)
+ulib = utils_env.SharedLibrary('vdms-utils', utils_source_files)
 
 # Comm Testing
 comm_test_env = Environment(CPPPATH=['include/comm'],
-                            CXXFLAGS="-std=c++11")
+                            CXXFLAGS="-std=c++11",
+                            LIBS = [ulib, 'pthread', 'gtest']
+                            )
 
 comm_test_source_files = "test/comm/UnitTests.cc";
-comm_test_env.Program('test/comm/comm_test', comm_test_source_files,
-            LIBS = ['vdms-utils', 'pthread', 'gtest'],
-            LIBPATH = ['.']
-            )
+comm_test = comm_test_env.Program('test/comm/comm_test', comm_test_source_files)
