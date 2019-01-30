@@ -61,7 +61,9 @@ typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
         bool syntax_checker(const Json::Value &root, Json::Value& error);
         int parse_commands(const protobufs::queryMessage& proto_query,
                            Json::Value& root);
-        void cleanup_query(const std::vector<std::string>& images);
+        void cleanup_query(const std::vector<std::string>& images,
+                           const std::vector<std::string>& videos);
+
         void process_query(protobufs::queryMessage& proto_query,
                            protobufs::queryMessage& response);
 

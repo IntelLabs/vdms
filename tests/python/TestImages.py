@@ -37,7 +37,7 @@ import vdms
 hostname = "localhost"
 port = 55557
 
-class TestAddImage(unittest.TestCase):
+class TestImages(unittest.TestCase):
 
     #Methos to insert one image
     def insertImage(self, db, props=None, collections=None, format="png"):
@@ -251,6 +251,7 @@ class TestAddImage(unittest.TestCase):
         addImage = {}
         addImage["properties"] = props
         addImage["link"] = link
+        addImage["format"] = "png"
 
         imgs_arr = []
 
@@ -265,11 +266,7 @@ class TestAddImage(unittest.TestCase):
 
         all_queries.append(query)
 
-        # print json.dumps(all_queries)
-        # vdms.aux_print_json(all_queries)
-
         response, res_arr = db.query(all_queries, [imgs_arr])
-        # vdms.aux_print_json(response)
 
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
         self.assertEqual(response[1]["AddImage"]["status"], 0)

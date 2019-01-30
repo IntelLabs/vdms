@@ -81,3 +81,9 @@
 #define VDMS_ROI_COORD_Y_PROP "VD:y1"
 #define VDMS_ROI_WIDTH_PROP   "VD:width"
 #define VDMS_ROI_HEIGHT_PROP  "VD:height"
+
+// Videos
+
+#define VDMS_VID_TAG           "VD:VID"
+#define VDMS_VID_EDGE          "VD:VIDLINK"
+#define VDMS_VID_PATH_PROP     "VD:videoPath"

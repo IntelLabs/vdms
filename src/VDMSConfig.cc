@@ -49,6 +49,7 @@
 #define DEFAULT_PATH_PNG         "png"
 #define DEFAULT_PATH_TDB         "tdb"
 #define DEFAULT_PATH_BLOBS       "blobs"
+#define DEFAULT_PATH_VIDEOS      "videos"
 #define DEFAULT_PATH_DESCRIPTORS "descriptors"
 
 using namespace VDMS;
@@ -175,6 +176,11 @@ void VDMSConfig::build_dirs()
     path_blobs = path_root + "/" + DEFAULT_PATH_BLOBS;
     path_blobs = get_string_value(PARAM_DB_BLOBS, path_blobs);
     check_or_create(path_blobs);
+
+    // VIDEOS
+    path_videos = path_root + "/" + DEFAULT_PATH_VIDEOS;
+    path_videos = get_string_value(PARAM_DB_VIDEOS, path_videos);
+    check_or_create(path_videos);
 
     // DESCRIPTORS
     path_descriptors = path_root + "/" + DEFAULT_PATH_DESCRIPTORS;
