@@ -1,5 +1,5 @@
 /**
- * @file   ImageCommand.h
+ * @file   VideoCommand.h
  *
  * @section LICENSE
  *
@@ -42,15 +42,16 @@ namespace VDMS {
 
 // Helper classes for handling various JSON commands.
 
-    class ImageCommand: public RSCommand
+    class VideoCommand: public RSCommand
     {
-
     protected:
-        void enqueue_operations(VCL::Image& img, const Json::Value& op);
+        void enqueue_operations(VCL::Video& video, const Json::Value& op);
+
+        VCL::Video::Codec string_to_codec(const std::string& codec);
 
     public:
 
-        ImageCommand(const std::string &cmd_name);
+        VideoCommand(const std::string &cmd_name);
 
         virtual int construct_protobuf(PMGDQuery& tx,
                                const Json::Value& root,
@@ -61,14 +62,14 @@ namespace VDMS {
         virtual bool need_blob(const Json::Value& cmd) { return false; }
     };
 
-    class AddImage: public ImageCommand
+    class AddVideo: public VideoCommand
     {
-        std::string _storage_tdb;
-        std::string _storage_png;
-        std::string _storage_jpg;
+        const std::string DEFAULT_VIDEO_PATH = "videos/database";
+
+        std::string _storage_video;
 
     public:
-        AddImage();
+        AddVideo();
 
         int construct_protobuf(PMGDQuery& tx,
                                const Json::Value& root,
@@ -79,10 +80,10 @@ namespace VDMS {
         bool need_blob(const Json::Value& cmd) { return true; }
     };
 
-    class UpdateImage: public ImageCommand
+    class UpdateVideo: public VideoCommand
     {
     public:
-        UpdateImage();
+        UpdateVideo();
 
         int construct_protobuf(PMGDQuery& tx,
                                const Json::Value& root,
@@ -90,14 +91,18 @@ namespace VDMS {
                                int grp_id,
                                Json::Value& error);
 
-        // TODO In order to support "format" or "operations", we could
-        // implement VCL save operation by adding construct_responses method.
+        Json::Value construct_responses(
+                Json::Value &json_responses,
+                const Json::Value &json,
+                protobufs::queryMessage &response,
+                const std::string &blob);
     };
 
-    class FindImage: public ImageCommand
+    class FindVideo: public VideoCommand
     {
     public:
-        FindImage();
+        FindVideo();
+
         int construct_protobuf(PMGDQuery& tx,
                                const Json::Value& root,
                                const std::string& blob,

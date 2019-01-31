@@ -33,12 +33,9 @@
 
 #include "ImageCommand.h"
 #include "VDMSConfig.h"
+#include "defines.h"
 
 using namespace VDMS;
-
-#define VDMS_IM_TAG           "AT:IMAGE"
-#define VDMS_IM_PATH_PROP     "imgPath"
-#define VDMS_IM_EDGE          "AT:IMG_LINK"
 
 //========= AddImage definitions =========
 
@@ -66,20 +63,26 @@ void ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
                         get_value<int>(op, "width"),
                         get_value<int>(op, "height") ));
         }
+        else if (type == "flip") {
+            img.flip(get_value<int>(op, "code"));
+        }
+        else if (type == "rotate") {
+            img.rotate(get_value<double>(op, "angle"),
+                       get_value<bool>(op, "resize"));
+        }
         else {
             throw ExceptionCommand(ImageError, "Operation not defined");
         }
     }
 }
 
+//========= AddImage definitions =========
+
 AddImage::AddImage() : ImageCommand("AddImage")
 {
-    _storage_tdb = VDMSConfig::instance()
-                ->get_string_value("tdb_path", DEFAULT_TDB_PATH);
-    _storage_png = VDMSConfig::instance()
-                ->get_string_value("png_path", DEFAULT_PNG_PATH);
-    _storage_jpg = VDMSConfig::instance()
-                ->get_string_value("jpg_path", DEFAULT_JPG_PATH);
+    _storage_tdb = VDMSConfig::instance()->get_path_tdb();
+    _storage_png = VDMSConfig::instance()->get_path_png();
+    _storage_jpg = VDMSConfig::instance()->get_path_jpg();
 }
 
 int AddImage::construct_protobuf(PMGDQuery& query,
@@ -100,21 +103,21 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     }
 
     std::string img_root = _storage_tdb;
-    VCL::ImageFormat vcl_format = VCL::TDB;
+    VCL::Image::Format vcl_format = VCL::Image::Format::TDB;
 
+    std::string format = get_value<std::string>(cmd, "format", "");
     if (cmd.isMember("format")) {
-        std::string format = get_value<std::string>(cmd, "format");
 
         if (format == "png") {
-            vcl_format = VCL::PNG;
+            vcl_format = VCL::Image::Format::PNG;
             img_root = _storage_png;
         }
         else if (format == "tdb") {
-            vcl_format = VCL::TDB;
+            vcl_format = VCL::Image::Format::TDB;
             img_root = _storage_tdb;
         }
         else if (format == "jpg") {
-            vcl_format = VCL::JPG;
+            vcl_format = VCL::Image::Format::JPG;
             img_root = _storage_jpg;
         }
         else {
@@ -124,7 +127,7 @@ int AddImage::construct_protobuf(PMGDQuery& query,
         }
     }
 
-    std::string file_name = img.create_unique(img_root, vcl_format);
+    std::string file_name = VCL::create_unique(img_root, format);
 
     // Modifiyng the existing properties that the user gives
     // is a good option to make the AddNode more simple.
@@ -142,8 +145,33 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     error["image_added"] = file_name;
 
     if (cmd.isMember("link")) {
-        add_link(query, cmd["link"], node_ref, VDMS_IM_EDGE);
+        add_link(query, cmd["link"], node_ref, VDMS_IM_EDGE_TAG);
     }
+
+    return 0;
+}
+
+//========= UpdateImage definitions =========
+
+UpdateImage::UpdateImage() : ImageCommand("UpdateImage")
+{
+}
+
+int UpdateImage::construct_protobuf(PMGDQuery& query,
+    const Json::Value& jsoncmd,
+    const std::string& blob,
+    int grp_id,
+    Json::Value& error)
+{
+    const Json::Value& cmd = jsoncmd[_cmd_name];
+
+    // Update Image node
+    query.UpdateNode(get_value<int>(cmd, "_ref", -1),
+                     VDMS_IM_TAG,
+                     cmd["properties"],
+                     cmd["remove_props"],
+                     cmd["constraints"],
+                     get_value<bool>(cmd, "unique", false));
 
     return 0;
 }
@@ -164,7 +192,11 @@ int FindImage::construct_protobuf(
     const Json::Value& cmd = jsoncmd[_cmd_name];
 
     Json::Value results = get_value<Json::Value>(cmd, "results");
-    results["list"].append(VDMS_IM_PATH_PROP);
+
+    // Unless otherwhis specified, we return the blob.
+    if (get_value<bool>(results, "blob", true)){
+        results["list"].append(VDMS_IM_PATH_PROP);
+    }
 
     query.QueryNode(
             get_value<int>(cmd, "_ref", -1),
@@ -181,7 +213,8 @@ int FindImage::construct_protobuf(
 Json::Value FindImage::construct_responses(
     Json::Value& responses,
     const Json::Value& json,
-    protobufs::queryMessage &query_res)
+    protobufs::queryMessage &query_res,
+    const std::string &blob)
 {
     const Json::Value& cmd = json[_cmd_name];
 
@@ -197,7 +230,7 @@ Json::Value FindImage::construct_responses(
         Json::Value return_error;
         return_error["status"]  = RSCommand::Error;
         return_error["info"] = "PMGD Response Bad Size";
-        error(return_error);
+        return error(return_error);
     }
 
     Json::Value& findImage = responses[0];
@@ -207,14 +240,16 @@ Json::Value FindImage::construct_responses(
     if (findImage["status"] != 0) {
         findImage["status"]  = RSCommand::Error;
         // Uses PMGD info error.
-        error(findImage);
+        return error(findImage);
     }
 
     bool flag_empty = true;
 
     for (auto& ent : findImage["entities"]) {
 
-        assert(ent.isMember(VDMS_IM_PATH_PROP));
+        if(!ent.isMember(VDMS_IM_PATH_PROP)){
+            continue;
+        }
         std::string im_path = ent[VDMS_IM_PATH_PROP].asString();
         ent.removeMember(VDMS_IM_PATH_PROP);
 
@@ -232,24 +267,24 @@ Json::Value FindImage::construct_responses(
             // We will return the image in the format the user
             // request, or on its format in disk, except for the case
             // of .tdb, where we will encode as png.
-            VCL::ImageFormat format = img.get_image_format() != VCL::TDB ?
-                                      img.get_image_format() : VCL::PNG;
+            VCL::Image::Format format = img.get_image_format() != VCL::Image::Format::TDB ?
+                                      img.get_image_format() : VCL::Image::Format::PNG;
 
             if (cmd.isMember("format")) {
                 std::string requested_format =
                             get_value<std::string>(cmd, "format");
 
                 if (requested_format == "png") {
-                    format = VCL::PNG;
+                    format = VCL::Image::Format::PNG;
                 }
                 else if (requested_format == "jpg") {
-                    format = VCL::JPG;
+                    format = VCL::Image::Format::JPG;
                 }
                 else {
                     Json::Value return_error;
                     return_error["status"]  = RSCommand::Error;
                     return_error["info"] = "Invalid Format for FindImage";
-                    error(return_error);
+                    return error(return_error);
                 }
             }
 
@@ -268,18 +303,18 @@ Json::Value FindImage::construct_responses(
                 Json::Value return_error;
                 return_error["status"]  = RSCommand::Error;
                 return_error["info"] = "Image Data not found";
-                error(return_error);
+                return error(return_error);
             }
         } catch (VCL::Exception e) {
             print_exception(e);
             Json::Value return_error;
             return_error["status"]  = RSCommand::Error;
             return_error["info"] = "VCL Exception";
-            error(return_error);
+            return error(return_error);
         }
     }
 
-    if (!flag_empty) {
+    if (flag_empty) {
         findImage.removeMember("entities");
     }
 

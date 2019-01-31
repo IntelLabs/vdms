@@ -1,5 +1,5 @@
 /**
- * @file   ImageCommand.h
+ * @file   BoundingBoxCommand.h
  *
  * @section LICENSE
  *
@@ -40,64 +40,35 @@
 
 namespace VDMS {
 
-// Helper classes for handling various JSON commands.
-
-    class ImageCommand: public RSCommand
+    class AddBoundingBox : public RSCommand
     {
-
-    protected:
-        void enqueue_operations(VCL::Image& img, const Json::Value& op);
-
     public:
-
-        ImageCommand(const std::string &cmd_name);
-
-        virtual int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error) = 0;
-
-        virtual bool need_blob(const Json::Value& cmd) { return false; }
-    };
-
-    class AddImage: public ImageCommand
-    {
-        std::string _storage_tdb;
-        std::string _storage_png;
-        std::string _storage_jpg;
-
-    public:
-        AddImage();
+        AddBoundingBox();
 
         int construct_protobuf(PMGDQuery& tx,
                                const Json::Value& root,
                                const std::string& blob,
                                int grp_id,
                                Json::Value& error);
-
-        bool need_blob(const Json::Value& cmd) { return true; }
     };
 
-    class UpdateImage: public ImageCommand
+    class UpdateBoundingBox : public RSCommand
     {
-    public:
-        UpdateImage();
+        public:
+        UpdateBoundingBox();
 
         int construct_protobuf(PMGDQuery& tx,
                                const Json::Value& root,
                                const std::string& blob,
                                int grp_id,
                                Json::Value& error);
-
-        // TODO In order to support "format" or "operations", we could
-        // implement VCL save operation by adding construct_responses method.
     };
 
-    class FindImage: public ImageCommand
+    class FindBoundingBox : public RSCommand
     {
     public:
-        FindImage();
+        FindBoundingBox();
+
         int construct_protobuf(PMGDQuery& tx,
                                const Json::Value& root,
                                const std::string& blob,

@@ -18,7 +18,7 @@ def buildServer(env):
               os.path.join(env['INTEL_PATH'], 'vcl/src'),
              ],
     LIBS = [ 'pmgd', 'pmgd-util',
-             'jsoncpp', 'protobuf',
+             'jsoncpp', 'protobuf', 'tbb',
              'vdms-utils', 'vcl', 'pthread',
            ],
     LIBPATH = ['/usr/local/lib/', 'utils/',
@@ -35,24 +35,28 @@ def buildServer(env):
                   'src/QueryHandler.cc',
                   'src/QueryMessage.cc',
                   'src/CommunicationManager.cc',
+                  'src/ExceptionsCommand.cc',
                   'src/PMGDQuery.cc',
                   'src/SearchExpression.cc',
                   'src/PMGDIterators.cc',
                   'src/PMGDQueryHandler.cc',
                   'src/RSCommand.cc',
                   'src/ImageCommand.cc',
-                  'src/ExceptionsCommand.cc',
+                  'src/DescriptorsManager.cc',
+                  'src/DescriptorsCommand.cc',
+                  'src/BoundingBoxCommand.cc',
+                  'src/VideoCommand.cc',
                 ]
 
-  vdms = env.Program('vdms', vdms_server_files)
+  env.Program('vdms', vdms_server_files)
 
 # Set INTEL_PATH. First check arguments, then enviroment, then default
 if ARGUMENTS.get('INTEL_PATH', '') != '':
-  intel_path = ARGUMENTS.get("INTEL_PATH", '')
+    intel_path = ARGUMENTS.get("INTEL_PATH", '')
 elif os.environ.get('INTEL_PATH', '') != '':
-  intel_path = os.environ.get('INTEL_PATH', '')
+    intel_path = os.environ.get('INTEL_PATH', '')
 else:
-  intel_path = os.getcwd()
+    intel_path = os.getcwd()
 
 # Enviroment use by all the builds
 env = Environment(CXXFLAGS="-std=c++11 -O3")
@@ -63,6 +67,6 @@ SConscript(os.path.join('utils', 'SConscript'), exports=['env'])
 SConscript(os.path.join('client/cpp','SConscript'), exports=['env'])
 
 if GetOption('no-server'):
-  buildServer(env)
-  # Build tests only if server is built
-  SConscript(os.path.join('tests', 'SConscript'), exports=['env'])
+    buildServer(env)
+    # Build tests only if server is built
+    SConscript(os.path.join('tests', 'SConscript'), exports=['env'])

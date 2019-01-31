@@ -27,49 +27,59 @@
  *
  */
 
-#include "VDMSClient.h"
-#include "protobuf/queryMessage.pb.h"
+#include <iostream>
+#include "DescriptorsManager.h"
 
 using namespace VDMS;
-using namespace std;
 
-const string VDMSClient::query(const string &json)
+DescriptorsManager* DescriptorsManager::_dm;
+
+bool DescriptorsManager::init()
 {
-    protobufs::queryMessage cmd;
-    cmd.set_json(json);
+    if(_dm)
+        return false;
 
-    std::basic_string<uint8_t> msg(cmd.ByteSize(),0);
-    cmd.SerializeToArray((void*)msg.data(), msg.length());
-    _conn.send_message(msg.data(), msg.length());
-
-    // Wait now for response
-    // TODO: Perhaps add an asynchronous version too.
-    msg = _conn.recv_message();
-    protobufs::queryMessage resp;
-    resp.ParseFromArray((const void*)msg.data(), msg.length());
-
-    return resp.json();
+    _dm = new DescriptorsManager();
+    return true;
 }
 
-const string VDMSClient::query(const string &json, const vector<string *> blobs)
+DescriptorsManager* DescriptorsManager::instance()
 {
-    protobufs::queryMessage cmd;
-    cmd.set_json(json);
+    if(_dm)
+        return _dm;
 
-    for (auto& it : blobs) {
-        string *blob = cmd.add_blobs();
-        *blob = *it;
+    std::cerr << "ERROR: DescriptorsManager not init" << std::endl;
+    return NULL;
+}
+
+DescriptorsManager::DescriptorsManager()
+{
+}
+
+void DescriptorsManager::flush()
+{
+    for (auto desc_set : _descriptors_handlers) {
+        desc_set.second->store();
+        delete desc_set.second;
+    }
+    _descriptors_handlers.clear();
+}
+
+VCL::DescriptorSet* DescriptorsManager::get_descriptors_handler(
+    std::string path)
+{
+    VCL::DescriptorSet* desc_ptr;
+
+    auto element = _descriptors_handlers.find(path);
+
+    if (element == _descriptors_handlers.end()) {
+        desc_ptr = new VCL::DescriptorSet(path);
+        _descriptors_handlers[path] = desc_ptr;
+    }
+    else {
+        desc_ptr = element->second;
     }
 
-    std::basic_string<uint8_t> msg(cmd.ByteSize(),0);
-    cmd.SerializeToArray((void*)msg.data(), msg.length());
-    _conn.send_message(msg.data(), msg.length());
-
-    // Wait now for response
-    // TODO: Perhaps add an asynchronous version too.
-    msg = _conn.recv_message();
-    protobufs::queryMessage resp;
-    resp.ParseFromArray((const void*)msg.data(), msg.length());
-
-    return resp.json();
+    return desc_ptr;
 }
+

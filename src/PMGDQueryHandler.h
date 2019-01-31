@@ -33,7 +33,6 @@
 
 #include <map>
 #include <unordered_map>
-#include <mutex>
 #include <vector>
 #include <list>
 
@@ -48,7 +47,10 @@ namespace VDMS {
     typedef PMGD::protobufs::PropertyPredicate PMGDPropPred;
     typedef PMGD::protobufs::PropertyList      PMGDPropList;
     typedef PMGD::protobufs::Property          PMGDProp;
+    typedef PMGD::protobufs::Constraints       PMGDQueryConstraints;
+    typedef PMGD::protobufs::ResultInfo        PMGDQueryResultInfo;
     typedef PMGD::protobufs::QueryNode         PMGDQueryNode;
+    typedef PMGD::protobufs::QueryEdge         PMGDQueryEdge;
     typedef PMGD::protobufs::CommandResponse   PMGDCmdResponse;
     typedef PMGD::protobufs::ResponseType      PMGDRespType;
     typedef PMGDCmdResponse::ErrorCode         PMGDCmdErrorCode;
@@ -58,17 +60,19 @@ namespace VDMS {
 
     class PMGDQueryHandler
     {
-        class ReusableNodeIterator;
+        template <typename T, typename Ti>
+        class ReusableIterator;
+
+        typedef ReusableIterator<PMGD::Node, PMGD::NodeIterator> ReusableNodeIterator;
+        typedef ReusableIterator<PMGD::Edge, PMGD::EdgeIterator> ReusableEdgeIterator;
+
         class MultiNeighborIteratorImpl;
 
         // Until we have a separate PMGD server this db lives here
         static PMGD::Graph *_db;
 
-        // Need this lock till we have concurrency support in PMGD
-        // TODO: Make this reader writer.
-        static std::mutex *_dblock;
-
         PMGD::Transaction *_tx;
+        bool _readonly;  // Variable changes per TX based on process_queries parameter.
 
         // Map an integer ID to a NodeIterator (reset at the end of each transaction).
         // This works for Adds and Queries. We assume that the client or
@@ -79,19 +83,24 @@ namespace VDMS {
         // of finding out if the reference is for an AddNode or a QueryNode
         // and rather than searching multiple maps, we keep it uniform here.
         std::unordered_map<int, ReusableNodeIterator *> _cached_nodes;
+        std::unordered_map<int, ReusableEdgeIterator *> _cached_edges;
 
         int process_query(const PMGDCmd *cmd, PMGDCmdResponse *response);
         void error_cleanup(std::vector<PMGDCmdResponses> &responses, PMGDCmdResponse *last_resp);
         int add_node(const PMGD::protobufs::AddNode &cn, PMGDCmdResponse *response);
+        int update_node(const PMGD::protobufs::UpdateNode &un, PMGDCmdResponse *response);
         int add_edge(const PMGD::protobufs::AddEdge &ce, PMGDCmdResponse *response);
+        int update_edge(const PMGD::protobufs::UpdateEdge &ue, PMGDCmdResponse *response);
         template <class Element> void set_property(Element &e, const PMGDProp&p);
         int query_node(const PMGDQueryNode &qn, PMGDCmdResponse *response);
+        int query_edge(const PMGDQueryEdge &qe, PMGDCmdResponse *response);
         PMGD::PropertyPredicate construct_search_term(const PMGDPropPred &p_pp);
         PMGD::Property construct_search_property(const PMGDProp&p);
         template <class Iterator> void build_results(Iterator &ni,
-                                                    const PMGDQueryNode &qn,
+                                                    const PMGDQueryResultInfo &qn,
                                                     PMGDCmdResponse *response);
         void construct_protobuf_property(const PMGD::Property &j_p, PMGDProp*p_p);
+        void construct_missing_property(PMGDProp *p_p);
 
         void set_response(PMGDCmdResponse *response, PMGDCmdErrorCode error_code,
                             std::string error_msg)
@@ -116,8 +125,10 @@ namespace VDMS {
         }
 
     public:
+        class NodeEdgeIteratorImpl;
         static void init();
-        PMGDQueryHandler() { _tx = NULL; }
+        static void destroy();
+        PMGDQueryHandler() { _tx = NULL; _readonly = true; }
 
         // The vector here can contain just one JL command but will be surrounded by
         // TX begin and end. So just expose one call to the QueryHandler for
@@ -128,6 +139,8 @@ namespace VDMS {
         // than the number of commands.
         // Ensure that the cmd_grp_id, that is the query number are in increasing
         // order and account for the TxBegin and TxEnd in numbering.
-        std::vector<PMGDCmdResponses> process_queries(const PMGDCmds &cmds, int num_groups);
+        std::vector<PMGDCmdResponses> process_queries(const PMGDCmds &cmds,
+                                                      int num_groups, bool readonly);
     };
-};
+
+}; // end VDMS namespace

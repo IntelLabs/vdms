@@ -6,5 +6,7 @@
     "port": 55555,
 
     // Database paths
-    "pmgd_path": "simpleAddx10_db"
+    "pmgd_path": "simpleUpdate_db",
+
+    "more-info": "github.com/IntelLabs/vmds"
 }

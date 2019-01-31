@@ -3,11 +3,8 @@
 // Sets database paths and other parameters
 {
     // Network
-    "port": 55557, // Default is 55555
+    "port": 55557,
+    "db_root_path": "test_db",
 
-    // Database paths
-    "pmgd_path": "db/test-graph",
-    "png_path": "db/images/pngs/",
-    "jpg_path": "db/images/jpgs/",
-    "tdb_path": "db/images/tiledb/tdb"
+    "more-info": "github.com/IntelLabs/vdms"
 }

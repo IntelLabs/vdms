@@ -34,6 +34,20 @@
 #include <string>
 #include <jsoncpp/json/value.h>
 
+// Parameters in the JSON config file
+#define PARAM_DB_ROOT           "db_root_path"
+#define PARAM_DB_PMGD           "pmgd_path"
+#define PARAM_DB_IMAGES         "images_path"
+#define PARAM_DB_PNG            "png_path"
+#define PARAM_DB_JPG            "jpg_path"
+#define PARAM_DB_TDB            "tdb_path"
+#define PARAM_DB_BLOBS          "blobs_path"
+#define PARAM_DB_VIDEOS         "videos_path"
+#define PARAM_DB_DESCRIPTORS    "descriptors_path"
+
+#define PARAM_PMGD_NUM_ALLOCATORS   "pmgd_num_allocators"
+#define DEFAULT_PMGD_NUM_ALLOCATORS 1
+
 namespace VDMS{
 
     class VDMSConfig
@@ -48,11 +62,34 @@ namespace VDMS{
         static VDMSConfig* cfg;
         Json::Value json_config;
 
+        // Dirs
+        std::string path_root;
+        std::string path_pmgd;
+        std::string path_images;
+        std::string path_png;
+        std::string path_jpg;
+        std::string path_tdb;
+        std::string path_blobs;
+        std::string path_videos;
+        std::string path_descriptors;
+
         VDMSConfig(std::string config_file);
+
+        void build_dirs();
+        void check_or_create(std::string path);
+        int create_dir(std::string path);
 
     public:
         int get_int_value(std::string val, int def);
         std::string get_string_value(std::string val, std::string def);
+        const std::string& get_path_root()  {return path_root;}
+        const std::string& get_path_pmgd()  {return path_pmgd;}
+        const std::string& get_path_jpg()   {return path_jpg;}
+        const std::string& get_path_png()   {return path_png;}
+        const std::string& get_path_tdb()   {return path_tdb;}
+        const std::string& get_path_blobs() {return path_blobs;}
+        const std::string& get_path_videos(){return path_videos;}
+        const std::string& get_path_descriptors() {return path_descriptors;}
     };
 
 }; // vdms namespace

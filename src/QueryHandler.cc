@@ -35,6 +35,10 @@
 #include "QueryHandler.h"
 
 #include "ImageCommand.h"
+#include "DescriptorsCommand.h"
+#include "BoundingBoxCommand.h"
+#include "VideoCommand.h"
+
 #include "ExceptionsCommand.h"
 
 #include "PMGDQuery.h"
@@ -55,11 +59,32 @@ valijson::Schema* QueryHandler::_schema = new valijson::Schema;
 
 void QueryHandler::init()
 {
-    _rs_cmds["AddEntity"]  = new AddEntity();
-    _rs_cmds["Connect"]    = new Connect();
-    _rs_cmds["FindEntity"] = new FindEntity();
-    _rs_cmds["AddImage"]   = new AddImage();
-    _rs_cmds["FindImage"]  = new FindImage();
+    DescriptorsManager::init();
+
+    _rs_cmds["AddEntity"]          = new AddEntity();
+    _rs_cmds["UpdateEntity"]       = new UpdateEntity();
+    _rs_cmds["FindEntity"]         = new FindEntity();
+
+    _rs_cmds["AddConnection"]      = new AddConnection();
+    _rs_cmds["UpdateConnection"]   = new UpdateConnection();
+    _rs_cmds["FindConnection"]     = new FindConnection();
+
+    _rs_cmds["AddImage"]           = new AddImage();
+    _rs_cmds["UpdateImage"]        = new UpdateImage();
+    _rs_cmds["FindImage"]          = new FindImage();
+
+    _rs_cmds["AddDescriptorSet"]   = new AddDescriptorSet();
+    _rs_cmds["AddDescriptor"]      = new AddDescriptor();
+    _rs_cmds["FindDescriptor"]     = new FindDescriptor();
+    _rs_cmds["ClassifyDescriptor"] = new ClassifyDescriptor();
+
+    _rs_cmds["AddBoundingBox"]     = new AddBoundingBox();
+    _rs_cmds["UpdateBoundingBox"]  = new UpdateBoundingBox();
+    _rs_cmds["FindBoundingBox"]    = new FindBoundingBox();
+
+    _rs_cmds["AddVideo"]           = new AddVideo();
+    _rs_cmds["UpdateVideo"]        = new UpdateVideo();
+    _rs_cmds["FindVideo"]          = new FindVideo();
 
     // Load the string containing the schema (api_schema/APISchema.h)
     Json::Reader reader;
@@ -129,8 +154,7 @@ bool QueryHandler::syntax_checker(const Json::Value& root, Json::Value& error)
     valijson::adapters::JsonCppAdapter user_query(root);
     if (!_validator.validate(*_schema, user_query, &results)) {
         std::cerr << "API validation failed for:" << std::endl;
-        Json::StyledWriter swriter;
-        std::cerr << swriter.write(root) << std::endl;
+        std::cerr << root.toStyledString() << std::endl;
 
         // Will attempt to find the simple error
         // To avoid valijson dump
@@ -172,10 +196,11 @@ bool QueryHandler::syntax_checker(const Json::Value& root, Json::Value& error)
     return true;
 }
 
-int QueryHandler::parse_commands(const std::string& commands,
+int QueryHandler::parse_commands(const protobufs::queryMessage& proto_query,
                                  Json::Value& root)
 {
     Json::Reader reader;
+    const std::string commands = proto_query.json();
 
     try {
         bool parseSuccess = reader.parse(commands.c_str(), root);
@@ -193,6 +218,28 @@ int QueryHandler::parse_commands(const std::string& commands,
             return -1;
         }
 
+        unsigned blob_counter = 0;
+        for (int j = 0; j < root.size(); j++) {
+            const Json::Value& query = root[j];
+            assert(query.getMemberNames().size() == 1);
+            std::string cmd = query.getMemberNames()[0];
+
+            if (_rs_cmds[cmd]->need_blob(query)) {
+                blob_counter++;
+            }
+        }
+
+        if (blob_counter != proto_query.blobs().size()) {
+            root = error;
+            root["info"] = std::string("Expected blobs: " +
+                                std::to_string(blob_counter) +
+                                ". Received blobs: " +
+                                std::to_string(proto_query.blobs().size()));
+            root["status"] = RSCommand::Error;
+            std::cerr << "Not enough blobs!" << std::endl;
+            return -1;
+        }
+
     } catch (Json::Exception const&) {
         root["info"] = "Json Exception at Parsing";
         root["status"] = RSCommand::Error;
@@ -202,11 +249,20 @@ int QueryHandler::parse_commands(const std::string& commands,
     return 0;
 }
 
-void QueryHandler::cleanup_query(const std::vector<std::string>& images)
+// TODO create a better mechanism to cleanup queries that
+// includes feature vectors and user-defined blobs
+// For now, we do it for videos/images as a starting point.
+void QueryHandler::cleanup_query(const std::vector<std::string>& images,
+                                 const std::vector<std::string>& videos)
 {
     for (auto& img_path : images) {
         VCL::Image img(img_path);
         img.delete_image();
+    }
+
+    for (auto& vid_path : videos) {
+        VCL::Video img(vid_path);
+        img.delete_video();
     }
 }
 
@@ -215,17 +271,32 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
 {
     Json::FastWriter fastWriter;
 
+    Json::Value root;
+    Json::Value exception_error;
+    std::stringstream error_msg;
+    auto exception_handler = [&]() {
+        // When exception is catched, we return the message.
+        std::cerr << "Failed Query: " << std::endl;
+        std::cerr << root << std::endl;
+        std::cerr << error_msg.str();
+        std::cerr << "End Failed Query: " << std::endl;
+        exception_error["info"] = error_msg.str();
+        exception_error["status"] = RSCommand::Error;
+        proto_res.set_json(fastWriter.write(exception_error));
+    };
+
     try {
         Json::Value json_responses;
-        Json::Value root;
 
         Json::Value cmd_result;
         Json::Value cmd_current;
         std::vector<std::string> images_log;
+        std::vector<std::string> videos_log;
+        std::vector<Json::Value> construct_results;
 
         auto error = [&](Json::Value& res, Json::Value& failed_command)
         {
-            cleanup_query(images_log);
+            cleanup_query(images_log, videos_log);
             res["FailedCommand"] = failed_command;
             json_responses.clear();
             json_responses.append(res);
@@ -235,7 +306,7 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
             std::cerr << w.write(json_responses);
         };
 
-        if (parse_commands(proto_query.json(), root) != 0) {
+        if (parse_commands(proto_query, root) != 0) {
             cmd_current = "Transaction";
             error(root, cmd_current);
             return;
@@ -247,17 +318,13 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
         //iterate over the list of the queries
         for (int j = 0; j < root.size(); j++) {
             const Json::Value& query = root[j];
-            assert(query.getMemberNames().size() == 1);
             std::string cmd = query.getMemberNames()[0];
 
             int group_count = pmgd_query.add_group();
 
             RSCommand* rscmd = _rs_cmds[cmd];
 
-            // This has to go on the controls
-            assert(proto_query.blobs().size() > blob_count-1);
-
-            const std::string& blob = rscmd->need_blob() ?
+            const std::string& blob = rscmd->need_blob(query) ?
                                       proto_query.blobs(blob_count++) : "";
 
             int ret_code = rscmd->construct_protobuf(pmgd_query, query, blob,
@@ -266,11 +333,16 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
             if (cmd_result.isMember("image_added")) {
                 images_log.push_back(cmd_result["image_added"].asString());
             }
+            if (cmd_result.isMember("video_added")) {
+                videos_log.push_back(cmd_result["video_added"].asString());
+            }
 
             if (ret_code != 0) {
                 error(cmd_result, root[j]);
                 return;
             }
+
+            construct_results.push_back(cmd_result);
         }
 
         Json::Value& tx_responses = pmgd_query.run();
@@ -280,16 +352,26 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
             cmd_result = tx_responses;
             cmd_result["info"] = "Failed PMGDTransaction";
             cmd_result["status"] = RSCommand::Error;
+            Json::StyledWriter w;
+            std::cerr << w.write(tx_responses);
             error(cmd_result, cmd_current);
             return;
         }
         else {
+            blob_count = 0;
             for (int j = 0; j < root.size(); j++) {
-                std::string cmd = root[j].getMemberNames()[0];
+                Json::Value& query = root[j];
+                std::string cmd = query.getMemberNames()[0];
 
-                cmd_result = _rs_cmds[cmd]->construct_responses(
-                                            tx_responses[j],
-                                            root[j], proto_res);
+                RSCommand* rscmd = _rs_cmds[cmd];
+
+                const std::string& blob = rscmd->need_blob(query) ?
+                                          proto_query.blobs(blob_count++) : "";
+
+                query["cp_result"] = construct_results[j];
+                cmd_result = rscmd->construct_responses(
+                                        tx_responses[j],
+                                        query, proto_res, blob);
 
                 // This is for error handling
                 if (cmd_result.isMember("status")) {
@@ -308,28 +390,39 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
 
         proto_res.set_json(fastWriter.write(json_responses));
 
-    } catch (VCL::Exception e) {
+    } catch (VCL::Exception& e) {
         print_exception(e);
-        std::cerr << "FATAL ERROR: VCL Exception at QH" << std::endl;
-        exit(0);
-    } catch (PMGD::Exception e) {
+        error_msg << "Internal Server Error: VCL Exception at QH" << std::endl;
+        exception_handler();
+    } catch (PMGD::Exception& e) {
         print_exception(e);
-        std::cerr << "FATAL ERROR: PMGD Exception at QH" << std::endl;
-        exit(0);
-    } catch (ExceptionCommand e) {
+        error_msg << "Internal Server Error: PMGD Exception at QH"
+                  << std::endl;
+        exception_handler();
+    } catch (ExceptionCommand& e) {
         print_exception(e);
-        std::cerr << "FATAL ERROR: Command Exception at QH" << std::endl;
-        exit(0);
-    } catch (Json::Exception const&) {
-        // Should not happen
+        error_msg << "Internal Server Error: Command Exception at QH"
+                  << std::endl;
+        exception_handler();
+    } catch (Json::Exception const& e) {
         // In case of error on the last fastWriter
-        std::cerr << "FATAL: Json Exception!" << std::endl;
-        Json::Value error;
-        error["info"] = "Internal Server Error: Json Exception";
-        error["status"] = RSCommand::Error;
-        proto_res.set_json(fastWriter.write(error));
-    } catch (const std::invalid_argument& ex) {
-        std::cerr << "Invalid argument: " << ex.what() << '\n';
-        exit(0);
+        error_msg << "Internal Server Error: Json Exception: "
+                  << e.what() << std::endl;
+        exception_handler();
+    } catch (google::protobuf::FatalException& e) {
+        // Need to be carefull with this, may lead to memory leak.
+        // Protoubuf is not exception safe.
+        error_msg << "Internal Server Error: Protobuf Exception: "
+                  << e.what() << std::endl;
+        exception_handler();
+    } catch (const std::invalid_argument& e) {
+        error_msg << "FATAL: Invalid argument: " << e.what() << std::endl;
+        exception_handler();
+    } catch (const std::exception& e) {
+        error_msg << "std Exception: " << e.what() << std::endl;
+        exception_handler();
+    } catch (...) {
+        error_msg << "Unknown Exception" << std::endl;
+        exception_handler();
     }
 }

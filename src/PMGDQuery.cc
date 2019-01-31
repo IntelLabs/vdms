@@ -46,7 +46,8 @@ using namespace VDMS;
 #define REFERENCE_RANGE_START   20000
 
 PMGDQuery::PMGDQuery(PMGDQueryHandler& pmgd_qh) :
-    _pmgd_qh(pmgd_qh), _current_ref(REFERENCE_RANGE_START)
+    _pmgd_qh(pmgd_qh), _current_ref(REFERENCE_RANGE_START),
+    _readonly(true)
 {
     _current_group_id = 0;
     //this command to start a new transaction
@@ -77,7 +78,7 @@ Json::Value& PMGDQuery::run()
 
     // execute the queries using the PMGDQueryHandler object
     std::vector<std::vector<PMGDCmdResponse* >> _pmgd_responses;
-    _pmgd_responses = _pmgd_qh.process_queries(_cmds, _current_group_id + 1);
+    _pmgd_responses = _pmgd_qh.process_queries(_cmds, _current_group_id + 1, _readonly);
 
     if (_pmgd_responses.size() != _current_group_id + 1) {
         if (_pmgd_responses.size() == 1 && _pmgd_responses[0].size() == 1) {
@@ -86,7 +87,7 @@ Json::Value& PMGDQuery::run()
             return _json_responses;
         }
         _json_responses["status"] = -1;
-        _json_responses["info"] = "PMGD Transacion Error";
+        _json_responses["info"] = "PMGDQuery: PMGD Transacion Error";
         return _json_responses;
     }
 
@@ -115,6 +116,7 @@ void PMGDQuery::add_link(const Json::Value& link, PMGDQueryNode* qn)
     PMGD::protobufs::LinkInfo *qnl = qn->mutable_link();
 
     qnl->set_start_identifier(link["ref"].asInt());
+    qnl->set_dir(PMGD::protobufs::LinkInfo::Any);
 
     if (link.isMember("direction")) {
         const std::string& direction = link["direction"].asString();
@@ -123,12 +125,12 @@ void PMGDQuery::add_link(const Json::Value& link, PMGDQueryNode* qn)
             qnl->set_dir(PMGD::protobufs::LinkInfo::Outgoing);
         else if ( direction == "in")
             qnl->set_dir(PMGD::protobufs::LinkInfo::Incoming);
-        else
-            qnl->set_dir(PMGD::protobufs::LinkInfo::Any);
     }
 
     if (link.isMember("unique"))
         qnl->set_nb_unique(link["unique"].asBool());
+    else
+        qnl->set_nb_unique(false);
 
     if (link.isMember("class"))
          qnl->set_e_tag(link["class"].asString());
@@ -257,7 +259,7 @@ Json::Value PMGDQuery::parse_response(PMGDCmdResponse* response)
                 Json::Value list(Json::arrayValue);
                 auto& mymap = response->prop_values();
 
-                assert(mymap.size() > 0);
+                // assert(mymap.size() > 0);
 
                 uint64_t count = response->op_int_value();
 
@@ -274,7 +276,10 @@ Json::Value PMGDQuery::parse_response(PMGDCmdResponse* response)
 
                 // if count <= 0, we return an empty list (json array)
                 ret["returned"] = (Json::UInt64) count;
-                ret["entities"] = list;
+                if (response->node_edge())
+                    ret["entities"] = list;
+                else
+                    ret["connections"] = list;
             }
             else {
                 return construct_error_response(response);
@@ -322,7 +327,7 @@ Json::Value PMGDQuery::parse_response(PMGDCmdResponse* response)
 }
 
 void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
-                                        PMGDQueryNode* qn)
+                                        PMGDQueryConstraints* qn)
 {
     for (auto it = constraints.begin(); it != constraints.end(); ++it) {
 
@@ -333,16 +338,49 @@ void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
         assert(predicate.isArray());
         assert(predicate.size() == 2 || predicate.size() == 4);
 
-        PMGDPropPred* pp = qn->add_predicates();
-        pp->set_key(key);  //assign the property predicate key
+        if (predicate.size() == 2 && predicate[1].isArray()) {
 
-        PMGDProp* p1 = pp->mutable_v1();
-        set_property(p1, key, predicate[1]);
+            // This will make the entire query OR,
+            // not sure if it is right.
+            qn->set_p_op(PMGD::protobufs::Or);
 
-        PMGDPropPred::Op op;
-        const std::string& pred1 = predicate[0].asString();
+            const std::string& pred1 = predicate[0].asString();
 
-        if (predicate.size() == 2) {
+            PMGDPropPred::Op op;
+
+            if (pred1 == ">")
+                op = PMGDPropPred::Gt;
+            else if (pred1 == ">=")
+                op = PMGDPropPred::Ge;
+            else if (pred1 == "<")
+                op = PMGDPropPred::Lt;
+            else if (pred1 == "<=")
+                op = PMGDPropPred::Le;
+            else if (pred1 == "==")
+                op = PMGDPropPred::Eq;
+            else if (pred1 == "!=")
+                op = PMGDPropPred::Ne;
+
+            for (auto& value : predicate[1]) {
+
+                PMGDPropPred* pp = qn->add_predicates();
+                pp->set_key(key);  //assign the property predicate key
+                pp->set_op(op);
+                PMGDProp* p1 = pp->mutable_v1();
+                set_property(p1, key, value);
+            }
+
+        }
+        else if (predicate.size() == 2) {
+
+            PMGDPropPred* pp = qn->add_predicates();
+            pp->set_key(key);  //assign the property predicate key
+
+            PMGDProp* p1 = pp->mutable_v1();
+            set_property(p1, key, predicate[1]);
+
+            const std::string& pred1 = predicate[0].asString();
+
             if (pred1 == ">")
                 pp->set_op(PMGDPropPred::Gt);
             else if (pred1 == ">=")
@@ -357,6 +395,15 @@ void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
                 pp->set_op(PMGDPropPred::Ne);
         }
         else {
+
+            PMGDPropPred* pp = qn->add_predicates();
+            pp->set_key(key);  //assign the property predicate key
+
+            PMGDProp* p1 = pp->mutable_v1();
+            set_property(p1, key, predicate[1]);
+
+            const std::string& pred1 = predicate[0].asString();
+
             PMGDProp* p2 = pp->mutable_v2();
             set_property(p2, key, predicate[3]);
 
@@ -375,7 +422,7 @@ void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
     }
 }
 
-void PMGDQuery::get_response_type(const Json::Value& res, PMGDQueryNode *qn)
+void PMGDQuery::get_response_type(const Json::Value& res, PMGDQueryResultInfo *qn)
 {
     for (auto it = res.begin(); it != res.end(); it++) {
         std::string *r_key= qn->add_response_keys();
@@ -384,7 +431,7 @@ void PMGDQuery::get_response_type(const Json::Value& res, PMGDQueryNode *qn)
 }
 
 void PMGDQuery::parse_query_results(const Json::Value& results,
-                                    PMGDQueryNode *qn)
+                                    PMGDQueryResultInfo *qn)
 {
     for (auto it = results.begin(); it != results.end(); it++) {
         const std::string& key = it.key().asString();
@@ -403,7 +450,22 @@ void PMGDQuery::parse_query_results(const Json::Value& results,
         else if (key == "sort") {
             qn->set_sort(true);
             std::string *sort_key= qn->mutable_sort_key();
-            *sort_key = (*it).asString();
+
+            if ((*it).isObject()) {
+                *sort_key = (*it)["key"].asString();
+                if ((*it).isMember("order")) {
+                    qn->set_descending((*it)["order"] == "descending" ?
+                                        true : false);
+                }
+                else {
+                    // Default is False (i.e. result in ascending order)
+                    qn->set_descending(false);
+                }
+            }
+            else {
+                *sort_key = (*it).asString();
+                qn->set_descending(false);
+            }
         }
         else if (key == "limit") {
             int limit = (*it).asUInt();
@@ -421,6 +483,8 @@ void PMGDQuery::AddNode(int ref,
                         const Json::Value& props,
                         const Json::Value& constraints)
 {
+    _readonly = false;
+
     PMGDCmd* cmdadd = new PMGDCmd();
     cmdadd->set_cmd_id(PMGDCmd::AddNode);
     cmdadd->set_cmd_grp_id(_current_group_id);
@@ -438,14 +502,56 @@ void PMGDQuery::AddNode(int ref,
     if(!constraints.isNull()) {
         PMGDQueryNode *qn = an->mutable_query_node();
         qn->set_identifier(ref); // Use the same ref to cache if node exists.
-        qn->set_tag(tag);
-        qn->set_unique(true);
-        qn->set_p_op(PMGD::protobufs::And);
-        qn->set_r_type(PMGD::protobufs::NodeID); // Since PMGD returns ids.
-        parse_query_constraints(constraints, qn);
+        PMGDQueryConstraints *qc = qn->mutable_constraints();
+        qc->set_tag(tag);
+        qc->set_unique(true);
+        qc->set_p_op(PMGD::protobufs::And);
+        parse_query_constraints(constraints, qc);
+        PMGDQueryResultInfo *qr = qn->mutable_results();
+        qr->set_r_type(PMGD::protobufs::NodeID); // Since PMGD returns ids.
     }
 
     _cmds.push_back(cmdadd);
+}
+
+void PMGDQuery::UpdateNode(int ref,
+                        const std::string& tag,
+                        const Json::Value& props,
+                        const Json::Value& remove_props,
+                        const Json::Value& constraints,
+                        bool unique)
+{
+    _readonly = false;
+
+    PMGDCmd* cmdupdate = new PMGDCmd();
+    cmdupdate->set_cmd_id(PMGDCmd::UpdateNode);
+    cmdupdate->set_cmd_grp_id(_current_group_id);
+    PMGD::protobufs::UpdateNode *un = cmdupdate->mutable_update_node();
+    un->set_identifier(ref);
+
+    for (auto it = props.begin(); it != props.end(); ++it) {
+        PMGDProp* p = un->add_properties();
+        set_property(p, it.key().asString(), *it);
+    }
+
+    for (auto it = remove_props.begin(); it != remove_props.end(); it++) {
+        std::string *r_key= un->add_remove_props();
+        *r_key = (*it).asString();
+    }
+
+    if(!constraints.isNull()) {
+        PMGDQueryNode *qn = un->mutable_query_node();
+        qn->set_identifier(ref < 0 ? get_available_reference() : ref);
+        PMGDQueryConstraints *qc = qn->mutable_constraints();
+        qc->set_tag(tag);
+        qc->set_unique(unique);
+        qc->set_p_op(PMGD::protobufs::And);
+        parse_query_constraints(constraints, qc);
+        PMGDQueryResultInfo *qr = qn->mutable_results();
+        qr->set_r_type(PMGD::protobufs::NodeID); // Since PMGD returns ids.
+    }
+
+    _cmds.push_back(cmdupdate);
 }
 
 void PMGDQuery::AddEdge(int ident,
@@ -453,6 +559,8 @@ void PMGDQuery::AddEdge(int ident,
                         const std::string& tag,
                         const Json::Value& props)
 {
+    _readonly = false;
+
     PMGDCmd* cmdedge = new PMGDCmd();
     cmdedge->set_cmd_grp_id(_current_group_id);
     cmdedge->set_cmd_id(PMGDCmd::AddEdge);
@@ -472,6 +580,48 @@ void PMGDQuery::AddEdge(int ident,
     _cmds.push_back(cmdedge);
 }
 
+void PMGDQuery::UpdateEdge(int ref, int src_ref, int dest_ref,
+                        const std::string& tag,
+                        const Json::Value& props,
+                        const Json::Value& remove_props,
+                        const Json::Value& constraints,
+                        bool unique)
+{
+    _readonly = false;
+
+    PMGDCmd* cmdupdate = new PMGDCmd();
+    cmdupdate->set_cmd_id(PMGDCmd::UpdateEdge);
+    cmdupdate->set_cmd_grp_id(_current_group_id);
+    PMGD::protobufs::UpdateEdge *ue = cmdupdate->mutable_update_edge();
+    ue->set_identifier(ref);
+
+    for (auto it = props.begin(); it != props.end(); ++it) {
+        PMGDProp* p = ue->add_properties();
+        set_property(p, it.key().asString(), *it);
+    }
+
+    for (auto it = remove_props.begin(); it != remove_props.end(); it++) {
+        std::string *r_key= ue->add_remove_props();
+        *r_key = (*it).asString();
+    }
+
+    if(!constraints.isNull()) {
+        PMGDQueryEdge *qe = ue->mutable_query_edge();
+        qe->set_identifier(ref < 0 ? get_available_reference() : ref);
+        qe->set_src_node_id(src_ref);
+        qe->set_dest_node_id(dest_ref);
+        PMGDQueryConstraints *qc = qe->mutable_constraints();
+        qc->set_tag(tag);
+        qc->set_unique(unique);
+        qc->set_p_op(PMGD::protobufs::And);
+        parse_query_constraints(constraints, qc);
+        PMGDQueryResultInfo *qr = qe->mutable_results();
+        qr->set_r_type(PMGD::protobufs::EdgeID); // Since PMGD returns ids.
+    }
+
+    _cmds.push_back(cmdupdate);
+}
+
 void PMGDQuery::QueryNode(int ref,
                           const std::string& tag,
                           const Json::Value& link,
@@ -486,19 +636,55 @@ void PMGDQuery::QueryNode(int ref,
     PMGDQueryNode *qn = cmdquery->mutable_query_node();
 
     qn->set_identifier(ref);
-    qn->set_tag(tag);
-    qn->set_unique(unique);
 
-    if (!link.isNull())
+    PMGDQueryConstraints *qc = qn->mutable_constraints();
+    qc->set_tag(tag);
+    qc->set_unique(unique);
+
+    if (!link.isNull()) {
         add_link(link, qn);
+    }
 
     // TODO: We always assume AND, we need to change that
-    qn->set_p_op(PMGD::protobufs::And);
+    qc->set_p_op(PMGD::protobufs::And);
     if (!constraints.isNull())
-        parse_query_constraints(constraints, qn);
+        parse_query_constraints(constraints, qc);
 
+    PMGDQueryResultInfo *qr = qn->mutable_results();
     if (!results.isNull())
-        parse_query_results(results, qn);
+        parse_query_results(results, qr);
+
+    _cmds.push_back(cmdquery);
+}
+
+void PMGDQuery::QueryEdge(int ref, int src_ref, int dest_ref,
+                          const std::string& tag,
+                          const Json::Value& constraints,
+                          const Json::Value& results,
+                          bool unique)
+{
+    PMGDCmd* cmdquery = new PMGDCmd();
+    cmdquery->set_cmd_id(PMGDCmd::QueryEdge);
+    cmdquery->set_cmd_grp_id(_current_group_id);
+
+    PMGDQueryEdge *qn = cmdquery->mutable_query_edge();
+
+    qn->set_identifier(ref);
+    qn->set_src_node_id(src_ref);
+    qn->set_dest_node_id(dest_ref);
+
+    PMGDQueryConstraints *qc = qn->mutable_constraints();
+    qc->set_tag(tag);
+    qc->set_unique(unique);
+
+    // TODO: We always assume AND, we need to change that
+    qc->set_p_op(PMGD::protobufs::And);
+    if (!constraints.isNull())
+        parse_query_constraints(constraints, qc);
+
+    PMGDQueryResultInfo *qr = qn->mutable_results();
+    if (!results.isNull())
+        parse_query_results(results, qr);
 
     _cmds.push_back(cmdquery);
 }
