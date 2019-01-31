@@ -86,9 +86,9 @@ RUN cd / && git clone https://github.com/tristanpenman/valijson.git && \
     cd valijson && cp -r include/* /usr/local/include/
 
 # VDMS install
-RUN git clone https://github.com/intellabs/vdms/ && \
-    cd vdms && git checkout develop && \
-    mkdir db && scons -j16 INTEL_PATH=/
+RUN git clone https://github.com/intellabs/vdms/archive/v2.0.0.tar.gz && \
+    tar xf v2.0.0.tar.gz && mv vdms-2.0.0 vdms && \
+    cd vdms && scons -j16 INTEL_PATH=/
 
 RUN rm -rf /*.tar.gz
 RUN rm -rf /var/lib/apt/lists/* /root/.cache
