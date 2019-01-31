@@ -74,21 +74,22 @@ RUN rm -rf faiss-1.4*
 
 # PMGD install
 RUN cd / && wget https://github.com/intellabs/pmgd/archive/v2.0.0.tar.gz && \
-    tar xf v2.0.0.tar.gz && mv pmgd-2.0.0 pmgd && cd pmgd && \
-    make PMOPT=MSYNC
+    tar xf v2.0.0.tar.gz && rm v2.0.0.tar.gz && mv pmgd-2.0.0 pmgd && \
+    cd pmgd && make PMOPT=MSYNC
 
 # VCL install
 RUN cd / && wget https://github.com/intellabs/vcl/archive/v1.0.0.tar.gz && \
-    tar xf v1.0.0.tar.gz && mv vcl-1.0.0 vcl && cd vcl && scons -j16
+    tar xf v1.0.0.tar.gz && rm v1.0.0.tar.gz && mv vcl-1.0.0 vcl && \
+    cd vcl && scons -j16
 
 # Valijson
 RUN cd / && git clone https://github.com/tristanpenman/valijson.git && \
     cd valijson && cp -r include/* /usr/local/include/
 
 # VDMS install
-RUN git clone https://github.com/intellabs/vdms/ && \
-    cd vdms && git checkout develop && \
-    mkdir db && scons -j16 INTEL_PATH=/
+RUN wget https://github.com/intellabs/vdms/archive/v2.0.0.tar.gz && \
+    tar xf v2.0.0.tar.gz && rm v2.0.0.tar.gz && mv vdms-2.0.0 vdms && \
+    cd vdms && scons -j16 INTEL_PATH=/
 
 RUN rm -rf /*.tar.gz
 RUN rm -rf /var/lib/apt/lists/* /root/.cache
