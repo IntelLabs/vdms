@@ -102,6 +102,16 @@
       "enum": ["png", "jpg"]
     },
 
+    "metricFormatString": {
+      "type": "string",
+      "enum": ["L2", "IP"]
+    },
+
+    "engineFormatString": {
+      "type": "string",
+      "enum": ["FaissFlat", "FaissIVFFlat", "TileDBDense", "TileDBSparse"]
+    },
+
     "vidCodecString": {
       "type": "string",
       "enum": ["xvid", "h264", "h263"]
@@ -534,6 +544,8 @@
       "properties": {
         "name":       { "type": "string" },
         "dimensions": { "$ref": "#/definitions/refInt" },
+        "metric":     { "$ref": "#/definitions/metricFormatString" },
+        "engine":     { "$ref": "#/definitions/engineFormatString" },
         "link":       { "$ref": "#/definitions/blockLink" },
         "properties": { "type": "object" }
       },
