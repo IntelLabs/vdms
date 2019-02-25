@@ -1,22 +1,37 @@
-from threading import Thread
-import sys
-import os
-import urllib
-import time
-import json
-import unittest
+#
+# The MIT License
+#
+# @copyright Copyright (c) 2017 Intel Corporation
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction,
+# including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+
+import TestCommand
 import numpy as np
-import vdms # Yeah, baby
 
-hostname = "localhost"
-port = 55557
-
-class TestDescriptors(unittest.TestCase):
+class TestDescriptors(TestCommand.TestCommand):
 
     def addSet(self, name, dim, metric, engine):
 
-        db = vdms.vdms()
-        db.connect(hostname, port)
+        db = self.create_connection()
 
         all_queries = []
 
@@ -37,8 +52,8 @@ class TestDescriptors(unittest.TestCase):
         self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
 
     def test_addSet(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         all_queries = []
 
@@ -72,8 +87,8 @@ class TestDescriptors(unittest.TestCase):
         self.addSet("4075-L2-TileDBDense", 4075, "L2", "TileDBDense")
 
     def test_addSetAndDescriptors(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         all_queries = []
 
@@ -116,8 +131,8 @@ class TestDescriptors(unittest.TestCase):
         self.assertEqual(response[0]["AddDescriptor"]["status"], 0)
 
     def test_addDescriptorsx1000(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         all_queries = []
 
@@ -163,8 +178,8 @@ class TestDescriptors(unittest.TestCase):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
 
     def test_addDescriptorsx1000FaissIVFFlat(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         all_queries = []
 
@@ -213,8 +228,8 @@ class TestDescriptors(unittest.TestCase):
 
 
     def test_addDescriptorsx1000TileDBSparse(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         all_queries = []
 
@@ -262,8 +277,8 @@ class TestDescriptors(unittest.TestCase):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
 
     def test_addDescriptorsx1000TileDBDense(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         all_queries = []
 
@@ -312,8 +327,8 @@ class TestDescriptors(unittest.TestCase):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
 
     def test_classifyDescriptor(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         all_queries = []
 

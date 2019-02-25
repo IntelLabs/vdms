@@ -24,20 +24,9 @@
 # THE SOFTWARE.
 #
 
-from threading import Thread
-import sys
-import os
-import urllib
-import time
-import json
-import unittest
-import numpy as np
-import vdms
+import TestCommand
 
-hostname = "localhost"
-port = 55557
-
-class TestImages(unittest.TestCase):
+class TestImages(TestCommand.TestCommand):
 
     #Methos to insert one image
     def insertImage(self, db, props=None, collections=None, format="png"):
@@ -72,8 +61,8 @@ class TestImages(unittest.TestCase):
         self.assertEqual(response[0]["AddImage"]["status"], 0)
 
     def test_addImage(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         all_queries = []
         imgs_arr = []
@@ -112,8 +101,8 @@ class TestImages(unittest.TestCase):
             self.assertEqual(response[i]["AddImage"]["status"], 0)
 
     def test_findEntityImage(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "fent_brain_"
 
@@ -149,8 +138,8 @@ class TestImages(unittest.TestCase):
         self.assertEqual(response[1]["FindEntity"]["entities"][0]["name"], prefix_name + "1")
 
     def test_findImage(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "fimg_brain_"
 
@@ -181,8 +170,8 @@ class TestImages(unittest.TestCase):
         self.assertEqual(len(img_array), 2)
 
     def test_findImageResults(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "fimg_results_"
 
@@ -218,8 +207,8 @@ class TestImages(unittest.TestCase):
         self.assertEqual(len(img_array), 2)
 
     def test_addImageWithLink(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         all_queries = []
 
@@ -272,8 +261,8 @@ class TestImages(unittest.TestCase):
         self.assertEqual(response[1]["AddImage"]["status"], 0)
 
     def test_findImage_multiple_results(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "fimg_brain_multiple"
 
@@ -305,8 +294,8 @@ class TestImages(unittest.TestCase):
         self.assertEqual(response[0]["FindImage"]["returned"], number_of_inserts)
 
     def test_findImageNoBlob(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "fimg_no_blob_"
 
@@ -341,8 +330,8 @@ class TestImages(unittest.TestCase):
         self.assertEqual(len(img_array), 0)
 
     def test_updateImage(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "fimg_update_"
 
@@ -374,8 +363,8 @@ class TestImages(unittest.TestCase):
         self.assertEqual(len(img_array), 0)
 
     def ztest_zFindImageWithCollection(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "fimg_brain_collection_"
         number_of_inserts = 4

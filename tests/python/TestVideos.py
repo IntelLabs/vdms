@@ -24,20 +24,9 @@
 # THE SOFTWARE.
 #
 
-from threading import Thread
-import sys
-import os
-import urllib
-import time
-import json
-import unittest
-import numpy as np
-import vdms
+import TestCommand
 
-hostname = "localhost"
-port = 55557
-
-class TestVideos(unittest.TestCase):
+class TestVideos(TestCommand.TestCommand):
 
     #Methos to insert one image
     def insertVideo(self, db, props=None):
@@ -70,8 +59,8 @@ class TestVideos(unittest.TestCase):
         self.assertEqual(response[0]["AddVideo"]["status"], 0)
 
     def test_addVideo(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         all_queries = []
         video_arr = []
@@ -108,8 +97,8 @@ class TestVideos(unittest.TestCase):
             self.assertEqual(response[i]["AddVideo"]["status"], 0)
 
     def test_findVideo(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "video_1_"
 
@@ -142,8 +131,8 @@ class TestVideos(unittest.TestCase):
             self.assertEqual(response[i]["FindVideo"]["status"], 0)
 
     def test_findVideoResults(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "resvideo_1_"
 
@@ -180,8 +169,8 @@ class TestVideos(unittest.TestCase):
             self.assertEqual(response[i]["FindVideo"]["status"], 0)
 
     def test_addVideoWithLink(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         all_queries = []
 
@@ -233,8 +222,8 @@ class TestVideos(unittest.TestCase):
         self.assertEqual(response[1]["AddVideo"]["status"], 0)
 
     def test_findVid_multiple_results(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "vid_multiple"
 
@@ -266,8 +255,8 @@ class TestVideos(unittest.TestCase):
         self.assertEqual(response[0]["FindVideo"]["returned"], number_of_inserts)
 
     def test_findVideoNoBlob(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "fvid_no_blob_"
 
@@ -302,8 +291,8 @@ class TestVideos(unittest.TestCase):
         self.assertEqual(len(img_array), 0)
 
     def test_updateVideo(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "fvid_update_"
 
