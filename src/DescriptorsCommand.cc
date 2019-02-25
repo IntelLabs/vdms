@@ -264,11 +264,8 @@ int AddDescriptor::construct_protobuf(
 
     Json::Value props = get_value<Json::Value>(cmd, "properties");
 
-    std::string label;
-    if (cmd.isMember("label")) {
-        label = cmd["label"].asString();
-        props[VDMS_DESC_LABEL_PROP] = label;
-    }
+    std::string label = get_value<std::string>(cmd, "label", "None");
+    props[VDMS_DESC_LABEL_PROP] = label;
 
     int dimensions;
     std::string set_path = get_set_path(query, set_name, dimensions);
