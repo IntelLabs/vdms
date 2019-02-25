@@ -29,7 +29,7 @@ import numpy as np
 
 class TestFindDescriptors(TestCommand.TestCommand):
 
-    def create_set_and_insert(self, set_name, dims, total):
+    def create_set_and_insert(self, set_name, dims, total, labels=True):
 
         db = self.create_connection()
 
@@ -63,7 +63,9 @@ class TestFindDescriptors(TestCommand.TestCommand):
 
             descriptor = {}
             descriptor["set"] = set_name
-            descriptor["label"] = "class" + str(class_counter)
+
+            if labels:
+                descriptor["label"] = "class" + str(class_counter)
 
             props = {}
             props["myid"] = i + 200
@@ -241,6 +243,50 @@ class TestFindDescriptors(TestCommand.TestCommand):
                                     ["entities"][1]["_distance"], 400)
         self.assertEqual(response[0]["FindDescriptor"]
                                     ["entities"][2]["_distance"], 400)
+
+    def test_findDescByBlobNoLabels(self):
+
+        # Add Set
+        set_name = "findwith_blob_no_labels"
+        dims = 128
+        total = 100
+        self.create_set_and_insert(set_name, dims, total, labels=False)
+
+        db = self.create_connection()
+
+        kn = 3
+
+        all_queries = []
+
+        finddescriptor = {}
+        finddescriptor["set"] = set_name
+        finddescriptor["_ref"] = 1
+
+        results = {}
+        results["blob"] = True
+        finddescriptor["results"] = results
+        finddescriptor["k_neighbors"] = kn
+
+        query = {}
+        query["FindDescriptor"] = finddescriptor
+
+        all_queries = []
+        all_queries.append(query)
+
+        descriptor_blob = []
+        x = np.ones(dims)
+        x[2] = 2.34 + 30*20
+        x = x.astype('float32')
+        descriptor_blob.append(x.tobytes())
+
+        response, blob_array = db.query(all_queries, [descriptor_blob])
+
+        self.assertEqual(len(blob_array), kn)
+        self.assertEqual(descriptor_blob[0], blob_array[0])
+
+        # Check success
+        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
 
     def test_findDescByBlobNoResults(self):
 
