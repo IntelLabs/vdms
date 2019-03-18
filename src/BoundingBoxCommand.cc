@@ -34,6 +34,7 @@
 #include "BoundingBoxCommand.h"
 #include "VDMSConfig.h"
 #include "defines.h"
+#include "vcl/Image.h"
 
 using namespace VDMS;
 
