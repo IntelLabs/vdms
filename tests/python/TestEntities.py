@@ -181,6 +181,53 @@ class TestEntities(TestCommand.TestCommand):
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
         self.assertEqual(response[1]["AddEntity"]["status"], 0)
 
+    def test_addfindEntityWrongConstraints(self):
+        db = self.create_connection()
+
+        all_queries = []
+
+        props = {
+                "name": "Luis",
+                "lastname": "Ferro",
+                "age": 25
+        }
+        addEntity = {}
+        addEntity["_ref"] = 32
+        addEntity["properties"] = props
+        addEntity["class"] = "SomePeople"
+
+        query = {}
+        query["AddEntity"] = addEntity
+
+        all_queries.append(query)
+
+        response, res_arr = db.query(all_queries)
+
+        self.assertEqual(response[0]["AddEntity"]["status"], 0)
+
+        all_queries = []
+
+        # this format is invalid, as each constraint must be an array
+        constraints = {
+            "name": "Luis"
+        }
+
+        entity = {}
+        entity["constraints"] = constraints
+        entity["class"] = "SomePeople"
+        entity["results"] = {'count': ''}
+
+        query = {}
+        query["FindEntity"] = entity
+
+        all_queries.append(query)
+
+        response, blob_arr = db.query(all_queries)
+
+        self.assertEqual(response[0]["status"], -1)
+        self.assertEqual(response[0]["info"],
+                            "Constraint for property 'name' must be an array")
+
     def test_FindWithSortKey(self):
 
         db = self.create_connection()
