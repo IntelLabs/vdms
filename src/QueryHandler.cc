@@ -193,6 +193,20 @@ bool QueryHandler::syntax_checker(const Json::Value& root, Json::Value& error)
         return false;
     }
 
+    for (auto& cmdTop : root) {
+        const std::string cmd_str = cmdTop.getMemberNames()[0];
+        auto& cmd = cmdTop[cmd_str];
+        if (cmd.isMember("constraints")) {
+            for (auto & member : cmd["constraints"].getMemberNames()) {
+                if (!cmd["constraints"][member].isArray()) {
+                    error["info"] = "Constraint for property '" +  member +
+                                    "' must be an array";
+                    return false;
+                }
+            }
+        }
+    }
+
     return true;
 }
 
