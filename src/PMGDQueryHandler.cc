@@ -497,7 +497,7 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     PMGD::NodeIterator ni = has_link ?
                        PMGD::NodeIterator(new MultiNeighborIteratorImpl(start_ni, search, dir, edge_tag))
                        : search.eval_nodes();
-    if (!bool(ni)) {
+    if (!bool(ni) && id >= 0) {
         set_response(response, PMGDCmdResponse::Empty,
                        "Null search iterator\n");
         if (has_link)
@@ -566,7 +566,6 @@ int PMGDQueryHandler::query_edge(const protobufs::QueryEdge &qe,
 {
     ReusableNodeIterator *start_ni = NULL;
     PMGD::Direction dir;
-    StringID edge_tag;
     const PMGDQueryConstraints &qc = qe.constraints();
     const PMGDQueryResultInfo &qr = qe.results();
     response->set_node_edge(false);
@@ -614,7 +613,7 @@ int PMGDQueryHandler::query_edge(const protobufs::QueryEdge &qe,
     }
 
     EdgeIterator ei = PMGD::EdgeIterator(new NodeEdgeIteratorImpl(search, src_ni, dest_ni));
-    if (!bool(ei)) {
+    if (!bool(ei) && id >= 0) {
         set_response(response, PMGDCmdResponse::Empty,
                        "Null search iterator\n");
         // Make sure the src and dest Node iterators are resettled.
@@ -777,6 +776,16 @@ void PMGDQueryHandler::build_results(Iterator &ni,
         avg = true;
     case protobufs::Sum:
     {
+        // Since the iterator can be null if no _ref is used, make sure
+        // it has elements before proceeding, else return.
+        if (!bool(ni)) {
+            if (avg)
+                response->set_op_float_value(0.0);
+            else
+                response->set_op_int_value(0);
+            break;
+        }
+
         // We currently only use the first property key even if multiple
         // are provided. And we can assume that the syntax checker makes
         // sure of getting one for sure.
