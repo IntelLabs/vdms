@@ -248,6 +248,10 @@ namespace VDMS {
               _pred_start(0), _check_dest(false),
               _edge_it(new PMGD::EdgeIterator(return_iterator()))
         {
+            // If the first criteria did not return any edges,
+            // there is no node checking on either side.
+            if (!bool(*_edge_it))
+                return;
             if (_dest_ni != NULL) {
                 for (; bool(*_dest_ni); _dest_ni->next())
                     _dest_nodes.insert(&(**_dest_ni));
