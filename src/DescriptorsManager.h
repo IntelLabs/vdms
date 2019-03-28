@@ -34,7 +34,7 @@
 #include <mutex>
 #include <queue>
 
-#include "VCL.h"
+#include "vcl/DescriptorSet.h"
 #include "tbb/concurrent_unordered_map.h"
 
 namespace VDMS {

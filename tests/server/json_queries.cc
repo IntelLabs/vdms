@@ -67,7 +67,7 @@ TEST(AddImage, simpleAdd)
     std::string addImg;
     addImg += "[" + singleAddImage + "]";
 
-    VDMSConfig::init("config-tests.json");
+    VDMSConfig::init("server/config-tests.json");
     PMGDQueryHandler::init();
     QueryHandler::init();
 
@@ -111,7 +111,7 @@ TEST(UpdateEntity, simpleAddUpdate)
     std::ifstream ifile;
     int fsize;
     char * inBuf;
-    ifile.open("AddFindUpdate.json", std::ifstream::in);
+    ifile.open("server/AddFindUpdate.json", std::ifstream::in);
     ifile.seekg(0, std::ios::end);
     fsize = (int)ifile.tellg();
     ifile.seekg(0, std::ios::beg);
@@ -125,7 +125,7 @@ TEST(UpdateEntity, simpleAddUpdate)
     Json::Value root;
     Json::Value parsed;
 
-    VDMSConfig::init("config-update-tests.json");
+    VDMSConfig::init("server/config-update-tests.json");
     PMGDQueryHandler::init();
     QueryHandler::init();
 
@@ -172,7 +172,7 @@ TEST(AddImage, simpleAddx10)
     }
     string_query += "]";
 
-    VDMSConfig::init("config-add10-tests.json");
+    VDMSConfig::init("server/config-add10-tests.json");
     PMGDQueryHandler::init();
     QueryHandler::init();
 
@@ -219,7 +219,7 @@ TEST(QueryHandler, AddAndFind)
     std::ifstream ifile;
     int fsize;
     char * inBuf;
-    ifile.open("AddAndFind_query.json", std::ifstream::in);
+    ifile.open("server/AddAndFind_query.json", std::ifstream::in);
     ifile.seekg(0, std::ios::end);
     fsize = (int)ifile.tellg();
     ifile.seekg(0, std::ios::beg);
@@ -281,7 +281,7 @@ TEST(QueryHandler, AddAndFind)
         }
     }
 
-    VDMSConfig::init("config-addfind-tests.json");
+    VDMSConfig::init("server/config-addfind-tests.json");
     PMGDQueryHandler::init();
     QueryHandler::init();
 

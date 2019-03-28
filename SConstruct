@@ -10,21 +10,27 @@ AddOption('--timing', action='append_const', dest='cflags',
 def buildServer(env):
 
   env.Append(
-    CPPPATH= ['src', 'utils/include',
+    CPPPATH= ['src', 'include', 'src/vcl', 'utils/include',
               '/usr/include/jsoncpp/',
               os.path.join(env['INTEL_PATH'], 'pmgd/include'),
               os.path.join(env['INTEL_PATH'], 'pmgd/util'),
-              os.path.join(env['INTEL_PATH'], 'vcl/include'),
-              os.path.join(env['INTEL_PATH'], 'vcl/src'),
              ],
     LIBS = [ 'pmgd', 'pmgd-util',
              'jsoncpp', 'protobuf', 'tbb',
-             'vdms-utils', 'vcl', 'pthread',
+             'vdms-utils', 'pthread',
+             'tiledb',
+             'opencv_core',
+             'opencv_imgproc',
+             'opencv_imgcodecs',
+             'opencv_videoio',
+             'opencv_highgui',
+             'gomp',
+             'faiss',
            ],
+
     LIBPATH = ['/usr/local/lib/', 'utils/',
                os.path.join(env['INTEL_PATH'], 'utils/'),
-               os.path.join(env['INTEL_PATH'], 'vcl/'),
-               os.path.join(env['INTEL_PATH'], 'pmgd/lib/')
+               os.path.join(env['INTEL_PATH'], 'pmgd/lib/'),
                ]
   )
 
@@ -46,6 +52,20 @@ def buildServer(env):
                   'src/DescriptorsCommand.cc',
                   'src/BoundingBoxCommand.cc',
                   'src/VideoCommand.cc',
+                  'src/vcl/utils.cc',
+                  'src/vcl/Exception.cc',
+                  'src/vcl/TDBObject.cc',
+                  'src/vcl/Image.cc',
+                  'src/vcl/ImageData.cc',
+                  'src/vcl/TDBImage.cc',
+                  'src/vcl/Video.cc',
+                  'src/vcl/VideoData.cc',
+                  'src/vcl/DescriptorSet.cc',
+                  'src/vcl/DescriptorSetData.cc',
+                  'src/vcl/FaissDescriptorSet.cc',
+                  'src/vcl/TDBDescriptorSet.cc',
+                  'src/vcl/TDBDenseDescriptorSet.cc',
+                  'src/vcl/TDBSparseDescriptorSet.cc',
                 ]
 
   env.Program('vdms', vdms_server_files)
@@ -59,7 +79,7 @@ else:
     intel_path = os.getcwd()
 
 # Enviroment use by all the builds
-env = Environment(CXXFLAGS="-std=c++11 -O3")
+env = Environment(CXXFLAGS="-std=c++11 -O3 -fopenmp")
 env.Append(INTEL_PATH= intel_path)
 env.MergeFlags(GetOption('cflags'))
 

@@ -33,7 +33,7 @@
 #include <string>
 #include <mutex>
 #include <vector>
-#include "VCL.h"
+#include "vcl/Image.h"
 
 #include "RSCommand.h"
 #include "ExceptionsCommand.h"

@@ -36,6 +36,8 @@
 #include "ExceptionsCommand.h"
 #include "defines.h"
 
+#include "vcl/utils.h"
+
 using namespace VDMS;
 
 DescriptorsCommand::DescriptorsCommand(const std::string& cmd_name) :
