@@ -751,9 +751,43 @@ Json::Value FindDescriptor::construct_responses(
 
         assert(json_responses.size() == 2);
 
+        const Json::Value& set_response = json_responses[0];
+        const Json::Value& set = set_response["entities"][0];
+
+        // These properties should always exist
+        assert(set.isMember(VDMS_DESC_SET_PATH_PROP));
+        assert(set.isMember(VDMS_DESC_SET_DIM_PROP));
+        std::string set_path = set[VDMS_DESC_SET_PATH_PROP].asString();
+        int dim = set[VDMS_DESC_SET_DIM_PROP].asInt();
+
         findDesc = json_responses[1];
 
         if (findDesc.isMember("entities")) {
+
+            if (get_value<bool>(results, "blob", false)) {
+
+                VCL::DescriptorSet* set =
+                                _dm->get_descriptors_handler(set_path);
+
+                for (auto& ent : findDesc["entities"]) {
+                    long id = ent[VDMS_DESC_ID_PROP].asInt64();
+
+                    try {
+                        std::string* desc_blob = query_res.add_blobs();
+                        desc_blob->resize(sizeof(float) * dim);
+
+                        set->get_descriptors(&id, 1,
+                                             (float*)(*desc_blob).data());
+
+                    } catch (VCL::Exception e) {
+                        print_exception(e);
+                        findDesc["status"] = RSCommand::Error;
+                        findDesc["info"]   = "VCL Exception";
+                        return error(findDesc);
+                    }
+                }
+            }
+
             convert_properties(findDesc["entities"], list);
         }
 
