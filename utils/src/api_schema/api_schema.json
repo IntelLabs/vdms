@@ -581,6 +581,7 @@
         "_ref":        { "$ref": "#/definitions/refInt" },
         "k_neighbors": { "$ref": "#/definitions/positiveInt" },
         "results":     { "$ref": "#/definitions/blockResults" },
+        "link":        { "$ref": "#/definitions/blockLink" },
         "constraints": { "type": "object" },
         "properties":  { "type": "object" }
       },
