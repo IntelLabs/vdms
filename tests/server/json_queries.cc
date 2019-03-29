@@ -366,3 +366,57 @@ TEST(QueryHandler, AddAndFind)
     VDMSConfig::destroy();
     PMGDQueryHandler::destroy();
 }
+
+TEST(QueryHandler, EmptyResultCheck)
+{
+    Json::Reader reader;
+    Json::StyledWriter writer;
+
+    std::ifstream ifile;
+    int fsize;
+    char * inBuf;
+    ifile.open("server/EmptyResultChecks.json", std::ifstream::in);
+    ifile.seekg(0, std::ios::end);
+    fsize = (int)ifile.tellg();
+    ifile.seekg(0, std::ios::beg);
+    inBuf = new char[fsize];
+    ifile.read(inBuf, fsize);
+    std::string json_query = std::string(inBuf);
+    ifile.close();
+    delete[] inBuf;
+
+    VDMSConfig::init("server/config-emptyresult-tests.json");
+    PMGDQueryHandler::init();
+    QueryHandler::init();
+
+    QueryHandler qh_base;
+    QueryHandlerTester query_handler(qh_base);
+
+    VDMS::protobufs::queryMessage proto_query;
+    proto_query.set_json(json_query);
+    VDMS::protobufs::queryMessage response;
+
+    query_handler.pq(proto_query, response );
+
+    Json::Value parsed;
+    reader.parse(response.json().c_str(), parsed);
+
+    for (int j = 0; j < parsed.size(); j++) {
+        const Json::Value& query = parsed[j];
+        ASSERT_EQ(query.getMemberNames().size(),1);
+        std::string cmd = query.getMemberNames()[0];
+
+        if (j == 6) { // Second last FindEntity
+            EXPECT_EQ(query["FindEntity"]["returned"].asInt(), 0);
+        }
+        if (j == 7) { // Last FindEntity
+            EXPECT_EQ(query["FindEntity"]["average"].asDouble(), 0);
+        }
+        if (j == 8) { // Last FindConnection
+            EXPECT_EQ(query["FindConnection"]["count"].asInt(), 0);
+        }
+    }
+
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}
