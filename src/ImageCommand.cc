@@ -235,84 +235,89 @@ Json::Value FindImage::construct_responses(
 
     Json::Value& findImage = responses[0];
 
-    assert(findImage.isMember("entities"));
-
     if (findImage["status"] != 0) {
         findImage["status"]  = RSCommand::Error;
         // Uses PMGD info error.
         return error(findImage);
     }
 
-    bool flag_empty = true;
+    Json::Value results = get_value<Json::Value>(cmd, "results");
 
-    for (auto& ent : findImage["entities"]) {
+    bool flag_empty = false;
 
-        if(!ent.isMember(VDMS_IM_PATH_PROP)){
-            continue;
-        }
-        std::string im_path = ent[VDMS_IM_PATH_PROP].asString();
-        ent.removeMember(VDMS_IM_PATH_PROP);
+    // Check if blob (image) must be returned
+    if (get_value<bool>(results, "blob", true)) {
 
-        if (ent.getMemberNames().size() > 0) {
-            flag_empty = false;
-        }
+        for (auto& ent : findImage["entities"]) {
 
-        try {
-            VCL::Image img(im_path);
+            assert(ent.isMember(VDMS_IM_PATH_PROP));
 
-            if (cmd.isMember("operations")) {
-                enqueue_operations(img, cmd["operations"]);
+            std::string im_path = ent[VDMS_IM_PATH_PROP].asString();
+            ent.removeMember(VDMS_IM_PATH_PROP);
+
+            if (ent.getMemberNames().size() == 0) {
+                flag_empty = true;
             }
 
-            // We will return the image in the format the user
-            // request, or on its format in disk, except for the case
-            // of .tdb, where we will encode as png.
-            VCL::Image::Format format = img.get_image_format() != VCL::Image::Format::TDB ?
-                                      img.get_image_format() : VCL::Image::Format::PNG;
+            try {
+                VCL::Image img(im_path);
 
-            if (cmd.isMember("format")) {
-                std::string requested_format =
-                            get_value<std::string>(cmd, "format");
-
-                if (requested_format == "png") {
-                    format = VCL::Image::Format::PNG;
+                if (cmd.isMember("operations")) {
+                    enqueue_operations(img, cmd["operations"]);
                 }
-                else if (requested_format == "jpg") {
-                    format = VCL::Image::Format::JPG;
+
+                // We will return the image in the format the user
+                // request, or on its format in disk, except for the case
+                // of .tdb, where we will encode as png.
+                VCL::Image::Format format =
+                            img.get_image_format() != VCL::Image::Format::TDB ?
+                            img.get_image_format() : VCL::Image::Format::PNG;
+
+                if (cmd.isMember("format")) {
+                    std::string requested_format =
+                                get_value<std::string>(cmd, "format");
+
+                    if (requested_format == "png") {
+                        format = VCL::Image::Format::PNG;
+                    }
+                    else if (requested_format == "jpg") {
+                        format = VCL::Image::Format::JPG;
+                    }
+                    else {
+                        Json::Value return_error;
+                        return_error["status"]  = RSCommand::Error;
+                        return_error["info"] = "Invalid Format for FindImage";
+                        return error(return_error);
+                    }
+                }
+
+                std::vector<unsigned char> img_enc;
+                img_enc = img.get_encoded_image(format);
+
+                if (!img_enc.empty()) {
+
+                    std::string* img_str = query_res.add_blobs();
+                    img_str->resize(img_enc.size());
+                    std::memcpy((void*)img_str->data(),
+                                (void*)img_enc.data(),
+                                img_enc.size());
                 }
                 else {
                     Json::Value return_error;
                     return_error["status"]  = RSCommand::Error;
-                    return_error["info"] = "Invalid Format for FindImage";
+                    return_error["info"] = "Image Data not found";
                     return error(return_error);
                 }
-            }
-
-            std::vector<unsigned char> img_enc;
-            img_enc = img.get_encoded_image(format);
-
-            if (!img_enc.empty()) {
-
-                std::string* img_str = query_res.add_blobs();
-                img_str->resize(img_enc.size());
-                std::memcpy((void*)img_str->data(),
-                            (void*)img_enc.data(),
-                            img_enc.size());
-            }
-            else {
+            } catch (VCL::Exception e) {
+                print_exception(e);
                 Json::Value return_error;
                 return_error["status"]  = RSCommand::Error;
-                return_error["info"] = "Image Data not found";
+                return_error["info"] = "VCL Exception";
                 return error(return_error);
             }
-        } catch (VCL::Exception e) {
-            print_exception(e);
-            Json::Value return_error;
-            return_error["status"]  = RSCommand::Error;
-            return_error["info"] = "VCL Exception";
-            return error(return_error);
         }
     }
+
 
     if (flag_empty) {
         findImage.removeMember("entities");
