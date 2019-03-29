@@ -329,6 +329,44 @@ class TestImages(TestCommand.TestCommand):
         self.assertEqual(response[1]["FindImage"]["status"], 0)
         self.assertEqual(len(img_array), 0)
 
+    def test_findImageRefNoBlobNoPropsResults(self):
+
+        db = self.create_connection()
+
+        prefix_name = "fimg_no_blob_no_res"
+
+        for i in range(0,2):
+            props = {}
+            props["name"] = prefix_name + str(i)
+            props["id"] = i
+            self.insertImage(db, props=props)
+
+        all_queries = []
+
+        for i in range(0,1):
+            constraints = {}
+            constraints["name"] = ["==", prefix_name + str(i)]
+
+            results = {}
+            results["blob"] = False
+            # results["list"] = ["name", "id"]
+
+            img_params = {}
+            img_params["constraints"] = constraints
+            img_params["results"]     = results
+            img_params["_ref"]        = 22
+
+            query = {}
+            query["FindImage"] = img_params
+
+            all_queries.append(query)
+
+        response, img_array = db.query(all_queries)
+        # print(db.get_last_response_str())
+
+        self.assertEqual(response[0]["FindImage"]["status"], 0)
+        self.assertEqual(len(img_array), 0)
+
     def test_updateImage(self):
 
         db = self.create_connection()
