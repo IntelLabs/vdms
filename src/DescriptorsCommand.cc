@@ -898,7 +898,7 @@ Json::Value FindDescriptor::construct_responses(
                 // desc_data["cache_id"]  = Json::Int64((*ids)[i]);
             }
 
-            if (results.isMember("blob")) {
+            if (get_value<bool>(results, "blob", false)) {
 
                 desc_data["blob"] = true;
 
