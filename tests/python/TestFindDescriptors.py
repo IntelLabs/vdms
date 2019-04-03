@@ -193,6 +193,86 @@ class TestFindDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindDescriptor"]
                                     ["entities"][0]["myid"], 205)
 
+    def test_findDescByConst_blobTrue(self):
+
+        # Add Set
+        set_name = "features_128d_4_findDescriptors_id_blob"
+        dims = 128
+        total = 100
+        self.create_set_and_insert(set_name, dims, total)
+
+        db = self.create_connection()
+
+        all_queries = []
+
+        finddescriptor = {}
+        finddescriptor["set"] = set_name
+
+        constraints = {}
+        constraints["myid"] = ["==", 205]
+        finddescriptor["constraints"] = constraints
+
+        results = {}
+        results["list"] = ["myid", "_label", "_id"]
+        results["blob"] = True
+        finddescriptor["results"] = results
+
+        query = {}
+        query["FindDescriptor"] = finddescriptor
+
+        all_queries = []
+        all_queries.append(query)
+
+        response, fv_array = db.query(all_queries)
+
+        # Check success
+        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], 1)
+        self.assertEqual(response[0]["FindDescriptor"]
+                                    ["entities"][0]["myid"], 205)
+        self.assertEqual(len(fv_array), 1)
+        self.assertEqual(len(fv_array[0]), dims*4)
+
+    def test_findDescByConst_multiple_blobTrue(self):
+
+        # Add Set
+        set_name = "features_128d_4_findDescriptors_m_blob"
+        dims = 128
+        total = 100
+        self.create_set_and_insert(set_name, dims, total)
+
+        db = self.create_connection()
+
+        all_queries = []
+
+        finddescriptor = {}
+        finddescriptor["set"] = set_name
+
+        constraints = {}
+        constraints["myid"] = ["<=", 205]
+        finddescriptor["constraints"] = constraints
+
+        results = {}
+        results["list"] = ["myid"]
+        results["blob"] = True
+        finddescriptor["results"] = results
+
+        query = {}
+        query["FindDescriptor"] = finddescriptor
+
+        all_queries = []
+        all_queries.append(query)
+
+        response, fv_array = db.query(all_queries)
+
+        # Check success
+        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], 6)
+        self.assertEqual(response[0]["FindDescriptor"]
+                                    ["entities"][5]["myid"], 200)
+        self.assertEqual(len(fv_array), 6)
+        self.assertEqual(len(fv_array[0]), dims*4)
+
     def test_findDescByBlob(self):
 
         # Add Set
@@ -416,7 +496,6 @@ class TestFindDescriptors(TestCommand.TestCommand):
     #     descriptor_blob.append(x.tobytes())
 
     #     response, blob_array = db.query(all_queries, [descriptor_blob])
-    #     print(db.get_last_response_str())
 
     #     self.assertEqual(len(blob_array), kn)
     #     self.assertEqual(descriptor_blob[0], blob_array[0])
@@ -552,6 +631,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         all_queries.append(query)
 
         response, blob_array = db.query(all_queries, [descriptor_blob])
+
 
         self.assertEqual(len(blob_array), kn)
         # This checks that the received blobs is the same as the inserted.

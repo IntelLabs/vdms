@@ -154,7 +154,7 @@ namespace VDMS{
     {
 
     private:
-      void convert_properties(Json::Value& entities);
+      void convert_properties(Json::Value& entities, Json::Value& list);
 
     public:
         FindDescriptor();

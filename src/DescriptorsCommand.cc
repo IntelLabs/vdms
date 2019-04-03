@@ -540,11 +540,11 @@ int FindDescriptor::construct_protobuf(
 
         // Query for the Descriptors related to user-defined link
         // that match the user-defined constraints
-        // We will need to the the AND operation
+        // We will need to do the AND operation
         // on the construct_response.
 
         int desc_ref = get_value<int>(cmd, "_ref",
-                                  query.get_available_reference());
+                                      query.get_available_reference());
 
         query.QueryNode(
             desc_ref,
@@ -668,16 +668,31 @@ int FindDescriptor::construct_protobuf(
     return 0;
 }
 
-void FindDescriptor::convert_properties(Json::Value& entities)
+void FindDescriptor::convert_properties(Json::Value& entities,
+                                        Json::Value& list)
 {
+    bool flag_label = false;
+    bool flag_id    = false;
+
+    for (auto& prop : list) {
+        if (prop.asString() == "_label") {
+            flag_label = true;
+        }
+        if (prop.asString() == "_id") {
+            flag_id = true;
+        }
+    }
+
     for (auto& element : entities) {
 
         if (element.isMember(VDMS_DESC_LABEL_PROP)) {
-            element["_label"] = element[VDMS_DESC_LABEL_PROP];
+            if (flag_label)
+                element["_label"] = element[VDMS_DESC_LABEL_PROP];
             element.removeMember(VDMS_DESC_LABEL_PROP);
         }
         if (element.isMember(VDMS_DESC_ID_PROP)) {
-            element["_id"] = element[VDMS_DESC_ID_PROP];
+            if (flag_id)
+                element["_id"] = element[VDMS_DESC_ID_PROP];
             element.removeMember(VDMS_DESC_ID_PROP);
         }
     }
@@ -711,6 +726,7 @@ Json::Value FindDescriptor::construct_responses(
     }
 
     const Json::Value& results = cmd["results"];
+    Json::Value list = get_value<Json::Value>(results, "list");
 
     // Case (1)
     if (cmd.isMember("link")) {
@@ -718,6 +734,10 @@ Json::Value FindDescriptor::construct_responses(
         assert(json_responses.size() == 2);
 
         findDesc = json_responses[0];
+
+        if (findDesc.isMember("entities")) {
+            convert_properties(findDesc["entities"], list);
+        }
 
         if (findDesc["status"] != 0) {
             Json::Value return_error;
@@ -731,10 +751,44 @@ Json::Value FindDescriptor::construct_responses(
 
         assert(json_responses.size() == 2);
 
+        const Json::Value& set_response = json_responses[0];
+        const Json::Value& set = set_response["entities"][0];
+
+        // These properties should always exist
+        assert(set.isMember(VDMS_DESC_SET_PATH_PROP));
+        assert(set.isMember(VDMS_DESC_SET_DIM_PROP));
+        std::string set_path = set[VDMS_DESC_SET_PATH_PROP].asString();
+        int dim = set[VDMS_DESC_SET_DIM_PROP].asInt();
+
         findDesc = json_responses[1];
 
         if (findDesc.isMember("entities")) {
-            convert_properties(findDesc["entities"]);
+
+            if (get_value<bool>(results, "blob", false)) {
+
+                VCL::DescriptorSet* set =
+                                _dm->get_descriptors_handler(set_path);
+
+                for (auto& ent : findDesc["entities"]) {
+                    long id = ent[VDMS_DESC_ID_PROP].asInt64();
+
+                    try {
+                        std::string* desc_blob = query_res.add_blobs();
+                        desc_blob->resize(sizeof(float) * dim);
+
+                        set->get_descriptors(&id, 1,
+                                             (float*)(*desc_blob).data());
+
+                    } catch (VCL::Exception e) {
+                        print_exception(e);
+                        findDesc["status"] = RSCommand::Error;
+                        findDesc["info"]   = "VCL Exception";
+                        return error(findDesc);
+                    }
+                }
+            }
+
+            convert_properties(findDesc["entities"], list);
         }
 
         if (findDesc["status"] != 0) {
@@ -783,14 +837,13 @@ Json::Value FindDescriptor::construct_responses(
         std::vector<float>* distances;
 
         bool compute_distance = false;
-        if (results.isMember("list")) {
 
-            for (int i = 0; i < results["list"].size(); ++i) {
-                if (results["list"][i].asString() == "_distance") {
-                    compute_distance = true;
-                    break;
-                }
+        Json::Value list = get_value<Json::Value>(results, "list");
 
+        for (auto& prop : list) {
+            if (prop.asString() == "_distance") {
+                compute_distance = true;
+                break;
             }
         }
 
@@ -817,8 +870,6 @@ Json::Value FindDescriptor::construct_responses(
         Json::Value entities = findDesc["entities"];
         findDesc.removeMember("entities");
 
-        convert_properties(entities);
-
         for (int i = 0; i < (*ids).size(); ++i) {
 
             Json::Value desc_data;
@@ -827,7 +878,7 @@ Json::Value FindDescriptor::construct_responses(
             bool pass_constraints = false;
 
             for (auto ent : entities) {
-                if (ent["_id"].asInt64() == d_id) {
+                if (ent[VDMS_DESC_ID_PROP].asInt64() == d_id) {
                     desc_data = ent;
                     pass_constraints = true;
                     break;
@@ -847,7 +898,7 @@ Json::Value FindDescriptor::construct_responses(
                 // desc_data["cache_id"]  = Json::Int64((*ids)[i]);
             }
 
-            if (results.isMember("blob")) {
+            if (get_value<bool>(results, "blob", false)) {
 
                 desc_data["blob"] = true;
 
@@ -867,11 +918,12 @@ Json::Value FindDescriptor::construct_responses(
                     findDesc["info"]   = "VCL Exception";
                     return error(findDesc);
                 }
-
             }
 
             findDesc["entities"].append(desc_data);
         }
+
+        convert_properties(findDesc["entities"], list);
 
         if (cache.isMember("cache_obj_id")) {
             // We remove the vectors associated with that entry to
