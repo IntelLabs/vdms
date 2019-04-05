@@ -420,3 +420,46 @@ TEST(QueryHandler, EmptyResultCheck)
     VDMSConfig::destroy();
     PMGDQueryHandler::destroy();
 }
+
+TEST(QueryHandler, DataTypeChecks)
+{
+    Json::Reader reader;
+    Json::StyledWriter writer;
+
+    std::ifstream ifile;
+    int fsize;
+    char * inBuf;
+    ifile.open("server/DataTypeChecks.json", std::ifstream::in);
+    ifile.seekg(0, std::ios::end);
+    fsize = (int)ifile.tellg();
+    ifile.seekg(0, std::ios::beg);
+    inBuf = new char[fsize];
+    ifile.read(inBuf, fsize);
+    std::string json_query = std::string(inBuf);
+    ifile.close();
+    delete[] inBuf;
+
+    VDMSConfig::init("server/config-datatype-tests.json");
+    PMGDQueryHandler::init();
+    QueryHandler::init();
+
+    QueryHandler qh_base;
+    QueryHandlerTester query_handler(qh_base);
+
+    VDMS::protobufs::queryMessage proto_query;
+    proto_query.set_json(json_query);
+    VDMS::protobufs::queryMessage response;
+
+    query_handler.pq(proto_query, response );
+
+    Json::Value parsed;
+    reader.parse(response.json().c_str(), parsed);
+
+    // std::cout << writer.write(parsed) << std::endl;
+    const Json::Value& query = parsed[3];
+    EXPECT_EQ(query["FindEntity"]["entities"][0]["Birthday"].asString(), "1936-10-01T17:59:24.001-07:00");
+    EXPECT_EQ(query["FindEntity"]["entities"][1]["Birthday"].asString(), "1946-10-01T17:49:24.009010-07:00");
+
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}
