@@ -145,7 +145,7 @@ void PMGDQuery::set_value(const std::string& key, const PMGDProp& p,
             break;
 
         case PMGDProp::IntegerType:
-            prop[key] = (Json::Value::UInt64) p.int_value();
+            prop[key] = (Json::Value::Int64) p.int_value();
             break;
 
         case PMGDProp::StringType:
@@ -172,8 +172,9 @@ void PMGDQuery::set_property(PMGDProp* p, const std::string& key,
 
     switch (val.type()) {
         case Json::intValue:
+        case Json::uintValue:
             p->set_type(PMGDProp::IntegerType);
-            p->set_int_value(val.asInt());
+            p->set_int_value(val.asInt64());
             break;
 
         case Json::booleanValue:
@@ -209,7 +210,9 @@ void PMGDQuery::set_property(PMGDProp* p, const std::string& key,
             break;
 
         default:
-            p->set_type(PMGDProp::NoValueType);
+            printf("%s\n", key.c_str());
+            throw ExceptionCommand(PMGDTransactiontError,
+                                   "Object Type Error");
     }
 }
 
