@@ -337,10 +337,8 @@ void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
         const Json::Value& predicate = *it;
         const std::string& key = it.key().asString();
 
-        // Will either have 2 or 4 arguments
-        assert(predicate.isArray());
-        assert(predicate.size() == 2 || predicate.size() == 4);
-
+        // Will either have 2 or 4 arguments as verified when parsing
+        // JSON
         if (predicate.size() == 2 && predicate[1].isArray()) {
 
             // This will make the entire query OR,

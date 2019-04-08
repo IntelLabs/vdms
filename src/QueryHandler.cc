@@ -203,6 +203,12 @@ bool QueryHandler::syntax_checker(const Json::Value& root, Json::Value& error)
                                     "' must be an array";
                     return false;
                 }
+                auto size = cmd["constraints"][member].size();
+                if (size != 2 && size != 4) {
+                    error["info"] = "Constraint for property '" +  member +
+                                    "' must be an array of size 2 or 4";
+                    return false;
+                }
             }
         }
     }
