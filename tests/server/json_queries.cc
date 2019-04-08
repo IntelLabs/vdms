@@ -458,6 +458,7 @@ TEST(QueryHandler, DataTypeChecks)
     // std::cout << writer.write(parsed) << std::endl;
     const Json::Value& query = parsed[3];
     EXPECT_EQ(query["FindEntity"]["entities"][0]["Birthday"].asString(), "1936-10-01T17:59:24.001-07:00");
+    EXPECT_EQ(query["FindEntity"]["entities"][0]["timestamp"].asInt64(), 1544069566053);
     EXPECT_EQ(query["FindEntity"]["entities"][1]["Birthday"].asString(), "1946-10-01T17:49:24.009010-07:00");
 
     VDMSConfig::destroy();

@@ -57,7 +57,7 @@
                 "Age":  ["<", 100 ]
             },
             "results": {
-                "list":["Name","Birthday"],
+                "list":["Name","Birthday","timestamp"],
                 "sort" : {
                     "key" : "Age",
                     "order" : "descending"
