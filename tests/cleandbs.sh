@@ -1,4 +1,4 @@
-rm -r jsongraph qhgraph simpleAdd_db simpleAddx10_db simpleUpdate_db entitycheck_db
+rm -r jsongraph qhgraph simpleAdd_db simpleAddx10_db simpleUpdate_db entitycheck_db datatypecheck_db
 
 rm -r tdb
 rm -r dbs

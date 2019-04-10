@@ -145,7 +145,7 @@ void PMGDQuery::set_value(const std::string& key, const PMGDProp& p,
             break;
 
         case PMGDProp::IntegerType:
-            prop[key] = (Json::Value::UInt64) p.int_value();
+            prop[key] = (Json::Value::Int64) p.int_value();
             break;
 
         case PMGDProp::StringType:
@@ -172,8 +172,9 @@ void PMGDQuery::set_property(PMGDProp* p, const std::string& key,
 
     switch (val.type()) {
         case Json::intValue:
+        case Json::uintValue:
             p->set_type(PMGDProp::IntegerType);
-            p->set_int_value(val.asInt());
+            p->set_int_value(val.asInt64());
             break;
 
         case Json::booleanValue:
@@ -209,7 +210,9 @@ void PMGDQuery::set_property(PMGDProp* p, const std::string& key,
             break;
 
         default:
-            p->set_type(PMGDProp::NoValueType);
+            printf("%s\n", key.c_str());
+            throw ExceptionCommand(PMGDTransactiontError,
+                                   "Object Type Error");
     }
 }
 
@@ -334,10 +337,8 @@ void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
         const Json::Value& predicate = *it;
         const std::string& key = it.key().asString();
 
-        // Will either have 2 or 4 arguments
-        assert(predicate.isArray());
-        assert(predicate.size() == 2 || predicate.size() == 4);
-
+        // Will either have 2 or 4 arguments as verified when parsing
+        // JSON
         if (predicate.size() == 2 && predicate[1].isArray()) {
 
             // This will make the entire query OR,

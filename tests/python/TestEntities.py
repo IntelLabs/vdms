@@ -228,6 +228,20 @@ class TestEntities(TestCommand.TestCommand):
         self.assertEqual(response[0]["info"],
                             "Constraint for property 'name' must be an array")
 
+        # Another invalid format
+        constraints = {
+            "name": []
+        }
+        entity["constraints"] = constraints
+        all_queries = []
+        all_queries.append(query)
+
+        response, blob_arr = db.query(all_queries)
+
+        self.assertEqual(response[0]["status"], -1)
+        self.assertEqual(response[0]["info"],
+                "Constraint for property 'name' must be an array of size 2 or 4");
+
     def test_FindWithSortKey(self):
 
         db = self.create_connection()
