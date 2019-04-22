@@ -77,10 +77,6 @@ RUN cd / && wget https://github.com/intellabs/pmgd/archive/v2.0.0.tar.gz && \
     tar xf v2.0.0.tar.gz && mv pmgd-2.0.0 pmgd && cd pmgd && \
     make PMOPT=MSYNC
 
-# VCL install
-RUN cd / && wget https://github.com/intellabs/vcl/archive/v1.0.0.tar.gz && \
-    tar xf v1.0.0.tar.gz && mv vcl-1.0.0 vcl && cd vcl && scons -j16
-
 # Valijson
 RUN cd / && git clone https://github.com/tristanpenman/valijson.git && \
     cd valijson && cp -r include/* /usr/local/include/
