@@ -3,9 +3,18 @@ import os
 AddOption('--no-server', action="store_false", dest="no-server",
                       default = True,
                       help='Only build client libraries')
+
 AddOption('--timing', action='append_const', dest='cflags',
                       const='-DCHRONO_TIMING',
                       help= 'Build server with chronos')
+
+AddOption('--prefix', dest='prefix',
+                      type='string',
+                      default='/usr/local/',
+                      nargs=1,
+                      action='store',
+                      metavar='DIR',
+                      help='installation prefix')
 
 def buildServer(env):
 
@@ -28,7 +37,7 @@ def buildServer(env):
              'faiss',
            ],
 
-    LIBPATH = ['/usr/local/lib/', 'utils/',
+    LIBPATH = ['utils/',
                os.path.join(env['INTEL_PATH'], 'utils/'),
                os.path.join(env['INTEL_PATH'], 'pmgd/lib/'),
                ]
@@ -70,6 +79,7 @@ def buildServer(env):
 
   env.Program('vdms', vdms_server_files)
 
+
 # Set INTEL_PATH. First check arguments, then enviroment, then default
 if ARGUMENTS.get('INTEL_PATH', '') != '':
     intel_path = ARGUMENTS.get("INTEL_PATH", '')
@@ -82,6 +92,16 @@ else:
 env = Environment(CXXFLAGS="-std=c++11 -O3 -fopenmp")
 env.Append(INTEL_PATH= intel_path)
 env.MergeFlags(GetOption('cflags'))
+
+prefix = str(GetOption('prefix'))
+
+env.Alias('install-bin', env.Install(os.path.join(prefix, "bin"),
+      source="vdms"))
+env.Alias('install-client', env.Install(os.path.join(prefix, "lib"),
+      source="client/cpp/libvdms-client.so"))
+env.Alias('install-utils', env.Install(os.path.join(prefix, "lib"),
+      source="utils/libvdms-utils.so"))
+env.Alias('install', ['install-bin', 'install-client', 'install-utils'])
 
 SConscript(os.path.join('utils', 'SConscript'), exports=['env'])
 SConscript(os.path.join('client/cpp','SConscript'), exports=['env'])
