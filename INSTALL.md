@@ -138,14 +138,6 @@ Or follow instructions
   * Follow installation instructions
 
 
-## Python Client Module
-
-VDMS offers the Python Client Module through the pip package manager,
-and it is compatible with Python 2.7+ and 3.3+.
-pip (or pip2 and pip3) will automatically install dependencies (protobuf).
-
-    pip install vdms
-
 ## Compilation
 
     git clone https://github.com/intellabs/vdms
@@ -160,6 +152,47 @@ Flag | Explanation
 --timing    | Compiles server with chronos for internal timing, experimental.
 -jX         | Compiles in parallel, using X cores
 INTEL_PATH=path  | Path to the root folder containing pmgd and vcl. Default is "./" which is pmgd and vcl inside vdms folder. Example: scons INTEL_PATH=/opt/intel/
+--prefix    | Specify the installation location (see Installation below)
+
+
+## Installation
+
+### Installing VDMS Server + Libraries
+
+By default, VDMS will build the server binary and
+libraries, but will not install them in the sytem.
+
+You can install the VDMS server + libraries in your system by running:
+
+    sudo scons install
+
+By defaul, the installation prefix is "/usr/local",
+and the VDMS server and libraries at "/usr/local/bin" and
+"/usr/local/lib", respectively.
+
+You can also remove (uninstall) VDMS files from your system by running:
+
+    sudo scons install -c
+
+You can choose to install VDMS server and libraries in a
+location of your choice by using the --prefix flag.
+
+    sudo scons install --prefix=/tmp/
+
+In this example, VDMS server will be installed at /tmp/bin, and the
+libraries will be installed at /tmp/lib.
+
+To remove (uninstall) VDMS files from a specified location by running:
+
+    sudo scons install -c --prefix=/tmp
+
+### Python Client Module
+
+VDMS offers the Python Client Module through the pip package manager,
+and it is compatible with Python 2.7+ and 3.3+.
+pip (or pip2 and pip3) will automatically install dependencies (protobuf).
+
+    pip install vdms
 
 ### Running The VDMS Server
 
