@@ -44,13 +44,15 @@
 #endif
 
 #ifdef CHRONO_TIMING
-	#define CHRONO_TIC(NAME) NAME.tic();
-	#define CHRONO_TAC(NAME) NAME.tac();
-	#define CHRONO_PRINT_LAST_MS(NAME) NAME.printLastTime_ms();
+	#define CHRONO_TIC(NAME) NAME.tic()
+	#define CHRONO_TAC(NAME) NAME.tac()
+	#define CHRONO_GET_LAST_MS(NAME)  NAME.getLastTime_us()/1000.0f
+	#define CHRONO_GET_TOTAL_MS(NAME) NAME.getTotalTime_us()/1000.0f
 #else
     #define CHRONO_TIC(NAME)
     #define CHRONO_TAC(NAME)
-    #define CHRONO_PRINT_LAST_MS(NAME)
+	#define CHRONO_GET_LAST_MS(NAME)
+	#define CHRONO_GET_TOTAL_MS(NAME)
 #endif
 
 // ***************************************************************************
