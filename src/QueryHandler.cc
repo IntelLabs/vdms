@@ -46,6 +46,8 @@
 #include "pmgd.h"
 #include "util.h"
 
+#include "chrono/Chrono.h"
+
 #include "api_schema/APISchema.h"
 #include <jsoncpp/json/writer.h>
 #include <valijson/adapters/jsoncpp_adapter.hpp>
@@ -112,17 +114,18 @@ void QueryHandler::init()
 QueryHandler::QueryHandler()
     : _pmgd_qh(),
     _validator(valijson::Validator::kWeakTypes)
-#ifdef CHRONO_TIMING
-    ,ch_tx_total("ch_tx_total")
-    ,ch_tx_query("ch_tx_query")
-    ,ch_tx_send("ch_tx_send")
-#endif
 {
 }
 
 void QueryHandler::process_connection(comm::Connection *c)
 {
     QueryMessage msgs(c);
+
+    #ifdef CHRONO_TIMING
+        ChronoCpu ch_tx_total("ch_tx_total");
+        ChronoCpu ch_tx_query("ch_tx_query");
+        ChronoCpu ch_tx_send("ch_tx_send");
+    #endif
 
     try {
         while (true) {
@@ -139,9 +142,14 @@ void QueryHandler::process_connection(comm::Connection *c)
             CHRONO_TAC(ch_tx_send);
 
             CHRONO_TAC(ch_tx_total);
-            CHRONO_PRINT_LAST_MS(ch_tx_total);
-            CHRONO_PRINT_LAST_MS(ch_tx_query);
-            CHRONO_PRINT_LAST_MS(ch_tx_send);
+
+            #ifdef CHRONO_TIMING
+            std::cerr << "Tx timer(ms): "
+                      << "total_tx: "    << CHRONO_GET_LAST_MS(ch_tx_total)
+                      << " | process: "  << CHRONO_GET_LAST_MS(ch_tx_query)
+                      << " | send: "     << CHRONO_GET_LAST_MS(ch_tx_send)
+                      << std::endl;
+            #endif
         }
     } catch (comm::ExceptionComm e) {
         print_exception(e);
@@ -289,6 +297,13 @@ void QueryHandler::cleanup_query(const std::vector<std::string>& images,
 void QueryHandler::process_query(protobufs::queryMessage& proto_query,
                                  protobufs::queryMessage& proto_res)
 {
+    #ifdef CHRONO_TIMING
+        ChronoCpu ch_total("ch_total");
+        ChronoCpu ch_validation("ch_validation");
+        ChronoCpu ch_metadata("ch_metadata");
+        ChronoCpu ch_commands("ch_commands");
+    #endif
+
     Json::FastWriter fastWriter;
 
     Json::Value root;
@@ -306,6 +321,8 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
     };
 
     try {
+        CHRONO_TIC(ch_total);
+
         Json::Value json_responses;
 
         Json::Value cmd_result;
@@ -326,15 +343,21 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
             std::cerr << w.write(json_responses);
         };
 
+        CHRONO_TIC(ch_validation);
         if (parse_commands(proto_query, root) != 0) {
             cmd_current = "Transaction";
             error(root, cmd_current);
             return;
         }
+        CHRONO_TAC(ch_validation);
 
+        CHRONO_TIC(ch_metadata);
         PMGDQuery pmgd_query(_pmgd_qh);
+        CHRONO_TAC(ch_metadata);
+
         int blob_count = 0;
 
+        CHRONO_TIC(ch_commands);
         //iterate over the list of the queries
         for (int j = 0; j < root.size(); j++) {
             const Json::Value& query = root[j];
@@ -364,9 +387,13 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
 
             construct_results.push_back(cmd_result);
         }
+        CHRONO_TAC(ch_commands);
 
+        CHRONO_TIC(ch_metadata);
         Json::Value& tx_responses = pmgd_query.run();
+        CHRONO_TAC(ch_metadata);
 
+        CHRONO_TIC(ch_commands);
         if (tx_responses.size() != root.size()) { // error
             cmd_current = "Transaction";
             cmd_result = tx_responses;
@@ -407,6 +434,21 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
                 json_responses.append(cmd_result);
             }
         }
+        CHRONO_TAC(ch_commands);
+        CHRONO_TAC(ch_total);
+
+        #ifdef CHRONO_TIMING
+            Json::Value timers;
+
+            timers["unit"]        = "ms";
+            timers["total"]       = CHRONO_GET_LAST_MS(ch_total);
+            timers["validation"]  = CHRONO_GET_LAST_MS(ch_validation);
+            timers["metadata_tx"] = CHRONO_GET_TOTAL_MS(ch_metadata);
+            timers["commands"]    = CHRONO_GET_TOTAL_MS(ch_commands);
+            Json::Value obj_timer;
+            obj_timer["Timers"] = timers;
+            json_responses.append(obj_timer);
+        #endif
 
         proto_res.set_json(fastWriter.write(json_responses));
 
@@ -445,4 +487,5 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
         error_msg << "Unknown Exception" << std::endl;
         exception_handler();
     }
+
 }
