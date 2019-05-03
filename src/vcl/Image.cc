@@ -56,6 +56,15 @@ Image::Image(const cv::Mat &cv_img)
 
 }
 
+Image::Image(cv::Mat &cv_img)
+{
+    if ( cv_img.empty() ) {
+        throw VCLException(ObjectEmpty, "Image object is empty");
+    }
+
+    _image = new ImageData(cv_img);
+}
+
 Image::Image(void* buffer, long size, int flags)
 {
     cv::Mat raw_data(cv::Size(size, 1), CV_8UC1, buffer);
@@ -77,6 +86,11 @@ Image::Image(const Image &img)
     _image = new ImageData(*img._image);
 }
 
+Image::Image(const Image &&img) noexcept
+{
+    _image = new ImageData(*img._image, false);
+}
+
 void Image::operator=(const Image &img)
 {
     ImageData *temp = _image;
@@ -84,13 +98,10 @@ void Image::operator=(const Image &img)
     delete temp;
 }
 
-
 Image::~Image()
 {
     delete _image;
 }
-
-
 
     /*  *********************** */
     /*        GET FUNCTIONS     */
@@ -122,7 +133,7 @@ int Image::get_image_type() const
 }
 
 
-Image Image::get_area(const Rectangle &roi) const
+Image Image::get_area(const Rectangle &roi)
 {
     Image img_copy(*this);
     *(img_copy._image) = _image->get_area(roi);
@@ -130,11 +141,14 @@ Image Image::get_area(const Rectangle &roi) const
     return img_copy;
 }
 
-cv::Mat Image::get_cvmat() const
+cv::Mat Image::get_cvmat(bool copy)
 {
     cv::Mat mat = _image->get_cvmat();
 
-    return mat.clone();
+    if (copy)
+        return mat.clone();
+    else
+        return mat;
 }
 
 void Image::get_raw_data(void* buffer, long buffer_size ) const

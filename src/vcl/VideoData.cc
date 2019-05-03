@@ -137,7 +137,7 @@ void VideoData::Write::operator()(VideoData *video)
     std::vector<VCL::Image>& frames = video->get_frames();
 
     for (auto& frame : frames) {
-        outputVideo << frame.get_cvmat();
+        outputVideo << frame.get_cvmat(false);
     }
     outputVideo.release();
 

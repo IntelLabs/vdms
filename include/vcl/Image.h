@@ -86,6 +86,8 @@ namespace VCL {
          */
         Image(const cv::Mat &cv_img);
 
+        Image(cv::Mat &cv_img);
+
         /**
          *  Creates an Image object from an encoded buffer
          *
@@ -112,10 +114,20 @@ namespace VCL {
 
         /**
          *  Creates a new Image object from an existing Image object
+         *  This will make a deep copy of the arrays.
          *
          *  @param img  An existing Image object
          */
         Image(const Image &img);
+
+        /**
+         *  Move constructor, needed to avoid copies of the arrays.
+         *  noexcept is needed to let vectors grow and call the move
+         *  instead of copy constructor.
+         *
+         *  @param img  An existing Image object
+         */
+        Image(const Image &&img) noexcept;
 
         /**
          *  Sets an Image object equal to another Image object
@@ -173,14 +185,16 @@ namespace VCL {
          *    y coordinate, height, width)
          *  @return A new Image object that is only the requested area
          */
-        Image get_area(const Rectangle &roi) const;
+        Image get_area(const Rectangle &roi);
 
         /**
          *  Gets an OpenCV Mat that contains the image data
          *
+         *  @param copy Specify if a deep copy of the cvmat will be made before
+         *              returning the cvmat object.
          *  @return An OpenCV Mat
          */
-        cv::Mat get_cvmat() const;
+        cv::Mat get_cvmat(bool copy=false);
 
         /**
          *  Gets the raw image data

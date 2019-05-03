@@ -35,7 +35,6 @@
 
 #include "ImageData.h"
 
-
 using namespace VCL;
 
     /*  *********************** */
@@ -45,6 +44,7 @@ using namespace VCL;
     /*  *********************** */
     /*       READ OPERATION     */
     /*  *********************** */
+
 ImageData::Read::Read(const std::string& filename, Image::Format format)
     : Operation(format),
       _fullpath(filename)
@@ -64,7 +64,8 @@ void ImageData::Read::operator()(ImageData *img)
         img->_channels = img->_tdb->get_image_channels();
     }
     else {
-        img->copy_cv(cv::imread(_fullpath, cv::IMREAD_ANYCOLOR));
+        auto img_read = cv::imread(_fullpath, cv::IMREAD_ANYCOLOR);
+        img->shallow_copy_cv(img_read);
         if ( img->_cv_img.empty() )
             throw VCLException(ObjectEmpty, _fullpath + " could not be read, \
                 object is empty");
@@ -74,6 +75,7 @@ void ImageData::Read::operator()(ImageData *img)
     /*  *********************** */
     /*       WRITE OPERATION    */
     /*  *********************** */
+
 ImageData::Write::Write(const std::string& filename, Image::Format format,
     Image::Format old_format, bool metadata)
     : Operation(format),
@@ -128,7 +130,7 @@ void ImageData::Resize::operator()(ImageData *img)
         if ( !img->_cv_img.empty() ) {
             cv::Mat cv_resized;
             cv::resize(img->_cv_img, cv_resized, cv::Size(_rect.width, _rect.height));
-            img->copy_cv(cv_resized);
+            img->shallow_copy_cv(cv_resized);
         }
         else
             throw VCLException(ObjectEmpty, "Image object is empty");
@@ -152,7 +154,7 @@ void ImageData::Crop::operator()(ImageData *img)
             if ( img->_cv_img.rows < _rect.height + _rect.y || img->_cv_img.cols < _rect.width + _rect.x )
                 throw VCLException(SizeMismatch, "Requested area is not within the image");
             cv::Mat roi_img(img->_cv_img, _rect);
-            img->copy_cv(roi_img);
+            img->shallow_copy_cv(roi_img);
         }
         else
             throw VCLException(ObjectEmpty, "Image object is empty");
@@ -192,7 +194,7 @@ void ImageData::Flip::operator()(ImageData *img)
             cv::Mat dst = cv::Mat(img->_cv_img.rows, img->_cv_img.cols,
                                        img->_cv_img.type());
             cv::flip(img->_cv_img, dst, _code);
-            img->_cv_img = dst.clone();
+            img->shallow_copy_cv(dst);
         }
         else
             throw VCLException(ObjectEmpty, "Image object is empty");
@@ -239,7 +241,7 @@ void ImageData::Rotate::operator()(ImageData *img)
 
                 cv::Mat dst;
                 cv::warpAffine(img->_cv_img, dst, r, bbox.size());
-                img->_cv_img = dst.clone();
+                img->shallow_copy_cv(dst);
             }
         }
         else
@@ -271,7 +273,18 @@ ImageData::ImageData()
 
 ImageData::ImageData(const cv::Mat &cv_img)
 {
-    copy_cv(cv_img);
+    deep_copy_cv(cv_img);
+
+    _format = Image::Format::NONE_IMAGE;
+    _compress = CompressionType::LZ4;
+    _image_id = "";
+
+    _tdb = NULL;
+}
+
+ImageData::ImageData(cv::Mat &cv_img)
+{
+    shallow_copy_cv(cv_img);
 
     _format = Image::Format::NONE_IMAGE;
     _compress = CompressionType::LZ4;
@@ -300,7 +313,6 @@ ImageData::ImageData(const std::string &image_id)
     }
     else
         _tdb = NULL;
-
 }
 
 ImageData::ImageData(void* buffer, cv::Size dimensions, int cv_type)
@@ -318,14 +330,20 @@ ImageData::ImageData(void* buffer, cv::Size dimensions, int cv_type)
     _tdb->set_compression(_compress);
 }
 
-ImageData::ImageData(const ImageData &img)
+ImageData::ImageData(const ImageData &img, bool copy)
 {
     _format = img._format;
     _compress = img._compress;
     _image_id = img._image_id;
 
-    if ( !(img._cv_img).empty() )
-        copy_cv(img._cv_img);
+    if ( !(img._cv_img).empty() ) {
+        if (copy) {
+            deep_copy_cv(img._cv_img);
+        }
+        else {
+            shallow_copy_cv(img._cv_img);
+        }
+    }
 
     if ( img._tdb != NULL )
         _tdb = new TDBImage(*img._tdb);
@@ -333,11 +351,13 @@ ImageData::ImageData(const ImageData &img)
         _tdb = NULL;
 
     int start;
+    // TODO IS THIS REALLY NEEDED????
     if ( img._operations.size() > 0 ) {
         std::shared_ptr<Operation> front = img._operations.front();
         if (front->get_type() == OperationType::READ) {
             start = 1;
-            copy_cv(cv::imread(img._image_id, cv::IMREAD_ANYCOLOR));
+            cv::Mat img_read = cv::imread(img._image_id, cv::IMREAD_ANYCOLOR);
+            shallow_copy_cv(img_read);
         }
         else
             start = 0;
@@ -352,7 +372,7 @@ void ImageData::operator=(const ImageData &img)
     TDBImage *temp = _tdb;
 
     if ( !(img._cv_img).empty() )
-        copy_cv(img._cv_img);
+        deep_copy_cv(img._cv_img);
     else {
         _channels = img._channels;
 
@@ -381,7 +401,8 @@ void ImageData::operator=(const ImageData &img)
         std::shared_ptr<Operation> front = img._operations.front();
         if (front->get_type() == OperationType::READ) {
             start = 1;
-            copy_cv(cv::imread(img._image_id, cv::IMREAD_ANYCOLOR));
+            cv::Mat img_read = cv::imread(img._image_id, cv::IMREAD_ANYCOLOR);
+            shallow_copy_cv(img_read);
         }
         else
             start = 0;
@@ -545,8 +566,10 @@ std::vector<unsigned char> ImageData::get_encoded(Image::Format format,
     if ( _cv_img.empty() ) {
         if ( _tdb == NULL)
             throw VCLException(ObjectEmpty, "No data to encode");
-        else
-            copy_cv(_tdb->get_cvmat());
+        else {
+            cv::Mat img = _tdb->get_cvmat();
+            shallow_copy_cv(img);
+        }
     }
 
     std::vector<unsigned char> buffer;
@@ -653,7 +676,8 @@ void ImageData::set_data_from_raw(void* buffer, long size)
 
 void ImageData::set_data_from_encoded(const std::vector<unsigned char> &buffer)
 {
-    copy_cv(cv::imdecode(buffer, cv::IMREAD_ANYCOLOR));
+    cv::Mat img_read = cv::imdecode(buffer, cv::IMREAD_ANYCOLOR);
+    shallow_copy_cv(img_read);
 }
 
 void ImageData::set_minimum(int dimension)
@@ -665,7 +689,6 @@ void ImageData::set_minimum(int dimension)
         _tdb->set_minimum(dimension);
     }
 }
-
 
     /*  *********************** */
     /*   IMAGEDATA INTERACTION  */
@@ -752,16 +775,28 @@ void ImageData::delete_object()
     /*      COPY FUNCTIONS      */
     /*  *********************** */
 
-void ImageData::copy_cv(const cv::Mat &cv_img)
+void ImageData::deep_copy_cv(const cv::Mat &cv_img)
 {
     _channels = cv_img.channels();
 
     _height = cv_img.rows;
-    _width = cv_img.cols;
+    _width  = cv_img.cols;
 
     _cv_type = cv_img.type();
 
-    _cv_img = cv_img.clone();
+    _cv_img = cv_img.clone(); // deep copy
+}
+
+void ImageData::shallow_copy_cv(const cv::Mat &cv_img)
+{
+    _channels = cv_img.channels();
+
+    _height = cv_img.rows;
+    _width  = cv_img.cols;
+
+    _cv_type = cv_img.type();
+
+    _cv_img = cv_img; // shallow copy
 }
 
 template <class T>
@@ -819,4 +854,3 @@ std::string ImageData::create_fullpath(const std::string &filename,
     else
         return filename + "." + ext;
 }
-
