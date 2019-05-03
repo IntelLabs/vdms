@@ -73,11 +73,6 @@ class TestVideos(TestCommand.TestCommand):
             video_arr.append(fd.read())
             fd.close()
 
-            op_params_resize = {}
-            op_params_resize["height"] = 512
-            op_params_resize["width"]  = 512
-            op_params_resize["type"] = "resize"
-
             props = {}
             props["name"] = "video_" + str(i)
             props["doctor"] = "Dr. Strange Love"
@@ -95,6 +90,126 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(len(response), number_of_inserts)
         for i in range(0, number_of_inserts):
             self.assertEqual(response[i]["AddVideo"]["status"], 0)
+
+    def test_addVideoResize(self):
+
+        db = self.create_connection()
+
+        all_queries = []
+        video_arr = []
+
+        number_of_inserts = 2
+
+        for i in range(0,number_of_inserts):
+            #Read Brain Image
+            fd = open("../test_videos/Megamind.avi", 'rb')
+            video_arr.append(fd.read())
+            fd.close()
+
+            op_params_resize = {}
+            op_params_resize["height"] = 512
+            op_params_resize["width"]  = 512
+            op_params_resize["type"] = "resize"
+
+            props = {}
+            props["name"] = "video_rez_" + str(i)
+            props["doctor"] = "Dr. Strange Love"
+
+            video_parms = {}
+            video_parms["operations"] = [op_params_resize]
+            video_parms["properties"] = props
+            video_parms["codec"] = "h264"
+
+            query = {}
+            query["AddVideo"] = video_parms
+
+            all_queries.append(query)
+
+        response, obj_array = db.query(all_queries, [video_arr])
+        self.assertEqual(len(response), number_of_inserts)
+        for i in range(0, number_of_inserts):
+            self.assertEqual(response[i]["AddVideo"]["status"], 0)
+
+
+    def test_addVideoInterval(self):
+
+        db = self.create_connection()
+
+        all_queries = []
+        video_arr = []
+
+        number_of_inserts = 2
+
+        for i in range(0,number_of_inserts):
+            #Read Brain Image
+            fd = open("../test_videos/Megamind.avi", 'rb')
+            video_arr.append(fd.read())
+            fd.close()
+
+            op_params_interval = {}
+            op_params_interval["start"] = 0
+            op_params_interval["stop"]  = 100
+            op_params_interval["step"]  = 2
+            op_params_interval["type"]  = "interval"
+
+            props = {}
+            props["name"] = "video_inter_" + str(i)
+            props["doctor"] = "Dr. Strange Love"
+
+            video_parms = {}
+            video_parms["operations"] = [op_params_interval]
+            video_parms["properties"] = props
+            video_parms["codec"] = "h264"
+
+            query = {}
+            query["AddVideo"] = video_parms
+
+            all_queries.append(query)
+
+        response, obj_array = db.query(all_queries, [video_arr])
+        self.assertEqual(len(response), number_of_inserts)
+        for i in range(0, number_of_inserts):
+            self.assertEqual(response[i]["AddVideo"]["status"], 0)
+
+    def test_addVideoIntervalMultipleTransactions(self):
+
+        db = self.create_connection()
+
+        video_arr = []
+        fd = open("../test_videos/Megamind.avi", 'rb')
+        video_arr.append(fd.read())
+        fd.close()
+
+        number_of_transactions = 2
+
+        for i in range(0,number_of_transactions):
+            all_queries = []
+            #Read Brain Image
+
+            op_params_interval = {}
+            op_params_interval["start"] = 0
+            op_params_interval["stop"]  = 100
+            op_params_interval["step"]  = 2
+            op_params_interval["type"]  = "interval"
+
+            props = {}
+            props["name"] = "video_inter_" + str(i)
+            props["doctor"] = "Dr. Strange Love"
+
+            video_parms = {}
+            video_parms["operations"] = [op_params_interval]
+            video_parms["properties"] = props
+            video_parms["codec"] = "h264"
+
+            query = {}
+            query["AddVideo"] = video_parms
+
+            all_queries.append(query)
+
+            response, obj_array = db.query(all_queries, [video_arr])
+            self.assertEqual(len(response), 1)
+            for i in range(0, 1):
+                self.assertEqual(response[i]["AddVideo"]["status"], 0)
 
     def test_findVideo(self):
 
