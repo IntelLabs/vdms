@@ -42,18 +42,6 @@ RUN mkdir /opencv && cd /opencv && \
     make -j $(cat /proc/cpuinfo | wc -l) && make install
 RUN rm -rf /opencv
 
-# Blosc
-RUN cd / && git clone https://github.com/Blosc/c-blosc.git && \
-    cd c-blosc && mkdir build && cd build && \
-    cmake -DCMAKE_INSTALL_PREFIX='/usr' .. && cmake --build . && \
-    cmake --build . --target install
-RUN rm -rf /c-blosc
-
-# Zstd
-RUN cd / && wget https://github.com/facebook/zstd/archive/v1.1.0.tar.gz && \
-    tar xf v1.1.0.tar.gz && cd zstd-1.1.0 && \
-    make install PREFIX='/usr'
-
 # TileDB
 RUN cd / && wget https://github.com/TileDB-Inc/TileDB/archive/1.3.1.tar.gz && \
     tar xf 1.3.1.tar.gz && cd TileDB-1.3.1 && mkdir build && cd build && \

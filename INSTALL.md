@@ -104,10 +104,10 @@ Build TileDB
 ### [Faiss](https://github.com/facebookresearch/faiss)
 Facebook Faiss library for similarity search, used as alternitive engines.
 
-Download [Faiss 1.2.1](https://github.com/facebookresearch/faiss/archive/v1.2.1.tar.gz)
+Download [Faiss 1.4.0](https://github.com/facebookresearch/faiss/archive/v1.4.0.tar.gz)
 
-    tar -xzvf v1.2.1.tar.gz
-    cd faiss-1.2.1
+    tar -xzvf v1.4.0.tar.gz
+    cd faiss-1.4.0
     mkdir build
     cd build/
     cmake ..
