@@ -65,7 +65,6 @@ def buildServer(env):
                   'src/vcl/Exception.cc',
                   'src/vcl/TDBObject.cc',
                   'src/vcl/Image.cc',
-                  'src/vcl/ImageData.cc',
                   'src/vcl/TDBImage.cc',
                   'src/vcl/Video.cc',
                   'src/vcl/VideoData.cc',
