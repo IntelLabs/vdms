@@ -71,7 +71,6 @@ class TestEntities(TestCommand.TestCommand):
         response, res_arr = db.query(all_queries)
 
         try:
-
             self.assertEqual(response[0]["FindEntity"]["status"], 0)
             self.assertEqual(response[0]["FindEntity"]["entities"][0]
                                         ["lastname"], "Ferro")

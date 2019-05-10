@@ -36,6 +36,8 @@
 #include "VDMSConfig.h"
 #include "defines.h"
 
+#include "chrono/Chrono.h"
+
 using namespace VDMS;
 
 VideoCommand::VideoCommand(const std::string &cmd_name):
@@ -241,6 +243,17 @@ Json::Value FindVideo::construct_responses(
     protobufs::queryMessage &query_res,
     const std::string &blob)
 {
+    #ifdef CHRONO_TIMING
+        ChronoCpu ch_tx_video_op("ch_tx_video_op");
+        ChronoCpu ch_tx_video_copies("ch_tx_video_copies");
+        ChronoCpu ch_tx_video_parsing("ch_tx_video_parsing");
+        ChronoCpu ch_tx_video_total("ch_tx_video_total");
+    #endif
+
+    CHRONO_TIC(ch_tx_video_total);
+
+    CHRONO_TIC(ch_tx_video_parsing);
+
     const Json::Value& cmd = json[_cmd_name];
 
     Json::Value ret;
@@ -270,9 +283,13 @@ Json::Value FindVideo::construct_responses(
 
     bool flag_empty = true;
 
+    CHRONO_TAC(ch_tx_video_parsing);
+
     for (auto& ent : FindVideo["entities"]) {
 
+        CHRONO_TIC(ch_tx_video_parsing);
         if(!ent.isMember(VDMS_VID_PATH_PROP)){
+            CHRONO_TAC(ch_tx_video_parsing);
             continue;
         }
 
@@ -282,40 +299,56 @@ Json::Value FindVideo::construct_responses(
         if (ent.getMemberNames().size() > 0) {
             flag_empty = false;
         }
+
+        CHRONO_TAC(ch_tx_video_parsing);
         try {
+
             if (!cmd.isMember("operations") &&
                 !cmd.isMember("container")  &&
                 !cmd.isMember("codec"))
             {
+
+                CHRONO_TIC(ch_tx_video_op);
                 // Return video as is.
                 std::ifstream ifile(video_path, std::ifstream::in);
                 ifile.seekg(0, std::ios::end);
                 size_t encoded_size = (long)ifile.tellg();
                 ifile.seekg(0, std::ios::beg);
+                CHRONO_TAC(ch_tx_video_op);
 
+                CHRONO_TIC(ch_tx_video_copies);
                 std::string* video_str = query_res.add_blobs();
                 video_str->resize(encoded_size);
                 ifile.read((char*)(video_str->data()), encoded_size);
                 ifile.close();
+                CHRONO_TAC(ch_tx_video_copies);
             }
             else {
 
-                VCL::Video video(video_path);
-
-                if (cmd.isMember("operations")) {
-                    enqueue_operations(video, cmd["operations"]);
-                }
-
+                CHRONO_TIC(ch_tx_video_parsing);
                 const std::string& container =
                             get_value<std::string>(cmd, "container", "mp4");
                 const std::string& file_name =
                             VCL::create_unique("/tmp/", container);
                 const std::string& codec =
                             get_value<std::string>(cmd, "codec", "h264");
+                CHRONO_TAC(ch_tx_video_parsing);
+
+                VCL::Video video(video_path);
+
+                CHRONO_TIC(ch_tx_video_parsing);
+                if (cmd.isMember("operations")) {
+                    enqueue_operations(video, cmd["operations"]);
+                }
+                CHRONO_TAC(ch_tx_video_parsing);
 
                 VCL::Video::Codec vcl_codec = string_to_codec(codec);
-                video.store(file_name, vcl_codec); // to /tmp/ for encoding.
 
+                CHRONO_TIC(ch_tx_video_op);
+                video.store(file_name, vcl_codec); // to /tmp/ for encoding.
+                CHRONO_TAC(ch_tx_video_op);
+
+                CHRONO_TIC(ch_tx_video_copies);
                 auto video_enc = video.get_encoded();
                 int size = video_enc.size();
 
@@ -333,6 +366,8 @@ Json::Value FindVideo::construct_responses(
                     return_error["info"] = "Video Data not found";
                     error(return_error);
                 }
+                CHRONO_TAC(ch_tx_video_copies);
+
             }
         } catch (VCL::Exception e) {
             print_exception(e);
@@ -343,9 +378,23 @@ Json::Value FindVideo::construct_responses(
         }
     }
 
+    CHRONO_TIC(ch_tx_video_parsing);
     if (flag_empty) {
         FindVideo.removeMember("entities");
     }
+    CHRONO_TAC(ch_tx_video_parsing);
+
+    CHRONO_TAC(ch_tx_video_total);
+
+    #ifdef CHRONO_TIMING
+        Json::Value timers;
+        timers["video_processing"] = CHRONO_GET_TOTAL_MS(ch_tx_video_op);
+        timers["video_copies"]     = CHRONO_GET_TOTAL_MS(ch_tx_video_copies);
+        timers["video_parsing"]    = CHRONO_GET_TOTAL_MS(ch_tx_video_parsing);
+        timers["video_total"]      = CHRONO_GET_LAST_MS(ch_tx_video_total);
+
+        FindVideo["timers"] = timers;
+    #endif
 
     ret[_cmd_name].swap(FindVideo);
     return ret;

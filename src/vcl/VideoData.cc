@@ -35,6 +35,8 @@
 #include "vcl/VCL.h"
 #include "VideoData.h"
 
+#include "chrono/Chrono.h"
+
 using namespace VCL;
 
 Video::Codec VideoData::Read::read_codec(char* fourcc)
@@ -56,6 +58,13 @@ Video::Codec VideoData::Read::read_codec(char* fourcc)
 
 void VideoData::Read::operator()(VideoData *video)
 {
+    #ifdef CHRONO_TIMING
+        ChronoCpu ch_tx_video_total("ch_tx_video_total");
+        ChronoCpu ch_tx_video_decode("ch_tx_video_decode");
+        ChronoCpu ch_tx_video_copies("ch_tx_video_copies");
+        CHRONO_TIC(ch_tx_video_total);
+    #endif
+
     cv::VideoCapture inputVideo(video->get_video_id());
 
     video->_fps = static_cast<float>(inputVideo.get(CV_CAP_PROP_FPS));
@@ -86,15 +95,30 @@ void VideoData::Read::operator()(VideoData *video)
     while(true) {
 
         cv::Mat mat_frame;
+        CHRONO_TIC(ch_tx_video_decode);
         inputVideo >> mat_frame; // Read frame
+        CHRONO_TAC(ch_tx_video_decode);
 
         if (mat_frame.empty())
             break;
 
+        CHRONO_TIC(ch_tx_video_copies);
         frames.push_back(VCL::Image(mat_frame));
+        CHRONO_TAC(ch_tx_video_copies);
     }
 
     inputVideo.release();
+
+    #ifdef CHRONO_TIMING
+        CHRONO_TAC(ch_tx_video_total);
+        std::cerr << "video-read: " << CHRONO_GET_LAST_MS(ch_tx_video_total)
+                  << std::endl;
+        std::cerr << "  video-dec: " << CHRONO_GET_TOTAL_MS(ch_tx_video_decode)
+                  << std::endl;
+        std::cerr << "  video-copies: "
+                  << CHRONO_GET_TOTAL_MS(ch_tx_video_copies)
+                  << std::endl;
+    #endif
 }
 
     /*  *********************** */
@@ -123,6 +147,12 @@ int VideoData::Write::get_fourcc()
 
 void VideoData::Write::operator()(VideoData *video)
 {
+    #ifdef CHRONO_TIMING
+        ChronoCpu ch_tx_video_total("ch_tx_video_total");
+        ChronoCpu ch_tx_video_encode("ch_tx_video_encode");
+        CHRONO_TIC(ch_tx_video_total);
+    #endif
+
     cv::VideoWriter outputVideo(
                     _outname,
                     get_fourcc(),
@@ -136,14 +166,26 @@ void VideoData::Write::operator()(VideoData *video)
 
     std::vector<VCL::Image>& frames = video->get_frames();
 
+    CHRONO_TIC(ch_tx_video_encode);
     for (auto& frame : frames) {
         outputVideo << frame.get_cvmat(false);
     }
     outputVideo.release();
+    CHRONO_TAC(ch_tx_video_encode);
 
     video->_video_id = _outname;
     video->_codec    = _codec;
     video->_flag_stored = true;
+
+    #ifdef CHRONO_TIMING
+        CHRONO_TAC(ch_tx_video_total);
+        std::cerr << "video-write: " << CHRONO_GET_LAST_MS(ch_tx_video_total)
+                  << std::endl;
+        std::cerr << "    video-encode: "
+                  << CHRONO_GET_TOTAL_MS(ch_tx_video_encode)
+                  << std::endl;
+
+    #endif
 }
 
     /*  *********************** */
@@ -152,6 +194,11 @@ void VideoData::Write::operator()(VideoData *video)
 
 void VideoData::Resize::operator()(VideoData *video)
 {
+    #ifdef CHRONO_TIMING
+        ChronoCpu ch_tx_video_total("ch_tx_video_total");
+        CHRONO_TIC(ch_tx_video_total);
+    #endif
+
     std::vector<VCL::Image>& frames = video->get_frames();
 
     for (auto& frame : frames) {
@@ -161,6 +208,12 @@ void VideoData::Resize::operator()(VideoData *video)
 
     video->_frame_width  = _size.width;
     video->_frame_height = _size.height;
+
+    #ifdef CHRONO_TIMING
+        CHRONO_TAC(ch_tx_video_total);
+        std::cerr << "video-resize: " << CHRONO_GET_LAST_MS(ch_tx_video_total)
+                  << std::endl;
+    #endif
 }
 
     /*  *********************** */
@@ -169,6 +222,11 @@ void VideoData::Resize::operator()(VideoData *video)
 
 void VideoData::Crop::operator()(VideoData *video)
 {
+    #ifdef CHRONO_TIMING
+        ChronoCpu ch_tx_video_total("ch_tx_video_total");
+        CHRONO_TIC(ch_tx_video_total);
+    #endif
+
     std::vector<VCL::Image>& frames = video->get_frames();
 
     for (auto& frame : frames) {
@@ -177,6 +235,12 @@ void VideoData::Crop::operator()(VideoData *video)
 
     video->_frame_width  = _rect.width;
     video->_frame_height = _rect.height;
+
+    #ifdef CHRONO_TIMING
+        CHRONO_TAC(ch_tx_video_total);
+        std::cerr << "video-crop: " << CHRONO_GET_LAST_MS(ch_tx_video_total)
+                  << std::endl;
+    #endif
 }
 
     /*  *********************** */
@@ -185,11 +249,22 @@ void VideoData::Crop::operator()(VideoData *video)
 
 void VideoData::Threshold::operator()(VideoData *video)
 {
+    #ifdef CHRONO_TIMING
+        ChronoCpu ch_tx_video_total("ch_tx_video_total");
+        CHRONO_TIC(ch_tx_video_total);
+    #endif
+
     std::vector<VCL::Image>& frames = video->get_frames();
 
     for (auto& frame : frames) {
         frame.threshold(_threshold);
     }
+
+    #ifdef CHRONO_TIMING
+        CHRONO_TAC(ch_tx_video_total);
+        std::cerr << "video=thre: " << CHRONO_GET_LAST_MS(ch_tx_video_total)
+                  << std::endl;
+    #endif
 }
 
     /*  *********************** */
@@ -198,6 +273,11 @@ void VideoData::Threshold::operator()(VideoData *video)
 
 void VideoData::Interval::operator()(VideoData *video)
 {
+    #ifdef CHRONO_TIMING
+        ChronoCpu ch_tx_video_total("ch_tx_video_total");
+        CHRONO_TIC(ch_tx_video_total);
+    #endif
+
     if (_u != Video::Unit::FRAMES)
         throw VCLException(UnsupportedOperation,
                 "Only Unit::FRAMES supported for interval operation");
@@ -225,6 +305,12 @@ void VideoData::Interval::operator()(VideoData *video)
 
     video->_fps /= _step;
     video->_frame_count = interval_vector.size();
+
+    #ifdef CHRONO_TIMING
+        CHRONO_TAC(ch_tx_video_total);
+        std::cerr << "video-interv: " << CHRONO_GET_LAST_MS(ch_tx_video_total)
+                  << std::endl;
+    #endif
 }
 
     /*  *********************** */
