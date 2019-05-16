@@ -4,17 +4,15 @@ Here is the detailed process of installation of VDMS dependencies.
 
 ## Dependencies
 
+    sudo apt-get install wget
     sudo apt-get install scons
     sudo apt-get install libjsoncpp-dev
     sudo apt-get install automake libtool curl make g++ unzip libgtest-dev
     sudo apt-get install cmake wget zlib1g-dev libbz2-dev libssl-dev liblz4-dev
-    sudo apt-get install libtiff5-dev libjasper-dev libgtk-3-dev
-    sudo apt-get install wget
+    sudo apt-get install libtbb2 libtbb-dev
     sudo apt-get install ffmpeg
+    sudo apt-get install libavcodec-dev libavformat-dev libavdevice-dev
 
-    // Also, install one of the following for MPI
-    sudo apt-get install libopenmpi-dev
-    sudo apt-get install mpich
 
 ### Install gtest
 
@@ -42,14 +40,14 @@ you need to do the following steps to get it to work correctly:
 
 Below are instructions for installing OpenCV v3.3.1.
 It may also work with newer versions of OpenCV.
-Download [OpenCV 3.3.1](https://github.com/opencv/opencv/archive/3.3.1.zip)
 
+    wget https://github.com/opencv/opencv/archive/3.3.1.zip
     unzip 3.3.1.zip
     cd 3.3.1
     mkdir build
     cd build/
     cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
-    make -jX   # substitute X for maximum number of CPUs (or leave it off to use all available)
+    make -j
     sudo make install
 
 **Note**: When using videos, and getting the following error: "Unable to stop the stream: Inappropriate ioctl for device", you may need to include more flags when compiling OpenCV. Follow these instructions ([source](https://stackoverflow.com/questions/41200201/opencv-unable-to-stop-the-stream-inappropriate-ioctl-for-device)):
@@ -59,9 +57,8 @@ Download [OpenCV 3.3.1](https://github.com/opencv/opencv/archive/3.3.1.zip)
 
     // Rebuild OpenCV with the following commands:
 
-    cd build
     cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local  -D WITH_FFMPEG=ON -D WITH_TBB=ON -D WITH_GTK=ON -D WITH_V4L=ON -D WITH_OPENGL=ON -D WITH_CUBLAS=ON -DWITH_QT=OFF -DCUDA_NVCC_FLAGS="-D_FORCE_INLINES" ..
-    make -j7
+    make -j
     sudo make install
 
 ### [TileDB](https://tiledb.io/)
@@ -69,26 +66,6 @@ VDMS works with TileDB v1.3.1.
 The directions below will help you install TileDB v1.3.1 from source.
 You can also follow the directions listed
 [here](https://docs.tiledb.io/en/latest/installation.html).
-
-    sudo apt-get install zlib1g-dev libssl-dev liblz4-dev libbz2-dev
-
-Install Blosc
-
-    git clone https://github.com/Blosc/c-blosc.git`
-    cd c-blosc/
-    mkdir build
-    cd build/
-    cmake -DCMAKE_INSTALL_PREFIX='/usr' ..
-    cmake --build .
-    ctest
-    sudo cmake --build . --target install
-
-Install ZStandard
-
-    wget https://github.com/facebook/zstd/archive/v1.1.0.tar.gz
-    tar xf v1.1.0.tar.gz
-    cd zstd-1.1.0
-    sudo make install PREFIX='/usr'
 
 Build TileDB
 
@@ -98,14 +75,14 @@ Build TileDB
     mkdir build
     cd build
     ../bootstrap --prefix=/usr/local/
-    make -jX   # substitute X for maximum number of CPUs (or leave it off to use all available)
+    make -j
     sudo make install-tiledb
 
 ### [Faiss](https://github.com/facebookresearch/faiss)
 Facebook Faiss library for similarity search, used as alternitive engines.
+VDMS works with Faiss v1.4.0.
 
-Download [Faiss 1.4.0](https://github.com/facebookresearch/faiss/archive/v1.4.0.tar.gz)
-
+    wget https://github.com/facebookresearch/faiss/archive/v1.4.0.tar.gz
     tar -xzvf v1.4.0.tar.gz
     cd faiss-1.4.0
     mkdir build
