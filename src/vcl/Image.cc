@@ -370,7 +370,12 @@ Image::Image(const Image &img, bool copy)
 
 Image::Image(Image &&img) noexcept
 {
-    Image(img, false);
+    _format = img._format;
+    _compress = img._compress;
+    _image_id = img._image_id;
+    _tdb = img._tdb;
+    _operations = std::move(img._operations);
+    shallow_copy_cv(img._cv_img);
 
     img._tdb = NULL;
 }
