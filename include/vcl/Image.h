@@ -67,12 +67,6 @@ namespace VCL {
     /*  *********************** */
 
         /**
-         *  Default constructor, creates an empty Image object.
-         *    Used when reading from the file system
-         */
-        Image();
-
-        /**
          *  Creates an Image object from the image id (where the
          *    image data can be found in the system).
          *
@@ -330,6 +324,13 @@ namespace VCL {
         void delete_image();
 
     private:
+
+        /**
+         *  Default constructor, creates an empty Image object.
+         *    Used when reading from the file system
+         */
+        Image();
+
         // Forward declaration of Operation class, to be used of _operations
         // list
         class Operation;
