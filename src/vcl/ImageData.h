@@ -370,11 +370,12 @@ namespace VCL {
         ImageData();
 
        /**
-         *  Creates an ImageData object from the OpenCV Mat.
+         *  Creates an ImageData object from the OpenCV Mat,
+         *  making a deep copy.
          *
          *  @param cv_img  An OpenCV Mat that contains an image
          */
-        ImageData(const cv::Mat &cv_img);
+        ImageData(const cv::Mat &cv_img, bool copy=true);
 
         /**
          *  Creates an ImageData object from the filename
@@ -400,7 +401,7 @@ namespace VCL {
          *
          *  @param img  A reference to an existing ImageData object
          */
-        ImageData(const ImageData &img);
+        ImageData(const ImageData &img, bool copy=true);
 
         /**
          *  Sets an ImageData object equal to another ImageData object
@@ -643,18 +644,23 @@ namespace VCL {
          */
         void delete_object();
 
-
-
     private:
     /*  *********************** */
     /*      COPY FUNCTIONS      */
     /*  *********************** */
         /**
-         *  Copies an OpenCV Mat into the ImageData OpenCV Mat
+         *  Copies (deep copy) an OpenCV Mat into the ImageData OpenCV Mat
          *
          *  @param cv_img  An existing OpenCV Mat
          */
-        void copy_cv(const cv::Mat &cv_img);
+        void deep_copy_cv(const cv::Mat &cv_img);
+
+        /**
+         *  Copies (shallow copy) an OpenCV Mat into the ImageData OpenCV Mat
+         *
+         *  @param cv_img  An existing OpenCV Mat
+         */
+        void shallow_copy_cv(const cv::Mat &cv_img);
 
         /**
          *  Copies the ImageData OpenCV Mat into a buffer
