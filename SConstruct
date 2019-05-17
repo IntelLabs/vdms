@@ -67,7 +67,6 @@ def buildServer(env):
                   'src/vcl/Image.cc',
                   'src/vcl/TDBImage.cc',
                   'src/vcl/Video.cc',
-                  'src/vcl/VideoData.cc',
                   'src/vcl/DescriptorSet.cc',
                   'src/vcl/DescriptorSetData.cc',
                   'src/vcl/FaissDescriptorSet.cc',

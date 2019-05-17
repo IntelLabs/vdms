@@ -27,7 +27,6 @@
  *
  */
 
-#include "VideoData.h"
 #include "gtest/gtest.h"
 
 #include <opencv2/core.hpp>
@@ -92,7 +91,7 @@ protected:
 
 TEST_F(VideoDataTest, DefaultConstructor)
 {
-    VCL::VideoData video_data;
+    VCL::Video video_data;
     long input_frame_count = video_data.get_frame_count();
 
     ASSERT_EQ(input_frame_count, 0);
@@ -100,7 +99,7 @@ TEST_F(VideoDataTest, DefaultConstructor)
 
 TEST_F(VideoDataTest, StringConstructor)
 {
-    VCL::VideoData video_data(_video_path_avi_xvid);
+    VCL::Video video_data(_video_path_avi_xvid);
     long input_frame_count = video_data.get_frame_count();
 
     cv::VideoCapture testVideo(_video_path_avi_xvid);
@@ -110,9 +109,9 @@ TEST_F(VideoDataTest, StringConstructor)
 
 TEST_F(VideoDataTest, CopyConstructor)
 {
-    VCL::VideoData testVideo4copy(_video_path_avi_xvid);
+    VCL::Video testVideo4copy(_video_path_avi_xvid);
 
-    VCL::VideoData video_data(testVideo4copy);
+    VCL::Video video_data(testVideo4copy);
     long input_frame_count = video_data.get_frame_count();
 
     cv::VideoCapture testVideo(_video_path_avi_xvid);
@@ -142,14 +141,14 @@ TEST_F(VideoDataTest, BlobConstructor)
 
     std::string vcl_from_buffer("videos_tests/vd_from_buffer.avi");
     {
-        VCL::VideoData video_data(inBuf, fsize);
-        video_data.write(vcl_from_buffer, VCL::Video::Codec::XVID);
+        VCL::Video video_data(inBuf, fsize);
+        video_data.store(vcl_from_buffer, VCL::Video::Codec::XVID);
     }
 
     delete[] inBuf;
 
     // OpenCV writing the video H264
-    // We need to write again to make sure we use the same parameters
+    // We need to store again to make sure we use the same parameters
     // when writting the video.
     std::string write_output_ocv("videos_tests/write_test_ocv.avi");
     {
@@ -169,7 +168,7 @@ TEST_F(VideoDataTest, BlobConstructor)
         }
     }
 
-    VCL::VideoData video_data(vcl_from_buffer);
+    VCL::Video video_data(vcl_from_buffer);
     long input_frame_count = video_data.get_frame_count();
 
     cv::VideoCapture testVideo(write_output_ocv);
@@ -192,7 +191,7 @@ TEST_F(VideoDataTest, BlobConstructor)
 TEST_F(VideoDataTest, ReadAVI_XVID)
 {
     try {
-        VCL::VideoData video_data(_video_path_avi_xvid);
+        VCL::Video video_data(_video_path_avi_xvid);
         long input_frame_count = video_data.get_frame_count();
 
         cv::VideoCapture testVideo(_video_path_avi_xvid);
@@ -214,7 +213,7 @@ TEST_F(VideoDataTest, ReadAVI_XVID)
 TEST_F(VideoDataTest, ReadMP4_H264)
 {
     try {
-        VCL::VideoData video_data(_video_path_mp4_h264);
+        VCL::Video video_data(_video_path_mp4_h264);
         long input_frame_count = video_data.get_frame_count();
 
         cv::VideoCapture testVideo(_video_path_mp4_h264);
@@ -238,8 +237,8 @@ TEST_F(VideoDataTest, WriteMP4_H264)
     try {
         std::string write_output_vcl("videos_tests/write_test_vcl.mp4");
         {
-            VCL::VideoData video_data(_video_path_avi_xvid);
-            video_data.write(write_output_vcl, VCL::Video::Codec::H264);
+            VCL::Video video_data(_video_path_avi_xvid);
+            video_data.store(write_output_vcl, VCL::Video::Codec::H264);
         }
 
         // OpenCV writing the video H264
@@ -261,7 +260,7 @@ TEST_F(VideoDataTest, WriteMP4_H264)
             }
         }
 
-        VCL::VideoData video_data(write_output_vcl);
+        VCL::Video video_data(write_output_vcl);
         long input_frame_count = video_data.get_frame_count();
 
         cv::VideoCapture testVideo(write_output_ocv);
@@ -292,8 +291,8 @@ TEST_F(VideoDataTest, WriteAVI_XVID)
     try {
         std::string write_output_vcl("videos_tests/write_test_vcl.avi");
         {
-            VCL::VideoData video_data(_video_path_avi_xvid);
-            video_data.write(write_output_vcl, VCL::Video::Codec::XVID);
+            VCL::Video video_data(_video_path_avi_xvid);
+            video_data.store(write_output_vcl, VCL::Video::Codec::XVID);
         }
 
         // OpenCV writing the video H264
@@ -315,7 +314,7 @@ TEST_F(VideoDataTest, WriteAVI_XVID)
             }
         }
 
-        VCL::VideoData video_data(write_output_vcl);
+        VCL::Video video_data(write_output_vcl);
         long input_frame_count = video_data.get_frame_count();
 
         cv::VideoCapture testVideo(write_output_ocv);
@@ -350,9 +349,9 @@ TEST_F(VideoDataTest, ResizeWrite)
 
         std::string resize_name_vcl("videos_tests/resize_vcl.mp4");
         {
-            VCL::VideoData video_data(_video_path_avi_xvid); //
+            VCL::Video video_data(_video_path_avi_xvid); //
             video_data.resize(new_w, new_h);
-            video_data.write(resize_name_vcl, VCL::Video::Codec::H264);
+            video_data.store(resize_name_vcl, VCL::Video::Codec::H264);
         }
 
         // OpenCV writing the video H264
@@ -376,7 +375,7 @@ TEST_F(VideoDataTest, ResizeWrite)
             testWriteVideo.release();
         }
 
-        VCL::VideoData video_data(resize_name_vcl);
+        VCL::Video video_data(resize_name_vcl);
         long input_frame_count = video_data.get_frame_count();
 
         cv::VideoCapture testVideo(resize_name_ocv);
@@ -411,9 +410,9 @@ TEST_F(VideoDataTest, IntervalWrite)
 
         std::string interval_name_vcl("videos_tests/interval_vcl.mp4");
         {
-            VCL::VideoData video_data(_video_path_avi_xvid); //
+            VCL::Video video_data(_video_path_avi_xvid); //
             video_data.interval(VCL::Video::FRAMES, init, end, step);
-            video_data.write(interval_name_vcl, VCL::Video::Codec::H264);
+            video_data.store(interval_name_vcl, VCL::Video::Codec::H264);
         }
 
         // OpenCV writing the video H264
@@ -440,7 +439,7 @@ TEST_F(VideoDataTest, IntervalWrite)
             testWriteVideo.release();
         }
 
-        VCL::VideoData video_data(interval_name_vcl);
+        VCL::Video video_data(interval_name_vcl);
         long input_frame_count = video_data.get_frame_count();
 
         cv::VideoCapture testVideo(interval_name_ocv);
@@ -473,7 +472,7 @@ TEST_F(VideoDataTest, IntervalOutOfBounds)
     int end  = 270; // This should cause error
     int step = 5;
     try {
-        VCL::VideoData video_data(_video_path_avi_xvid); //
+        VCL::Video video_data(_video_path_avi_xvid); //
         video_data.interval(VCL::Video::FRAMES, init, end, step);
         // It will only throw when the operations are performed
         ASSERT_THROW(video_data.get_frame_count(), VCL::Exception);
@@ -485,7 +484,7 @@ TEST_F(VideoDataTest, IntervalOutOfBounds)
     init = 270;
     end  = 250;
     try {
-        VCL::VideoData video_data(_video_path_avi_xvid); //
+        VCL::Video video_data(_video_path_avi_xvid); //
         video_data.interval(VCL::Video::FRAMES, init, end, step);
         // It will only throw when the operations are performed
         ASSERT_THROW(video_data.get_frame_count(), VCL::Exception);
@@ -503,9 +502,9 @@ TEST_F(VideoDataTest, ThresholdWrite)
 
         std::string threshold_name_vcl("videos_tests/threshold_vcl.mp4");
         {
-            VCL::VideoData video_data(_video_path_avi_xvid); //
+            VCL::Video video_data(_video_path_avi_xvid); //
             video_data.threshold(ths);
-            video_data.write(threshold_name_vcl, VCL::Video::Codec::H264);
+            video_data.store(threshold_name_vcl, VCL::Video::Codec::H264);
         }
 
         // OpenCV writing the video H264
@@ -531,7 +530,7 @@ TEST_F(VideoDataTest, ThresholdWrite)
             testWriteVideo.release();
         }
 
-        VCL::VideoData video_data(threshold_name_vcl);
+        VCL::Video video_data(threshold_name_vcl);
         long input_frame_count = video_data.get_frame_count();
 
         cv::VideoCapture testVideo(threshold_name_ocv);
@@ -568,9 +567,9 @@ TEST_F(VideoDataTest, CropWrite)
 
         std::string crop_name_vcl("videos_tests/crop_vcl.mp4");
         {
-            VCL::VideoData video_data(_video_path_avi_xvid); //
+            VCL::Video video_data(_video_path_avi_xvid); //
             video_data.crop(rect);
-            video_data.write(crop_name_vcl, VCL::Video::Codec::H264);
+            video_data.store(crop_name_vcl, VCL::Video::Codec::H264);
         }
 
         // OpenCV writing the video H264
@@ -593,7 +592,7 @@ TEST_F(VideoDataTest, CropWrite)
             testWriteVideo.release();
         }
 
-        VCL::VideoData video_data(crop_name_vcl);
+        VCL::Video video_data(crop_name_vcl);
         long input_frame_count = video_data.get_frame_count();
 
         cv::VideoCapture testVideo(crop_name_ocv);
