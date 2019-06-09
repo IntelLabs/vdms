@@ -2,27 +2,26 @@
 FROM intellabs/vdms:base
 
 RUN apt-get update && apt-get upgrade -y && \
-    apt-get install -y \
+    apt-get install -y --no-install-recommends \
     python3-pip
 
-RUN pip3 install --upgrade pip
-RUN pip3 install numpy
-RUN pip3 install notebook
-RUN pip3 install vdms
+RUN pip3 install --upgrade pip && \
+    pip3 install numpy && \
+    pip3 install notebook && \
+    pip3 install vdms
 
-RUN jupyter notebook --generate-config
-RUN echo "c.NotebookApp.password='sha1:d12a2dd64552:86359144939d58019e6e5b37e373a50426ad7b2b' ">> /root/.jupyter/jupyter_notebook_config.py
+RUN jupyter notebook --generate-config && \
+    echo "c.NotebookApp.password='sha1:d12a2dd64552:86359144939d58019e6e5b37e373a50426ad7b2b' ">> /root/.jupyter/jupyter_notebook_config.py
 
-RUN echo '#!/bin/bash' > /start.sh
-RUN echo 'export LD_LIBRARY_PATH=/vdms/utils:/pmgd/lib:$(find /usr/local/lib/ / -type f -name "*.so" | xargs dirname | sort | uniq | tr "\n" ":")' >> /start.sh
-RUN echo 'cd /vdms' >> /start.sh
-RUN echo 'rm -rf db' >> /start.sh
-RUN echo './vdms &' >> /start.sh
-RUN echo 'mkdir examples' >> /start.sh
-RUN echo 'cd examples' >> /start.sh
-RUN chmod 755 /start.sh
-RUN echo 'jupyter notebook --port=8888 --no-browser --allow-root --ip=0.0.0.0' >> /start.sh
-RUN chmod 755 /start.sh
+RUN echo '#!/bin/bash' > /start.sh && \
+    echo 'export LD_LIBRARY_PATH=/vdms/utils:/pmgd/lib:$(find /usr/local/lib/ / -type f -name "*.so" | xargs dirname | sort | uniq | tr "\n" ":")' >> /start.sh && \
+    echo 'cd /vdms' >> /start.sh && \
+    echo 'rm -rf db' >> /start.sh && \
+    echo './vdms &' >> /start.sh && \
+    echo 'mkdir examples' >> /start.sh && \
+    echo 'cd examples' >> /start.sh && \
+    echo 'jupyter notebook --port=8888 --no-browser --allow-root --ip=0.0.0.0' >> /start.sh && \
+    chmod 755 /start.sh
 
 # Add Tini. Tini operates as a process subreaper for jupyter.
 # This prevents kernel crashes.
