@@ -103,7 +103,7 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     }
 
     std::string img_root = _storage_tdb;
-    VCL::Image::Format vcl_format = VCL::Image::Format::TDB;
+    VCL::Image::Format vcl_format = img.get_image_format();
 
     std::string format = get_value<std::string>(cmd, "format", "");
     if (cmd.isMember("format")) {
