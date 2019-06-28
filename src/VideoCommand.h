@@ -49,6 +49,8 @@ namespace VDMS {
 
         VCL::Video::Codec string_to_codec(const std::string& codec);
 
+        virtual Json::Value check_responses(Json::Value& responses);
+
     public:
 
         VideoCommand(const std::string &cmd_name);
@@ -76,6 +78,12 @@ namespace VDMS {
                                const std::string& blob,
                                int grp_id,
                                Json::Value& error);
+
+        Json::Value construct_responses(
+                Json::Value &json_responses,
+                const Json::Value &json,
+                protobufs::queryMessage &response,
+                const std::string &blob);
 
         bool need_blob(const Json::Value& cmd) { return true; }
     };
@@ -114,6 +122,25 @@ namespace VDMS {
                 const Json::Value &json,
                 protobufs::queryMessage &response,
                 const std::string &blob);
+    };
+
+    class FindFrames: public VideoCommand
+    {
+        bool get_interval_index (const Json::Value& cmd, Json::ArrayIndex& op_index);
+    public:
+        FindFrames();
+
+        int construct_protobuf(PMGDQuery& tx,
+                               const Json::Value& root,
+                               const std::string& blob,
+                               int grp_id,
+                               Json::Value& error) override;
+
+        Json::Value construct_responses(
+                Json::Value &json_responses,
+                const Json::Value &json,
+                protobufs::queryMessage &response,
+                const std::string &blob) override;
     };
 
 }; // namespace VDMS

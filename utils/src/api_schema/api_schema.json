@@ -57,7 +57,8 @@
 
       { "$ref": "#/definitions/AddVideoTop" },
       { "$ref": "#/definitions/UpdateVideoTop" },
-      { "$ref": "#/definitions/FindVideoTop" }
+      { "$ref": "#/definitions/FindVideoTop" },
+      { "$ref": "#/definitions/FindFramesTop" }
     ]
   },
   "uniqueItems": false,
@@ -74,6 +75,12 @@
     "nonNegativeInt": {
       "type": "integer",
       "minimum": 0
+    },
+
+    "nonNegativeIntArray": {
+      "type": "array",
+      "items": {"type": "integer", "minimum": 0},
+      "minimum": 1
     },
 
     "positiveDouble": {
@@ -204,6 +211,22 @@
           { "$ref": "#/definitions/operationThreshold" },
           { "$ref": "#/definitions/operationResize" },
           { "$ref": "#/definitions/operationCrop" },
+          { "$ref": "#/definitions/operationInterval" }
+        ]
+      },
+      "uniqueItems": false
+    },
+
+    "blockFrameOperations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "anyOf": [
+          { "$ref": "#/definitions/operationThreshold" },
+          { "$ref": "#/definitions/operationResize" },
+          { "$ref": "#/definitions/operationCrop" },
+          { "$ref": "#/definitions/operationFlip" },
+          { "$ref": "#/definitions/operationRotate" },
           { "$ref": "#/definitions/operationInterval" }
         ]
       },
@@ -426,6 +449,13 @@
     "FindVideoTop": {
       "properties": {
         "FindVideo" : { "type": "object", "$ref": "#/definitions/FindVideo" }
+      },
+      "additionalProperties": false
+    },
+
+    "FindFramesTop": {
+      "properties": {
+        "FindFrames" : { "type": "object", "$ref": "#/definitions/FindFrames" }
       },
       "additionalProperties": false
     },
@@ -664,6 +694,20 @@
         "unique":      { "type": "boolean" }
       },
 
+      "additionalProperties": false
+    },
+
+    "FindFrames": {
+      "properties": {
+        "frames":      { "$ref": "#/definitions/nonNegativeIntArray" },
+        "_ref":        { "$ref": "#/definitions/refInt" },
+        "link":        { "$ref": "#/definitions/blockLink" },
+        "operations":  { "$ref": "#/definitions/blockFrameOperations" },
+        "format":      { "$ref": "#/definitions/imgFormatString" },
+        "constraints": { "type": "object" },
+        "results":     { "$ref": "#/definitions/blockResults" },
+        "unique":      { "type": "boolean" }
+      },
       "additionalProperties": false
     }
 

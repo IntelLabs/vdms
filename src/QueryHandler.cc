@@ -85,6 +85,7 @@ void QueryHandler::init()
     _rs_cmds["AddVideo"]           = new AddVideo();
     _rs_cmds["UpdateVideo"]        = new UpdateVideo();
     _rs_cmds["FindVideo"]          = new FindVideo();
+    _rs_cmds["FindFrames"]         = new FindFrames();
 
     // Load the string containing the schema (api_schema/APISchema.h)
     Json::Reader reader;
