@@ -163,7 +163,7 @@ Json::Value AddDescriptorSet::construct_responses(
     };
 
     if (resp["status"] != RSCommand::Success) {
-        error(resp);
+        return error(resp);
     }
 
     int dimensions = cmd["dimensions"].asInt();
