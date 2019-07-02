@@ -124,6 +124,32 @@ class ImageTest : public ::testing::Test {
     int size_;
 };
 
+namespace VCL {
+
+    class ImageTest : public Image{
+
+    public:
+        ImageTest() : Image() {}
+        ImageTest(std::string a) : Image(a) {}
+        ImageTest(cv::Mat& a) : Image(a) {}
+
+        using Image::perform_operations;
+        using Image::set_data_from_raw;
+        using Image::set_data_from_encoded;
+        using Image::set_format;
+        using Image::read;
+    };
+};
+
+TEST_F(ImageTest, DefaultConstructor)
+{
+    VCL::ImageTest img_data;
+
+    cv::Size dims = img_data.get_dimensions();
+
+    EXPECT_EQ(0, dims.height);
+    EXPECT_EQ(0, dims.width);
+}
 
 // When setting from a filename, we set the type, number of channels, path, and format of the image,
 // We also add a read operation to the list of operations
@@ -135,12 +161,36 @@ TEST_F(ImageTest, StringConstructor)
     EXPECT_EQ(img_, img.get_image_id());
 }
 
+TEST_F(ImageTest, StringConstructorIMG)
+{
+    VCL::Image img_data(img_);
+
+    cv::Size dims = img_data.get_dimensions();
+    EXPECT_EQ(cv_img_.rows, dims.height);
+    EXPECT_EQ(cv_img_.cols, dims.width);
+
+    EXPECT_EQ(img_data.get_image_format(), VCL::Image::Format::JPG);
+}
+
+TEST_F(ImageTest, StringConstructorTDB)
+{
+    VCL::Image img_data(tdb_img_);
+
+    cv::Size dims = img_data.get_dimensions();
+
+    EXPECT_EQ(cv_img_.rows, dims.height);
+    EXPECT_EQ(cv_img_.cols, dims.width);
+
+    EXPECT_EQ(img_data.get_image_format(), VCL::Image::Format::TDB);
+}
+
 // When setting from a cv::mat, we set the type of the image and copy the image data
 // We should know the height, width, number of channels, type, and have a non-empty Mat
 TEST_F(ImageTest, MatConstructor)
 {
     VCL::Image img(cv_img_);
 
+    ASSERT_FALSE( img.get_cvmat().empty() );
     EXPECT_EQ(cv_img_.type(), img.get_image_type());
 
     cv::Size dims = img.get_dimensions();
@@ -148,7 +198,9 @@ TEST_F(ImageTest, MatConstructor)
     EXPECT_EQ(cv_img_.rows, dims.height);
     EXPECT_EQ(cv_img_.cols, dims.width);
 
-    ASSERT_FALSE( img.get_cvmat().empty() );
+    cv::Mat cv_img = img.get_cvmat();
+
+    compare_mat_mat(cv_img, cv_img_);
 }
 
 TEST_F(ImageTest, EncodedBufferConstructor)
@@ -171,6 +223,27 @@ TEST_F(ImageTest, EncodedBufferConstructor)
     cv::Mat raw = img.get_cvmat();
 
     compare_mat_mat(cv_img_, raw);
+}
+
+TEST_F(ImageTest, BufferConstructor)
+{
+    unsigned char* buffer = cv_img_.data;
+
+    int size = cv_img_.rows * cv_img_.cols * cv_img_.channels();
+
+    VCL::Image img_data(buffer, cv::Size(cv_img_.cols, cv_img_.rows), cv_img_.type());
+
+    cv::Size dims = img_data.get_dimensions();
+
+    EXPECT_EQ(cv_img_.rows, dims.height);
+    EXPECT_EQ(cv_img_.cols, dims.width);
+    EXPECT_EQ(cv_img_.type(), img_data.get_image_type());
+
+    unsigned char* buf = new unsigned char[size];
+
+    img_data.get_raw_data(buf, size);
+
+    compare_mat_buffer(cv_img_, buf);
 }
 
 TEST_F(ImageTest, RawBufferConstructor)
@@ -200,6 +273,30 @@ TEST_F(ImageTest, CopyConstructor)
     compare_mat_mat(test_cv, cv_img_);
 }
 
+TEST_F(ImageTest, CopyConstructorMat)
+{
+    VCL::Image img_data(cv_img_);
+
+    VCL::Image img_copy(img_data);
+
+    cv::Mat cv_img = img_data.get_cvmat();
+    cv::Mat cv_copy = img_copy.get_cvmat();
+
+    compare_mat_mat(cv_img, cv_copy);
+}
+
+TEST_F(ImageTest, CopyConstructorTDB)
+{
+    VCL::Image img_data(tdb_img_);
+
+    VCL::Image img_copy(img_data);
+
+    cv::Mat cv_img = img_data.get_cvmat();
+    cv::Mat cv_copy = img_copy.get_cvmat();
+
+    compare_mat_mat(cv_img, cv_copy);
+}
+
 TEST_F(ImageTest, CopyConstructorComplex)
 {
     VCL::Image img(cv_img_);
@@ -220,6 +317,33 @@ TEST_F(ImageTest, CopyConstructorComplex)
     EXPECT_EQ(rect_.height, dims.height);
 }
 
+TEST_F(ImageTest, OperatorEqualsMat)
+{
+    VCL::ImageTest img_data(cv_img_);
+
+    VCL::ImageTest img_copy;
+
+    img_copy = img_data;
+
+    cv::Mat cv_img = img_data.get_cvmat();
+    cv::Mat cv_copy = img_copy.get_cvmat();
+
+    compare_mat_mat(cv_img, cv_copy);
+}
+
+TEST_F(ImageTest, OperatorEqualsTDB)
+{
+    VCL::ImageTest img_data(tdb_img_);
+
+    VCL::ImageTest img_copy;
+
+    img_copy = img_data;
+
+    cv::Mat cv_img = img_data.get_cvmat();
+    cv::Mat cv_copy = img_copy.get_cvmat();
+
+    compare_mat_mat(cv_img, cv_copy);
+}
 
 TEST_F(ImageTest, GetMatFromMat)
 {
@@ -300,6 +424,39 @@ TEST_F(ImageTest, GetBufferFromTDB)
     delete [] buffer;
 }
 
+TEST_F(ImageTest, GetArea)
+{
+    VCL::Image img_data(tdb_img_);
+
+    VCL::Image new_data = img_data.get_area(rect_);
+
+    cv::Size dims = new_data.get_dimensions();
+
+    EXPECT_EQ(rect_.height, dims.height);
+    EXPECT_EQ(rect_.width, dims.width);
+}
+
+TEST_F(ImageTest, GetBuffer)
+{
+    VCL::Image img_data(tdb_img_);
+
+    int size = cv_img_.rows * cv_img_.cols * cv_img_.channels();
+    unsigned char* buf = new unsigned char[size];
+
+    img_data.get_raw_data(buf, size);
+
+    compare_mat_buffer(cv_img_, buf);
+}
+
+TEST_F(ImageTest, GetCVMat)
+{
+    VCL::Image img_data(tdb_img_);
+
+    cv::Mat cv_img = img_data.get_cvmat();
+
+    compare_mat_mat(cv_img_, cv_img);
+}
+
 TEST_F(ImageTest, GetRectangleFromPNG)
 {
     VCL::Image img(img_);
@@ -338,6 +495,45 @@ TEST_F(ImageTest, GetRectangleFromMat)
     EXPECT_EQ(rect_.width, dims.width);
 }
 
+TEST_F(ImageTest, SetDataFromRaw)
+{
+    VCL::ImageTest img_data;
+
+    void* buffer = cv_img_.data;
+    int size = cv_img_.rows * cv_img_.cols * cv_img_.channels();
+
+    img_data.set_data_from_raw(buffer, size);
+
+    cv::Mat raw = img_data.get_cvmat();
+
+    compare_mat_mat(cv_img_, raw);
+}
+
+TEST_F(ImageTest, SetDataFromEncoded)
+{
+    VCL::ImageTest img_data;
+
+    std::vector<unsigned char> buffer;
+    cv::imencode(".png", cv_img_, buffer);
+
+    img_data.set_data_from_encoded(static_cast<void*>(&buffer[0]), buffer.size());
+
+    cv::Mat raw = img_data.get_cvmat();
+
+    compare_mat_mat(raw, cv_img_);
+}
+
+TEST_F(ImageTest, Read)
+{
+    VCL::ImageTest img_data;
+    img_data.set_format("jpg");
+
+    ASSERT_THROW(img_data.read("images/.jpg"), VCL::Exception);
+
+    img_data.read("images/large1");
+
+    EXPECT_EQ("images/large1.jpg", img_data.get_image_id());
+}
 
 TEST_F(ImageTest, WriteMatToJPG)
 {
@@ -399,7 +595,64 @@ TEST_F(ImageTest, CropMat)
     cv::Mat cv_img = img.get_cvmat();
 
     EXPECT_FALSE(cv_img.empty());
-    EXPECT_EQ(rect_.height, cv_img.rows);
+
+    cv::Size dims = img.get_dimensions();
+
+    EXPECT_EQ(rect_.height, dims.height);
+    EXPECT_EQ(rect_.width, dims.width);
+
+    cv::Mat mat(cv_img_, rect_);
+    compare_mat_mat(cv_img, mat);
+}
+
+TEST_F(ImageTest, Threshold)
+{
+    VCL::ImageTest img_data(tdb_img_);
+
+    img_data.read(tdb_img_);
+
+    img_data.threshold(200);
+
+    img_data.perform_operations();
+
+    cv::Mat cv_bright = img_data.get_cvmat();
+
+    cv::threshold(cv_img_, cv_img_, 200, 200, cv::THRESH_TOZERO);
+
+    compare_mat_mat(cv_bright, cv_img_);
+}
+
+TEST_F(ImageTest, DeleteTDB)
+{
+    VCL::ImageTest img_data("tdb/no_metadata.tdb");
+
+    img_data.delete_image();
+
+    img_data.read("tdb/no_metadata.tdb");
+    ASSERT_THROW(img_data.perform_operations(), VCL::Exception);
+}
+
+// This test is not passing
+// TEST_F(ImageDataTest, DeleteIMG)
+// {
+//     VCL::Image img_data(cv_img_);
+
+//     auto unique_name = VCL::create_unique("image_results/", "png");
+
+//     img_data.store(unique_name, VCL::Image::Format::PNG);
+//     img_data.perform_operations();
+
+//     img_data.delete_object();
+
+//     img_data.read(test_img_);
+//     ASSERT_THROW(img_data.perform_operations(), VCL::Exception);
+// }
+
+TEST_F(ImageTest, SetMinimum)
+{
+    VCL::Image img_data(cv_img_);
+
+    img_data.set_minimum_dimension(3);
 }
 
 TEST_F(ImageTest, FlipVertical)
@@ -543,7 +796,17 @@ TEST_F(ImageTest, EncodedImage)
     compare_mat_mat(cv_img_, mat);
 }
 
-TEST_F(ImageTest, CreateName)
+TEST_F(ImageTest, CreateNamePNG)
+{
+    VCL::ImageTest img_data(cv_img_);
+
+    auto unique_name = VCL::create_unique("image_results/", "png");
+
+    img_data.store(unique_name, VCL::Image::Format::PNG);
+    img_data.perform_operations();
+}
+
+TEST_F(ImageTest, CreateNameTDB)
 {
     VCL::Image img(cv_img_);
 

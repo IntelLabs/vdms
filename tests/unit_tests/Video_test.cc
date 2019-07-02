@@ -223,3 +223,430 @@ TEST_F(VideoTest, CreateUnique)
         ASSERT_TRUE(false);
     }
 }
+
+TEST_F(VideoTest, ReadAVI_XVID)
+{
+    try {
+        VCL::Video video_data(_video_path_avi_xvid);
+        long input_frame_count = video_data.get_frame_count();
+
+        cv::VideoCapture testVideo(_video_path_avi_xvid);
+        long test_frame_count = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+
+        ASSERT_EQ(input_frame_count, test_frame_count);
+
+        for (int i = 0; i < input_frame_count; ++i) {
+            cv::Mat input_frame = video_data.get_frame(i);
+            compare_mat_mat(input_frame, _frames_xvid.at(i));
+        }
+
+    } catch(VCL::Exception &e) {
+        print_exception(e);
+        ASSERT_TRUE(false);
+    }
+}
+
+TEST_F(VideoTest, ReadMP4_H264)
+{
+    try {
+        VCL::Video video_data(_video_path_mp4_h264);
+        long input_frame_count = video_data.get_frame_count();
+
+        cv::VideoCapture testVideo(_video_path_mp4_h264);
+        long test_frame_count = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+
+        ASSERT_EQ(input_frame_count, test_frame_count);
+
+        for (int i = 0; i < input_frame_count; ++i) {
+            cv::Mat input_frame = video_data.get_frame(i);
+            compare_mat_mat(input_frame, _frames_h264.at(i));
+        }
+
+    } catch(VCL::Exception &e) {
+        print_exception(e);
+        ASSERT_TRUE(false);
+    }
+}
+
+TEST_F(VideoTest, WriteMP4_H264)
+{
+    try {
+        std::string write_output_vcl("videos_tests/write_test_vcl.mp4");
+        {
+            VCL::Video video_data(_video_path_avi_xvid);
+            video_data.store(write_output_vcl, VCL::Video::Codec::H264);
+        }
+
+        // OpenCV writing the video H264
+        std::string write_output_ocv("videos_tests/write_test_ocv.mp4");
+        {
+            cv::VideoCapture testWriteVideo(_video_path_avi_xvid);
+
+            cv::VideoWriter testResultVideo(
+                            write_output_ocv,
+                            get_fourcc(),
+                            testWriteVideo.get(CV_CAP_PROP_FPS),
+                            cv::Size(
+                                testWriteVideo.get(CV_CAP_PROP_FRAME_WIDTH),
+                                testWriteVideo.get(CV_CAP_PROP_FRAME_HEIGHT))
+                            );
+
+            for (auto& frame : _frames_xvid) {
+                testResultVideo << frame;
+            }
+        }
+
+        VCL::Video video_data(write_output_vcl);
+        long input_frame_count = video_data.get_frame_count();
+
+        cv::VideoCapture testVideo(write_output_ocv);
+        long test_frame_count = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+
+        ASSERT_EQ(input_frame_count, test_frame_count);
+
+        for (int i = 0; i < input_frame_count; ++i) {
+            cv::Mat input_frame = video_data.get_frame(i);
+            cv::Mat test_frame;
+            testVideo >> test_frame;
+
+            if (test_frame.empty())
+                break; // should not happen
+
+            compare_mat_mat(input_frame, test_frame);
+        }
+
+    } catch(VCL::Exception &e) {
+        print_exception(e);
+        ASSERT_TRUE(false);
+    }
+}
+
+TEST_F(VideoTest, WriteAVI_XVID)
+{
+    try {
+        std::string write_output_vcl("videos_tests/write_test_vcl.avi");
+        {
+            VCL::Video video_data(_video_path_avi_xvid);
+            video_data.store(write_output_vcl, VCL::Video::Codec::XVID);
+        }
+
+        // OpenCV writing the video H264
+        std::string write_output_ocv("videos_tests/write_test_ocv.avi");
+        {
+            cv::VideoCapture testWriteVideo(_video_path_avi_xvid);
+
+            cv::VideoWriter testResultVideo(
+                            write_output_ocv,
+                            CV_FOURCC('X', 'V', 'I', 'D'),
+                            testWriteVideo.get(CV_CAP_PROP_FPS),
+                            cv::Size(
+                                testWriteVideo.get(CV_CAP_PROP_FRAME_WIDTH),
+                                testWriteVideo.get(CV_CAP_PROP_FRAME_HEIGHT))
+                            );
+
+            for (auto& frame : _frames_xvid) {
+                testResultVideo << frame;
+            }
+        }
+
+        VCL::Video video_data(write_output_vcl);
+        long input_frame_count = video_data.get_frame_count();
+
+        cv::VideoCapture testVideo(write_output_ocv);
+        long test_frame_count = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+
+        ASSERT_EQ(input_frame_count, test_frame_count);
+
+        for (int i = 0; i < input_frame_count; ++i) {
+            cv::Mat input_frame = video_data.get_frame(i);
+            cv::Mat test_frame;
+            testVideo >> test_frame;
+
+            if (test_frame.empty())
+                break; // should not happen
+
+            compare_mat_mat(input_frame, test_frame);
+        }
+
+    } catch(VCL::Exception &e) {
+        print_exception(e);
+        ASSERT_TRUE(false);
+    }
+}
+
+TEST_F(VideoTest, ResizeWrite)
+{
+    int new_w = 160;
+    int new_h = 90;
+
+    try {
+
+        std::string resize_name_vcl("videos_tests/resize_vcl.mp4");
+        {
+            VCL::Video video_data(_video_path_avi_xvid); //
+            video_data.resize(new_w, new_h);
+            video_data.store(resize_name_vcl, VCL::Video::Codec::H264);
+        }
+
+        // OpenCV writing the video H264
+        std::string resize_name_ocv("videos_tests/resize_ocv.mp4");
+        {
+            cv::VideoCapture testWriteVideo(_video_path_avi_xvid);
+
+            cv::VideoWriter testResultVideo(
+                            resize_name_ocv,
+                            get_fourcc(),
+                            testWriteVideo.get(CV_CAP_PROP_FPS),
+                            cv::Size(new_w, new_h)
+                            );
+
+            for (auto& ff : _frames_xvid) {
+                cv::Mat cv_resized;
+                cv::resize(ff, cv_resized, cv::Size(new_w, new_h));
+                testResultVideo << cv_resized;
+            }
+
+            testWriteVideo.release();
+        }
+
+        VCL::Video video_data(resize_name_vcl);
+        long input_frame_count = video_data.get_frame_count();
+
+        cv::VideoCapture testVideo(resize_name_ocv);
+        long test_frame_count = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+
+        ASSERT_EQ(input_frame_count, test_frame_count);
+
+        for (int i = 0; i < input_frame_count; ++i) {
+            cv::Mat input_frame = video_data.get_frame(i);
+            cv::Mat test_frame;
+            testVideo >> test_frame;
+
+            if (test_frame.empty())
+                break; // should not happen
+
+            compare_mat_mat(input_frame, test_frame);
+        }
+
+    } catch(VCL::Exception &e) {
+        print_exception(e);
+        ASSERT_TRUE(false);
+    }
+}
+
+TEST_F(VideoTest, IntervalWrite)
+{
+    int init = 10;
+    int end  = 100;
+    int step = 5;
+
+    try {
+
+        std::string interval_name_vcl("videos_tests/interval_vcl.mp4");
+        {
+            VCL::Video video_data(_video_path_avi_xvid); //
+            video_data.interval(VCL::Video::FRAMES, init, end, step);
+            video_data.store(interval_name_vcl, VCL::Video::Codec::H264);
+        }
+
+        // OpenCV writing the video H264
+        std::string interval_name_ocv("videos_tests/interval_ocv.mp4");
+        {
+            cv::VideoCapture testWriteVideo(_video_path_avi_xvid);
+
+            cv::VideoWriter testResultVideo(
+                            interval_name_ocv,
+                            get_fourcc(),
+                            testWriteVideo.get(CV_CAP_PROP_FPS) / step,
+                            cv::Size(
+                                testWriteVideo.get(CV_CAP_PROP_FRAME_WIDTH),
+                                testWriteVideo.get(CV_CAP_PROP_FRAME_HEIGHT))
+                            );
+
+            if (end >= _frames_xvid.size())
+                ASSERT_TRUE(false);
+
+            for (int i = init; i < end; i += step) {
+                testResultVideo << _frames_xvid.at(i);
+            }
+
+            testWriteVideo.release();
+        }
+
+        VCL::Video video_data(interval_name_vcl);
+        long input_frame_count = video_data.get_frame_count();
+
+        cv::VideoCapture testVideo(interval_name_ocv);
+        long test_frame_count = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+
+        ASSERT_EQ(input_frame_count, test_frame_count);
+
+        for (int i = 0; i < input_frame_count; ++i) {
+            cv::Mat input_frame = video_data.get_frame(i);
+            cv::Mat test_frame;
+            testVideo >> test_frame;
+
+            if (test_frame.empty())
+                break; // should not happen
+
+            compare_mat_mat(input_frame, test_frame);
+        }
+
+    } catch(VCL::Exception &e) {
+        print_exception(e);
+        ASSERT_TRUE(false);
+    }
+}
+
+TEST_F(VideoTest, IntervalOutOfBounds)
+{
+    // Video has 270 frames, we test out of bounds here.
+
+    int init = 10;
+    int end  = 270; // This should cause error
+    int step = 5;
+    try {
+        VCL::Video video_data(_video_path_avi_xvid); //
+        video_data.interval(VCL::Video::FRAMES, init, end, step);
+        // It will only throw when the operations are performed
+        ASSERT_THROW(video_data.get_frame_count(), VCL::Exception);
+    } catch(VCL::Exception &e) {
+        print_exception(e);
+        ASSERT_TRUE(false);
+    }
+
+    init = 270;
+    end  = 250;
+    try {
+        VCL::Video video_data(_video_path_avi_xvid); //
+        video_data.interval(VCL::Video::FRAMES, init, end, step);
+        // It will only throw when the operations are performed
+        ASSERT_THROW(video_data.get_frame_count(), VCL::Exception);
+    } catch(VCL::Exception &e) {
+        print_exception(e);
+        ASSERT_TRUE(false);
+    }
+}
+
+TEST_F(VideoTest, ThresholdWrite)
+{
+    int ths = 100;
+
+    try {
+
+        std::string threshold_name_vcl("videos_tests/threshold_vcl.mp4");
+        {
+            VCL::Video video_data(_video_path_avi_xvid); //
+            video_data.threshold(ths);
+            video_data.store(threshold_name_vcl, VCL::Video::Codec::H264);
+        }
+
+        // OpenCV writing the video H264
+        std::string threshold_name_ocv("videos_tests/threshold_ocv.mp4");
+        {
+            cv::VideoCapture testWriteVideo(_video_path_avi_xvid);
+
+            cv::VideoWriter testResultVideo(
+                            threshold_name_ocv,
+                            get_fourcc(),
+                            testWriteVideo.get(CV_CAP_PROP_FPS),
+                            cv::Size(
+                                testWriteVideo.get(CV_CAP_PROP_FRAME_WIDTH),
+                                testWriteVideo.get(CV_CAP_PROP_FRAME_HEIGHT))
+                            );
+
+            for (auto& ff : _frames_xvid) {
+                cv::Mat cv_ths;
+                cv::threshold(ff, cv_ths, ths, ths, cv::THRESH_TOZERO);
+                testResultVideo << cv_ths;
+            }
+
+            testWriteVideo.release();
+        }
+
+        VCL::Video video_data(threshold_name_vcl);
+        long input_frame_count = video_data.get_frame_count();
+
+        cv::VideoCapture testVideo(threshold_name_ocv);
+        long test_frame_count = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+
+        ASSERT_EQ(input_frame_count, test_frame_count);
+
+        for (int i = 0; i < input_frame_count; ++i) {
+            cv::Mat input_frame = video_data.get_frame(i);
+            cv::Mat test_frame;
+            testVideo >> test_frame;
+
+            if (test_frame.empty())
+                break; // should not happen
+
+            compare_mat_mat(input_frame, test_frame);
+        }
+
+    } catch(VCL::Exception &e) {
+        print_exception(e);
+        ASSERT_TRUE(false);
+    }
+}
+
+TEST_F(VideoTest, CropWrite)
+{
+    int new_w = 160;
+    int new_h = 90;
+
+    cv::Rect   ocv_rect(100, 100, new_w, new_h);
+    VCL::Rectangle rect(100, 100, new_w, new_h);
+
+    try {
+
+        std::string crop_name_vcl("videos_tests/crop_vcl.mp4");
+        {
+            VCL::Video video_data(_video_path_avi_xvid); //
+            video_data.crop(rect);
+            video_data.store(crop_name_vcl, VCL::Video::Codec::H264);
+        }
+
+        // OpenCV writing the video H264
+        std::string crop_name_ocv("videos_tests/crop_ocv.mp4");
+        {
+            cv::VideoCapture testWriteVideo(_video_path_avi_xvid);
+
+            cv::VideoWriter testResultVideo(
+                            crop_name_ocv,
+                            get_fourcc(),
+                            testWriteVideo.get(CV_CAP_PROP_FPS),
+                            cv::Size(new_w, new_h)
+                            );
+
+            for (auto& ff : _frames_xvid) {
+                cv::Mat roi_frame(ff, ocv_rect);
+                testResultVideo << roi_frame;
+            }
+
+            testWriteVideo.release();
+        }
+
+        VCL::Video video_data(crop_name_vcl);
+        long input_frame_count = video_data.get_frame_count();
+
+        cv::VideoCapture testVideo(crop_name_ocv);
+        long test_frame_count = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+
+        ASSERT_EQ(input_frame_count, test_frame_count);
+
+        for (int i = 0; i < input_frame_count; ++i) {
+            cv::Mat input_frame = video_data.get_frame(i);
+            cv::Mat test_frame;
+            testVideo >> test_frame;
+
+            if (test_frame.empty())
+                break; // should not happen
+
+            compare_mat_mat(input_frame, test_frame);
+        }
+
+    } catch(VCL::Exception &e) {
+        print_exception(e);
+        ASSERT_TRUE(false);
+    }
+}

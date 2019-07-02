@@ -38,12 +38,13 @@
 
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
 
 #include "Exception.h"
+#include "TDBImage.h"
 #include "utils.h"
 
 namespace VCL {
-    class ImageData;
 
     /**
      *  Uses the OpenCV Rect class to define an area in the image
@@ -52,16 +53,9 @@ namespace VCL {
     typedef cv::Rect Rectangle;
 
     class Image {
-    private:
-    /*  *********************** */
-    /*        VARIABLES         */
-    /*  *********************** */
-        // Pointer to an ImageData object
-        ImageData *_image;
-
     public:
 
-        enum class Format{
+        enum class Format {
             NONE_IMAGE = 0,
             JPG = 1,
             PNG = 2,
@@ -71,9 +65,10 @@ namespace VCL {
     /*  *********************** */
     /*        CONSTRUCTORS      */
     /*  *********************** */
+
         /**
          *  Creates an Image object from the image id (where the
-         *    image data can be found in the system)
+         *    image data can be found in the system).
          *
          *  @param image_id  The full path to the image
          */
@@ -83,11 +78,12 @@ namespace VCL {
          *  Creates an Image object from the OpenCV Mat
          *
          *  @param cv_img  An OpenCV Mat that contains an image
+         *  @param copy  Deep copy if true, shallow copy if false
          */
         Image(const cv::Mat &cv_img, bool copy=true);
 
         /**
-         *  Creates an Image object from an encoded buffer
+         *  Creates an OpenCV Image object from an encoded buffer
          *
          *  @param buffer  An encoded buffer that contains the image data
          *  @param size  Size of the encoded buffer
@@ -98,41 +94,40 @@ namespace VCL {
         Image(void* buffer, long size, int flags=cv::IMREAD_ANYCOLOR);
 
         /**
-         *  Creates an Image object from a buffer of raw pixel data
+         *  Creates a TDB Image object from a buffer of raw pixel data
          *
-         *  @param buffer  An buffer that contains the image data
+         *  @param buffer  A buffer that contains the image data
          *  @param dimensions  An OpenCV Size object that contains the height
          *    and width of the image
          *  @param type  The OpenCV type of the image
          *  @see OpenCV documentation for more information on type and Size
          */
-        // template <class T> Image(const T* buffer, cv::Size dimensions,
-        Image(void* buffer, cv::Size dimensions,
-            int cv_type);
+        Image(void* buffer, cv::Size dimensions, int cv_type);
 
         /**
          *  Creates a new Image object from an existing Image object
-         *  This will make a deep copy of the arrays.
          *
          *  @param img  An existing Image object
+         *  @param copy Makes a deep copy if true, a shallow copy otherwise
          */
-        Image(const Image &img);
+        Image(const Image &img, bool copy=true);
 
         /**
          *  Move constructor, needed to avoid copies of the arrays.
          *  noexcept is needed to let vectors grow and call the move
          *  instead of copy constructor.
          *
-         *  @param img  An existing Image object
+         *  @param img  An rvalue Image object
          */
-        Image(const Image &&img) noexcept;
+        Image(Image &&img) noexcept;
 
         /**
-         *  Sets an Image object equal to another Image object
+         *  Assigns an Image object to this Image object by performing a deep
+         *  copy operation
          *
          *  @param img  An existing Image object
          */
-        void operator=(const Image &img);
+        Image& operator=(const Image &img);
 
         ~Image();
 
@@ -151,7 +146,7 @@ namespace VCL {
          *    an OpenCV Size object
          *  @return The dimension of the image in pixels as an OpenCV Size object
          */
-        cv::Size get_dimensions() const;
+        cv::Size get_dimensions();
 
         /**
          *  Gets the format of the Image object
@@ -165,7 +160,7 @@ namespace VCL {
          *
          *  @return The size of the image in pixels
          */
-        long get_raw_data_size() const;
+        long get_raw_data_size();
 
         /**
          *  Gets the OpenCV type of the image
@@ -202,7 +197,7 @@ namespace VCL {
          *  @param  buffer_size  The pixel size of the image (length of
          *     the buffer, not bytes)
          */
-        void get_raw_data(void* buffer, long buffer_size) const;
+        void get_raw_data(void* buffer, long buffer_size);
 
         /**
          *  Gets encoded image data in a buffer
@@ -213,7 +208,7 @@ namespace VCL {
          *  @see OpenCV documentation for imencode for more details
          */
         std::vector<unsigned char> get_encoded_image(VCL::Image::Format format,
-                const std::vector<int>& params=std::vector<int>()) const;
+                const std::vector<int>& params=std::vector<int>());
 
     /*  *********************** */
     /*        SET FUNCTIONS     */
@@ -249,6 +244,7 @@ namespace VCL {
     /*  *********************** */
     /*    IMAGE INTERACTIONS    */
     /*  *********************** */
+
         /**
          *  Writes the Image to the system at the given location and in
          *    the given format
@@ -261,11 +257,6 @@ namespace VCL {
          */
         void store(const std::string &image_id, VCL::Image::Format image_format,
             bool store_metadata=true);
-
-        /**
-         *  Deletes the Image
-         */
-        void delete_image();
 
         /**
          *  Resizes the Image to the given size. This operation is not
@@ -325,6 +316,439 @@ namespace VCL {
          *    input yet.
          */
         bool has_depth() { return false; };
-    };
 
+        /**
+         *  Deletes the Image as well as removes file from system if
+         *    it exists
+         */
+        void delete_image();
+
+    private:
+
+        /**
+         *  Default constructor, creates an empty Image object.
+         *    Used when reading from the file system
+         */
+        Image();
+
+        // Forward declaration of Operation class, to be used of _operations
+        // list
+        class Operation;
+
+        // Forward declaration of ImageTest class, that is used for the unit
+        // test to accesss private methods of this class
+        friend class ImageTest;
+
+    /*  *********************** */
+    /*        VARIABLES         */
+    /*  *********************** */
+        // Image height and width
+        uint _height, _width;
+
+        // Type of image (OpenCV definition) and number of channels
+        int _cv_type, _channels;
+
+        // Maintains order of operations requested
+        std::vector<std::shared_ptr<Operation>> _operations;
+
+        // Image format and compression type
+        Format _format;
+        CompressionType _compress;
+
+        // Full path to image
+        std::string _image_id;
+
+        // Image data (OpenCV Mat or TDBImage)
+        cv::Mat _cv_img;
+        TDBImage *_tdb;
+
+    /*  *********************** */
+    /*      COPY FUNCTIONS      */
+    /*  *********************** */
+        /**
+         *  Copies (deep copy) an OpenCV Mat into the Image OpenCV Mat
+         *
+         *  @param cv_img  An existing OpenCV Mat
+         */
+        void deep_copy_cv(const cv::Mat &cv_img);
+
+        /**
+         *  Copies (shallow copy) an OpenCV Mat into the Image OpenCV Mat
+         *
+         *  @param cv_img  An existing OpenCV Mat
+         */
+        void shallow_copy_cv(const cv::Mat &cv_img);
+
+        /**
+         *  Copies the Image OpenCV Mat into a buffer
+         *
+         *  @param buffer  The buffer that will contain the image
+         *    data
+         */
+        template <class T> void copy_to_buffer(T* buffer);
+
+    /*  *********************** */
+    /*      UTIL FUNCTIONS      */
+    /*  *********************** */
+
+        /**
+         *  Performs the set of operations that have been requested
+         *    on the Image
+         */
+        void perform_operations();
+
+        std::string format_to_string(Image::Format format);
+
+        /**
+         *  Creates full path to Image with appropriate extension based
+         *    on the Image::Format
+         *
+         *  @param filename The path to the Image object
+         *  @param format  The Image::Format of the Image object
+         *  @return Full path to the object including extension
+         */
+        std::string create_fullpath(const std::string &filename,
+            Image::Format format);
+
+    /*  *********************** */
+    /*        OPERATION         */
+    /*  *********************** */
+
+        enum class OperationType {
+            READ,
+            WRITE,
+            RESIZE,
+            CROP,
+            THRESHOLD,
+            FLIP,
+            ROTATE
+        };
+
+        /**
+         *  Provides a way to keep track of what operations should
+         *   be performed on the data when it is needed
+         *
+         *  Operation is the base class, it keeps track of the format
+         *   of the image data, defines a way to convert Format to
+         *   a string, and defines a virtual function that overloads the
+         *   () operator
+         */
+        class Operation {
+        protected:
+            /** The format of the image for this operation */
+            Format _format;
+
+            /**
+             *  Constructor, sets the format
+             *
+             *  @param format  The format for the operation
+             *  @see Image.h for more details on Format
+             */
+            Operation(Format format)
+                : _format(format)
+            {
+            };
+
+        public:
+            /**
+             *  Implemented by the specific operation, performs what
+             *    the operation is supposed to do
+             *
+             *  @param img  A pointer to the current Image object
+             */
+            virtual void operator()(Image *img) = 0;
+
+            virtual OperationType get_type() const = 0;
+        };
+
+    /*  *********************** */
+    /*       READ OPERATION     */
+    /*  *********************** */
+        /**
+         *  Extends Operation, reads image from the file system
+         */
+        class Read : public Operation {
+        private:
+            /** The full path to the object to read */
+            std::string _fullpath;
+
+        public:
+            /**
+             *  Constructor, sets the format and path for reading
+             *
+             *  @param filename  The full path to read from
+             *  @param format  The format to read the image from
+             *  @see Image.h for more details on ::Format
+             */
+            Read(const std::string& filename, Format format);
+
+            /**
+             *  Reads an image from the file system (based on the format
+             *    and file path indicated)
+             *
+             *  @param img  A pointer to the current Image object
+             */
+            void operator()(Image *img);
+
+
+            OperationType get_type() const { return OperationType::READ; };
+        };
+
+    /*  *********************** */
+    /*       WRITE OPERATION    */
+    /*  *********************** */
+        /**
+         *  Extends Operation, writes to the file system in the specified
+         *    format
+         */
+        class Write : public Operation {
+        private:
+            /** The full path of where to write the image */
+            std::string _fullpath;
+            /** The format the image used to be stored as */
+            Format _old_format;
+            /** Whether to store the metadata */
+            bool _metadata;
+
+        public:
+            /**
+             *  Constructor, sets the formats and path for writing
+             *
+             *  @param filename  The full path to write to
+             *  @param format  The format to store the image in
+             *  @param old_format  The format the image was stored in
+             *  @see Image.h for more details on ::Format
+             */
+            Write(const std::string& filename, Format format,
+                Format old_format, bool metadata);
+            /**
+             *  Writes an image to the file system (based on the format
+             *    and file path indicated)
+             *
+             *  @param img  A pointer to the current Image object
+             */
+            void operator()(Image *img);
+
+            OperationType get_type() const { return OperationType::WRITE; };
+        };
+
+    /*  *********************** */
+    /*       RESIZE OPERATION   */
+    /*  *********************** */
+        /**
+         *  Extends Operation, resizes the image to the specified size
+         */
+         class Resize : public Operation {
+         private:
+            /** Gives the height and width to resize the image to */
+            Rectangle _rect;
+
+        public:
+            /**
+             *  Constructor, sets the size to resize to and the format
+             *
+             *  @param rect  Contains height and width to resize to
+             *  @param format  The current format of the image data
+             *  @see Image.h for more details on ::Format and Rectangle
+             */
+            Resize(const Rectangle &rect, Format format)
+                : Operation(format),
+                  _rect(rect)
+            {
+            };
+
+            /**
+             *  Resizes an image to the given dimensions
+             *
+             *  @param img  A pointer to the current Image object
+             */
+            void operator()(Image *img);
+
+            OperationType get_type() const { return OperationType::RESIZE; };
+        };
+
+    /*  *********************** */
+    /*       CROP OPERATION     */
+    /*  *********************** */
+        /**
+         *  Extends Operation, crops the image to the specified area
+         */
+         class Crop : public Operation {
+         private:
+            /** Gives the dimensions and coordinates of the desired area */
+            Rectangle _rect;
+
+        public:
+            /**
+             *  Constructor, sets the area to crop to and the format
+             *
+             *  @param rect  Contains dimensions and coordinates of
+             *    desired area
+             *  @param format  The current format of the image data
+             *  @see Image.h for more details on ::Format and Rectangle
+             */
+            Crop(const Rectangle &rect, Format format)
+                : Operation(format),
+                  _rect(rect)
+            {
+            };
+
+            /**
+             *  Crops the image to the given area
+             *
+             *  @param img  A pointer to the current Image object
+             */
+            void operator()(Image *img);
+
+            OperationType get_type() const { return OperationType::CROP; };
+        };
+
+    /*  *********************** */
+    /*    THRESHOLD OPERATION   */
+    /*  *********************** */
+        /**  Extends Operation, performs a thresholding operation that
+         *     discards the pixel value if it is less than or equal to the
+         *     threshold and sets that pixel to 0
+         */
+        class Threshold : public Operation {
+        private:
+            /** Minimum value pixels should be */
+            int _threshold;
+
+        public:
+            /**
+             *  Constructor, sets the threshold value and format
+             *
+             *  @param value  Minimum value pixels should be
+             *  @param format  The current format of the image data
+             *  @see Image.h for more details on ::Format
+             */
+            Threshold(const int value, Format format)
+                : Operation(format),
+                  _threshold(value)
+            {
+            };
+
+            /**
+             *  Performs the thresholding operation
+             *
+             *  @param img  A pointer to the current Image object
+             */
+            void operator()(Image *img);
+
+            OperationType get_type() const { return OperationType::THRESHOLD; };
+        };
+
+    /*  *********************** */
+    /*    FLIP OPERATION   */
+    /*  *********************** */
+        /**  Extends Operation, performs a flip operation that
+         */
+        class Flip : public Operation {
+        private:
+            /** Minimum value pixels should be */
+            int _code;
+
+        public:
+            /**
+             *  Constructor, sets the flip code value.
+             *
+             *  @param code  Type of flipping operation
+             *  @param format  The current format of the image data
+             *  @see Image.h for more details on ::Format
+             */
+            Flip(const int code, Format format)
+                : Operation(format),
+                  _code(code)
+            {
+            };
+
+            /**
+             *  Performs the flip operation
+             *
+             *  @param img  A pointer to the current Image object
+             */
+            void operator()(Image *img);
+
+            OperationType get_type() const { return OperationType::FLIP; };
+        };
+
+    /*  *********************** */
+    /*    ROTATE OPERATION   */
+    /*  *********************** */
+        /**  Extends Operation, performs a flip operation that
+         */
+        class Rotate : public Operation {
+        private:
+            /** Minimum value pixels should be */
+            float _angle;
+            bool _keep_size;
+
+        public:
+            /**
+             *  Constructor, sets the flip code value.
+             *
+             *  @param format  The current format of the image data
+             *  @see Image.h for more details on Format
+             */
+            Rotate(float angle, bool keep_size, Format format)
+                : Operation(format),
+                  _angle(angle),
+                  _keep_size(keep_size)
+            {
+            };
+
+            /**
+             *  Performs the flip operation
+             *
+             *  @param img  A pointer to the current Image object
+             */
+            void operator()(Image *img);
+
+            OperationType get_type() const { return OperationType::ROTATE; };
+        };
+
+    /*  *********************** */
+    /*    IMAGE INTERACTIONS    */
+    /*  *********************** */
+
+        /**
+         *  Stores a Read Operation in the list of operations
+         *    to perform
+         *
+         *  @param image_id  The full path to the image to be read
+         */
+        void read(const std::string &image_id);
+
+    /*  *********************** */
+    /*        SET FUNCTIONS     */
+    /*  *********************** */
+
+        /**
+         *  Sets the Image object to contain raw pixel data
+         *    from a buffer of raw pixel data (stored in a TDB object)
+         *
+         *  @param buffer  The buffer containing the raw pixel data
+         *  @param size  The size of the buffer
+         */
+        void set_data_from_raw(void* buffer, long size);
+
+        /**
+         *  Sets the Image object to contain raw pixel data
+         *    from an encoded image buffer (stored in a CV Mat)
+         *
+         *  @param buffer  The buffer containing the encoded pixel data
+         */
+        void set_data_from_encoded(void *buffer, long size,
+            int flags=cv::IMREAD_ANYCOLOR);
+
+       /**
+         *  Sets the format of the Image object
+         *
+         *  @param extension  A string containing the file system
+         *    extension corresponding to the desired Image::Format
+         *  @see Image.h for more details on Image::Format
+         */
+        void set_format(const std::string &extension);
+    };
 };

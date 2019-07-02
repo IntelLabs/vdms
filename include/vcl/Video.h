@@ -31,24 +31,24 @@
 
 #pragma once
 
+#include <memory> // For shared_ptr
 #include <string>
 
 #include <opencv2/core.hpp>
+#include <opencv2/videoio.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+#include "vcl/Image.h"
 
 #include "Exception.h"
 #include "utils.h"
 
 namespace VCL {
 
-    class VideoData; // To hide the Video implementation details
-
     typedef cv::Rect Rectangle; // spcifiy an ROI inside a video
 
     class Video {
-
-    private:
-
-        VideoData *_video; // Pointer to a VideoData object
 
     public:
 
@@ -63,7 +63,9 @@ namespace VCL {
                             unsigned height;
                             unsigned frame_count; };
 
-        enum  Unit { FRAMES = 0, SECONDS = 1 };
+        enum Unit { FRAMES = 0, SECONDS = 1 };
+
+        enum OperationType { READ, WRITE, RESIZE, CROP, THRESHOLD, INTERVAL };
 
     /*  *********************** */
     /*        CONSTRUCTORS      */
@@ -102,9 +104,12 @@ namespace VCL {
         /**
          *  Sets an Video object equal to another Video object
          *
-         *  @param video  A reference to an existing Video object
+         *  @param video  A copy of an existing Video object. The parameter
+         *                is passed by value to exploit copy-and-swap idiom
+         *                to reduce code duplication (copy-constructor) and
+         *                safer exception handling
          */
-        void operator=(const Video &video);
+        Video& operator=(Video video);
 
         ~Video();
 
@@ -206,10 +211,10 @@ namespace VCL {
      *    performed until the data is needed (ie, store is called or
      *    one of the get_ functions such as get_cvmat)
      *
-     *  @param new_height Number of rows
-     *  @param new_width  Number of columns
+     *  @param width  Number of columns
+     *  @param height Number of rows
      */
-    void resize(int new_height, int new_width);
+    void resize(int width, int height);
 
     /**
      *  Crops the Video to the area specified. This operation is not
@@ -257,9 +262,278 @@ namespace VCL {
     void store(const std::string &video_id, Codec video_codec);
 
     /**
+     *  Stores a Write Operation in the list of operations, performs the
+     *  operations that are already in the list, and finally writes the
+     *  video to the disk.
+     *  This method will used when the video_id and codec are already defined.
+     */
+    void store();
+
+    /**
      *  Deletes the Video file
      */
     void delete_video();
+
+    private:
+
+        class Operation;
+
+        // Full path to the video file.
+        // It is called _video_id to keep it consistent with VCL::Image
+        std::string _video_id;
+
+        bool _flag_stored; // Flag to avoid unnecessary read/write
+
+        std::vector<VCL::Image> _frames;
+
+        VideoSize _size;
+
+        float _fps;
+
+        Codec _codec; // (h.264, etc).
+
+        std::vector<std::shared_ptr<Operation>> _operations;
+
+    /*  *********************** */
+    /*        OPERATION         */
+    /*  *********************** */
+
+        /**
+         *  Provides a way to keep track of what operations should
+         *   be performed on the data when it is needed
+         *
+         *  Operation is the base class, it keeps track of the format
+         *   of the Video data, defines a way to convert Format to
+         *   a string, and defines a virtual function that overloads the
+         *   () operator
+         */
+        class Operation {
+
+        public:
+
+            /**
+             *  Implemented by the specific operation, performs what
+             *    the operation is supposed to do
+             *
+             *  @param img  A pointer to the current Video object
+             */
+            virtual void operator()(Video *video) = 0;
+
+            virtual OperationType get_type() = 0;
+        };
+
+    /*  *********************** */
+    /*       READ OPERATION     */
+    /*  *********************** */
+
+        /**
+         *  Extends Operation, reads Video from the file system
+         */
+        class Read : public Operation {
+
+            Video::Codec read_codec(char* fourcc);
+
+        public:
+
+            /**
+             *  Reads an Video from the file system (based on specified path)
+             *
+             */
+            void operator()(Video *video);
+
+            OperationType get_type() { return READ; };
+        };
+
+    /*  *********************** */
+    /*       WRITE OPERATION    */
+    /*  *********************** */
+        /**
+         *  Extends Operation, writes to the file system in the specified
+         *    format
+         */
+        class Write : public Operation {
+        private:
+            std::string  _outname;
+            Video::Codec _codec;
+
+            int get_fourcc();
+
+        public:
+
+            Write(std::string outname, Video::Codec codec) :
+                _outname(outname), _codec(codec)
+            {
+            }
+
+            /**
+             *  Writes an Video to the file system.
+             *
+             */
+            void operator()(Video *video);
+
+            OperationType get_type() { return WRITE; };
+        };
+
+    /*  *********************** */
+    /*       RESIZE OPERATION   */
+    /*  *********************** */
+        /**
+         *  Extends Operation, resizes the Video to the specified size
+         */
+         class Resize : public Operation {
+         private:
+            /** Gives the height and width to resize the Video to */
+            cv::Size _size;
+
+            public:
+            /**
+             *  Constructor, sets the size to resize to and the format
+             *
+             *  @param size  Struct that contains w and h
+             */
+            Resize(const cv::Size &size) : _size(size)
+            {
+            };
+
+            /**
+             *  Resizes an Video to the given dimensions
+             *
+             *  @param video  A pointer to the current Video object
+             */
+            void operator()(Video *video);
+
+            OperationType get_type() { return RESIZE; };
+        };
+
+    /*  *********************** */
+    /*      INTERVAL OPERATION  */
+    /*  *********************** */
+
+        class Interval : public Operation {
+        private:
+            int _start;
+            int _stop;
+            int _step;
+            Video::Unit _u;
+
+        public:
+            /**
+             *  Constructor, sets the size to resize to and the format
+             *
+             *  @param u  Unit used for interval operation
+             *  @param start First frame
+             *  @param stop  Last frame
+             *  @param step  Number of frames to be skipped in between.
+             */
+            Interval(Video::Unit u, const int start , const int stop, int step)
+                : _u(u),
+                  _start(start),
+                  _stop(stop),
+                  _step(step)
+            {
+            };
+
+            /**
+             *  Resizes an Video to the given dimensions
+             *
+             *  @param video  A pointer to the current Video object
+             */
+            void operator()(Video *video);
+
+            OperationType get_type() { return INTERVAL; };
+        };
+
+    /*  *********************** */
+    /*       CROP OPERATION     */
+    /*  *********************** */
+
+        /**
+         *  Extends Operation, crops the Video to the specified area
+         */
+         class Crop : public Operation {
+         private:
+            /** Gives the dimensions and coordinates of the desired area */
+            Rectangle _rect;
+
+            public:
+            /**
+             *  Constructor, sets the area to crop to and the format
+             *
+             *  @param rect  Contains dimensions and coordinates of
+             *    desired area
+             */
+            Crop(const Rectangle &rect )
+                : _rect(rect)
+            {
+            };
+
+            /**
+             *  Crops the Video to the given area
+             *
+             *  @param video  A pointer to the current Video object
+             */
+            void operator()(Video *video);
+
+            OperationType get_type() { return CROP; };
+        };
+
+    /*  *********************** */
+    /*    THRESHOLD OPERATION   */
+    /*  *********************** */
+
+        /**  Extends Operation, performs a thresholding operation that
+         *     discards the pixel value if it is less than or equal to the
+         *     threshold and sets that pixel to 0
+         */
+        class Threshold : public Operation {
+        private:
+            /** Minimum value pixels should be */
+            int _threshold;
+
+        public:
+            /**
+             *  Constructor, sets the threshold value and format
+             *
+             *  @param value  Minimum value pixels should be
+             */
+            Threshold(const int value)
+                : _threshold(value)
+            {
+            };
+
+            /**
+             *  Performs the thresholding operation
+             *
+             *  @param img  A pointer to the current Video object
+             */
+            void operator()(Video *video);
+
+            OperationType get_type() { return THRESHOLD; };
+        };
+
+    protected:
+    /*  *********************** */
+    /*       UTILITIES          */
+    /*  *********************** */
+        /**
+         *  Stores a Read Operation in the list of operations
+         *    to perform
+         *
+         *  @param Video_id  The full path to the Video to be read
+         */
+        void read(const std::string &video_id );
+
+        /**
+         *  Performs the set of operations that have been requested
+         *  on the Video
+         */
+        void perform_operations();
+
+        /**
+         * Swaps members of two Video objects, to be used by assignment
+         * operator.
+         */
+        void swap(Video& rhs) noexcept;
 };
 
 } // namespace VCL
