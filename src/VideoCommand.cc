@@ -339,7 +339,7 @@ Json::Value FindVideo::construct_responses(
             Json::Value return_error;
             return_error["status"]  = RSCommand::Error;
             return_error["info"] = "VCL Exception";
-            error(return_error);
+            return error(return_error);
         }
     }
 
