@@ -35,6 +35,9 @@ def buildServer(env):
              'opencv_highgui',
              'gomp',
              'faiss',
+             'avcodec',
+             'avformat',
+             'avutil',
            ],
 
     LIBPATH = ['utils/',
@@ -67,6 +70,7 @@ def buildServer(env):
                   'src/vcl/Image.cc',
                   'src/vcl/TDBImage.cc',
                   'src/vcl/Video.cc',
+                  'src/vcl/KeyFrameParser.cc',
                   'src/vcl/DescriptorSet.cc',
                   'src/vcl/DescriptorSetData.cc',
                   'src/vcl/FaissDescriptorSet.cc',
