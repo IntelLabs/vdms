@@ -64,7 +64,6 @@ query_tests = testenv.Program(
                   '../src/vcl/Exception.o',
                   '../src/vcl/TDBObject.o',
                   '../src/vcl/Image.o',
-                  '../src/vcl/ImageData.o',
                   '../src/vcl/TDBImage.o',
                   '../src/vcl/Video.o',
                   '../src/vcl/DescriptorSet.o',
