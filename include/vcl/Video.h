@@ -41,6 +41,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "vcl/Image.h"
+#include "vcl/KeyFrameParser.h"
 
 #include "Exception.h"
 #include "utils.h"
@@ -176,6 +177,16 @@ namespace VCL {
          */
         std::vector<unsigned char> get_encoded();
 
+        /**
+         *  Invokes key-frame generation on the video, if the video is encoded
+         *  with a H264 encoder. Index, and byte offset/length of each key
+         *  frame is stored. This operation is independent of other prior
+         *  visual operations that may have been applied.
+         *
+         * @return List of KeyFrame objects
+         */
+        const KeyFrameList& get_key_frame_list();
+
     /*  *********************** */
     /*        SET FUNCTIONS     */
     /*  *********************** */
@@ -296,6 +307,9 @@ namespace VCL {
         float _fps;
 
         Codec _codec; // (h.264, etc).
+
+        // List of key frames, filled only when KeyFrames operation is applied
+        KeyFrameList _key_frame_list;
 
         std::list<std::shared_ptr<Operation>> _operations;
 
