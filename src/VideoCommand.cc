@@ -137,6 +137,15 @@ int AddVideo::construct_protobuf(
 
     VCL::Video video((void*)blob.data(), blob.size());
 
+    // Key frame extraction works on binary stream data, without encoding. We
+    // check whether key-frame extraction is to be applied, and if so, we
+    // extract the frames before any other operations are applied. Applying
+    // key-frame extraction after applying pending operations will be
+    // non-optimal: the video will be decoded while performing the operations.
+    VCL::KeyFrameList frame_list;
+    if (get_value<bool>(cmd, "index_frames", false))
+        frame_list = video.get_key_frame_list();
+
     if (cmd.isMember("operations")) {
         enqueue_operations(video, cmd["operations"]);
     }
@@ -162,6 +171,19 @@ int AddVideo::construct_protobuf(
     VCL::Video::Codec vcl_codec = string_to_codec(codec);
 
     video.store(file_name, vcl_codec);
+
+    // Add key-frames (if extracted) as nodes connected to the video
+    for (const auto &frame : frame_list) {
+        Json::Value frame_props;
+        frame_props[VDMS_KF_IDX_PROP]  = static_cast<Json::UInt64>(frame.idx);
+        frame_props[VDMS_KF_BASE_PROP] = static_cast<Json::Int64> (frame.base);
+
+        int frame_ref = query.get_available_reference();
+        query.AddNode(frame_ref, VDMS_KF_TAG, frame_props,
+                      Json::Value());
+        query.AddEdge(-1, node_ref, frame_ref, VDMS_KF_EDGE,
+                      Json::Value());
+    }
 
     // In case we need to cleanup the query
     error["video_added"] = file_name;
