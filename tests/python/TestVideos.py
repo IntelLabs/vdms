@@ -130,6 +130,136 @@ class TestVideos(TestCommand.TestCommand):
         for i in range(0, number_of_inserts):
             self.assertEqual(response[i]["FindVideo"]["status"], 0)
 
+    def test_FindFramesByFrames(self):
+
+        db = self.create_connection()
+
+        prefix_name = "video_2_"
+
+        number_of_inserts = 2
+
+        for i in range(0, number_of_inserts):
+            props = {}
+            props["name"] = prefix_name + str(i)
+            self.insertVideo(db, props=props)
+
+        all_queries = []
+
+        for i in range(0,number_of_inserts):
+            constraints = {}
+            constraints["name"] = ["==", prefix_name + str(i)]
+
+            video_params = {}
+            video_params["constraints"] = constraints
+            video_params["frames"] = [f for f in range(0, 10)]
+
+            query = {}
+            query["FindFrames"] = video_params
+
+            all_queries.append(query)
+
+        response, img_array = db.query(all_queries)
+
+        self.assertEqual(response[0]["FindFrames"]["status"], 0)
+        self.assertEqual(response[1]["FindFrames"]["status"], 0)
+        self.assertEqual(len(img_array), 2 * len(video_params["frames"]) )
+
+    def test_FindFramesByInterval(self):
+
+        db = self.create_connection()
+
+        prefix_name = "video_3_"
+
+        number_of_inserts = 2
+
+        for i in range(0, number_of_inserts):
+            props = {}
+            props["name"] = prefix_name + str(i)
+            self.insertVideo(db, props=props)
+
+        all_queries = []
+
+        for i in range(0,number_of_inserts):
+            constraints = {}
+            constraints["name"] = ["==", prefix_name + str(i)]
+
+            number_of_frames = 10
+            operations = []
+            interval_operation = {}
+            interval_operation["type"]  = "interval"
+            interval_operation["start"] = 0
+            interval_operation["stop"]  = number_of_frames
+            interval_operation["step"]  = 1
+            operations.append(interval_operation)
+
+            video_params = {}
+            video_params["constraints"] = constraints
+            video_params["operations"]  = operations
+
+            query = {}
+            query["FindFrames"] = video_params
+
+            all_queries.append(query)
+
+        response, img_array = db.query(all_queries)
+
+        self.assertEqual(response[0]["FindFrames"]["status"], 0)
+        self.assertEqual(response[1]["FindFrames"]["status"], 0)
+        self.assertEqual(len(img_array), 2 * number_of_frames)
+
+    def test_FindFramesMissingParameters(self):
+
+        db = self.create_connection()
+
+        constraints = {}
+        constraints["name"] = ["==", "video_1"]
+
+        video_params = {}
+        video_params["constraints"] = constraints
+
+        query = {}
+        query["FindFrames"] = video_params
+
+        all_queries = []
+        all_queries.append(query)
+
+        response, img = db.query(all_queries)
+
+        self.assertEqual(response[0]["status"], -1)
+        self.assertEqual(img, [])
+
+    def test_FindFramesInvalidParameters(self):
+
+        db = self.create_connection()
+
+        constraints = {}
+        constraints["name"] = ["==", "video_1"]
+
+        operations = []
+        interval_operation = {}
+        interval_operation["type"]  = "interval"
+        interval_operation["start"] = 10
+        interval_operation["stop"]  = 20
+        interval_operation["step"]  = 1
+        operations.append(interval_operation)
+
+        video_params = {}
+        video_params["constraints"] = constraints
+        video_params["operations"]  = operations
+        video_params["frames"]      = [1]
+
+
+        query = {}
+        query["FindFrames"] = video_params
+
+        all_queries = []
+        all_queries.append(query)
+
+        response, img = db.query(all_queries)
+
+        self.assertEqual(response[0]["status"], -1)
+        self.assertEqual(img, [])
+
     def test_findVideoResults(self):
 
         db = self.create_connection()

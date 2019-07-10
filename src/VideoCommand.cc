@@ -32,6 +32,7 @@
 #include <iostream>
 #include <fstream>
 
+#include "ImageCommand.h" // for enqueue_operations of Image type
 #include "VideoCommand.h"
 #include "VDMSConfig.h"
 #include "defines.h"
@@ -95,6 +96,26 @@ VCL::Video::Codec VideoCommand::string_to_codec(const std::string& codec)
     return VCL::Video::Codec::NOCODEC;
 }
 
+Json::Value VideoCommand::check_responses(Json::Value& responses)
+{
+    if (responses.size() != 1) {
+        Json::Value return_error;
+        return_error["status"]  = RSCommand::Error;
+        return_error["info"] = "PMGD Response Bad Size";
+        return return_error;
+    }
+
+    Json::Value& response = responses[0];
+
+    if (response["status"] != 0) {
+        response["status"]  = RSCommand::Error;
+        // Uses PMGD info error.
+        return response;
+    }
+
+    return response;
+}
+
 //========= AddVideo definitions =========
 
 AddVideo::AddVideo() : VideoCommand("AddVideo")
@@ -152,7 +173,19 @@ int AddVideo::construct_protobuf(
     return 0;
 }
 
-//========= UpdateImage definitions =========
+Json::Value AddVideo::construct_responses(
+    Json::Value& response,
+    const Json::Value& json,
+    protobufs::queryMessage &query_res,
+    const std::string& blob)
+{
+    Json::Value ret;
+    ret[_cmd_name] = RSCommand::check_responses(response);
+
+    return ret;
+}
+
+//========= UpdateVideo definitions =========
 
 UpdateVideo::UpdateVideo() : VideoCommand("UpdateVideo")
 {
@@ -251,22 +284,12 @@ Json::Value FindVideo::construct_responses(
         return ret;
     };
 
-    if (responses.size() != 1) {
-        Json::Value return_error;
-        return_error["status"]  = RSCommand::Error;
-        return_error["info"] = "PMGD Response Bad Size";
-        error(return_error);
+    Json::Value resp = check_responses(responses);
+    if (resp["status"] != RSCommand::Success) {
+        return error(resp);
     }
 
     Json::Value& FindVideo = responses[0];
-
-    assert(FindVideo.isMember("entities"));
-
-    if (FindVideo["status"] != 0) {
-        FindVideo["status"]  = RSCommand::Error;
-        // Uses PMGD info error.
-        error(FindVideo);
-    }
 
     bool flag_empty = true;
 
@@ -339,7 +362,7 @@ Json::Value FindVideo::construct_responses(
             Json::Value return_error;
             return_error["status"]  = RSCommand::Error;
             return_error["info"] = "VCL Exception";
-            error(return_error);
+            return error(return_error);
         }
     }
 
@@ -348,5 +371,204 @@ Json::Value FindVideo::construct_responses(
     }
 
     ret[_cmd_name].swap(FindVideo);
+    return ret;
+}
+
+//========= FindFrames definitions =========
+
+FindFrames::FindFrames() : VideoCommand("FindFrames")
+{
+}
+
+bool FindFrames::get_interval_index (const Json::Value& cmd,
+                                     Json::ArrayIndex& op_index)
+{
+    if (cmd.isMember("operations")) {
+        const auto operations = cmd["operations"];
+        for (auto i = 0; i < operations.size(); i++) {
+            const auto op = operations[i];
+            const std::string& type = get_value<std::string>(op, "type");
+            if (type == "interval") {
+                op_index = i;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+int FindFrames::construct_protobuf(
+    PMGDQuery& query,
+    const Json::Value& jsoncmd,
+    const std::string& blob,
+    int grp_id,
+    Json::Value& error)
+{
+    const Json::Value& cmd = jsoncmd[_cmd_name];
+
+    // We try to catch the missing attribute error before
+    // initiating a PMGD query
+    Json::ArrayIndex tmp;
+    bool is_interval = get_interval_index(cmd, tmp);
+    bool is_frames   = cmd.isMember("frames");
+
+    if (!(is_frames != is_interval)) {
+        error["status"]  = RSCommand::Error;
+        error["info"] = "Either one of 'frames' or 'operations::interval' "
+                        "must be specified";
+        return -1;
+    }
+
+    Json::Value results = get_value<Json::Value>(cmd, "results");
+    results["list"].append(VDMS_VID_PATH_PROP);
+
+    query.QueryNode(
+            get_value<int>(cmd, "_ref", -1),
+            VDMS_VID_TAG,
+            cmd["link"],
+            cmd["constraints"],
+            results,
+            get_value<bool>(cmd, "unique", false)
+            );
+
+    return 0;
+}
+
+Json::Value FindFrames::construct_responses(
+    Json::Value& responses,
+    const Json::Value& json,
+    protobufs::queryMessage &query_res,
+    const std::string &blob)
+{
+    const Json::Value& cmd = json[_cmd_name];
+
+    Json::Value ret;
+
+    auto error = [&](Json::Value& res)
+    {
+        ret[_cmd_name] = res;
+        return ret;
+    };
+
+    Json::Value resp = check_responses(responses);
+    if (resp["status"] != RSCommand::Success) {
+        return error(resp);
+    }
+
+    Json::Value& FindFrames = responses[0];
+
+    bool flag_empty = true;
+
+    for (auto& ent : FindFrames["entities"]) {
+
+        std::string video_path = ent[VDMS_VID_PATH_PROP].asString();
+        ent.removeMember(VDMS_VID_PATH_PROP);
+
+        if (ent.getMemberNames().size() > 0) {
+            flag_empty = false;
+        }
+
+        try {
+            std::vector<unsigned> frames;
+
+            // Copy of operations is needed, as we pass the operations to
+            // the enqueue_operations() method of ImageCommands class, and
+            // it should not include 'interval' operation.
+            Json::Value operations  = cmd["operations"];
+
+            Json::ArrayIndex interval_idx;
+            bool is_interval = get_interval_index(cmd, interval_idx);
+            bool is_frames   = cmd.isMember("frames");
+
+            if (is_frames) {
+                for (auto& fr : cmd["frames"]) {
+                    frames.push_back(fr.asUInt());
+                }
+            }
+            else if (is_interval) {
+
+                Json::Value interval_op = operations[interval_idx];
+
+                int start = get_value<int>(interval_op, "start");
+                int stop  = get_value<int>(interval_op, "stop");
+                int step  = get_value<int>(interval_op, "step");
+
+                for (int i = start; i < stop; i += step)  {
+                    frames.push_back(i);
+                }
+
+                Json::Value deleted;
+                operations.removeIndex(interval_idx, &deleted);
+            }
+            else {
+                // This should never happen, as we check this condition in
+                // FindFrames::construct_protobuf(). In case this happens, it
+                // is better to signal it rather than to continue
+                Json::Value return_error;
+                return_error["status"]  = RSCommand::Error;
+                return_error["info"] = "No 'frames' or 'interval' parameter";
+                return error(return_error);
+            }
+
+            VCL::Video video(video_path);
+
+            // By default, return frames as PNGs
+            VCL::Image::Format format = VCL::Image::Format::PNG;
+
+            FindImage img_cmd;
+
+            if (cmd.isMember("format")) {
+
+                format = img_cmd.get_requested_format(cmd);
+
+                if (format == VCL::Image::Format::NONE_IMAGE ||
+                    format == VCL::Image::Format::TDB) {
+                    Json::Value return_error;
+                    return_error["status"] = RSCommand::Error;
+                    return_error["info"]   = "Invalid Return Format for FindFrames";
+                    return error(return_error);
+                }
+            }
+
+            for (auto idx : frames) {
+                cv::Mat mat = video.get_frame(idx);
+                VCL::Image img(mat, false);
+                if (!operations.empty()) {
+                    img_cmd.enqueue_operations(img, operations);
+                }
+
+                std::vector<unsigned char> img_enc;
+                img_enc = img.get_encoded_image(format);
+
+                if (!img_enc.empty()) {
+                    std::string* img_str = query_res.add_blobs();
+                    img_str->resize(img_enc.size());
+                    std::memcpy((void*)img_str->data(),
+                                (void*)img_enc.data(),
+                                img_enc.size());
+                }
+                else {
+                    Json::Value return_error;
+                    return_error["status"] = RSCommand::Error;
+                    return_error["info"]   = "Image Data not found";
+                    return error(return_error);
+                }
+            }
+        }
+
+        catch (VCL::Exception e) {
+            print_exception(e);
+            Json::Value return_error;
+            return_error["status"]  = RSCommand::Error;
+            return_error["info"] = "VCL Exception";
+            return error(return_error);
+        }
+    }
+
+    if (flag_empty) {
+        FindFrames.removeMember("entities");
+    }
+
+    ret[_cmd_name].swap(FindFrames);
     return ret;
 }

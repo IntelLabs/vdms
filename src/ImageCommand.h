@@ -44,10 +44,6 @@ namespace VDMS {
 
     class ImageCommand: public RSCommand
     {
-
-    protected:
-        void enqueue_operations(VCL::Image& img, const Json::Value& op);
-
     public:
 
         ImageCommand(const std::string &cmd_name);
@@ -59,6 +55,14 @@ namespace VDMS {
                                Json::Value& error) = 0;
 
         virtual bool need_blob(const Json::Value& cmd) { return false; }
+
+        // We use this function for enqueueing operations for an 'Image' object
+        // that is allocated outside of <*>Image operations
+        void enqueue_operations(VCL::Image& img, const Json::Value& op);
+
+        // Checks if 'format' parameter is specified, and if so, returns the
+        // corresponding VCL::Image::Format type.
+        VCL::Image::Format get_requested_format(const Json::Value& cmd);
     };
 
     class AddImage: public ImageCommand

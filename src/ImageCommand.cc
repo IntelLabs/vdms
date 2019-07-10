@@ -76,6 +76,25 @@ void ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
     }
 }
 
+VCL::Image::Format ImageCommand::get_requested_format(const Json::Value& cmd)
+{
+    VCL::Image::Format format;
+
+    std::string requested_format = get_value<std::string>(cmd, "format", "");
+
+    if (requested_format == "png") {
+        return VCL::Image::Format::PNG;
+    }
+    if (requested_format == "jpg") {
+        return VCL::Image::Format::JPG;
+    }
+    if (requested_format == "tdb") {
+        return VCL::Image::Format::TDB;
+    }
+
+    return VCL::Image::Format::NONE_IMAGE;
+}
+
 //========= AddImage definitions =========
 
 AddImage::AddImage() : ImageCommand("AddImage")
@@ -274,19 +293,12 @@ Json::Value FindImage::construct_responses(
                             img.get_image_format() : VCL::Image::Format::PNG;
 
                 if (cmd.isMember("format")) {
-                    std::string requested_format =
-                                get_value<std::string>(cmd, "format");
-
-                    if (requested_format == "png") {
-                        format = VCL::Image::Format::PNG;
-                    }
-                    else if (requested_format == "jpg") {
-                        format = VCL::Image::Format::JPG;
-                    }
-                    else {
+                    format = get_requested_format(cmd);
+                    if (format == VCL::Image::Format::NONE_IMAGE ||
+                        format == VCL::Image::Format::TDB) {
                         Json::Value return_error;
                         return_error["status"]  = RSCommand::Error;
-                        return_error["info"] = "Invalid Format for FindImage";
+                        return_error["info"] = "Invalid Requested Format for FindImage";
                         return error(return_error);
                     }
                 }
@@ -317,7 +329,6 @@ Json::Value FindImage::construct_responses(
             }
         }
     }
-
 
     if (flag_empty) {
         findImage.removeMember("entities");
