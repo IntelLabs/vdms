@@ -660,3 +660,36 @@ TEST_F(VideoTest, CropWrite)
         ASSERT_TRUE(false);
     }
 }
+
+TEST_F(VideoTest, KeyFrameExtractionSuccess)
+{
+    try {
+        VCL::VideoTest video_data(_video_path_mp4_h264);
+
+        auto key_frame_list = video_data.get_key_frame_list();
+
+        // We know that this video contains exactly four I-frames.
+        // Changing the video will fail this test. If the functionality
+        // is to be tested with other videos, either create a seperate test
+        // or update the assertion below accordingly.
+        ASSERT_TRUE(key_frame_list.size() == 4);
+
+    } catch (VCL::Exception e) {
+        print_exception(e);
+        ASSERT_TRUE(false);
+    }
+}
+
+TEST_F(VideoTest, KeyFrameExtractionFailure)
+{
+    VCL::KeyFrameList key_frame_list;
+    try {
+        VCL::VideoTest video_data(_video_path_avi_xvid);
+
+        key_frame_list = video_data.get_key_frame_list();
+
+    } catch (VCL::Exception e) {
+        print_exception(e);
+        ASSERT_TRUE(key_frame_list.empty());
+    }
+}
