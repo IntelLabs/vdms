@@ -279,6 +279,10 @@ namespace VCL {
 
         class Operation;
 
+        // Forward declaration of VideoTest class, that is used for the unit
+        // test to accesss private methods of this class
+        friend class VideoTest;
+
         // Full path to the video file.
         // It is called _video_id to keep it consistent with VCL::Image
         std::string _video_id;

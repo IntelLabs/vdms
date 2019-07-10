@@ -90,6 +90,18 @@ protected:
     }
 };
 
+namespace VCL {
+
+    class VideoTest : public Video {
+
+    public:
+        VideoTest() : Video() {}
+        VideoTest(std::string a) : Video(a) {}
+
+        using Video::perform_operations;
+    };
+};
+
 TEST_F(VideoTest, DefaultConstructor)
 {
     VCL::Video video_data;
