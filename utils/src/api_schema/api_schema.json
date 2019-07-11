@@ -116,7 +116,7 @@
 
     "engineFormatString": {
       "type": "string",
-      "enum": ["FaissFlat", "FaissIVFFlat", "TileDBDense", "TileDBSparse"]
+      "enum": ["FaissFlat", "FaissIVFFlat", "TileDBDense", "TileDBSparse", "FaissLSH"]
     },
 
     "vidCodecString": {

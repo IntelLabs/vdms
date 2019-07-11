@@ -115,8 +115,6 @@ long FaissDescriptorSet::add(float* descriptors, unsigned n, long* labels)
     return id_first;
 }
 
-
-
 void FaissDescriptorSet::train()
 {
     train_core(NULL,0);
@@ -374,4 +372,39 @@ long FaissIVFFlatDescriptorSet::add(float* descriptors,
     long id_first = FaissDescriptorSet::add(descriptors, n, labels);
 
     return id_first;
+}
+
+// FaissLSHDescriptorSet
+
+FaissLSHDescriptorSet::FaissLSHDescriptorSet(const std::string &set_path):
+    FaissDescriptorSet(set_path)
+{
+    try {
+        _index = (faiss::IndexLSH*)faiss::read_index(_faiss_file.c_str());
+
+    } catch(faiss::FaissException& e) {
+        throw VCLException(OpenFailed, "Problem reading: " + _faiss_file);
+    }
+
+    // Faiss will sometimes throw, or sometimes set _index = NULL,
+    // we check both just in case.
+    if (!_index) {
+        throw VCLException(OpenFailed, "Problem reading: " + _faiss_file);
+    }
+
+    _dimensions = _index->d;
+    _n_total    = _index->ntotal;
+}
+
+FaissLSHDescriptorSet::FaissLSHDescriptorSet(
+            const std::string &set_path,
+            unsigned dim, DistanceMetric metric) // Metric is ignored for LSH
+    : FaissDescriptorSet(set_path, dim)
+{
+    if (metric == L2 || metric == IP) {
+        throw VCLException(UnsupportedIndex, "FaissLSH Index does not use metric");
+    }
+
+    bool rotate = true, train = true;
+    _index = new faiss::IndexLSH(dim, dim, rotate, train);
 }

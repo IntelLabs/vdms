@@ -50,6 +50,8 @@ DescriptorSet::DescriptorSet(const std::string &set_path)
         _set = new FaissFlatDescriptorSet(set_path);
     else if (_eng == DescriptorSetEngine(FaissIVFFlat))
         _set = new FaissIVFFlatDescriptorSet(set_path);
+    else if (_eng == DescriptorSetEngine(FaissLSH))
+        _set = new FaissLSHDescriptorSet(set_path);
     else if (_eng == DescriptorSetEngine(TileDBDense))
         _set = new TDBDenseDescriptorSet(set_path);
     else if (_eng == DescriptorSetEngine(TileDBSparse))
@@ -70,6 +72,8 @@ DescriptorSet::DescriptorSet(const std::string &set_path,
         _set = new FaissFlatDescriptorSet(set_path, dim, metric);
     else if (eng == DescriptorSetEngine(FaissIVFFlat))
         _set = new FaissIVFFlatDescriptorSet(set_path, dim, metric);
+    else if (eng == DescriptorSetEngine(FaissLSH))
+        _set = new FaissLSHDescriptorSet(set_path, dim, metric);
     else if (eng == DescriptorSetEngine(TileDBDense))
         _set = new TDBDenseDescriptorSet(set_path, dim, metric);
     else if (eng == DescriptorSetEngine(TileDBSparse))

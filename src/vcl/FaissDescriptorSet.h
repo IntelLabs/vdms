@@ -45,6 +45,7 @@
 
 #include <faiss/IndexFlat.h>
 #include <faiss/IndexIVFFlat.h>
+#include <faiss/IndexLSH.h>
 
 namespace VCL {
 
@@ -116,5 +117,14 @@ namespace VCL {
                                     DistanceMetric metric);
 
         long add(float* descriptors, unsigned n_descriptors, long* classes);
+    };
+
+    class FaissLSHDescriptorSet : public FaissDescriptorSet {
+
+    public:
+
+        FaissLSHDescriptorSet(const std::string& set_path);
+        FaissLSHDescriptorSet(const std::string& set_path, unsigned dim,
+                                    DistanceMetric metric=NONE);
     };
 };

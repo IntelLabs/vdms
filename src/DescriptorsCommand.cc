@@ -185,6 +185,10 @@ Json::Value AddDescriptorSet::construct_responses(
         eng = VCL::TileDBDense;
     else if (eng_str == "TileDBSparse")
         eng = VCL::TileDBSparse;
+    else if (eng_str == "FaissLSH") {
+        eng = VCL::FaissLSH;
+        metric = VCL::NONE;
+    }
     else
         throw ExceptionCommand(DescriptorSetError, "Engine not supported");
 

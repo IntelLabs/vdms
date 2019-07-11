@@ -42,10 +42,12 @@
 
 namespace VCL {
 
-    enum DescriptorSetEngine {FaissFlat, FaissIVFFlat,
-                              TileDBDense, TileDBSparse};
+    enum DescriptorSetEngine {  FaissFlat, FaissIVFFlat,
+                                TileDBDense, TileDBSparse,
+                                FaissLSH
+                            };
 
-    enum DistanceMetric {L2, IP};
+    enum DistanceMetric {L2, IP, NONE};
 
     class DescriptorSet {
 
