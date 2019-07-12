@@ -33,7 +33,7 @@
 #include <vector>
 #include <errno.h>
 
-#include "vcl/KeyFrameParser.h"
+#include "vcl/KeyFrame.h"
 
 extern "C"
 {

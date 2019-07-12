@@ -41,7 +41,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 
 #include "vcl/Image.h"
-#include "vcl/KeyFrameParser.h"
+#include "KeyFrame.h"
 
 #include "Exception.h"
 #include "utils.h"
