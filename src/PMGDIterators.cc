@@ -117,7 +117,7 @@ bool PMGDQueryHandler::NodeEdgeIteratorImpl::check_predicates()
 {
     PMGD::Edge *e = get_edge();
     for (std::size_t i = _pred_start; i < _num_predicates; i++) {
-        PMGD::PropertyFilter<PMGD::Edge> pf(_expr.predicate(i));
+        PMGD::PropertyFilter<PMGD::Edge> pf(_expr.get_node_predicate(i));
         if (pf(*e) == PMGD::DontPass)
             return false;
     }

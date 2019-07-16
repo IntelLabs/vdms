@@ -56,8 +56,9 @@ namespace VDMS {
         void set_property(PMGDProp* p, const std::string& key,
                           const Json::Value& val);
         void add_link(const Json::Value& link, PMGDQueryNode* qn);
-        void parse_query_constraints(const Json::Value& constraints,
-                                     PMGDQueryConstraints* qc);
+
+        template <class T>
+        void parse_query_constraints(const Json::Value& constraints, T* qc);
 
         void parse_query_results(const Json::Value& result_type,
                                  PMGDQueryResultInfo* qr);

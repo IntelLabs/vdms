@@ -58,8 +58,8 @@ class SearchExpression::NodeAndIteratorImpl : public PMGD::NodeIteratorImplIntf
         for (; mNodeIt; mNodeIt.next()) {
             if (_neighbor && (_expr.tag() != 0 && mNodeIt->get_tag() != _expr.tag()) )
                 goto continueNodeIt;
-            for (std::size_t i = _start_at; i < _expr._predicates.size(); i++) {
-                PMGD::PropertyFilter<PMGD::Node> pf(_expr._predicates.at(i));
+            for (std::size_t i = _start_at; i < _expr._node_predicates.size(); i++) {
+                PMGD::PropertyFilter<PMGD::Node> pf(_expr._node_predicates.at(i));
                 if (pf(*mNodeIt) == PMGD::DontPass)
                     goto continueNodeIt;
             }
@@ -77,8 +77,8 @@ public:
     NodeAndIteratorImpl(const SearchExpression &expr)
         : _expr(expr),
           mNodeIt(_expr._db.get_nodes(_expr.tag(),
-                      (_expr._predicates.empty() ? PMGD::PropertyPredicate()
-                           : _expr._predicates.at(0)))),
+                      (_expr._node_predicates.empty() ? PMGD::PropertyPredicate()
+                           : _expr._node_predicates.at(0)))),
           _neighbor(false)
     {
         _start_at = 1;
@@ -93,7 +93,8 @@ public:
                                PMGD::StringID edgetag, bool unique,
                                const SearchExpression &neighbor_expr)
         : _expr(neighbor_expr),
-          mNodeIt(get_neighbors(node, dir, edgetag, unique)),
+          mNodeIt(get_neighbors(node, dir, edgetag,
+                                _expr.get_edge_predicates(), unique)),
           _neighbor(true)
     {
         _start_at = 0;
@@ -135,10 +136,10 @@ class SearchExpression::NodeOrIteratorImpl : public PMGD::NodeIteratorImplIntf
     /// candidate
     bool _next()
     {
-        while (_idx < _expr._predicates.size()) {
+        while (_idx < _expr._node_predicates.size()) {
              PMGD::NodeIterator ni =
                     _expr._db.get_nodes(_expr.tag(),
-                                        _expr._predicates.at(_idx++));
+                                        _expr._node_predicates.at(_idx++));
 
             if (ni) {
                 _node = &*ni;
@@ -153,7 +154,7 @@ class SearchExpression::NodeOrIteratorImpl : public PMGD::NodeIteratorImplIntf
     {
         static int id = 0;
         while (_neighborIt) {
-            for (const auto& pred : _expr._predicates) {
+            for (const auto& pred : _expr._node_predicates) {
                 PMGD::PropertyFilter<PMGD::Node> pf(pred);
                 if (pf(*_neighborIt) == PMGD::Pass) {
                     _node = &*_neighborIt;
@@ -189,7 +190,8 @@ public:
                        PMGD::StringID edgetag, bool unique,
                        const SearchExpression &neighbor_expr)
         : _expr(neighbor_expr),
-          _neighborIt(get_neighbors(node, dir, edgetag, unique)),
+          _neighborIt(get_neighbors(node, dir, edgetag,
+                                    _expr.get_edge_predicates(), unique)),
           _neighbor(true)
     {
         _next_neighbor();
@@ -229,8 +231,8 @@ class SearchExpression::EdgeAndIteratorImpl : public PMGD::EdgeIteratorImplIntf
     bool _next()
     {
         for (; mEdgeIt; mEdgeIt.next()) {
-            for (std::size_t i = 1; i < _expr._predicates.size(); i++) {
-                PMGD::PropertyFilter<PMGD::Edge> pf(_expr._predicates.at(i));
+            for (std::size_t i = 1; i < _expr._node_predicates.size(); i++) {
+                PMGD::PropertyFilter<PMGD::Edge> pf(_expr._node_predicates.at(i));
                 if (pf(*mEdgeIt) == PMGD::DontPass)
                     goto continueEdgeIt;
             }
@@ -248,8 +250,8 @@ public:
     EdgeAndIteratorImpl(const SearchExpression &expr)
         : _expr(expr),
         mEdgeIt(_expr._db.get_edges(_expr.tag(),
-                    (_expr._predicates.empty() ? PMGD::PropertyPredicate()
-                         : _expr._predicates.at(0))))
+                    (_expr._node_predicates.empty() ? PMGD::PropertyPredicate()
+                         : _expr._node_predicates.at(0))))
     {
         _next();
     }
