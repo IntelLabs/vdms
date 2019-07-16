@@ -41,6 +41,26 @@ class TestCommand(unittest.TestCase):
         self.hostname = "localhost"
         self.port = 55557
 
+        db_up = False
+        attempts = 0
+        while(not db_up):
+            try:
+                db = vdms.vdms()
+                db.connect(self.hostname, self.port)
+                db.disconnect()
+                db_up = True
+                if (attempts > 0):
+                    print("Connection to VDMS successful.")
+            except:
+                print("Attempt", attempts,
+                      "to connect to VDMS failed, retying...")
+                attempts += 1
+                time.sleep(1) # sleeps 1 second
+
+            if attempts > 10:
+                print("Failed to connect to VDMS after 10 attempts")
+                exit()
+
     def create_connection(self):
 
         db = vdms.vdms()
