@@ -188,7 +188,7 @@ int PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
 {
     long id = cn.identifier();
     if (id >= 0 && _cached_nodes.find(id) != _cached_nodes.end()) {
-        set_response(response, PMGDCmdResponse::Error, "Reuse of _ref value\n");
+        set_response(response, PMGDCmdResponse::Error, "Reuse of _ref value");
         return -1;
     }
 
@@ -246,7 +246,7 @@ int PMGDQueryHandler::update_node(const protobufs::UpdateNode &un,
 
     if (it == _cached_nodes.end()) {
         if (!query) {
-            set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update\n");
+            set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update");
             return -1;
         }
         else {
@@ -257,7 +257,7 @@ int PMGDQueryHandler::update_node(const protobufs::UpdateNode &un,
             if (qn_id >= 0)
                 it = _cached_nodes.find(qn_id);
             else {
-                set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update\n");
+                set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update");
                 return -1;
             }
         }
@@ -287,7 +287,7 @@ int PMGDQueryHandler::add_edge(const protobufs::AddEdge &ce,
     response->set_node_edge(false);
     long id = ce.identifier();
     if (id >= 0 && _cached_edges.find(id) != _cached_edges.end()) {
-        set_response(response, PMGDCmdResponse::Error, "Reuse of _ref value\n");
+        set_response(response, PMGDCmdResponse::Error, "Reuse of _ref value");
         return -1;
     }
 
@@ -367,7 +367,7 @@ int PMGDQueryHandler::update_edge(const protobufs::UpdateEdge &ue,
 
     if (it == _cached_edges.end()) {
         if (!query) {
-            set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update\n");
+            set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update");
             return -1;
         }
         else {
@@ -378,7 +378,7 @@ int PMGDQueryHandler::update_edge(const protobufs::UpdateEdge &ue,
             if (qe_id >= 0)
                 it = _cached_edges.find(qe_id);
             else {
-                set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update\n");
+                set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update");
                 return -1;
             }
         }
@@ -451,7 +451,7 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     long id = qn.identifier();
     if (id >= 0 && _cached_nodes.find(id) != _cached_nodes.end()) {
         set_response(response, PMGDCmdResponse::Error,
-                       "Reuse of _ref value\n");
+                       "Reuse of _ref value");
         return -1;
     }
 
@@ -462,7 +462,7 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         if (link.nb_unique()) {
             // TODO Add support for unique neighbors across iterators
             set_response(response, PMGDCmdResponse::Error,
-                           "Non-repeated neighbors not supported\n");
+                           "Non-repeated neighbors not supported");
             return -1;
         }
 
@@ -470,7 +470,7 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         auto start = _cached_nodes.find(start_id);
         if (start == _cached_nodes.end()) {
             set_response(response, PMGDCmdResponse::Error,
-                           "Undefined _ref value used in link\n");
+                           "Undefined _ref value used in link");
             return -1;
         }
         start_ni = start->second;
@@ -499,7 +499,7 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
                        : search.eval_nodes();
     if (!bool(ni) && id >= 0) {
         set_response(response, PMGDCmdResponse::Empty,
-                       "Null search iterator\n");
+                       "Null search iterator");
         if (has_link)
             start_ni->reset();
         return -1;
@@ -528,7 +528,7 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         tni->next();
         if (bool(*tni)) {  // Not unique and that is an error here.
             set_response(response, PMGDCmdResponse::NotUnique,
-                           "Query response not unique\n");
+                           "Query response not unique");
             if (has_link)
                 start_ni->reset();
             delete tni;
@@ -572,14 +572,14 @@ int PMGDQueryHandler::query_edge(const protobufs::QueryEdge &qe,
 
     if (qc.p_op() == protobufs::Or) {
         set_response(response, PMGDCmdResponse::Error,
-                       "Or operation not implemented\n");
+                       "Or operation not implemented");
         return -1;
     }
 
     long id = qe.identifier();
     if (id >= 0 && _cached_edges.find(id) != _cached_edges.end()) {
         set_response(response, PMGDCmdResponse::Error,
-                       "Reuse of _ref value\n");
+                       "Reuse of _ref value");
         return -1;
     }
 
@@ -615,7 +615,7 @@ int PMGDQueryHandler::query_edge(const protobufs::QueryEdge &qe,
     EdgeIterator ei = PMGD::EdgeIterator(new NodeEdgeIteratorImpl(search, src_ni, dest_ni));
     if (!bool(ei) && id >= 0) {
         set_response(response, PMGDCmdResponse::Empty,
-                       "Null search iterator\n");
+                       "Null search iterator");
         // Make sure the src and dest Node iterators are resettled.
         if (src_ni != NULL) src_ni->reset();
         if (dest_ni != NULL) dest_ni->reset();
@@ -642,7 +642,7 @@ int PMGDQueryHandler::query_edge(const protobufs::QueryEdge &qe,
         tei->next();
         if (bool(*tei)) {  // Not unique and that is an error here.
             set_response(response, PMGDCmdResponse::NotUnique,
-                           "Query response not unique\n");
+                           "Query response not unique");
             delete tei;
             if (src_ni != NULL) src_ni->reset();
             if (dest_ni != NULL) dest_ni->reset();
@@ -818,7 +818,7 @@ void PMGDQueryHandler::build_results(Iterator &ni,
         }
         else {
             set_response(response, PMGDCmdResponse::Error,
-                           "Wrong first property for sum/average\n");
+                           "Wrong first property for sum/average");
         }
         break;
     }
@@ -832,7 +832,7 @@ void PMGDQueryHandler::build_results(Iterator &ni,
     }
     default:
         set_response(response, PMGDCmdResponse::Error,
-                       "Unknown operation type for query\n");
+                       "Unknown operation type for query");
     }
 }
 
