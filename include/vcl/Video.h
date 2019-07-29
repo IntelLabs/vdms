@@ -31,6 +31,7 @@
 
 #pragma once
 
+#include <list>
 #include <memory> // For shared_ptr
 #include <string>
 
@@ -292,7 +293,7 @@ namespace VCL {
 
         Codec _codec; // (h.264, etc).
 
-        std::vector<std::shared_ptr<Operation>> _operations;
+        std::list<std::shared_ptr<Operation>> _operations;
 
     /*  *********************** */
     /*        OPERATION         */
@@ -522,6 +523,14 @@ namespace VCL {
          *  @param Video_id  The full path to the Video to be read
          */
         void read(const std::string &video_id );
+
+        /**
+         *  Checks whether the video pointed by the current video_id has
+         *  already been read.
+         *
+         * @return true if video was read, false otherwise
+         */
+        bool is_read(void);
 
         /**
          *  Performs the set of operations that have been requested
