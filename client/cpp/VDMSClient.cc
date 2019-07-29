@@ -31,33 +31,19 @@
 #include "protobuf/queryMessage.pb.h"
 
 using namespace VDMS;
-using namespace std;
 
-const string VDMSClient::query(const string &json)
+VDMSClient::VDMSClient(std::string addr, int port) : _conn(addr, port)
 {
-    protobufs::queryMessage cmd;
-    cmd.set_json(json);
-
-    std::basic_string<uint8_t> msg(cmd.ByteSize(),0);
-    cmd.SerializeToArray((void*)msg.data(), msg.length());
-    _conn.send_message(msg.data(), msg.length());
-
-    // Wait now for response
-    // TODO: Perhaps add an asynchronous version too.
-    msg = _conn.recv_message();
-    protobufs::queryMessage resp;
-    resp.ParseFromArray((const void*)msg.data(), msg.length());
-
-    return resp.json();
 }
 
-const string VDMSClient::query(const string &json, const vector<string *> blobs)
+VDMS::Response VDMSClient::query(const std::string &json,
+                                 const std::vector<std::string *> blobs)
 {
     protobufs::queryMessage cmd;
     cmd.set_json(json);
 
     for (auto& it : blobs) {
-        string *blob = cmd.add_blobs();
+        std::string *blob = cmd.add_blobs();
         *blob = *it;
     }
 
@@ -65,11 +51,18 @@ const string VDMSClient::query(const string &json, const vector<string *> blobs)
     cmd.SerializeToArray((void*)msg.data(), msg.length());
     _conn.send_message(msg.data(), msg.length());
 
-    // Wait now for response
-    // TODO: Perhaps add an asynchronous version too.
+    // Wait for response (blocking call)
     msg = _conn.recv_message();
-    protobufs::queryMessage resp;
-    resp.ParseFromArray((const void*)msg.data(), msg.length());
 
-    return resp.json();
+    protobufs::queryMessage protobuf_response;
+    protobuf_response.ParseFromArray((const void*)msg.data(), msg.length());
+
+    VDMS::Response response;
+    response.json = protobuf_response.json();
+
+    for (auto& it : protobuf_response.blobs()) {
+        response.blobs.push_back(it);
+    }
+
+    return response;
 }
