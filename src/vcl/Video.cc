@@ -193,12 +193,6 @@ void Video::set_dimensions(const cv::Size& dimensions)
     /*       UTILITIES          */
     /*  *********************** */
 
-void Video::read(const std::string &video_id)
-{
-    _video_id = video_id;
-    _operations.push_back(std::make_shared<Read>());
-}
-
 bool Video::is_read(void)
 {
     return (_size.frame_count > 0);

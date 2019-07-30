@@ -517,14 +517,6 @@ namespace VCL {
     /*       UTILITIES          */
     /*  *********************** */
         /**
-         *  Stores a Read Operation in the list of operations
-         *    to perform
-         *
-         *  @param Video_id  The full path to the Video to be read
-         */
-        void read(const std::string &video_id );
-
-        /**
          *  Checks whether the video pointed by the current video_id has
          *  already been read.
          *
