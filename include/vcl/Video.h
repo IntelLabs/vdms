@@ -164,9 +164,20 @@ namespace VCL {
         /**
          *  Gets one specific frame from the video
          *
+         *  If key frame information is stored for this video, both this
+         *  function and key_frames() performs partial decoding on the video
+         *  to exploit key frame information.
+         *
          *  @return cv::Mat with the specified frame
          */
         cv::Mat get_frame(unsigned frame_num);
+
+        /**
+         *  Gets mutiple frames from the video
+         *
+         *  @return cv::Mat with the specified frame
+         */
+        std::vector<cv::Mat> get_frames(std::vector<unsigned> frame_list);
 
         /**
          *  Gets encoded Video data in a buffer
@@ -213,6 +224,14 @@ namespace VCL {
          *  @see OpenCV documentation for more details on Size
          */
         void set_dimensions(const cv::Size& dimensions);
+
+        /**
+         *  Set key frame information associated with the underlying video
+         *  stream.
+         *
+         *  @param[in] key_frames list of key frames
+         */
+        void set_key_frame_list(KeyFrameList& key_frames);
 
     /*  *********************** */
     /*    Video INTERACTIONS    */
@@ -307,6 +326,11 @@ namespace VCL {
         float _fps;
 
         Codec _codec; // (h.264, etc).
+
+        // Pointer to key frame decoder object, allocated when key frames
+        // are set, and used whenever frames are decoded using key-frame
+        // information
+        std::unique_ptr<VCL::KeyFrameDecoder> _key_frame_decoder;
 
         // List of key frames, filled only when KeyFrames operation is applied
         KeyFrameList _key_frame_list;
