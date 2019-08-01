@@ -36,6 +36,9 @@ you need to do the following steps to get it to work correctly:
     sudo make install
     sudo ldconfg
 
+**Note**: protobuf v3.9+ is required
+(previous versions cause problems in some systems)
+
 ### [OpenCV](https://opencv.org/)
 
 Below are instructions for installing OpenCV v3.3.1.

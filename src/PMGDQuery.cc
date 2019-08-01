@@ -134,6 +134,11 @@ void PMGDQuery::add_link(const Json::Value& link, PMGDQueryNode* qn)
 
     if (link.isMember("class"))
          qnl->set_e_tag(link["class"].asString());
+
+     if (link.isMember("constraints")) {
+        qnl->set_p_op(PMGD::protobufs::And);
+        parse_query_constraints(link["constraints"], qnl);
+     }
 }
 
 void PMGDQuery::set_value(const std::string& key, const PMGDProp& p,
@@ -329,8 +334,9 @@ Json::Value PMGDQuery::parse_response(PMGDCmdResponse* response)
     return ret;
 }
 
+template<class T>
 void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
-                                        PMGDQueryConstraints* qn)
+                                        T* pb_constraints)
 {
     for (auto it = constraints.begin(); it != constraints.end(); ++it) {
 
@@ -343,7 +349,7 @@ void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
 
             // This will make the entire query OR,
             // not sure if it is right.
-            qn->set_p_op(PMGD::protobufs::Or);
+            pb_constraints->set_p_op(PMGD::protobufs::Or);
 
             const std::string& pred1 = predicate[0].asString();
 
@@ -364,7 +370,7 @@ void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
 
             for (auto& value : predicate[1]) {
 
-                PMGDPropPred* pp = qn->add_predicates();
+                PMGDPropPred* pp = pb_constraints->add_predicates();
                 pp->set_key(key);  //assign the property predicate key
                 pp->set_op(op);
                 PMGDProp* p1 = pp->mutable_v1();
@@ -374,7 +380,7 @@ void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
         }
         else if (predicate.size() == 2) {
 
-            PMGDPropPred* pp = qn->add_predicates();
+            PMGDPropPred* pp = pb_constraints->add_predicates();
             pp->set_key(key);  //assign the property predicate key
 
             PMGDProp* p1 = pp->mutable_v1();
@@ -397,7 +403,7 @@ void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
         }
         else {
 
-            PMGDPropPred* pp = qn->add_predicates();
+            PMGDPropPred* pp = pb_constraints->add_predicates();
             pp->set_key(key);  //assign the property predicate key
 
             PMGDProp* p1 = pp->mutable_v1();

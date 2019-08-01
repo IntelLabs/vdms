@@ -165,10 +165,11 @@
     "blockLink": {
       "type": "object",
       "properties": {
-        "ref":       { "$ref": "#/definitions/refInt" },
-        "direction": { "$ref": "#/definitions/edgeDirectionString" },
-        "properties":{ "type": "object" },
-        "class":     { "type": "string" }
+        "ref":         { "$ref": "#/definitions/refInt" },
+        "direction":   { "$ref": "#/definitions/edgeDirectionString" },
+        "class":       { "type": "string" },
+        "properties":  { "type": "object" },
+        "constraints": { "type": "object" }
       },
       "required": ["ref"],
       "additionalProperties": false

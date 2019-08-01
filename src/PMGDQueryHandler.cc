@@ -491,7 +491,15 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     for (int i = 0; i < qc.predicates_size(); ++i) {
         const PMGDPropPred &p_pp = qc.predicates(i);
         PropertyPredicate j_pp = construct_search_term(p_pp);
-        search.add(j_pp);
+        search.add_node_predicate(j_pp);
+    }
+
+    if (has_link) { // Check for edges constraints
+        for (int i = 0; i < qn.link().predicates_size(); ++i) {
+            const PMGDPropPred &p_pp = qn.link().predicates(i);
+            PropertyPredicate j_pp = construct_search_term(p_pp);
+            search.add_edge_predicate(j_pp);
+        }
     }
 
     PMGD::NodeIterator ni = has_link ?
@@ -609,7 +617,7 @@ int PMGDQueryHandler::query_edge(const protobufs::QueryEdge &qe,
     for (int i = 0; i < qc.predicates_size(); ++i) {
         const PMGDPropPred &p_pp = qc.predicates(i);
         PropertyPredicate j_pp = construct_search_term(p_pp);
-        search.add(j_pp);
+        search.add_node_predicate(j_pp);
     }
 
     EdgeIterator ei = PMGD::EdgeIterator(new NodeEdgeIteratorImpl(search, src_ni, dest_ni));

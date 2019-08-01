@@ -60,7 +60,10 @@ namespace VDMS {
         bool _or;
 
         /// The conjunctions of property predicates
-        std::vector<PMGD::PropertyPredicate> _predicates;
+        std::vector<PMGD::PropertyPredicate> _node_predicates;
+
+        /// The conjunctions of property predicates for edges
+        std::vector<PMGD::PropertyPredicate> _edge_predicates;
 
         /// A pointer to the database
         PMGD::Graph &_db;
@@ -70,11 +73,20 @@ namespace VDMS {
         SearchExpression(PMGD::Graph &db, PMGD::StringID tag, bool p_or) :
             _db(db), _tag(tag), _or(p_or) {}
 
-        void add(PMGD::PropertyPredicate pp) { _predicates.push_back(pp); }
-        const PMGD::StringID tag() const { return _tag; };
         PMGD::Graph &db() const { return _db; }
-        const PMGD::PropertyPredicate &predicate(int i) const { return _predicates.at(i); }
-        const size_t num_predicates() const { return _predicates.size(); }
+        const PMGD::StringID tag() const { return _tag; };
+
+        void add_node_predicate(PMGD::PropertyPredicate pp) {
+                _node_predicates.push_back(pp); }
+        const PMGD::PropertyPredicate &get_node_predicate(int i) const {
+                return _node_predicates.at(i); }
+        const size_t num_node_predicates() const {
+                return _node_predicates.size(); }
+
+        void add_edge_predicate(PMGD::PropertyPredicate pp) {
+                _edge_predicates.push_back(pp); }
+        const std::vector<PMGD::PropertyPredicate>& get_edge_predicates() const {
+                return _edge_predicates; }
 
         PMGD::NodeIterator eval_nodes();
         PMGD::NodeIterator eval_nodes(const PMGD::Node &node,

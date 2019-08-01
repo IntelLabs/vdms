@@ -207,6 +207,11 @@ message LinkInfo
     // are unique. Does carry a performance penalty to do that
     // in cases where it is known that neighbors are unique.
     bool nb_unique = 14;
+
+    // Specify edge constraints
+    // Specify search conditions and whether to OR or AND them
+    PredicateOp p_op = 20;
+    repeated PropertyPredicate predicates = 21;
 }
 
 // Define a standard constraint block that can be used by QueryNode and Edge
