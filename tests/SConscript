@@ -74,7 +74,4 @@ objects_list = [ '../src/QueryHandler.o',
                   test_sources
                 ]
 
-if GetOption('cflags') and '-DVIDEO_KEYFRAMES' in GetOption('cflags') :
-  objects_list.append('../src/vcl/KeyFrame.o')
-
 query_tests = testenv.Program( 'unit_test', objects_list)
