@@ -93,9 +93,7 @@ protected:
 TEST_F(VideoTest, DefaultConstructor)
 {
     VCL::Video video_data;
-    long input_frame_count = video_data.get_frame_count();
-
-    ASSERT_EQ(input_frame_count, 0);
+    ASSERT_THROW(video_data.get_frame_count(), VCL::Exception);
 }
 
 TEST_F(VideoTest, StringConstructor)

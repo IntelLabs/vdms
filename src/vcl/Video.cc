@@ -49,10 +49,10 @@ Video::Video() :
 {
 }
 
-Video::Video(const std::string& video_id)
+Video::Video(const std::string& video_id) :
+    Video()
 {
     _video_id = video_id;
-    read(_video_id); // push the read operation
 }
 
 Video::Video(void* buffer, long size) :
@@ -69,7 +69,6 @@ Video::Video(void* buffer, long size) :
         throw VCLException(OpenFailed, "Cannot create temporary file");
 
     _video_id = uname;
-    read(_video_id); // push the read operation
 }
 
 Video::Video(const Video &video)
@@ -89,8 +88,8 @@ Video::Video(const Video &video)
     _frames     = video._frames;
     _operations = video._operations;
 
-    for (int i = 0; i < video._operations.size(); ++i)
-        _operations.push_back(video._operations[i]);
+    for (const auto& op : video._operations)
+        _operations.push_back(op);
 }
 
 Video& Video::operator=(Video vid)
@@ -102,7 +101,6 @@ Video& Video::operator=(Video vid)
 Video::~Video()
 {
     _operations.clear();
-    _operations.shrink_to_fit();
 }
 
     /*  *********************** */
@@ -195,18 +193,35 @@ void Video::set_dimensions(const cv::Size& dimensions)
     /*       UTILITIES          */
     /*  *********************** */
 
-void Video::read(const std::string &video_id)
+bool Video::is_read(void)
 {
-    _video_id = video_id;
-    _operations.push_back(std::make_shared<Read>());
+    return (_size.frame_count > 0);
 }
 
 void Video::perform_operations()
 {
     try
     {
-        for (int x = 0; x < _operations.size(); ++x) {
-            std::shared_ptr<Operation> op = _operations[x];
+        // At this point, there are three different potential callees:
+        //
+        // - An object is instantiated through the default constructor with
+        //   no name: an exception is thrown as no operations can be applied.
+        //
+        // - An object is instantiated through one-arg string constructor,
+        //   but has no operations set explicitely (i.e. when calling
+        //   get_frame_count()): a 'read' operation is pushed to the head of
+        //   the queue.
+        //
+        // - An object is instantiated through any of the non-default
+        //   constructors, and has pushed operations explicitely: a 'read'
+        //   operation is pushed to the head of the queue.
+        if ((_operations.empty() || _operations.front()->get_type() != READ)
+            && !is_read()) {
+            if (_video_id.empty())
+                throw VCLException(OpenFailed, "video_id is not initialized");
+            _operations.push_front(std::make_shared<Read>());
+        }
+        for (const auto& op : _operations) {
             if ( op == NULL )
                 throw VCLException(ObjectEmpty, "Nothing to be done");
             (*op)(this);
