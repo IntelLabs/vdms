@@ -66,6 +66,7 @@ query_tests = testenv.Program(
                   '../src/vcl/Image.o',
                   '../src/vcl/TDBImage.o',
                   '../src/vcl/Video.o',
+                  '../src/vcl/KeyFrameParser.o',
                   '../src/vcl/DescriptorSet.o',
                   '../src/vcl/DescriptorSetData.o',
                   '../src/vcl/FaissDescriptorSet.o',

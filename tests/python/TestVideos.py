@@ -96,6 +96,45 @@ class TestVideos(TestCommand.TestCommand):
         for i in range(0, number_of_inserts):
             self.assertEqual(response[i]["AddVideo"]["status"], 0)
 
+    def test_extractKeyFrames(self):
+
+        db = self.create_connection()
+
+        fd = open("../../tests/videos/Megamind.mp4", 'rb')
+        video_blob = fd.read()
+        fd.close()
+
+        video_name = "video_test_index_frames"
+
+        props = {}
+        props["name"] = video_name
+
+        video_params = {}
+        video_params["index_frames"] = True
+        video_params["properties"]   = props
+        video_params["codec"]        = "h264"
+
+        query = {}
+        query["AddVideo"] = video_params
+
+        response, obj_array = db.query([query], [[video_blob]])
+
+        self.assertEqual(response[0]["AddVideo"]["status"], 0)
+
+        entity = {}
+        entity["class"] = "VD:KF"
+        entity["results"] = {'count': ''}
+
+        query = {}
+        query["FindEntity"] = entity
+
+        response, res_arr = db.query([query])
+
+        self.assertEqual(response[0]["FindEntity"]["status"], 0)
+
+        # we know that this video has exactly four key frames
+        self.assertEqual(response[0]["FindEntity"]["count"],  4)
+
     def test_findVideo(self):
 
         db = self.create_connection()
