@@ -26,7 +26,7 @@ RUN cd /usr/src/gtest && cmake . && make && mv libgtest* /usr/lib/
 
 # Protobuf
 RUN cd / && git clone https://github.com/google/protobuf.git && \
-    cd protobuf && git checkout v3.6.1 && ./autogen.sh &&  \
+    cd protobuf && git checkout v3.9.0 && ./autogen.sh &&  \
     ./configure --prefix=/usr/local && \
     make -j $(cat /proc/cpuinfo | wc -l) && \
     make install && ldconfig && \
