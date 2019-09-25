@@ -663,6 +663,7 @@ TEST_F(VideoTest, CropWrite)
 
 TEST_F(VideoTest, KeyFrameExtractionSuccess)
 {
+    #if VIDEO_KEYFRAMES
     try {
         VCL::VideoTest video_data(_video_path_mp4_h264);
 
@@ -678,6 +679,7 @@ TEST_F(VideoTest, KeyFrameExtractionSuccess)
         print_exception(e);
         ASSERT_TRUE(false);
     }
+    #endif
 }
 
 TEST_F(VideoTest, KeyFrameExtractionFailure)
