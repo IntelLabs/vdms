@@ -43,9 +43,7 @@ test_sources = ['main.cc',
                 'unit_tests/DescriptorSetStore_test.cc',
               ]
 
-query_tests = testenv.Program(
-                'unit_test',
-                [ '../src/QueryHandler.o',
+objects_list = [ '../src/QueryHandler.o',
                   '../src/SearchExpression.o',
                   '../src/VDMSConfig.o',
                   '../src/RSCommand.o',
@@ -66,7 +64,6 @@ query_tests = testenv.Program(
                   '../src/vcl/Image.o',
                   '../src/vcl/TDBImage.o',
                   '../src/vcl/Video.o',
-                  '../src/vcl/KeyFrameParser.o',
                   '../src/vcl/DescriptorSet.o',
                   '../src/vcl/DescriptorSetData.o',
                   '../src/vcl/FaissDescriptorSet.o',
@@ -74,5 +71,9 @@ query_tests = testenv.Program(
                   '../src/vcl/TDBDenseDescriptorSet.o',
                   '../src/vcl/TDBSparseDescriptorSet.o',
                   test_sources
-                ],
-               )
+                ]
+
+if GetOption('cflags') and '-DVIDEO_KEYFRAMES' in GetOption('cflags') :
+  objects_list.append('../src/vcl/KeyFrameParser.o')
+
+query_tests = testenv.Program( 'unit_test', objects_list)
