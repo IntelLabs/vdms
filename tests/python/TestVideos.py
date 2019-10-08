@@ -96,6 +96,53 @@ class TestVideos(TestCommand.TestCommand):
         for i in range(0, number_of_inserts):
             self.assertEqual(response[i]["AddVideo"]["status"], 0)
 
+    def test_addVideoFromLocalFile_invalid_command(self):
+
+        # The test is meant to fail if both blob and a local file are specified
+        db = self.create_connection()
+
+        with open("../test_videos/Megamind.avi", 'rb') as fd:
+            video_blob = fd.read()
+
+        video_params = {}
+        video_params["from_server_file"] = "BigFile.mp4"
+        video_params["codec"]           = "h264"
+
+        query = {}
+        query["AddVideo"] = video_params
+
+        response, obj_array = db.query([query], [[video_blob]])
+        self.assertEqual(response[0]["status"], -1)
+
+    def test_addVideoFromLocalFile_file_not_found(self):
+
+        db = self.create_connection()
+
+        video_params = {}
+        video_params["from_server_file"] = "BigFile.mp4"
+        video_params["codec"]           = "h264"
+
+        query = {}
+        query["AddVideo"] = video_params
+
+        response, obj_array = db.query([query], [[]])
+        self.assertEqual(response[0]["status"], -1)
+
+    def test_addVideoFromLocalFile_success(self):
+
+        db = self.create_connection()
+
+        video_params = {}
+        video_params["from_server_file"] = "../../tests/videos/Megamind.mp4"
+        video_params["codec"]           = "h264"
+
+        query = {}
+        query["AddVideo"] = video_params
+
+        response, obj_array = db.query([query], [[]])
+        self.assertEqual(response[0]["AddVideo"]["status"], 0)
+
+
     def test_extractKeyFrames(self):
 
         db = self.create_connection()

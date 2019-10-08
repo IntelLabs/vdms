@@ -85,7 +85,7 @@ namespace VDMS {
                 protobufs::queryMessage &response,
                 const std::string &blob);
 
-        bool need_blob(const Json::Value& cmd) { return true; }
+        bool need_blob(const Json::Value& cmd);
     };
 
     class UpdateVideo: public VideoCommand
