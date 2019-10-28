@@ -135,7 +135,14 @@ int AddVideo::construct_protobuf(
     int node_ref = get_value<int>(cmd, "_ref",
                                   query.get_available_reference());
 
-    VCL::Video video((void*)blob.data(), blob.size());
+    const std::string from_server_file = get_value<std::string>(cmd,
+                                                        "from_server_file", "");
+    VCL::Video video;
+    if (from_server_file.empty())
+        video = VCL::Video((void*)blob.data(), blob.size());
+    else
+        video = VCL::Video(from_server_file);
+
 
     // Key frame extraction works on binary stream data, without encoding. We
     // check whether key-frame extraction is to be applied, and if so, we
@@ -205,6 +212,12 @@ Json::Value AddVideo::construct_responses(
     ret[_cmd_name] = RSCommand::check_responses(response);
 
     return ret;
+}
+
+bool AddVideo::need_blob(const Json::Value& cmd)
+{
+    const Json::Value& add_video_cmd = cmd[_cmd_name];
+    return !(add_video_cmd.isMember("from_server_file"));
 }
 
 //========= UpdateVideo definitions =========

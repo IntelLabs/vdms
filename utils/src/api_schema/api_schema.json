@@ -663,13 +663,14 @@
 
     "AddVideo": {
       "properties": {
-        "_ref":         { "$ref": "#/definitions/refInt" },
-        "index_frames": { "type": "boolean" },
-        "codec":        { "$ref": "#/definitions/vidCodecString" },
-        "container":    { "$ref": "#/definitions/vidContainerString" },
-        "link":         { "$ref": "#/definitions/blockLink" },
-        "operations":   { "$ref": "#/definitions/blockVideoOperations" },
-        "properties":   { "type": "object" }
+        "_ref":             { "$ref": "#/definitions/refInt" },
+        "index_frames":     { "type": "boolean" },
+        "from_server_file": { "type": "string"},
+        "codec":            { "$ref": "#/definitions/vidCodecString" },
+        "container":        { "$ref": "#/definitions/vidContainerString" },
+        "link":             { "$ref": "#/definitions/blockLink" },
+        "operations":       { "$ref": "#/definitions/blockVideoOperations" },
+        "properties":       { "type": "object" }
       },
       "additionalProperties": false
     },
