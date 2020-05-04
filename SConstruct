@@ -103,18 +103,23 @@ env.MergeFlags(GetOption('cflags'))
 
 prefix = str(GetOption('prefix'))
 
-env.Alias('install-bin', env.Install(os.path.join(prefix, "bin"),
-      source="vdms"))
 env.Alias('install-client', env.Install(os.path.join(prefix, "lib"),
       source="client/cpp/libvdms-client.so"))
 env.Alias('install-utils', env.Install(os.path.join(prefix, "lib"),
       source="utils/libvdms-utils.so"))
-env.Alias('install', ['install-bin', 'install-client', 'install-utils'])
+
+install_list = ['install-client', 'install-utils']
 
 SConscript(os.path.join('utils', 'SConscript'), exports=['env'])
 SConscript(os.path.join('client/cpp','SConscript'), exports=['env'])
 
 if GetOption('no-server'):
+    env.Alias('install-bin', env.Install(os.path.join(prefix, "bin"),
+      source="vdms"))
+    install_list.append('install-bin')
+
     buildServer(env)
     # Build tests only if server is built
     SConscript(os.path.join('tests', 'SConscript'), exports=['env'])
+
+env.Alias('install', install_list)

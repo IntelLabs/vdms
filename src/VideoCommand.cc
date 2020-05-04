@@ -326,7 +326,7 @@ Json::Value FindVideo::construct_responses(
 
     Json::Value& FindVideo = responses[0];
 
-    bool flag_empty = true;
+    // bool flag_empty = true;
 
     for (auto& ent : FindVideo["entities"]) {
 
@@ -337,9 +337,11 @@ Json::Value FindVideo::construct_responses(
         std::string video_path = ent[VDMS_VID_PATH_PROP].asString();
         ent.removeMember(VDMS_VID_PATH_PROP);
 
+        /*
         if (ent.getMemberNames().size() > 0) {
             flag_empty = false;
         }
+        */
         try {
             if (!cmd.isMember("operations") &&
                 !cmd.isMember("container")  &&
@@ -401,9 +403,11 @@ Json::Value FindVideo::construct_responses(
         }
     }
 
+    /*
     if (flag_empty) {
         FindVideo.removeMember("entities");
     }
+    */
 
     ret[_cmd_name].swap(FindVideo);
     return ret;

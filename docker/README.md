@@ -3,9 +3,12 @@
 Here are the instructions to build a docker image of the VDMS Server.
 
 The build command is: 
+    
+    cd base
+    Dockerfile | docker build -t intellabs-vdms:base .
 
     cd server
-    Dockerfile | docker build -t vdms:latest .
+    Dockerfile | docker build -t intellabs-vdms:latest .
 
 If you are under a proxy, use:
 

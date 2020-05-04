@@ -58,7 +58,7 @@ protected:
 
     const unsigned MAX_PORT_NUMBER  = 65535;
     const unsigned MAX_RETRIES      = 100;
-    const unsigned MAX_BUFFER_SIZE  = (32*1024*1024);
+    const unsigned MAX_BUFFER_SIZE  = (1024*1024*1024);
 
     std::basic_string<uint8_t> buffer_str;
 
