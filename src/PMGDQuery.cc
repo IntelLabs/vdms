@@ -32,6 +32,7 @@
 #include <string>
 #include <iostream>
 #include <cstring>
+#include <chrono>
 
 #include "PMGDQueryHandler.h"
 #include "PMGDQuery.h"
@@ -501,9 +502,27 @@ void PMGDQuery::AddNode(int ref,
     PMGD::protobufs::Node *n = an->mutable_node();
     n->set_tag(tag);
 
+  
     for (auto it = props.begin(); it != props.end(); ++it) {
-        PMGDProp* p = n->add_properties();
-        set_property(p, it.key().asString(), *it);
+         //add a extra properties in the event that special keyword __expiration__ is present in properties
+        if(std::string(it.key().asString()).compare("__expiration__") == 0)
+        {
+            auto now = std::chrono::system_clock::now();
+            Json::UInt64 creation_time = std::chrono::time_point_cast<std::chrono::seconds>(now).time_since_epoch().count();
+            Json::UInt64 expiration_time = creation_time + 1000 * it->asUInt64();
+            std::cout << "match found" << std::endl;
+            PMGDProp* q = n->add_properties();
+            set_property(q, "__creation__", Json::Value(creation_time));
+            q = n->add_properties();
+            set_property(q, "__expiration__", Json::Value(expiration_time));
+            std::cout << it.key().asString() << " " << creation_time << " " << expiration_time << std::endl;
+        }
+        else
+        {
+            PMGDProp* p = n->add_properties();
+            set_property(p, it.key().asString(), *it);
+        }
+        
     }
 
     if(!constraints.isNull()) {
