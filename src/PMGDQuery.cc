@@ -336,14 +336,16 @@ Json::Value PMGDQuery::parse_response(PMGDCmdResponse* response)
 }
 
 template<class T>
-void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
-                                        T* pb_constraints)
+bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
+                                        T* pb_constraints, bool purge_query)
 {
+    bool query_match;
+    bool final_purge_query = false;
     for (auto it = constraints.begin(); it != constraints.end(); ++it) {
 
         const Json::Value& predicate = *it;
         const std::string& key = it.key().asString();
-
+        query_match = 1^key.compare("__expiration__");
         // Will either have 2 or 4 arguments as verified when parsing
         // JSON
         if (predicate.size() == 2 && predicate[1].isArray()) {
@@ -357,17 +359,34 @@ void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
             PMGDPropPred::Op op;
 
             if (pred1 == ">")
+            {
                 op = PMGDPropPred::Gt;
+//ddm if comtraint is __expiration and predicate 2 is less tham curremt time
+                query_match = false;
+            }
             else if (pred1 == ">=")
+            {
                 op = PMGDPropPred::Ge;
+                query_match = false;
+            }
             else if (pred1 == "<")
+            {
                 op = PMGDPropPred::Lt;
+            }
             else if (pred1 == "<=")
+           {
                 op = PMGDPropPred::Le;
-            else if (pred1 == "==")
+           }
+           else if (pred1 == "==")
+           {
                 op = PMGDPropPred::Eq;
+           }
             else if (pred1 == "!=")
+                query_match = false;
+            {
                 op = PMGDPropPred::Ne;
+                query_match = false;
+            }
 
             for (auto& value : predicate[1]) {
 
@@ -380,7 +399,6 @@ void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
 
         }
         else if (predicate.size() == 2) {
-
             PMGDPropPred* pp = pb_constraints->add_predicates();
             pp->set_key(key);  //assign the property predicate key
 
@@ -390,17 +408,43 @@ void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
             const std::string& pred1 = predicate[0].asString();
 
             if (pred1 == ">")
+            {
                 pp->set_op(PMGDPropPred::Gt);
+                query_match = false;
+            }
             else if (pred1 == ">=")
+            {
                 pp->set_op(PMGDPropPred::Ge);
+                query_match = false;
+            }
             else if (pred1 == "<")
+            {
                 pp->set_op(PMGDPropPred::Lt);
+            }
             else if (pred1 == "<=")
+            {
                 pp->set_op(PMGDPropPred::Le);
+            }
             else if (pred1 == "==")
+            {
                 pp->set_op(PMGDPropPred::Eq);
+            }
             else if (pred1 == "!=")
+            {
                 pp->set_op(PMGDPropPred::Ne);
+                query_match = false;
+            }
+
+            //ddm if query still matches - check to ensure that ti,e is in the past
+            if(query_match)
+            {
+                std::cout << predicate[1] << std::endl;
+                if(predicate[1].asUInt64() >= std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count())
+                {
+                    query_match = false;
+                }
+            }
+
         }
         else {
 
@@ -427,7 +471,12 @@ void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
                 pp->set_op(PMGDPropPred::GeLe);
 
         }
+        if(query_match)
+        {
+            final_purge_query = true;
+        }
     }
+    return final_purge_query;
 }
 
 void PMGDQuery::get_response_type(const Json::Value& res, PMGDQueryResultInfo *qn)
@@ -660,8 +709,8 @@ void PMGDQuery::QueryNode(int ref,
     cmdquery->set_cmd_grp_id(_current_group_id);
 
     PMGDQueryNode *qn = cmdquery->mutable_query_node();
-
     qn->set_identifier(ref);
+    qn->clear_purge_flag();
 
     PMGDQueryConstraints *qc = qn->mutable_constraints();
     qc->set_tag(tag);
@@ -673,8 +722,16 @@ void PMGDQuery::QueryNode(int ref,
 
     // TODO: We always assume AND, we need to change that
     qc->set_p_op(PMGD::protobufs::And);
+    
     if (!constraints.isNull())
-        parse_query_constraints(constraints, qc);
+    {
+        
+        bool force_purge = parse_query_constraints(constraints, qc, true);
+        if(force_purge)
+        {
+            qn->set_purge_flag(true);
+        }
+    }
 
     PMGDQueryResultInfo *qr = qn->mutable_results();
     if (!results.isNull())

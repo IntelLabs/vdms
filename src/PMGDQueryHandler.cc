@@ -447,7 +447,7 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     StringID edge_tag;
     const PMGDQueryConstraints &qc = qn.constraints();
     const PMGDQueryResultInfo &qr = qn.results();
-
+    std::list<PMGD::NodeIterator> node_purge_list;
     long id = qn.identifier();
     if (id >= 0 && _cached_nodes.find(id) != _cached_nodes.end()) {
         set_response(response, PMGDCmdResponse::Error,
@@ -522,8 +522,8 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     // way for it.
     if (!(id >= 0 || qc.unique() || qr.sort())) {
         // If not reusable
-        build_results<NodeIterator>(ni, qr, response);
-
+        build_results<NodeIterator>(ni, qr, response, qn.purge_flag());
+        
         // Make sure the starting iterator is reset for later use.
         if (has_link)
             start_ni->reset();
@@ -724,23 +724,23 @@ namespace VDMS {
     template
     void PMGDQueryHandler::build_results<PMGD::NodeIterator>(PMGD::NodeIterator &ni,
                                                   const protobufs::ResultInfo &qn,
-                                                  PMGDCmdResponse *response);
+                                                  PMGDCmdResponse *response, bool purge_flag);
     template
     void PMGDQueryHandler::build_results<PMGDQueryHandler::ReusableNodeIterator>(
                                                   PMGDQueryHandler::ReusableNodeIterator &ni,
                                                   const protobufs::ResultInfo &qn,
-                                                  PMGDCmdResponse *response);
+                                                  PMGDCmdResponse *response, bool purge_flag);
     template
     void PMGDQueryHandler::build_results<PMGD::EdgeIterator>(
                                                   PMGD::EdgeIterator &ni,
                                                   const protobufs::ResultInfo &qn,
-                                                  PMGDCmdResponse *response);
+                                                  PMGDCmdResponse *response, bool purge_flag);
 };
 
 template <class Iterator>
 void PMGDQueryHandler::build_results(Iterator &ni,
                                       const protobufs::ResultInfo &qn,
-                                      PMGDCmdResponse *response)
+                                      PMGDCmdResponse *response, bool purge_flag)
 {
     bool avg = false;
     size_t limit = qn.limit() > 0 ? qn.limit() : std::numeric_limits<size_t>::max();
@@ -764,6 +764,8 @@ void PMGDQueryHandler::build_results(Iterator &ni,
                 }
                 construct_protobuf_property(j_p, p_p);
             }
+            if(purge_flag)
+            _db->remove(*ni);
             count++;
             if (count >= limit)
                 break;
@@ -842,6 +844,8 @@ void PMGDQueryHandler::build_results(Iterator &ni,
         set_response(response, PMGDCmdResponse::Error,
                        "Unknown operation type for query");
     }
+    //ddm need to add a deleter flag that says that a query wants to delete content
+    //if deleter flag is true, need to iterate through the nodes that were returned and delete them from the graph
 }
 
 void PMGDQueryHandler::construct_protobuf_property(const Property &j_p, PMGDProp *p_p)

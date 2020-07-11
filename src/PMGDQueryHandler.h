@@ -36,7 +36,7 @@
 #include <vector>
 #include <list>
 
-#include "protobuf/pmgdMessages.pb.h" // Protobuff implementation
+#include "pmgdMessages.pb.h" // Protobuff implementation
 #include "pmgd.h"
 
 namespace VDMS {
@@ -98,7 +98,7 @@ namespace VDMS {
         PMGD::Property construct_search_property(const PMGDProp&p);
         template <class Iterator> void build_results(Iterator &ni,
                                                     const PMGDQueryResultInfo &qn,
-                                                    PMGDCmdResponse *response);
+                                                    PMGDCmdResponse *response, bool purge_flag=false);
         void construct_protobuf_property(const PMGD::Property &j_p, PMGDProp*p_p);
         void construct_missing_property(PMGDProp *p_p);
 
