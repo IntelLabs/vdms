@@ -2,6 +2,7 @@
 # The MIT License
 #
 # @copyright Copyright (c) 2017 Intel Corporation
+# @copyright Copyright (c) 2020 ApertureData Inc
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"),
@@ -43,7 +44,14 @@ class vdms(object):
         self.dataNotUsed = []
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
-        self.conn.setsockopt(socket.SOL_TCP, socket.TCP_QUICKACK, 1)
+
+        # TCP_QUICKACK only supported in Linux 2.4.4+.
+        # We use startswith for checking the platform following Python's
+        # documentation:
+        # https://docs.python.org/dev/library/sys.html#sys.platform
+        if sys.platform.startswith('linux'):
+            self.conn.setsockopt(socket.SOL_TCP, socket.TCP_QUICKACK, 1)
+
         self.connected = False
         self.last_response = ''
 
