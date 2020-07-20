@@ -282,9 +282,6 @@ message QueryNode
     // Specify how we want results
     ResultInfo results = 4;
 
-    //flag to determine whether results should be removed from database
-    bool purge_flag = 5;
-
 }
 
 message QueryEdge

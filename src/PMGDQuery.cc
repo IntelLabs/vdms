@@ -710,7 +710,6 @@ void PMGDQuery::QueryNode(int ref,
 
     PMGDQueryNode *qn = cmdquery->mutable_query_node();
     qn->set_identifier(ref);
-    qn->clear_purge_flag();
 
     PMGDQueryConstraints *qc = qn->mutable_constraints();
     qc->set_tag(tag);
@@ -729,7 +728,6 @@ void PMGDQuery::QueryNode(int ref,
         bool force_purge = parse_query_constraints(constraints, qc, true);
         if(force_purge)
         {
-            //qn->set_purge_flag(true);
             _readonly = false;
         }
     }

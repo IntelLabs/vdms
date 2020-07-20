@@ -98,7 +98,7 @@ namespace VDMS {
         PMGD::Property construct_search_property(const PMGDProp&p);
         template <class Iterator> void build_results(Iterator &ni,
                                                     const PMGDQueryResultInfo &qn,
-                                                    PMGDCmdResponse *response, bool purge_flag=false);
+                                                    PMGDCmdResponse *response);
         void construct_protobuf_property(const PMGD::Property &j_p, PMGDProp*p_p);
         void construct_missing_property(PMGDProp *p_p);
 

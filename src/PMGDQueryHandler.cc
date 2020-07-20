@@ -523,7 +523,7 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     // way for it.
     if (!(id >= 0 || qc.unique() || qr.sort())) {
         // If not reusable
-        build_results<NodeIterator>(ni, qr, response, qn.purge_flag());
+        build_results<NodeIterator>(ni, qr, response);
         
         // Make sure the starting iterator is reset for later use.
         if (has_link)
@@ -725,23 +725,23 @@ namespace VDMS {
     template
     void PMGDQueryHandler::build_results<PMGD::NodeIterator>(PMGD::NodeIterator &ni,
                                                   const protobufs::ResultInfo &qn,
-                                                  PMGDCmdResponse *response, bool purge_flag);
+                                                  PMGDCmdResponse *response);
     template
     void PMGDQueryHandler::build_results<PMGDQueryHandler::ReusableNodeIterator>(
                                                   PMGDQueryHandler::ReusableNodeIterator &ni,
                                                   const protobufs::ResultInfo &qn,
-                                                  PMGDCmdResponse *response, bool purge_flag);
+                                                  PMGDCmdResponse *response);
     template
     void PMGDQueryHandler::build_results<PMGD::EdgeIterator>(
                                                   PMGD::EdgeIterator &ni,
                                                   const protobufs::ResultInfo &qn,
-                                                  PMGDCmdResponse *response, bool purge_flag);
+                                                  PMGDCmdResponse *response);
 };
 
 template <class Iterator>
 void PMGDQueryHandler::build_results(Iterator &ni,
                                       const protobufs::ResultInfo &qn,
-                                      PMGDCmdResponse *response, bool purge_flag)
+                                      PMGDCmdResponse *response)
 {
     bool avg = false;
     size_t limit = qn.limit() > 0 ? qn.limit() : std::numeric_limits<size_t>::max();
@@ -767,9 +767,7 @@ void PMGDQueryHandler::build_results(Iterator &ni,
             }
             if(! _readonly)
             {
-	        //_readonly = false;
                 _db->remove(*ni);
-		    //_readonly = true;
             }
             
             count++;
