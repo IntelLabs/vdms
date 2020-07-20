@@ -438,8 +438,8 @@ bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
             //ddm if query still matches - check to ensure that ti,e is in the past
             if(query_match)
             {
-                std::cout << predicate[1] << std::endl;
-                if(predicate[1].asUInt64() >= std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count())
+                std::cout << predicate[1] << " " << std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count() << std::endl;
+                if(predicate[1].asUInt64() >= 1+ std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count())
                 {
                     query_match = false;
                 }
@@ -558,7 +558,7 @@ void PMGDQuery::AddNode(int ref,
         {
             auto now = std::chrono::system_clock::now();
             Json::UInt64 creation_time = std::chrono::time_point_cast<std::chrono::seconds>(now).time_since_epoch().count();
-            Json::UInt64 expiration_time = creation_time + 1000 * it->asUInt64();
+            Json::UInt64 expiration_time = creation_time + it->asUInt64();
             std::cout << "match found" << std::endl;
             PMGDProp* q = n->add_properties();
             set_property(q, "__creation__", Json::Value(creation_time));
@@ -729,7 +729,8 @@ void PMGDQuery::QueryNode(int ref,
         bool force_purge = parse_query_constraints(constraints, qc, true);
         if(force_purge)
         {
-            qn->set_purge_flag(true);
+            //qn->set_purge_flag(true);
+            _readonly = false;
         }
     }
 

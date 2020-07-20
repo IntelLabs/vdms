@@ -161,7 +161,8 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
                 retval = add_edge(cmd->add_edge(), response);
                 break;
             case PMGDCmd::QueryNode:
-                retval = query_node(cmd->query_node(), response);
+	        retval = query_node(cmd->query_node(), response);
+
                 break;
             case PMGDCmd::QueryEdge:
                 retval = query_edge(cmd->query_edge(), response);
@@ -764,8 +765,13 @@ void PMGDQueryHandler::build_results(Iterator &ni,
                 }
                 construct_protobuf_property(j_p, p_p);
             }
-            if(purge_flag)
-            _db->remove(*ni);
+            if(! _readonly)
+            {
+	        //_readonly = false;
+                _db->remove(*ni);
+		    //_readonly = true;
+            }
+            
             count++;
             if (count >= limit)
                 break;
