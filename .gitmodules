@@ -1,0 +1,3 @@
+[submodule "pmgd"]
+	path = pmgd
+	url = git@github.com:omp87/pmgd.git
