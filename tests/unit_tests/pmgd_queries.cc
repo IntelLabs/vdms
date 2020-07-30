@@ -33,7 +33,7 @@
 #include <vector>
 
 #include "VDMSConfig.h"
-#include "protobuf/pmgdMessages.pb.h" // Protobuff implementation
+#include "pmgdMessages.pb.h" // Protobuff implementation
 #include "pmgd.h"
 #include "PMGDQueryHandler.h"
 

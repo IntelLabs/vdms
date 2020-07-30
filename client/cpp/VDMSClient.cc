@@ -28,7 +28,7 @@
  */
 
 #include "VDMSClient.h"
-#include "protobuf/queryMessage.pb.h"
+#include "queryMessage.pb.h"
 
 using namespace VDMS;
 
