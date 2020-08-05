@@ -339,13 +339,22 @@ template<class T>
 bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
                                         T* pb_constraints, bool purge_query)
 {
-    bool query_match;
+    bool expiration_query_match = false;
+    bool deletion_query_match = false;
     bool final_purge_query = false;
     for (auto it = constraints.begin(); it != constraints.end(); ++it) {
 
         const Json::Value& predicate = *it;
         const std::string& key = it.key().asString();
-        query_match = 1^key.compare("__expiration__");
+
+	if(key.compare("__deletion__"))
+	  {
+	    deletion_query_match = true;
+	  }
+
+	expiration_query_match = 1^key.compare("__expiration__");
+
+	
         // Will either have 2 or 4 arguments as verified when parsing
         // JSON
         if (predicate.size() == 2 && predicate[1].isArray()) {
@@ -362,12 +371,12 @@ bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
             {
                 op = PMGDPropPred::Gt;
 //ddm if comtraint is __expiration and predicate 2 is less tham curremt time
-                query_match = false;
+                expiration_query_match = false;
             }
             else if (pred1 == ">=")
             {
                 op = PMGDPropPred::Ge;
-                query_match = false;
+                expiration_query_match = false;
             }
             else if (pred1 == "<")
             {
@@ -382,10 +391,10 @@ bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
                 op = PMGDPropPred::Eq;
            }
             else if (pred1 == "!=")
-                query_match = false;
+                expiration_query_match = false;
             {
                 op = PMGDPropPred::Ne;
-                query_match = false;
+                expiration_query_match = false;
             }
 
             for (auto& value : predicate[1]) {
@@ -410,12 +419,12 @@ bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
             if (pred1 == ">")
             {
                 pp->set_op(PMGDPropPred::Gt);
-                query_match = false;
+                expiration_query_match = false;
             }
             else if (pred1 == ">=")
             {
                 pp->set_op(PMGDPropPred::Ge);
-                query_match = false;
+                expiration_query_match = false;
             }
             else if (pred1 == "<")
             {
@@ -432,16 +441,16 @@ bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
             else if (pred1 == "!=")
             {
                 pp->set_op(PMGDPropPred::Ne);
-                query_match = false;
+                expiration_query_match = false;
             }
 
             //ddm if query still matches - check to ensure that ti,e is in the past
-            if(query_match)
+            if(expiration_query_match)
             {
                 std::cout << predicate[1] << " " << std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count() << std::endl;
                 if(predicate[1].asUInt64() >= 1+ std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count())
                 {
-                    query_match = false;
+                    expiration_query_match = false;
                 }
             }
 
@@ -471,7 +480,7 @@ bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
                 pp->set_op(PMGDPropPred::GeLe);
 
         }
-        if(query_match)
+        if(expiration_query_match || deletion_query_match)
         {
             final_purge_query = true;
         }
