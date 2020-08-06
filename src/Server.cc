@@ -39,7 +39,7 @@
 #include "QueryHandler.h"
 #include "DescriptorsManager.h"
 
-#include "protobuf/pmgdMessages.pb.h" // Protobuff implementation
+#include "pmgdMessages.pb.h" // Protobuff implementation
 
 using namespace VDMS;
 
