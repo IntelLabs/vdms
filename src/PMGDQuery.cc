@@ -347,16 +347,17 @@ bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
     const Json::Value& predicate = *it;
     const std::string& key = it.key().asString();
     
-    if(key.compare("__deletion__"))
+    if(key.compare("__deletion__") == 0)
       {
-	deletion_query_match = true;
+    	deletion_query_match = true;
       }
     
     else
       {
-	
-	expiration_query_match = 1^key.compare("__expiration__");
-	
+	if(key.compare("__expiration__") == 0)
+    {
+    	expiration_query_match = true;
+    }
 	
         // Will either have 2 or 4 arguments as verified when parsing
         // JSON
