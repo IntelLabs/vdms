@@ -7,7 +7,7 @@ RUN apt-get update && apt-get -y install software-properties-common && add-apt-r
 #Pull Dependencies
 RUN git clone https://github.com/grpc/grpc.git && git clone https://github.com/glennrp/libpng.git && git clone https://github.com/swig/swig.git && git clone https://github.com/opencv/opencv.git && git clone https://github.com/tristanpenman/valijson.git && git clone https://github.com/Kitware/CMake.git && git clone https://github.com/facebookresearch/faiss.git && curl http://zlib.net/zlib-1.2.11.tar.gz -o zlib-1.2.11.tar.gz 
 
-RUN cd /CMake && ./bootstrap && make -j16 && make install && cd / && rm -rf CMake &&  cd swig && \ 
+RUN cd /CMake && ./bootstrap && make -j16 && make install && cd / && cd swig && \ 
 ./autogen.sh && ./configure && make -j16 && make install && cd /faiss && mkdir build && cd build && \
 cmake -DFAISS_ENABLE_GPU=OFF .. && make -j16 && make install
 
@@ -38,7 +38,7 @@ RUN cd / && wget https://github.com/TileDB-Inc/TileDB/archive/1.3.1.tar.gz && \
     rm -rf /TileDB-1.3.1
 
 # Valijson
-RUN cd /valijson && cp -r include/* /usr/local/include/ && rm -rf /valijson
+RUN cd /valijson && cp -r include/* /usr/local/include/ 
 
 
 RUN cd / && mkdir -p /root/.ssh
@@ -47,14 +47,16 @@ RUN chmod 700 /root/.ssh/id_rsa*
 RUN echo "Host github.com\n\tStrictHostKeyChecking no\n" >> /root/.ssh/config
 
 RUN git clone git@github.com:omp87/vdms.git && cd vdms && git submodule update --init --recursive
-RUN cd /vdms && mkdir build && cd build && cmake .. && make -j16
+RUN cd /vdms && mkdir build && cd build && cmake .. && make -j16 && cd / rm -rf valijson && rm -rf faiss && \
+rm -rf grpc && rm -rf libpng  && rm -rf opencv && rm -rf swig && rm -rf CMake
 
 #ENTRYPOINT ["/bin/bash"]
 
 
 RUN echo '#!/bin/bash' > /start.sh && \
-    echo 'cd /vdms'   >> /start.sh && \
-    echo 'vdms'       >> /start.sh && \
+    echo 'cd /vdms/build'   >> /start.sh && \
+    echo 'cp ../config-vdms.json ./'   >> /start.sh && \
+    echo './vdms'       >> /start.sh && \
     chmod 755 /start.sh
 
 EXPOSE 55555
