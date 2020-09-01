@@ -1,8 +1,8 @@
 # Pull base image.
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 #Install Packages
-RUN apt-get update && apt-get -y install software-properties-common && add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main" && apt-get -y install g++ git libssl-dev libc-ares-dev apt-transport-https ca-certificates curl gnupg-agent software-properties-common cmake python3-pip build-essential autoconf automake libtool g++ unzip bzip2 bsdtar cmake git pkg-config python python-dev python-pip python-virtualenv wget libbz2-dev libssl-dev liblz4-dev mpich libjsoncpp-dev flex javacc bison openjdk-8-jdk libleveldb-dev libsnappy-dev libhdf5-serial-dev libatlas-base-dev libboost-all-dev libgflags-dev libgoogle-glog-dev liblmdb-dev libjpeg8-dev libtiff5-dev libjasper-dev libgtk-3-dev libopenmpi-dev libgtest-dev ed libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev libopenblas-dev && pip3 install numpy && pip install numpy
+RUN apt-get update && apt-get -y install software-properties-common && add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main" && apt-get -y install g++ git libssl-dev libc-ares-dev apt-transport-https ca-certificates curl gnupg-agent software-properties-common cmake python3-pip build-essential autoconf automake libtool g++ unzip bzip2 libarchive-tools cmake git pkg-config python python-dev wget libbz2-dev libssl-dev liblz4-dev mpich libjsoncpp-dev flex javacc bison openjdk-8-jdk libleveldb-dev libsnappy-dev libhdf5-serial-dev libatlas-base-dev libboost-all-dev libgflags-dev libgoogle-glog-dev liblmdb-dev libjpeg8-dev libtiff5-dev libjasper-dev libgtk-3-dev libopenmpi-dev libgtest-dev ed libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev libopenblas-dev && pip3 install numpy
 
 #Pull Dependencies
 RUN git clone https://github.com/grpc/grpc.git && git clone https://github.com/glennrp/libpng.git && git clone https://github.com/swig/swig.git && git clone https://github.com/opencv/opencv.git && git clone https://github.com/tristanpenman/valijson.git && git clone https://github.com/Kitware/CMake.git && git clone https://github.com/facebookresearch/faiss.git && curl http://zlib.net/zlib-1.2.11.tar.gz -o zlib-1.2.11.tar.gz 
@@ -27,7 +27,7 @@ make -j4 && make install
 
 
 # Google Test
-RUN cd /usr/src/gtest && cmake . && make -j16 && mv libgtest* /usr/lib/ && cd / && cd /opencv && mkdir build && \
+RUN cd /usr/src/gtest && cmake . && make -j16 && mv lib/libgtest* /usr/lib/ && cd / && cd /opencv && mkdir build && \
  cd build && cmake -D BUILD_PERF_TESTS=OFF -D BUILD_TESTS=OFF .. && make -j16 && make install
 
 # TileDB
