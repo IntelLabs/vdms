@@ -48,22 +48,22 @@ This version of VDMS provides two methods to delete content from the VDMS. Curre
 ##### __deletion__
 The __deletion__ query allows a user to delete the content within VDMS that is associated with a find query (FindImage, FindEntity, FindDescriptor). In order to use this query, the 
 
-##### __expiration__
-The __expiration__ keyword allows for the removal of data that is based on the time of creation and a relative parameter that indicates the lifetime of value. Similar to the __deletion__ keyword, a query must be performed to remove data from the database. A user must add the __expiration__ keyword as a property along with a value that corresponds with the minimum number of seconds the data should reside within VDMS. 
+##### \_\_expiration\_\_
+The \_\_expiration\_\_ keyword allows for the removal of data that is based on the time of creation and a relative parameter that indicates the lifetime of value. Similar to the \_\_deletion\_\_ keyword, a query must be performed to remove data from the database. A user must add the \_\_expiration\_\_ keyword as a property along with a value that corresponds with the minimum number of seconds the data should reside within VDMS. 
 
 When the __expiration__ keyword is used when adding data, the keyword __creation__ is automatically generated for the newly added data. Both of the keywords __expiration__ and __creation__ are properties that can be retrieved in results of find queries. 
 
 The follow code snippet shows the creation of an entity with the __expiration__ flag
 
-addEntity = {}
-addEntity["_ref"] = 2
-addEntity["class"] = "sample"
-props = {}
-props["__expiration__"] = 10
-addEntity["properties"] = props
-query = {}
-query["AddEntity"] = addEntity
-res, res_arr = db.query([query])
+addEntity = {} \
+addEntity["_ref"] = 2 \
+addEntity["class"] = "sample" \
+props = {} \
+props["\_\_expiration\_\_"] = 10 \
+addEntity["properties"] = props \
+query = {} \
+query["AddEntity"] = addEntity \
+res, res_arr = db.query([query]) \
 
 When the user wishes to remove data that has expired, the user must perform a query that searches for data with an __expiration__ timestamp constraint that is prior ("<") the current time. Greater than (">") queries with __expiration__ constraints will return results if database entries are present, but these entries will not be removed from VDMS.
 
@@ -71,17 +71,17 @@ The following code snipper shows the query used to remove the previously inserte
 
 query = {} \
 findEntity = {} \
-query_results = {}
-query_results['list'] = ["__expiration__", "__creation__"]
-findEntity["results"] = query_results
-#findEntity["results"] = results
-constraints = {}
-constraints["__expiration__"] = ["<", calendar.timegm(time.gmtime())]
-#constraints["__creation__"] = [">", 0]
-findEntity["constraints"] = constraints
-query["FindEntity"] = findEntity
-print(query)
-res, res_arr = db.query([query])
+query_results = {} \
+query_results['list'] = ["__expiration__", "__creation__"] \
+findEntity["results"] = query_results \
+#findEntity["results"] = results \
+constraints = {} \
+constraints["__expiration__"] = ["<", calendar.timegm(time.gmtime())] \
+#constraints["__creation__"] = [">", 0] \
+findEntity["constraints"] = constraints \
+query["FindEntity"] = findEntity \
+print(query) \
+res, res_arr = db.query([query]) \
 
 
 ## Academic Papers
