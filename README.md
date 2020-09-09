@@ -69,8 +69,8 @@ When the user wishes to remove data that has expired, the user must perform a qu
 
 The following code snipper shows the query used to remove the previously inserted data from VDMS. However, this query will only remove data at least 10 seconds after the data is inserted. A query run before the data expires will not return any entities - thus no entries will be removed from VDMS.
 
-query = {}
-findEntity = {}
+query = {} \
+findEntity = {} \
 query_results = {}
 query_results['list'] = ["__expiration__", "__creation__"]
 findEntity["results"] = query_results
