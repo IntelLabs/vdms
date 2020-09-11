@@ -1,0 +1,21 @@
+{
+    "controller" :
+    {
+	"name" : "global_controller",
+	"port" : 55550
+    },
+
+    "workers" :
+    [
+	{ 
+	    "name" : "worker_1",
+	    "port" : 55551
+	},
+	
+	{ 
+	    "name" : "worker_2",
+	    "port" : 55552
+	}
+    ]
+
+}
