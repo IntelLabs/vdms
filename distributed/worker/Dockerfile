@@ -47,10 +47,12 @@ RUN git clone https://github.com/omp87/vdms.git && cd vdms && git submodule upda
 RUN cd /vdms && mkdir build && cd build && cmake .. && make -j16 && cd / rm -rf valijson && rm -rf faiss && \
 rm -rf grpc && rm -rf libpng  && rm -rf opencv && rm -rf swig && rm -rf CMake
 
+COPY ./config_vdms.py /vdms/build
 
 RUN echo '#!/bin/bash' > /start.sh && \
     echo 'cd /vdms/build'   >> /start.sh && \
     echo 'cp ../config-vdms.json ./'   >> /start.sh && \
+    echo 'python3 config_vdms.py'   >> /start.sh && \
     echo './vdms'       >> /start.sh && \
     chmod 755 /start.sh
 
