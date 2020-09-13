@@ -17,19 +17,9 @@ output = OrderedDict()
 output["version"] = "\'2.0\'"
 services = {}
 
-output_manager = {}
-output_manager["container_name"] = "\'" + manager["name"] + "\'"
-output_manager_ports = []
-output_manager_ports.append( "\'" + str(manager["port"]) + ":" + str(manager["port"]) + "\'")
-output_manager["ports"] = output_manager_ports
-output_manager_build = {}
-output_manager_build["context"] = "\'manager\'"
-output_manager_build["dockerfile"] = "\'Dockerfile\'"
-output_manager["build"] = output_manager_build
-output_manager_environment = {}
-output_manager_environment["NETWORK_PORT"] = manager["port"]
-output_manager["environment"] = output_manager_environment
-services[manager["name"]] = output_manager
+
+output_manager_dependson = []
+output_environment_workers = ""
 
 for this_worker in workers:
     output_worker = {}
@@ -45,9 +35,34 @@ for this_worker in workers:
     output_worker_environment["NETWORK_PORT"] = this_worker["port"]
     output_worker["environment"] = output_worker_environment
     services[this_worker["name"]] = output_worker
+    output_manager_dependson.append(this_worker["name"])
+    output_environment_workers =  this_worker["name"] + ":" + str(this_worker["port"]) + "," + output_environment_workers 
+
+
+
+output_manager = {}
+output_manager["container_name"] = "\'" + manager["name"] + "\'"
+output_manager_ports = []
+output_manager_ports.append( "\'" + str(manager["port"]) + ":" + str(manager["port"]) + "\'")
+output_manager["ports"] = output_manager_ports
+output_manager_build = {}
+output_manager_build["context"] = "\'manager\'"
+output_manager_build["dockerfile"] = "\'Dockerfile\'"
+output_manager["build"] = output_manager_build
+output_manager_environment = {}
+output_manager_environment["NETWORK_PORT"] = manager["port"]
+output_manager_environment["WORKERS"] = output_environment_workers
+output_manager["environment"] = output_manager_environment
+output_manager["depends_on"] = output_manager_dependson
+
+services[manager["name"]] = output_manager
+
+
+
 
 output["services"] = services
+
 print(pyaml.dump(output))
 
-output_file = open("docker_compose.yml", "w")
+output_file = open("docker-compose.yml", "w")
 pyaml.dump(output, output_file)

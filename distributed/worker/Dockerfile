@@ -39,10 +39,6 @@ RUN cd / && wget https://github.com/TileDB-Inc/TileDB/archive/1.3.1.tar.gz && \
 
 # Valijson
 RUN cd /valijson && cp -r include/* /usr/local/include/ 
-
-
-RUN cd / && mkdir -p /root/.ssh
-
 RUN git clone https://github.com/omp87/vdms.git && cd vdms && git submodule update --init --recursive
 RUN cd /vdms && mkdir build && cd build && cmake .. && make -j16 && cd / rm -rf valijson && rm -rf faiss && \
 rm -rf grpc && rm -rf libpng  && rm -rf opencv && rm -rf swig && rm -rf CMake
