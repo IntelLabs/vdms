@@ -43,17 +43,17 @@ the examples/tutorials.
 
 ## Deletion Capabilities
 
-This version of VDMS provides two methods to delete content from the VDMS. Currently, bot methods are active deletion methods that require the user to perform a query that identifies which entities and images should be deleted. This implementation introduces two new special property keywords "__deletion__" and "__expiration__" to the API.
+This version of VDMS provides two methods to delete content from the VDMS. Currently, bot methods are active deletion methods that require the user to perform a query that identifies which entities and images should be deleted. This implementation introduces two new special property keywords "\_deletion" and "\_expiration" to the API.
 
-##### __deletion__
-The __deletion__ query allows a user to delete the content within VDMS that is associated with a find query (FindImage, FindEntity, FindDescriptor). In order to use this query, the 
+##### \_deletion
+The \_deletion query allows a user to delete the content within VDMS that is associated with a find query (FindImage, FindEntity, FindDescriptor). In order to use this query, the 
 
 ##### \_\_expiration\_\_
 The \_\_expiration\_\_ keyword allows for the removal of data that is based on the time of creation and a relative parameter that indicates the lifetime of value. Similar to the \_\_deletion\_\_ keyword, a query must be performed to remove data from the database. A user must add the \_\_expiration\_\_ keyword as a property along with a value that corresponds with the minimum number of seconds the data should reside within VDMS. 
 
-When the __expiration__ keyword is used when adding data, the keyword __creation__ is automatically generated for the newly added data. Both of the keywords __expiration__ and __creation__ are properties that can be retrieved in results of find queries. 
+When the \_expiration keyword is used when adding data, the keyword \_creation is automatically generated for the newly added data. Both of the keywords \_expiration and \_creation are properties that can be retrieved in results of find queries. 
 
-The follow code snippet shows the creation of an entity with the __expiration__ flag
+The follow code snippet shows the creation of an entity with the \_expiration flag
 
 addEntity = {} \
 addEntity["_ref"] = 2 \
@@ -65,19 +65,19 @@ query = {} \
 query["AddEntity"] = addEntity \
 res, res_arr = db.query([query]) \
 
-When the user wishes to remove data that has expired, the user must perform a query that searches for data with an __expiration__ timestamp constraint that is prior ("<") the current time. Greater than (">") queries with __expiration__ constraints will return results if database entries are present, but these entries will not be removed from VDMS.
+When the user wishes to remove data that has expired, the user must perform a query that searches for data with an \_expiration timestamp constraint that is prior ("<") the current time. Greater than (">") queries with \_expiration constraints will return results if database entries are present, but these entries will not be removed from VDMS.
 
 The following code snipper shows the query used to remove the previously inserted data from VDMS. However, this query will only remove data at least 10 seconds after the data is inserted. A query run before the data expires will not return any entities - thus no entries will be removed from VDMS.
 
 query = {} \
 findEntity = {} \
 query_results = {} \
-query_results['list'] = ["__expiration__", "__creation__"] \
+query_results['list'] = ["_expiration", "_creation"] \
 findEntity["results"] = query_results \
 #findEntity["results"] = results \
 constraints = {} \
-constraints["__expiration__"] = ["<", calendar.timegm(time.gmtime())] \
-#constraints["__creation__"] = [">", 0] \
+constraints["_expiration"] = ["<", calendar.timegm(time.gmtime())] \
+#constraints["_creation"] = [">", 0] \
 findEntity["constraints"] = constraints \
 query["FindEntity"] = findEntity \
 print(query) \
