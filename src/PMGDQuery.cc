@@ -347,14 +347,14 @@ bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
     const Json::Value& predicate = *it;
     const std::string& key = it.key().asString();
     
-    if(key.compare("__deletion__") == 0)
+    if(key.compare("_deletion") == 0)
       {
     	deletion_query_match = true;
       }
     
     else
       {
-	if(key.compare("__expiration__") == 0)
+	if(key.compare("_expiration") == 0)
     {
     	expiration_query_match = true;
     }
@@ -374,7 +374,7 @@ bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
 	  if (pred1 == ">")
             {
 	      op = PMGDPropPred::Gt;
-	      //ddm if comtraint is __expiration and predicate 2 is less tham curremt time
+	      //ddm if comtraint is _expiration and predicate 2 is less tham curremt time
 	      expiration_query_match = false;
             }
 	  else if (pred1 == ">=")
@@ -567,18 +567,18 @@ void PMGDQuery::AddNode(int ref,
 
   
     for (auto it = props.begin(); it != props.end(); ++it) {
-         //add a extra properties in the event that special keyword __expiration__ is present in properties
-        if(std::string(it.key().asString()).compare("__expiration__") == 0)
+         //add a extra properties in the event that special keyword _expiration is present in properties
+        if(std::string(it.key().asString()).compare("_expiration") == 0)
         {
             auto now = std::chrono::system_clock::now();
             Json::UInt64 creation_time = std::chrono::time_point_cast<std::chrono::seconds>(now).time_since_epoch().count();
             Json::UInt64 expiration_time = creation_time + it->asUInt64();
-            std::cout << "match found" << std::endl;
+            //std::cout << "match found" << std::endl;
             PMGDProp* q = n->add_properties();
-            set_property(q, "__creation__", Json::Value(creation_time));
+            set_property(q, "_creation", Json::Value(creation_time));
             q = n->add_properties();
-            set_property(q, "__expiration__", Json::Value(expiration_time));
-            std::cout << it.key().asString() << " " << creation_time << " " << expiration_time << std::endl;
+            set_property(q, "_expiration", Json::Value(expiration_time));
+            //std::cout << it.key().asString() << " " << creation_time << " " << expiration_time << std::endl;
         }
         else
         {
