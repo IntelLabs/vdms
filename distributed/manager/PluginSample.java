@@ -14,6 +14,7 @@ import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Arrays;
 import java.util.ArrayList;
 
 
@@ -128,11 +129,13 @@ public class PluginSample {
 		int int3 = readSizeArray[3];
 		int readSize = int0 + (int1 << 8) + (int2 << 16) + (int3 << 24);
 		//now i can read the rest of the data
-		System.out.println(Integer.toString(int0) + " " + Integer.toString(readSize));
+		
 
 		byte[] buffer = new byte[readSize];
 		clientCommand = in.read(buffer, 0, readSize);
-
+		System.out.println("readsizearray - " + Arrays.toString(readSizeArray));
+		System.out.println("buffer - " + Arrays.toString(buffer));
+						   
 		int tmpVal = workerConnections.GetSize();
 		VdmsTransaction outMessage = new VdmsTransaction(readSizeArray, buffer);
 		VdmsTransaction inMessage = workerConnections.Publish(outMessage);
