@@ -1,2 +1,3 @@
 build/
 db/
+distributed/manager/*.class
