@@ -5,16 +5,32 @@
 	"port" : 55550
     },
 
+    "data_stores" :
+    [
+	{ 
+	    "name" : "data_store_1",
+	    "port" : 55560
+	},
+	
+	{ 
+	    "name" : "data_store_2",
+	    "port" : 55561
+	}
+    ],
+
     "workers" :
     [
 	{ 
 	    "name" : "worker_1",
-	    "port" : 55551
-	},
-	
-	{ 
-	    "name" : "worker_2",
-	    "port" : 55552
+	    "sources" :
+	    [
+		"manager:55550"
+	    ],
+	    "destinations" :
+	    [
+		"data_store_1:55560",
+		"data_store_2:55561"
+	    ]
 	}
     ]
 
