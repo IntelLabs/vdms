@@ -1,4 +1,5 @@
 build/
 db/
 distributed/manager/*.class
+distributed/manager/debug
 distributed/plugins/*.class

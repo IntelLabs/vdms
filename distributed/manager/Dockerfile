@@ -11,4 +11,5 @@ COPY ./VdmsTransaction.java .
 RUN javac TestServer.java WorkerConnection.java WorkerConnectionList.java VdmsTransaction.java
 
 
-ENTRYPOINT ["java", "TestServer"]
+#ENTRYPOINT ["java", "TestServer"]
+ENTRYPOINT ["tail" "-f"]

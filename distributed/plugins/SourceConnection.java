@@ -18,6 +18,10 @@ public class SourceConnection extends WorkerConnection implements Runnable
     @Override
     public void run()
     {
+
+        //Send a vdms transaction with -number and payload
+
+        // then do a read
 	
     }
 

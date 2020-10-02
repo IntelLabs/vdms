@@ -1,11 +1,6 @@
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 
 import java.lang.System;
-
-import java.nio.ByteBuffer;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,8 +9,6 @@ import java.text.SimpleDateFormat;
 
 import java.util.concurrent.BlockingQueue;
 
-import jdk.internal.joptsimple.internal.Messages;
-
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.Calendar;
 import java.util.List;
@@ -23,35 +16,45 @@ import java.util.Arrays;
 import java.util.ArrayList;
 
 
-public class TestServer {
+public class TestServer 
+{
    ServerSocket myServerSocket;
-   private final BlockingQueue producerQueue;
-   private final BlockingQueue consumerQueue;
+   private final BlockingQueue<VdmsTransaction> producerDataQueue;
+   private final BlockingQueue<VdmsTransaction> consumerDataQueue;
    private QueueServiceThread producerService;
    private QueueServiceThread  consumerService;
    List<Integer> threadTypeArray;
    List<ClientServiceThread> threadArray;
    int newThreadId;
+
+   private List<ClientServiceThread> producerList;
+   private List<ClientServiceThread> consumerList;
    
-   boolean ServerOn = true;
+   
+   boolean ServerOn;
 
         
     public TestServer() { 
       //Create a queue for each direction 
       threadTypeArray = new ArrayList();
-      producerQueue = new ArrayBlockingQueue<VdmsTransaction>(256);
-      producerService = new QueueServiceThread(producerQueue, threadArray, 0);
+      producerDataQueue = new ArrayBlockingQueue<VdmsTransaction>(256);
+      producerService = new QueueServiceThread(producerDataQueue, this, 1);
       producerService.start();
-      consumerQueue = new ArrayBlockingQueue<VdmsTransaction>(256);
-      consumerService = new QueueServiceThread(consumerQueue, threadArray, 1);
+      consumerDataQueue = new ArrayBlockingQueue<VdmsTransaction>(256);
+      consumerService = new QueueServiceThread(consumerDataQueue, this, 0);
       consumerService.start();
       threadArray = new ArrayList();
       newThreadId = 0;
 
+      producerList = new ArrayList();
+      consumerList = new ArrayList();
+      
 
+      System.out.println(System.getenv("NETWORK_PORT"));
       try 
       {
 	      myServerSocket = new ServerSocket(Integer.parseInt(System.getenv("NETWORK_PORT")));
+         ServerOn = true;
       } 
       catch(IOException ioe) 
       { 
@@ -66,11 +69,11 @@ public class TestServer {
       
       while(ServerOn) { 
          try { 
+
             Socket clientSocket = myServerSocket.accept();
             ClientServiceThread cliThread = new ClientServiceThread(this, clientSocket, newThreadId);
             cliThread.start();
             newThreadId++;
-            threadTypeArray.add(-1);
             threadArray.add(cliThread);
          } 
          catch(IOException ioe)
@@ -89,8 +92,27 @@ public class TestServer {
       } 
    }
 
+   public Boolean GetServerOn()
+   {
+      return ServerOn;
+   }
+
+   public void SetServerOn(Boolean nValue)
+   {
+      ServerOn = nValue;
+   }
+
    public void SetThreadType(int threadId, int threadType )
    {
+      if(threadType == 0)
+      {
+
+      }
+      else
+      {
+
+      }
+
       threadTypeArray.set(threadId, threadType);
    }
 
@@ -98,7 +120,7 @@ public class TestServer {
    {
       try
       {
-         producerQueue.put(message);
+         producerDataQueue.put(message);
       }
       catch(InterruptedException e)
       {
@@ -111,7 +133,7 @@ public class TestServer {
    {
       try
       {
-         consumerQueue.put(message);
+         consumerDataQueue.put(message);
       }
       catch(InterruptedException e)
       {
@@ -120,257 +142,43 @@ public class TestServer {
       }
    }
 
-   public BlockingQueue<VdmsTransaction> GetProducerQueue()
+
+   public void AddNewConsumer(ClientServiceThread nThread)
    {
-      return producerQueue;
+      consumerList.add(nThread);
    }
 
-   public BlockingQueue<VdmsTransaction> GetConsumerQueue()
+
+   public void AddNewProducer(ClientServiceThread nThread)
    {
-      return consumerQueue;
+      producerList.add(nThread);
    }
 
-   public static void main (String[] args) {
+   public List<ClientServiceThread> GetConsumerList()
+   {      
+      return consumerList;
+   }
 
-       
-       
+   public List<ClientServiceThread> GetProducerList()
+   {      
+      return producerList;
+   }
+  public List<Integer> GetThreadTypeArray()
+  {
+     return threadTypeArray;
+  }
+
+
+   public List<ClientServiceThread> GetThreadArray()
+   { 
+      return threadArray;
+   }
+
+
+   public static void main (String[] args)
+    {
       new TestServer();
    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   class QueueServiceThread extends Thread 
-   { 
-      BlockingQueue<VdmsTransaction> queue;
-      List<Integer> threadTypeArray;
-      int matchType;
-
-      public QueueServiceThread(BlockingQueue<VdmsTransaction> nQueue, List<ClientServiceThread> nThreadArray, int nMatchType)
-      {
-         queue = nQueue;
-         threadArray = nThreadArray;
-         matchType = nMatchType; 
-      }
-
-      public void run()
-      {
-         VdmsTransaction message;
-         try
-         {
-            while(true)
-            {
-               message = queue.take();
-               for(int i = 0; i < threadTypeArray.size(); i++)
-               {
-                  if(threadArray.get(i).GetType() == matchType)
-                  {
-//                     threadArray.get(i).Publish(message);
-                  }
-               }
-            }
-
-         }
-         catch(InterruptedException e)
-         {
-            this.interrupt();
-            
-         }
-
-
-      }
-
-   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-   class ClientServiceThread extends Thread { 
-      Socket myClientSocket;
-      boolean m_bRunThread = true;
-      int id;
-      int type;
-      int messageId;
-      TestServer manager;
-      BlockingQueue<VdmsTransaction> responseQueue;
-      BlockingQueue<VdmsTransaction> outputQueue;
-
-
-      public ClientServiceThread() { 
-         super();
-         responseQueue = null;
-      } 
-		
-      ClientServiceThread(TestServer nManager, Socket s, int nThreadId) 
-      {
-         responseQueue = new BlockingQueue<VdmsTransaction>(128);
-         outputQueue = null;
-         manager = nManager;
-         myClientSocket = s;
-         id = nThreadId;
-         type = -1;
-         messageId = 0;
-      } 
-
-      public int GetType()
-      {
-         return type;
-      }
-
-
-      public void run() 
-      { 
-         DataInputStream in = null; 
-         DataOutputStream out = null;
-         byte[] readSizeArray = new byte[4];
-
-         int bytesRead;
-         int int0;
-         int int1;
-         int int2;
-         int int3;
-         int readSize;
-         VdmsTransaction returnedMessage;
-
-	 
-         System.out.println(
-            "Accepted Client Address - " + myClientSocket.getInetAddress().getHostName());
-         try 
-         { 
-	         in = new DataInputStream(myClientSocket.getInputStream());
-	         out = new DataOutputStream(myClientSocket.getOutputStream());
-            
-            while(m_bRunThread) 
-            {
-               bytesRead = in.read(readSizeArray, 0, 4);
-               int0 = readSizeArray[0];
-               int1 = readSizeArray[1];
-               int2 = readSizeArray[2];
-               int3 = readSizeArray[3];
-               readSize = int0 + (int1 << 8) + (int2 << 16) + (int3 << 24);
-               //now i can read the rest of the data
-               System.out.println("readsizearray - " + Arrays.toString(readSizeArray));		
-
-               //if we have not determined if this node is a producer or consumer
-               if(type == -1)
-               {                
-                  //Producer from host that are unaware that this is a node mimicking vdms
-                  if(readSize > 0)
-                  {
-                     type = 0;
-                     manager.SetThreadType(id, type);
-                  }
-                  //Consumer that are aware this is a a node mimimicking vdms and listening for messages
-                  else
-                  {
-                     type = 1;
-                     manager.SetThreadType(id, type);
-                     readSize = -1 * readSize;
-                  }
-               }
-               
-
-
-               byte[] buffer = new byte[readSize];
-               bytesRead = in.read(buffer, 0, readSize);
-               System.out.println("buffer - " + Arrays.toString(buffer));
-
-               VdmsTransaction newTransaction = new VdmsTransaction(readSizeArray, buffer);
-               //System.out.println("Client Says :" + Integer.toString(tmpInt));
-
-               if(type == 0)
-               {
-                  //if type is producer - put the data in out queue and then wait for data in the in queue
-                  manager.AddToConsumerQueue(newTransaction);
-                  returnedMessage = responseQueue.take();
-                  out.write(returnedMessage.GetSize());
-                  out.write(returnedMessage.GetBuffer());
-                  ++messageId;  
-               }
-               //if type is producer - put the data in out queue and then wait for data in the in queue
-               else
-               {
-                  //first message from consumer nodes does not have data that should be sent to the producers
-                  if(messageId == 0)
-                  {
-                     manager.AddToProducerQueue(newTransaction);
-                     returnedMessage = responseQueue.take();
-                     out.write(returnedMessage.GetSize());
-                     out.write(returnedMessage.GetBuffer());
-                  }
-                  ++messageId;
-               }
-               
-
-               //if type is a consumer then wait for data in the 
-
-
-               if(!ServerOn) 
-               { 
-                  System.out.print("Server has already stopped"); 
-                  //out.println("Server has already stopped"); 
-                  out.flush(); 
-                  m_bRunThread = false;
-               } 
-		
-               if(bytesRead == -1) 
-               {
-		            m_bRunThread = false;
-                  System.out.print("Stopping client thread for client : ");
-               } 
-               else if(bytesRead == -1) 
-               {
-                  m_bRunThread = false;
-                  System.out.print("Stopping client thread for client : ");
-                  ServerOn = false;
-               } 
-               else 
-               {
-		            //out.println("Server Says : " + bytesRead);
-                  out.flush(); 
-               } 
-            } 
-         } catch(Exception e) 
-         { 
-            e.printStackTrace(); 
-         } 
-         finally { 
-            try { 
-               in.close(); 
-               out.close(); 
-               myClientSocket.close(); 
-               System.out.println("...Stopped"); 
-            } catch(IOException ioe) { 
-               ioe.printStackTrace(); 
-            } 
-         } 
-      } 
-   }
-
-
 
 }
 
