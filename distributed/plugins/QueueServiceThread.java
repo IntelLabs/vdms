@@ -2,34 +2,50 @@
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.ArrayList;
+import java.util.List;
 
    class QueueServiceThread extends Thread 
    { 
       BlockingQueue<VdmsTransaction> queue;
-      RepeaterPlugin manager;
-      
-      public QueueServiceThread(BlockingQueue<VdmsTransaction> nQueue, RepeaterPlugin nManager)
+      TestPlugin manager;
+      int matchType;
+
+
+      public QueueServiceThread(BlockingQueue<VdmsTransaction> nQueue, TestPlugin nManager, int nMatchType)
       {
          queue = nQueue;
          manager = nManager;
+         matchType = nMatchType;
       }
 
       public void run()
       {
          VdmsTransaction message;
+         List<ServerServiceThread> publishList;
+
          try
          {
             while(true)
             {
                message = queue.take();
-               /*for(int i = 0; i < manager.GetThreadTypeArray().size(); i++)
+
+               //Get any new publishers that may exist
+               if(matchType == 0)
                {
-                  if(manager.GetThreadTypeArray().get(i) == matchType)
-                  {
-                     manager.GetThreadArray().get(i).Publish(message);
-                  }
+                  publishList = manager.GetConsumerList(); 
                }
-               */
+               else
+               {
+                  //Before sending data, get a list of any potential new Producers
+                  publishList = manager.GetProducerList();
+               }
+
+               //Publish to all of the associated threads
+               for(int i = 0; i < publishList.size(); i++)
+               {
+                  publishList.get(i).Publish(message);
+               }
             }
 
          }
