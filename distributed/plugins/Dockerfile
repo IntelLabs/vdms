@@ -5,11 +5,12 @@ RUN apt-get install -y emacs
 
 RUN apt-get install -y default-jdk 
 COPY ./QueueServiceThread.java .
-COPY ./ServerServiceThread.java .
+COPY ./PublisherServiceThread.java .
+COPY ./SubscriberServiceThread.java .
 COPY ./TestPlugin.java .
 COPY ./VdmsTransaction.java .
 
-RUN javac QueueServiceThread.java ServerServiceThread.java TestPlugin.java VdmsTransaction.java
+RUN javac QueueServiceThread.java SubscriberServiceThread.java PublisherServiceThread.java TestPlugin.java VdmsTransaction.java
 
 #ENTRYPOINT ["java", "RepeaterPlugin"]
 ENTRYPOINT ["tail", "-f"]

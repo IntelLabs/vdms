@@ -20,9 +20,10 @@ public class TestPlugin
    private final BlockingQueue<VdmsTransaction> consumerDataQueue;
    private QueueServiceThread producerService;
    private QueueServiceThread  consumerService;
-   private List<ServerServiceThread> producerList;
-   private List<ServerServiceThread> consumerList;
+   private List<PublisherServiceThread> producerList;
+   private List<SubscriberServiceThread> consumerList;
    private int threadId;
+   private int newMessageId;
     
    public TestPlugin()
    {
@@ -34,9 +35,10 @@ public class TestPlugin
    consumerService = new QueueServiceThread(consumerDataQueue, this, 0);
    consumerService.start();
    
-   producerList = new ArrayList();
-   consumerList = new ArrayList();
+   producerList = new ArrayList<PublisherServiceThread>();
+   consumerList = new ArrayList<SubscriberServiceThread>();
    threadId = 0;
+   newMessageId = 0;
 
    byte[] initSize = new byte[] {(byte)0xfc, (byte)0xff, (byte)0xff, (byte)0xff};
    byte[] initPayload = ByteBuffer.allocate(4).putInt(0).array();
@@ -56,11 +58,11 @@ public class TestPlugin
          int connectionPort = Integer.parseInt(connectionInfo[1]);
          System.out.println(connectionInfo[0] + " " + Integer.toString(connectionPort));
          try 
-        {
+         {
             Socket thisSocket = new Socket(connectionInfo[0], connectionPort);
-            ServerServiceThread thisServerServivceThread = new ServerServiceThread(this, thisSocket, 0, threadId, initSequence);
+            PublisherServiceThread thisServerServivceThread = new PublisherServiceThread(this, thisSocket, threadId, initSequence);
             AddNewProducer(thisServerServivceThread);
-        }
+         }
          catch (UnknownHostException e)
         {
            e.printStackTrace();
@@ -68,8 +70,7 @@ public class TestPlugin
          catch (IOException e)
         {
            e.printStackTrace();
-
-         }
+        }
      }
       
       for(int i = 0; i < destinationNodeCount; i++)
@@ -80,7 +81,7 @@ public class TestPlugin
          try 
         {
             Socket thisSocket = new Socket(connectionInfo[0], connectionPort);
-            ServerServiceThread thisServerServivceThread = new ServerServiceThread(this, thisSocket, 1, threadId, null);
+            SubscriberServiceThread thisServerServivceThread = new SubscriberServiceThread(this, thisSocket, threadId, null);
             AddNewConsumer(thisServerServivceThread);
          }
          catch (UnknownHostException ex)
@@ -109,8 +110,12 @@ public class TestPlugin
 
    public void AddToProducerQueue(VdmsTransaction message )
    {
+      
       try
       {
+         //Add the new message into producer queue and update the message id value
+         message.SetId(newMessageId);
+         newMessageId++;
          producerDataQueue.put(message);
       }
       catch(InterruptedException e)
@@ -118,6 +123,7 @@ public class TestPlugin
          e.printStackTrace();
          System.exit(-1);
       }
+
    }
 
    public void AddToConsumerQueue(VdmsTransaction message )
@@ -134,29 +140,29 @@ public class TestPlugin
    }
 
 
-   public void AddNewConsumer(ServerServiceThread nThread)
+   public void AddNewConsumer(SubscriberServiceThread nThread)
    {
       consumerList.add(nThread);
    }
 
 
-   public void AddNewProducer(ServerServiceThread nThread)
+   public void AddNewProducer(PublisherServiceThread nThread)
    {
       producerList.add(nThread);
    }
 
-   public List<ServerServiceThread> GetConsumerList()
+   public List<SubscriberServiceThread> GetConsumerList()
    {      
       return consumerList;
    }
 
-   public List<ServerServiceThread> GetProducerList()
+   public List<PublisherServiceThread> GetProducerList()
    {      
       return producerList;
    }
 
    public static void main (String[] args)
-    {
+   {
       new TestPlugin();
    }
 
