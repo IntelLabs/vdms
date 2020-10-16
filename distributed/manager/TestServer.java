@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Arrays;
 import java.util.ArrayList;
 
+import PMGD.protobufs.PmgdMessages;
+import VDMS.protobufs.QueryMessage;
 
 public class TestServer 
 {
@@ -50,6 +52,12 @@ public class TestServer
       consumerList = new ArrayList();
       
 
+      //QueryMessage.queryMessage.Builder tmpMessage = QueryMessage.queryMessage.newBuilder().setJson("{\'a\' : 5");
+
+
+      QueryMessage.queryMessage tmpMessage = QueryMessage.queryMessage.newBuilder().setJson("{\'a\' : 5").build();
+
+      
       System.out.println(System.getenv("NETWORK_PORT"));
       try 
       {

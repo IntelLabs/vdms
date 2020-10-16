@@ -1,0 +1,7 @@
+cmake_minimum_required (VERSION 3.10)
+project(distributed)
+find_package(Protobuf REQUIRED)
+
+
+
+add_subdirectory(manager)

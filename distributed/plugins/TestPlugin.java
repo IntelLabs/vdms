@@ -114,8 +114,6 @@ public class TestPlugin
       try
       {
          //Add the new message into producer queue and update the message id value
-         message.SetId(newMessageId);
-         newMessageId++;
          producerDataQueue.put(message);
       }
       catch(InterruptedException e)
@@ -130,6 +128,8 @@ public class TestPlugin
    {
       try
       {
+         message.SetId(newMessageId);
+         newMessageId++;
          consumerDataQueue.put(message);
       }
       catch(InterruptedException e)

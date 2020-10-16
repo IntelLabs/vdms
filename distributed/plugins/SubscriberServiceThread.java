@@ -80,11 +80,12 @@ class SubscriberServiceThread extends Thread
             }
 
                 returnedMessage = responseQueue.take();
+                //need to check to see if there is a message id - needs to have message id here for pass back up
                 out.write(returnedMessage.GetSize());
                 out.write(returnedMessage.GetBuffer());                
                 ++messageId;
 
-
+make sure to pass message Id back up
                 in.read(readSizeArray, 0, 4);
                 int0 = readSizeArray[0] & 255;
                 int1 = readSizeArray[1] & 255;
