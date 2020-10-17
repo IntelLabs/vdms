@@ -41,6 +41,7 @@
 #define PARAM_DB_PNG            "png_path"
 #define PARAM_DB_JPG            "jpg_path"
 #define PARAM_DB_TDB            "tdb_path"
+#define PARAM_DB_BIN            "bin_path"
 #define PARAM_DB_BLOBS          "blobs_path"
 #define PARAM_DB_VIDEOS         "videos_path"
 #define PARAM_DB_DESCRIPTORS    "descriptors_path"
@@ -68,6 +69,7 @@ namespace VDMS{
         std::string path_images;
         std::string path_png;
         std::string path_jpg;
+        std::string path_bin;
         std::string path_tdb;
         std::string path_blobs;
         std::string path_videos;
@@ -86,6 +88,7 @@ namespace VDMS{
         const std::string& get_path_pmgd()  {return path_pmgd;}
         const std::string& get_path_jpg()   {return path_jpg;}
         const std::string& get_path_png()   {return path_png;}
+        const std::string& get_path_bin()   {return path_bin;}
         const std::string& get_path_tdb()   {return path_tdb;}
         const std::string& get_path_blobs() {return path_blobs;}
         const std::string& get_path_videos(){return path_videos;}

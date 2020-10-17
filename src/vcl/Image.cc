@@ -60,13 +60,27 @@ void Image::Read::operator()(Image *img)
         img->_width = img->_tdb->get_image_width();
         img->_channels = img->_tdb->get_image_channels();
     }
-    else {
+   else if(_format == Image::Format::BIN)
+    {
+        FILE * bin_file;
+        bin_file = fopen(_fullpath.c_str(), "rb");
+        fseek(bin_file, 0, SEEK_END);
+        long bin_file_size = ftell(bin_file);
+        rewind(bin_file);
+        img->_bin = (char*) malloc (sizeof(char)*bin_file_size);
+        fread (img->_bin,1,bin_file_size,bin_file);
+        fclose(bin_file);
+    }    
+    else 
+    {
         cv::Mat img_read = cv::imread(_fullpath, cv::IMREAD_ANYCOLOR);
         img->shallow_copy_cv(img_read);
         if ( img->_cv_img.empty() )
             throw VCLException(ObjectEmpty, _fullpath + " could not be read, \
                 object is empty");
     }
+ 
+    
 }
 
     /*  *********************** */
@@ -84,6 +98,7 @@ Image::Write::Write(const std::string& filename, Image::Format format,
 
 void Image::Write::operator()(Image *img)
 {
+    
     if (_format == Image::Format::TDB) {
         if ( img->_tdb == NULL ) {
             img->_tdb = new TDBImage(_fullpath);
@@ -94,6 +109,13 @@ void Image::Write::operator()(Image *img)
             img->_tdb->write(_fullpath, _metadata);
         else
             img->_tdb->write(img->_cv_img, _metadata);
+    }
+    else if(_format == Image::Format::BIN)
+    {
+        FILE * bin_file;
+        bin_file = fopen (_fullpath.c_str(), "wb");
+        fwrite(img->_bin , sizeof(char), sizeof(img->_bin), bin_file);
+        fclose(bin_file);
     }
     else {
         cv::Mat cv_img;
@@ -262,6 +284,7 @@ Image::Image()
 
     _tdb = nullptr;
     _image_id = "";
+    _bin = nullptr;
 }
 
 Image::Image(const std::string &image_id)
@@ -304,17 +327,19 @@ Image::Image(const cv::Mat &cv_img, bool copy)
     _image_id = "";
 
     _tdb = nullptr;
+    _bin = nullptr;
 }
 
-Image::Image(void* buffer, long size, int flags)
+Image::Image(void* buffer, long size, char binary_image_flag, int flags)
 {
-    set_data_from_encoded(buffer, size, flags);
+    _tdb = nullptr;
+    _bin = nullptr;
+    set_data_from_encoded(buffer, size, binary_image_flag, flags);
 
     _format = Image::Format::NONE_IMAGE;
     _compress = CompressionType::LZ4;
     _image_id = "";
 
-    _tdb = nullptr;
 }
 
 Image::Image(void* buffer, cv::Size dimensions, int cv_type)
@@ -629,20 +654,30 @@ void Image::set_data_from_raw(void* buffer, long size)
     }
 }
 
-void Image::set_data_from_encoded(void *buffer, long size, int flags)
+void Image::set_data_from_encoded(void *buffer, long size, char binary_image_flag, int flags)
 {
-    cv::Mat raw_data(cv::Size(size, 1), CV_8UC1, buffer);
-    cv::Mat img = cv::imdecode(raw_data, flags);
+    //with raw binary files, we simply copy the data and do not encode
+    if(binary_image_flag)
+    {
+        _bin = (char*) malloc (sizeof(char)*size);
+        memcpy ( _bin, buffer, size );
+    }
+    else
+    {
+        cv::Mat raw_data(cv::Size(size, 1), CV_8UC1, buffer);
+        cv::Mat img = cv::imdecode(raw_data, flags);
 
-    if ( img.empty() ) {
-        throw VCLException(ObjectEmpty, "Image object is empty");
+        if ( img.empty() ) {
+            throw VCLException(ObjectEmpty, "Image object is empty");
+        }
+
+        //
+        // We can safely make a shallow-copy here, as cv::Mat uses a reference
+        // counter to keep track of the references
+        //
+        shallow_copy_cv(img);
     }
 
-    //
-    // We can safely make a shallow-copy here, as cv::Mat uses a reference
-    // counter to keep track of the references
-    //
-    shallow_copy_cv(img);
 }
 
 void Image::set_compression(CompressionType comp)
@@ -862,6 +897,8 @@ std::string Image::format_to_string(Image::Format format)
             return "png";
         case Image::Format::TDB:
             return "tdb";
+        case Image::Format::BIN:
+            return "bin";
         default:
             throw VCLException(UnsupportedFormat, (int)format + " is not a \
                 valid format");

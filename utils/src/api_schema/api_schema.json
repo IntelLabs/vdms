@@ -106,7 +106,7 @@
 
     "imgFormatString": {
       "type": "string",
-      "enum": ["png", "jpg"]
+	"enum": ["png", "jpg", "bin"]
     },
 
     "metricFormatString": {

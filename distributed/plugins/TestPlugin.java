@@ -13,6 +13,9 @@ import java.util.ArrayList;
 
 import java.nio.ByteBuffer;
 
+import VDMS.protobufs.QueryMessage;
+import com.google.protobuf.InvalidProtocolBufferException;
+
 public class TestPlugin
 {
 
@@ -27,7 +30,22 @@ public class TestPlugin
     
    public TestPlugin()
    {
-   //Create a queue for each direction 
+      QueryMessage.queryMessage tmpMessage = QueryMessage.queryMessage.newBuilder().setJson("{\'a\' : 5").build();
+
+      byte[] tmp = new byte[] {(byte)0xff, (byte)0xff};
+      try
+	  {
+	      QueryMessage.queryMessage newTmpMessage = QueryMessage.queryMessage.parseFrom(tmp);
+	  }
+      catch(InvalidProtocolBufferException e)
+	  {
+	      System.exit(-1);
+	  }
+
+
+
+
+       //Create a queue for each direction 
    producerDataQueue = new ArrayBlockingQueue<VdmsTransaction>(256);
    producerService = new QueueServiceThread(producerDataQueue, this, 1);
    producerService.start();

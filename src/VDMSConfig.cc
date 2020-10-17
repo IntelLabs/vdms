@@ -48,6 +48,7 @@
 #define DEFAULT_PATH_JPG         "jpg"
 #define DEFAULT_PATH_PNG         "png"
 #define DEFAULT_PATH_TDB         "tdb"
+#define DEFAULT_PATH_BIN         "bin"
 #define DEFAULT_PATH_BLOBS       "blobs"
 #define DEFAULT_PATH_VIDEOS      "videos"
 #define DEFAULT_PATH_DESCRIPTORS "descriptors"
@@ -171,6 +172,11 @@ void VDMSConfig::build_dirs()
     path_tdb = path_images + "/" + DEFAULT_PATH_TDB;
     path_tdb = get_string_value(PARAM_DB_TDB, path_tdb);
     check_or_create(path_tdb);
+
+    // IMAGES - BIN
+    path_bin = path_images + "/" + DEFAULT_PATH_BIN;
+    path_bin = get_string_value(PARAM_DB_BIN, path_bin);
+    check_or_create(path_bin);
 
     // BLOBS
     path_blobs = path_root + "/" + DEFAULT_PATH_BLOBS;

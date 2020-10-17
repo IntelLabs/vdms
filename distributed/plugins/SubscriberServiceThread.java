@@ -85,7 +85,7 @@ class SubscriberServiceThread extends Thread
                 out.write(returnedMessage.GetBuffer());                
                 ++messageId;
 
-make sure to pass message Id back up
+		//make sure to pass message Id back up
                 in.read(readSizeArray, 0, 4);
                 int0 = readSizeArray[0] & 255;
                 int1 = readSizeArray[1] & 255;
