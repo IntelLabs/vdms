@@ -64,11 +64,8 @@ void Image::Read::operator()(Image *img)
     {
         FILE * bin_file;
         bin_file = fopen(_fullpath.c_str(), "rb");
-        fseek(bin_file, 0, SEEK_END);
-        long bin_file_size = ftell(bin_file);
-        rewind(bin_file);
-        img->_bin = (char*) malloc (sizeof(char)*bin_file_size);
-        fread (img->_bin,1,bin_file_size,bin_file);
+        img->_bin = (char*) malloc (sizeof(char)*img->_bin_size);
+        fread (img->_bin,1,img->_bin_size,bin_file);
         fclose(bin_file);
     }    
     else 
@@ -114,7 +111,7 @@ void Image::Write::operator()(Image *img)
     {
         FILE * bin_file;
         bin_file = fopen (_fullpath.c_str(), "wb");
-        fwrite(img->_bin , sizeof(char), sizeof(img->_bin), bin_file);
+        fwrite(img->_bin , sizeof(char), img->_bin_size, bin_file);
         fclose(bin_file);
     }
     else {
@@ -285,6 +282,7 @@ Image::Image()
     _tdb = nullptr;
     _image_id = "";
     _bin = nullptr;
+    _bin_size = 0;
 }
 
 Image::Image(const std::string &image_id)
@@ -328,6 +326,7 @@ Image::Image(const cv::Mat &cv_img, bool copy)
 
     _tdb = nullptr;
     _bin = nullptr;
+    _bin_size = 0;
 }
 
 Image::Image(void* buffer, long size, char binary_image_flag, int flags)
@@ -659,6 +658,7 @@ void Image::set_data_from_encoded(void *buffer, long size, char binary_image_fla
     //with raw binary files, we simply copy the data and do not encode
     if(binary_image_flag)
     {
+        _bin_size = size;
         _bin = (char*) malloc (sizeof(char)*size);
         memcpy ( _bin, buffer, size );
     }
@@ -706,6 +706,8 @@ void Image::set_format(const std::string &extension)
         _format = Image::Format::PNG;
     else if ( extension == "tdb" )
         _format = Image::Format::TDB;
+    else if ( extension == "bin" )
+        _format = Image::Format::BIN;
     else
         throw VCLException(UnsupportedFormat, extension + " is not a \
             supported format");

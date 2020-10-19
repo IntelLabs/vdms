@@ -364,6 +364,7 @@ namespace VCL {
         cv::Mat _cv_img;
         TDBImage *_tdb;
         char* _bin;
+        long _bin_size;
 
     /*  *********************** */
     /*      COPY FUNCTIONS      */
