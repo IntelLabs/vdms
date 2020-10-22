@@ -2,7 +2,6 @@ cmake_minimum_required (VERSION 3.10)
 project(distributed_manager)
 find_package(Java REQUIRED)
 include(UseJava)
-message(STATUS "building the protocs into java")
 execute_process(COMMAND protoc -I${CMAKE_CURRENT_SOURCE_DIR}/../../utils/src/protobuf --java_out=${CMAKE_CURRENT_BINARY_DIR} queryMessage.proto)
 
 

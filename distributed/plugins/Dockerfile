@@ -1,17 +1,8 @@
 FROM ubuntu:20.04
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y python3 python3-pip libprotobuf-java && pip3 install vdms
-RUN apt-get install -y emacs
+RUN apt-get update && apt-get install -y cmake python3 python3-pip openjdk-11-jdk libprotobuf-java git protobuf-compiler && git clone https://github.com/omp87/vdms.git && pip3 install vdms
 
-RUN apt-get install -y default-jdk 
-COPY ./QueueServiceThread.java .
-COPY ./PublisherServiceThread.java .
-COPY ./SubscriberServiceThread.java .
-COPY ./TestPlugin.java .
-COPY ./VdmsTransaction.java .
-
-RUN javac QueueServiceThread.java SubscriberServiceThread.java PublisherServiceThread.java TestPlugin.java VdmsTransaction.java
+RUN cd /vdms && git checkout origin/distributed_vdms && cd distributed/plugins &&  mkdir build && cd build && cp ../../../utils/src/protobuf/queryMessage.proto ./ && cmake .. && make -j16
 
 #ENTRYPOINT ["java", "RepeaterPlugin"]
 ENTRYPOINT ["tail", "-f"]
-
