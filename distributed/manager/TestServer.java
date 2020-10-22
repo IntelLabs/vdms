@@ -52,7 +52,7 @@ public class TestServer
       consumerList = new ArrayList();
       
 
-      QueryMessage.queryMessage tmpMessage = QueryMessage.queryMessage.newBuilder().setJson("{\'a\' : 5").build();
+      QueryMessage.queryMessage tmpMessage = QueryMessage.queryMessage.newBuilder().setJson("{\'a\' : 5}").build();
 
       byte[] tmp = new byte[] {(byte)0xff, (byte)0xff};
       try

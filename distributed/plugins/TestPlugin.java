@@ -30,7 +30,7 @@ public class TestPlugin
     
    public TestPlugin()
    {
-      QueryMessage.queryMessage tmpMessage = QueryMessage.queryMessage.newBuilder().setJson("{\'a\' : 5").build();
+      QueryMessage.queryMessage tmpMessage = QueryMessage.queryMessage.newBuilder().setJson("{\'a\' : 5}").build();
 
       byte[] tmp = new byte[] {(byte)0xff, (byte)0xff};
       try
@@ -39,6 +39,7 @@ public class TestPlugin
 	  }
       catch(InvalidProtocolBufferException e)
 	  {
+        System.out.println("invalid protocol");
 	      System.exit(-1);
 	  }
 
