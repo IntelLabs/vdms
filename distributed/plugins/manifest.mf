@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Created-By: IntelLabs
+Main-Class: TestPlugin
+Class-Path: /usr/share/java/protobuf.jar

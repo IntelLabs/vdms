@@ -4,5 +4,5 @@ RUN apt-get update && apt-get install -y cmake python3 python3-pip openjdk-11-jd
 
 RUN cd /vdms && git checkout origin/distributed_vdms && cd distributed/plugins &&  mkdir build && cd build && cp ../../../utils/src/protobuf/queryMessage.proto ./ && cmake .. && make -j16
 
-#ENTRYPOINT ["java", "RepeaterPlugin"]
+#ENTRYPOINT ["java", "-cp", "TestPlugin.jar:/usr/share/java/protobuf.jar", "TestPlugin"]
 ENTRYPOINT ["tail", "-f"]
