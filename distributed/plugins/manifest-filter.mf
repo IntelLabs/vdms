@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Created-By: IntelLabs
+Main-Class: TestFilter
+Class-Path: /usr/share/java/protobuf.jar:/usr/share/java/json-simple-1.1.1.jar

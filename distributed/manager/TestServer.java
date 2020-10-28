@@ -15,9 +15,6 @@ import java.util.List;
 import java.util.Arrays;
 import java.util.ArrayList;
 
-import VDMS.protobufs.QueryMessage;
-import com.google.protobuf.InvalidProtocolBufferException;
-
 public class TestServer 
 {
    ServerSocket myServerSocket;
@@ -52,17 +49,6 @@ public class TestServer
       consumerList = new ArrayList();
       
 
-      QueryMessage.queryMessage tmpMessage = QueryMessage.queryMessage.newBuilder().setJson("{\'a\' : 5}").build();
-
-      byte[] tmp = new byte[] {(byte)0xff, (byte)0xff};
-      try
-	  {
-	      QueryMessage.queryMessage newTmpMessage = QueryMessage.queryMessage.parseFrom(tmp);
-	  }
-      catch(InvalidProtocolBufferException e)
-	  {
-	      System.exit(-1);
-	  }
 
       
       System.out.println(System.getenv("NETWORK_PORT"));

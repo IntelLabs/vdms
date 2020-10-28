@@ -17,7 +17,7 @@ class PublisherServiceThread extends Thread
     int id;
     int type;
     int messageId;
-    TestPlugin manager;
+    Plugin manager;
     BlockingQueue<VdmsTransaction> responseQueue;
     VdmsTransaction initSequence;
     
@@ -29,7 +29,7 @@ class PublisherServiceThread extends Thread
 
     } 
     
-    PublisherServiceThread(TestPlugin nManager, Socket s, int nThreadId, VdmsTransaction nInitSequence) 
+    PublisherServiceThread(Plugin nManager, Socket s, int nThreadId, VdmsTransaction nInitSequence) 
     {
     responseQueue = new ArrayBlockingQueue<VdmsTransaction>(128);
     manager = nManager;

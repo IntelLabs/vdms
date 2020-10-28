@@ -6,11 +6,11 @@ import java.util.List;
 class QueueServiceThread extends Thread 
 { 
    BlockingQueue<VdmsTransaction> queue;
-   TestPlugin manager;
+   Plugin manager;
    int matchType;
    
    
-   public QueueServiceThread(BlockingQueue<VdmsTransaction> nQueue, TestPlugin nManager, int nMatchType)
+   public QueueServiceThread(BlockingQueue<VdmsTransaction> nQueue, Plugin nManager, int nMatchType)
    {
       queue = nQueue;
       manager = nManager;
