@@ -4,3 +4,7 @@ distributed/manager/*.class
 distributed/manager/debug
 distributed/plugins/*.class
 distributed/debug
+.vscode
+distributed/.vscode
+distributed/manager/.vscode
+distributed/plugins/.vscode

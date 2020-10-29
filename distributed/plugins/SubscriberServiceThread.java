@@ -102,8 +102,6 @@ class SubscriberServiceThread extends Thread
         DataInputStream in = null; 
         DataOutputStream out = null;
         byte[] readSizeArray = new byte[4];
-        
-        
         int int0;
         int int1;
         int int2;
@@ -133,6 +131,7 @@ class SubscriberServiceThread extends Thread
                 
                 returnedMessage = responseQueue.take();
                 //need to check to see if there is a message id - needs to have message id here for pass back up
+                manager.AddOutgoingMessageRegistry(returnedMessage.GetId(), id);
                 out.write(returnedMessage.GetSize());
                 out.write(returnedMessage.GetBuffer());                
                 ++messageId;
@@ -150,13 +149,13 @@ class SubscriberServiceThread extends Thread
                 byte[] buffer = new byte[readSize];
                 in.read(buffer, 0, readSize);
                 System.out.println("buffer - " + Arrays.toString(buffer));
-                
+
+                //Get data back from underlying server and add the ID from the original message
+                //Set the timestamp to be the difference between the original timestamp and the current time
                 newTransaction = new VdmsTransaction(readSizeArray, buffer);
-                //System.out.println("Server Says :" + Integer.toString(tmpInt));
+                newTransaction.SetId(returnedMessage.GetId());
+                newTransaction.SetTimestamp(System.currentTimeMillis() - returnedMessage.GetTimestamp());
                 manager.AddToProducerQueue(newTransaction);
-                
-                
-                
             }
         }
         catch(Exception e) 

@@ -5,29 +5,13 @@ import java.lang.System;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import java.util.concurrent.BlockingQueue;
-
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.List;
-import java.util.ArrayList;
-
 import java.nio.ByteBuffer;
 
-import VDMS.protobufs.QueryMessage;
-import com.google.protobuf.InvalidProtocolBufferException;
+import java.util.ArrayList;
 
-import org.json.simple.JSONObject;
-import org.json.simple.JSONArray;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 public class TestFilter extends Plugin
 {
-   
-   
-
-
-
    public TestFilter()
    {
       ArrayList<ArrayList<String>> destinationList = new  ArrayList<ArrayList<String>>();
@@ -122,24 +106,7 @@ public class TestFilter extends Plugin
          consumerList.get(i).start();
       }
       
-      
-      
    }
-   
-   public void AddToConsumerQueue(VdmsTransaction message )
-   {
-      try
-      {
-         message.SetId(newMessageId);
-         newMessageId++;
-         consumerDataQueue.put(message);
-      }
-      catch(InterruptedException e)
-      {
-         e.printStackTrace();
-         System.exit(-1);
-      }
-   } 
    
    public static void main (String[] args)
    {
