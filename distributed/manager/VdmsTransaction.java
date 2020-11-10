@@ -5,13 +5,15 @@ class VdmsTransaction
 {
     byte size[];
     byte buffer[];
-    int id;
-    
-    public VdmsTransaction(byte[] nSize, byte nBuffer[])
+    int messageId;
+    int threadId;
+
+    public VdmsTransaction(byte[] nSize, byte nBuffer[], int nThreadId)
     {
         size = nSize;
         buffer = nBuffer;
-        id = -1;
+        threadId = nThreadId;
+        messageId = -1;
     }
 
     public byte[] GetSize()
@@ -24,14 +26,23 @@ class VdmsTransaction
 	    return buffer;
     }
 
-    public int GetId()
+    public int GetMessageId()
     {
-        return id;
+        return messageId;
     }
 
-    public void SetId(int nId)
+    public void SetMessageId(int nMessageId)
     {
-        id = nId;
+        messageId = nMessageId;
+    }
+    public int GetThreadId()
+    {
+        return threadId;
+    }
+
+    public void SetThreadId(int nThreadId)
+    {
+        threadId = nThreadId;
     }
 
 }

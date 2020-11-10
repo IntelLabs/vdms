@@ -8,7 +8,7 @@ import java.util.Arrays;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ArrayBlockingQueue;
 
-
+import java.nio.charset.StandardCharsets;
 
 class PublisherServiceThread extends Thread
 { 
@@ -86,11 +86,14 @@ class PublisherServiceThread extends Thread
                 int3 = readSizeArray[3] & 255;
                 readSize = int0 + (int1 << 8) + (int2 << 16) + (int3 << 24);
                 //now i can read the rest of the data
-                System.out.println("readsizearray - " + Arrays.toString(readSizeArray));		
+                System.out.println("publisher readsizearray - " + Arrays.toString(readSizeArray));		
                 
                 byte[] buffer = new byte[readSize];
                 in.read(buffer, 0, readSize);
-                System.out.println("buffer - " + Arrays.toString(buffer));
+                //Debug code to print the bytes received in readable text
+                //String tmpString = new String(buffer, StandardCharsets.UTF_8);
+                //System.out.println(tmpString);
+                //System.out.println("buffer - " + Arrays.toString(buffer));
                 
                 newTransaction = new VdmsTransaction(readSizeArray, buffer);
                 //System.out.println("Server Says :" + Integer.toString(tmpInt));

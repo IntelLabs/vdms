@@ -36,6 +36,8 @@ public class Plugin
 
       //initialize the outgoign queue registry that stores information abou tmessages that have been sent
       outgoingMessageRegistrySize = 256;
+      outgoingMessageRegistry = (ArrayList<Integer>[]) new ArrayList[outgoingMessageRegistrySize];
+      outgoingMessageBuffer = (ArrayList<VdmsTransaction>[]) new ArrayList[outgoingMessageRegistrySize];
       for(int i = 0; i < outgoingMessageRegistrySize; i++)
       {
          outgoingMessageRegistry[i] = new ArrayList<Integer>();

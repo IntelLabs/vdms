@@ -40,7 +40,12 @@ class ClientServiceThread extends Thread
     public int GetType()
     {
 		return type;
-    }
+	}
+
+	public int GetId()
+	{
+		return id;
+	}
     
     public void Publish(VdmsTransaction newMessage)
     {
@@ -75,7 +80,7 @@ class ClientServiceThread extends Thread
 				int3 = readSizeArray[3] & 255;
 				readSize = int0 + (int1 << 8) + (int2 << 16) + (int3 << 24);
 				//now i can read the rest of the data
-				System.out.println("readsizearray - " + Arrays.toString(readSizeArray));		
+				System.out.println("readsizearray - " + Arrays.toString(readSizeArray) + Integer.toString(readSize));		
 				
 				//if we have not determined if this node is a producer or consumer
 				if(type == -1)
@@ -101,7 +106,7 @@ class ClientServiceThread extends Thread
 				bytesRead = in.read(buffer, 0, readSize);
 				System.out.println("buffer - " + Arrays.toString(buffer));
 				
-				VdmsTransaction newTransaction = new VdmsTransaction(readSizeArray, buffer);
+				VdmsTransaction newTransaction = new VdmsTransaction(readSizeArray, buffer, id);
 				//System.out.println("Client Says :" + Integer.toString(tmpInt));
 				
 				if(type == 0)
@@ -131,8 +136,7 @@ class ClientServiceThread extends Thread
 				
 					if(!manager.GetServerOn()) 
 					{ 
-						System.out.print("Server has already stopped"); 
-						//out.println("Server has already stopped"); 
+						System.out.println("Server stopped");
 						out.flush(); 
 						m_bRunThread = false;
 					} 
@@ -140,12 +144,12 @@ class ClientServiceThread extends Thread
 					if(bytesRead == -1) 
 					{
 						m_bRunThread = false;
-						System.out.print("Stopping client thread for client : ");
+						//System.out.print("Stopping client thread for client : ");
 					} 
 					else if(bytesRead == -1) 
 					{
 						m_bRunThread = false;
-						System.out.print("Stopping client thread for client : ");
+						//System.out.print("Stopping client thread for client : ");
 						manager.SetServerOn(false);
 					} 
 					else 
@@ -158,7 +162,8 @@ class ClientServiceThread extends Thread
 				} 
 			} catch(Exception e) 
 			{ 
-				e.printStackTrace(); 
+				//e.printStackTrace();
+				//Exception here could indicate that the socket was closed
 			} 
 		finally 
 			{ 
@@ -167,7 +172,7 @@ class ClientServiceThread extends Thread
 				in.close(); 
 				out.close(); 
 				myClientSocket.close(); 
-				System.out.println("...Stopped"); 
+				System.out.println("Socket Connection Closed"); 
 			}
 			catch(IOException ioe)
 			{ 

@@ -148,7 +148,7 @@ class SubscriberServiceThread extends Thread
                 
                 byte[] buffer = new byte[readSize];
                 in.read(buffer, 0, readSize);
-                System.out.println("buffer - " + Arrays.toString(buffer));
+                System.out.println("subscriber buffer - " + Arrays.toString(buffer));
 
                 //Get data back from underlying server and add the ID from the original message
                 //Set the timestamp to be the difference between the original timestamp and the current time
