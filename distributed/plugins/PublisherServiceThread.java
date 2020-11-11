@@ -90,6 +90,10 @@ class PublisherServiceThread extends Thread
                 
                 byte[] buffer = new byte[readSize];
                 in.read(buffer, 0, readSize);
+
+                byte[] threadIdBuffer = new byte[4];
+                in.read(threadIdBuffer, 0, 4);
+
                 //Debug code to print the bytes received in readable text
                 //String tmpString = new String(buffer, StandardCharsets.UTF_8);
                 //System.out.println(tmpString);
@@ -102,6 +106,7 @@ class PublisherServiceThread extends Thread
                 returnedMessage = responseQueue.take();
                 out.write(returnedMessage.GetSize());
                 out.write(returnedMessage.GetBuffer());
+                out.write(threadIdBuffer);
                 ++messageId;  
                 
             }

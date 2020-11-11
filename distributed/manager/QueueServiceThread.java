@@ -46,13 +46,15 @@ class QueueServiceThread extends Thread
                //Before sending data, get a list of any potential new Producers
                publishList = manager.GetProducerList();
                ClientServiceThread thisClient;
+
+               //future - change this code to have constant lookup - pass the index of array with pointer to thread
                for(int i = 0; i < publishList.size(); i++)
                {
                   thisClient = publishList.get(i);
-//                  if(thisClient.GetId() == message.GetThreadId())
-//                  {
+                  if(thisClient.GetId() == message.GetThreadId())
+                  {
                      thisClient.Publish(message);                     
-//                  }
+                  }
                }
 
             }
