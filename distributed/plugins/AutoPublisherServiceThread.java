@@ -124,7 +124,7 @@ class AutoPublisherServiceThread extends PublisherServiceThread
 
 
 
-
+/*
 
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         calendar.clear();
@@ -144,7 +144,7 @@ class AutoPublisherServiceThread extends PublisherServiceThread
         
         long seconds = System.currentTimeMillis() / 1000l;
         
-        
+  */      
 
 
 
@@ -157,7 +157,7 @@ class AutoPublisherServiceThread extends PublisherServiceThread
 
 
 
-        QueryMessage.queryMessage autoMessage = QueryMessage.queryMessage.newBuilder().setJson("{\'a\' : 5}").build();
+        QueryMessage.queryMessage autoMessage = QueryMessage.queryMessage.newBuilder().setJson("[{\'FindEntity\': {\'class\': \'drone\', \'results\': {\'list\': [\'pos_x\', \'pos_y\']}}}]").build();
         int messageSizeInt = autoMessage.getSerializedSize();
         byte messageSize[] = {(byte) (messageSizeInt & 0x000000ff), (byte) ((messageSizeInt & 0x0000ff00) >>> 8), (byte) ((messageSizeInt & 0x00ff0000) >>> 16),  (byte)((messageSizeInt & 0x00ff0000) >>> 24)};
         autoQuery = new VdmsTransaction(messageSize, autoMessage.toByteArray());
