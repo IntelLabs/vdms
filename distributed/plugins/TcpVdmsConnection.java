@@ -11,7 +11,7 @@ class TcpVdmsConnection extends VdmsConnection
     DataInputStream in;
     DataOutputStream out;
     
-    TcpVdmsConnection(String initString)
+    public TcpVdmsConnection(String initString)
     {
         super(initString);
         try
@@ -31,8 +31,23 @@ class TcpVdmsConnection extends VdmsConnection
             System.exit(-1);
         }
     }
+
+    public void Close()
+    {
+        try 
+        {
+            in.close();
+            out.close();
+            socket.close();
+        }
+        catch(IOException e)
+        {
+            e.printStackTrace();
+            System.out.println("Socket was closed\n");
+        }        
+    }
     
-    public void WriteInitMessage(VdmsTransaction initSequence)
+    public void WriteInitMessage()
     {
         try
         {

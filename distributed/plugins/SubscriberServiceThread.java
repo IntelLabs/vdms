@@ -1,10 +1,4 @@
-import java.io.IOException;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-
-import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -17,8 +11,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 class SubscriberServiceThread extends Thread
-{ 
-    Socket serverSocket;
+{
     boolean m_bRunThread = true;
     int id;
     int type;
@@ -27,6 +20,7 @@ class SubscriberServiceThread extends Thread
     BlockingQueue<VdmsTransaction> responseQueue;
     VdmsTransaction initSequence;
     ArrayList<String> passList;
+    VdmsConnection connection;
     
     public SubscriberServiceThread()
     { 
@@ -34,21 +28,30 @@ class SubscriberServiceThread extends Thread
         responseQueue = null;
         initSequence = null;
         passList = null;
+        connection = null;
         
     } 
     
-    public SubscriberServiceThread(Plugin nManager, Socket s, int nThreadId, ArrayList<String> nPassList, VdmsTransaction nInitSequence) 
+    public SubscriberServiceThread(Plugin nManager, VdmsConnection nConnection, int nThreadId) 
     {
         responseQueue = new ArrayBlockingQueue<VdmsTransaction>(128);
         manager = nManager;
-        serverSocket = s;
+        connection = nConnection;
         id = nThreadId;
         messageId = 0;
-        initSequence = nInitSequence;
-        passList = nPassList;
+        passList = null;
     } 
     
-    
+    public void SetPassList(ArrayList<String> nPassList)
+    {
+        passList = nPassList;
+    }
+
+    public ArrayList<String> GetPassList()
+    {
+        return passList;
+    }
+
     public void Publish(VdmsTransaction newMessage)
     {
         boolean passMessage = false;
@@ -99,32 +102,20 @@ class SubscriberServiceThread extends Thread
     
     public void run() 
     { 
-        DataInputStream in = null; 
-        DataOutputStream out = null;
-        byte[] readSizeArray = new byte[4];
-        int int0;
-        int int1;
-        int int2;
-        int int3;
-        int readSize;
         VdmsTransaction returnedMessage;
         Boolean threadInitFlag = false;
         VdmsTransaction newTransaction = null;
         
         try
         { 
-            in = new DataInputStream(serverSocket.getInputStream());
-            out = new DataOutputStream(serverSocket.getOutputStream());
-            
             while(m_bRunThread) 
             {
                 if(threadInitFlag == false)
                 {
                     //only write the value if there is a valid init sequence
-                    if(initSequence != null)
+                    if(connection.GetInitSequence() != null)
                     {
-                        out.write(initSequence.GetSize());
-                        out.write(initSequence.GetBuffer());
+                        connection.WriteInitMessage();
                     }
                     threadInitFlag = true;
                 }
@@ -132,27 +123,10 @@ class SubscriberServiceThread extends Thread
                 returnedMessage = responseQueue.take();
                 //need to check to see if there is a message id - needs to have message id here for pass back up
                 manager.AddOutgoingMessageRegistry(returnedMessage.GetId(), id);
-                out.write(returnedMessage.GetSize());
-                out.write(returnedMessage.GetBuffer());                
+                connection.Write(returnedMessage);
                 ++messageId;
                 
-                //make sure to pass message Id back up
-                in.read(readSizeArray, 0, 4);
-                int0 = readSizeArray[0] & 255;
-                int1 = readSizeArray[1] & 255;
-                int2 = readSizeArray[2] & 255;
-                int3 = readSizeArray[3] & 255;
-                readSize = int0 + (int1 << 8) + (int2 << 16) + (int3 << 24);
-                //now i can read the rest of the data
-                System.out.println("readsizearray - " + Arrays.toString(readSizeArray));		
-                
-                byte[] buffer = new byte[readSize];
-                in.read(buffer, 0, readSize);
-                System.out.println("subscriber buffer - " + Arrays.toString(buffer));
-
-                //Get data back from underlying server and add the ID from the original message
-                //Set the timestamp to be the difference between the original timestamp and the current time
-                newTransaction = new VdmsTransaction(readSizeArray, buffer);
+                newTransaction = connection.Read();
                 newTransaction.SetId(returnedMessage.GetId());
                 newTransaction.SetTimestamp(System.currentTimeMillis() - returnedMessage.GetTimestamp());
                 manager.AddToProducerQueue(newTransaction);
@@ -164,17 +138,7 @@ class SubscriberServiceThread extends Thread
         } 
         finally 
         { 
-            try
-            { 
-                in.close(); 
-                out.close(); 
-                serverSocket.close(); 
-                System.out.println("...Stopped"); 
-            }
-            catch(IOException ioe)
-            { 
-                ioe.printStackTrace(); 
-            } 
+            connection.Close();
         } 
     } 
 }

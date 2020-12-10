@@ -8,3 +8,4 @@ distributed/debug
 distributed/.vscode
 distributed/manager/.vscode
 distributed/plugins/.vscode
+distributed/plugins/debug

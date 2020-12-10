@@ -1,5 +1,3 @@
-
-
 import java.util.concurrent.BlockingQueue;
 import java.util.List;
 
@@ -32,7 +30,7 @@ class QueueServiceThread extends Thread
             //Get any new publishers that may exist
             if(matchType == 0)
             {
-               subscribeList = manager.GetConsumerList();
+               subscribeList = manager.GetSubscriberList();
                //Publish to all of the associated threads
                for(int i = 0; i < subscribeList.size(); i++)
                {
@@ -43,7 +41,7 @@ class QueueServiceThread extends Thread
             else
             {
                //Before sending data, get a list of any potential new Producers
-               publishList = manager.GetProducerList();
+               publishList = manager.GetPublisherList();
                //Publish to all of the associated threads
                for(int i = 0; i < publishList.size(); i++)
                {

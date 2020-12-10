@@ -1,3 +1,4 @@
+import java.nio.ByteBuffer;
 
 class VdmsTransaction
 {
@@ -10,6 +11,14 @@ class VdmsTransaction
     public VdmsTransaction(byte[] nSize, byte[] nBuffer)
     {
         size = nSize;
+        buffer = nBuffer;
+        id = -1;
+        timestamp = 0;
+    }
+    
+    public VdmsTransaction(int nSize, byte[] nBuffer)
+    {
+        size = ByteBuffer.allocate(4).putInt(nSize).array();
         buffer = nBuffer;
         id = -1;
         timestamp = 0;

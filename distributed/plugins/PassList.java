@@ -8,28 +8,31 @@ import org.json.simple.parser.ParseException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.DecoderException;
 
-public abstract class VdmsConnection
+import java.util.ArrayList;
+
+class PassList
 {
-    enum FunctionID { ConfigManager, DataFlowManager, ReplicationPlugin, FilterPlugin, AutoTaskPlugin};
-    
-    protected int registrationId;
-    protected int functionId;
-    protected String hostName;
-    protected int hostPort;
-    protected VdmsTransaction initSequence;
-    protected int initSequenceSizeMultiplier;
-    
-    VdmsConnection()
-    {
-        
-    }
-    
-    VdmsConnection(String initString)
+    private ArrayList<String> passList;
+    private int listId;
+
+
+    PassList(String initString)
     {
         try
         {
             JSONParser connectionParser = new JSONParser();
             JSONObject connection = (JSONObject) connectionParser.parse(initString);
+
+
+
+
+
+
+
+
+
+
+
             registrationId = ((Long) connection.get("RegistrationId")).intValue();
             functionId = ((Long) connection.get("FunctionId")).intValue();
             hostName  = ((String) connection.get("HostName"));
@@ -51,41 +54,22 @@ public abstract class VdmsConnection
 
     }
 
-    public int GetegistrationRId()
+    public int GetId()
     {
-        return registrationId;
+        return listId;
     }
-    
-    public int GetFunctionId()
-    {
-        return functionId;
-    }
-    
-    public String GetHostName()
-    {
-        return hostName;
-    }
-    
-    public int GetHostPort()
-    {
-        return hostPort;
-    }
-    
-    public VdmsTransaction GetInitSequence()
-    {
-        return initSequence;
-    }
-    
-    public abstract void Close();
 
-    public abstract void WriteInitMessage();
-    
-    public abstract void Write(VdmsTransaction outMessage);
-    
-    public abstract void WriteExtended(VdmsTransaction outMessage);
+    public ArrayList<String> GetPassList()
+    {
+        return passList;
+    }
 
-    public abstract VdmsTransaction Read();
+    /*
+    Will allow the ability to modify the pass list
+    */
 
-    public abstract VdmsTransaction ReadExtended();
-    
+
+
+
+
 }
