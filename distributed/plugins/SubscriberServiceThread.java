@@ -19,7 +19,7 @@ class SubscriberServiceThread extends Thread
     Plugin manager;
     BlockingQueue<VdmsTransaction> responseQueue;
     VdmsTransaction initSequence;
-    ArrayList<String> passList;
+    PassList passList;
     VdmsConnection connection;
     
     public SubscriberServiceThread()
@@ -42,12 +42,12 @@ class SubscriberServiceThread extends Thread
         passList = null;
     } 
     
-    public void SetPassList(ArrayList<String> nPassList)
+    public void SetPassList(PassList nPassList)
     {
         passList = nPassList;
     }
 
-    public ArrayList<String> GetPassList()
+    public PassList GetPassList()
     {
         return passList;
     }
@@ -72,8 +72,9 @@ class SubscriberServiceThread extends Thread
                 //Iterate through the keys in this message and check against the keys that should be published to this node
                 for (Object key : jsonObject.keySet()) 
                 {
-                    for(String checkString : passList)
+                    for(int i = 0; i < passList.GetSize(); i++)
                     {
+                        String checkString = passList.GetValue(i);
                         if(checkString.equals(key))
                         {
                             passMessage = true;

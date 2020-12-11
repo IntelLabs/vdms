@@ -11,8 +11,10 @@ import org.apache.commons.codec.DecoderException;
 public abstract class VdmsConnection
 {
     enum FunctionID { ConfigManager, DataFlowManager, ReplicationPlugin, FilterPlugin, AutoTaskPlugin};
-    
+   
+    protected JSONObject jsonValue;
     protected int registrationId;
+    protected int priority;
     protected int functionId;
     protected String hostName;
     protected int hostPort;
@@ -29,14 +31,17 @@ public abstract class VdmsConnection
         try
         {
             JSONParser connectionParser = new JSONParser();
-            JSONObject connection = (JSONObject) connectionParser.parse(initString);
+            jsonValue = (JSONObject) connectionParser.parse(initString);
+            JSONObject connection = jsonValue;
             registrationId = ((Long) connection.get("RegistrationId")).intValue();
+            priority = ((Long) connection.get("Priority")).intValue();            
             functionId = ((Long) connection.get("FunctionId")).intValue();
             hostName  = ((String) connection.get("HostName"));
             hostPort = ((Long) connection.get("HostPort")).intValue();
             String tmpString = (String) connection.get("InitBytes");
-            initSequence = new VdmsTransaction( tmpString.length(), Hex.decodeHex(tmpString));
             initSequenceSizeMultiplier = ((Long) connection.get("InitBytesMultiplier")).intValue();
+            //the hex representation is double the size in bytes because each element is represented as a char and not a nible
+            initSequence = new VdmsTransaction( (tmpString.length() / 2) * initSequenceSizeMultiplier , Hex.decodeHex(tmpString));
         }  
         catch(ParseException e)
         {
