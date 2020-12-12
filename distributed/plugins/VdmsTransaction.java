@@ -1,4 +1,5 @@
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 class VdmsTransaction
 {
@@ -18,7 +19,7 @@ class VdmsTransaction
     
     public VdmsTransaction(int nSize, byte[] nBuffer)
     {
-        size = ByteBuffer.allocate(4).putInt(nSize).array();
+        size = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(nSize).array();
         buffer = nBuffer;
         id = -1;
         timestamp = 0;

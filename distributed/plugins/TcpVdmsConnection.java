@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 class TcpVdmsConnection extends VdmsConnection 
 {
@@ -80,7 +81,7 @@ class TcpVdmsConnection extends VdmsConnection
         Write(outMessage);
         try
         {
-            out.write(ByteBuffer.allocate(4).putInt(outMessage.GetId()).array());
+            out.write(ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(outMessage.GetId()).array());
         }
         catch(IOException e)
         {

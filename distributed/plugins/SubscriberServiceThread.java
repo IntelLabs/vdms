@@ -16,6 +16,7 @@ class SubscriberServiceThread extends Thread
     int id;
     int type;
     int messageId;
+    int passListId;
     Plugin manager;
     BlockingQueue<VdmsTransaction> responseQueue;
     VdmsTransaction initSequence;
@@ -28,8 +29,8 @@ class SubscriberServiceThread extends Thread
         responseQueue = null;
         initSequence = null;
         passList = null;
+        passListId = -1;
         connection = null;
-        
     } 
     
     public SubscriberServiceThread(Plugin nManager, VdmsConnection nConnection, int nThreadId) 
@@ -39,6 +40,7 @@ class SubscriberServiceThread extends Thread
         connection = nConnection;
         id = nThreadId;
         messageId = 0;
+        passListId = nConnection.GetPassListId();
         passList = null;
     } 
     
@@ -50,6 +52,11 @@ class SubscriberServiceThread extends Thread
     public PassList GetPassList()
     {
         return passList;
+    }
+
+    public int GetPassListId()
+    {
+        return passListId;
     }
 
     public void Publish(VdmsTransaction newMessage)
@@ -64,6 +71,10 @@ class SubscriberServiceThread extends Thread
         {
             try
             {
+                /// \todo need to add a switch statement based on the query type
+                /// enum 0 is match the field type // enum 1 is match the autoquery id
+
+
                 QueryMessage.queryMessage newTmpMessage = QueryMessage.queryMessage.parseFrom(newMessage.GetBuffer());
                 JSONParser jsonString = new JSONParser();
                 JSONArray jsonArray = (JSONArray) jsonString.parse(newTmpMessage.getJson());
@@ -72,9 +83,11 @@ class SubscriberServiceThread extends Thread
                 //Iterate through the keys in this message and check against the keys that should be published to this node
                 for (Object key : jsonObject.keySet()) 
                 {
-                    for(int i = 0; i < passList.GetSize(); i++)
+                    for(int i = 0; i < passList.GetCriteriaSize(); i++)
                     {
-                        String checkString = passList.GetValue(i);
+
+
+                        String checkString = passList.GetCriteriaValue(i);
                         if(checkString.equals(key))
                         {
                             passMessage = true;

@@ -23,6 +23,8 @@ import org.json.simple.parser.ParseException;
 
 class AutoPublisherServiceThread extends PublisherServiceThread
 { 
+    private QueryList queryList;
+
     BlockingQueue<VdmsTransaction> outboundAutoQueue;
     int autoQueryDelay;
     int autoQueryPeriod;
@@ -30,18 +32,24 @@ class AutoPublisherServiceThread extends PublisherServiceThread
     public AutoPublisherServiceThread()
     { 
         super();
+        queryList = null;
         autoQueryDelay = 1000;
         autoQueryPeriod = 2000;
     } 
     
-    AutoPublisherServiceThread(Plugin nManager, Socket s, int nThreadId, VdmsTransaction nInitSequence) 
+    AutoPublisherServiceThread(Plugin nManager, VdmsConnection nConnection, int nThreadId) 
     {
-        super(nManager, s, nThreadId, nInitSequence);
+        super(nManager, nConnection, nThreadId);
+        queryList = null;
         outboundAutoQueue = new ArrayBlockingQueue<VdmsTransaction>(128);
         autoQueryDelay = 1000;
         autoQueryPeriod = 2000;
     } 
     
+    public void SetQueryList(QueryList nQueryList)
+    {
+        queryList = nQueryList;
+    }
     
     public void Publish(VdmsTransaction newMessage)
     {
@@ -52,14 +60,12 @@ class AutoPublisherServiceThread extends PublisherServiceThread
     
     public void run() 
     { 
-        DataOutputStream out = null;
         VdmsTransaction returnedMessage;
         Boolean threadInitFlag = false;
         VdmsTransaction newTransaction = null;
         
         try
-        { 
-            out = new DataOutputStream(serverSocket.getOutputStream());
+        {
             
             while(m_bRunThread) 
             {
@@ -68,13 +74,19 @@ class AutoPublisherServiceThread extends PublisherServiceThread
                     //only write the value if there is a valid init sequence
                     if(initSequence != null)
                     {
-                        out.write(initSequence.GetSize());
-                        out.write(initSequence.GetBuffer());
+                        connection.WriteInitMessage();
+
+                        /// \todo need to creata a task for each of the auto queries in this query list
+                        for(int i = 0; i < queryList.GetCriteriaSize(); i++)
+                        {
+                            AutoQueryTask timedQuery = new AutoQueryTask();
+                            Timer t = new Timer();
+                            t.schedule(timedQuery, 1000, 1000);
+    
+                        }
 
 
-                        AutoQueryTask timedQuery = new AutoQueryTask();
-                        Timer t = new Timer();
-                        t.schedule(timedQuery, 1000, 1000);
+
                     }
                     threadInitFlag = true;
                 }
@@ -89,19 +101,6 @@ class AutoPublisherServiceThread extends PublisherServiceThread
         catch(Exception e) 
         { 
             e.printStackTrace(); 
-        } 
-        finally 
-        { 
-            try
-            { 
-                out.close(); 
-                serverSocket.close(); 
-                System.out.println("...Stopped"); 
-            }
-            catch(IOException ioe)
-            { 
-                ioe.printStackTrace(); 
-            } 
         } 
     } 
 

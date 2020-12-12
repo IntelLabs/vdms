@@ -3,14 +3,14 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 class PublisherServiceThread extends Thread
 { 
-    VdmsConnection connection;
-    boolean m_bRunThread = true;
-    int id;
-    int type;
-    int messageId;
-    Plugin manager;
-    BlockingQueue<VdmsTransaction> responseQueue;
-    VdmsTransaction initSequence;
+    protected VdmsConnection connection;
+    protected boolean m_bRunThread = true;
+    protected int id;
+    protected int type;
+    protected int messageId;
+    protected Plugin manager;
+    protected BlockingQueue<VdmsTransaction> responseQueue;
+    protected VdmsTransaction initSequence;
     
     public PublisherServiceThread()
     { 

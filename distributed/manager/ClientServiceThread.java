@@ -81,7 +81,7 @@ class ClientServiceThread extends Thread
                 int1 = readSizeArray[1] & 255;
                 int2 = readSizeArray[2] & 255;
                 int3 = readSizeArray[3] & 255;
-                readSize = int0 + (int1 << 8) + (int2 << 16) + (int3 << 24);
+                readSize = int0 | (int1 << 8) | (int2 << 16) | (int3 << 24);
                 //now i can read the rest of the data
                 System.out.println("readsizearray - " + Arrays.toString(readSizeArray) + Integer.toString(readSize));		
                 

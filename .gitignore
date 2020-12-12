@@ -9,3 +9,5 @@ distributed/.vscode
 distributed/manager/.vscode
 distributed/plugins/.vscode
 distributed/plugins/debug
+distributed/docs/html
+distributed/docs/latex

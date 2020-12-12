@@ -20,6 +20,7 @@ public abstract class VdmsConnection
     protected int hostPort;
     protected VdmsTransaction initSequence;
     protected int initSequenceSizeMultiplier;
+    protected int passListId;
     
     VdmsConnection()
     {
@@ -42,6 +43,16 @@ public abstract class VdmsConnection
             initSequenceSizeMultiplier = ((Long) connection.get("InitBytesMultiplier")).intValue();
             //the hex representation is double the size in bytes because each element is represented as a char and not a nible
             initSequence = new VdmsTransaction( (tmpString.length() / 2) * initSequenceSizeMultiplier , Hex.decodeHex(tmpString));
+            passListId = -1;
+            try
+            { 
+                passListId = ((Long) connection.get("PassListId")).intValue();
+            }
+            catch(NullPointerException e)
+            {
+                //do nothing if we do not have a passListId
+            }
+     
         }  
         catch(ParseException e)
         {
@@ -79,6 +90,11 @@ public abstract class VdmsConnection
     public VdmsTransaction GetInitSequence()
     {
         return initSequence;
+    }
+
+    public int GetPassListId()
+    {
+        return passListId;
     }
     
     public abstract void Close();

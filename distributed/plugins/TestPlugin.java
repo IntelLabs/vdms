@@ -49,7 +49,7 @@ public class TestPlugin extends Plugin
     
     public static void main (String[] args)
     {
-        new TestPlugin("debug/replication_config.json");
+        new TestPlugin("debug/replication_plugin_config.json");
     }
     
 }
