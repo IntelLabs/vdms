@@ -1,0 +1,35 @@
+version: '2.0'
+services:
+  zookeeper:
+    build:
+      context: 'zookeeper'
+      dockerfile: 'Dockerfile'
+    container_name: 'zookeeper_1'
+    environment:
+      NETWORK_PORT: 56000
+    ports:
+      - '56000:56000'
+  kafka1:
+    build:
+      context: 'kafka'
+      dockerfile: 'Dockerfile'
+    container_name: 'kafka_1'
+    environment:
+      NETWORK_PORT: 57000
+    ports:
+      - '57000:57000'
+    depends_on:
+      - 'zookeeper'
+
+  kafka2:
+    build:
+      context: 'kafka'
+      dockerfile: 'Dockerfile'
+    container_name: 'kafka_2'
+    environment:
+      NETWORK_PORT: 57001
+    ports:
+      - '57001:57001'
+    depends_on:
+      - 'zookeeper'
+      
