@@ -37,6 +37,11 @@ RUN cd / && wget https://github.com/TileDB-Inc/TileDB/archive/1.3.1.tar.gz && \
     ../bootstrap --prefix=/usr/local/ && make -j4 && make install-tiledb && \
     rm -rf /TileDB-1.3.1
 
+
+RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc /grpc/third_party/protobuf/src/protoc && apt-get install -y maven && cd /grpc/third_party/protobuf/java/core && mvn package && cp target/protobuf-java-3.13.0.jar /usr/share/java/protobuf.jar && cd / && curl https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/json-simple/json-simple-1.1.1.jar -o /usr/share/java/json-simple-1.1.1.jar && cd / && curl https://mirror.jframeworks.com/apache//commons/codec/binaries/commons-codec-1.15-bin.tar.gz -o /commons-codec-1.15-bin.tar.gz && gunzip /commons-codec-1.15-bin.tar.gz && tar -xvf commons-codec-1.15-bin.tar && cp commons-codec-1.15/commons-codec-1.15.jar /usr/share/java/commons-codec-1.15.jar
+
+
+
 # Valijson
 RUN cd /valijson && cp -r include/* /usr/local/include/ 
 RUN git clone https://github.com/omp87/vdms.git && cd vdms && git checkout distributed_vdms && git submodule update --init --recursive
