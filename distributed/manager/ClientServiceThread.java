@@ -7,6 +7,8 @@ import java.net.Socket;
 import java.util.Arrays;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 
 
@@ -60,10 +62,6 @@ class ClientServiceThread extends Thread
         byte[] threadIdArray = new byte[4];
         
         int bytesRead;
-        int int0;
-        int int1;
-        int int2;
-        int int3;
         int readSize;
         int returnedThreadId;
         VdmsTransaction returnedMessage;
@@ -77,13 +75,9 @@ class ClientServiceThread extends Thread
             while(m_bRunThread) 
             {
                 bytesRead = in.read(readSizeArray, 0, 4);
-                int0 = readSizeArray[0] & 255;
-                int1 = readSizeArray[1] & 255;
-                int2 = readSizeArray[2] & 255;
-                int3 = readSizeArray[3] & 255;
-                readSize = int0 | (int1 << 8) | (int2 << 16) | (int3 << 24);
+                readSize =  ByteBuffer.wrap(readSizeArray).order(ByteOrder.LITTLE_ENDIAN).getInt();
                 //now i can read the rest of the data
-                System.out.println("readsizearray - " + Arrays.toString(readSizeArray) + Integer.toString(readSize));		
+                //System.out.println("readsizearray - " + Arrays.toString(readSizeArray) + Integer.toString(readSize));		
                 
                 //if we have not determined if this node is a producer or consumer
                 if(type == -1)
@@ -104,8 +98,14 @@ class ClientServiceThread extends Thread
                 }
                 
                 byte[] buffer = new byte[readSize];
-                bytesRead = in.read(buffer, 0, readSize);
-                System.out.println("buffer - " + Arrays.toString(buffer));
+                
+                int totalBytesRead = 0;
+                while(totalBytesRead < readSize)
+                {
+                    bytesRead = in.read(buffer, totalBytesRead, readSize-totalBytesRead);
+                    totalBytesRead += bytesRead;
+                    //System.out.println("buffer - " + Arrays.toString(buffer));
+                }
                 
                 if(type == 0)
                 {
@@ -125,11 +125,7 @@ class ClientServiceThread extends Thread
                     if(messageId > 0)
                     {
                         bytesRead = in.read(threadIdArray, 0, 4);
-                        int0 = threadIdArray[0] & 255;
-                        int1 = threadIdArray[1] & 255;
-                        int2 = threadIdArray[2] & 255;
-                        int3 = threadIdArray[3] & 255;
-                        returnedThreadId = int0 + (int1 << 8) + (int2 << 16) + (int3 << 24);
+                        returnedThreadId =  ByteBuffer.wrap(threadIdArray).order(ByteOrder.LITTLE_ENDIAN).getInt();
                         newTransaction = new VdmsTransaction(readSizeArray, buffer, returnedThreadId);
                         manager.AddToProducerQueue(newTransaction);
                     }

@@ -94,22 +94,22 @@ class TcpVdmsConnection extends VdmsConnection
     {
         byte[] readSizeArray = new byte[4];
         int readSize;
-        int int0, int1, int2, int3;
         VdmsTransaction readValue = null;
         //
         try
         {
             in.read(readSizeArray, 0, 4);
-            int0 = (byte) (readSizeArray[0] & 255);
-            int1 = (byte) (readSizeArray[1] & 255);
-            int2 = (byte) (readSizeArray[2] & 255);
-            int3 = (byte) (readSizeArray[3] & 255);
-            readSize = int0 + (int1 << 8) + (int2 << 16) + (int3 << 24);
+            readSize = ByteBuffer.wrap(readSizeArray).order(ByteOrder.LITTLE_ENDIAN).getInt();
             //now i can read the rest of the data
             //System.out.println("publisher readsizearray - " + Arrays.toString(readSizeArray));		
             
             byte[] buffer = new byte[readSize];
-            in.read(buffer, 0, readSize);
+            int totalReadSize = 0;
+            while(totalReadSize < readSize)
+            {
+                int actualReadSize = in.read(buffer, 0, readSize-totalReadSize);
+                totalReadSize += actualReadSize;
+            }
             readValue = new VdmsTransaction(readSizeArray, buffer);
             
         }
@@ -129,14 +129,9 @@ class TcpVdmsConnection extends VdmsConnection
         try
         {
             int nId;
-            int int0, int1, int2, int3;
             byte[] threadIdBuffer = new byte[4];
             in.read(threadIdBuffer, 0, 4);
-            int0 = (byte) (threadIdBuffer[0] & 255);
-            int1 = (byte) (threadIdBuffer[1] & 255);
-            int2 = (byte) (threadIdBuffer[2] & 255);
-            int3 = (byte) (threadIdBuffer[3] & 255);
-            nId = int0 + (int1 << 8) + (int2 << 16) + (int3 << 24);
+            nId = ByteBuffer.wrap(threadIdBuffer).order(ByteOrder.LITTLE_ENDIAN).getInt();
             readValue.SetId(nId);
         }
         catch(IOException e)
