@@ -40,8 +40,8 @@
 #include "FaissDescriptorSet.h"
 
 #include <faiss/index_io.h>
-#include <faiss/FaissException.h>
-#include "faiss/AuxIndexStructures.h"
+#include <faiss/impl/FaissException.h>
+#include "faiss/impl/AuxIndexStructures.h"
 
 #define FAISS_IDX_FILE_NAME "faiss.idx"
 #define IDS_IDX_FILE_NAME   "ids.arr"
