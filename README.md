@@ -84,6 +84,14 @@ print(query) \
 res, res_arr = db.query([query]) \
 
 
+## Compilation
+This version of VDMS treats PMGD as a submodule so both libraries are compiled at one time. After entering the vdms directory, the command "git sumodule update --init --recursive" will pull pmgd into the appropriate directory. Futhermore, Cmake is used to compile all directories. When compiling on a target with Optane persistent memory, use the command set
+
+mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS='-DPM' .. && make -j<<number of threads to use for compiling>>
+
+For systems without Optane, use the command set
+mkdir build && cd build && cmake .. && make -j<<number of threads to use for compiling>>
+
 ## Academic Papers
 
 Conference | Links, Cite | Description
