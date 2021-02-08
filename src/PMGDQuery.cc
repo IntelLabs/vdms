@@ -578,11 +578,6 @@ void PMGDQuery::AddNode(int ref,
             set_property(q, "_creation", Json::Value(creation_time));
             q = n->add_properties();
             set_property(q, "_expiration", Json::Value(expiration_time));
-<<<<<<< HEAD
-            std::cout << it.key().asString() << " " << creation_time << " " << expiration_time << std::endl;
-=======
-            //std::cout << it.key().asString() << " " << creation_time << " " << expiration_time << std::endl;
->>>>>>> distributed_vdms
         }
         else
         {
