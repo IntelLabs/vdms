@@ -2,9 +2,9 @@ image: "ubuntu:20.04"
 
 before_script:
 before_script:
-  - env
   - mkdir -p $HOME/.docker/
   - 'echo "{ \"proxies\": { \"default\": { \"httpProxy\": \"$HTTP_PROXY\", \"httpsProxy\": \"$HTTPS_PROXY\", \"noProxy\": \"$NO_PROXY\" } } }" > $HOME/.docker/config.json'
+  - env
   - apt-get update
 
 build:
