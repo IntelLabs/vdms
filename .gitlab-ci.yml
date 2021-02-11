@@ -1,6 +1,9 @@
 image: "ubuntu:20.04"
 
-before_script:
+variables:
+  HTTP_PROXY: http://proxy-chain.intel.com:911
+  HTTPS_PROXY: http://proxy-chain.intel.com:912
+  
 before_script:
   - mkdir -p $HOME/.docker/
   - 'echo "{ \"proxies\": { \"default\": { \"httpProxy\": \"$HTTP_PROXY\", \"httpsProxy\": \"$HTTPS_PROXY\", \"noProxy\": \"$NO_PROXY\" } } }" > $HOME/.docker/config.json'
