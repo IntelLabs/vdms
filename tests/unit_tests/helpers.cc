@@ -33,6 +33,7 @@
 #include <fstream>
 #include <iostream>
 #include <cmath>
+#include <string.h> // memcmp
 
 #include "gtest/gtest.h"
 
@@ -40,28 +41,54 @@
 
 // Image / Video Helpers
 
-void compare_mat_mat(cv::Mat &cv_img, cv::Mat &img)
+void compare_mat_mat(cv::Mat &cv_img, cv::Mat &img, float error)
 {
-    int rows = img.rows;
-    int columns = img.cols;
+    bool exact_comparison = (error == 0.0);
+
+    ASSERT_EQ(cv_img.rows, img.rows);
+    ASSERT_EQ(cv_img.cols, img.cols);
+    ASSERT_EQ(cv_img.channels(), img.channels());
+
+    int rows     = img.rows;
+    int columns  = img.cols;
     int channels = img.channels();
-    if ( img.isContinuous() ) {
-        columns *= rows;
-        rows = 1;
+
+    // We make then continuous for faster comparison, if exact.
+    if (exact_comparison && !img.isContinuous()) {
+        cv::Mat aux = cv_img.clone();
+        cv_img  = aux.clone();
+        aux     = img.clone();
+        img     = aux.clone();
     }
+
+    // For exact comparison, we use memcmp.
+    if (exact_comparison) {
+        size_t data_size = rows * columns * channels;
+        int ret = ::memcmp(cv_img.data, img.data, data_size);
+        ASSERT_EQ(ret, 0);
+        return;
+    }
+
+    // For debugging, or near comparison, we check value by value.
 
     for ( int i = 0; i < rows; ++i ) {
         for ( int j = 0; j < columns; ++j ) {
             if (channels == 1) {
                 unsigned char pixel = img.at<unsigned char>(i, j);
                 unsigned char test_pixel = cv_img.at<unsigned char>(i, j);
-                ASSERT_EQ(pixel, test_pixel);
+                if (exact_comparison)
+                    ASSERT_EQ(pixel, test_pixel);
+                else
+                    ASSERT_NEAR(pixel, test_pixel, error);
             }
             else {
                 cv::Vec3b colors = img.at<cv::Vec3b>(i, j);
                 cv::Vec3b test_colors = cv_img.at<cv::Vec3b>(i, j);
                 for ( int x = 0; x < channels; ++x ) {
-                    ASSERT_EQ(colors.val[x], test_colors.val[x]);
+                    if (exact_comparison)
+                        ASSERT_EQ(colors.val[x], test_colors.val[x]);
+                    else
+                        ASSERT_NEAR(colors.val[x], test_colors.val[x], error);
                 }
             }
         }

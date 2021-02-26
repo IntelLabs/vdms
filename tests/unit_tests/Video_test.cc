@@ -41,6 +41,9 @@
 #include <iostream>
 #include <fstream>
 
+#include <stdlib.h>     /* srand, rand */
+#include <time.h>       /* time */
+
 #include "helpers.h"
 
 using namespace std;
@@ -663,7 +666,6 @@ TEST_F(VideoTest, CropWrite)
 
 TEST_F(VideoTest, KeyFrameExtractionSuccess)
 {
-    #if VIDEO_KEYFRAMES
     try {
         VCL::VideoTest video_data(_video_path_mp4_h264);
 
@@ -679,19 +681,134 @@ TEST_F(VideoTest, KeyFrameExtractionSuccess)
         print_exception(e);
         ASSERT_TRUE(false);
     }
-    #endif
 }
 
 TEST_F(VideoTest, KeyFrameExtractionFailure)
 {
     VCL::KeyFrameList key_frame_list;
     try {
-        VCL::VideoTest video_data(_video_path_avi_xvid);
+        VCL::VideoTest video_data(_video_path_mp4_h264);
 
         key_frame_list = video_data.get_key_frame_list();
 
     } catch (VCL::Exception e) {
-        print_exception(e);
         ASSERT_TRUE(key_frame_list.empty());
+    }
+}
+
+TEST_F(VideoTest, KeyFrameDecodingSuccess)
+{
+    try {
+        VCL::VideoTest video_data(_video_path_mp4_h264);
+
+        VCL::KeyFrameList key_frame_list;
+        // The base here is wrong for all keyframes, but is does not matter as
+        // h.264 seeking is based on time (frame_idx * 1/fps) and not base.
+        key_frame_list.push_back({.idx = 155, .base = 495756});
+        key_frame_list.push_back({.idx = 0,   .base = 564});
+        key_frame_list.push_back({.idx = 201, .base = 648600});
+        key_frame_list.push_back({.idx = 99,  .base = 319224});
+
+        video_data.set_key_frame_list(key_frame_list);
+
+        std:vector<unsigned> frame_query = {15, 30, 110, 150};
+        int first_query_len = frame_query.size();
+
+        std::vector<cv::Mat> mat_list = video_data.get_frames(frame_query);
+        ASSERT_TRUE(mat_list.size() == frame_query.size());
+
+        frame_query.clear();
+
+        frame_query = {100, 120, 130};
+        int second_query_len = frame_query.size();
+        for (auto& m : video_data.get_frames(frame_query))
+            mat_list.push_back(m);
+        ASSERT_TRUE(mat_list.size() == (first_query_len + second_query_len));
+
+
+        for (int i = 0; i < mat_list.size(); ++i) {
+
+            std::string s = std::to_string(i);
+            s.insert(s.begin(), 5 - s.length(), '0');
+            std::string filename = "videos_tests/kf_frame_" + s;
+
+            VCL::Image img(mat_list[i], false);
+            img.store(filename, VCL::Image::Format::PNG, false);
+        }
+
+    } catch (VCL::Exception e) {
+        ASSERT_TRUE(false);
+    }
+}
+
+TEST_F(VideoTest, CheckDecodedSequentialFrames)
+{
+    std::string video_to_test = _video_path_mp4_h264;
+
+    cv::VideoCapture testVideo(video_to_test);
+    long test_frame_count = testVideo.get(cv::CAP_PROP_FRAME_COUNT);
+
+    try {
+    VCL::VideoTest video_data_kf(video_to_test);
+    video_data_kf.get_key_frame_list();
+
+    VCL::VideoTest video_data_ocv(video_to_test);
+
+        for (int i = 0; i < test_frame_count; ++i) {
+
+            const unsigned frame_idx = i;
+
+            cv::Mat decoded_with_keyframe;
+            decoded_with_keyframe = video_data_kf.get_frame(frame_idx);
+
+            cv::Mat decoded_with_opencv;
+            decoded_with_opencv = video_data_ocv.get_frame(frame_idx);
+
+            compare_mat_mat(decoded_with_keyframe, decoded_with_opencv);
+        }
+    } catch (VCL::Exception e) {
+        print_exception(e);
+        ASSERT_TRUE(false);
+    }
+}
+
+TEST_F(VideoTest, CheckDecodedRandomFrames)
+{
+    std::string video_to_test = _video_path_mp4_h264;
+
+    cv::VideoCapture testVideo(video_to_test);
+    long test_frame_count = testVideo.get(cv::CAP_PROP_FRAME_COUNT);
+
+    /* initialize random seed: */
+    srand(24); // (time(NULL));
+
+    try {
+    VCL::VideoTest video_data_kf(video_to_test);
+    video_data_kf.get_key_frame_list();
+
+    VCL::VideoTest video_data_ocv(video_to_test);
+
+        for (int i = 0; i < test_frame_count * 2; ++i) {
+
+            // generate random number between 0 and test_frame_count
+            // every 2 calls.
+            int frame_idx;
+            if (i % 2 == 0)
+                frame_idx = rand() % test_frame_count;
+            else
+                frame_idx = frame_idx + 4 < test_frame_count ?
+                            frame_idx + 4 : frame_idx;
+
+            cv::Mat decoded_with_keyframe;
+            decoded_with_keyframe = video_data_kf.get_frame(frame_idx);
+
+            cv::Mat decoded_with_opencv;
+            decoded_with_opencv = video_data_ocv.get_frame(frame_idx);
+
+            compare_mat_mat(decoded_with_keyframe, decoded_with_opencv);
+        }
+    } catch (VCL::Exception e) {
+        print_exception(e);
+        ASSERT_TRUE(false);
     }
 }
