@@ -149,13 +149,15 @@ void VDMSConfig::expand_directory_layer(std::vector< std::vector<std::string>* >
 
 void VDMSConfig::create_directory_layer(std::vector< std::vector<std::string>* > *p_directory_list, std::string base_directory)
 {
-  for(int i = 0; i < p_directory_list->size(); i++)
+  if( DIRECTORY_LAYERS > 0 )
     {
-      std::vector<std::string>* tmp_string_vector = (*p_directory_list)[i];
-      for(int j = 0; j < tmp_string_vector->size(); j++)
+      for(int i = 0; i < p_directory_list->size(); i++)
 	{
-	  //std::cout << base_directory << "/" << (*tmp_string_vector)[j]  << std::endl;
-	  check_or_create(base_directory + "/" + (*tmp_string_vector)[j]);
+	  std::vector<std::string>* tmp_string_vector = (*p_directory_list)[i];
+	  for(int j = 0; j < tmp_string_vector->size(); j++)
+	    {
+	      check_or_create(base_directory + "/" + (*tmp_string_vector)[j]);
+	    }
 	}
     }
 }
