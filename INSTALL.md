@@ -188,3 +188,6 @@ To run the server using the default directories and port, simply run:
 
     sh run_server.sh
 
+
+install qtwayland and cmake version > 3.18
+may need to remove libfaiss.so to use latest version

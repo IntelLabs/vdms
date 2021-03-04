@@ -57,6 +57,7 @@ namespace VCL {
 
       FFmpegInitFailed,
       FFmpegParseFailed,
+      FFmpegDecodeFailed,
 
     };
 
