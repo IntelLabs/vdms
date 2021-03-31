@@ -52,9 +52,22 @@
 #define PARAM_DB_DESCRIPTORS    "descriptors_path"
 
 // Parameters used to determine depth and breadth of directory structure
-#define DIRECTORIES_PER_LAYER 5
+//take parameters from command line if they are supplied
+#ifndef DIRECTORIES_PER_LAYER
+   #define DIRECTORIES_PER_LAYER 5
+#endif
+
+#ifndef DIRECTORY_LAYERS
 #define DIRECTORY_LAYERS 3
+#endif
+
+#ifndef CHARS_PER_LAYER_NAME
 #define CHARS_PER_LAYER_NAME 3
+#endif
+
+
+
+
 
 
 #define PARAM_PMGD_NUM_ALLOCATORS   "pmgd_num_allocators"
