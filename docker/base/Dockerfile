@@ -1,5 +1,6 @@
 # Pull base image.
 FROM ubuntu:20.04
+ARG MAVEN_OPTS
 
 #Install Packages
 RUN apt-get update && apt-get -y install software-properties-common && add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main" && apt-get -y install g++ git libssl-dev libc-ares-dev apt-transport-https ca-certificates curl gnupg-agent software-properties-common cmake python3-pip build-essential autoconf automake libtool g++ unzip bzip2 libarchive-tools cmake git pkg-config python python-dev wget libbz2-dev libssl-dev liblz4-dev mpich libjsoncpp-dev flex javacc bison openjdk-11-jdk-headless libleveldb-dev libsnappy-dev libhdf5-serial-dev libatlas-base-dev libboost-all-dev libgflags-dev libgoogle-glog-dev liblmdb-dev libjpeg8-dev libtiff5-dev libjasper-dev libgtk-3-dev libopenmpi-dev libgtest-dev ed libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev libopenblas-dev && pip3 install numpy
