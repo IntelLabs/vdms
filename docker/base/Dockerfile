@@ -36,7 +36,7 @@ RUN cd /CMake && ./bootstrap && make -j16 && make install && cd / && cd swig && 
 mkdir build && cd build && cmake -DFAISS_ENABLE_GPU=OFF .. && make -j16 && \
 make install && cd /grpc && git submodule update --init --recursive && \
 cd third_party/protobuf/cmake && mkdir build && cd build && \
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && \ make -j8 && \
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make -j8 && \
 make install && cd ../../../abseil-cpp && mkdir build && cd build && \
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make -j8 && make install && \
 cd ../../re2/ && mkdir build && cd build && \
@@ -69,10 +69,12 @@ RUN cd / && wget https://github.com/TileDB-Inc/TileDB/archive/1.3.1.tar.gz && \
 RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
 /grpc/third_party/protobuf/src/protoc && \
 cd /grpc/third_party/protobuf/java/core && mvn package && \
-cp target/protobuf-java-3.13.0.jar /usr/share/java/protobuf.jar && cd / && \
+echo "cp $(ls target/protobuf-java*.jar) /usr/share/java/protobuf.jar" > \
+tmp_script && bash tmp_script && cd / && \
 gunzip /commons-codec-1.15-bin.tar.gz && \
 tar -xvf commons-codec-1.15-bin.tar && \
-cp commons-codec-1.15/commons-codec-1.15.jar /usr/share/java/commons-codec-1.15.jar
+cp commons-codec-1.15/commons-codec-1.15.jar \
+/usr/share/java/commons-codec-1.15.jar
 
 
 
@@ -83,8 +85,6 @@ git checkout develop && git submodule update --init --recursive && \
 cd src/pmgd && git checkout develop && cd /vdms && mkdir build && \
 cd build && cmake .. && make -j16 && cd / rm -rf valijson && rm -rf faiss && \
 rm -rf grpc && rm -rf libpng  && rm -rf opencv && rm -rf swig && rm -rf CMake
-
-COPY ./config_vdms.py /vdms/build
 
 RUN echo '#!/bin/bash' > /start.sh && \
     echo 'cd /vdms/build'   >> /start.sh && \
