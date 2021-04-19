@@ -14,7 +14,7 @@ libsnappy-dev libhdf5-serial-dev libatlas-base-dev libboost-all-dev \
 libgflags-dev libgoogle-glog-dev liblmdb-dev libjpeg8-dev libtiff5-dev \
 libjasper-dev libgtk-3-dev libopenmpi-dev libgtest-dev ed libgtk2.0-dev \
 pkg-config libavcodec-dev libavformat-dev libswscale-dev libtbb2 libtbb-dev \
-libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev libopenblas-dev && \
+libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev libopenblas-dev maven && \
 pip3 install numpy
 
 #Pull Dependencies
@@ -25,26 +25,33 @@ https://github.com/opencv/opencv.git && git clone \
 https://github.com/tristanpenman/valijson.git && git clone \
 https://github.com/Kitware/CMake.git && git clone \
 https://github.com/facebookresearch/faiss.git && curl \
-http://zlib.net/zlib-1.2.11.tar.gz -o zlib-1.2.11.tar.gz 
+http://zlib.net/zlib-1.2.11.tar.gz -o zlib-1.2.11.tar.gz && \ curl 
+https://mirrors.ocf.berkeley.edu/apache//commons/codec/binaries/commons-codec-1.15-bin.tar.gz \
+-o /commons-codec-1.15-bin.tar.gz && curl \
+https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/json-simple/json-simple-1.1.1.jar \
+-o /usr/share/java/json-simple-1.1.1.jar
 
 RUN cd /CMake && ./bootstrap && make -j16 && make install && cd / && cd swig && \ 
-./autogen.sh && ./configure && make -j16 && make install && cd /faiss && mkdir build && cd build && \
-cmake -DFAISS_ENABLE_GPU=OFF .. && make -j16 && make install
-
-RUN cd /grpc && git submodule update --init --recursive && \
-cd third_party/protobuf/cmake && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && \
-make -j8 && make install && cd ../../../abseil-cpp && mkdir build && cd build && \
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make -j8 && make install && cd ../../re2/ && mkdir build && \
-cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make -j8 && make install && cd ../../zlib/ && \
-mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make -j8 && make install && \
-cd /grpc/cmake && mkdir build && cd build && cmake -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DgRPC_ABSL_PROVIDER=package \
--DgRPC_CARES_PROVIDER=package -DgRPC_PROTOBUF_PROVIDER=package -DgRPC_RE2_PROVIDER=package -DgRPC_SSL_PROVIDER=package \
--DgRPC_ZLIB_PROVIDER=package -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE ../.. && make -j8 && make install && cd / 
-
-RUN cd / && gunzip zlib-1.2.11.tar.gz && tar -xvf zlib-1.2.11.tar && \
-cd zlib-1.2.11 && ./configure && make -j4 && make install && cd / && \
-rm -rf zlib-1.2.11.tar zlib-1.2.11 && cd libpng && git checkout libpng12 && \
-./configure && make -j4 && make install
+./autogen.sh && ./configure && make -j16 && make install && cd /faiss && \
+mkdir build && cd build && cmake -DFAISS_ENABLE_GPU=OFF .. && make -j16 && \
+make install && cd /grpc && git submodule update --init --recursive && \
+cd third_party/protobuf/cmake && mkdir build && cd build && \
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && \ make -j8 && \
+make install && cd ../../../abseil-cpp && mkdir build && cd build && \
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make -j8 && make install && \
+cd ../../re2/ && mkdir build && cd build && \
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make -j8 && make install && \
+cd ../../zlib/ && mkdir build && cd build && \
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make -j8 && make install && \
+cd /grpc/cmake && mkdir build && cd build && cmake -DgRPC_INSTALL=ON \
+-DgRPC_BUILD_TESTS=OFF -DgRPC_ABSL_PROVIDER=package \
+-DgRPC_CARES_PROVIDER=package -DgRPC_PROTOBUF_PROVIDER=package \
+-DgRPC_RE2_PROVIDER=package -DgRPC_SSL_PROVIDER=package \
+-DgRPC_ZLIB_PROVIDER=package -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE ../.. && \
+make -j8 && make install && cd / && gunzip zlib-1.2.11.tar.gz && \
+tar -xvf zlib-1.2.11.tar && cd zlib-1.2.11 && ./configure && make -j4 && \
+make install && cd / && rm -rf zlib-1.2.11.tar zlib-1.2.11 && cd libpng && \
+git checkout libpng12 && ./configure && make -j4 && make install
 
 
 # Google Test
@@ -60,13 +67,10 @@ RUN cd / && wget https://github.com/TileDB-Inc/TileDB/archive/1.3.1.tar.gz && \
 
 
 RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
-/grpc/third_party/protobuf/src/protoc && apt-get install -y maven && \
+/grpc/third_party/protobuf/src/protoc && \
 cd /grpc/third_party/protobuf/java/core && mvn package && \
-cp target/protobuf-java-3.13.0.jar /usr/share/java/protobuf.jar && \cd / && \
-curl https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/json-simple/json-simple-1.1.1.jar \
--o /usr/share/java/json-simple-1.1.1.jar && cd / && \
-curl https://mirror.jframeworks.com/apache//commons/codec/binaries/commons-codec-1.15-bin.tar.gz \
--o /commons-codec-1.15-bin.tar.gz && gunzip /commons-codec-1.15-bin.tar.gz && \
+cp target/protobuf-java-3.13.0.jar /usr/share/java/protobuf.jar && cd / && \
+gunzip /commons-codec-1.15-bin.tar.gz && \
 tar -xvf commons-codec-1.15-bin.tar && \
 cp commons-codec-1.15/commons-codec-1.15.jar /usr/share/java/commons-codec-1.15.jar
 
