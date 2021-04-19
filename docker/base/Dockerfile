@@ -25,7 +25,7 @@ https://github.com/opencv/opencv.git && git clone \
 https://github.com/tristanpenman/valijson.git && git clone \
 https://github.com/Kitware/CMake.git && git clone \
 https://github.com/facebookresearch/faiss.git && curl \
-http://zlib.net/zlib-1.2.11.tar.gz -o zlib-1.2.11.tar.gz && \ curl 
+http://zlib.net/zlib-1.2.11.tar.gz -o zlib-1.2.11.tar.gz && curl \ 
 https://mirrors.ocf.berkeley.edu/apache//commons/codec/binaries/commons-codec-1.15-bin.tar.gz \
 -o /commons-codec-1.15-bin.tar.gz && curl \
 https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/json-simple/json-simple-1.1.1.jar \
