@@ -33,7 +33,8 @@ https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/
 
 RUN cd /CMake && ./bootstrap && make -j16 && make install && cd / && cd swig && \ 
 ./autogen.sh && ./configure && make -j16 && make install && cd /faiss && \
-mkdir build && cd build && cmake -DFAISS_ENABLE_GPU=OFF .. && make -j16 && \
+git fetch --all --tags && git checkout tags/v1.7.0 && mkdir build && \
+cd build && cmake -DFAISS_ENABLE_GPU=OFF .. && make -j16 && make -j16 && \
 make install && cd /grpc && git submodule update --init --recursive && \
 cd third_party/protobuf/cmake && mkdir build && cd build && \
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make -j8 && \
@@ -55,8 +56,9 @@ git checkout libpng12 && ./configure && make -j4 && make install
 
 
 # Google Test
-RUN cd /usr/src/gtest && cmake . && make -j16 && mv lib/libgtest* /usr/lib/ && cd / && cd /opencv && mkdir build && \
- cd build && cmake -D BUILD_PERF_TESTS=OFF -D BUILD_TESTS=OFF .. && make -j16 && make install
+RUN cd /usr/src/gtest && cmake . && make -j16 && mv lib/libgtest* /usr/lib/ && \
+cd / && cd /opencv && mkdir build &&  cd build && cmake -D BUILD_PERF_TESTS=OFF \
+-D BUILD_TESTS=OFF .. && make -j16 && make install
 
 # TileDB
 RUN cd / && wget https://github.com/TileDB-Inc/TileDB/archive/1.3.1.tar.gz && \
@@ -91,6 +93,7 @@ RUN echo '#!/bin/bash' > /start.sh && \
     echo 'cp ../config-vdms.json ./'   >> /start.sh && \
     echo './vdms'       >> /start.sh && \
     chmod 755 /start.sh
+
 
 
 CMD ["/start.sh"]
