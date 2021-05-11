@@ -56,7 +56,7 @@ Video::Video(const std::string& video_id) :
 Video::Video(void* buffer, long size) :
     Video()
 {
-    std::string uname = create_unique("/tmp/", "vclvideoblob");
+    std::string uname = create_unique("/tmp/tmp/", "vclvideoblob");
     std::ofstream outfile(uname, std::ofstream::binary);
 
     if (outfile.is_open()) {
