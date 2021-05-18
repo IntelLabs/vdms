@@ -1,0 +1,15 @@
+image: "ubuntu:20.04"
+
+before_script:
+  - env
+  - apt-get update
+
+build:
+  stage: build
+  script:
+    - ls -l
+
+test:
+  stage: test
+  script:
+    - ls -l
