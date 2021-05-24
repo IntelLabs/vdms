@@ -32,8 +32,7 @@ https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/
 -o /usr/share/java/json-simple-1.1.1.jar
 
 RUN cd /CMake && ./bootstrap && make -j16 && make install && cd / && cd swig && \ 
-./autogen.sh && ./configure && make -j16 && make install && cd /faiss && \
-git fetch --all --tags && git checkout tags/v1.7.0 && mkdir build && \
+./autogen.sh && ./configure && make -j16 && make install && cd /faiss && mkdir build && \
 cd build && cmake -DFAISS_ENABLE_GPU=OFF .. && make -j16 && make -j16 && \
 make install && cd /grpc && git submodule update --init --recursive && \
 cd third_party/protobuf/cmake && mkdir build && cd build && \
@@ -86,14 +85,10 @@ RUN git clone https://github.com/omp87/vdms.git && cd vdms && \
 git checkout develop && git submodule update --init --recursive && \
 cd src/pmgd && git checkout develop && cd /vdms && mkdir build && \
 cd build && cmake .. && make -j16 && cd / rm -rf valijson && rm -rf faiss && \
-rm -rf grpc && rm -rf libpng  && rm -rf opencv && rm -rf swig && rm -rf CMake
+rm -rf grpc && rm -rf libpng  && rm -rf opencv && rm -rf swig && rm -rf CMake \
+&& cp /vdms/config-vdms.json /vdms/build/
 
-RUN echo '#!/bin/bash' > /start.sh && \
-    echo 'cd /vdms/build'   >> /start.sh && \
-    echo 'cp ../config-vdms.json ./'   >> /start.sh && \
-    echo './vdms'       >> /start.sh && \
-    chmod 755 /start.sh
-
-
+RUN echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
+echo './vdms' >> /start.sh && chmod 755 /start.sh
 
 CMD ["/start.sh"]
