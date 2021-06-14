@@ -267,6 +267,9 @@ void TDBSparseDescriptorSet::classify(float* descriptors, unsigned n,
         }
         labels[j] = winner;
     }
+    delete distances;
+    delete ids_aux;
+    delete labels_aux;
 }
 
 void TDBSparseDescriptorSet::search(float* query, unsigned n, unsigned k,

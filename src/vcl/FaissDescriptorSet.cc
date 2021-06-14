@@ -51,6 +51,7 @@ using namespace VCL;
 FaissDescriptorSet::FaissDescriptorSet(const std::string &set_path):
     DescriptorSetData(set_path)
 {
+    _index = 0;
     _faiss_file = _set_path + "/" + FAISS_IDX_FILE_NAME;
     read_label_ids();
     read_labels_map();
@@ -60,6 +61,7 @@ FaissDescriptorSet::FaissDescriptorSet(const std::string &set_path,
                                        unsigned dim) :
     DescriptorSetData(set_path, dim)
 {
+    _index = 0;
     _faiss_file = _set_path + "/" + FAISS_IDX_FILE_NAME;
 }
 

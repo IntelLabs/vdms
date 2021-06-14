@@ -126,6 +126,7 @@ TDBImage::TDBImage(TDBImage &tdb) : TDBObject(tdb)
 
     set_equal(tdb);
     set_image_data_equal(tdb);
+    _raw_data = 0;
 
     if ( tdb.has_data() ) {
         uint64_t size = _img_height  * _img_width * _img_channels;
@@ -159,7 +160,6 @@ void TDBImage::operator=(TDBImage &tdb)
         std::memcpy(_raw_data, tdb._raw_data, array_size);
     }
 
-    delete temp;
 }
 
 void TDBImage::set_image_data_equal(const TDBImage &tdb)

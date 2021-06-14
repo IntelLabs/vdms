@@ -48,7 +48,9 @@ using namespace VCL;
 TDBObject::TDBObject() :
     _config(NULL)
 {
-    _group = "";
+  _num_dimensions = 0;
+  _tile_capacity = 0;
+  _group = "";
     _name = "";
 
     // set default values
@@ -63,7 +65,10 @@ TDBObject::TDBObject() :
 TDBObject::TDBObject(const std::string &object_id) :
     _config(NULL)
 {
-    size_t pos = get_path_delimiter(object_id);
+  _num_dimensions = 0;
+  _tile_capacity = 0;
+
+  size_t pos = get_path_delimiter(object_id);
 
     _group = get_group(object_id, pos);
     _name = get_name(object_id, pos);
@@ -80,7 +85,10 @@ TDBObject::TDBObject(const std::string &object_id) :
 TDBObject::TDBObject(const TDBObject &tdb) :
     _config(NULL)
 {
-    _config = tdb._config;
+  _num_dimensions = 0;
+  _tile_capacity = 0;
+
+  _config = tdb._config;
     _ctx = tdb._ctx;
 
     set_equal(tdb);
