@@ -5,9 +5,13 @@ distributed/manager/debug
 distributed/plugins/*.class
 distributed/debug
 .vscode
+.kwps
+.kwlp
 distributed/.vscode
 distributed/manager/.vscode
 distributed/plugins/.vscode
 distributed/plugins/debug
 distributed/docs/html
 distributed/docs/latex
+.DS_Store
+workingcache
