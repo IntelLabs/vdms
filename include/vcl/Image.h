@@ -34,7 +34,7 @@
 
 #pragma once
 #include <stdio.h>
-
+#include <fstream>
 #include <string>
 
 #include <opencv2/core.hpp>

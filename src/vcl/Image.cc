@@ -621,23 +621,42 @@ void Image::get_raw_data(void* buffer, long buffer_size )
 std::vector<unsigned char> Image::get_encoded_image(Image::Format format,
                 const std::vector<int>& params)
 {
-    perform_operations();
 
-    std::string extension = "." + format_to_string(format);
+    //When data is stored in raw binary format, read data from file
+    if(format == VCL::Image::Format::BIN)
+    {
+        std::ifstream bin_image(_image_id, std::ios::in | std::ifstream::binary);
+        long file_size = bin_image.tellg();
+        bin_image.seekg(0, std::ios::end);
+        file_size = bin_image.tellg() - file_size;
+        std::vector<unsigned char> buffer(file_size, 0);
+        bin_image.seekg(0, std::ios::beg);
+        bin_image.read((char *) &buffer[0], file_size);
+        bin_image.close();
+        return buffer;
 
-    if ( _cv_img.empty() ) {
-        if ( _tdb == NULL)
-            throw VCLException(ObjectEmpty, "No data to encode");
-        else {
-            cv::Mat img = _tdb->get_cvmat();
-            shallow_copy_cv(img);
+    }
+    
+    else
+    {
+        perform_operations();
+
+        std::string extension = "." + format_to_string(format);
+
+        if ( _cv_img.empty() ) {
+            if ( _tdb == NULL)
+                throw VCLException(ObjectEmpty, "No data to encode");
+            else {
+                cv::Mat img = _tdb->get_cvmat();
+                shallow_copy_cv(img);
+            }
         }
+        
+        std::vector<unsigned char> buffer;
+        cv::imencode(extension, _cv_img, buffer, params);
+        return buffer;
     }
 
-    std::vector<unsigned char> buffer;
-    cv::imencode(extension, _cv_img, buffer, params);
-
-    return buffer;
 }
 
     /*  *********************** */
