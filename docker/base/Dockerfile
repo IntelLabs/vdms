@@ -1,3 +1,6 @@
+#Copyright (C) 2021 Intel Corporation
+#SPDX-License-Identifier: MIT
+
 ARG UBUNTU_VERSION=20.04
 ARG UBUNTU_NAME=focal
 ARG BUILD_THREADS=-j16
@@ -31,7 +34,6 @@ RUN apt-get update && \
         unzip  \
         bzip2  \
         libarchive-tools  \
-        cmake  \
         pkg-config  \
         python  \
         python-dev  \
@@ -54,7 +56,6 @@ RUN apt-get update && \
         liblmdb-dev \
         libjpeg8-dev \
         libtiff5-dev \
-        # libjasper-dev \
         libgtk-3-dev \
         libopenmpi-dev \
         libgtest-dev \
@@ -175,7 +176,5 @@ RUN echo '#!/bin/bash' > /start.sh && \
     echo 'cp ../config-vdms.json ./'   >> /start.sh && \
     echo './vdms'       >> /start.sh && \
     chmod 755 /start.sh
-
-
 
 CMD ["/start.sh"]
