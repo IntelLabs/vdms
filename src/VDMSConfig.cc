@@ -52,6 +52,7 @@
 #define DEFAULT_PATH_BLOBS       "blobs"
 #define DEFAULT_PATH_VIDEOS      "videos"
 #define DEFAULT_PATH_DESCRIPTORS "descriptors"
+#define DEFAULT_PATH_TMP "tmp"
 
 using namespace VDMS;
 
@@ -254,4 +255,10 @@ void VDMSConfig::build_dirs()
     path_descriptors = path_root + "/" + DEFAULT_PATH_DESCRIPTORS;
     path_descriptors = get_string_value(PARAM_DB_DESCRIPTORS, path_descriptors);
     check_or_create(path_descriptors);
+
+    // TMP
+    path_tmp = "/tmp/" + std::string(DEFAULT_PATH_TMP);
+    path_tmp = get_string_value(PARAM_DB_TMP, path_tmp);
+    check_or_create(path_tmp);
+    create_directory_layer(&directory_list, path_tmp);
 }
