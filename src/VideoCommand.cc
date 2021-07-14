@@ -367,7 +367,7 @@ Json::Value FindVideo::construct_responses(
                 const std::string& container =
                             get_value<std::string>(cmd, "container", "mp4");
                 const std::string& file_name =
-                            VCL::create_unique("/tmp/", container);
+                            VCL::create_unique("/tmp/tmp/", container);
                 const std::string& codec =
                             get_value<std::string>(cmd, "codec", "h264");
 

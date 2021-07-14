@@ -50,6 +50,7 @@
 #define PARAM_DB_BLOBS          "blobs_path"
 #define PARAM_DB_VIDEOS         "videos_path"
 #define PARAM_DB_DESCRIPTORS    "descriptors_path"
+#define PARAM_DB_TMP            "tmp_path"
 
 // Parameters used to determine depth and breadth of directory structure
 //take parameters from command line if they are supplied
@@ -98,6 +99,7 @@ namespace VDMS{
         std::string path_blobs;
         std::string path_videos;
         std::string path_descriptors;
+	std::string path_tmp;
 
         VDMSConfig(std::string config_file);
 
@@ -119,6 +121,7 @@ namespace VDMS{
         const std::string& get_path_blobs() {return path_blobs;}
         const std::string& get_path_videos(){return path_videos;}
         const std::string& get_path_descriptors() {return path_descriptors;}
+	const std::string& get_path_tmp() {return path_tmp;}
     };
 
 }; // vdms namespace
