@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.10)
+cmake_minimum_required (VERSION 3.17)
 project(vdms_application)
 add_compile_options(-g -fPIC)
 
@@ -27,7 +27,6 @@ target_link_libraries(dms vcl pmgd pmgd-util protobuf vdms-utils)
 
 add_executable(vdms src/vdms.cc)
 target_link_libraries(vdms dms vdms_protobuf vcl tiledb faiss jsoncpp ${OpenCV_LIBS})
-
 
 #https://cmake.org/cmake/help/v3.9/module/FindProtobuf.html
 

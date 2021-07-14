@@ -91,6 +91,9 @@ VCL::Image::Format ImageCommand::get_requested_format(const Json::Value& cmd)
     if (requested_format == "tdb") {
         return VCL::Image::Format::TDB;
     }
+    if (requested_format == "bin") {
+        return VCL::Image::Format::BIN;
+    }
 
     return VCL::Image::Format::NONE_IMAGE;
 }
@@ -102,6 +105,7 @@ AddImage::AddImage() : ImageCommand("AddImage")
     _storage_tdb = VDMSConfig::instance()->get_path_tdb();
     _storage_png = VDMSConfig::instance()->get_path_png();
     _storage_jpg = VDMSConfig::instance()->get_path_jpg();
+    _storage_bin = VDMSConfig::instance()->get_path_bin();
 }
 
 int AddImage::construct_protobuf(PMGDQuery& query,
@@ -115,8 +119,15 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     int node_ref = get_value<int>(cmd, "_ref",
                                   query.get_available_reference());
 
-    VCL::Image img((void*)blob.data(), blob.size());
 
+    std::string format = get_value<std::string>(cmd, "format", "");
+    char binary_img_flag = 0;
+    if(format == "bin")
+    {
+        binary_img_flag = 1;
+    }
+ 
+    VCL::Image img((void*)blob.data(), blob.size(), binary_img_flag);
     if (cmd.isMember("operations")) {
         enqueue_operations(img, cmd["operations"]);
     }
@@ -124,7 +135,6 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     std::string img_root = _storage_tdb;
     VCL::Image::Format vcl_format = img.get_image_format();
 
-    std::string format = get_value<std::string>(cmd, "format", "");
     if (cmd.isMember("format")) {
 
         if (format == "png") {
@@ -138,6 +148,10 @@ int AddImage::construct_protobuf(PMGDQuery& query,
         else if (format == "jpg") {
             vcl_format = VCL::Image::Format::JPG;
             img_root = _storage_jpg;
+        }
+        else if (format == "bin") {
+            vcl_format = VCL::Image::Format::BIN;
+            img_root = _storage_bin;
         }
         else {
             error["info"] = format + ": format not implemented";

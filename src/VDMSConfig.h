@@ -31,7 +31,12 @@
 
 #pragma once
 
+#include <vector>
 #include <string>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+
 #include <jsoncpp/json/value.h>
 
 // Parameters in the JSON config file
@@ -41,9 +46,29 @@
 #define PARAM_DB_PNG            "png_path"
 #define PARAM_DB_JPG            "jpg_path"
 #define PARAM_DB_TDB            "tdb_path"
+#define PARAM_DB_BIN            "bin_path"
 #define PARAM_DB_BLOBS          "blobs_path"
 #define PARAM_DB_VIDEOS         "videos_path"
 #define PARAM_DB_DESCRIPTORS    "descriptors_path"
+
+// Parameters used to determine depth and breadth of directory structure
+//take parameters from command line if they are supplied
+#ifndef DIRECTORIES_PER_LAYER
+   #define DIRECTORIES_PER_LAYER 5
+#endif
+
+#ifndef DIRECTORY_LAYERS
+#define DIRECTORY_LAYERS 3
+#endif
+
+#ifndef CHARS_PER_LAYER_NAME
+#define CHARS_PER_LAYER_NAME 3
+#endif
+
+
+
+
+
 
 #define PARAM_PMGD_NUM_ALLOCATORS   "pmgd_num_allocators"
 #define DEFAULT_PMGD_NUM_ALLOCATORS 1
@@ -68,6 +93,7 @@ namespace VDMS{
         std::string path_images;
         std::string path_png;
         std::string path_jpg;
+        std::string path_bin;
         std::string path_tdb;
         std::string path_blobs;
         std::string path_videos;
@@ -75,6 +101,8 @@ namespace VDMS{
 
         VDMSConfig(std::string config_file);
 
+	void expand_directory_layer(std::vector< std::vector<std::string>* > *p_directory_list, int current_layer);
+	void create_directory_layer(std::vector< std::vector<std::string>* > *p_directory_list, std::string base_directory);
         void build_dirs();
         void check_or_create(std::string path);
         int create_dir(std::string path);
@@ -86,6 +114,7 @@ namespace VDMS{
         const std::string& get_path_pmgd()  {return path_pmgd;}
         const std::string& get_path_jpg()   {return path_jpg;}
         const std::string& get_path_png()   {return path_png;}
+        const std::string& get_path_bin()   {return path_bin;}
         const std::string& get_path_tdb()   {return path_tdb;}
         const std::string& get_path_blobs() {return path_blobs;}
         const std::string& get_path_videos(){return path_videos;}

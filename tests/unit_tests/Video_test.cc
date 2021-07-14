@@ -746,7 +746,7 @@ TEST_F(VideoTest, CheckDecodedSequentialFrames)
     std::string video_to_test = _video_path_mp4_h264;
 
     cv::VideoCapture testVideo(video_to_test);
-    long test_frame_count = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+    long test_frame_count = testVideo.get(cv::CAP_PROP_FRAME_COUNT);
 
     try {
     VCL::VideoTest video_data_kf(video_to_test);
@@ -777,7 +777,7 @@ TEST_F(VideoTest, CheckDecodedRandomFrames)
     std::string video_to_test = _video_path_mp4_h264;
 
     cv::VideoCapture testVideo(video_to_test);
-    long test_frame_count = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+    long test_frame_count = testVideo.get(cv::CAP_PROP_FRAME_COUNT);
 
     /* initialize random seed: */
     srand(24); // (time(NULL));

@@ -434,7 +434,7 @@ int Video::Write::get_fourcc()
     switch(_codec)
     {
         case Codec::MJPG:
-	  return cv::VideoWriter::fourcc('M','J','P','G');
+	  return cv::VideoWriter::fourcc('M', 'J', 'P', 'G');
         case Codec::XVID:
 	  return cv::VideoWriter::fourcc('X', 'V', 'I', 'D');
         case Codec::H263:

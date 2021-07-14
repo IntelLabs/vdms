@@ -70,6 +70,7 @@ namespace VDMS {
         std::string _storage_tdb;
         std::string _storage_png;
         std::string _storage_jpg;
+        std::string _storage_bin;
 
     public:
         AddImage();
