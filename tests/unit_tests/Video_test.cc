@@ -89,7 +89,7 @@ protected:
     }
 
     int get_fourcc() {
-        return CV_FOURCC('H', '2', '6', '4');
+      return cv::VideoWriter::fourcc('H', '2', '6', '4');
     }
 };
 
@@ -117,7 +117,7 @@ TEST_F(VideoTest, StringConstructor)
     long input_frame_count = video_data.get_frame_count();
 
     cv::VideoCapture testVideo(_video_path_avi_xvid);
-    long test_frame_count  = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+    long test_frame_count  = testVideo.get(cv::CAP_PROP_FRAME_COUNT);
     ASSERT_EQ(input_frame_count, test_frame_count);
 }
 
@@ -127,7 +127,7 @@ TEST_F(VideoTest, StringConstructorNoFormat)
     long input_frame_count = video_data.get_frame_count();
 
     cv::VideoCapture testVideo(_video_path_mp4_h264);
-    long test_frame_count  = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+    long test_frame_count  = testVideo.get(cv::CAP_PROP_FRAME_COUNT);
     ASSERT_EQ(input_frame_count, test_frame_count);
 }
 
@@ -146,7 +146,7 @@ TEST_F(VideoTest, CopyConstructor)
     long input_frame_count = video_data.get_frame_count();
 
     cv::VideoCapture testVideo(_video_path_avi_xvid);
-    long test_frame_count  = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+    long test_frame_count  = testVideo.get(cv::CAP_PROP_FRAME_COUNT);
 
     ASSERT_EQ(input_frame_count, test_frame_count);
 
@@ -187,11 +187,11 @@ TEST_F(VideoTest, BlobConstructor)
 
         cv::VideoWriter testResultVideo(
                         write_output_ocv,
-                        CV_FOURCC('X', 'V', 'I', 'D'),
-                        testWriteVideo.get(CV_CAP_PROP_FPS),
+                        cv::VideoWriter::fourcc('X', 'V', 'I', 'D'),
+                        testWriteVideo.get(cv::CAP_PROP_FPS),
                         cv::Size(
-                            testWriteVideo.get(CV_CAP_PROP_FRAME_WIDTH),
-                            testWriteVideo.get(CV_CAP_PROP_FRAME_HEIGHT))
+				 testWriteVideo.get(cv::CAP_PROP_FRAME_WIDTH),
+				 testWriteVideo.get(cv::CAP_PROP_FRAME_HEIGHT))
                         );
 
         for (auto& frame : _frames_xvid) {
@@ -203,7 +203,7 @@ TEST_F(VideoTest, BlobConstructor)
     long input_frame_count = video_data.get_frame_count();
 
     cv::VideoCapture testVideo(write_output_ocv);
-    long test_frame_count = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+    long test_frame_count = testVideo.get(cv::CAP_PROP_FRAME_COUNT);
 
     ASSERT_EQ(input_frame_count, test_frame_count);
 
@@ -244,7 +244,7 @@ TEST_F(VideoTest, ReadAVI_XVID)
         long input_frame_count = video_data.get_frame_count();
 
         cv::VideoCapture testVideo(_video_path_avi_xvid);
-        long test_frame_count = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+        long test_frame_count = testVideo.get(cv::CAP_PROP_FRAME_COUNT);
 
         ASSERT_EQ(input_frame_count, test_frame_count);
 
@@ -266,7 +266,7 @@ TEST_F(VideoTest, ReadMP4_H264)
         long input_frame_count = video_data.get_frame_count();
 
         cv::VideoCapture testVideo(_video_path_mp4_h264);
-        long test_frame_count = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+        long test_frame_count = testVideo.get(cv::CAP_PROP_FRAME_COUNT);
 
         ASSERT_EQ(input_frame_count, test_frame_count);
 
@@ -298,10 +298,10 @@ TEST_F(VideoTest, WriteMP4_H264)
             cv::VideoWriter testResultVideo(
                             write_output_ocv,
                             get_fourcc(),
-                            testWriteVideo.get(CV_CAP_PROP_FPS),
+                            testWriteVideo.get(cv::CAP_PROP_FPS),
                             cv::Size(
-                                testWriteVideo.get(CV_CAP_PROP_FRAME_WIDTH),
-                                testWriteVideo.get(CV_CAP_PROP_FRAME_HEIGHT))
+				     testWriteVideo.get(cv::CAP_PROP_FRAME_WIDTH),
+				     testWriteVideo.get(cv::CAP_PROP_FRAME_HEIGHT))
                             );
 
             for (auto& frame : _frames_xvid) {
@@ -313,7 +313,7 @@ TEST_F(VideoTest, WriteMP4_H264)
         long input_frame_count = video_data.get_frame_count();
 
         cv::VideoCapture testVideo(write_output_ocv);
-        long test_frame_count = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+        long test_frame_count = testVideo.get(cv::CAP_PROP_FRAME_COUNT);
 
         ASSERT_EQ(input_frame_count, test_frame_count);
 
@@ -350,11 +350,11 @@ TEST_F(VideoTest, WriteAVI_XVID)
 
             cv::VideoWriter testResultVideo(
                             write_output_ocv,
-                            CV_FOURCC('X', 'V', 'I', 'D'),
-                            testWriteVideo.get(CV_CAP_PROP_FPS),
+                            cv::VideoWriter::fourcc('X', 'V', 'I', 'D'),
+                            testWriteVideo.get(cv::CAP_PROP_FPS),
                             cv::Size(
-                                testWriteVideo.get(CV_CAP_PROP_FRAME_WIDTH),
-                                testWriteVideo.get(CV_CAP_PROP_FRAME_HEIGHT))
+				     testWriteVideo.get(cv::CAP_PROP_FRAME_WIDTH),
+				     testWriteVideo.get(cv::CAP_PROP_FRAME_HEIGHT))
                             );
 
             for (auto& frame : _frames_xvid) {
@@ -366,7 +366,7 @@ TEST_F(VideoTest, WriteAVI_XVID)
         long input_frame_count = video_data.get_frame_count();
 
         cv::VideoCapture testVideo(write_output_ocv);
-        long test_frame_count = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+        long test_frame_count = testVideo.get(cv::CAP_PROP_FRAME_COUNT);
 
         ASSERT_EQ(input_frame_count, test_frame_count);
 
@@ -409,7 +409,7 @@ TEST_F(VideoTest, ResizeWrite)
             cv::VideoWriter testResultVideo(
                             resize_name_ocv,
                             get_fourcc(),
-                            testWriteVideo.get(CV_CAP_PROP_FPS),
+                            testWriteVideo.get(cv::CAP_PROP_FPS),
                             cv::Size(new_w, new_h)
                             );
 
@@ -426,7 +426,7 @@ TEST_F(VideoTest, ResizeWrite)
         long input_frame_count = video_data.get_frame_count();
 
         cv::VideoCapture testVideo(resize_name_ocv);
-        long test_frame_count = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+        long test_frame_count = testVideo.get(cv::CAP_PROP_FRAME_COUNT);
 
         ASSERT_EQ(input_frame_count, test_frame_count);
 
@@ -470,10 +470,10 @@ TEST_F(VideoTest, IntervalWrite)
             cv::VideoWriter testResultVideo(
                             interval_name_ocv,
                             get_fourcc(),
-                            testWriteVideo.get(CV_CAP_PROP_FPS) / step,
+                            testWriteVideo.get(cv::CAP_PROP_FPS) / step,
                             cv::Size(
-                                testWriteVideo.get(CV_CAP_PROP_FRAME_WIDTH),
-                                testWriteVideo.get(CV_CAP_PROP_FRAME_HEIGHT))
+				     testWriteVideo.get(cv::CAP_PROP_FRAME_WIDTH),
+				     testWriteVideo.get(cv::CAP_PROP_FRAME_HEIGHT))
                             );
 
             if (end >= _frames_xvid.size())
@@ -490,7 +490,7 @@ TEST_F(VideoTest, IntervalWrite)
         long input_frame_count = video_data.get_frame_count();
 
         cv::VideoCapture testVideo(interval_name_ocv);
-        long test_frame_count = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+        long test_frame_count = testVideo.get(cv::CAP_PROP_FRAME_COUNT);
 
         ASSERT_EQ(input_frame_count, test_frame_count);
 
@@ -562,10 +562,10 @@ TEST_F(VideoTest, ThresholdWrite)
             cv::VideoWriter testResultVideo(
                             threshold_name_ocv,
                             get_fourcc(),
-                            testWriteVideo.get(CV_CAP_PROP_FPS),
+                            testWriteVideo.get(cv::CAP_PROP_FPS),
                             cv::Size(
-                                testWriteVideo.get(CV_CAP_PROP_FRAME_WIDTH),
-                                testWriteVideo.get(CV_CAP_PROP_FRAME_HEIGHT))
+				     testWriteVideo.get(cv::CAP_PROP_FRAME_WIDTH),
+				     testWriteVideo.get(cv::CAP_PROP_FRAME_HEIGHT))
                             );
 
             for (auto& ff : _frames_xvid) {
@@ -581,7 +581,7 @@ TEST_F(VideoTest, ThresholdWrite)
         long input_frame_count = video_data.get_frame_count();
 
         cv::VideoCapture testVideo(threshold_name_ocv);
-        long test_frame_count = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+        long test_frame_count = testVideo.get(cv::CAP_PROP_FRAME_COUNT);
 
         ASSERT_EQ(input_frame_count, test_frame_count);
 
@@ -627,7 +627,7 @@ TEST_F(VideoTest, CropWrite)
             cv::VideoWriter testResultVideo(
                             crop_name_ocv,
                             get_fourcc(),
-                            testWriteVideo.get(CV_CAP_PROP_FPS),
+                            testWriteVideo.get(cv::CAP_PROP_FPS),
                             cv::Size(new_w, new_h)
                             );
 
@@ -643,7 +643,7 @@ TEST_F(VideoTest, CropWrite)
         long input_frame_count = video_data.get_frame_count();
 
         cv::VideoCapture testVideo(crop_name_ocv);
-        long test_frame_count = testVideo.get(CV_CAP_PROP_FRAME_COUNT);
+        long test_frame_count = testVideo.get(cv::CAP_PROP_FRAME_COUNT);
 
         ASSERT_EQ(input_frame_count, test_frame_count);
 

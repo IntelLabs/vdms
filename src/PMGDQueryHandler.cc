@@ -161,7 +161,8 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
                 retval = add_edge(cmd->add_edge(), response);
                 break;
             case PMGDCmd::QueryNode:
-                retval = query_node(cmd->query_node(), response);
+	        retval = query_node(cmd->query_node(), response);
+
                 break;
             case PMGDCmd::QueryEdge:
                 retval = query_edge(cmd->query_edge(), response);
@@ -447,7 +448,7 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     StringID edge_tag;
     const PMGDQueryConstraints &qc = qn.constraints();
     const PMGDQueryResultInfo &qr = qn.results();
-
+    std::list<PMGD::NodeIterator> node_purge_list;
     long id = qn.identifier();
     if (id >= 0 && _cached_nodes.find(id) != _cached_nodes.end()) {
         set_response(response, PMGDCmdResponse::Error,
@@ -523,7 +524,7 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     if (!(id >= 0 || qc.unique() || qr.sort())) {
         // If not reusable
         build_results<NodeIterator>(ni, qr, response);
-
+        
         // Make sure the starting iterator is reset for later use.
         if (has_link)
             start_ni->reset();
@@ -764,6 +765,11 @@ void PMGDQueryHandler::build_results(Iterator &ni,
                 }
                 construct_protobuf_property(j_p, p_p);
             }
+            if(! _readonly)
+            {
+                _db->remove(*ni);
+            }
+            
             count++;
             if (count >= limit)
                 break;
@@ -842,6 +848,8 @@ void PMGDQueryHandler::build_results(Iterator &ni,
         set_response(response, PMGDCmdResponse::Error,
                        "Unknown operation type for query");
     }
+    //ddm need to add a deleter flag that says that a query wants to delete content
+    //if deleter flag is true, need to iterate through the nodes that were returned and delete them from the graph
 }
 
 void PMGDQueryHandler::construct_protobuf_property(const Property &j_p, PMGDProp *p_p)
