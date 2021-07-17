@@ -1,5 +1,5 @@
 # Pull base image.
-FROM ubuntu:16.04
+FROM ubuntu:xenial-20210416
 
 RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
