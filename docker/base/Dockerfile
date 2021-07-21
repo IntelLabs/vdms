@@ -1,5 +1,16 @@
-# Pull base image.
-FROM ubuntu:20.04
+#Copyright (C) 2021 Intel Corporation
+#SPDX-License-Identifier: MIT
+
+ARG UBUNTU_VERSION=20.04
+ARG UBUNTU_NAME=focal
+ARG BUILD_THREADS=-j16
+
+#1
+FROM ubuntu:${UBUNTU_VERSION}
+
+# Dockerfile limitations force a repetition of global args
+ARG UBUNTU_VERSION
+ARG UBUNTU_NAME
 ARG MAVEN_OPTS
 
 #Install Packages
@@ -63,24 +74,19 @@ cd / && cd /opencv && mkdir build &&  cd build && cmake -D BUILD_PERF_TESTS=OFF 
 RUN cd / && wget https://github.com/TileDB-Inc/TileDB/archive/1.3.1.tar.gz && \
     tar xf 1.3.1.tar.gz && rm 1.3.1.tar.gz && \
     cd TileDB-1.3.1 && mkdir build && cd build && \
-    ../bootstrap --prefix=/usr/local/ && make -j4 && make install-tiledb && \
+    ../bootstrap --prefix=/usr/local/ && make $BUILD_THREADS && make install-tiledb && \
     rm -rf /TileDB-1.3.1
 
 
+RUN apt-get install -y maven
+
 RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
-/grpc/third_party/protobuf/src/protoc && \
-cd /grpc/third_party/protobuf/java/core && mvn package && \
-echo "cp $(ls target/protobuf-java*.jar) /usr/share/java/protobuf.jar" > \
-tmp_script && bash tmp_script && cd / && \
-gunzip /commons-codec-1.15-bin.tar.gz && \
-tar -xvf commons-codec-1.15-bin.tar && \
-cp commons-codec-1.15/commons-codec-1.15.jar \
-/usr/share/java/commons-codec-1.15.jar
+    /grpc/third_party/protobuf/src/protoc && \
+    cd /grpc/third_party/protobuf/java/core && mvn package && \
+    echo "cp $(ls target/protobuf-java*.jar) /usr/share/java/protobuf.jar" > \
+    tmp_script && bash tmp_script && \
+    cd / 
 
-
-
-# Valijson
-RUN cd /valijson && cp -r include/* /usr/local/include/ 
 RUN git clone https://github.com/omp87/vdms.git && cd vdms && \
 git checkout develop && git submodule update --init --recursive && \
 cd src/pmgd && git checkout develop && cd /vdms && mkdir build && \
