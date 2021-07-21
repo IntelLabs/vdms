@@ -291,7 +291,9 @@ Image::Image(const std::string &image_id)
     _height = 0;
     _width = 0;
     _cv_type = CV_8UC3;
-
+    _bin = 0;
+    _bin_size = 0;
+        
     std::string extension = get_extension(image_id);
     set_format(extension);
 
@@ -331,6 +333,9 @@ Image::Image(const cv::Mat &cv_img, bool copy)
 
 Image::Image(void* buffer, long size, char binary_image_flag, int flags)
 {
+    _bin = 0;
+    _bin_size = 0;
+
     _tdb = nullptr;
     _bin = nullptr;
     set_data_from_encoded(buffer, size, binary_image_flag, flags);
@@ -343,6 +348,9 @@ Image::Image(void* buffer, long size, char binary_image_flag, int flags)
 
 Image::Image(void* buffer, cv::Size dimensions, int cv_type)
 {
+    _bin = 0;
+    _bin_size = 0;
+
     _height = dimensions.height;
     _width = dimensions.width;
     _cv_type = cv_type;
@@ -358,7 +366,15 @@ Image::Image(void* buffer, cv::Size dimensions, int cv_type)
 
 Image::Image(const Image &img, bool copy)
 {
-    _format = img._format;
+    _bin = 0;
+    _bin_size = 0;
+
+    _height = img._height;
+    _width = img._width;
+    _cv_type = img._cv_type;
+    _channels = img._channels;
+
+  _format = img._format;
     _compress = img._compress;
     _image_id = img._image_id;
 
@@ -394,6 +410,9 @@ Image::Image(const Image &img, bool copy)
 
 Image::Image(Image &&img) noexcept
 {
+    _bin = 0;
+    _bin_size = 0;
+
     _format = img._format;
     _compress = img._compress;
     _image_id = img._image_id;
@@ -406,7 +425,10 @@ Image::Image(Image &&img) noexcept
 
 Image& Image::operator=(const Image &img)
 {
+
     TDBImage *temp = _tdb;
+    _bin = 0;
+    _bin_size = 0;
     if ( !(img._cv_img).empty() )
         deep_copy_cv(img._cv_img);
     else {
@@ -599,23 +621,42 @@ void Image::get_raw_data(void* buffer, long buffer_size )
 std::vector<unsigned char> Image::get_encoded_image(Image::Format format,
                 const std::vector<int>& params)
 {
-    perform_operations();
 
-    std::string extension = "." + format_to_string(format);
+    //When data is stored in raw binary format, read data from file
+    if(format == VCL::Image::Format::BIN)
+    {
+        std::ifstream bin_image(_image_id, std::ios::in | std::ifstream::binary);
+        long file_size = bin_image.tellg();
+        bin_image.seekg(0, std::ios::end);
+        file_size = bin_image.tellg() - file_size;
+        std::vector<unsigned char> buffer(file_size, 0);
+        bin_image.seekg(0, std::ios::beg);
+        bin_image.read((char *) &buffer[0], file_size);
+        bin_image.close();
+        return buffer;
 
-    if ( _cv_img.empty() ) {
-        if ( _tdb == NULL)
-            throw VCLException(ObjectEmpty, "No data to encode");
-        else {
-            cv::Mat img = _tdb->get_cvmat();
-            shallow_copy_cv(img);
+    }
+    
+    else
+    {
+        perform_operations();
+
+        std::string extension = "." + format_to_string(format);
+
+        if ( _cv_img.empty() ) {
+            if ( _tdb == NULL)
+                throw VCLException(ObjectEmpty, "No data to encode");
+            else {
+                cv::Mat img = _tdb->get_cvmat();
+                shallow_copy_cv(img);
+            }
         }
+        
+        std::vector<unsigned char> buffer;
+        cv::imencode(extension, _cv_img, buffer, params);
+        return buffer;
     }
 
-    std::vector<unsigned char> buffer;
-    cv::imencode(extension, _cv_img, buffer, params);
-
-    return buffer;
 }
 
     /*  *********************** */

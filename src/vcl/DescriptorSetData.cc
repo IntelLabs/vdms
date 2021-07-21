@@ -41,7 +41,12 @@ using namespace VCL;
 DescriptorSet::DescriptorSetData::DescriptorSetData(const std::string &set_path):
     _set_path(set_path)
 {
-    if (!dir_exist(set_path)) {
+  _dimensions = 0;
+  _n_total = 0;
+  _metric = VCL::DistanceMetric::L2; // by default
+
+
+  if (!dir_exist(set_path)) {
         throw VCLException(OpenFailed, "File does not exists");
     }
 }
@@ -53,6 +58,8 @@ DescriptorSet::DescriptorSetData::DescriptorSetData(
     _dimensions(dim),
     _n_total(0)
 {
+  _metric = VCL::DistanceMetric::L2; // by default
+  
     if (dir_exist(set_path)) {
         throw VCLException(OpenFailed, "File already exists");
     }

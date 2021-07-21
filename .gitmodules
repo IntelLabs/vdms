@@ -1,4 +1,4 @@
 [submodule "pmgd"]
 	path = src/pmgd
-	url = ssh://git@gitlab.devtools.intel.com:29418/labs-csr/pmgd.git
+	url = https://github.com/omp87/pmgd.git
 	branch = develop

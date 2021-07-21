@@ -92,6 +92,14 @@ mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS='-DPM' .. && make -j<<number 
 For systems without Optane, use the command set
 mkdir build && cd build && cmake .. && make -j<<number of threads to use for compiling>>
 
+
+## Read-Only Docker Image
+To run VDMS in a read-only container, first create a volume \
+docker volume create vdms_db \
+Now create a VDMS container that uses this volume as the storage location for db's \
+dennis@ddmatte-dev-laptop:~/development/make_docker_readonly/vdms/docker/base$ docker run -d -p 55555:55555 --read-only --mount source=vdms_db,destination=/vdms/build/db vdms:latest \
+
+
 ## Academic Papers
 
 Conference | Links, Cite | Description
