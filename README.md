@@ -39,67 +39,6 @@ Also, visit our [wiki](https://github.com/IntelLabs/vdms/wiki)
 to learn more about the VDMS API, and take a look at some of
 the examples/tutorials.
 
-
-
-## Deletion Capabilities
-
-This version of VDMS provides two methods to delete content from the VDMS. Currently, bot methods are active deletion methods that require the user to perform a query that identifies which entities and images should be deleted. This implementation introduces two new special property keywords "\_deletion" and "\_expiration" to the API.
-
-##### \_deletion
-The \_deletion query allows a user to delete the content within VDMS that is associated with a find query (FindImage, FindEntity, FindDescriptor). In order to use this query, the 
-
-##### \_\_expiration\_\_
-The \_\_expiration\_\_ keyword allows for the removal of data that is based on the time of creation and a relative parameter that indicates the lifetime of value. Similar to the \_\_deletion\_\_ keyword, a query must be performed to remove data from the database. A user must add the \_\_expiration\_\_ keyword as a property along with a value that corresponds with the minimum number of seconds the data should reside within VDMS. 
-
-When the \_expiration keyword is used when adding data, the keyword \_creation is automatically generated for the newly added data. Both of the keywords \_expiration and \_creation are properties that can be retrieved in results of find queries. 
-
-The follow code snippet shows the creation of an entity with the \_expiration flag
-
-addEntity = {} \
-addEntity["_ref"] = 2 \
-addEntity["class"] = "sample" \
-props = {} \
-props["\_\_expiration\_\_"] = 10 \
-addEntity["properties"] = props \
-query = {} \
-query["AddEntity"] = addEntity \
-res, res_arr = db.query([query]) \
-
-When the user wishes to remove data that has expired, the user must perform a query that searches for data with an \_expiration timestamp constraint that is prior ("<") the current time. Greater than (">") queries with \_expiration constraints will return results if database entries are present, but these entries will not be removed from VDMS.
-
-The following code snipper shows the query used to remove the previously inserted data from VDMS. However, this query will only remove data at least 10 seconds after the data is inserted. A query run before the data expires will not return any entities - thus no entries will be removed from VDMS.
-
-query = {} \
-findEntity = {} \
-query_results = {} \
-query_results['list'] = ["_expiration", "_creation"] \
-findEntity["results"] = query_results \
-#findEntity["results"] = results \
-constraints = {} \
-constraints["_expiration"] = ["<", calendar.timegm(time.gmtime())] \
-#constraints["_creation"] = [">", 0] \
-findEntity["constraints"] = constraints \
-query["FindEntity"] = findEntity \
-print(query) \
-res, res_arr = db.query([query]) \
-
-
-## Compilation
-This version of VDMS treats PMGD as a submodule so both libraries are compiled at one time. After entering the vdms directory, the command "git sumodule update --init --recursive" will pull pmgd into the appropriate directory. Futhermore, Cmake is used to compile all directories. When compiling on a target with Optane persistent memory, use the command set
-
-mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS='-DPM' .. && make -j<<number of threads to use for compiling>>
-
-For systems without Optane, use the command set
-mkdir build && cd build && cmake .. && make -j<<number of threads to use for compiling>>
-
-
-## Read-Only Docker Image
-To run VDMS in a read-only container, first create a volume \
-docker volume create vdms_db \
-Now create a VDMS container that uses this volume as the storage location for db's \
-dennis@ddmatte-dev-laptop:~/development/make_docker_readonly/vdms/docker/base$ docker run -d -p 55555:55555 --read-only --mount source=vdms_db,destination=/vdms/build/db vdms:latest \
-
-
 ## Academic Papers
 
 Conference | Links, Cite | Description
