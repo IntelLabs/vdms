@@ -195,6 +195,7 @@ public:
           _neighbor(true)
     {
         _next_neighbor();
+	_idx = 0;
     }
 
     operator bool() const { return bool(_node); }

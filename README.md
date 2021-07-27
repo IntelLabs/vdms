@@ -29,6 +29,7 @@ propose a storage architecture designed for efficient visual data access
 that exploits next generation hardware and give preliminary results showing
 how it enables efficient vision analytics.
 
+
 ## Get Started
 
 To get started, take a look at the [INSTALL.md](INSTALL.md) file, where

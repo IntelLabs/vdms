@@ -56,7 +56,7 @@ Video::Video(const std::string& video_id) :
 Video::Video(void* buffer, long size) :
     Video()
 {
-    std::string uname = create_unique("/tmp/", "vclvideoblob");
+    std::string uname = create_unique("/tmp/tmp/", "vclvideoblob");
     std::ofstream outfile(uname, std::ofstream::binary);
 
     if (outfile.is_open()) {
@@ -387,16 +387,16 @@ void Video::Read::operator()(Video *video)
 {
     cv::VideoCapture inputVideo(video->_video_id);
 
-    video->_fps = static_cast<float>(inputVideo.get(CV_CAP_PROP_FPS));
+    video->_fps = static_cast<float>(inputVideo.get(cv::CAP_PROP_FPS));
     video->_size.frame_count  = static_cast<int>(
-                                inputVideo.get(CV_CAP_PROP_FRAME_COUNT));
+						 inputVideo.get(cv::CAP_PROP_FRAME_COUNT));
     video->_size.width        = static_cast<int>(
-                                inputVideo.get(CV_CAP_PROP_FRAME_WIDTH));
+						 inputVideo.get(cv::CAP_PROP_FRAME_WIDTH));
     video->_size.height       = static_cast<int>(
-                                inputVideo.get(CV_CAP_PROP_FRAME_HEIGHT));
+						 inputVideo.get(cv::CAP_PROP_FRAME_HEIGHT));
 
     // Get Codec Type- Int form
-    int ex = static_cast<int>(inputVideo.get(CV_CAP_PROP_FOURCC));
+    int ex = static_cast<int>(inputVideo.get(cv::CAP_PROP_FOURCC));
     char fourcc[] = {(char)((ex & 0XFF)),
                      (char)((ex & 0XFF00) >> 8),
                      (char)((ex & 0XFF0000) >> 16),
@@ -434,15 +434,15 @@ int Video::Write::get_fourcc()
     switch(_codec)
     {
         case Codec::MJPG:
-            return CV_FOURCC('M', 'J', 'P', 'G');
+	  return cv::VideoWriter::fourcc('M', 'J', 'P', 'G');
         case Codec::XVID:
-            return CV_FOURCC('X', 'V', 'I', 'D');
+	  return cv::VideoWriter::fourcc('X', 'V', 'I', 'D');
         case Codec::H263:
-            return CV_FOURCC('U', '2', '6', '3');
+	  return cv::VideoWriter::fourcc('U', '2', '6', '3');
         case Codec::H264:
-            return CV_FOURCC('X', '2', '6', '4');
+	  return cv::VideoWriter::fourcc('X', '2', '6', '4');
         case Codec::AVC1:
-            return CV_FOURCC('A', 'V', 'C', '1');
+	  return cv::VideoWriter::fourcc('A', 'V', 'C', '1');
         default:
             throw VCLException(UnsupportedFormat, std::to_string((int)_codec) +
                                " is not a valid format");

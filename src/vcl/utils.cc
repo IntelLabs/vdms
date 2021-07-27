@@ -34,6 +34,7 @@
 
 #include "vcl/utils.h"
 #include "vcl/Exception.h"
+#include "../VDMSConfig.h"
 
 namespace VCL {
 
@@ -110,6 +111,14 @@ namespace VCL {
     std::string create_unique(const std::string &path,
                               const std::string &extension)
     {
+
+      std::ostringstream tmp_stream;
+      for(int i = 0; i < DIRECTORY_LAYERS; i++)
+	{
+	  tmp_stream << std::internal << std::setfill('0') << std::setw(CHARS_PER_LAYER_NAME) << std::rand() % DIRECTORIES_PER_LAYER << "/" ;
+	}
+
+      
         std::string unique_id;
         std::string name;
         const char& last = path.back();
@@ -119,8 +128,9 @@ namespace VCL {
             std::stringstream ss;
             ss << std::hex << id;
             unique_id = ss.str();
-            name = path + std::string((last != '/')? "/":"") +
+            name = path + std::string((last != '/')? "/":"") + tmp_stream.str() +
                    unique_id + "." + extension;
+
         } while (exists(name));
 
         return name;

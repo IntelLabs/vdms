@@ -33,7 +33,8 @@
  */
 
 #pragma once
-
+#include <stdio.h>
+#include <fstream>
 #include <string>
 
 #include <opencv2/core.hpp>
@@ -59,7 +60,8 @@ namespace VCL {
             NONE_IMAGE = 0,
             JPG = 1,
             PNG = 2,
-            TDB = 3
+            TDB = 3,
+            BIN = 4
             };
 
     /*  *********************** */
@@ -91,7 +93,7 @@ namespace VCL {
          *    defaults to IMREAD_COLOR
          *  @see OpenCV documentation on imdecode for more information on flags
          */
-        Image(void* buffer, long size, int flags=cv::IMREAD_ANYCOLOR);
+        Image(void* buffer, long size, char raw_binary_file=0, int flags=cv::IMREAD_ANYCOLOR);
 
         /**
          *  Creates a TDB Image object from a buffer of raw pixel data
@@ -361,6 +363,8 @@ namespace VCL {
         // Image data (OpenCV Mat or TDBImage)
         cv::Mat _cv_img;
         TDBImage *_tdb;
+        char* _bin;
+        long _bin_size;
 
     /*  *********************** */
     /*      COPY FUNCTIONS      */
@@ -740,7 +744,7 @@ namespace VCL {
          *  @param buffer  The buffer containing the encoded pixel data
          */
         void set_data_from_encoded(void *buffer, long size,
-            int flags=cv::IMREAD_ANYCOLOR);
+            char raw_binary_file=0, int flags=cv::IMREAD_ANYCOLOR);
 
        /**
          *  Sets the format of the Image object

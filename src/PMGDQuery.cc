@@ -32,6 +32,7 @@
 #include <string>
 #include <iostream>
 #include <cstring>
+#include <chrono>
 
 #include "PMGDQueryHandler.h"
 #include "PMGDQuery.h"
@@ -335,98 +336,162 @@ Json::Value PMGDQuery::parse_response(PMGDCmdResponse* response)
 }
 
 template<class T>
-void PMGDQuery::parse_query_constraints(const Json::Value& constraints,
-                                        T* pb_constraints)
+bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
+                                        T* pb_constraints, bool purge_query)
 {
-    for (auto it = constraints.begin(); it != constraints.end(); ++it) {
-
-        const Json::Value& predicate = *it;
-        const std::string& key = it.key().asString();
-
+  bool expiration_query_match = false;
+  bool deletion_query_match = false;
+  bool final_purge_query = false;
+  for (auto it = constraints.begin(); it != constraints.end(); ++it) {
+    
+    const Json::Value& predicate = *it;
+    const std::string& key = it.key().asString();
+    
+    if(key.compare("_deletion") == 0)
+      {
+        deletion_query_match = true;
+      }
+    
+    else
+      {
+    if(key.compare("_expiration") == 0)
+    {
+        expiration_query_match = true;
+    }
+    
         // Will either have 2 or 4 arguments as verified when parsing
         // JSON
         if (predicate.size() == 2 && predicate[1].isArray()) {
-
-            // This will make the entire query OR,
-            // not sure if it is right.
-            pb_constraints->set_p_op(PMGD::protobufs::Or);
-
-            const std::string& pred1 = predicate[0].asString();
-
-            PMGDPropPred::Op op;
-
-            if (pred1 == ">")
-                op = PMGDPropPred::Gt;
-            else if (pred1 == ">=")
-                op = PMGDPropPred::Ge;
-            else if (pred1 == "<")
-                op = PMGDPropPred::Lt;
-            else if (pred1 == "<=")
-                op = PMGDPropPred::Le;
-            else if (pred1 == "==")
-                op = PMGDPropPred::Eq;
-            else if (pred1 == "!=")
-                op = PMGDPropPred::Ne;
-
-            for (auto& value : predicate[1]) {
-
-                PMGDPropPred* pp = pb_constraints->add_predicates();
-                pp->set_key(key);  //assign the property predicate key
-                pp->set_op(op);
-                PMGDProp* p1 = pp->mutable_v1();
-                set_property(p1, key, value);
+      
+      // This will make the entire query OR,
+      // not sure if it is right.
+      pb_constraints->set_p_op(PMGD::protobufs::Or);
+      
+      const std::string& pred1 = predicate[0].asString();
+      
+      PMGDPropPred::Op op;
+      
+      if (pred1 == ">")
+            {
+          op = PMGDPropPred::Gt;
+          //ddm if comtraint is _expiration and predicate 2 is less tham curremt time
+          expiration_query_match = false;
             }
-
+      else if (pred1 == ">=")
+            {
+          op = PMGDPropPred::Ge;
+          expiration_query_match = false;
+            }
+      else if (pred1 == "<")
+            {
+          op = PMGDPropPred::Lt;
+            }
+      else if (pred1 == "<=")
+        {
+          op = PMGDPropPred::Le;
+        }
+      else if (pred1 == "==")
+        {
+          op = PMGDPropPred::Eq;
+        }
+      else if (pred1 == "!=")
+        expiration_query_match = false;
+      {
+        op = PMGDPropPred::Ne;
+        expiration_query_match = false;
+      }
+      
+      for (auto& value : predicate[1]) {
+        
+        PMGDPropPred* pp = pb_constraints->add_predicates();
+        pp->set_key(key);  //assign the property predicate key
+        pp->set_op(op);
+        PMGDProp* p1 = pp->mutable_v1();
+        set_property(p1, key, value);
+      }
+      
         }
         else if (predicate.size() == 2) {
-
-            PMGDPropPred* pp = pb_constraints->add_predicates();
-            pp->set_key(key);  //assign the property predicate key
-
-            PMGDProp* p1 = pp->mutable_v1();
-            set_property(p1, key, predicate[1]);
-
-            const std::string& pred1 = predicate[0].asString();
-
-            if (pred1 == ">")
-                pp->set_op(PMGDPropPred::Gt);
-            else if (pred1 == ">=")
-                pp->set_op(PMGDPropPred::Ge);
-            else if (pred1 == "<")
-                pp->set_op(PMGDPropPred::Lt);
-            else if (pred1 == "<=")
-                pp->set_op(PMGDPropPred::Le);
-            else if (pred1 == "==")
-                pp->set_op(PMGDPropPred::Eq);
-            else if (pred1 == "!=")
-                pp->set_op(PMGDPropPred::Ne);
+      PMGDPropPred* pp = pb_constraints->add_predicates();
+      pp->set_key(key);  //assign the property predicate key
+      
+      PMGDProp* p1 = pp->mutable_v1();
+      set_property(p1, key, predicate[1]);
+      
+      const std::string& pred1 = predicate[0].asString();
+      
+      if (pred1 == ">")
+            {
+          pp->set_op(PMGDPropPred::Gt);
+          expiration_query_match = false;
+            }
+      else if (pred1 == ">=")
+            {
+          pp->set_op(PMGDPropPred::Ge);
+          expiration_query_match = false;
+            }
+      else if (pred1 == "<")
+            {
+          pp->set_op(PMGDPropPred::Lt);
+            }
+      else if (pred1 == "<=")
+            {
+          pp->set_op(PMGDPropPred::Le);
+            }
+      else if (pred1 == "==")
+            {
+          pp->set_op(PMGDPropPred::Eq);
+            }
+      else if (pred1 == "!=")
+            {
+          pp->set_op(PMGDPropPred::Ne);
+          expiration_query_match = false;
+            }
+      
+      //ddm if query still matches - check to ensure that ti,e is in the past
+      if(expiration_query_match)
+            {
+          std::cout << predicate[1] << " " << std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count() << std::endl;
+          if(predicate[1].asUInt64() >= 1+ std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count())
+                {
+          expiration_query_match = false;
+                }
+            }
+      
         }
         else {
-
-            PMGDPropPred* pp = pb_constraints->add_predicates();
-            pp->set_key(key);  //assign the property predicate key
-
-            PMGDProp* p1 = pp->mutable_v1();
-            set_property(p1, key, predicate[1]);
-
-            const std::string& pred1 = predicate[0].asString();
-
-            PMGDProp* p2 = pp->mutable_v2();
-            set_property(p2, key, predicate[3]);
-
-            const std::string& pred2 = predicate[2].asString();
-
-            if (pred1 == ">" && pred2 == "<")
-                pp->set_op(PMGDPropPred::GtLt);
-            else if (pred1 == ">=" && pred2 == "<")
-                pp->set_op(PMGDPropPred::GeLt);
-            else if (pred1 == ">"  && pred2 == "<=")
-                pp->set_op(PMGDPropPred::GtLe);
-            else if (pred1 == ">=" && pred2 == "<=")
-                pp->set_op(PMGDPropPred::GeLe);
-
+      
+      PMGDPropPred* pp = pb_constraints->add_predicates();
+      pp->set_key(key);  //assign the property predicate key
+      
+      PMGDProp* p1 = pp->mutable_v1();
+      set_property(p1, key, predicate[1]);
+      
+      const std::string& pred1 = predicate[0].asString();
+      
+      PMGDProp* p2 = pp->mutable_v2();
+      set_property(p2, key, predicate[3]);
+      
+      const std::string& pred2 = predicate[2].asString();
+      
+      if (pred1 == ">" && pred2 == "<")
+        pp->set_op(PMGDPropPred::GtLt);
+      else if (pred1 == ">=" && pred2 == "<")
+        pp->set_op(PMGDPropPred::GeLt);
+      else if (pred1 == ">"  && pred2 == "<=")
+        pp->set_op(PMGDPropPred::GtLe);
+      else if (pred1 == ">=" && pred2 == "<=")
+        pp->set_op(PMGDPropPred::GeLe);
+      
         }
-    }
+      }
+        if(expiration_query_match || deletion_query_match)
+      {
+            final_purge_query = true;
+      }
+      
+  }
+  return final_purge_query;
 }
 
 void PMGDQuery::get_response_type(const Json::Value& res, PMGDQueryResultInfo *qn)
@@ -501,9 +566,26 @@ void PMGDQuery::AddNode(int ref,
     PMGD::protobufs::Node *n = an->mutable_node();
     n->set_tag(tag);
 
+  
     for (auto it = props.begin(); it != props.end(); ++it) {
-        PMGDProp* p = n->add_properties();
-        set_property(p, it.key().asString(), *it);
+         //add a extra properties in the event that special keyword _expiration is present in properties
+        if(std::string(it.key().asString()).compare("_expiration") == 0)
+        {
+            auto now = std::chrono::system_clock::now();
+            Json::UInt64 creation_time = std::chrono::time_point_cast<std::chrono::seconds>(now).time_since_epoch().count();
+            Json::UInt64 expiration_time = creation_time + it->asUInt64();
+            //std::cout << "match found" << std::endl;
+            PMGDProp* q = n->add_properties();
+            set_property(q, "_creation", Json::Value(creation_time));
+            q = n->add_properties();
+            set_property(q, "_expiration", Json::Value(expiration_time));
+        }
+        else
+        {
+            PMGDProp* p = n->add_properties();
+            set_property(p, it.key().asString(), *it);
+        }
+        
     }
 
     if(!constraints.isNull()) {
@@ -641,7 +723,6 @@ void PMGDQuery::QueryNode(int ref,
     cmdquery->set_cmd_grp_id(_current_group_id);
 
     PMGDQueryNode *qn = cmdquery->mutable_query_node();
-
     qn->set_identifier(ref);
 
     PMGDQueryConstraints *qc = qn->mutable_constraints();
@@ -654,8 +735,16 @@ void PMGDQuery::QueryNode(int ref,
 
     // TODO: We always assume AND, we need to change that
     qc->set_p_op(PMGD::protobufs::And);
+    
     if (!constraints.isNull())
-        parse_query_constraints(constraints, qc);
+    {
+        
+        bool force_purge = parse_query_constraints(constraints, qc, true);
+        if(force_purge)
+        {
+            _readonly = false;
+        }
+    }
 
     PMGDQueryResultInfo *qr = qn->mutable_results();
     if (!results.isNull())

@@ -48,9 +48,11 @@
 #define DEFAULT_PATH_JPG         "jpg"
 #define DEFAULT_PATH_PNG         "png"
 #define DEFAULT_PATH_TDB         "tdb"
+#define DEFAULT_PATH_BIN         "bin"
 #define DEFAULT_PATH_BLOBS       "blobs"
 #define DEFAULT_PATH_VIDEOS      "videos"
 #define DEFAULT_PATH_DESCRIPTORS "descriptors"
+#define DEFAULT_PATH_TMP "tmp"
 
 using namespace VDMS;
 
@@ -108,6 +110,59 @@ std::string VDMSConfig::get_string_value(std::string val, std::string def)
     return json_config.get(val, def).asString();
 }
 
+
+//This is a function that createa a directory structure with DIRECTORY_LAYERS levels with each layer with DIRECTORIES_PER_LAYER ^ n directories.
+//This function is recursive so will call itself to expand each directory level.
+
+void VDMSConfig::expand_directory_layer(std::vector< std::vector<std::string>* > *p_directory_list, int current_layer)
+{
+  std::vector<std::string>* tmp_directory_list = new std::vector<std::string>();
+  if(current_layer > 1)
+    {
+      expand_directory_layer(p_directory_list, current_layer - 1);
+    }
+  if(p_directory_list->size() == 0)
+    {
+      for(int i = 0 ; i < DIRECTORIES_PER_LAYER; i++)
+	{
+	  std::ostringstream tmp_stream;
+	  tmp_stream << std::internal << std::setfill('0') << std::setw(CHARS_PER_LAYER_NAME) << i;
+	  tmp_directory_list->push_back(tmp_stream.str() + "/" );
+	  //std::cout << (*tmp_directory_list)[i] << std::endl;
+	}
+      p_directory_list->push_back(tmp_directory_list);
+    }
+  else
+    {
+      for(int j = 0; j < (*p_directory_list)[p_directory_list->size() - 1]->size(); j++)
+	{
+	  for(int i = 0 ; i < DIRECTORIES_PER_LAYER; i++)
+	    {
+	      std::ostringstream tmp_stream;
+	      tmp_stream << std::internal << std::setfill('0') << std::setw(CHARS_PER_LAYER_NAME) << i;
+	      tmp_directory_list->push_back((* (*p_directory_list)[p_directory_list->size() - 1] )[j] + tmp_stream.str() + "/" );
+	      //std::cout << (*tmp_directory_list)[tmp_directory_list->size() - 1] << std::endl;
+	    }
+	}
+      p_directory_list->push_back(tmp_directory_list);
+    }
+}
+
+void VDMSConfig::create_directory_layer(std::vector< std::vector<std::string>* > *p_directory_list, std::string base_directory)
+{
+  if( DIRECTORY_LAYERS > 0 )
+    {
+      for(int i = 0; i < p_directory_list->size(); i++)
+	{
+	  std::vector<std::string>* tmp_string_vector = (*p_directory_list)[i];
+	  for(int j = 0; j < tmp_string_vector->size(); j++)
+	    {
+	      check_or_create(base_directory + "/" + (*tmp_string_vector)[j]);
+	    }
+	}
+    }
+}
+
 // This method will check if the dir exists,
 // and create the dir if it does not exist.
 int VDMSConfig::create_dir(std::string path)
@@ -157,33 +212,53 @@ void VDMSConfig::build_dirs()
     path_images = get_string_value(PARAM_DB_IMAGES, path_images);
     check_or_create(path_images);
 
+    std::vector< std::vector<std::string>* > directory_list;
+    expand_directory_layer(&directory_list, DIRECTORY_LAYERS);
+    
     // IMAGES - PNG
     path_png = path_images + "/" + DEFAULT_PATH_PNG;
     path_png = get_string_value(PARAM_DB_PNG, path_png);
     check_or_create(path_png);
-
+    create_directory_layer(&directory_list, path_png);
+    
     // IMAGES - JPG
     path_jpg = path_images + "/" + DEFAULT_PATH_JPG;
     path_jpg = get_string_value(PARAM_DB_JPG, path_jpg);
     check_or_create(path_jpg);
+    create_directory_layer(&directory_list, path_jpg);
 
     // IMAGES - TDB
     path_tdb = path_images + "/" + DEFAULT_PATH_TDB;
     path_tdb = get_string_value(PARAM_DB_TDB, path_tdb);
     check_or_create(path_tdb);
+    create_directory_layer(&directory_list, path_tdb);
+
+    // IMAGES - BIN
+    path_bin = path_images + "/" + DEFAULT_PATH_BIN;
+    path_bin = get_string_value(PARAM_DB_BIN, path_bin);
+    check_or_create(path_bin);
+    create_directory_layer(&directory_list, path_bin);
 
     // BLOBS
     path_blobs = path_root + "/" + DEFAULT_PATH_BLOBS;
     path_blobs = get_string_value(PARAM_DB_BLOBS, path_blobs);
     check_or_create(path_blobs);
+    create_directory_layer(&directory_list, path_blobs);
 
     // VIDEOS
     path_videos = path_root + "/" + DEFAULT_PATH_VIDEOS;
     path_videos = get_string_value(PARAM_DB_VIDEOS, path_videos);
     check_or_create(path_videos);
+    create_directory_layer(&directory_list, path_videos);
 
     // DESCRIPTORS
     path_descriptors = path_root + "/" + DEFAULT_PATH_DESCRIPTORS;
     path_descriptors = get_string_value(PARAM_DB_DESCRIPTORS, path_descriptors);
     check_or_create(path_descriptors);
+
+    // TMP
+    path_tmp = "/tmp/" + std::string(DEFAULT_PATH_TMP);
+    path_tmp = get_string_value(PARAM_DB_TMP, path_tmp);
+    check_or_create(path_tmp);
+    create_directory_layer(&directory_list, path_tmp);
 }

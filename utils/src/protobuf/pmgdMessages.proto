@@ -281,6 +281,7 @@ message QueryNode
 
     // Specify how we want results
     ResultInfo results = 4;
+
 }
 
 message QueryEdge

@@ -32,7 +32,7 @@
 #pragma once
 
 #include "comm/Connection.h"
-#include "protobuf/queryMessage.pb.h"
+#include "queryMessage.pb.h"
 
 namespace VDMS {
     class QueryMessage

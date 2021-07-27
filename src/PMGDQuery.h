@@ -58,7 +58,7 @@ namespace VDMS {
         void add_link(const Json::Value& link, PMGDQueryNode* qn);
 
         template <class T>
-        void parse_query_constraints(const Json::Value& constraints, T* qc);
+        bool parse_query_constraints(const Json::Value& constraints, T* qc, bool purge_query=false);
 
         void parse_query_results(const Json::Value& result_type,
                                  PMGDQueryResultInfo* qr);

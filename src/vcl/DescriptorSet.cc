@@ -145,7 +145,7 @@ void DescriptorSet::radius_search(DescData queries, float radius,
 
 long DescriptorSet::add(DescDataArray descriptors, unsigned n, long* labels)
 {
-    _set->add(descriptors, n, labels);
+    return _set->add(descriptors, n, labels);
 }
 
 void DescriptorSet::train()
@@ -160,7 +160,7 @@ void DescriptorSet::train(DescDataArray descriptors, unsigned n)
 
 bool DescriptorSet::is_trained()
 {
-    _set->is_trained();
+    return _set->is_trained();
 }
 
 void DescriptorSet::classify(DescDataArray descriptors, unsigned n,
@@ -196,7 +196,7 @@ long DescriptorSet::add(DescDataArray descriptors, unsigned n,
     if (n != labels.size() && labels.size() != 0)
         throw VCLException(SizeMismatch, "Labels Vector of Wrong Size");
 
-    add(descriptors, n, labels.size() > 0 ? (long*) labels.data() : NULL);
+    return add(descriptors, n, labels.size() > 0 ? (long*) labels.data() : NULL);
 }
 
 void DescriptorSet::search(DescDataArray queries, unsigned n, unsigned k,
