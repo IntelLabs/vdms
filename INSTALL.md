@@ -3,16 +3,70 @@
 Here is the detailed process of installation of VDMS dependencies.
 
 ## Dependencies
+    sudo apt-get update && \\
 
-    sudo apt-get install wget
-    sudo apt-get install scons
-    sudo apt-get install libjsoncpp-dev
-    sudo apt-get install automake libtool curl make g++ unzip libgtest-dev
-    sudo apt-get install cmake wget zlib1g-dev libbz2-dev libssl-dev liblz4-dev
-    sudo apt-get install libtbb2 libtbb-dev
-    sudo apt-get install ffmpeg
-    sudo apt-get install libavcodec-dev libavformat-dev libavdevice-dev
+    sudo apt-get -y install software-properties-common && \\
 
+    add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main" && \\
+
+    sudo apt-get -y install g++ git libssl-dev libc-ares-dev apt-transport-https ca- 
+    certificates curl && \\
+
+    sudo apt-get -y installgnupg-agent software-properties-common cmake python3-pip build- 
+    essential autoconf automaker && \\
+
+    sudo apt-get -y install libtool g++ unzip bzip2 libarchive-tools cmake git pkg-config 
+    python python-dev wget libbz2- dev libssl-dev liblz4-dev mpich libjsoncpp-dev flex javacc 
+    bison && \\
+
+    sudo apt-get -y install openjdk-11-jdk-headless libleveldb-dev libsnappy-dev libhdf5- 
+    serial-dev libatlas-base-dev libboost-all-dev libgflags-dev libgoogle-glog-dev 
+    liblmdb-dev  && \\
+
+    sudo apt-get -y install libjpeg8-dev libtiff5-dev libjasper-dev libgtk-3-dev 
+    libopenmpi-dev libgtest-dev ed libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev 
+    libswscale-dev && \\
+
+    sudo apt-get -y install libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev 
+    libdc1394-22-dev libopenblas-dev && \\
+
+    sudo pip3 install numpy
+### Pull Dependencies
+     git clone https://github.com/grpc/grpc.git && \\
+     git clone https://github.com/glennrp/libpng.git && \\
+     git clone https://github.com/swig/swig.git && \\
+     git clone https://github.com/opencv/opencv.git && \\
+     git clone https://github.com/tristanpenman/valijson.git && \\
+     git clone https://github.com/Kitware/CMake.git && \\
+     git clone https://github.com/facebookresearch/faiss.git && \\
+     curl http://zlib.net/zlib-1.2.11.tar.gz -o zlib-1.2.11.tar.gz
+
+### Install CMAKE 
+    cd CMake && ./bootstrap && make -j16 && make install && \\
+    cd / && cd swig && \ 
+    ./autogen.sh && ./configure && make -j16 && make install 
+### Install Faiss
+    cd faiss && mkdir build && cd build && \
+    cmake -DFAISS_ENABLE_GPU=OFF .. && \\
+    make -j16 && make install
+
+### Install grpc
+    cd grpc && git submodule update --init --recursive && \
+    cd third_party/protobuf/cmake && mkdir build && cd build && cmake - 
+    DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && \
+    make -j8 && make install && cd ../../../abseil-cpp && mkdir build && cd build && \
+    cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make -j8 && make install && cd 
+    ../../re2/ && mkdir build && \
+    cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make -j8 && make install 
+     && cd ../../zlib/ && \
+    mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make -j8 && 
+    make install && \
+    cd /grpc/cmake && mkdir build && cd build && cmake -DgRPC_INSTALL=ON                     
+     -DRPC_BUILD_TESTS=OFF -DgRPC_ABSL_PROVIDER=package \
+    -DgRPC_CARES_PROVIDER=package -DgRPC_PROTOBUF_PROVIDER=package DgRPC_RE2_PROVIDER=package 
+    -DgRPC_SSL_PROVIDER=package \
+    -DgRPC_ZLIB_PROVIDER=package -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE ../.. && make -j8 && 
+     make install
 
 ### Install gtest
 
@@ -23,6 +77,17 @@ you need to do the following steps to get it to work correctly:
     sudo cmake CMakeLists.txt
     sudo make
     sudo cp *.a /usr/lib
+
+### Install Zlib
+    gunzip zlib-1.2.11.tar.gz && \\
+    tar -xvf zlib-1.2.11.tar && \\
+    cd zlib-1.2.11 && ./configure && make -j4 && \
+    sudo make install
+### Install Libpng
+    cd libpng && \\
+    git checkout libpng12 && ./configure &&\\
+    make -j4 && make install
+
 
 ### Protobuf
 
@@ -66,7 +131,7 @@ It may also work with newer versions of OpenCV.
 
 ### [TileDB](https://tiledb.io/)
 VDMS works with TileDB v1.3.1.
-The directions below will help you install TileDB v1.3.1 from source.
+The directions below will help you install TileDB v1.3.1 from the source.
 You can also follow the directions listed
 [here](https://docs.tiledb.io/en/latest/installation.html).
 
@@ -81,31 +146,37 @@ Build TileDB
     make -j
     sudo make install-tiledb
 
-### [Faiss](https://github.com/facebookresearch/faiss)
-Facebook Faiss library for similarity search, used as alternitive engines.
-VDMS works with Faiss v1.4.0.
+### [Maven]
+    sudo ln -s /grpc/third_party/protobuf/cmake/build/protoc 
+    grpc/third_party/protobuf/src/protoc && \
+    sudo apt-get install -y maven && \
+    cd /grpc/third_party/protobuf/java/core &&\
+    mvn package &&\
+    cp target/protobuf-java-3.13.0.jar /usr/share/java/protobuf.jar &&\
+    curl https://storage.googleapis.com/google-code-archive- 
+    downloads/v2/code.google.com/json-simple/json-simple-1.1.1.jar -o /usr/share/java/json- 
+    simple-1.1.1.jar && cd / &&\
+    curl https://mirror.jframeworks.com/apache//commons/codec/binaries/commons-codec-1.15- 
+    bin.tar.gz -o /commons-codec-1.15-bin.tar.gz &&\ 
+    gunzip /commons-codec-1.15-bin.tar.gz &&\
+    tar -xvf commons-codec-1.15-bin.tar && \
+    cp commons-codec-1.15/commons-codec-1.15.jar /usr/share/java/commons-codec-1.15.jar
 
-    wget https://github.com/facebookresearch/faiss/archive/v1.4.0.tar.gz
-    tar -xzvf v1.4.0.tar.gz
-    cd faiss-1.4.0
-    mkdir build
-    cd build/
-    cmake ..
-    make -j
+You may need to change proxy setting for Maven if you are behind a proxy like this example:
 
-You may need to change some flags in the CMakeFile depending on
-configurations on your system.
-
-Things that we have needed to change in CMakeLists.txt:
-* If your system doesn't have a GPU, make sure that BUILD_WITH_GPU is OFF
-* You may need to add -msse4 to set(CMAKE_CXX_FLAGS
-* Change the add_library call to be SHARED instead of STATIC
-
-This library does not offer an install. Make sure you move .h files
-to /usr/lib/include/faiss or /usr/local/lib/include/faiss,
-and make sure you make the library (libfaiss.so) is available system-wide
-Or follow instructions
-[here](https://github.com/facebookresearch/faiss/blob/v1.2.1/INSTALL.md)
+### Adding the setting.xml file to ~/.m2 folder
+    <proxies>
+      <proxy>
+       <id>optional</id>
+          <!-- <active>true</active> -->
+          <protocol>https</protocol>
+          <!--<username>proxyuser</username>
+          <password>proxypass</password>-->
+          <host>prox-address</host>
+          <port>proxy-port</port>
+          <nonProxyHosts></nonProxyHosts>
+        </proxy>
+    </proxies>
 
 ### Valijson
   * git clone https://github.com/tristanpenman/valijson.git
@@ -113,81 +184,19 @@ Or follow instructions
   * cp -r include/* /usr/local/include (may need to run as sudo)
   * This is a headers-only library, no compilation/installation necessary
 
-### Persistent Memory Graph Database (PMGD)
-  * Download version 2.0.0 from: https://github.com/IntelLabs/pmgd/releases
-  * Follow installation instructions
+### Install VDMS
+    git clone https://github.com/IntelLabs/vdms.git &&\
+    cd vdms && git checkout develop &&\
+    git submodule update --init --recursive && \
+    cd vdms && mkdir build && cd build && cmake .. && make -j16 && \
+    cp ../config-vdms.json . 
+
 
 
 ## Compilation
+This version of VDMS treats PMGD as a submodule so both libraries are compiled at one time. After entering the vdms directory, the command "git submodule update --init --recursive" will pull pmgd into the appropriate directory. Furthermore, Cmake is used to compile all directories. When compiling on a target with Optane persistent memory, use the command set
 
-    git clone https://github.com/intellabs/vdms
-    // Or download a release.
+mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS='-DPM' .. && make -j<<number of threads to use for compiling>>
 
-    cd vdms
-    scons [FLAGS]
-
-Flag | Explanation
------------- | -------------
---no-server | Compiles client libraries (C++/Python) only. (will not compile neither server nor tests)
---timing    | Compiles server with chronos for internal timing, experimental.
--jX         | Compiles in parallel, using X cores
-INTEL_PATH=path  | Path to the root folder containing pmgd and vcl. Default is "./" which is pmgd and vcl inside vdms folder. Example: scons INTEL_PATH=/opt/intel/
---prefix    | Specify the installation location (see Installation below)
-
-
-## Installation
-
-### Installing VDMS Server + Libraries
-
-By default, VDMS will build the server binary and
-libraries, but will not install them in the sytem.
-
-You can install the VDMS server + libraries in your system by running:
-
-    sudo scons install
-
-By defaul, the installation prefix is "/usr/local",
-and the VDMS server and libraries at "/usr/local/bin" and
-"/usr/local/lib", respectively.
-
-You can also remove (uninstall) VDMS files from your system by running:
-
-    sudo scons install -c
-
-You can choose to install VDMS server and libraries in a
-location of your choice by using the --prefix flag.
-
-    sudo scons install --prefix=/tmp/
-
-In this example, VDMS server will be installed at /tmp/bin, and the
-libraries will be installed at /tmp/lib.
-
-To remove (uninstall) VDMS files from a specified location by running:
-
-    sudo scons install -c --prefix=/tmp
-
-### Python Client Module
-
-VDMS offers the Python Client Module through the pip package manager,
-and it is compatible with Python 2.7+ and 3.3+.
-pip (or pip2 and pip3) will automatically install dependencies (protobuf).
-
-    pip install vdms
-
-### Running The VDMS Server
-
-The config-vdms.json file contains the configuration of the server.
-Some of the parameters include the TCP port that will be use for incoming
-connections, maximun number of simultaneous clients, and paths to the
-folders where data/metadata will be stored.
-
-We provide a script (run_server.sh) that will create some default directories,
-corresponding the default values in the config-vdms.json.
-
-To run the server using the default directories and port, simply run:
-
-    sh run_server.sh
-
-
-install qtwayland and cmake version > 3.18
-may need to remove libfaiss.so to use latest version
+For systems without Optane, use the command set
+mkdir build && cd build && cmake .. && make -j<<number of threads to use for compiling>>
