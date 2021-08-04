@@ -25,30 +25,19 @@
 #
 
 from threading import Thread
-import sys
-import os
-import urllib
-import time
-import json
-import unittest
-import numpy as np
-import vdms
-
+import TestCommand
 import longquery
-
-hostname = "localhost"
-port = 55557
+import numpy as np
 
 n_cameras = 15
 dim = 1000
 name = "features_vectors_store1"
 
-class TestEntities(unittest.TestCase):
+class TestEntities(TestCommand.TestCommand):
 
     def add_descriptor_set(self, name, dim):
 
-        db = vdms.vdms()
-        db.connect(hostname, port)
+        db = self.create_connection()
 
         all_queries = []
 
@@ -68,8 +57,7 @@ class TestEntities(unittest.TestCase):
 
     def build_store(self):
 
-        db = vdms.vdms()
-        db.connect(hostname, port)
+        db = self.create_connection()
 
         all_queries = []
 
@@ -230,8 +218,7 @@ class TestEntities(unittest.TestCase):
         db_list = []
 
         for i in range(0, concurrency):
-            db = vdms.vdms()
-            db.connect(hostname, port)
+            db = self.create_connection()
             db_list.append(db)
 
         results = [None] * concurrency * retries

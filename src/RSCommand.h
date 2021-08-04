@@ -36,7 +36,7 @@
 #include <unordered_map>
 
 #include "PMGDQuery.h"
-#include "protobuf/queryMessage.pb.h"
+#include "queryMessage.pb.h"
 
 // Json parsing files
 #include <jsoncpp/json/value.h>

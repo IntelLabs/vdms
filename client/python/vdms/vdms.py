@@ -2,6 +2,7 @@
 # The MIT License
 #
 # @copyright Copyright (c) 2017 Intel Corporation
+# @copyright Copyright (c) 2020 ApertureData Inc
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"),
@@ -42,6 +43,15 @@ class vdms(object):
     def __init__(self):
         self.dataNotUsed = []
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.conn.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
+
+        # TCP_QUICKACK only supported in Linux 2.4.4+.
+        # We use startswith for checking the platform following Python's
+        # documentation:
+        # https://docs.python.org/dev/library/sys.html#sys.platform
+        if sys.platform.startswith('linux'):
+            self.conn.setsockopt(socket.SOL_TCP, socket.TCP_QUICKACK, 1)
+
         self.connected = False
         self.last_response = ''
 
@@ -57,7 +67,7 @@ class vdms(object):
         self.connected = False
 
     # Recieves a json struct as a string
-    def query(self, query, img_array = []):
+    def query(self, query, blob_array = []):
 
         # Check the query type
         if not isinstance(query, str): # assumes json
@@ -72,18 +82,26 @@ class vdms(object):
         # quer has .json and .blob
         quer.json = query_str
 
-        for im in img_array:
-            quer.blobs.extend(im)
+        # We allow both a "list of lists" or a "list"
+        # to be passed as blobs.
+        # This is because we originally forced a "list of lists",
+        # for no good reason other than lacking Python skills.
+        # But most of the apps pass a "list of list" as a param,
+        # and we don't want to break backward-compatibility.
+        # So we now allow both.
+        for im in blob_array:
+            if isinstance(im, list):
+                # extend will insert the entire list at the end
+                quer.blobs.extend(im)
+            else:
+                # append will just insert a single element at the end
+                quer.blobs.append(im)
 
         # Serialize with protobuf and send
-        # start = time.time()
         data = quer.SerializeToString();
-        # start = time.time()
         sent_len = struct.pack('@I', len(data)) # send size first
         self.conn.send( sent_len )
         self.conn.send(data)
-        # end = time.time()
-        # print "ATcomm[ms]:" + str((end - start)*1000)
 
         # Recieve response
         recv_len = self.conn.recv(4)
@@ -98,16 +116,19 @@ class vdms(object):
         querRes = queryMessage_pb2.queryMessage()
         querRes.ParseFromString(response)
 
-        img_array = []
+        response_blob_array = []
         for b in querRes.blobs:
-            img_array.append(b)
+            response_blob_array.append(b)
 
         self.last_response = json.loads(querRes.json)
 
-        return (self.last_response, img_array)
+        return (self.last_response, response_blob_array)
 
     def get_last_response(self):
         return self.last_response
 
     def get_last_response_str(self):
         return json.dumps(self.last_response, indent=4, sort_keys=False)
+
+    def print_last_response(self):
+        print(self.get_last_response_str())

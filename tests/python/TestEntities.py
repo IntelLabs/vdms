@@ -25,24 +25,11 @@
 #
 
 from threading import Thread
-import sys
-import os
-import urllib
-import time
-import json
-import unittest
-import numpy as np
-import vdms
+import TestCommand
 
-hostname = "localhost"
-port = 55557
+class TestEntities(TestCommand.TestCommand):
 
-class TestEntities(unittest.TestCase):
-
-    def addEntity(self, thID, results):
-
-        db = vdms.vdms()
-        db.connect(hostname, port)
+    def addSingleEntity(self, thID, results):
 
         props = {}
         props["name"] = "Luis"
@@ -50,18 +37,8 @@ class TestEntities(unittest.TestCase):
         props["age"] = 27
         props["threadid"] = thID
 
-        addEntity = {}
-        addEntity["properties"] = props
-        addEntity["class"] = "AwesomePeople"
-
-        query = {}
-        query["AddEntity"] = addEntity
-
-        all_queries = []
-        all_queries.append(query)
-
-        response, res_arr = db.query(all_queries)
-        # print (db.get_last_response_str())
+        response, arr = self.addEntity("AwesomePeople", properties=props,
+                                       check_status=False)
 
         try:
             self.assertEqual(response[0]["AddEntity"]["status"], 0)
@@ -72,8 +49,7 @@ class TestEntities(unittest.TestCase):
 
     def findEntity(self, thID, results):
 
-        db = vdms.vdms()
-        db.connect(hostname, port)
+        db = self.create_connection()
 
         constraints = {}
         constraints["threadid"] = ["==",thID]
@@ -113,7 +89,7 @@ class TestEntities(unittest.TestCase):
         thread_arr = []
         results = [None] * concurrency
         for i in range(0,concurrency):
-            thread_add = Thread(target=self.addEntity,args=(i, results) )
+            thread_add = Thread(target=self.addSingleEntity,args=(i, results) )
             thread_add.start()
             thread_arr.append(thread_add)
 
@@ -133,7 +109,7 @@ class TestEntities(unittest.TestCase):
         results      = [None] * concurrency * 2
         for i in range(0,concurrency):
             addidx = concurrency + i
-            thread_add = Thread(target=self.addEntity,args=(addidx, results) )
+            thread_add = Thread(target=self.addSingleEntity,args=(addidx, results) )
             thread_add.start()
             thread_arr.append(thread_add)
 
@@ -155,12 +131,11 @@ class TestEntities(unittest.TestCase):
 
     def test_addFindEntity(self):
         results      = [None] * 1
-        self.addEntity(0, results);
+        self.addSingleEntity(0, results);
         self.findEntity(0, results);
 
     def test_addEntityWithLink(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+        db = self.create_connection()
 
         all_queries = []
 
@@ -206,10 +181,70 @@ class TestEntities(unittest.TestCase):
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
         self.assertEqual(response[1]["AddEntity"]["status"], 0)
 
+    def test_addfindEntityWrongConstraints(self):
+        db = self.create_connection()
+
+        all_queries = []
+
+        props = {
+                "name": "Luis",
+                "lastname": "Ferro",
+                "age": 25
+        }
+        addEntity = {}
+        addEntity["_ref"] = 32
+        addEntity["properties"] = props
+        addEntity["class"] = "SomePeople"
+
+        query = {}
+        query["AddEntity"] = addEntity
+
+        all_queries.append(query)
+
+        response, res_arr = db.query(all_queries)
+
+        self.assertEqual(response[0]["AddEntity"]["status"], 0)
+
+        all_queries = []
+
+        # this format is invalid, as each constraint must be an array
+        constraints = {
+            "name": "Luis"
+        }
+
+        entity = {}
+        entity["constraints"] = constraints
+        entity["class"] = "SomePeople"
+        entity["results"] = {'count': ''}
+
+        query = {}
+        query["FindEntity"] = entity
+
+        all_queries.append(query)
+
+        response, blob_arr = db.query(all_queries)
+
+        self.assertEqual(response[0]["status"], -1)
+        self.assertEqual(response[0]["info"],
+                            "Constraint for property 'name' must be an array")
+
+        # Another invalid format
+        constraints = {
+            "name": []
+        }
+        entity["constraints"] = constraints
+        all_queries = []
+        all_queries.append(query)
+
+        response, blob_arr = db.query(all_queries)
+
+        self.assertEqual(response[0]["status"], -1)
+        self.assertEqual(response[0]["info"],
+                "Constraint for property 'name' must be an array of size 2 or 4");
+
     def test_FindWithSortKey(self):
 
-        db = vdms.vdms()
-        db.connect(hostname, port)
+        db = self.create_connection()
 
         all_queries = []
 
@@ -259,8 +294,7 @@ class TestEntities(unittest.TestCase):
 
     def test_FindWithSortBlock(self):
 
-        db = vdms.vdms()
-        db.connect(hostname, port)
+        db = self.create_connection()
 
         all_queries = []
 

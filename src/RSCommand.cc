@@ -1,3 +1,4 @@
+
 /**
  * @file   RSCommand.cc
  *
@@ -37,7 +38,7 @@
 #include "QueryHandler.h"
 #include "ExceptionsCommand.h"
 #include "VDMSConfig.h"
-#include "VCL.h"
+#include "vcl/VCL.h"
 #include "defines.h"
 
 using namespace VDMS;
