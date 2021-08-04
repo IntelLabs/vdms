@@ -87,6 +87,9 @@ RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
     tmp_script && bash tmp_script && \
     cd / 
 
+# Valijson
+RUN cd /valijson && cp -r include/* /usr/local/include/
+
 RUN git clone https://github.com/omp87/vdms.git && cd vdms && \
 git checkout develop && git submodule update --init --recursive && \
 cd src/pmgd && git checkout develop && cd /vdms && mkdir build && \
