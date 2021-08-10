@@ -87,7 +87,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         # Add Set
         set_name = "features_128d_4_findbyConst"
         dims = 128
-        total = 100
+        total = 2
         self.create_set_and_insert(set_name, dims, total)
 
         db = self.create_connection()
@@ -124,7 +124,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         # Add Set
         set_name = "features_128d_4_findunusedRef"
         dims = 128
-        total = 1000
+        total = 2
         self.create_set_and_insert(set_name, dims, total)
 
         db = self.create_connection()
@@ -161,7 +161,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         # Add Set
         set_name = "features_128d_4_findDescriptors_id"
         dims = 128
-        total = 100
+        total = 2
         self.create_set_and_insert(set_name, dims, total)
 
         db = self.create_connection()
@@ -198,7 +198,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         # Add Set
         set_name = "features_128d_4_findDescriptors_id_blob"
         dims = 128
-        total = 100
+        total = 2
         self.create_set_and_insert(set_name, dims, total)
 
         db = self.create_connection()
@@ -238,7 +238,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         # Add Set
         set_name = "features_128d_4_findDescriptors_m_blob"
         dims = 128
-        total = 100
+        total = 2
         self.create_set_and_insert(set_name, dims, total)
 
         db = self.create_connection()
@@ -278,7 +278,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         # Add Set
         set_name = "findwith_blob"
         dims = 128
-        total = 100
+        total = 2
         self.create_set_and_insert(set_name, dims, total)
 
         db = self.create_connection()
@@ -329,7 +329,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         # Add Set
         set_name = "findwith_blob_no_labels"
         dims = 128
-        total = 100
+        total = 2
         self.create_set_and_insert(set_name, dims, total, labels=False)
 
         db = self.create_connection()
@@ -373,7 +373,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         # Add Set
         set_name = "findwith_blobNoResults"
         dims = 128
-        total = 100
+        total = 1
         self.create_set_and_insert(set_name, dims, total)
 
         db = self.create_connection()
@@ -415,7 +415,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         # Add Set
         set_name = "findwith_blobUnusedRef"
         dims = 50
-        total = 100
+        total = 1
         self.create_set_and_insert(set_name, dims, total)
 
         db = self.create_connection()
@@ -517,7 +517,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         # Add Set
         set_name = "findwith_blob_link"
         dims = 128
-        total = 100
+        total = 1
 
         db = self.create_connection()
 
