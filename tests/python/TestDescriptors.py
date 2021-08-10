@@ -140,7 +140,7 @@ class TestDescriptors(TestCommand.TestCommand):
         all_queries = []
         descriptor_blob = []
 
-        x = np.zeros(dims/2)
+        x = np.zeros(dims//2)
         x = x.astype('float32')
         # print type(x[0])
         # print "size: ", len(x.tobytes())/4
@@ -208,7 +208,7 @@ class TestDescriptors(TestCommand.TestCommand):
         all_queries = []
         descriptor_blob = []
 
-        total = 1000;
+        total = 2;
 
         for i in range(1,total):
             x = np.ones(dims)
@@ -255,7 +255,7 @@ class TestDescriptors(TestCommand.TestCommand):
         all_queries = []
         descriptor_blob = []
 
-        total = 1000;
+        total = 2;
 
         class_counter = -1
         for i in range(0,total-1):

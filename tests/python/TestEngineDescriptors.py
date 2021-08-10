@@ -92,7 +92,7 @@ class TestDescriptors(TestCommand.TestCommand):
         all_queries = []
         descriptor_blob = []
 
-        total = 1000;
+        total =2;
 
         for i in range(1,total):
             x = np.ones(dims)
@@ -142,7 +142,7 @@ class TestDescriptors(TestCommand.TestCommand):
         all_queries = []
         descriptor_blob = []
 
-        total = 1000;
+        total = 2;
 
         for i in range(1,total):
             x = np.ones(dims)
@@ -192,7 +192,7 @@ class TestDescriptors(TestCommand.TestCommand):
         all_queries = []
         descriptor_blob = []
 
-        total = 1000;
+        total = 2;
 
         for i in range(1,total):
             x = np.ones(dims)
