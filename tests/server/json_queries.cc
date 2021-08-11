@@ -67,7 +67,7 @@ TEST(AddImage, simpleAdd)
     std::string addImg;
     addImg += "[" + singleAddImage + "]";
 
-    VDMSConfig::init("config-tests.json");
+    VDMSConfig::init("server/config-tests.json");
     PMGDQueryHandler::init();
     QueryHandler::init();
 
@@ -111,7 +111,7 @@ TEST(UpdateEntity, simpleAddUpdate)
     std::ifstream ifile;
     int fsize;
     char * inBuf;
-    ifile.open("AddFindUpdate.json", std::ifstream::in);
+    ifile.open("server/AddFindUpdate.json", std::ifstream::in);
     ifile.seekg(0, std::ios::end);
     fsize = (int)ifile.tellg();
     ifile.seekg(0, std::ios::beg);
@@ -125,7 +125,7 @@ TEST(UpdateEntity, simpleAddUpdate)
     Json::Value root;
     Json::Value parsed;
 
-    VDMSConfig::init("config-update-tests.json");
+    VDMSConfig::init("server/config-update-tests.json");
     PMGDQueryHandler::init();
     QueryHandler::init();
 
@@ -172,7 +172,7 @@ TEST(AddImage, simpleAddx10)
     }
     string_query += "]";
 
-    VDMSConfig::init("config-add10-tests.json");
+    VDMSConfig::init("server/config-add10-tests.json");
     PMGDQueryHandler::init();
     QueryHandler::init();
 
@@ -219,7 +219,7 @@ TEST(QueryHandler, AddAndFind)
     std::ifstream ifile;
     int fsize;
     char * inBuf;
-    ifile.open("AddAndFind_query.json", std::ifstream::in);
+    ifile.open("server/AddAndFind_query.json", std::ifstream::in);
     ifile.seekg(0, std::ios::end);
     fsize = (int)ifile.tellg();
     ifile.seekg(0, std::ios::beg);
@@ -281,7 +281,7 @@ TEST(QueryHandler, AddAndFind)
         }
     }
 
-    VDMSConfig::init("config-addfind-tests.json");
+    VDMSConfig::init("server/config-addfind-tests.json");
     PMGDQueryHandler::init();
     QueryHandler::init();
 
@@ -363,6 +363,104 @@ TEST(QueryHandler, AddAndFind)
     EXPECT_EQ(average_found_before, average_found_after);
     EXPECT_EQ(sum_found_before, sum_found_after);
     EXPECT_EQ(count_found_before, count_found_after);
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}
+
+TEST(QueryHandler, EmptyResultCheck)
+{
+    Json::Reader reader;
+    Json::StyledWriter writer;
+
+    std::ifstream ifile;
+    int fsize;
+    char * inBuf;
+    ifile.open("server/EmptyResultChecks.json", std::ifstream::in);
+    ifile.seekg(0, std::ios::end);
+    fsize = (int)ifile.tellg();
+    ifile.seekg(0, std::ios::beg);
+    inBuf = new char[fsize];
+    ifile.read(inBuf, fsize);
+    std::string json_query = std::string(inBuf);
+    ifile.close();
+    delete[] inBuf;
+
+    VDMSConfig::init("server/config-emptyresult-tests.json");
+    PMGDQueryHandler::init();
+    QueryHandler::init();
+
+    QueryHandler qh_base;
+    QueryHandlerTester query_handler(qh_base);
+
+    VDMS::protobufs::queryMessage proto_query;
+    proto_query.set_json(json_query);
+    VDMS::protobufs::queryMessage response;
+
+    query_handler.pq(proto_query, response );
+
+    Json::Value parsed;
+    reader.parse(response.json().c_str(), parsed);
+
+    for (int j = 0; j < parsed.size(); j++) {
+        const Json::Value& query = parsed[j];
+        ASSERT_EQ(query.getMemberNames().size(),1);
+        std::string cmd = query.getMemberNames()[0];
+
+        if (j == 6) { // Second last FindEntity
+            EXPECT_EQ(query["FindEntity"]["returned"].asInt(), 0);
+        }
+        if (j == 7) { // Last FindEntity
+            EXPECT_EQ(query["FindEntity"]["average"].asDouble(), 0);
+        }
+        if (j == 8) { // Last FindConnection
+            EXPECT_EQ(query["FindConnection"]["count"].asInt(), 0);
+        }
+    }
+
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}
+
+TEST(QueryHandler, DataTypeChecks)
+{
+    Json::Reader reader;
+    Json::StyledWriter writer;
+
+    std::ifstream ifile;
+    int fsize;
+    char * inBuf;
+    ifile.open("server/DataTypeChecks.json", std::ifstream::in);
+    ifile.seekg(0, std::ios::end);
+    fsize = (int)ifile.tellg();
+    ifile.seekg(0, std::ios::beg);
+    inBuf = new char[fsize];
+    ifile.read(inBuf, fsize);
+    std::string json_query = std::string(inBuf);
+    ifile.close();
+    delete[] inBuf;
+
+    VDMSConfig::init("server/config-datatype-tests.json");
+    PMGDQueryHandler::init();
+    QueryHandler::init();
+
+    QueryHandler qh_base;
+    QueryHandlerTester query_handler(qh_base);
+
+    VDMS::protobufs::queryMessage proto_query;
+    proto_query.set_json(json_query);
+    VDMS::protobufs::queryMessage response;
+
+    query_handler.pq(proto_query, response );
+
+    Json::Value parsed;
+    reader.parse(response.json().c_str(), parsed);
+
+    // std::cout << writer.write(parsed) << std::endl;
+    const Json::Value& query = parsed[3];
+    EXPECT_EQ(query["FindEntity"]["entities"][0]["Birthday"].asString(), "1936-10-01T17:59:24.001-07:00");
+    EXPECT_EQ(query["FindEntity"]["entities"][0]["timestamp"].asInt64(), 1544069566053);
+    EXPECT_EQ(query["FindEntity"]["entities"][1]["Birthday"].asString(), "1946-10-01T17:49:24.009010-07:00");
+
     VDMSConfig::destroy();
     PMGDQueryHandler::destroy();
 }

@@ -33,7 +33,7 @@
 #include <string>
 #include <mutex>
 #include <vector>
-#include "VCL.h"
+#include "vcl/Image.h"
 
 #include "RSCommand.h"
 #include "ExceptionsCommand.h"
@@ -44,10 +44,6 @@ namespace VDMS {
 
     class ImageCommand: public RSCommand
     {
-
-    protected:
-        void enqueue_operations(VCL::Image& img, const Json::Value& op);
-
     public:
 
         ImageCommand(const std::string &cmd_name);
@@ -59,6 +55,14 @@ namespace VDMS {
                                Json::Value& error) = 0;
 
         virtual bool need_blob(const Json::Value& cmd) { return false; }
+
+        // We use this function for enqueueing operations for an 'Image' object
+        // that is allocated outside of <*>Image operations
+        void enqueue_operations(VCL::Image& img, const Json::Value& op);
+
+        // Checks if 'format' parameter is specified, and if so, returns the
+        // corresponding VCL::Image::Format type.
+        VCL::Image::Format get_requested_format(const Json::Value& cmd);
     };
 
     class AddImage: public ImageCommand
@@ -66,6 +70,7 @@ namespace VDMS {
         std::string _storage_tdb;
         std::string _storage_png;
         std::string _storage_jpg;
+        std::string _storage_bin;
 
     public:
         AddImage();

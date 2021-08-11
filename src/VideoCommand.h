@@ -33,7 +33,7 @@
 #include <string>
 #include <mutex>
 #include <vector>
-#include "VCL.h"
+#include "vcl/Video.h"
 
 #include "RSCommand.h"
 #include "ExceptionsCommand.h"
@@ -48,6 +48,8 @@ namespace VDMS {
         void enqueue_operations(VCL::Video& video, const Json::Value& op);
 
         VCL::Video::Codec string_to_codec(const std::string& codec);
+
+        virtual Json::Value check_responses(Json::Value& responses);
 
     public:
 
@@ -77,7 +79,13 @@ namespace VDMS {
                                int grp_id,
                                Json::Value& error);
 
-        bool need_blob(const Json::Value& cmd) { return true; }
+        Json::Value construct_responses(
+                Json::Value &json_responses,
+                const Json::Value &json,
+                protobufs::queryMessage &response,
+                const std::string &blob);
+
+        bool need_blob(const Json::Value& cmd);
     };
 
     class UpdateVideo: public VideoCommand
@@ -114,6 +122,25 @@ namespace VDMS {
                 const Json::Value &json,
                 protobufs::queryMessage &response,
                 const std::string &blob);
+    };
+
+    class FindFrames: public VideoCommand
+    {
+        bool get_interval_index (const Json::Value& cmd, Json::ArrayIndex& op_index);
+    public:
+        FindFrames();
+
+        int construct_protobuf(PMGDQuery& tx,
+                               const Json::Value& root,
+                               const std::string& blob,
+                               int grp_id,
+                               Json::Value& error) override;
+
+        Json::Value construct_responses(
+                Json::Value &json_responses,
+                const Json::Value &json,
+                protobufs::queryMessage &response,
+                const std::string &blob) override;
     };
 
 }; // namespace VDMS

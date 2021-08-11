@@ -36,7 +36,7 @@
 #include <vector>
 #include <list>
 
-#include "protobuf/pmgdMessages.pb.h" // Protobuff implementation
+#include "pmgdMessages.pb.h" // Protobuff implementation
 #include "pmgd.h"
 
 namespace VDMS {

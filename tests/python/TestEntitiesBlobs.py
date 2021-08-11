@@ -24,25 +24,13 @@
 # THE SOFTWARE.
 #
 
-from threading import Thread
-import sys
-import os
-import urllib
-import time
-import json
-import unittest
-import numpy as np
-import vdms
+import TestCommand
 
-hostname = "localhost"
-port = 55557
-
-class TestEntitiesBlob(unittest.TestCase):
+class TestEntitiesBlob(TestCommand.TestCommand):
 
     def test_addEntityWithBlob(self, thID=0):
 
-        db = vdms.vdms()
-        db.connect(hostname, port)
+        db = self.create_connection()
 
         props = {}
         props["name"] = "Luis"
@@ -72,8 +60,7 @@ class TestEntitiesBlob(unittest.TestCase):
 
     def test_addEntityWithBlobNoBlob(self, thID=0):
 
-        db = vdms.vdms()
-        db.connect(hostname, port)
+        db = self.create_connection()
 
         props = {}
         props["name"] = "Luis"
@@ -100,8 +87,7 @@ class TestEntitiesBlob(unittest.TestCase):
 
     def test_addEntityWithBlobAndFind(self, thID=0):
 
-        db = vdms.vdms()
-        db.connect(hostname, port)
+        db = self.create_connection()
 
         props = {}
         props["name"] = "Tom"

@@ -154,7 +154,11 @@ namespace VDMS{
     {
 
     private:
-      void convert_properties(Json::Value& entities);
+      void convert_properties(Json::Value& entities, Json::Value& list);
+      void populate_blobs(const std::string& set_path,
+                          const Json::Value& results,
+                          Json::Value& entities,
+                          protobufs::queryMessage &query_res);
 
     public:
         FindDescriptor();

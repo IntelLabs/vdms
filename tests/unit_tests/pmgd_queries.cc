@@ -33,7 +33,7 @@
 #include <vector>
 
 #include "VDMSConfig.h"
-#include "protobuf/pmgdMessages.pb.h" // Protobuff implementation
+#include "pmgdMessages.pb.h" // Protobuff implementation
 #include "pmgd.h"
 #include "PMGDQueryHandler.h"
 
@@ -82,7 +82,7 @@ void add_patient(protobufs::Command &cmdadd, int id, string name, int age,
 
 TEST(PMGDQueryHandler, addTest)
 {
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 
@@ -216,7 +216,7 @@ void print_property(const string &key, const protobufs::Property &p)
 
 TEST(PMGDQueryHandler, queryTestList)
 {
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 
@@ -294,7 +294,7 @@ TEST(PMGDQueryHandler, queryTestList)
 
 TEST(PMGDQueryHandler, queryTestAverage)
 {
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 
@@ -347,7 +347,7 @@ TEST(PMGDQueryHandler, queryTestAverage)
 
 TEST(PMGDQueryHandler, queryTestUnique)
 {
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 
@@ -412,7 +412,7 @@ TEST(PMGDQueryHandler, queryTestUnique)
 
 TEST(PMGDQueryHandler, queryNeighborTestList)
 {
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 
@@ -509,7 +509,7 @@ TEST(PMGDQueryHandler, queryNeighborTestList)
 
 TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
 {
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 
@@ -615,7 +615,7 @@ TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
 
 TEST(PMGDQueryHandler, queryNeighborTestSum)
 {
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 
@@ -699,7 +699,7 @@ TEST(PMGDQueryHandler, queryNeighborTestSum)
 
 TEST(PMGDQueryHandler, addConstrainedTest)
 {
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 
@@ -794,7 +794,7 @@ TEST(PMGDQueryHandler, addConstrainedTest)
 
 TEST(PMGDQueryHandler, queryNeighborLinksTestList)
 {
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 
@@ -909,7 +909,7 @@ TEST(PMGDQueryHandler, queryNeighborLinksTestList)
 
 TEST(PMGDQueryHandler, queryNeighborLinksReuseTestList)
 {
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 
@@ -1039,7 +1039,7 @@ TEST(PMGDQueryHandler, queryNeighborLinksReuseTestList)
 
 TEST(PMGDQueryHandler, querySortedNeighborLinksReuseTestList)
 {
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 
@@ -1176,7 +1176,7 @@ TEST(PMGDQueryHandler, querySortedNeighborLinksReuseTestList)
 
 TEST(PMGDQueryHandler, queryTestListLimit)
 {
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 
@@ -1247,7 +1247,7 @@ TEST(PMGDQueryHandler, queryTestListLimit)
 
 TEST(PMGDQueryHandler, queryTestSortedLimitedAverage)
 {
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 
@@ -1306,7 +1306,7 @@ TEST(PMGDQueryHandler, queryUpdateTest)
 {
     //printf("Testing PMGD query protobuf handler for list return of neighbors with constraints\n");
 
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 
@@ -1419,7 +1419,7 @@ TEST(PMGDQueryHandler, queryUpdateConstraintTest)
 {
     //printf("Testing PMGD query protobuf handler for list return of neighbors with constraints\n");
 
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 
@@ -1494,7 +1494,7 @@ TEST(PMGDQueryHandler, queryUpdateConstraintTest)
 
 TEST(PMGDQueryHandler, queryEdgeTestList)
 {
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 
@@ -1571,7 +1571,7 @@ TEST(PMGDQueryHandler, queryEdgeTestList)
 TEST(PMGDQueryHandler, queryEdgeTestSortList)
 {
     // Way to test the reusable iterator
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 
@@ -1649,7 +1649,7 @@ TEST(PMGDQueryHandler, queryEdgeTestSortList)
 
 TEST(PMGDQueryHandler, queryNodeEdgeTestList)
 {
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 
@@ -1748,7 +1748,7 @@ TEST(PMGDQueryHandler, queryNodeEdgeTestList)
 
 TEST(PMGDQueryHandler, queryNodeEdgeDestTestList)
 {
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 
@@ -1874,7 +1874,7 @@ TEST(PMGDQueryHandler, queryNodeEdgeDestTestList)
 
 TEST(PMGDQueryHandler, queryUpdateEdge)
 {
-    VDMSConfig::init("config-pmgd-tests.json");
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
     PMGDQueryHandler::init();
     PMGDQueryHandler qh;
 

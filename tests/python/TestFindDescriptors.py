@@ -1,21 +1,37 @@
-from threading import Thread
-import sys
-import os
-import urllib
-import time
-import json
-import unittest
+#
+# The MIT License
+#
+# @copyright Copyright (c) 2017 Intel Corporation
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction,
+# including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+# ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+
+import TestCommand
 import numpy as np
-import vdms # Yeah, baby
 
-hostname = "localhost"
-port = 55557
+class TestFindDescriptors(TestCommand.TestCommand):
 
-class TestFindDescriptors(unittest.TestCase):
+    def create_set_and_insert(self, set_name, dims, total, labels=True):
 
-    def create_set_and_insert(self, set_name, dims, total):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+        db = self.create_connection()
 
         all_queries = []
 
@@ -47,7 +63,9 @@ class TestFindDescriptors(unittest.TestCase):
 
             descriptor = {}
             descriptor["set"] = set_name
-            descriptor["label"] = "class" + str(class_counter)
+
+            if labels:
+                descriptor["label"] = "class" + str(class_counter)
 
             props = {}
             props["myid"] = i + 200
@@ -69,11 +87,10 @@ class TestFindDescriptors(unittest.TestCase):
         # Add Set
         set_name = "features_128d_4_findbyConst"
         dims = 128
-        total = 100
+        total = 2
         self.create_set_and_insert(set_name, dims, total)
 
-        db = vdms.vdms()
-        db.connect(hostname, port)
+        db = self.create_connection()
 
         all_queries = []
 
@@ -102,17 +119,52 @@ class TestFindDescriptors(unittest.TestCase):
         self.assertEqual(response[0]["FindDescriptor"]
                                     ["entities"][0]["myid"], 205)
 
+    def test_findDescUnusedRef(self):
+
+        # Add Set
+        set_name = "features_128d_4_findunusedRef"
+        dims = 128
+        total = 2
+        self.create_set_and_insert(set_name, dims, total)
+
+        db = self.create_connection()
+
+        all_queries = []
+
+        finddescriptor = {}
+        finddescriptor["set"] = set_name
+
+        constraints = {}
+        constraints["myid"] = ["==", 205]
+        finddescriptor["constraints"] = constraints
+
+        results = {}
+        results["list"] = ["myid"]
+        finddescriptor["results"] = results
+
+        query = {}
+        query["FindDescriptor"] = finddescriptor
+
+        all_queries = []
+        all_queries.append(query)
+
+        response, blob_array = db.query(all_queries)
+
+        # Check success
+        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], 1)
+        self.assertEqual(response[0]["FindDescriptor"]
+                                    ["entities"][0]["myid"], 205)
 
     def test_findDescByConst_get_id(self):
 
         # Add Set
         set_name = "features_128d_4_findDescriptors_id"
         dims = 128
-        total = 100
+        total = 2
         self.create_set_and_insert(set_name, dims, total)
 
-        db = vdms.vdms()
-        db.connect(hostname, port)
+        db = self.create_connection()
 
         all_queries = []
 
@@ -141,16 +193,95 @@ class TestFindDescriptors(unittest.TestCase):
         self.assertEqual(response[0]["FindDescriptor"]
                                     ["entities"][0]["myid"], 205)
 
+    def test_findDescByConst_blobTrue(self):
+
+        # Add Set
+        set_name = "features_128d_4_findDescriptors_id_blob"
+        dims = 128
+        total = 2
+        self.create_set_and_insert(set_name, dims, total)
+
+        db = self.create_connection()
+
+        all_queries = []
+
+        finddescriptor = {}
+        finddescriptor["set"] = set_name
+
+        constraints = {}
+        constraints["myid"] = ["==", 205]
+        finddescriptor["constraints"] = constraints
+
+        results = {}
+        results["list"] = ["myid", "_label", "_id"]
+        results["blob"] = True
+        finddescriptor["results"] = results
+
+        query = {}
+        query["FindDescriptor"] = finddescriptor
+
+        all_queries = []
+        all_queries.append(query)
+
+        response, fv_array = db.query(all_queries)
+
+        # Check success
+        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], 1)
+        self.assertEqual(response[0]["FindDescriptor"]
+                                    ["entities"][0]["myid"], 205)
+        self.assertEqual(len(fv_array), 1)
+        self.assertEqual(len(fv_array[0]), dims*4)
+
+    def test_findDescByConst_multiple_blobTrue(self):
+
+        # Add Set
+        set_name = "features_128d_4_findDescriptors_m_blob"
+        dims = 128
+        total = 2
+        self.create_set_and_insert(set_name, dims, total)
+
+        db = self.create_connection()
+
+        all_queries = []
+
+        finddescriptor = {}
+        finddescriptor["set"] = set_name
+
+        constraints = {}
+        constraints["myid"] = ["<=", 205]
+        finddescriptor["constraints"] = constraints
+
+        results = {}
+        results["list"] = ["myid"]
+        results["blob"] = True
+        finddescriptor["results"] = results
+
+        query = {}
+        query["FindDescriptor"] = finddescriptor
+
+        all_queries = []
+        all_queries.append(query)
+
+        response, fv_array = db.query(all_queries)
+
+        # Check success
+        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], 6)
+        self.assertEqual(response[0]["FindDescriptor"]
+                                    ["entities"][5]["myid"], 200)
+        self.assertEqual(len(fv_array), 6)
+        self.assertEqual(len(fv_array[0]), dims*4)
+
     def test_findDescByBlob(self):
 
         # Add Set
         set_name = "findwith_blob"
         dims = 128
-        total = 100
+        total = 2
         self.create_set_and_insert(set_name, dims, total)
 
-        db = vdms.vdms()
-        db.connect(hostname, port)
+        db = self.create_connection()
 
         kn = 3
 
@@ -193,16 +324,59 @@ class TestFindDescriptors(unittest.TestCase):
         self.assertEqual(response[0]["FindDescriptor"]
                                     ["entities"][2]["_distance"], 400)
 
+    def test_findDescByBlobNoLabels(self):
+
+        # Add Set
+        set_name = "findwith_blob_no_labels"
+        dims = 128
+        total = 2
+        self.create_set_and_insert(set_name, dims, total, labels=False)
+
+        db = self.create_connection()
+
+        kn = 3
+
+        all_queries = []
+
+        finddescriptor = {}
+        finddescriptor["set"] = set_name
+        finddescriptor["_ref"] = 1
+
+        results = {}
+        results["blob"] = True
+        finddescriptor["results"] = results
+        finddescriptor["k_neighbors"] = kn
+
+        query = {}
+        query["FindDescriptor"] = finddescriptor
+
+        all_queries = []
+        all_queries.append(query)
+
+        descriptor_blob = []
+        x = np.ones(dims)
+        x[2] = 2.34 + 30*20
+        x = x.astype('float32')
+        descriptor_blob.append(x.tobytes())
+
+        response, blob_array = db.query(all_queries, [descriptor_blob])
+
+        self.assertEqual(len(blob_array), kn)
+        self.assertEqual(descriptor_blob[0], blob_array[0])
+
+        # Check success
+        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
+
     def test_findDescByBlobNoResults(self):
 
         # Add Set
         set_name = "findwith_blobNoResults"
         dims = 128
-        total = 100
+        total = 1
         self.create_set_and_insert(set_name, dims, total)
 
-        db = vdms.vdms()
-        db.connect(hostname, port)
+        db = self.create_connection()
 
         kn = 1
 
@@ -230,6 +404,48 @@ class TestFindDescriptors(unittest.TestCase):
 
         response, blob_array = db.query(all_queries, [descriptor_blob])
 
+        # Check success
+        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
+        self.assertEqual(len(blob_array), kn)
+        self.assertEqual(descriptor_blob[0], blob_array[0])
+
+    def test_findDescByBlobUnusedRef(self):
+
+        # Add Set
+        set_name = "findwith_blobUnusedRef"
+        dims = 50
+        total = 1
+        self.create_set_and_insert(set_name, dims, total)
+
+        db = self.create_connection()
+
+        kn = 3
+
+        all_queries = []
+
+        finddescriptor = {}
+        finddescriptor["set"] = set_name
+        finddescriptor["_ref"] = 1
+
+        results = {}
+        results["blob"] = True
+        finddescriptor["results"] = results
+        finddescriptor["k_neighbors"] = kn
+
+        query = {}
+        query["FindDescriptor"] = finddescriptor
+
+        all_queries = []
+        all_queries.append(query)
+
+        descriptor_blob = []
+        x = np.ones(dims)
+        x[2] = 2.34 + 30*20
+        x = x.astype('float32')
+        descriptor_blob.append(x.tobytes())
+
+        response, blob_array = db.query(all_queries, [descriptor_blob])
 
         # Check success
         self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
@@ -237,10 +453,12 @@ class TestFindDescriptors(unittest.TestCase):
         self.assertEqual(len(blob_array), kn)
         self.assertEqual(descriptor_blob[0], blob_array[0])
 
+    # This Test is not passing:
+    # It should do knn and filter by constraints.
     # def test_findDescByBlobAndConstraints(self):
 
     #     # Add Set
-    #     set_name = "findwith_blob"
+    #     set_name = "findwith_blob_const"
     #     dims = 128
     #     total = 100
     #     self.create_set_and_insert(set_name, dims, total)
@@ -299,10 +517,9 @@ class TestFindDescriptors(unittest.TestCase):
         # Add Set
         set_name = "findwith_blob_link"
         dims = 128
-        total = 100
+        total = 1
 
-        db = vdms.vdms()
-        db.connect(hostname, port)
+        db = self.create_connection()
 
         all_queries = []
 
@@ -414,6 +631,7 @@ class TestFindDescriptors(unittest.TestCase):
         all_queries.append(query)
 
         response, blob_array = db.query(all_queries, [descriptor_blob])
+
 
         self.assertEqual(len(blob_array), kn)
         # This checks that the received blobs is the same as the inserted.

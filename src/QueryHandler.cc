@@ -46,7 +46,7 @@
 #include "pmgd.h"
 #include "util.h"
 
-#include "api_schema/APISchema.h"
+#include "APISchema.h"
 #include <jsoncpp/json/writer.h>
 #include <valijson/adapters/jsoncpp_adapter.hpp>
 #include <valijson/utils/jsoncpp_utils.hpp>
@@ -85,6 +85,7 @@ void QueryHandler::init()
     _rs_cmds["AddVideo"]           = new AddVideo();
     _rs_cmds["UpdateVideo"]        = new UpdateVideo();
     _rs_cmds["FindVideo"]          = new FindVideo();
+    _rs_cmds["FindFrames"]         = new FindFrames();
 
     // Load the string containing the schema (api_schema/APISchema.h)
     Json::Reader reader;
@@ -193,6 +194,26 @@ bool QueryHandler::syntax_checker(const Json::Value& root, Json::Value& error)
         return false;
     }
 
+    for (auto& cmdTop : root) {
+        const std::string cmd_str = cmdTop.getMemberNames()[0];
+        auto& cmd = cmdTop[cmd_str];
+        if (cmd.isMember("constraints")) {
+            for (auto & member : cmd["constraints"].getMemberNames()) {
+                if (!cmd["constraints"][member].isArray()) {
+                    error["info"] = "Constraint for property '" +  member +
+                                    "' must be an array";
+                    return false;
+                }
+                auto size = cmd["constraints"][member].size();
+                if (size != 2 && size != 4) {
+                    error["info"] = "Constraint for property '" +  member +
+                                    "' must be an array of size 2 or 4";
+                    return false;
+                }
+            }
+        }
+    }
+
     return true;
 }
 
@@ -282,7 +303,9 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
         std::cerr << "End Failed Query: " << std::endl;
         exception_error["info"] = error_msg.str();
         exception_error["status"] = RSCommand::Error;
-        proto_res.set_json(fastWriter.write(exception_error));
+        Json::Value response;
+        response.append(exception_error);
+        proto_res.set_json(fastWriter.write(response));
     };
 
     try {
@@ -347,13 +370,20 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
 
         Json::Value& tx_responses = pmgd_query.run();
 
-        if (tx_responses.size() != root.size()) { // error
-            cmd_current = "Transaction";
-            cmd_result = tx_responses;
-            cmd_result["info"] = "Failed PMGDTransaction";
+        if (!tx_responses.isArray() || tx_responses.size() != root.size()) {
+            Json::StyledWriter writer;
+            std::cerr << "PMGD Response:" << std::endl;
+            std::cerr << writer.write(tx_responses) << std::endl;
+
+            std::string tx_error_msg("Failed PMGD Transaction");
+            if (!tx_responses.isArray() && tx_responses.isMember("info")) {
+                tx_error_msg += ": " + tx_responses["info"].asString();
+            }
+
             cmd_result["status"] = RSCommand::Error;
-            Json::StyledWriter w;
-            std::cerr << w.write(tx_responses);
+            cmd_result["info"] = tx_error_msg;
+
+            cmd_current = "Transaction";
             error(cmd_result, cmd_current);
             return;
         }

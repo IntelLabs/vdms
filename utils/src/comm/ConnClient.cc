@@ -40,6 +40,7 @@ using namespace comm;
 
 ConnClient::ConnClient()
 {
+  _server.port = 0;
     //create TCP/IP socket
     _socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 
