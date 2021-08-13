@@ -26,7 +26,7 @@ add_library(dms SHARED src/BoundingBoxCommand.cc src/CommunicationManager.cc src
 target_link_libraries(dms vcl custom_vcl pmgd pmgd-util protobuf vdms-utils)
 
 add_executable(vdms src/vdms.cc)
-target_link_libraries(vdms dms vdms_protobuf vcl tiledb faiss jsoncpp ${OpenCV_LIBS})
+target_link_libraries(vdms dms vdms_protobuf vcl custom_vcl tiledb faiss jsoncpp ${OpenCV_LIBS})
 
 #https://cmake.org/cmake/help/v3.9/module/FindProtobuf.html
 
