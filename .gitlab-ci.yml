@@ -7,7 +7,7 @@ variables:
 build:
   stage: build
   script:
-    - docker build --build-arg MAVEN_OPTS='-Dhttps.proxyHost="proxy-chain.intel.com" -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"' --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg https_proxy=$HTTPS_PROXY --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg http_proxy=$HTTP_PROXY --build-arg NO_PROXY=$NO_PROXY --build-arg no_proxy=$NO_PROXY -f docker/base/Dockerfile -t vdms:test .
+    - docker build --build-arg MAVEN_OPTS=$MAVEN_OPTS --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg https_proxy=$HTTPS_PROXY --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg http_proxy=$HTTP_PROXY --build-arg NO_PROXY=$NO_PROXY --build-arg no_proxy=$NO_PROXY -f docker/base/Dockerfile -t vdms:test .
     
 run tests:
   stage: test
