@@ -1,0 +1,20 @@
+image: docker:latest
+
+variables:
+  
+  DOCKER_API_VERSION: "1.39"
+
+build:
+  stage: build
+  script:
+    - docker build --build-arg MAVEN_OPTS='-Dhttps.proxyHost="proxy-chain.intel.com" -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"' --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg https_proxy=$HTTPS_PROXY --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg http_proxy=$HTTP_PROXY --build-arg NO_PROXY=$NO_PROXY --build-arg no_proxy=$NO_PROXY -f docker/base/Dockerfile -t vdms:test .
+    
+run tests:
+  stage: test
+  script:
+    - docker build --build-arg MAVEN_OPTS='-Dhttps.proxyHost="proxy-chain.intel.com" -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"' --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg https_proxy=$HTTPS_PROXY --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg http_proxy=$HTTP_PROXY --build-arg NO_PROXY=$NO_PROXY --build-arg no_proxy=$NO_PROXY -f docker/base/Dockerfile -t vdms:test .
+    - docker run --env HTTPS_PROXY=$HTTPS_PROXY --env https_proxy=$HTTPS_PROXY --env HTTP_PROXY=$HTTP_PROXY --env http_proxy=$HTTP_PROXY --env NO_PROXY=$NO_PROXY --env no_proxy=$NO_PROXY --dns 10.248.2.1 vdms:test bash -c "pip install coverage vdms && cd /vdms/tests/python && (../../build/vdms -cfg config-tests.json > screen.log 2> log.log &) && cd /vdms/tests/python && coverage run -m unittest discover --pattern=*.py -v && coverage report -m && coverage xml"
+  artifacts:
+    reports:
+      cobertura: coverage.xml
+
