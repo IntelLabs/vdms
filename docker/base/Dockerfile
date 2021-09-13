@@ -98,7 +98,7 @@ git checkout develop && git submodule update --init --recursive && \
 cd src/pmgd && git checkout develop && cd /vdms && mkdir build && \
 cd build && cmake .. && make -j16 && cd / rm -rf valijson && rm -rf faiss && \
 rm -rf grpc && rm -rf libpng  && rm -rf opencv && rm -rf swig && rm -rf CMake \
-&& rm -rf /build/
+&& rm -rf /build \
 && cp /vdms/config-vdms.json /vdms/build/
 
 RUN echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
