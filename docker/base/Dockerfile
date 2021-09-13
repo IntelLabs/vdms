@@ -80,7 +80,10 @@ RUN cd / && wget https://github.com/TileDB-Inc/TileDB/archive/1.3.1.tar.gz && \
 
 RUN apt-get install -y maven
 
-RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
+# RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
+COPY docker/build_vars /build
+RUN /build/entrypoint.sh && MAVEN_OPTS=$(cat tmp/testfile) && \
+    ln -s /grpc/third_party/protobuf/cmake/build/protoc \
     /grpc/third_party/protobuf/src/protoc && \
     cd /grpc/third_party/protobuf/java/core && mvn package && \
     echo "cp $(ls target/protobuf-java*.jar) /usr/share/java/protobuf.jar" > \
@@ -95,6 +98,7 @@ git checkout develop && git submodule update --init --recursive && \
 cd src/pmgd && git checkout develop && cd /vdms && mkdir build && \
 cd build && cmake .. && make -j16 && cd / rm -rf valijson && rm -rf faiss && \
 rm -rf grpc && rm -rf libpng  && rm -rf opencv && rm -rf swig && rm -rf CMake \
+&& rm -rf /build/
 && cp /vdms/config-vdms.json /vdms/build/
 
 RUN echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
