@@ -28,7 +28,7 @@ rm log.log screen.log
 rm -r test_db
 
 ../../build/vdms -cfg config-tests.json > screen.log 2> log.log &
-python --omit '*Descriptor*' -m unittest discover --pattern=Test*.py -v
+python -m unittest discover --pattern=Test*.py -v
 coverage report -m
 coverage xml
 
