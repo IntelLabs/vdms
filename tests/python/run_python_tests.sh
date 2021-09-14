@@ -32,7 +32,7 @@ rm -r test_db
 coverage run -m unittest discover --pattern=Test*.py -v
 coverage report -m
 coverage xml
-diff-cover coverage.xml --compare-branch origin/master
+diff-cover coverage.xml --compare-branch master
 
 
 sleep 1
