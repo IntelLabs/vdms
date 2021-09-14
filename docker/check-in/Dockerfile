@@ -83,10 +83,16 @@ RUN apt-get install -y maven
 
 # COPY docker/build_vars /build
 # RUN chmod +x /build/entrypoint.sh && ./build/entrypoint.sh && MAVEN_OPTS=$(cat tmp/testfile) && \
+# RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
+    # /grpc/third_party/protobuf/src/protoc && \
+    # cd /grpc/third_party/protobuf/java/core && \
+    # mvn package -Dhttps.proxyHost="proxy-chain.intel.com" -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1" && \
+    # cp $(ls target/protobuf-java*.jar) /usr/share/java/protobuf.jar
+
 RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
     /grpc/third_party/protobuf/src/protoc && \
     cd /grpc/third_party/protobuf/java/core && \
-    mvn package -Dhttps.proxyHost="proxy-chain.intel.com" -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1" && \
+    mvn package && \
     cp $(ls target/protobuf-java*.jar) /usr/share/java/protobuf.jar
 
 # Valijson
