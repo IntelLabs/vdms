@@ -81,14 +81,6 @@ RUN cd / && wget https://github.com/TileDB-Inc/TileDB/archive/1.3.1.tar.gz && \
 
 RUN apt-get install -y maven
 
-# COPY docker/build_vars /build
-# RUN chmod +x /build/entrypoint.sh && ./build/entrypoint.sh && MAVEN_OPTS=$(cat tmp/testfile) && \
-# RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
-    # /grpc/third_party/protobuf/src/protoc && \
-    # cd /grpc/third_party/protobuf/java/core && \
-    # mvn package -Dhttps.proxyHost="proxy-chain.intel.com" -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1" && \
-    # cp $(ls target/protobuf-java*.jar) /usr/share/java/protobuf.jar
-
 RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
     /grpc/third_party/protobuf/src/protoc && \
     cd /grpc/third_party/protobuf/java/core && \
@@ -98,15 +90,11 @@ RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
 # Valijson
 RUN cd /valijson && cp -r include/* /usr/local/include/
 
-# RUN git clone https://github.com/IntelLabs/vdms.git && cd vdms && \
-# git checkout develop && git submodule update --init --recursive && \
-# cd src/pmgd && git checkout develop && cd /vdms && mkdir build && \
 COPY . /vdms
 RUN cd /vdms && git reset --hard && git submodule update --init --recursive && mkdir build && \
 cd build && cmake .. && make -j16 && cd / rm -rf valijson && rm -rf faiss && \
 rm -rf grpc && rm -rf libpng  && rm -rf opencv && rm -rf swig && rm -rf CMake \
 && cp /vdms/config-vdms.json /vdms/build/
-# && rm -rf /build \
 
 RUN echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
 echo './vdms' >> /start.sh && chmod 755 /start.sh
