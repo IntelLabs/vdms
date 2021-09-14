@@ -16,8 +16,8 @@ build docker:
 coverage:
   stage: test
   before_script:
-    - export MAVEN_OPTS='-Dhttps.proxyHost="proxy-chain.intel.com" -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"'
-    - docker build $DOCKER_PROXY_BUILD_ARGS --build-arg MAVEN_OPTS=$MAVEN_OPTS -f docker/check-in/Dockerfile -t $CONTAINER_TEST_IMAGE .
+    # - export MAVEN_OPTS='-Dhttps.proxyHost="proxy-chain.intel.com" -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"'
+    - docker build $DOCKER_PROXY_BUILD_ARGS --build-arg MAVEN_OPTS='-Dhttps.proxyHost="proxy-chain.intel.com" -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"' -f docker/check-in/Dockerfile -t $CONTAINER_TEST_IMAGE .
   script:
     - docker run $DOCKER_PROXY_RUN_ARGS $CONTAINER_TEST_IMAGE bash -c "pip install coverage vdms diff_cover && cd /vdms/tests/python && chmod +x run_python_tests.sh && ./run_python_tests.sh"
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
