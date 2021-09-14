@@ -28,7 +28,6 @@ import TestCommand
 import numpy as np
 import unittest
 
-# @unittest.skip("Skipping class until fixed")
 class TestFindDescriptors(TestCommand.TestCommand):
 
     def create_set_and_insert(self, set_name, dims, total, labels=True):
