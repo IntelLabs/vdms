@@ -1,3 +1,7 @@
+[![pipeline status](https://gitlab.devtools.intel.com/cwlacewe/vdms/badges/develop/pipeline.svg)](https://gitlab.devtools.intel.com/cwlacewe/vdms/-/commits/develop)
+
+[![coverage report](https://gitlab.devtools.intel.com/cwlacewe/vdms/badges/develop/coverage.svg)](https://gitlab.devtools.intel.com/cwlacewe/vdms/-/commits/develop)
+
 # VDMS: Your Favourite Visual Data Management System
 
 VDMS is a storage solution for efficient access of big-”visual”-data that aims
