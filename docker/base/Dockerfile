@@ -4,6 +4,7 @@
 ARG UBUNTU_VERSION=20.04
 ARG UBUNTU_NAME=focal
 ARG BUILD_THREADS=-j16
+ARG MAVEN_OPTS='-Dhttps.nonProxyHosts="localhost|127.0.0.1"'
 
 #1
 FROM ubuntu:${UBUNTU_VERSION}
@@ -80,15 +81,13 @@ RUN cd / && wget https://github.com/TileDB-Inc/TileDB/archive/1.3.1.tar.gz && \
 
 RUN apt-get install -y maven
 
-# RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
-COPY docker/build_vars /build
-RUN chmod +x /build/entrypoint.sh && ./build/entrypoint.sh && MAVEN_OPTS=$(cat tmp/testfile) && \
-    ln -s /grpc/third_party/protobuf/cmake/build/protoc \
+# COPY docker/build_vars /build
+# RUN chmod +x /build/entrypoint.sh && ./build/entrypoint.sh && MAVEN_OPTS=$(cat tmp/testfile) && \
+RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
     /grpc/third_party/protobuf/src/protoc && \
-    cd /grpc/third_party/protobuf/java/core && mvn package && \
-    echo "cp $(ls target/protobuf-java*.jar) /usr/share/java/protobuf.jar" > \
-    tmp_script && bash tmp_script && \
-    cd / 
+    cd /grpc/third_party/protobuf/java/core && \
+    mvn package -Dhttps.proxyHost="proxy-chain.intel.com" -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1" && \
+    cp $(ls target/protobuf-java*.jar) /usr/share/java/protobuf.jar
 
 # Valijson
 RUN cd /valijson && cp -r include/* /usr/local/include/
@@ -98,8 +97,8 @@ git checkout develop && git submodule update --init --recursive && \
 cd src/pmgd && git checkout develop && cd /vdms && mkdir build && \
 cd build && cmake .. && make -j16 && cd / rm -rf valijson && rm -rf faiss && \
 rm -rf grpc && rm -rf libpng  && rm -rf opencv && rm -rf swig && rm -rf CMake \
-&& rm -rf /build \
 && cp /vdms/config-vdms.json /vdms/build/
+# && rm -rf /build \
 
 RUN echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
 echo './vdms' >> /start.sh && chmod 755 /start.sh
