@@ -1,6 +1,4 @@
-[![pipeline status](https://gitlab.devtools.intel.com/cwlacewe/vdms/badges/develop/pipeline.svg)](https://gitlab.devtools.intel.com/cwlacewe/vdms/-/commits/develop)
-
-[![coverage report](https://gitlab.devtools.intel.com/cwlacewe/vdms/badges/develop/coverage.svg)](https://gitlab.devtools.intel.com/cwlacewe/vdms/-/commits/develop)
+[![pipeline status](https://gitlab.devtools.intel.com/cwlacewe/vdms/badges/develop/pipeline.svg)](https://gitlab.devtools.intel.com/cwlacewe/vdms/-/commits/develop)  [![coverage report](https://gitlab.devtools.intel.com/cwlacewe/vdms/badges/develop/coverage.svg)](https://gitlab.devtools.intel.com/cwlacewe/vdms/-/commits/develop)
 
 # VDMS: Your Favourite Visual Data Management System
 
