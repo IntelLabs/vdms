@@ -6,7 +6,7 @@ variables:
   CONTAINER_TEST_IMAGE: "vdms:coverage"
   DOCKER_PROXY_BUILD_ARGS: "--build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg https_proxy=$HTTPS_PROXY --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg http_proxy=$HTTP_PROXY --build-arg NO_PROXY=$NO_PROXY --build-arg no_proxy=$NO_PROXY"
   DOCKER_PROXY_RUN_ARGS: "--env HTTPS_PROXY=$HTTPS_PROXY --env https_proxy=$HTTPS_PROXY --env HTTP_PROXY=$HTTP_PROXY --env http_proxy=$HTTP_PROXY --env NO_PROXY=$NO_PROXY --env no_proxy=$NO_PROXY --dns 10.248.2.1"
-  MAVEN_OPTS: "MAVEN_OPTS='-Dhttps.proxyHost=proxy-chain.intel.com -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts=127.0.0.1'"
+  # MAVEN_OPTS: "MAVEN_OPTS=-Dhttps.proxyHost="proxy-chain.intel.com" -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"
 
 build docker:
   stage: build
@@ -16,7 +16,8 @@ build docker:
 coverage:
   stage: test
   before_script:
-    - docker build $DOCKER_PROXY_BUILD_ARGS --build-arg $MAVEN_OPTS -f docker/check-in/Dockerfile -t $CONTAINER_TEST_IMAGE .
+    - export MAVEN_OPTS='-Dhttps.proxyHost="proxy-chain.intel.com" -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"'
+    - docker build $DOCKER_PROXY_BUILD_ARGS --build-arg MAVEN_OPTS=$MAVEN_OPTS -f docker/check-in/Dockerfile -t $CONTAINER_TEST_IMAGE .
   script:
     - docker run $DOCKER_PROXY_RUN_ARGS $CONTAINER_TEST_IMAGE bash -c "pip install coverage vdms diff_cover && cd /vdms/tests/python && chmod +x run_python_tests.sh && ./run_python_tests.sh"
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
