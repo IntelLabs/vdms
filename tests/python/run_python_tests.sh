@@ -29,7 +29,7 @@ rm -r test_db
 
 ../../build/vdms -cfg config-tests.json > screen.log 2> log.log &
 # python -m unittest discover --pattern=*.py -v
-coverage run -s `pwd` --omit /usr/* -m unittest discover --pattern=Test*.py -v
+coverage run --omit /usr/* -m unittest discover -s `pwd` --pattern=Test*.py -v
 coverage report -m
 coverage xml
 # diff-cover coverage.xml --compare-branch master
