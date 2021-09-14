@@ -30,9 +30,9 @@ rm -r test_db
 ../../build/vdms -cfg config-tests.json > screen.log 2> log.log &
 # python -m unittest discover --pattern=*.py -v
 coverage run -m unittest discover --pattern=Test*.py -v
-coverage report -m --omit /usr/*
+coverage report -m
 coverage xml
-diff-cover coverage.xml --compare-branch origin/master
+# diff-cover coverage.xml --compare-branch origin/master
 
 
 sleep 1
