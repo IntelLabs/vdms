@@ -82,7 +82,7 @@ RUN apt-get install -y maven
 
 # RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
 COPY docker/build_vars /build
-RUN /build/entrypoint.sh && MAVEN_OPTS=$(cat tmp/testfile) && \
+RUN chmod +x /build/entrypoint.sh && ./build/entrypoint.sh && MAVEN_OPTS=$(cat tmp/testfile) && \
     ln -s /grpc/third_party/protobuf/cmake/build/protoc \
     /grpc/third_party/protobuf/src/protoc && \
     cd /grpc/third_party/protobuf/java/core && mvn package && \
