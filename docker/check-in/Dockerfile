@@ -96,7 +96,7 @@ RUN cd /valijson && cp -r include/* /usr/local/include/
 # git checkout develop && git submodule update --init --recursive && \
 # cd src/pmgd && git checkout develop && cd /vdms && mkdir build && \
 COPY . /vdms
-RUN cd /vdms && git reset --hard && mkdir build && \
+RUN cd /vdms && git reset --hard && git submodule update --init --recursive && mkdir build && \
 cd build && cmake .. && make -j16 && cd / rm -rf valijson && rm -rf faiss && \
 rm -rf grpc && rm -rf libpng  && rm -rf opencv && rm -rf swig && rm -rf CMake \
 && cp /vdms/config-vdms.json /vdms/build/
