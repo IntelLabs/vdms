@@ -13,7 +13,7 @@ run tests:
   stage: test
   script:
     - docker build --build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg https_proxy=$HTTPS_PROXY --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg http_proxy=$HTTP_PROXY --build-arg NO_PROXY=$NO_PROXY --build-arg no_proxy=$NO_PROXY -f docker/check-in/Dockerfile -t vdms:test .
-    - docker run --env HTTPS_PROXY=$HTTPS_PROXY --env https_proxy=$HTTPS_PROXY --env HTTP_PROXY=$HTTP_PROXY --env http_proxy=$HTTP_PROXY --env NO_PROXY=$NO_PROXY --env no_proxy=$NO_PROXY --dns 10.248.2.1 -v `pwd`:/vdms vdms:test bash -c "pip install coverage vdms diff_cover && cd /vdms/tests/python && ./run_python_tests.sh"
+    - docker run --env HTTPS_PROXY=$HTTPS_PROXY --env https_proxy=$HTTPS_PROXY --env HTTP_PROXY=$HTTP_PROXY --env http_proxy=$HTTP_PROXY --env NO_PROXY=$NO_PROXY --env no_proxy=$NO_PROXY --dns 10.248.2.1 vdms:test bash -c "pip install coverage vdms diff_cover && cd /vdms/tests/python && ./run_python_tests.sh"
   artifacts:
     reports:
       cobertura: coverage.xml
