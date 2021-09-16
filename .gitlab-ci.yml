@@ -4,6 +4,7 @@ variables:
   DOCKER_API_VERSION: "1.39"
   CONTAINER_BASE_IMAGE: "vdms:base"
   CONTAINER_TEST_IMAGE: "vdms:coverage"
+  CONTAINER_TAG_NAME: "coveragetest"
   DOCKER_PROXY_BUILD_ARGS: "--build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg https_proxy=$HTTPS_PROXY --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg http_proxy=$HTTP_PROXY --build-arg NO_PROXY=$NO_PROXY --build-arg no_proxy=$NO_PROXY"
   DOCKER_PROXY_RUN_ARGS: "--env HTTPS_PROXY=$HTTPS_PROXY --env https_proxy=$HTTPS_PROXY --env HTTP_PROXY=$HTTP_PROXY --env http_proxy=$HTTP_PROXY --env NO_PROXY=$NO_PROXY --env no_proxy=$NO_PROXY --dns 10.248.2.1"
 
@@ -13,28 +14,26 @@ Build Base Docker:
     - docker build $DOCKER_PROXY_BUILD_ARGS --build-arg MAVEN_OPTS='-Dhttps.proxyHost=proxy-chain.intel.com -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"' -f docker/base/Dockerfile -t $CONTAINER_BASE_IMAGE .
 
 
-before_script:
-- docker build $DOCKER_PROXY_BUILD_ARGS --build-arg MAVEN_OPTS='-Dhttps.proxyHost=proxy-chain.intel.com -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"' -f docker/check-in/Dockerfile -t $CONTAINER_TEST_IMAGE .
-
 Python Coverage:
   stage: test
-  # before_script:
-    # - docker build $DOCKER_PROXY_BUILD_ARGS --build-arg MAVEN_OPTS='-Dhttps.proxyHost=proxy-chain.intel.com -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"' -f docker/check-in/Dockerfile -t $CONTAINER_TEST_IMAGE .
+  before_script:
+    - docker build $DOCKER_PROXY_BUILD_ARGS --build-arg MAVEN_OPTS='-Dhttps.proxyHost=proxy-chain.intel.com -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"' -f docker/check-in/Dockerfile -t $CONTAINER_TEST_IMAGE .
   script:
     - docker run $DOCKER_PROXY_RUN_ARGS $CONTAINER_TEST_IMAGE bash -c "cd /vdms/tests/python && chmod +x run_python_tests.sh && ./run_python_tests.sh"
+    - docker cp $CONTAINER_TAG_NAME:/vdms/tests/python/coverage.xml $CI_PROJECT_DIR/reports/
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
   artifacts:
     reports:
-      cobertura: coverage.xml
+      cobertura: reports/coverage.xml
 
-C++ coverage:
+CPP Coverage:
   stage: test
-  # before_script:
-    # - docker build $DOCKER_PROXY_BUILD_ARGS --build-arg MAVEN_OPTS='-Dhttps.proxyHost=proxy-chain.intel.com -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"' -f docker/check-in/Dockerfile -t $CONTAINER_TEST_IMAGE .
+  before_script:
+    - docker build $DOCKER_PROXY_BUILD_ARGS --build-arg MAVEN_OPTS='-Dhttps.proxyHost=proxy-chain.intel.com -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"' -f docker/check-in/Dockerfile -t $CONTAINER_TEST_IMAGE .
   script:
-    # - docker run $DOCKER_PROXY_RUN_ARGS $CONTAINER_TEST_IMAGE bash -c "cd /vdms/tests && chmod +x run_tests.sh && ./run_tests.sh && cd /vdms/build/tests/CMakeFiles/unit_test.dir && lcov -d . -c -o coverage.info && lcov -r coverage.info */build/* */tests/* */c++/* -o coverageFiltered.info && lcov --list coverageFiltered.info"
-    - docker run $DOCKER_PROXY_RUN_ARGS $CONTAINER_TEST_IMAGE bash -c "cd /vdms/tests && chmod +x run_tests.sh && ./run_tests.sh"
+    - docker run  --name $CONTAINER_TAG_NAME $DOCKER_PROXY_RUN_ARGS $CONTAINER_TEST_IMAGE bash -c "cd /vdms/tests && chmod +x run_tests.sh && ./run_tests.sh"
+    - docker cp $CONTAINER_TAG_NAME:/vdms/tests/c_coverage_report.xml $CI_PROJECT_DIR/reports/
   coverage: '/^\s*lines:\s*\d+.\d+\%/'
   artifacts:
     reports:
-      cobertura: c_coverage_report.xml
+      cobertura: reports/c_coverage_report.xml
