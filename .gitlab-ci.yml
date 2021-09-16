@@ -20,11 +20,12 @@ Python Coverage:
     - docker build $DOCKER_PROXY_BUILD_ARGS --build-arg MAVEN_OPTS='-Dhttps.proxyHost=proxy-chain.intel.com -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"' -f docker/check-in/Dockerfile -t $CONTAINER_TEST_IMAGE .
     - mkdir -p $CI_PROJECT_PATH/reports
   script:
-    - docker run -v $CI_PROJECT_PATH/reports:/reports $DOCKER_PROXY_RUN_ARGS $CONTAINER_TEST_IMAGE bash -c "cd /vdms/tests/python && chmod +x run_python_tests.sh && ./run_python_tests.sh && mv /vdms/tests/python/coverage.xml /reports/"
+    - docker run -v $CI_PROJECT_PATH/reports:/reports $DOCKER_PROXY_RUN_ARGS $CONTAINER_TEST_IMAGE bash -c "cd /vdms/tests/python && chmod +x run_python_tests.sh && ./run_python_tests.sh && mv /vdms/tests/python/coverage.xml /reports/coverage.xml"
+    - ls -al $CI_PROJECT_PATH/reports
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
   artifacts:
     reports:
-      cobertura: $CI_PROJECT_PATH/reports/coverage.xml
+      cobertura: reports/coverage.xml
 
 CPP Coverage:
   stage: test
