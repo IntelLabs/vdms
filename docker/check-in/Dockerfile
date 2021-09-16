@@ -26,8 +26,8 @@ libsnappy-dev libhdf5-serial-dev libatlas-base-dev libboost-all-dev \
 libgflags-dev libgoogle-glog-dev liblmdb-dev libjpeg8-dev libtiff5-dev \
 libjasper-dev libgtk-3-dev libopenmpi-dev libgtest-dev ed libgtk2.0-dev \
 pkg-config libavcodec-dev libavformat-dev libswscale-dev libtbb2 libtbb-dev \
-libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev libopenblas-dev maven && \
-pip3 install numpy
+libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev libopenblas-dev maven lcov && \
+pip3 install numpy coverage vdms gcovr
 
 #Pull Dependencies
 RUN git clone https://github.com/grpc/grpc.git && git clone \
@@ -37,13 +37,13 @@ https://github.com/opencv/opencv.git && git clone \
 https://github.com/tristanpenman/valijson.git && git clone \
 https://github.com/Kitware/CMake.git && git clone \
 https://github.com/facebookresearch/faiss.git && curl \
-http://zlib.net/zlib-1.2.11.tar.gz -o zlib-1.2.11.tar.gz && curl \ 
+http://zlib.net/zlib-1.2.11.tar.gz -o zlib-1.2.11.tar.gz && curl \
 https://downloads.apache.org/commons/codec/binaries/commons-codec-1.15-bin.tar.gz \
 -o /commons-codec-1.15-bin.tar.gz && curl \
 https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/json-simple/json-simple-1.1.1.jar \
 -o /usr/share/java/json-simple-1.1.1.jar
 
-RUN cd /CMake && ./bootstrap && make -j16 && make install && cd / && cd swig && \ 
+RUN cd /CMake && ./bootstrap && make -j16 && make install && cd / && cd swig && \
 ./autogen.sh && ./configure && make -j16 && make install && cd /faiss && mkdir build && \
 cd build && cmake -DFAISS_ENABLE_GPU=OFF .. && make -j16 && make -j16 && \
 make install && cd /grpc && git submodule update --init --recursive && \
@@ -91,10 +91,10 @@ RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
 RUN cd /valijson && cp -r include/* /usr/local/include/
 
 COPY . /vdms
-RUN cd /vdms && git reset --hard && git submodule update --init --recursive && mkdir build && \
-cd build && cmake .. && make -j16 && cd / rm -rf valijson && rm -rf faiss && \
-rm -rf grpc && rm -rf libpng  && rm -rf opencv && rm -rf swig && rm -rf CMake \
-&& cp /vdms/config-vdms.json /vdms/build/
+RUN cd /vdms && git submodule update --init --recursive && mkdir build && \
+cd build && cmake .. && make -j16 && cd / && rm -rf valijson && rm -rf faiss && \
+rm -rf grpc && rm -rf libpng  && rm -rf opencv && rm -rf swig && rm -rf CMake && \
+cp /vdms/config-vdms.json /vdms/build/
 
 RUN echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
 echo './vdms' >> /start.sh && chmod 755 /start.sh
