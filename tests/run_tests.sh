@@ -22,8 +22,8 @@ gcovr -k --root /vdms \
     -f /vdms/src \
     -f /vdms/include \
     -e /vdms/src/pmgd \
-    --exclude-unreachable-branches \
-    -o c_coverage_report.xml
+    --exclude-unreachable-branches --txt \
+    --xml-pretty --xml=c_coverage_report.xml
 
 # echo 'Running Python tests...'
 # cd python
