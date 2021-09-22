@@ -16,7 +16,7 @@ Build Base Docker:
     - docker build $DOCKER_PROXY_BUILD_ARGS --build-arg MAVEN_OPTS='-Dhttps.proxyHost=proxy-chain.intel.com -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"' -f docker/base/Dockerfile -t $CONTAINER_BASE_IMAGE .
 
 
-# COVERAGE TESTS
+# COVERAGE TEST
 CPP Coverage:
   stage: test
   before_script:
@@ -33,21 +33,3 @@ CPP Coverage:
     name: ${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHA}
     reports:
       cobertura: c_coverage_report.xml
-
-
-Python Coverage:
-  stage: test
-  before_script:
-    - docker rm -f $CONTAINER_TAG_NAME_PYTHON
-    - docker build $DOCKER_PROXY_BUILD_ARGS --build-arg MAVEN_OPTS='-Dhttps.proxyHost=proxy-chain.intel.com -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"' -f docker/check-in/Dockerfile -t $CONTAINER_TEST_IMAGE .
-    - mkdir -p `pwd`/reports
-  script:
-    - docker run --name $CONTAINER_TAG_NAME_PYTHON $DOCKER_PROXY_RUN_ARGS $CONTAINER_TEST_IMAGE bash -c "cd /vdms/tests/python && chmod +x run_python_tests.sh && ./run_python_tests.sh"
-    - docker cp $CONTAINER_TAG_NAME_PYTHON:/vdms/tests/python/coverage.xml python_coverage_report.xml
-  after_script:
-    - docker rm -f $CONTAINER_TAG_NAME_PYTHON
-  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
-  artifacts:
-    name: ${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHA}
-    reports:
-      cobertura: python_coverage_report.xml
