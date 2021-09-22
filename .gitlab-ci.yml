@@ -25,13 +25,14 @@ CPP Coverage:
     - mkdir -p `pwd`/reports
   script:
     - docker run --name $CONTAINER_TAG_NAME_CPP $DOCKER_PROXY_RUN_ARGS $CONTAINER_TEST_IMAGE bash -c "cd /vdms/tests && chmod +x run_tests.sh && ./run_tests.sh"
-    - docker cp $CONTAINER_TAG_NAME_CPP:/vdms/tests/c_coverage_report.xml reports/c_coverage_report.xml
+    - docker cp $CONTAINER_TAG_NAME_CPP:/vdms/tests/c_coverage_report.xml c_coverage_report.xml
   after_script:
     - docker rm -f $CONTAINER_TAG_NAME_CPP
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
   artifacts:
+    name: ${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHA}
     reports:
-      cobertura: reports/c_coverage_report.xml
+      cobertura: c_coverage_report.xml
 
 
 Python Coverage:
@@ -42,10 +43,11 @@ Python Coverage:
     - mkdir -p `pwd`/reports
   script:
     - docker run --name $CONTAINER_TAG_NAME_PYTHON $DOCKER_PROXY_RUN_ARGS $CONTAINER_TEST_IMAGE bash -c "cd /vdms/tests/python && chmod +x run_python_tests.sh && ./run_python_tests.sh"
-    - docker cp $CONTAINER_TAG_NAME_PYTHON:/vdms/tests/python/coverage.xml reports/python_coverage_report.xml
+    - docker cp $CONTAINER_TAG_NAME_PYTHON:/vdms/tests/python/coverage.xml python_coverage_report.xml
   after_script:
     - docker rm -f $CONTAINER_TAG_NAME_PYTHON
   coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
   artifacts:
+    name: ${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHA}
     reports:
-      cobertura: reports/python_coverage_report.xml
+      cobertura: python_coverage_report.xml
