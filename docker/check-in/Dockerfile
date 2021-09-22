@@ -57,7 +57,6 @@ RUN cd /CMake && ./bootstrap && make ${BUILD_THREADS} && make install && \
     cd / && rm -rf zlib-1.2.11.tar zlib-1.2.11 && \
     cd /libpng && ./configure && make -j4 && make install
 
-
 # Google Test
 RUN cd /usr/src/gtest && cmake . && make ${BUILD_THREADS} && mv lib/libgtest* /usr/lib/ && \
     cd /opencv && mkdir build && cd build && cmake -D BUILD_PERF_TESTS=OFF -D BUILD_TESTS=OFF .. && make ${BUILD_THREADS} && make install
@@ -72,13 +71,13 @@ RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc /grpc/third_party/protob
     cd /grpc/third_party/protobuf/java/core && mvn package && \
     cp $(ls target/protobuf-java*.jar) /usr/share/java/protobuf.jar
 
-
 # Valijson
 RUN cd /valijson && cp -r include/* /usr/local/include/
 
 COPY . /vdms
-RUN cd /vdms && git submodule update --init --recursive && mkdir build && cd build && cmake .. && make ${BUILD_THREADS} && \
-    cd / && rm -rf valijson && rm -rf faiss && rm -rf grpc && rm -rf libpng  && rm -rf opencv && rm -rf swig && rm -rf CMake && \
+RUN cd /vdms && git submodule update --init --recursive && mkdir build && \
+    cd build && cmake -DCODE_COVERAGE=ON .. && make ${BUILD_THREADS} && cd / && rm -rf valijson && rm -rf faiss && \
+    rm -rf grpc && rm -rf libpng  && rm -rf opencv && rm -rf swig && rm -rf CMake && \
     cp /vdms/config-vdms.json /vdms/build/
 
 RUN echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
