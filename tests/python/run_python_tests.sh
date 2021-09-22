@@ -28,10 +28,10 @@ rm log.log screen.log
 rm -r test_db
 
 ./../../build/vdms -cfg config-tests.json > screen.log 2> log.log &
-# python3 -m unittest discover --pattern=Test*.py -v
-coverage run -m unittest discover --pattern=Test*.py -v
-coverage report -m
-coverage xml
+python3 -m unittest discover --pattern=Test*.py -v
+# coverage run -m unittest discover --pattern=Test*.py -v
+# coverage report -m
+# coverage xml
 
 
 sleep 1
