@@ -45,6 +45,7 @@ namespace VDMS {
     */
     class PMGDQuery
     {
+        int _expiration_limit;
         std::vector<PMGDCmd* > _cmds;
         unsigned _current_group_id;
         PMGDQueryHandler& _pmgd_qh;

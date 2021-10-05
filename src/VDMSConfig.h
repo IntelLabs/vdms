@@ -52,6 +52,9 @@
 #define PARAM_DB_DESCRIPTORS    "descriptors_path"
 #define PARAM_DB_TMP            "tmp_path"
 
+#define PARAM_NODE_EXPIRATION   "expiration_time"
+#define DEFAULT_NODE_EXPIRATION 0
+
 // Parameters used to determine depth and breadth of directory structure
 //take parameters from command line if they are supplied
 #ifndef DIRECTORIES_PER_LAYER
