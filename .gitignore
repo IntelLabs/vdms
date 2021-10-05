@@ -1,3 +1,7 @@
 build/
 db/
+*.gcov
+
+# VS Code Specific
+.devcontainer
 .vscode

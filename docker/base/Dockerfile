@@ -4,6 +4,7 @@
 ARG UBUNTU_VERSION=20.04
 ARG UBUNTU_NAME=focal
 ARG BUILD_THREADS=-j16
+ARG MAVEN_OPTS='-Dhttps.nonProxyHosts="localhost|127.0.0.1"'
 
 #1
 FROM ubuntu:${UBUNTU_VERSION}
@@ -82,12 +83,14 @@ RUN apt-get install -y maven
 
 RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
     /grpc/third_party/protobuf/src/protoc && \
-    cd /grpc/third_party/protobuf/java/core && mvn package && \
-    echo "cp $(ls target/protobuf-java*.jar) /usr/share/java/protobuf.jar" > \
-    tmp_script && bash tmp_script && \
-    cd / 
+    cd /grpc/third_party/protobuf/java/core && \
+    mvn package && \
+    cp $(ls target/protobuf-java*.jar) /usr/share/java/protobuf.jar
 
-RUN git clone https://github.com/omp87/vdms.git && cd vdms && \
+# Valijson
+RUN cd /valijson && cp -r include/* /usr/local/include/
+
+RUN git clone https://github.com/IntelLabs/vdms.git && cd vdms && \
 git checkout develop && git submodule update --init --recursive && \
 cd src/pmgd && git checkout develop && cd /vdms && mkdir build && \
 cd build && cmake .. && make -j16 && cd / rm -rf valijson && rm -rf faiss && \
