@@ -74,7 +74,7 @@ std::string DescriptorsCommand::get_set_path(PMGDQuery &query_tx,
 
     // Query set node
     query.add_group();
-    query.QueryNode(-1, VDMS_DESC_SET_TAG, link, constraints, results, unique);
+    query.QueryNode(-1, VDMS_DESC_SET_TAG, link, constraints, results, unique, true);
 
     Json::Value& query_responses = query.run();
 
@@ -574,7 +574,7 @@ int FindDescriptor::construct_protobuf(
         query.QueryNode(
             ref_set,
             VDMS_DESC_SET_TAG,
-            link_set, constraints_set, results_set, unique);
+            link_set, constraints_set, results_set, unique, true);
 
         Json::Value link_to_set;
         link_to_set["ref"] = ref_set;
@@ -584,7 +584,7 @@ int FindDescriptor::construct_protobuf(
         query.QueryNode(
             get_value<int>(cmd, "_ref", -1),
             VDMS_DESC_TAG,
-            link_to_set, constraints, results, false);
+            link_to_set, constraints, results, false, false);
     }
     // Case (3), Just want the descriptor by value, we only need the set
     else {

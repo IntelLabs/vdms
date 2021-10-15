@@ -1,7 +1,6 @@
 image: docker:latest
 
 variables:
-  DOCKER_API_VERSION: "1.39"
   CONTAINER_BASE_IMAGE: "vdms:base"
   CONTAINER_TEST_IMAGE: "vdms:coverage"
   CONTAINER_TAG_NAME_PYTHON: "coverage_py"
