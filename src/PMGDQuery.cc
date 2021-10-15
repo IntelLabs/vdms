@@ -50,7 +50,7 @@ using namespace VDMS;
 
 PMGDQuery::PMGDQuery(PMGDQueryHandler& pmgd_qh) :
     _pmgd_qh(pmgd_qh), _current_ref(REFERENCE_RANGE_START),
-    _readonly(true)
+    _readonly(true),_resultdeletion(false)
 {
     _current_group_id = 0;
     //this command to start a new transaction
@@ -84,7 +84,7 @@ Json::Value& PMGDQuery::run()
 
     // execute the queries using the PMGDQueryHandler object
     std::vector<std::vector<PMGDCmdResponse* >> _pmgd_responses;
-    _pmgd_responses = _pmgd_qh.process_queries(_cmds, _current_group_id + 1, _readonly);
+    _pmgd_responses = _pmgd_qh.process_queries(_cmds, _current_group_id + 1, _readonly, _resultdeletion);
 
     if (_pmgd_responses.size() != _current_group_id + 1) {
         if (_pmgd_responses.size() == 1 && _pmgd_responses[0].size() == 1) {
@@ -733,7 +733,8 @@ void PMGDQuery::QueryNode(int ref,
                           const Json::Value& link,
                           const Json::Value& constraints,
                           const Json::Value& results,
-                          bool unique)
+                          bool unique,
+                          bool intermediate_query)
 {
     PMGDCmd* cmdquery = new PMGDCmd();
     cmdquery->set_cmd_id(PMGDCmd::QueryNode);
@@ -752,14 +753,14 @@ void PMGDQuery::QueryNode(int ref,
 
     // TODO: We always assume AND, we need to change that
     qc->set_p_op(PMGD::protobufs::And);
-
+    _resultdeletion = false;
     if (!constraints.isNull())
     {
 
         bool force_purge = parse_query_constraints(constraints, qc, true);
-        if(force_purge)
+        if(force_purge && !intermediate_query)
         {
-            _readonly = false;
+            _resultdeletion = true;
         }
     }
 

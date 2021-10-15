@@ -51,6 +51,7 @@ namespace VDMS {
         PMGDQueryHandler& _pmgd_qh;
         unsigned _current_ref;
         bool _readonly;    // Stays true unless some write cmd sets it to false.
+        bool _resultdeletion;
 
         Json::Value _json_responses;
 
@@ -118,7 +119,8 @@ namespace VDMS {
                     const Json::Value& link,
                     const Json::Value& constraints,
                     const Json::Value& results,
-                    bool unique = false);
+                    bool unique = false,
+                    bool intermediate_query = false);
 
         void QueryEdge(int ref, int src_ref, int dest_ref,
                     const std::string& tag,

@@ -34,6 +34,7 @@
 #include "PMGDQueryHandler.h"
 #include "util.h"   // PMGD util
 #include "PMGDIterators.h"
+#include "defines.h"
 
 // TODO In the complete version of VDMS, this file will live
 // within PMGD which would replace the PMGD namespace. Some of
@@ -51,7 +52,7 @@ void PMGDQueryHandler::init()
 
     PMGD::Graph::Config config;
     config.num_allocators = nalloc;
-
+    
     // TODO: Include allocators timeouts params as parameters for VDMS.
     // These parameters can be loaded everytime VDMS is run.
     // We need PMGD to support these as config params before we can do it here.
@@ -70,7 +71,7 @@ void PMGDQueryHandler::destroy()
 
 std::vector<PMGDCmdResponses>
               PMGDQueryHandler::process_queries(const PMGDCmds &cmds,
-              int num_groups, bool readonly)
+              int num_groups, bool readonly, bool resultdeletion)
 {
     std::vector<PMGDCmdResponses> responses(num_groups);
 
@@ -78,6 +79,11 @@ std::vector<PMGDCmdResponses>
 
     // Assuming one query handler handles one TX at a time.
     _readonly = readonly;
+    _resultdeletion = resultdeletion;
+    if(_resultdeletion)
+    {
+        _readonly = false; // change flag so database can be written
+    }
 
     for (const auto cmd : cmds) {
         PMGDCmdResponse *response = new PMGDCmdResponse();
@@ -765,7 +771,7 @@ void PMGDQueryHandler::build_results(Iterator &ni,
                 }
                 construct_protobuf_property(j_p, p_p);
             }
-            if(! _readonly)
+            if(_resultdeletion && !(ni->get_tag() ==VDMS_DESC_SET_TAG) ) // DescriptorSets should be ignored - they are returned with Descriptors
             {
                 _db->remove(*ni);
             }
