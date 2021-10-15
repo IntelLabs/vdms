@@ -73,6 +73,8 @@ namespace VDMS {
 
         PMGD::Transaction *_tx;
         bool _readonly;  // Variable changes per TX based on process_queries parameter.
+        bool _resultdeletion; //Variable that indicates whether results of query should be 
+        // deleted after result is complete
 
         // Map an integer ID to a NodeIterator (reset at the end of each transaction).
         // This works for Adds and Queries. We assume that the client or
@@ -140,7 +142,7 @@ namespace VDMS {
         // Ensure that the cmd_grp_id, that is the query number are in increasing
         // order and account for the TxBegin and TxEnd in numbering.
         std::vector<PMGDCmdResponses> process_queries(const PMGDCmds &cmds,
-                                                      int num_groups, bool readonly);
+                                                      int num_groups, bool readonly, bool resultdeletion=false);
     };
 
 }; // end VDMS namespace
