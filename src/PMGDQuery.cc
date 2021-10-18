@@ -348,6 +348,7 @@ bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
     bool deletion_query_match = false;
     bool final_purge_query = false;
     for (auto it = constraints.begin(); it != constraints.end(); ++it) {
+        bool expiration_iteration = false;
         const Json::Value& predicate = *it;
         const std::string& key = it.key().asString();
 
@@ -360,6 +361,7 @@ bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
             if(key.compare("_expiration") == 0)  //TODO: Or in configuration
             {
                 expiration_query_match = true;
+                expiration_iteration = true;
             }
 
             // Will either have 2 or 4 arguments as verified when parsing
@@ -450,7 +452,7 @@ bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
                 }
 
                 //ddm if query still matches - check to ensure that ti,e is in the past
-                if(expiration_query_match)
+                if(expiration_query_match && expiration_iteration)
                 {
                     std::cout << predicate[1] << " " << std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count() << std::endl;
                     if(predicate[1].asUInt64() >= 1+ std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count())
