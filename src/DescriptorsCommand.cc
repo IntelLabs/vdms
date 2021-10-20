@@ -648,8 +648,9 @@ int FindDescriptor::construct_protobuf(
             }
 
             Json::Value node_constraints = constraints;
-            node_constraints[VDMS_DESC_ID_PROP].append("==");
-            node_constraints[VDMS_DESC_ID_PROP].append(ids_array);
+            // node_constraints[VDMS_DESC_ID_PROP].append("==");
+            // node_constraints[VDMS_DESC_ID_PROP].append(ids_array);
+            cp_result["ids_array"] = ids_array;
 
             query.QueryNode(
                 get_value<int>(cmd, "_ref", -1),
@@ -876,6 +877,10 @@ Json::Value FindDescriptor::construct_responses(
 
         long cache_obj_id = cache["cache_obj_id"].asInt64();
 
+        assert(cache.isMember("ids_array"));
+
+        Json::Value ids_array = cache["ids_array"];
+
         // Get from Cache
         IDDistancePair* pair = _cache_map[cache_obj_id];
         ids       = &(pair->first);
@@ -903,9 +908,13 @@ Json::Value FindDescriptor::construct_responses(
 
             for (auto ent : aux_entities) {
                 if (ent[VDMS_DESC_ID_PROP].asInt64() == d_id) {
-                    desc_data = ent;
-                    pass_constraints = true;
-                    break;
+                    for (int idx=0; idx< ids_array.size(); ++idx){
+                        if (ent[VDMS_DESC_ID_PROP].asInt64() == ids_array[idx].asInt64()) {
+                            desc_data = ent;
+                            pass_constraints = true;
+                            break;
+                        }
+                    }
                 }
             }
 
