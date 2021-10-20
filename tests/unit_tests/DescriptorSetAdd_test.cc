@@ -541,22 +541,17 @@ TEST(Descriptors_Add, add_and_search_10k_negative)
             index.search(xb, 1, 4, desc_ids, distances);
 
             int exp = 0;
-            // std::cout << "DescriptorSet: " << std::endl;
             for (auto& desc : desc_ids) {
-                // std::cout << desc << " ";
                 EXPECT_EQ(desc, exp++);
             }
 
-            // std::cout << "Distances: " << std::endl;
             float results[] = {float(std::pow(0, 2)*d),
                                float(std::pow(1, 2)*d),
                                float(std::pow(2, 2)*d),
                                float(std::pow(3, 2)*d) };
             for (int i = 0; i < 4; ++i) {
-                // std::cout << distances[i] <<  " ";
                 EXPECT_EQ(distances[i], results[i]);
             }
-            // std::cout << std::endl;
 
             index.store();
         }
@@ -588,12 +583,8 @@ TEST(Descriptors_Add, add_1by1_and_search_1k)
 
             printf("eng: %d \n",eng );
             for (int i = 0; i < nb; ++i) {
-                // printf("about to insert to eng: %d, ele: %d\n",eng, i );
                 index.add(xb + i*d, 1);
             }
-
-            // printf("about to store the index\n");
-            // index.store();
 
             printf("about to start search... \n");
             std::vector<float> distances;
@@ -603,22 +594,17 @@ TEST(Descriptors_Add, add_1by1_and_search_1k)
             printf("done search\n");
 
             int exp = 0;
-            // std::cout << "DescriptorSet: " << std::endl;
             for (auto& desc : desc_ids) {
-                // std::cout << desc << " ";
                 EXPECT_EQ(desc, exp++);
             }
 
-            // std::cout << "Distances: " << std::endl;
             float results[] = {float(std::pow(0, 2)*d),
                                float(std::pow(1, 2)*d),
                                float(std::pow(2, 2)*d),
                                float(std::pow(3, 2)*d) };
             for (int i = 0; i < 4; ++i) {
-                // std::cout << distances[i] <<  " ";
                 EXPECT_EQ(distances[i], results[i]);
             }
-            // std::cout << std::endl;
 
             index.store();
             printf("done store\n");

@@ -7,8 +7,9 @@ mkdir videos_tests
 # Gets coverage for files in ../src and ../include
 echo 'Running C++ tests...'
 ./../build/tests/unit_test \
-    --gtest_filter=-ImageTest.CreateNameTDB:ImageTest.NoMetadata:VideoTest.CreateUnique
-    # :Descriptors_Add.add_1by1_and_search_1k
+    --gtest_filter=-ImageTest.CreateNameTDB:ImageTest.NoMetadata:VideoTest.CreateUnique:Descriptors_Add.add_1by1_and_search_1k
+
+#OMIT Descriptors_Add.add_1by1_and_search_1k due to duration
 
 gcovr -k -p --root /vdms/ \
     -f /vdms/src \

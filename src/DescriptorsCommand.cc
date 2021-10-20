@@ -648,8 +648,6 @@ int FindDescriptor::construct_protobuf(
             }
 
             Json::Value node_constraints = constraints;
-            // node_constraints[VDMS_DESC_ID_PROP].append("==");
-            // node_constraints[VDMS_DESC_ID_PROP].append(ids_array);
             cp_result["ids_array"] = ids_array;
 
             query.QueryNode(
@@ -878,7 +876,6 @@ Json::Value FindDescriptor::construct_responses(
         long cache_obj_id = cache["cache_obj_id"].asInt64();
 
         assert(cache.isMember("ids_array"));
-
         Json::Value ids_array = cache["ids_array"];
 
         // Get from Cache
