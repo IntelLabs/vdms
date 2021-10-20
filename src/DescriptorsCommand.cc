@@ -899,6 +899,7 @@ Json::Value FindDescriptor::construct_responses(
         Json::Value aux_entities = findDesc["entities"];
         findDesc.removeMember("entities");
 
+        uint64_t new_cnt = 0;
         for (int i = 0; i < (*ids).size(); ++i) {
 
             Json::Value desc_data;
@@ -916,6 +917,9 @@ Json::Value FindDescriptor::construct_responses(
                         }
                     }
                 }
+                if(pass_constraints){
+                    break;
+                }
             }
 
             if (!pass_constraints)
@@ -931,7 +935,11 @@ Json::Value FindDescriptor::construct_responses(
             }
 
             findDesc["entities"].append(desc_data);
+            new_cnt++;
         }
+
+        if (findDesc.isMember("returned"))
+            findDesc["returned"] = Json::Int64(new_cnt);
 
         if (findDesc.isMember("entities")) {
             try {
