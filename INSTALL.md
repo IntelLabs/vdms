@@ -9,25 +9,25 @@ Here is the detailed process of installation of VDMS dependencies.
 
     add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main" && \\
 
-    sudo apt-get -y install g++ git libssl-dev libc-ares-dev apt-transport-https ca-
+    sudo apt-get -y install g++ git libssl-dev libc-ares-dev apt-transport-https ca- 
     certificates curl && \\
 
-    sudo apt-get -y installgnupg-agent software-properties-common cmake python3-pip build-
+    sudo apt-get -y installgnupg-agent software-properties-common cmake python3-pip build- 
     essential autoconf automaker && \\
 
-    sudo apt-get -y install libtool g++ unzip bzip2 libarchive-tools cmake git pkg-config
-    python python-dev wget libbz2- dev libssl-dev liblz4-dev mpich libjsoncpp-dev flex javacc
+    sudo apt-get -y install libtool g++ unzip bzip2 libarchive-tools cmake git pkg-config 
+    python python-dev wget libbz2- dev libssl-dev liblz4-dev mpich libjsoncpp-dev flex javacc 
     bison && \\
 
-    sudo apt-get -y install openjdk-11-jdk-headless libleveldb-dev libsnappy-dev libhdf5-
-    serial-dev libatlas-base-dev libboost-all-dev libgflags-dev libgoogle-glog-dev
+    sudo apt-get -y install openjdk-11-jdk-headless libleveldb-dev libsnappy-dev libhdf5- 
+    serial-dev libatlas-base-dev libboost-all-dev libgflags-dev libgoogle-glog-dev 
     liblmdb-dev  && \\
 
-    sudo apt-get -y install libjpeg8-dev libtiff5-dev libjasper-dev libgtk-3-dev
-    libopenmpi-dev libgtest-dev ed libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev
+    sudo apt-get -y install libjpeg8-dev libtiff5-dev libjasper-dev libgtk-3-dev 
+    libopenmpi-dev libgtest-dev ed libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev 
     libswscale-dev && \\
 
-    sudo apt-get -y install libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev
+    sudo apt-get -y install libtbb2 libtbb-dev libjpeg-dev libpng-dev libtiff-dev 
     libdc1394-22-dev libopenblas-dev && \\
 
     sudo pip3 install numpy
@@ -41,9 +41,9 @@ Here is the detailed process of installation of VDMS dependencies.
      git clone https://github.com/facebookresearch/faiss.git && \\
      curl http://zlib.net/zlib-1.2.11.tar.gz -o zlib-1.2.11.tar.gz
 
-### Install CMAKE
+### Install CMAKE 
     cd CMake && ./bootstrap && make -j16 && make install && \\
-    cd / && cd swig && \
+    cd / && cd swig && \ 
     ./autogen.sh && ./configure && make -j16 && make install
 ### Install Faiss
     cd faiss && mkdir build && cd build && \
@@ -52,20 +52,20 @@ Here is the detailed process of installation of VDMS dependencies.
 
 ### Install grpc
     cd grpc && git submodule update --init --recursive && \
-    cd third_party/protobuf/cmake && mkdir build && cd build && cmake -
+    cd third_party/protobuf/cmake && mkdir build && cd build && cmake - 
     DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && \
     make -j8 && make install && cd ../../../abseil-cpp && mkdir build && cd build && \
-    cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make -j8 && make install && cd
+    cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make -j8 && make install && cd 
     ../../re2/ && mkdir build && \
-    cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make -j8 && make install
+    cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make -j8 && make install 
      && cd ../../zlib/ && \
-    mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make -j8 &&
+    mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make -j8 && 
     make install && \
-    cd /grpc/cmake && mkdir build && cd build && cmake -DgRPC_INSTALL=ON
+    cd /grpc/cmake && mkdir build && cd build && cmake -DgRPC_INSTALL=ON                     
      -DRPC_BUILD_TESTS=OFF -DgRPC_ABSL_PROVIDER=package \
-    -DgRPC_CARES_PROVIDER=package -DgRPC_PROTOBUF_PROVIDER=package DgRPC_RE2_PROVIDER=package
+    -DgRPC_CARES_PROVIDER=package -DgRPC_PROTOBUF_PROVIDER=package DgRPC_RE2_PROVIDER=package 
     -DgRPC_SSL_PROVIDER=package \
-    -DgRPC_ZLIB_PROVIDER=package -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE ../.. && make -j8 &&
+    -DgRPC_ZLIB_PROVIDER=package -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE ../.. && make -j8 && 
      make install
 
 ### Install gtest
@@ -152,12 +152,12 @@ Build TileDB
     sudo apt-get install -y maven && \
     cd /grpc/third_party/protobuf/java/core &&\
     mvn package &&\
-    cp target/protobuf-java-3.13.0.jar /usr/share/java/protobuf.jar &&\
-    curl https://storage.googleapis.com/google-code-archive-
-    downloads/v2/code.google.com/json-simple/json-simple-1.1.1.jar -o /usr/share/java/json-
+    cp target/protobuf-java-3.13.0.jar /usr/share/java/protobuf.jar && \
+    curl https://storage.googleapis.com/google-code-archive- 
+    downloads/v2/code.google.com/json-simple/json-simple-1.1.1.jar -o /usr/share/java/json- 
     simple-1.1.1.jar && cd / &&\
-    curl https://mirror.jframeworks.com/apache//commons/codec/binaries/commons-codec-1.15-
-    bin.tar.gz -o /commons-codec-1.15-bin.tar.gz &&\
+    curl https://mirror.jframeworks.com/apache//commons/codec/binaries/commons-codec-1.15- 
+    bin.tar.gz -o /commons-codec-1.15-bin.tar.gz &&\ 
     gunzip /commons-codec-1.15-bin.tar.gz &&\
     tar -xvf commons-codec-1.15-bin.tar && \
     cp commons-codec-1.15/commons-codec-1.15.jar /usr/share/java/commons-codec-1.15.jar

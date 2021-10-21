@@ -225,7 +225,7 @@ TEST(Descriptors_Add, add_flatl2_100d_2add)
                        float(std::pow(1, 2)*d),
                        float(std::pow(1.6, 2)*d) };
     for (int i = 0; i < 4; ++i) {
-        EXPECT_EQ(int(distances[i]), int(results[i]));
+        EXPECT_EQ(std::round(distances[i]), std::round(results[i]));
     }
 
     index.store();
@@ -518,115 +518,101 @@ TEST(Descriptors_Add, add_and_search_10k)
     }
 }
 
-// TEST(Descriptors_Add, add_and_search_10k_negative)
-// {
-//     int nb = 10000;
-//     auto dimensions_list = get_dimensions_list();
+TEST(Descriptors_Add, add_and_search_10k_negative)
+{
+    int nb = 10000;
+    auto dimensions_list = get_dimensions_list();
 
-//     for (auto d : dimensions_list) {
+    for (auto d : dimensions_list) {
 
-//         float *xb = generate_desc_linear_increase(d, nb, -900);
+        float *xb = generate_desc_linear_increase(d, nb, -900);
 
-//         for (auto eng : get_engines()) {
-//             std::string index_filename = "dbs/add_and_search_10k_negative" +
-//                                          std::to_string(d) + "_" +
-//                                          std::to_string(eng);
+        for (auto eng : get_engines()) {
+            std::string index_filename = "dbs/add_and_search_10k_negative" +
+                                         std::to_string(d) + "_" +
+                                         std::to_string(eng);
 
-//             VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+            VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
-//             index.add(xb, nb);
+            index.add(xb, nb);
 
-//             std::vector<float> distances;
-//             std::vector<long> desc_ids;
-//             index.search(xb, 1, 4, desc_ids, distances);
+            std::vector<float> distances;
+            std::vector<long> desc_ids;
+            index.search(xb, 1, 4, desc_ids, distances);
 
-//             int exp = 0;
-//             // std::cout << "DescriptorSet: " << std::endl;
-//             for (auto& desc : desc_ids) {
-//                 // std::cout << desc << " ";
-//                 EXPECT_EQ(desc, exp++);
-//             }
+            int exp = 0;
+            for (auto& desc : desc_ids) {
+                EXPECT_EQ(desc, exp++);
+            }
 
-//             // std::cout << "Distances: " << std::endl;
-//             float results[] = {float(std::pow(0, 2)*d),
-//                                float(std::pow(1, 2)*d),
-//                                float(std::pow(2, 2)*d),
-//                                float(std::pow(3, 2)*d) };
-//             for (int i = 0; i < 4; ++i) {
-//                 // std::cout << distances[i] <<  " ";
-//                 EXPECT_EQ(distances[i], results[i]);
-//             }
-//             // std::cout << std::endl;
+            float results[] = {float(std::pow(0, 2)*d),
+                               float(std::pow(1, 2)*d),
+                               float(std::pow(2, 2)*d),
+                               float(std::pow(3, 2)*d) };
+            for (int i = 0; i < 4; ++i) {
+                EXPECT_EQ(distances[i], results[i]);
+            }
 
-//             index.store();
-//         }
+            index.store();
+        }
 
-//         delete [] xb;
-//     }
-// }
+        delete [] xb;
+    }
+}
 
-// TEST(Descriptors_Add, add_1by1_and_search_1k)
-// {
-//     int nb = 1000;
-//     auto dimensions_list = get_dimensions_list();
+TEST(Descriptors_Add, add_1by1_and_search_1k)
+{
+    int nb = 1000;
+    auto dimensions_list = get_dimensions_list();
 
-//     for (auto d : dimensions_list) {
+    for (auto d : dimensions_list) {
 
-//         float *xb = generate_desc_linear_increase(d, nb);
+        float *xb = generate_desc_linear_increase(d, nb);
 
-//         for (auto eng : get_engines()) {
+        for (auto eng : get_engines()) {
 
-//             // It does not make sense to run on this index
-//             if (eng == VCL::FaissIVFFlat)
-//                 continue;
+            // It does not make sense to run on this index
+            if (eng == VCL::FaissIVFFlat)
+                continue;
 
-//             std::string index_filename = "dbs/add_1by1_and_search_1k_" +
-//                                          std::to_string(d) + "_" +
-//                                          std::to_string(eng);
+            std::string index_filename = "dbs/add_1by1_and_search_1k_" +
+                                         std::to_string(d) + "_" +
+                                         std::to_string(eng);
 
-//             VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+            VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
-//             printf("eng: %d \n",eng );
-//             for (int i = 0; i < nb; ++i) {
-//                 // printf("about to insert to eng: %d, ele: %d\n",eng, i );
-//                 index.add(xb + i*d, 1);
-//             }
+            printf("eng: %d \n",eng );
+            for (int i = 0; i < nb; ++i) {
+                index.add(xb + i*d, 1);
+            }
 
-//             // printf("about to store the index\n");
-//             // index.store();
+            printf("about to start search... \n");
+            std::vector<float> distances;
+            std::vector<long> desc_ids;
+            index.search(xb, 1, 4, desc_ids, distances);
 
-//             printf("about to start search... \n");
-//             std::vector<float> distances;
-//             std::vector<long> desc_ids;
-//             index.search(xb, 1, 4, desc_ids, distances);
+            printf("done search\n");
 
-//             printf("done search\n");
+            int exp = 0;
+            for (auto& desc : desc_ids) {
+                EXPECT_EQ(desc, exp++);
+            }
 
-//             int exp = 0;
-//             // std::cout << "DescriptorSet: " << std::endl;
-//             for (auto& desc : desc_ids) {
-//                 // std::cout << desc << " ";
-//                 EXPECT_EQ(desc, exp++);
-//             }
+            float results[] = {float(std::pow(0, 2)*d),
+                               float(std::pow(1, 2)*d),
+                               float(std::pow(2, 2)*d),
+                               float(std::pow(3, 2)*d) };
+            for (int i = 0; i < 4; ++i) {
+                EXPECT_EQ(distances[i], results[i]);
+            }
 
-//             // std::cout << "Distances: " << std::endl;
-//             float results[] = {float(std::pow(0, 2)*d),
-//                                float(std::pow(1, 2)*d),
-//                                float(std::pow(2, 2)*d),
-//                                float(std::pow(3, 2)*d) };
-//             for (int i = 0; i < 4; ++i) {
-//                 // std::cout << distances[i] <<  " ";
-//                 EXPECT_EQ(distances[i], results[i]);
-//             }
-//             // std::cout << std::endl;
+            index.store();
+            printf("done store\n");
+        }
 
-//             index.store();
-//             printf("donde store\n");
-//         }
-
-//         delete [] xb;
-//     }
-// }
+        delete [] xb;
+    }
+}
 
 TEST(Descriptors_Add, add_and_search_2_neigh_10k)
 {

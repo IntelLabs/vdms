@@ -237,7 +237,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
                                     ["entities"][0]["myid"], 205)
         self.assertEqual(len(fv_array), 1)
         self.assertEqual(len(fv_array[0]), dims*4)
-
+        
     @unittest.skip("Skipping class until fixed")
     def test_findDescByConst_multiple_blobTrue(self):
 
