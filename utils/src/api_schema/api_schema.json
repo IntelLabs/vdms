@@ -198,7 +198,8 @@
           { "$ref": "#/definitions/operationResize" },
           { "$ref": "#/definitions/operationCrop" },
           { "$ref": "#/definitions/operationFlip" },
-          { "$ref": "#/definitions/operationRotate" }
+          { "$ref": "#/definitions/operationRotate" },
+          { "$ref": "#/definitions/operationCustom" }
         ]
       },
       "uniqueItems": false
@@ -256,6 +257,15 @@
         },
       "required": ["type", "value"],
       "additionalProperties": false
+    },
+
+    "operationCustom": {
+      "type": "object",
+      "properties": {
+        "type":  { "enum": [ "custom" ] }
+        },
+      "required": ["type"],
+      "additionalProperties": true
     },
 
     "operationResize": {

@@ -324,6 +324,30 @@ namespace VCL {
          *    it exists
          */
         void delete_image();
+    /*  *********************** */
+    /*      COPY FUNCTIONS      */
+    /*  *********************** */
+        /**
+         *  Copies (deep copy) an OpenCV Mat into the Image OpenCV Mat
+         *
+         *  @param cv_img  An existing OpenCV Mat
+         */
+        void deep_copy_cv(const cv::Mat &cv_img);
+
+        /**
+         *  Copies (shallow copy) an OpenCV Mat into the Image OpenCV Mat
+         *
+         *  @param cv_img  An existing OpenCV Mat
+         */
+        void shallow_copy_cv(const cv::Mat &cv_img);
+
+        /**
+         *  Copies the Image OpenCV Mat into a buffer
+         *
+         *  @param buffer  The buffer that will contain the image
+         *    data
+         */
+        template <class T> void copy_to_buffer(T* buffer);
 
     private:
 
@@ -366,30 +390,7 @@ namespace VCL {
         char* _bin;
         long _bin_size;
 
-    /*  *********************** */
-    /*      COPY FUNCTIONS      */
-    /*  *********************** */
-        /**
-         *  Copies (deep copy) an OpenCV Mat into the Image OpenCV Mat
-         *
-         *  @param cv_img  An existing OpenCV Mat
-         */
-        void deep_copy_cv(const cv::Mat &cv_img);
-
-        /**
-         *  Copies (shallow copy) an OpenCV Mat into the Image OpenCV Mat
-         *
-         *  @param cv_img  An existing OpenCV Mat
-         */
-        void shallow_copy_cv(const cv::Mat &cv_img);
-
-        /**
-         *  Copies the Image OpenCV Mat into a buffer
-         *
-         *  @param buffer  The buffer that will contain the image
-         *    data
-         */
-        template <class T> void copy_to_buffer(T* buffer);
+    
 
     /*  *********************** */
     /*      UTIL FUNCTIONS      */

@@ -70,6 +70,9 @@ void ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
             img.rotate(get_value<double>(op, "angle"),
                        get_value<bool>(op, "resize"));
         }
+        else if (type == "custom") {
+            custom_vcl_function(img, op);
+        }
         else {
             throw ExceptionCommand(ImageError, "Operation not defined");
         }
