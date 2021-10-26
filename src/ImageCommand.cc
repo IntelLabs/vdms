@@ -71,6 +71,15 @@ void ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
                        get_value<bool>(op, "resize"));
         }
         else if (type == "custom") {
+
+            try
+            {
+
+            }
+            catch (const std::exception& e) 
+            {
+
+            }
             custom_vcl_function(img, op);
         }
         else {
