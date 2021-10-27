@@ -70,17 +70,18 @@ void ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
             img.rotate(get_value<double>(op, "angle"),
                        get_value<bool>(op, "resize"));
         }
-        else if (type == "custom") {
-
+        else if (type == "custom") 
+        {
+            VCL::Image* tmp_image = new VCL::Image(img , true);
             try
             {
-
+                custom_vcl_function(img, op);
             }
-            catch (const std::exception& e) 
+            catch ( ... ) 
             {
-
+                img.deep_copy_cv(tmp_image->get_cvmat(true));
             }
-            custom_vcl_function(img, op);
+            delete tmp_image;
         }
         else {
             throw ExceptionCommand(ImageError, "Operation not defined");
