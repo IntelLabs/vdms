@@ -75,8 +75,7 @@ void ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
             VCL::Image* tmp_image = new VCL::Image(img , true);
             try
             {
-                //custom_vcl_function(img, op);
-                //ddm add code to defer computation to local process
+                custom_vcl_function(img, op);
             }
             catch ( ... ) 
             {

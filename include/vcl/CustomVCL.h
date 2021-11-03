@@ -27,4 +27,4 @@ typedef struct mesg_buffer {
 } message;
 
 
-//void custom_vcl_function(VCL::Image& img, const Json::Value& ops);
+void custom_vcl_function(VCL::Image& img, const Json::Value& ops);
