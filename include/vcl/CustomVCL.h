@@ -8,6 +8,7 @@
 #include <sys/shm.h>
 
 #include <jsoncpp/json/value.h>
+#include <jsoncpp/json/reader.h>
 
 #include <opencv2/opencv.hpp>
 

@@ -21,6 +21,7 @@ void custom_vcl_function(VCL::Image& img, const Json::Value& ops)
 
     //Read image from file and obtain image information to calculate size
     cv::Mat in_image = img.get_cvmat(true);
+    
     size_t in_image_size = in_image.total() * in_image.elemSize();
     message_ctl_host_remote.message_type = 1;
     message_ctl_host_remote.data_rows = in_image.rows;
@@ -40,7 +41,7 @@ void custom_vcl_function(VCL::Image& img, const Json::Value& ops)
     if(msg_send_result < 0)
     {}
 
-    int msg_recv_result = msgrcv(msgid_ctl_remote_host, &message_ctl_remote_host, sizeof(message), 1, 0);
+    int msg_recv_result = msgrcv(msgid_ctl_remote_host, &message_ctl_remote_host, sizeof(message), 0, 0);
     if(msg_recv_result < 0)
     {}
 
@@ -56,5 +57,5 @@ void custom_vcl_function(VCL::Image& img, const Json::Value& ops)
 
     //Free shared IPC components
     shmdt(image_buffer);
-    msgctl(msgid_ctl_remote_host, IPC_RMID, NULL);
+    //msgctl(msgid_ctl_remote_host, IPC_RMID, NULL);
 }
