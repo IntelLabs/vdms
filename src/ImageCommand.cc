@@ -75,7 +75,11 @@ void ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
             VCL::Image* tmp_image = new VCL::Image(img , true);
             try
             {
-                custom_vcl_function(img, op);
+                int error_flag = custom_vcl_function(img, op);
+                if(error_flag != 0)
+                {
+                    throw ExceptionCommand(ImageError, "Custom operation not implemented by separate process");
+                }
             }
             catch ( ... ) 
             {
