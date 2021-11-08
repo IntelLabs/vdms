@@ -5,5 +5,5 @@
 	
 [submodule "ext/custom_vcl"]
 	path = ext/custom_vcl
-	url = git@github.com:omp87/custom_vcl.git
+	url = https://gitlab.devtools.intel.com/labs-csr/custom_vcl.git
 	branch = separate_local_process
