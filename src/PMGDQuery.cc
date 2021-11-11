@@ -585,6 +585,7 @@ void PMGDQuery::AddNode(int ref,
             q = n->add_properties();
             set_property(q, "_expiration", Json::Value(expiration_time));
             expiration_query_match = true;
+            an->set_expiration_flag(true);
         }
         else
         {
@@ -604,8 +605,8 @@ void PMGDQuery::AddNode(int ref,
         set_property(q, "_creation", Json::Value(creation_time));
         q = n->add_properties();
         set_property(q, "_expiration", Json::Value(expiration_time));
+        an->set_expiration_flag(true);
     }
-
 
     if(!constraints.isNull()) {
         PMGDQueryNode *qn = an->mutable_query_node();

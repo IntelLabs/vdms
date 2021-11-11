@@ -38,6 +38,7 @@
 
 #include "pmgdMessages.pb.h" // Protobuff implementation
 #include "pmgd.h"
+#include "AutoDeleteNode.h"
 
 namespace VDMS {
     // Instance created per worker thread to handle all transactions on a given
@@ -75,6 +76,7 @@ namespace VDMS {
         bool _readonly;  // Variable changes per TX based on process_queries parameter.
         bool _resultdeletion; //Variable that indicates whether results of query should be 
         // deleted after result is complete
+        std::priority_queue<AutoDeleteNode*, std::vector<AutoDeleteNode*>, GreaterThanTimestamp> _expiration_timestamp_queue;
 
         // Map an integer ID to a NodeIterator (reset at the end of each transaction).
         // This works for Adds and Queries. We assume that the client or

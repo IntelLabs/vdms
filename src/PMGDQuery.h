@@ -51,7 +51,10 @@ namespace VDMS {
         PMGDQueryHandler& _pmgd_qh;
         unsigned _current_ref;
         bool _readonly;    // Stays true unless some write cmd sets it to false.
-        bool _resultdeletion;
+        bool _resultdeletion; // Indicates whether the results should be deleted
+        bool _resultexpiration; //Indicates whether the result should be stored in expiration_queue
+                                //This takes place only during an add where the _expiration flag is true
+        
 
         Json::Value _json_responses;
 

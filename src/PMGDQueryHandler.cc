@@ -135,7 +135,10 @@ void PMGDQueryHandler::error_cleanup(std::vector<PMGDCmdResponses> &responses,
 int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
                                      PMGDCmdResponse *response)
 {
+
     int retval = 0;
+    PMGD::protobufs::Node* an;
+
     try {
         int code = cmd->cmd_id();
         response->set_cmd_grp_id(cmd->cmd_grp_id());
@@ -167,8 +170,7 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
                 retval = add_edge(cmd->add_edge(), response);
                 break;
             case PMGDCmd::QueryNode:
-	        retval = query_node(cmd->query_node(), response);
-
+	            retval = query_node(cmd->query_node(), response);
                 break;
             case PMGDCmd::QueryEdge:
                 retval = query_edge(cmd->query_edge(), response);
@@ -178,6 +180,9 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
                 break;
             case PMGDCmd::UpdateEdge:
                 update_edge(cmd->update_edge(), response);
+                break;
+            case PMGDCmd::DeleteExpired:
+	            retval = query_node(cmd->query_node(), response);
                 break;
         }
     }
@@ -193,6 +198,7 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
 int PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
                                   PMGDCmdResponse *response)
 {
+    Json::UInt64 expiration_time;
     long id = cn.identifier();
     if (id >= 0 && _cached_nodes.find(id) != _cached_nodes.end()) {
         set_response(response, PMGDCmdResponse::Error, "Reuse of _ref value");
@@ -223,12 +229,27 @@ int PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
     // Since the node wasn't found, now add it.
     StringID sid(cn.node().tag().c_str());
     Node &n = _db->add_node(sid);
+
     if (id >= 0)
         _cached_nodes[id] = new ReusableNodeIterator(&n);
 
     for (int i = 0; i < cn.node().properties_size(); ++i) {
         const PMGDProp &p = cn.node().properties(i);
         set_property(n, p);
+        if(cn.expiration_flag()) //Get the expiration time while iterating through the properties
+        {
+            if(p.key() == "_expiration_time")
+            {
+                expiration_time = (Json::UInt64) p.int_value();
+            }
+        }
+    }
+
+    //add to priority queue
+    if(cn.expiration_flag())
+    {
+        AutoDeleteNode* tmpDeleteNode = new AutoDeleteNode(expiration_time, &n);
+        _expiration_timestamp_queue.push(tmpDeleteNode);
     }
 
     set_response(response, protobufs::NodeID, PMGDCmdResponse::Success);
@@ -454,7 +475,6 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     StringID edge_tag;
     const PMGDQueryConstraints &qc = qn.constraints();
     const PMGDQueryResultInfo &qr = qn.results();
-    std::list<PMGD::NodeIterator> node_purge_list;
     long id = qn.identifier();
     if (id >= 0 && _cached_nodes.find(id) != _cached_nodes.end()) {
         set_response(response, PMGDCmdResponse::Error,
@@ -725,6 +745,7 @@ Property PMGDQueryHandler::construct_search_property(const PMGDProp &p)
         // multiple levels of calls.
         throw PMGDException(PropertyTypeInvalid, "Search on blob property not permitted");
     }
+    return 0;
 }
 
 namespace VDMS {
