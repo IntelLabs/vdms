@@ -85,7 +85,7 @@ namespace VDMS {
         unsigned current_group() { return _current_group_id; }
         unsigned get_available_reference() { return _current_ref++; }
 
-        Json::Value& run();
+        Json::Value& run(bool autodelete_init = false);
 
         //This is a reference to avoid copies
         Json::Value& get_json_responses() {return _json_responses;}

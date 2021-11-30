@@ -71,15 +71,24 @@ void PMGDQueryHandler::destroy()
 
 std::vector<PMGDCmdResponses>
               PMGDQueryHandler::process_queries(const PMGDCmds &cmds,
-              int num_groups, bool readonly, bool resultdeletion)
+              int num_groups, bool readonly, bool resultdeletion, bool autodelete_init)
 {
     std::vector<PMGDCmdResponses> responses(num_groups);
-
+    int retry_count = 0;
+    while(retry_count < PMGD_QUERY_RETRY_LIMIT)
+    {
+        if(_tx != NULL)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(20 * retry_count)); //backoff but for a onger time each try
+        }
+        retry_count++;
+    }
     assert(_tx == NULL);
 
     // Assuming one query handler handles one TX at a time.
     _readonly = readonly;
     _resultdeletion = resultdeletion;
+    _autodelete_init = autodelete_init;
     if(_resultdeletion)
     {
         _readonly = false; // change flag so database can be written
@@ -133,7 +142,7 @@ void PMGDQueryHandler::error_cleanup(std::vector<PMGDCmdResponses> &responses,
 }
 
 int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
-                                     PMGDCmdResponse *response)
+                                     PMGDCmdResponse *response, bool autodelete_init)
 {
 
     int retval = 0;
@@ -170,7 +179,7 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
                 retval = add_edge(cmd->add_edge(), response);
                 break;
             case PMGDCmd::QueryNode:
-	            retval = query_node(cmd->query_node(), response);
+	            retval = query_node(cmd->query_node(), response, autodelete_init);
                 break;
             case PMGDCmd::QueryEdge:
                 retval = query_edge(cmd->query_edge(), response);
@@ -182,7 +191,7 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
                 update_edge(cmd->update_edge(), response);
                 break;
             case PMGDCmd::DeleteExpired:
-	            retval = query_node(cmd->query_node(), response);
+	            retval = delete_expired_nodes();
                 break;
         }
     }
@@ -238,14 +247,14 @@ int PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
         set_property(n, p);
         if(cn.expiration_flag()) //Get the expiration time while iterating through the properties
         {
-            if(p.key() == "_expiration_time")
+            if(p.key() == "_expiration")
             {
                 expiration_time = (Json::UInt64) p.int_value();
             }
         }
     }
 
-    //add to priority queue
+    //add to deletion priority queue
     if(cn.expiration_flag())
     {
         AutoDeleteNode* tmpDeleteNode = new AutoDeleteNode(expiration_time, &n);
@@ -468,7 +477,7 @@ void PMGDQueryHandler::set_property(Element &e, const PMGDProp &p)
 }
 
 int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
-                                    PMGDCmdResponse *response)
+                                    PMGDCmdResponse *response, bool autodelete_init)
 {
     ReusableNodeIterator *start_ni = NULL;
     PMGD::Direction dir;
@@ -796,7 +805,12 @@ void PMGDQueryHandler::build_results(Iterator &ni,
             {
                 _db->remove(*ni);
             }
-            
+            if(_autodelete_init)
+            {
+                uint64_t tmp_timestamp = (uint64_t) ni->get_property("_expiration").int_value();
+                AutoDeleteNode* tmpNode = new AutoDeleteNode(Json::UInt64(tmp_timestamp), &(*ni)); 
+                _expiration_timestamp_queue.push(tmpNode);
+            }
             count++;
             if (count >= limit)
                 break;
@@ -875,8 +889,6 @@ void PMGDQueryHandler::build_results(Iterator &ni,
         set_response(response, PMGDCmdResponse::Error,
                        "Unknown operation type for query");
     }
-    //ddm need to add a deleter flag that says that a query wants to delete content
-    //if deleter flag is true, need to iterate through the nodes that were returned and delete them from the graph
 }
 
 void PMGDQueryHandler::construct_protobuf_property(const Property &j_p, PMGDProp *p_p)
@@ -909,4 +921,26 @@ void PMGDQueryHandler::construct_missing_property(PMGDProp *p_p)
     // Assumes matching enum values!
     p_p->set_type(PMGDProp::StringType);
     p_p->set_string_value("Missing property");
+}
+
+int PMGDQueryHandler::delete_expired_nodes()
+{
+    AutoDeleteNode* tmp_node;
+    Json::UInt64 current_timestamp = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count();
+    Json::UInt64 this_timestamp = 0;
+
+    //Continue to loop untill queus is empty or we find timestamp greater than current time
+    while(this_timestamp < current_timestamp && !_expiration_timestamp_queue.empty())
+        {
+        tmp_node = _expiration_timestamp_queue.top();
+        this_timestamp = tmp_node->GetExpirationTimestamp();
+        if(this_timestamp < current_timestamp)
+        {
+            _db->remove(*((PMGD::Node*)(tmp_node->GetNode()))); 
+            _expiration_timestamp_queue.pop();
+            tmp_node = _expiration_timestamp_queue.top();
+            this_timestamp = tmp_node->GetExpirationTimestamp();
+        }
+    }
+    return 0;
 }

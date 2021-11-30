@@ -35,10 +35,13 @@
 #include <unordered_map>
 #include <vector>
 #include <list>
+#include <thread>
 
 #include "pmgdMessages.pb.h" // Protobuff implementation
 #include "pmgd.h"
 #include "AutoDeleteNode.h"
+
+#define PMGD_QUERY_RETRY_LIMIT 10
 
 namespace VDMS {
     // Instance created per worker thread to handle all transactions on a given
@@ -74,7 +77,8 @@ namespace VDMS {
 
         PMGD::Transaction *_tx;
         bool _readonly;  // Variable changes per TX based on process_queries parameter.
-        bool _resultdeletion; //Variable that indicates whether results of query should be 
+        bool _resultdeletion; //Variable that indicates whether results of query should be
+        bool _autodelete_init; // Varibale that indicates whether we need to add nodes from query into deletion_queue
         // deleted after result is complete
         std::priority_queue<AutoDeleteNode*, std::vector<AutoDeleteNode*>, GreaterThanTimestamp> _expiration_timestamp_queue;
 
@@ -89,14 +93,14 @@ namespace VDMS {
         std::unordered_map<int, ReusableNodeIterator *> _cached_nodes;
         std::unordered_map<int, ReusableEdgeIterator *> _cached_edges;
 
-        int process_query(const PMGDCmd *cmd, PMGDCmdResponse *response);
+        int process_query(const PMGDCmd *cmd, PMGDCmdResponse *response, bool autodelete_init = false);
         void error_cleanup(std::vector<PMGDCmdResponses> &responses, PMGDCmdResponse *last_resp);
         int add_node(const PMGD::protobufs::AddNode &cn, PMGDCmdResponse *response);
         int update_node(const PMGD::protobufs::UpdateNode &un, PMGDCmdResponse *response);
         int add_edge(const PMGD::protobufs::AddEdge &ce, PMGDCmdResponse *response);
         int update_edge(const PMGD::protobufs::UpdateEdge &ue, PMGDCmdResponse *response);
         template <class Element> void set_property(Element &e, const PMGDProp&p);
-        int query_node(const PMGDQueryNode &qn, PMGDCmdResponse *response);
+        int query_node(const PMGDQueryNode &qn, PMGDCmdResponse *response, bool autodelete_init = false);
         int query_edge(const PMGDQueryEdge &qe, PMGDCmdResponse *response);
         PMGD::PropertyPredicate construct_search_term(const PMGDPropPred &p_pp);
         PMGD::Property construct_search_property(const PMGDProp&p);
@@ -128,6 +132,7 @@ namespace VDMS {
             response->set_error_msg(error_msg);
         }
 
+        int delete_expired_nodes();
     public:
         class NodeEdgeIteratorImpl;
         static void init();
@@ -144,7 +149,7 @@ namespace VDMS {
         // Ensure that the cmd_grp_id, that is the query number are in increasing
         // order and account for the TxBegin and TxEnd in numbering.
         std::vector<PMGDCmdResponses> process_queries(const PMGDCmds &cmds,
-                                                      int num_groups, bool readonly, bool resultdeletion=false);
+                                                      int num_groups, bool readonly, bool resultdeletion=false, bool autodelete_init = false);
     };
 
 }; // end VDMS namespace

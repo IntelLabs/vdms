@@ -57,6 +57,7 @@ typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
 
         static std::unordered_map<std::string, RSCommand* > _rs_cmds;
         PMGDQueryHandler _pmgd_qh;
+        bool _autodelete_queue_init_flag;
 
         bool syntax_checker(const Json::Value &root, Json::Value& error);
         int parse_commands(const protobufs::queryMessage& proto_query,
@@ -84,5 +85,8 @@ typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
         QueryHandler();
 
         void process_connection(comm::Connection *c);
+        void initial_run_autodelete();
+        void regualar_run_autodelete();
+        void build_autodelete_queue();
     };
-};
+}

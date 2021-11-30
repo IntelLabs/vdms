@@ -71,7 +71,7 @@ PMGDQuery::~PMGDQuery()
     }
 }
 
-Json::Value& PMGDQuery::run()
+Json::Value& PMGDQuery::run(bool autodlete_init)
 {
     add_group(); // will set _current_group_id correctly
 
@@ -84,7 +84,7 @@ Json::Value& PMGDQuery::run()
 
     // execute the queries using the PMGDQueryHandler object
     std::vector<std::vector<PMGDCmdResponse* >> _pmgd_responses;
-    _pmgd_responses = _pmgd_qh.process_queries(_cmds, _current_group_id + 1, _readonly, _resultdeletion);
+    _pmgd_responses = _pmgd_qh.process_queries(_cmds, _current_group_id + 1, _readonly, _resultdeletion, autodlete_init);
 
     if (_pmgd_responses.size() != _current_group_id + 1) {
         if (_pmgd_responses.size() == 1 && _pmgd_responses[0].size() == 1) {
