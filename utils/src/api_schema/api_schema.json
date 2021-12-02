@@ -722,6 +722,13 @@
         "unique":      { "type": "boolean" }
       },
       "additionalProperties": false
+    },
+
+    "DeleteExpired": {
+      "properties": {
+        "results":     { "$ref": "#/definitions/blockResults" }
+      },
+      "additionalProperties": false
     }
 
   }

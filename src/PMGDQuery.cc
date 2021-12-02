@@ -454,7 +454,6 @@ bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
                 //ddm if query still matches - check to ensure that ti,e is in the past
                 if(expiration_query_match && expiration_iteration)
                 {
-                    std::cout << predicate[1] << " " << std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count() << std::endl;
                     if(predicate[1].asUInt64() >= 1+ std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count())
                     {
                         expiration_query_match = false;

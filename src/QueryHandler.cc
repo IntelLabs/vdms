@@ -119,8 +119,6 @@ QueryHandler::QueryHandler()
     ,ch_tx_send("ch_tx_send")
 #endif
 {
-    initial_run_autodelete();
-    _autodelete_queue_init_flag = false;
 }
 
 void QueryHandler::process_connection(comm::Connection *c)
@@ -370,7 +368,7 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
             construct_results.push_back(cmd_result);
         }
 
-        Json::Value& tx_responses = pmgd_query.run();
+        Json::Value& tx_responses = pmgd_query.run(_autodelete_init);
 
         if (!tx_responses.isArray() || tx_responses.size() != root.size()) {
             Json::StyledWriter writer;
@@ -459,27 +457,34 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
     }
 }
 
+
+void QueryHandler::reset_autodelete_init_flag()
+{
+    _autodelete_init = false;
+}
+
+void QueryHandler::set_autodelete_init_flag()
+{
+    _autodelete_init = true;
+}
+
 void QueryHandler::initial_run_autodelete()
 {
-    if(!_autodelete_queue_init_flag)
-    {
-        std::string prefix_string = std::string("{\'FindEntity\': {\'results\': {\'list\': [\'_expiration\']}, \'constraints\': {\'_expiration\': [\'<\', ");
-        uint64_t time_value = (uint64_t) std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count();
-        std::string time_string = std::to_string(time_value);
-        std::string suffix_string = std::string("]}}}");
-        std::string* json_string = new std::string(prefix_string + time_string + suffix_string);
-        protobufs::queryMessage response;
-        protobufs::queryMessage query;
-        query.set_json(json_string->c_str());
-        process_query(query, response);
-        delete json_string;
-        _autodelete_queue_init_flag = true;
-    }
+    std::string prefix_string = std::string("[{\"FindEntity\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\"<\", ");
+    uint64_t time_value = (uint64_t) std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count();
+    std::string time_string = std::to_string(time_value);
+    std::string suffix_string = std::string("]}}}]");
+    std::string* json_string = new std::string(prefix_string + time_string + suffix_string);
+    protobufs::queryMessage response;
+    protobufs::queryMessage query;
+    query.set_json(json_string->c_str());
+    process_query(query, response);
+    delete json_string;
 }
 
 void QueryHandler::regualar_run_autodelete()
 {
-    std::string* json_string = new std::string("{\'DeleteExpired\': {\'results\': {\'list\': [\'_expiration\']}}}");
+    std::string* json_string = new std::string("[{\"DeleteExpired\": {\"results\": {\"list\": [\"_expiration\"]}}}]");
     protobufs::queryMessage response;
     protobufs::queryMessage query;
     query.set_json(json_string->c_str());
@@ -490,7 +495,7 @@ void QueryHandler::regualar_run_autodelete()
 
 void QueryHandler::build_autodelete_queue()
 {
-    std::string* json_string = new std::string("{\'FindEntity\': {\'results\': {\'list\': [\'_expiration\']}, \'constraints\': {\'_expiration\': [\'>\', 0]}}}");
+    std::string* json_string = new std::string("[{\"FindEntity\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\">\", 0]}}}]");
     protobufs::queryMessage response;
     protobufs::queryMessage query;
     query.set_json(json_string->c_str());

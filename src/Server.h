@@ -40,12 +40,14 @@ namespace VDMS {
     class Server
     {
         static const int DEFAULT_PORT = 55555;
+        static const int DEFAULT_AUTODELETE_INTERVAL = -1;
 
         CommunicationManager *_cm;
 
         // TODO: Partitioner here
 
         int _server_port;
+        int _autodelete_interval;
 
         // Handle ^c
         static bool shutdown;
@@ -58,6 +60,7 @@ namespace VDMS {
     public:
         Server(std::string config_file);
         void process_requests();
+        void autodelete_expired_data();
         ~Server();
     };
 };
