@@ -104,10 +104,9 @@ void Server::autodelete_expired_data()
         QueryHandler qh;
         while(!shutdown)
         {
-            sleep(5);
+            sleep(_autodelete_interval);
             qh.regualar_run_autodelete(); //delete data expired since startup
-            std::cout << "autodelete" << std::endl;
-    }
+        }
     }
 }
 

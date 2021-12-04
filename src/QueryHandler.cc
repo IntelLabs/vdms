@@ -72,6 +72,7 @@ void QueryHandler::init()
     _rs_cmds["AddImage"]           = new AddImage();
     _rs_cmds["UpdateImage"]        = new UpdateImage();
     _rs_cmds["FindImage"]          = new FindImage();
+    _rs_cmds["DeleteExpired"]      = new DeleteExpired();
 
     _rs_cmds["AddDescriptorSet"]   = new AddDescriptorSet();
     _rs_cmds["AddDescriptor"]      = new AddDescriptor();

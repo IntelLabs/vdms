@@ -60,7 +60,7 @@ PMGDQuery::PMGDQuery(PMGDQueryHandler& pmgd_qh) :
     cmdtx->set_cmd_grp_id(_current_group_id); //give it an ID
     _cmds.push_back(cmdtx); //push the creating command to the vector
 
-    // Nodes autimatically expire
+    // Every node in database automatically 
     _expiration_limit = VDMSConfig::instance()->get_int_value(PARAM_NODE_EXPIRATION, DEFAULT_NODE_EXPIRATION);
 }
 

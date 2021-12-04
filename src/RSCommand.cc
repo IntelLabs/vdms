@@ -371,6 +371,36 @@ Json::Value FindEntity::construct_responses(
     return ret;
 }
 
+//========= DeleteExpired definitions =========
+
+DeleteExpired::DeleteExpired() : RSCommand("DeleteExpired")
+{
+}
+
+int DeleteExpired::construct_protobuf(
+    PMGDQuery& query,
+    const Json::Value& jsoncmd,
+    const std::string& blob,
+    int grp_id,
+    Json::Value& error)
+{
+    return 0;
+}
+
+Json::Value DeleteExpired::construct_responses(
+    Json::Value& response,
+    const Json::Value& json,
+    protobufs::queryMessage &query_res,
+    const std::string &blob)
+{
+    Json::Value ret;
+    Json::Value ret_internal;
+    ret_internal["status"] = RSCommand::Success;
+    ret_internal["info"]   = "AutoDelete";
+    ret["DeleteExpired"] = ret_internal;
+    return ret;
+}
+
 //========= FindConnection definitions =========
 
 FindConnection::FindConnection() : RSCommand("FindConnection")
