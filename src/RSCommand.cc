@@ -384,6 +384,8 @@ int DeleteExpired::construct_protobuf(
     int grp_id,
     Json::Value& error)
 {
+    const Json::Value& cmd = jsoncmd[_cmd_name];
+    query.DeleteExpired();
     return 0;
 }
 

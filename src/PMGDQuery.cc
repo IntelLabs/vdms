@@ -804,3 +804,14 @@ void PMGDQuery::QueryEdge(int ref, int src_ref, int dest_ref,
 
     _cmds.push_back(cmdquery);
 }
+
+void PMGDQuery::DeleteExpired()
+{
+    _readonly = false;
+
+    PMGDCmd* cmddel = new PMGDCmd();
+    cmddel->set_cmd_id(PMGDCmd::DeleteExpired);
+    cmddel->set_cmd_grp_id(_current_group_id);
+    _cmds.push_back(cmddel);
+
+}

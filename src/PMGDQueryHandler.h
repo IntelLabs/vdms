@@ -74,13 +74,13 @@ namespace VDMS {
 
         // Until we have a separate PMGD server this db lives here
         static PMGD::Graph *_db;
+        static std::priority_queue<AutoDeleteNode*, std::vector<AutoDeleteNode*>, GreaterThanTimestamp> _expiration_timestamp_queue;
 
         PMGD::Transaction *_tx;
         bool _readonly;  // Variable changes per TX based on process_queries parameter.
         bool _resultdeletion; //Variable that indicates whether results of query should be
         bool _autodelete_init; // Varibale that indicates whether we need to add nodes from query into deletion_queue
         // deleted after result is complete
-        std::priority_queue<AutoDeleteNode*, std::vector<AutoDeleteNode*>, GreaterThanTimestamp> _expiration_timestamp_queue;
 
         // Map an integer ID to a NodeIterator (reset at the end of each transaction).
         // This works for Adds and Queries. We assume that the client or

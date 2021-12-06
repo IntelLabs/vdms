@@ -130,5 +130,7 @@ namespace VDMS {
                     const Json::Value& constraints,
                     const Json::Value& results,
                     bool unique = false);
+
+        void DeleteExpired();
     };
 }

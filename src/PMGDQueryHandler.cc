@@ -43,6 +43,8 @@ using namespace PMGD;
 using namespace VDMS;
 
 PMGD::Graph *PMGDQueryHandler::_db;
+std::priority_queue<AutoDeleteNode*, std::vector<AutoDeleteNode*>, GreaterThanTimestamp> PMGDQueryHandler::_expiration_timestamp_queue;
+
 
 void PMGDQueryHandler::init()
 {
@@ -77,11 +79,15 @@ std::vector<PMGDCmdResponses>
     int retry_count = 0;
     while(retry_count < PMGD_QUERY_RETRY_LIMIT)
     {
-        if(_tx != NULL)
+        if(_tx == NULL)
+        {
+            retry_count = PMGD_QUERY_RETRY_LIMIT; //exit retry loop
+        }
+        else
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(20 * retry_count)); //backoff but for a onger time each try
+            retry_count++;
         }
-        retry_count++;
     }
     assert(_tx == NULL);
 
@@ -259,6 +265,7 @@ int PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
     {
         AutoDeleteNode* tmpDeleteNode = new AutoDeleteNode(expiration_time, &n);
         _expiration_timestamp_queue.push(tmpDeleteNode);
+        std::cout << _expiration_timestamp_queue.size() << std::endl;
     }
 
     set_response(response, protobufs::NodeID, PMGDCmdResponse::Success);
@@ -932,15 +939,15 @@ int PMGDQueryHandler::delete_expired_nodes()
     //Continue to loop untill queus is empty or we find timestamp greater than current time
     while(this_timestamp < current_timestamp && !_expiration_timestamp_queue.empty())
         {
-        tmp_node = _expiration_timestamp_queue.top();
-        this_timestamp = tmp_node->GetExpirationTimestamp();
-        if(this_timestamp < current_timestamp)
-        {
-            _db->remove(*((PMGD::Node*)(tmp_node->GetNode()))); 
-            _expiration_timestamp_queue.pop();
             tmp_node = _expiration_timestamp_queue.top();
             this_timestamp = tmp_node->GetExpirationTimestamp();
+            if(this_timestamp < current_timestamp)
+            {
+                _db->remove(*((PMGD::Node*)(tmp_node->GetNode()))); 
+                _expiration_timestamp_queue.pop();
+                tmp_node = _expiration_timestamp_queue.top();
+                this_timestamp = tmp_node->GetExpirationTimestamp();
+            }
         }
-    }
     return 0;
 }
