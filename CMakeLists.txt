@@ -35,7 +35,7 @@ target_link_libraries(dms vcl pmgd pmgd-util protobuf vdms-utils pthread)
 add_executable(vdms src/vdms.cc)
 target_link_libraries(vdms dms vdms_protobuf vcl tiledb faiss jsoncpp ${OpenCV_LIBS})
 
-add_subdirectory(ext/custom_vcl)
+#add_subdirectory(ext/custom_vcl)
 #https://cmake.org/cmake/help/v3.9/module/FindProtobuf.html
 
 #target_link_libraries(bar ${Protobuf_LIBRARIES})
