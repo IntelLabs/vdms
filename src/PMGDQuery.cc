@@ -570,7 +570,6 @@ void PMGDQuery::AddNode(int ref,
     PMGD::protobufs::Node *n = an->mutable_node();
     n->set_tag(tag);
 
-
     for (auto it = props.begin(); it != props.end(); ++it) {
          //add a extra properties in the event that special keyword _expiration is present in properties
         if(std::string(it.key().asString()).compare("_expiration") == 0)

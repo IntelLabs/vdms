@@ -43,7 +43,8 @@ using namespace PMGD;
 using namespace VDMS;
 
 PMGD::Graph *PMGDQueryHandler::_db;
-std::priority_queue<AutoDeleteNode*, std::vector<AutoDeleteNode*>, GreaterThanTimestamp> PMGDQueryHandler::_expiration_timestamp_queue;
+std::list<AutoDeleteNode*> PMGDQueryHandler::_expiration_timestamp_queue;
+
 
 
 void PMGDQueryHandler::init()
@@ -264,7 +265,7 @@ int PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
     if(cn.expiration_flag())
     {
         AutoDeleteNode* tmpDeleteNode = new AutoDeleteNode(expiration_time, &n);
-        _expiration_timestamp_queue.push(tmpDeleteNode);
+        insert_into_queue(&_expiration_timestamp_queue, tmpDeleteNode);
         std::cout << _expiration_timestamp_queue.size() << std::endl;
     }
 
@@ -810,13 +811,14 @@ void PMGDQueryHandler::build_results(Iterator &ni,
             }
             if(_resultdeletion && !(ni->get_tag() ==VDMS_DESC_SET_TAG) ) // DescriptorSets should be ignored - they are returned with Descriptors
             {
+                delete_by_value((&_expiration_timestamp_queue), (void*)(&(*ni)));
                 _db->remove(*ni);
             }
             if(_autodelete_init)
             {
                 uint64_t tmp_timestamp = (uint64_t) ni->get_property("_expiration").int_value();
                 AutoDeleteNode* tmpNode = new AutoDeleteNode(Json::UInt64(tmp_timestamp), &(*ni)); 
-                _expiration_timestamp_queue.push(tmpNode);
+                insert_into_queue(&_expiration_timestamp_queue, tmpNode);
             }
             count++;
             if (count >= limit)
@@ -939,15 +941,75 @@ int PMGDQueryHandler::delete_expired_nodes()
     //Continue to loop untill queus is empty or we find timestamp greater than current time
     while(this_timestamp < current_timestamp && !_expiration_timestamp_queue.empty())
         {
-            tmp_node = _expiration_timestamp_queue.top();
+            tmp_node = _expiration_timestamp_queue.front();
             this_timestamp = tmp_node->GetExpirationTimestamp();
             if(this_timestamp < current_timestamp)
             {
-                _db->remove(*((PMGD::Node*)(tmp_node->GetNode()))); 
-                _expiration_timestamp_queue.pop();
-                tmp_node = _expiration_timestamp_queue.top();
+                _db->remove(*((PMGD::Node*)(tmp_node->GetNode()))); //can assum Node since expiration only implemented for nodes
+                _expiration_timestamp_queue.pop_front();
+                tmp_node = _expiration_timestamp_queue.front();
                 this_timestamp = tmp_node->GetExpirationTimestamp();
             }
         }
     return 0;
+}
+
+void insert_into_queue(std::list<AutoDeleteNode*>* queue, AutoDeleteNode* new_element)
+{
+  bool insert_flag;
+  long new_timestamp = new_element->GetExpirationTimestamp();
+  
+  if(queue->empty())
+    {
+      queue->push_back(new_element);
+    }
+  else
+    {
+      //We assume new entries will have a higher timestamp so start at back of queue and move forward
+      std::list<AutoDeleteNode*>::iterator it = queue->end();
+      std::list<AutoDeleteNode*>::iterator last_val_it = std::prev(queue->end());
+      it--;
+
+      std::list<AutoDeleteNode*>::iterator begin = queue->begin();
+      insert_flag = false;
+
+      if(new_timestamp > (*last_val_it)->GetExpirationTimestamp())
+      {
+        queue->push_back(new_element);
+      }
+      else
+      {
+      while(std::prev(it) != begin && insert_flag == false)
+      {
+        if( (*it)->GetExpirationTimestamp() < new_timestamp)
+          {
+            queue->insert(it, new_element);
+            insert_flag = true;
+          }
+        it--;
+      }
+      if(insert_flag == false)
+    {
+      queue->push_front(new_element);
+    }
+      }
+  }
+}
+
+void delete_by_value(std::list<AutoDeleteNode*>* queue, void* p_delete_node)
+{
+  bool delete_flag;
+  std::list<AutoDeleteNode*>::iterator it = queue->begin();
+  std::list<AutoDeleteNode*>::iterator end = queue->end();
+  delete_flag = false;
+  
+  while(it != end && delete_flag == false)
+    {
+      if(((*it)->GetNode()) == (p_delete_node))
+      {
+        queue->erase(it);
+        delete_flag = true;
+      }
+      it++;
+    }
 }

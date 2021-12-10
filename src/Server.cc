@@ -57,10 +57,10 @@ Server::Server(std::string config_file)
     QueryHandler::init();
 
     QueryHandler qh;
-    qh.reset_autodelete_init_flag();
+    qh.set_autodelete_init_flag();
     qh.initial_run_autodelete(); //delete data expired since startup
     qh.build_autodelete_queue(); //create priority queue of nodes with _expiration property
-    qh.set_autodelete_init_flag(); // set flag to show autodelte queue has been initialized
+    qh.reset_autodelete_init_flag(); // set flag to show autodelte queue has been initialized
 
 
     // Verify that the version of the library that we linked against is

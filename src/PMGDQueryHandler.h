@@ -74,7 +74,7 @@ namespace VDMS {
 
         // Until we have a separate PMGD server this db lives here
         static PMGD::Graph *_db;
-        static std::priority_queue<AutoDeleteNode*, std::vector<AutoDeleteNode*>, GreaterThanTimestamp> _expiration_timestamp_queue;
+        static std::list<AutoDeleteNode*> _expiration_timestamp_queue;
 
         PMGD::Transaction *_tx;
         bool _readonly;  // Variable changes per TX based on process_queries parameter.
@@ -153,3 +153,6 @@ namespace VDMS {
     };
 
 }; // end VDMS namespace
+
+void insert_into_queue(std::list<AutoDeleteNode*>* queue, AutoDeleteNode* new_element);
+void delete_by_value(std::list<AutoDeleteNode*>* queue, void* p_delete_node);
