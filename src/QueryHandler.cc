@@ -469,20 +469,6 @@ void QueryHandler::set_autodelete_init_flag()
     _autodelete_init = true;
 }
 
-void QueryHandler::initial_run_autodelete()
-{
-    std::string prefix_string = std::string("[{\"FindEntity\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\"<\", ");
-    uint64_t time_value = (uint64_t) std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count();
-    std::string time_string = std::to_string(time_value);
-    std::string suffix_string = std::string("]}}}]");
-    std::string* json_string = new std::string(prefix_string + time_string + suffix_string);
-    protobufs::queryMessage response;
-    protobufs::queryMessage query;
-    query.set_json(json_string->c_str());
-    process_query(query, response);
-    delete json_string;
-}
-
 void QueryHandler::regualar_run_autodelete()
 {
     std::string* json_string = new std::string("[{\"DeleteExpired\": {\"results\": {\"list\": [\"_expiration\"]}}}]");

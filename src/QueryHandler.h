@@ -87,7 +87,6 @@ typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
         void process_connection(comm::Connection *c);
         void reset_autodelete_init_flag();
         void set_autodelete_init_flag();
-        void initial_run_autodelete();
         void regualar_run_autodelete();
         void build_autodelete_queue();
     };

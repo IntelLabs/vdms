@@ -577,7 +577,6 @@ void PMGDQuery::AddNode(int ref,
             auto now = std::chrono::system_clock::now();
             Json::UInt64 creation_time = std::chrono::time_point_cast<std::chrono::seconds>(now).time_since_epoch().count();
             Json::UInt64 expiration_time = creation_time + it->asUInt64();
-            //std::cout << "match found" << std::endl;
             PMGDProp* q = n->add_properties();
             set_property(q, "_creation", Json::Value(creation_time));
             q = n->add_properties();
@@ -598,7 +597,6 @@ void PMGDQuery::AddNode(int ref,
         auto now = std::chrono::system_clock::now();
         Json::UInt64 creation_time = std::chrono::time_point_cast<std::chrono::seconds>(now).time_since_epoch().count();
         Json::UInt64 expiration_time = creation_time + _expiration_limit;
-        //std::cout << "match found" << std::endl;
         PMGDProp* q = n->add_properties();
         set_property(q, "_creation", Json::Value(creation_time));
         q = n->add_properties();

@@ -266,7 +266,6 @@ int PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
     {
         AutoDeleteNode* tmpDeleteNode = new AutoDeleteNode(expiration_time, &n);
         insert_into_queue(&_expiration_timestamp_queue, tmpDeleteNode);
-        std::cout << _expiration_timestamp_queue.size() << std::endl;
     }
 
     set_response(response, protobufs::NodeID, PMGDCmdResponse::Success);
@@ -812,6 +811,22 @@ void PMGDQueryHandler::build_results(Iterator &ni,
             if(_resultdeletion && !(ni->get_tag() ==VDMS_DESC_SET_TAG) ) // DescriptorSets should be ignored - they are returned with Descriptors
             {
                 delete_by_value((&_expiration_timestamp_queue), (void*)(&(*ni)));
+                Property img_prop;
+                if(ni->check_property(VDMS_IM_PATH_PROP, img_prop)) //delete image if present
+                {
+                    remove(img_prop.string_value().c_str());
+                }
+                Property vid_prop;
+                if(ni->check_property(VDMS_VID_PATH_PROP, vid_prop))  //delete image if present
+                {
+                    remove(vid_prop.string_value().c_str());                    
+                }
+                Property blob_prop;
+                if( ni->check_property(VDMS_EN_BLOB_PATH_PROP, blob_prop)) //delete image if present
+                {
+                    remove(blob_prop.string_value().c_str());
+                }
+
                 _db->remove(*ni);
             }
             if(_autodelete_init)
@@ -945,10 +960,31 @@ int PMGDQueryHandler::delete_expired_nodes()
             this_timestamp = tmp_node->GetExpirationTimestamp();
             if(this_timestamp < current_timestamp)
             {
-                _db->remove(*((PMGD::Node*)(tmp_node->GetNode()))); //can assum Node since expiration only implemented for nodes
+                Property img_prop;
+                PMGD::Node* tmp_node_node = (PMGD::Node*) tmp_node->GetNode();
+                if( tmp_node_node->check_property(VDMS_IM_PATH_PROP, img_prop)) //delete image if present
+                {
+                    remove(img_prop.string_value().c_str());
+                }
+                Property vid_prop;
+                if( tmp_node_node->check_property(VDMS_VID_PATH_PROP, vid_prop))  //delete image if present
+                {
+                    remove(vid_prop.string_value().c_str());                    
+                }
+                Property blob_prop;
+                if( tmp_node_node->check_property(VDMS_EN_BLOB_PATH_PROP, blob_prop)) //delete image if present
+                {
+                    remove(blob_prop.string_value().c_str());
+                }
+
+
+                _db->remove(*((PMGD::Node*)(tmp_node->GetNode()))); //can assume Node since expiration only implemented for nodes
                 _expiration_timestamp_queue.pop_front();
-                tmp_node = _expiration_timestamp_queue.front();
-                this_timestamp = tmp_node->GetExpirationTimestamp();
+                if(!_expiration_timestamp_queue.empty())
+                {
+                    tmp_node = _expiration_timestamp_queue.front();
+                    this_timestamp = tmp_node->GetExpirationTimestamp();
+                }
             }
         }
     return 0;
