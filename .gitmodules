@@ -3,7 +3,3 @@
 	url = https://github.com/omp87/pmgd.git
 	branch = develop
 	
-[submodule "ext/custom_vcl"]
-	path = ext/custom_vcl
-	url = git@github.com:omp87/custom_vcl.git
-	branch = separate_local_process
