@@ -3,7 +3,3 @@
 	url = https://github.com/omp87/pmgd.git
 	branch = develop
 	
-[submodule "ext/custom_vcl"]
-	path = ext/custom_vcl
-	url = https://gitlab.devtools.intel.com/labs-csr/custom_vcl.git
-	branch = main
