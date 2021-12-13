@@ -1,7 +1,6 @@
 {
     "port": 55555,
     "max_simultaneous_clients": 100,
-    "autodelete_interval_s": 10, 
     "db_root_path": "db",
     "more-info": "github.com/IntelLabs/vdms"
 }

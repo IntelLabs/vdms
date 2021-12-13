@@ -16,11 +16,8 @@ include_directories(${Protobuf_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 execute_process(COMMAND python ${CMAKE_CURRENT_SOURCE_DIR}/utils/src/api_schema/createApiString.py ${CMAKE_CURRENT_SOURCE_DIR}/utils/src/api_schema/api_schema.json ${CMAKE_CURRENT_BINARY_DIR}/APISchema.h)
-
-message(STATUS "before " ${PROTO_SRCS} ${PROTO_HDRS})
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS utils/src/protobuf/partitionerMessages.proto utils/src/protobuf/pmgdMessages.proto utils/src/protobuf/queryMessage.proto)
 add_library(vdms_protobuf SHARED ${PROTO_SRCS} ${PROTO_HDRS})
-message(STATUS "after " ${PROTO_SRCS} ${PROTO_HDRS})
 
 add_subdirectory(src/pmgd)
 add_subdirectory(utils)
@@ -34,8 +31,3 @@ target_link_libraries(dms vcl pmgd pmgd-util protobuf vdms-utils pthread)
 
 add_executable(vdms src/vdms.cc)
 target_link_libraries(vdms dms vdms_protobuf vcl tiledb faiss jsoncpp ${OpenCV_LIBS})
-
-#add_subdirectory(ext/custom_vcl)
-#https://cmake.org/cmake/help/v3.9/module/FindProtobuf.html
-
-#target_link_libraries(bar ${Protobuf_LIBRARIES})
