@@ -72,6 +72,7 @@ TEST(AddImage, simpleAdd)
     QueryHandler::init();
 
     QueryHandler qh_base;
+    qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
     QueryHandlerTester query_handler(qh_base);
 
     VDMS::protobufs::queryMessage proto_query;
@@ -130,6 +131,7 @@ TEST(UpdateEntity, simpleAddUpdate)
     QueryHandler::init();
 
     QueryHandler qh_base;
+    qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
     QueryHandlerTester query_handler(qh_base);
 
     VDMS::protobufs::queryMessage proto_query;
@@ -177,6 +179,7 @@ TEST(AddImage, simpleAddx10)
     QueryHandler::init();
 
     QueryHandler qh_base;
+    qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
     QueryHandlerTester query_handler(qh_base);
 
     VDMS::protobufs::queryMessage proto_query;
@@ -390,7 +393,8 @@ TEST(QueryHandler, EmptyResultCheck)
     PMGDQueryHandler::init();
     QueryHandler::init();
 
-    QueryHandler qh_base;
+    QueryHandler qh_base;    
+    qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
     QueryHandlerTester query_handler(qh_base);
 
     VDMS::protobufs::queryMessage proto_query;
@@ -445,6 +449,7 @@ TEST(QueryHandler, DataTypeChecks)
     QueryHandler::init();
 
     QueryHandler qh_base;
+    qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
     QueryHandlerTester query_handler(qh_base);
 
     VDMS::protobufs::queryMessage proto_query;
