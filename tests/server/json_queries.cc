@@ -286,6 +286,7 @@ TEST(QueryHandler, AddAndFind)
     QueryHandler::init();
 
     QueryHandler qh_base;
+    qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
     QueryHandlerTester query_handler(qh_base);
 
     VDMS::protobufs::queryMessage proto_query;

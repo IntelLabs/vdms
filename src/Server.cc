@@ -60,7 +60,7 @@ Server::Server(std::string config_file)
     qh.set_autodelete_init_flag();
     qh.build_autodelete_queue(); //create priority queue of nodes with _expiration property
     qh.regualar_run_autodelete(); // delete nodes that have expired since server previous closed
-    qh.reset_autodelete_init_flag(); // set flag to show autodelte queue has been initialized
+    qh.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
 
 
     // Verify that the version of the library that we linked against is
