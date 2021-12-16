@@ -1,0 +1,43 @@
+[
+    {
+        "AddEntity":
+        {
+            "class": "Sample",
+            "properties": {
+                "Email":"a@b.com",
+                "_expiration": 1
+            }
+        }
+    },
+    {
+        "AddEntity":
+        {
+            "class": "Sample",
+            "properties": {
+                "Email":"b@b.com",
+                "_expiration": 1
+            }
+        }
+    },
+    {
+        "AddEntity":
+        {
+            "class": "Sample",
+            "properties": {
+                "Email":"c@d.com",
+                "_expiration": 5000
+            }
+        }
+    },
+    {
+        "AddEntity":
+        {
+            "class": "Sample",
+            "properties": {
+                "Email":"d@d.com",
+                "_expiration": 5000
+            }
+        }
+    }
+]
+

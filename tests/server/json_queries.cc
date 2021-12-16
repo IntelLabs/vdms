@@ -470,3 +470,65 @@ TEST(QueryHandler, DataTypeChecks)
     VDMSConfig::destroy();
     PMGDQueryHandler::destroy();
 }
+
+
+TEST(QueryHandler, AutoDeleteNode)
+{
+    Json::Reader reader;
+
+    std::ifstream ifile;
+    int fsize;
+    char * inBuf;
+    ifile.open("server/AutoDeleteNodeInit.json", std::ifstream::in);
+    ifile.seekg(0, std::ios::end);
+    fsize = (int)ifile.tellg();
+    ifile.seekg(0, std::ios::beg);
+    inBuf = new char[fsize];
+    ifile.read(inBuf, fsize);
+    std::string json_query_init = std::string(inBuf);
+    ifile.close();
+    delete[] inBuf;
+
+    ifile.open("server/AutoDeleteNodeTest.json", std::ifstream::in);
+    ifile.seekg(0, std::ios::end);
+    fsize = (int)ifile.tellg();
+    ifile.seekg(0, std::ios::beg);
+    inBuf = new char[fsize];
+    ifile.read(inBuf, fsize);
+    std::string json_query_test = std::string(inBuf);
+    ifile.close();
+    delete[] inBuf;
+
+    VDMSConfig::init("server/config-datatype-tests.json");
+    PMGDQueryHandler::init();
+    QueryHandler::init();
+
+    QueryHandler qh_base;
+    qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
+    QueryHandlerTester query_handler(qh_base);
+
+    VDMS::protobufs::queryMessage proto_query_init;
+    proto_query_init.set_json(json_query_init);
+    VDMS::protobufs::queryMessage response_init;
+    query_handler.pq(proto_query_init, response_init );
+
+    std::this_thread::sleep_for(12s);
+
+    qh_base.set_autodelete_init_flag();
+    qh_base.build_autodelete_queue(); //create priority queue of nodes with _expiration property
+    qh_base.regualar_run_autodelete(); // delete nodes that have expired since server previous closed
+    qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
+
+    VDMS::protobufs::queryMessage proto_query_test;
+    proto_query_test.set_json(json_query_test);
+    VDMS::protobufs::queryMessage response_test;
+    query_handler.pq(proto_query_test, response_test );
+    Json::Value parsed;
+    reader.parse(response_test.json().c_str(), parsed);
+    const Json::Value& query = parsed[0];
+    EXPECT_EQ(query["FindEntity"]["returned"], 2 );
+    EXPECT_EQ(query["FindEntity"]["status"], 0);
+
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}

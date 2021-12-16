@@ -1,0 +1,17 @@
+[
+    {
+        "FindEntity": 
+        {
+            "results": 
+            {
+                "list": 
+                ["_expiration"]
+            },
+            "constraints": 
+            {
+                "_expiration": 
+                [">", 0]
+            }
+        }
+    }
+]
