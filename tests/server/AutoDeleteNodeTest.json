@@ -5,13 +5,30 @@
             "results": 
             {
                 "list": 
-                ["_expiration"]
+                    ["_expiration"]
+            },
+            "constraints": 
+            {
+                "_deletion": 
+                    ["==", 1]
+            }
+        }
+    },
+    {
+        "FindEntity": 
+        {
+            "results": 
+            {
+                "list": 
+                    ["_expiration"]
             },
             "constraints": 
             {
                 "_expiration": 
-                [">", 0]
+                    [">", 0],
+                "node_id": ["==", 3]
             }
         }
     }
+
 ]

@@ -525,8 +525,8 @@ TEST(QueryHandler, AutoDeleteNode)
     query_handler.pq(proto_query_test, response_test );
     Json::Value parsed;
     reader.parse(response_test.json().c_str(), parsed);
-    const Json::Value& query = parsed[0];
-    EXPECT_EQ(query["FindEntity"]["returned"], 2 );
+    const Json::Value& query = parsed[1];
+    EXPECT_EQ(query["FindEntity"]["returned"], 1 );
     EXPECT_EQ(query["FindEntity"]["status"], 0);
 
     VDMSConfig::destroy();

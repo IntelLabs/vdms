@@ -5,6 +5,7 @@
             "class": "Sample",
             "properties": {
                 "Email":"a@b.com",
+                "node_id": 1,
                 "_expiration": 1
             }
         }
@@ -15,6 +16,7 @@
             "class": "Sample",
             "properties": {
                 "Email":"b@b.com",
+                "node_id": 2,
                 "_expiration": 1
             }
         }
@@ -25,6 +27,7 @@
             "class": "Sample",
             "properties": {
                 "Email":"c@d.com",
+                "node_id": 3,
                 "_expiration": 5000
             }
         }
@@ -35,6 +38,7 @@
             "class": "Sample",
             "properties": {
                 "Email":"d@d.com",
+                "node_id": 4,
                 "_expiration": 5000
             }
         }
