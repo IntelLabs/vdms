@@ -186,7 +186,7 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
                 retval = add_edge(cmd->add_edge(), response);
                 break;
             case PMGDCmd::QueryNode:
-	            retval = query_node(cmd->query_node(), response, autodelete_init);
+                retval = query_node(cmd->query_node(), response, autodelete_init);
                 break;
             case PMGDCmd::QueryEdge:
                 retval = query_edge(cmd->query_edge(), response);
@@ -198,7 +198,7 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
                 update_edge(cmd->update_edge(), response);
                 break;
             case PMGDCmd::DeleteExpired:
-	            retval = delete_expired_nodes();
+                retval = delete_expired_nodes();
                 break;
         }
     }
@@ -992,60 +992,60 @@ int PMGDQueryHandler::delete_expired_nodes()
 
 void insert_into_queue(std::list<AutoDeleteNode*>* queue, AutoDeleteNode* new_element)
 {
-  bool insert_flag;
-  long new_timestamp = new_element->GetExpirationTimestamp();
+    bool insert_flag;
+    long new_timestamp = new_element->GetExpirationTimestamp();
   
-  if(queue->empty())
+    if(queue->empty())
     {
-      queue->push_back(new_element);
-    }
-  else
-    {
-      //We assume new entries will have a higher timestamp so start at back of queue and move forward
-      std::list<AutoDeleteNode*>::iterator it = queue->end();
-      std::list<AutoDeleteNode*>::iterator last_val_it = std::prev(queue->end());
-      it--;
-
-      std::list<AutoDeleteNode*>::iterator begin = queue->begin();
-      insert_flag = false;
-
-      if(new_timestamp > (*last_val_it)->GetExpirationTimestamp())
-      {
         queue->push_back(new_element);
-      }
-      else
-      {
-      while(std::prev(it) != begin && insert_flag == false)
-      {
-        if( (*it)->GetExpirationTimestamp() < new_timestamp)
-          {
-            queue->insert(it, new_element);
-            insert_flag = true;
-          }
-        it--;
-      }
-      if(insert_flag == false)
-    {
-      queue->push_front(new_element);
     }
-      }
-  }
+    else
+    {
+        //We assume new entries will have a higher timestamp so start at back of queue and move forward
+        std::list<AutoDeleteNode*>::iterator it = queue->end();
+        std::list<AutoDeleteNode*>::iterator last_val_it = std::prev(queue->end());
+        it--;
+
+        std::list<AutoDeleteNode*>::iterator begin = queue->begin();
+        insert_flag = false;
+
+        if(new_timestamp > (*last_val_it)->GetExpirationTimestamp())
+        {
+            queue->push_back(new_element);
+        }
+        else
+        {
+            while(std::prev(it) != begin && insert_flag == false)
+            {
+                if( (*it)->GetExpirationTimestamp() < new_timestamp)
+                {
+                    queue->insert(it, new_element);
+                    insert_flag = true;
+                }
+                it--;
+            }
+            if(insert_flag == false)
+            {
+                queue->push_front(new_element);
+            }
+        }
+    }
 }
 
 void delete_by_value(std::list<AutoDeleteNode*>* queue, void* p_delete_node)
 {
-  bool delete_flag;
-  std::list<AutoDeleteNode*>::iterator it = queue->begin();
-  std::list<AutoDeleteNode*>::iterator end = queue->end();
-  delete_flag = false;
-  
-  while(it != end && delete_flag == false)
+    bool delete_flag;
+    std::list<AutoDeleteNode*>::iterator it = queue->begin();
+    std::list<AutoDeleteNode*>::iterator end = queue->end();
+    delete_flag = false;
+    
+    while(it != end && delete_flag == false)
     {
-      if(((*it)->GetNode()) == (p_delete_node))
-      {
-        queue->erase(it);
-        delete_flag = true;
-      }
-      it++;
+        if(((*it)->GetNode()) == (p_delete_node))
+        {
+            queue->erase(it);
+            delete_flag = true;
+        }
+        it++;
     }
 }
