@@ -4,12 +4,12 @@ Here are the instructions to build a docker image of the VDMS Server.
 
 The build command is: 
 
-    cd server
+    cd base
     Dockerfile | docker build -t vdms:latest .
 
 If you are under a proxy, use:
 
-    cd server
+    cd base
     Dockerfile | docker build -t vdms:latest --build-arg=http_proxy --build-arg=https_proxy .
 
 To run the docker image as a container, include the --net flag.
