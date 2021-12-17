@@ -480,10 +480,9 @@ void QueryHandler::regualar_run_autodelete()
     delete json_string;
 }
 
-
 void QueryHandler::build_autodelete_queue()
 {
-    std::string* json_string = new std::string("[{\"FindImage\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\">\", 0]}}}, {\"FindVideo\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\">\", 0]}}}], {\"FindEntity\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\">\", 0]}}}");
+    std::string* json_string = new std::string("[{\"FindImage\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\">\", 0]}}}, {\"FindVideo\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\">\", 0]}}}], {\"FindFrames\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\">\", 0]}}}], {\"FindDescriptor\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\">\", 0]}}}], {\"FindEntity\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\">\", 0]}}}");
     protobufs::queryMessage response;
     protobufs::queryMessage query;
     query.set_json(json_string->c_str());
