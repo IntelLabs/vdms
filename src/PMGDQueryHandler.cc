@@ -44,8 +44,7 @@ using namespace VDMS;
 
 PMGD::Graph *PMGDQueryHandler::_db;
 std::list<AutoDeleteNode*> PMGDQueryHandler::_expiration_timestamp_queue;
-
-
+std::vector<std::string> PMGDQueryHandler::_cleanup_filename_list;
 
 void PMGDQueryHandler::init()
 {
@@ -814,19 +813,18 @@ void PMGDQueryHandler::build_results(Iterator &ni,
                 Property img_prop;
                 if(ni->check_property(VDMS_IM_PATH_PROP, img_prop)) //delete image if present
                 {
-                    remove(img_prop.string_value().c_str());
+                    _cleanup_filename_list.push_back(img_prop.string_value());
                 }
                 Property vid_prop;
                 if(ni->check_property(VDMS_VID_PATH_PROP, vid_prop))  //delete image if present
                 {
-                    remove(vid_prop.string_value().c_str());                    
+                    _cleanup_filename_list.push_back(vid_prop.string_value());
                 }
                 Property blob_prop;
                 if( ni->check_property(VDMS_EN_BLOB_PATH_PROP, blob_prop)) //delete image if present
                 {
-                    remove(blob_prop.string_value().c_str());
+                    _cleanup_filename_list.push_back(blob_prop.string_value());
                 }
-
                 _db->remove(*ni);
             }
             if(_autodelete_init)
@@ -953,7 +951,7 @@ int PMGDQueryHandler::delete_expired_nodes()
     Json::UInt64 current_timestamp = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count();
     Json::UInt64 this_timestamp = 0;
 
-    //Continue to loop untill queus is empty or we find timestamp greater than current time
+    //Continue to loop until queue is empty or we find timestamp greater than current time
     while(this_timestamp < current_timestamp && !_expiration_timestamp_queue.empty())
         {
             tmp_node = _expiration_timestamp_queue.front();
@@ -990,6 +988,11 @@ int PMGDQueryHandler::delete_expired_nodes()
     return 0;
 }
 
+void PMGDQueryHandler::cleanup_files()
+{
+    cleanup_pmgd_files(&_cleanup_filename_list);
+}
+
 void insert_into_queue(std::list<AutoDeleteNode*>* queue, AutoDeleteNode* new_element)
 {
     bool insert_flag;
@@ -997,36 +1000,44 @@ void insert_into_queue(std::list<AutoDeleteNode*>* queue, AutoDeleteNode* new_el
   
     if(queue->empty())
     {
-        queue->push_back(new_element);
+        queue->push_front(new_element);
     }
     else
     {
         //We assume new entries will have a higher timestamp so start at back of queue and move forward
         std::list<AutoDeleteNode*>::iterator it = queue->end();
-        std::list<AutoDeleteNode*>::iterator last_val_it = std::prev(queue->end());
         it--;
-
         std::list<AutoDeleteNode*>::iterator begin = queue->begin();
         insert_flag = false;
 
-        if(new_timestamp > (*last_val_it)->GetExpirationTimestamp())
+        if(new_timestamp >= queue->back()->GetExpirationTimestamp())
         {
             queue->push_back(new_element);
         }
         else
         {
-            while(std::prev(it) != begin && insert_flag == false)
+            while(it != begin && insert_flag == false)
             {
                 if( (*it)->GetExpirationTimestamp() < new_timestamp)
                 {
-                    queue->insert(it, new_element);
+                    queue->insert(std::next(it), new_element);
                     insert_flag = true;
                 }
                 it--;
             }
             if(insert_flag == false)
             {
-                queue->push_front(new_element);
+                if(new_timestamp < (*begin)->GetExpirationTimestamp())
+                {
+                    queue->push_front(new_element);
+                }
+                else
+                {
+                    it = begin;
+                    it++;
+                    queue->insert(it, new_element);
+                }
+
             }
         }
     }
@@ -1046,6 +1057,16 @@ void delete_by_value(std::list<AutoDeleteNode*>* queue, void* p_delete_node)
             queue->erase(it);
             delete_flag = true;
         }
+        it++;
+    }
+}
+
+void cleanup_pmgd_files(std::vector<std::string>* p_cleanup_list)
+{
+    std::vector<std::string>::iterator it = p_cleanup_list->begin();
+    while(it != p_cleanup_list->end())
+    {
+        remove((*it).c_str());
         it++;
     }
 }

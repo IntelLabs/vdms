@@ -75,6 +75,7 @@ namespace VDMS {
         // Until we have a separate PMGD server this db lives here
         static PMGD::Graph *_db;
         static std::list<AutoDeleteNode*> _expiration_timestamp_queue;
+        static std::vector<std::string> _cleanup_filename_list; //files cannot be deleted until after blobs are added
 
         PMGD::Transaction *_tx;
         bool _readonly;  // Variable changes per TX based on process_queries parameter.
@@ -150,9 +151,11 @@ namespace VDMS {
         // order and account for the TxBegin and TxEnd in numbering.
         std::vector<PMGDCmdResponses> process_queries(const PMGDCmds &cmds,
                                                       int num_groups, bool readonly, bool resultdeletion=false, bool autodelete_init = false);
+        void cleanup_files();
     };
 
 }; // end VDMS namespace
 
 void insert_into_queue(std::list<AutoDeleteNode*>* queue, AutoDeleteNode* new_element);
 void delete_by_value(std::list<AutoDeleteNode*>* queue, void* p_delete_node);
+void cleanup_pmgd_files(std::vector<std::string>* p_cleanup_list);

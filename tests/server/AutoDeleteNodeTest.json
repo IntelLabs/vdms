@@ -10,12 +10,14 @@
             "constraints": 
             {
                 "_deletion": 
-                    ["==", 1]
+                    ["==", 1],
+                "type_id":
+                    ["==", 0]
             }
         }
     },
     {
-        "FindEntity": 
+        "FindImage": 
         {
             "results": 
             {
@@ -26,7 +28,23 @@
             {
                 "_expiration": 
                     [">", 0],
-                "node_id": ["==", 3]
+                "type_id": ["==", 1]
+            }
+        }
+    },
+    {
+        "FindVideo": 
+        {
+            "results": 
+            {
+                "list": 
+                    ["_expiration"]
+            },
+            "constraints": 
+            {
+                "_deletion": 
+                    ["==", 1],
+                "type_id": ["==", 2]
             }
         }
     }
