@@ -1,5 +1,5 @@
 /**
- * @file   Server.h
+ * @file   AutoDeleteNode.cc
  *
  * @section LICENSE
  *
@@ -29,38 +29,24 @@
  *
  */
 
-#pragma once
+#include "AutoDeleteNode.h"
 
-#include <csignal>
+AutoDeleteNode::AutoDeleteNode(Json::UInt64 new_expiration_timestamp, void*  new_node)
+{
+    _expiration_timestamp = new_expiration_timestamp;
+    _node = new_node;
+}
 
-#include "pmgd.h"
-#include "CommunicationManager.h"
+AutoDeleteNode::~AutoDeleteNode()
+{
+}
 
-namespace VDMS {
-    class Server
-    {
-        static const int DEFAULT_PORT = 55555;
-        static const int DEFAULT_AUTODELETE_INTERVAL = -1;
+Json::UInt64 AutoDeleteNode::GetExpirationTimestamp()
+{
+    return _expiration_timestamp;
+}
 
-        CommunicationManager *_cm;
-
-        // TODO: Partitioner here
-
-        int _server_port;
-        int _autodelete_interval;
-
-        // Handle ^c
-        static bool shutdown;
-        void install_handler();
-        static void sighandler(int signo)
-            { Server::shutdown = (signo == SIGINT) ||
-                                 (signo == SIGTERM)||
-                                 (signo == SIGQUIT); }
-
-    public:
-        Server(std::string config_file);
-        void process_requests();
-        void autodelete_expired_data();
-        ~Server();
-    };
-};
+void* AutoDeleteNode::GetNode()
+{
+    return _node;
+}

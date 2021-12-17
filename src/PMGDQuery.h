@@ -51,7 +51,10 @@ namespace VDMS {
         PMGDQueryHandler& _pmgd_qh;
         unsigned _current_ref;
         bool _readonly;    // Stays true unless some write cmd sets it to false.
-        bool _resultdeletion;
+        bool _resultdeletion; // Indicates whether the results should be deleted
+        bool _resultexpiration; //Indicates whether the result should be stored in expiration_queue
+                                //This takes place only during an add where the _expiration flag is true
+        
 
         Json::Value _json_responses;
 
@@ -82,7 +85,7 @@ namespace VDMS {
         unsigned current_group() { return _current_group_id; }
         unsigned get_available_reference() { return _current_ref++; }
 
-        Json::Value& run();
+        Json::Value& run(bool autodelete_init = false);
 
         //This is a reference to avoid copies
         Json::Value& get_json_responses() {return _json_responses;}
@@ -127,5 +130,7 @@ namespace VDMS {
                     const Json::Value& constraints,
                     const Json::Value& results,
                     bool unique = false);
+
+        void DeleteExpired();
     };
 }
