@@ -1,0 +1,52 @@
+[
+    {
+        "FindEntity": 
+        {
+            "results": 
+            {
+                "list": 
+                    ["_expiration"]
+            },
+            "constraints": 
+            {
+                "_deletion": 
+                    ["==", 1],
+                "type_id":
+                    ["==", 0]
+            }
+        }
+    },
+    {
+        "FindImage": 
+        {
+            "results": 
+            {
+                "list": 
+                    ["_expiration"]
+            },
+            "constraints": 
+            {
+                "_expiration": 
+                    [">", 0],
+                "type_id": ["==", 1]
+            }
+        }
+    },
+    {
+        "FindVideo": 
+        {
+            "results": 
+            {
+                "list": 
+                    ["_expiration"]
+            },
+            "constraints": 
+            {
+                "_deletion": 
+                    ["==", 1],
+                "type_id": ["==", 2]
+            }
+        }
+    }
+
+]

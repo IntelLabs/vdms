@@ -1,5 +1,5 @@
 /**
- * @file   Server.h
+ * @file   AutoDeleteNode.h
  *
  * @section LICENSE
  *
@@ -29,38 +29,35 @@
  *
  */
 
-#pragma once
+#include <stdio.h>
+#include <iostream>
 
-#include <csignal>
+#include <vector>
+#include<queue>
 
-#include "pmgd.h"
-#include "CommunicationManager.h"
+#include <jsoncpp/json/json.h>
+#include <jsoncpp/json/value.h>
 
-namespace VDMS {
-    class Server
+#include "node.h"
+#include "iterator.h"
+
+class AutoDeleteNode
+{
+private:
+        Json::UInt64 _expiration_timestamp;
+        void* _node; //can use void pointer because query only seraches for Nodes and not edges
+public:
+        AutoDeleteNode(Json::UInt64 new_expiration_timestamp, void* n_node);
+        ~AutoDeleteNode();
+        Json::UInt64 GetExpirationTimestamp();
+        void* GetNode();
+
+};
+
+struct GreaterThanTimestamp
+{
+    bool operator()(AutoDeleteNode* lhs, AutoDeleteNode* rhs) const
     {
-        static const int DEFAULT_PORT = 55555;
-        static const int DEFAULT_AUTODELETE_INTERVAL = -1;
-
-        CommunicationManager *_cm;
-
-        // TODO: Partitioner here
-
-        int _server_port;
-        int _autodelete_interval;
-
-        // Handle ^c
-        static bool shutdown;
-        void install_handler();
-        static void sighandler(int signo)
-            { Server::shutdown = (signo == SIGINT) ||
-                                 (signo == SIGTERM)||
-                                 (signo == SIGQUIT); }
-
-    public:
-        Server(std::string config_file);
-        void process_requests();
-        void autodelete_expired_data();
-        ~Server();
-    };
+        return lhs->GetExpirationTimestamp() > rhs->GetExpirationTimestamp();
+    }
 };

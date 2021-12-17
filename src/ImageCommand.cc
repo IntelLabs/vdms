@@ -70,6 +70,23 @@ void ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
             img.rotate(get_value<double>(op, "angle"),
                        get_value<bool>(op, "resize"));
         }
+        else if (type == "custom") 
+        {
+            VCL::Image* tmp_image = new VCL::Image(img , true);
+            try
+            {
+                int error_flag = custom_vcl_function(img, op);
+                if(error_flag != 0)
+                {
+                    throw ExceptionCommand(ImageError, "Custom operation not implemented by separate process");
+                }
+            }
+            catch ( ... ) 
+            {
+                img.deep_copy_cv(tmp_image->get_cvmat(true));
+            }
+            delete tmp_image;
+        }
         else {
             throw ExceptionCommand(ImageError, "Operation not defined");
         }

@@ -34,6 +34,7 @@
 #include <mutex>
 #include <vector>
 #include "vcl/Image.h"
+#include "vcl/CustomVCL.h"
 
 #include "RSCommand.h"
 #include "ExceptionsCommand.h"
