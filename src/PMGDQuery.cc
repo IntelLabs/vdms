@@ -60,7 +60,7 @@ PMGDQuery::PMGDQuery(PMGDQueryHandler& pmgd_qh) :
     cmdtx->set_cmd_grp_id(_current_group_id); //give it an ID
     _cmds.push_back(cmdtx); //push the creating command to the vector
 
-    // Nodes autimatically expire
+    // Every node in database automatically 
     _expiration_limit = VDMSConfig::instance()->get_int_value(PARAM_NODE_EXPIRATION, DEFAULT_NODE_EXPIRATION);
 }
 
@@ -71,7 +71,7 @@ PMGDQuery::~PMGDQuery()
     }
 }
 
-Json::Value& PMGDQuery::run()
+Json::Value& PMGDQuery::run(bool autodlete_init)
 {
     add_group(); // will set _current_group_id correctly
 
@@ -84,7 +84,7 @@ Json::Value& PMGDQuery::run()
 
     // execute the queries using the PMGDQueryHandler object
     std::vector<std::vector<PMGDCmdResponse* >> _pmgd_responses;
-    _pmgd_responses = _pmgd_qh.process_queries(_cmds, _current_group_id + 1, _readonly, _resultdeletion);
+    _pmgd_responses = _pmgd_qh.process_queries(_cmds, _current_group_id + 1, _readonly, _resultdeletion, autodlete_init);
 
     if (_pmgd_responses.size() != _current_group_id + 1) {
         if (_pmgd_responses.size() == 1 && _pmgd_responses[0].size() == 1) {
@@ -454,7 +454,6 @@ bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
                 //ddm if query still matches - check to ensure that ti,e is in the past
                 if(expiration_query_match && expiration_iteration)
                 {
-                    std::cout << predicate[1] << " " << std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count() << std::endl;
                     if(predicate[1].asUInt64() >= 1+ std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count())
                     {
                         expiration_query_match = false;
@@ -571,7 +570,6 @@ void PMGDQuery::AddNode(int ref,
     PMGD::protobufs::Node *n = an->mutable_node();
     n->set_tag(tag);
 
-
     for (auto it = props.begin(); it != props.end(); ++it) {
          //add a extra properties in the event that special keyword _expiration is present in properties
         if(std::string(it.key().asString()).compare("_expiration") == 0)
@@ -579,12 +577,12 @@ void PMGDQuery::AddNode(int ref,
             auto now = std::chrono::system_clock::now();
             Json::UInt64 creation_time = std::chrono::time_point_cast<std::chrono::seconds>(now).time_since_epoch().count();
             Json::UInt64 expiration_time = creation_time + it->asUInt64();
-            //std::cout << "match found" << std::endl;
             PMGDProp* q = n->add_properties();
             set_property(q, "_creation", Json::Value(creation_time));
             q = n->add_properties();
             set_property(q, "_expiration", Json::Value(expiration_time));
             expiration_query_match = true;
+            an->set_expiration_flag(true);
         }
         else
         {
@@ -599,13 +597,12 @@ void PMGDQuery::AddNode(int ref,
         auto now = std::chrono::system_clock::now();
         Json::UInt64 creation_time = std::chrono::time_point_cast<std::chrono::seconds>(now).time_since_epoch().count();
         Json::UInt64 expiration_time = creation_time + _expiration_limit;
-        //std::cout << "match found" << std::endl;
         PMGDProp* q = n->add_properties();
         set_property(q, "_creation", Json::Value(creation_time));
         q = n->add_properties();
         set_property(q, "_expiration", Json::Value(expiration_time));
+        an->set_expiration_flag(true);
     }
-
 
     if(!constraints.isNull()) {
         PMGDQueryNode *qn = an->mutable_query_node();
@@ -803,4 +800,15 @@ void PMGDQuery::QueryEdge(int ref, int src_ref, int dest_ref,
         parse_query_results(results, qr);
 
     _cmds.push_back(cmdquery);
+}
+
+void PMGDQuery::DeleteExpired()
+{
+    _readonly = false;
+
+    PMGDCmd* cmddel = new PMGDCmd();
+    cmddel->set_cmd_id(PMGDCmd::DeleteExpired);
+    cmddel->set_cmd_grp_id(_current_group_id);
+    _cmds.push_back(cmddel);
+
 }

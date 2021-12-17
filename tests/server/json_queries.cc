@@ -72,6 +72,7 @@ TEST(AddImage, simpleAdd)
     QueryHandler::init();
 
     QueryHandler qh_base;
+    qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
     QueryHandlerTester query_handler(qh_base);
 
     VDMS::protobufs::queryMessage proto_query;
@@ -130,6 +131,7 @@ TEST(UpdateEntity, simpleAddUpdate)
     QueryHandler::init();
 
     QueryHandler qh_base;
+    qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
     QueryHandlerTester query_handler(qh_base);
 
     VDMS::protobufs::queryMessage proto_query;
@@ -177,6 +179,7 @@ TEST(AddImage, simpleAddx10)
     QueryHandler::init();
 
     QueryHandler qh_base;
+    qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
     QueryHandlerTester query_handler(qh_base);
 
     VDMS::protobufs::queryMessage proto_query;
@@ -286,6 +289,7 @@ TEST(QueryHandler, AddAndFind)
     QueryHandler::init();
 
     QueryHandler qh_base;
+    qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
     QueryHandlerTester query_handler(qh_base);
 
     VDMS::protobufs::queryMessage proto_query;
@@ -389,7 +393,8 @@ TEST(QueryHandler, EmptyResultCheck)
     PMGDQueryHandler::init();
     QueryHandler::init();
 
-    QueryHandler qh_base;
+    QueryHandler qh_base;    
+    qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
     QueryHandlerTester query_handler(qh_base);
 
     VDMS::protobufs::queryMessage proto_query;
@@ -444,6 +449,7 @@ TEST(QueryHandler, DataTypeChecks)
     QueryHandler::init();
 
     QueryHandler qh_base;
+    qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
     QueryHandlerTester query_handler(qh_base);
 
     VDMS::protobufs::queryMessage proto_query;
@@ -460,6 +466,102 @@ TEST(QueryHandler, DataTypeChecks)
     EXPECT_EQ(query["FindEntity"]["entities"][0]["Birthday"].asString(), "1936-10-01T17:59:24.001-07:00");
     EXPECT_EQ(query["FindEntity"]["entities"][0]["timestamp"].asInt64(), 1544069566053);
     EXPECT_EQ(query["FindEntity"]["entities"][1]["Birthday"].asString(), "1946-10-01T17:49:24.009010-07:00");
+
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}
+
+
+TEST(QueryHandler, AutoDeleteNode)
+{
+    Json::Reader reader;
+
+    std::ifstream ifile;
+    int fsize;
+    char * inBuf;
+    ifile.open("server/AutoDeleteNodeInit.json", std::ifstream::in);
+    ifile.seekg(0, std::ios::end);
+    fsize = (int)ifile.tellg();
+    ifile.seekg(0, std::ios::beg);
+    inBuf = new char[fsize];
+    ifile.read(inBuf, fsize);
+    std::string json_query_init = std::string(inBuf);
+    ifile.close();
+    delete[] inBuf;
+
+    ifile.open("server/AutoDeleteNodeTest.json", std::ifstream::in);
+    ifile.seekg(0, std::ios::end);
+    fsize = (int)ifile.tellg();
+    ifile.seekg(0, std::ios::beg);
+    inBuf = new char[fsize];
+    ifile.read(inBuf, fsize);
+    std::string json_query_test = std::string(inBuf);
+    ifile.close();
+    delete[] inBuf;
+
+    std::string image;
+    std::ifstream image_file("test_images/brain.png",
+                    std::ios::in | std::ios::binary | std::ios::ate);
+
+    image.resize(image_file.tellg());
+
+    image_file.seekg(0, std::ios::beg);
+    if( !image_file.read(&image[ 0 ], image.size()))
+        std::cout << "error" << std::endl;
+
+    std::string video;
+    std::ifstream video_file("test_videos/Megamind.avi",
+                    std::ios::in | std::ios::binary | std::ios::ate);
+
+    video.resize(video_file.tellg());
+
+    video_file.seekg(0, std::ios::beg);
+    if( !video_file.read(&video[ 0 ], video.size()))
+        std::cout << "error" << std::endl;
+
+    VDMSConfig::init("server/config-datatype-tests.json");
+    PMGDQueryHandler::init();
+    QueryHandler::init();
+
+    QueryHandler qh_base;
+    qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
+    QueryHandlerTester query_handler(qh_base);
+
+    VDMS::protobufs::queryMessage proto_query_init;
+    proto_query_init.set_json(json_query_init);
+    proto_query_init.add_blobs(image);
+    proto_query_init.add_blobs(image);
+    proto_query_init.add_blobs(image);
+    proto_query_init.add_blobs(image);
+    proto_query_init.add_blobs(video);
+    proto_query_init.add_blobs(video);
+
+    VDMS::protobufs::queryMessage response_init;
+    query_handler.pq(proto_query_init, response_init );
+
+    std::this_thread::sleep_for(12s);
+
+    qh_base.set_autodelete_init_flag();
+    qh_base.build_autodelete_queue(); //create priority queue of nodes with _expiration property
+    qh_base.regualar_run_autodelete(); // delete nodes that have expired since server previous closed
+    qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
+
+    VDMS::protobufs::queryMessage proto_query_test;
+    proto_query_test.set_json(json_query_test);
+    VDMS::protobufs::queryMessage response_test;
+    query_handler.pq(proto_query_test, response_test );
+    Json::Value parsed;
+    reader.parse(response_test.json().c_str(), parsed);
+
+    const Json::Value& query_1 = parsed[0];
+    EXPECT_EQ(query_1["FindEntity"]["returned"], 2 );
+    EXPECT_EQ(query_1["FindEntity"]["status"], 0);
+    const Json::Value& query_2 = parsed[1];
+    EXPECT_EQ(query_2["FindImage"]["returned"], 2 );
+    EXPECT_EQ(query_2["FindImage"]["status"], 0);
+    const Json::Value& query_3 = parsed[2];
+    EXPECT_EQ(query_3["FindVideo"]["returned"], 1 );
+    EXPECT_EQ(query_3["FindVideo"]["status"], 0);
 
     VDMSConfig::destroy();
     PMGDQueryHandler::destroy();
