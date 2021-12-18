@@ -5,17 +5,17 @@ int custom_vcl_function(VCL::Image& img, const Json::Value& ops)
     int return_value = 0;
     //create IPC structures for communicating between processes
     key_t key_ctl_host_remote;
-    key_ctl_host_remote = ftok("keyfile", 60);
+    key_ctl_host_remote = ftok("vdms", 60);
     int msgid_ctl_host_remote = msgget(key_ctl_host_remote, 0666 | IPC_CREAT);
     data_message message_ctl_host_remote;
 
     key_t key_data_host_remote;
-    key_data_host_remote = ftok("keyfile", 61);
+    key_data_host_remote = ftok("vdms", 61);
     int shmid_data_host_remote = shmget(key_data_host_remote,SHARED_IMAGE_BUFFER_SIZE,0666|IPC_CREAT);
     uint8_t *image_buffer = (uint8_t*) shmat(shmid_data_host_remote,(void*)0,0);
 
     key_t key_ctl_remote_host;
-    key_ctl_remote_host = ftok("keyfile", 62);
+    key_ctl_remote_host = ftok("vdms", 62);
     int msgid_ctl_remote_host = msgget(key_ctl_remote_host, 0666 | IPC_CREAT);
     data_message message_ctl_remote_host;
 
