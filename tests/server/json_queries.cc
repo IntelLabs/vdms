@@ -95,8 +95,6 @@ TEST(AddImage, simpleAdd)
 
     Json::Reader json_reader;
     Json::Value json_response;
-
-    // std::cout << response.json() << std::endl;
     json_reader.parse(response.json(), json_response);
 
     EXPECT_EQ(json_response[0]["AddImage"]["status"].asString(), "0");
