@@ -13,6 +13,7 @@
 #include <opencv2/opencv.hpp>
 
 #include "Image.h"
+#include "../ExceptionsCommand.h"
 
 #define SHARED_IMAGE_BUFFER_SIZE 134217728
 enum class vcl_message_type { 

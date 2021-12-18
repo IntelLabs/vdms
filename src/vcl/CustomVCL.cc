@@ -83,6 +83,7 @@ int custom_vcl_function(VCL::Image& img, const Json::Value& ops)
     else
     {
         return_value = -1;
+        throw VDMS::ExceptionCommand(ImageError, "Error in custom Function");
     }
 
    return return_value;

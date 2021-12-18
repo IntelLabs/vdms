@@ -471,7 +471,6 @@ TEST(QueryHandler, DataTypeChecks)
     PMGDQueryHandler::destroy();
 }
 
-
 TEST(QueryHandler, AutoDeleteNode)
 {
     Json::Reader reader;
@@ -567,7 +566,6 @@ TEST(QueryHandler, AutoDeleteNode)
     PMGDQueryHandler::destroy();
 }
 
-
 TEST(QueryHandler, CustomFunctionNoProcess)
 {
     Json::Reader reader;
@@ -583,7 +581,6 @@ TEST(QueryHandler, CustomFunctionNoProcess)
     std::string json_query = std::string(inBuf);
     ifile.close();
     delete[] inBuf;
-
     std::string image;
     std::ifstream image_file("test_images/brain.png",
                     std::ios::in | std::ios::binary | std::ios::ate);
@@ -598,25 +595,21 @@ TEST(QueryHandler, CustomFunctionNoProcess)
     PMGDQueryHandler::init();
     QueryHandler::init();
 
+
     QueryHandler qh_base;
     qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
     QueryHandlerTester query_handler(qh_base);
-
     VDMS::protobufs::queryMessage proto_query;
     proto_query.set_json(json_query);
     proto_query.add_blobs(image);
-
     VDMS::protobufs::queryMessage response;
     query_handler.pq(proto_query, response);
     Json::Value parsed;
+
     reader.parse(response.json().c_str(), parsed);
-
-    std::cout << response.json() << std::endl;
-
-
-    const Json::Value& query_1 = parsed[0];
-    EXPECT_EQ(query_1["FailedCommand"]["info"], "custom function process not found");
-    EXPECT_EQ(query_1["FindEntity"]["status"], -1);
+    const Json::Value& query = parsed[0];
+    EXPECT_EQ(query["info"], "custom function process not found");
+    EXPECT_EQ(query["status"], -1);
     VDMSConfig::destroy();
     PMGDQueryHandler::destroy();
 }

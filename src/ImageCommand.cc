@@ -47,7 +47,6 @@ ImageCommand::ImageCommand(const std::string &cmd_name):
 int ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
 {
     // Correct operation type and parameters are guaranteed at this point
-    std::cout << ops.size() << std::endl;
     for (auto& op : ops) {
         const std::string& type = get_value<std::string>(op, "type");
         if (type == "threshold") {
@@ -76,16 +75,16 @@ int ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
             VCL::Image* tmp_image = new VCL::Image(img , true);
             try
             {
-                int error_flag = custom_vcl_function(img, op);
-                if(error_flag != 0)
+                if(custom_vcl_function(img, op) != 0)
                 {
-                    img.deep_copy_cv(tmp_image->get_cvmat(true));
+                    img.deep_copy_cv(tmp_image->get_cvmat(true)); // function completed but error detected
                     return -1;
                 }
             }
             catch ( ... ) 
             {
-                img.deep_copy_cv(tmp_image->get_cvmat(true));
+                img.deep_copy_cv(tmp_image->get_cvmat(true)); // function threw exception
+                return -1;
             }
             delete tmp_image;
         }
