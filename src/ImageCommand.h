@@ -59,7 +59,7 @@ namespace VDMS {
 
         // We use this function for enqueueing operations for an 'Image' object
         // that is allocated outside of <*>Image operations
-        void enqueue_operations(VCL::Image& img, const Json::Value& op);
+        int enqueue_operations(VCL::Image& img, const Json::Value& op);
 
         // Checks if 'format' parameter is specified, and if so, returns the
         // corresponding VCL::Image::Format type.
