@@ -373,7 +373,7 @@ bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
 
                 const std::string& pred1 = predicate[0].asString();
 
-                PMGDPropPred::Op op;
+                PMGDPropPred::Op op = PMGDPropPred::Eq;
 
                 if (pred1 == ">")
                 {
@@ -403,6 +403,11 @@ bool PMGDQuery::parse_query_constraints(const Json::Value& constraints,
                 {
                     op = PMGDPropPred::Ne;
                     expiration_query_match = false;
+                }
+                else
+                {
+                    throw ExceptionCommand(PMGDTransactiontError,
+                                       "Invalid comparsion predicate");
                 }
 
                 for (auto& value : predicate[1]) {

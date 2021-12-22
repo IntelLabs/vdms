@@ -64,9 +64,16 @@ void Image::Read::operator()(Image *img)
     {
         FILE * bin_file;
         bin_file = fopen(_fullpath.c_str(), "rb");
-        img->_bin = (char*) malloc (sizeof(char)*img->_bin_size);
-        fread (img->_bin,1,img->_bin_size,bin_file);
-        fclose(bin_file);
+        if(bin_file != NULL)
+        {
+            img->_bin = (char*) malloc (sizeof(char)*img->_bin_size);
+            fread (img->_bin,1,img->_bin_size,bin_file);
+            fclose(bin_file);
+        }
+        else
+        {
+            throw VCLException(OpenFailed, _fullpath + " could not be written");
+        }
     }    
     else 
     {
@@ -111,8 +118,15 @@ void Image::Write::operator()(Image *img)
     {
         FILE * bin_file;
         bin_file = fopen (_fullpath.c_str(), "wb");
-        fwrite(img->_bin , sizeof(char), img->_bin_size, bin_file);
-        fclose(bin_file);
+        if(bin_file != NULL)
+        {
+            fwrite(img->_bin , sizeof(char), img->_bin_size, bin_file);
+            fclose(bin_file);
+        }
+        else
+        {
+            throw VCLException(OpenFailed, _fullpath + " could not be written");
+        }
     }
     else {
         cv::Mat cv_img;
