@@ -264,7 +264,7 @@ TEST(PMGDQueryHandler, queryTestList)
         query_count++;
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
-        int nodecount, propcount = 0;
+        int nodecount = 0, propcount = 0;
         for (int q = 0; q < query_count; ++q) {
             vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
@@ -479,7 +479,7 @@ TEST(PMGDQueryHandler, queryNeighborTestList)
         query_count++;
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
-        int nodecount, propcount = 0;
+        int nodecount = 0, propcount = 0;
         for (int q = 0; q < query_count; ++q) {
             vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
@@ -585,7 +585,7 @@ TEST(PMGDQueryHandler, queryConditionalNeighborTestList)
         query_count++;
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
-        int nodecount, propcount = 0;
+        int nodecount = 0, propcount = 0;
         for (int q = 0; q < query_count; ++q) {
             vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
@@ -682,7 +682,7 @@ TEST(PMGDQueryHandler, queryNeighborTestSum)
         query_count++;
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
-        int nodecount, propcount = 0;
+        int nodecount = 0, propcount = 0;
         for (int i = 0; i < query_count; ++i) {
             vector<protobufs::CommandResponse *> response = responses[i];
             for (auto it : response) {
@@ -879,7 +879,7 @@ TEST(PMGDQueryHandler, queryNeighborLinksTestList)
         query_count++;
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
-        int nodecount, propcount = 0;
+        int nodecount = 0, propcount = 0;
         for (int q = 0; q < query_count; ++q) {
             vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
@@ -1217,7 +1217,7 @@ TEST(PMGDQueryHandler, queryTestListLimit)
         query_count++;
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
-        int nodecount, propcount = 0;
+        int nodecount = 0, propcount = 0;
         for (int q = 0; q < query_count; ++q) {
             vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
@@ -1540,7 +1540,7 @@ TEST(PMGDQueryHandler, queryEdgeTestList)
         query_count++;
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
-        int edgecount, propcount = 0;
+        int edgecount = 0, propcount = 0;
         for (int q = 0; q < query_count; ++q) {
             vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
@@ -1613,7 +1613,7 @@ TEST(PMGDQueryHandler, queryEdgeTestSortList)
         query_count++;
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
-        int edgecount, propcount = 0;
+        int edgecount = 0, propcount = 0;
         for (int q = 0; q < query_count; ++q) {
             vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
@@ -1718,7 +1718,7 @@ TEST(PMGDQueryHandler, queryNodeEdgeTestList)
         query_count++;
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, true);
-        int edgecount, propcount = 0;
+        int edgecount = 0, propcount = 0;
         for (int q = 0; q < query_count; ++q) {
             vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
@@ -1844,7 +1844,7 @@ TEST(PMGDQueryHandler, queryNodeEdgeDestTestList)
         query_count++;
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, false);
-        int edgecount, propcount = 0;
+        int edgecount = 0, propcount = 0;
         for (int q = 0; q < query_count; ++q) {
             vector<protobufs::CommandResponse *> response = responses[q];
             for (auto it : response) {
@@ -2017,7 +2017,7 @@ TEST(PMGDQueryHandler, queryUpdateEdge)
         query_count++;
 
         vector<vector<protobufs::CommandResponse *>> responses = qh.process_queries(cmds, query_count, false);
-        int edgecount, propcount = 0;
+        int edgecount = 0, propcount = 0;
         for (int q = 0; q < query_count; ++q) {
             vector<protobufs::CommandResponse *> response = responses[q];
             int qcount = 0;

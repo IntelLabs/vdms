@@ -474,6 +474,7 @@ void TDBImage::resize(const Rectangle &rect)
 
     int data_index = 0;
     unsigned char* image_buffer = new unsigned char[rect.height * rect.width * _img_channels];
+    memset(image_buffer, 0, rect.height * rect.width * _img_channels);
 
     float row_ratio = _img_height / float(rect.height);
     float column_ratio = _img_width / float(rect.width);
