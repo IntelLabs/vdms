@@ -205,6 +205,7 @@ void FaissDescriptorSet::get_labels(long* ids, unsigned n, long* labels)
     for (int i = 0; i < n; ++i) {
         long idx = ids[i];
         if (idx > _label_ids.size()){
+            _lock.unlock(); // unlock before throwing exception
             throw VCLException(ObjectNotFound, "Label id does not exists");
         }
         labels[i] = _label_ids[idx];

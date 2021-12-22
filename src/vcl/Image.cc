@@ -67,7 +67,8 @@ void Image::Read::operator()(Image *img)
         if(bin_file != NULL)
         {
             img->_bin = (char*) malloc (sizeof(char)*img->_bin_size);
-            fread (img->_bin,1,img->_bin_size,bin_file);
+            if (img->_bin != NULL)
+                fread (img->_bin,1,img->_bin_size,bin_file);
             fclose(bin_file);
         }
         else

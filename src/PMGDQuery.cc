@@ -50,7 +50,7 @@ using namespace VDMS;
 
 PMGDQuery::PMGDQuery(PMGDQueryHandler& pmgd_qh) :
     _pmgd_qh(pmgd_qh), _current_ref(REFERENCE_RANGE_START),
-    _readonly(true),_resultdeletion(false)
+    _readonly(true),_resultdeletion(false),_resultexpiration(false)
 {
     _current_group_id = 0;
     //this command to start a new transaction
