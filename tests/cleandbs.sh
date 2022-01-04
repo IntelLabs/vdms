@@ -4,3 +4,7 @@ rm -r tdb
 rm -r dbs
 rm -r temp
 rm -r videos_tests
+rm -r vdms
+rm images/tdb_to_jpg.jpg
+rm images/tdb_to_png.png
+rm images/test_image.jpg

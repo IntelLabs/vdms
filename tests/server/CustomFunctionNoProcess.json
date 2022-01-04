@@ -1,0 +1,35 @@
+[
+    {
+        "AddImage": 
+            {
+                "format":
+                    "png",
+                "properties":
+                    {
+                        "name": "brain.png"
+                    }, 
+                    "operations": 
+                        [
+                            {
+                                "type":
+                                    "custom",
+                                "custom_function_type":
+                                    "hsv_threshold",
+                                "h0":
+                                    10,
+                                "s0":
+                                    250,
+                                "v0":
+                                    175,
+                                "h1":
+                                    20,
+                                "s1":
+                                    255,
+                                "v1":
+                                    185
+                            }
+                        ]
+            }
+    }
+]
+

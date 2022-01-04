@@ -4,6 +4,8 @@ mkdir dbs  # necessary for Descriptors
 mkdir temp # necessary for Videos
 mkdir videos_tests
 
+echo 'not the vdms application - this file is needed for shared key' > vdms
+
 # Gets coverage for files in ../src and ../include
 echo 'Running C++ tests...'
 ./../build/tests/unit_test \
