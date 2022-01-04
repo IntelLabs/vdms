@@ -31,7 +31,6 @@
 #include <unistd.h>
 #include <cstdlib>
 #include <assert.h>
-#include <iostream>
 
 #include <netdb.h>
 
@@ -88,7 +87,6 @@ void Connection::send_message(const uint8_t *data, uint32_t size)
     }
     else if (size > _buffer_size_limit) {
         set_buffer_size_limit(size);
-        std::cout << "[send_message after set] _buffer_size_limit: " << _buffer_size_limit << std::endl;
     }
 
     // We need MSG_NOSIGNAL so we don't get SIGPIPE, and we can throw.
@@ -152,7 +150,6 @@ const std::basic_string<uint8_t>& Connection::recv_message()
     }
     else if (recv_message_size > _buffer_size_limit) {
         set_buffer_size_limit(recv_message_size);
-        std::cout << "[recv_message after set] _buffer_size_limit: " << _buffer_size_limit << std::endl;
     }
 
     buffer_str.resize(recv_message_size);
