@@ -75,8 +75,10 @@ RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc /grpc/third_party/protob
 RUN cd /valijson && cp -r include/* /usr/local/include/
 
 COPY . /vdms
+RUN [ -d /vdms/build ]; rm -rf /vdms/build
 RUN cd /vdms && git submodule update --init --recursive && mkdir build && \
-    cd build && cmake -DCODE_COVERAGE=ON .. && make ${BUILD_THREADS} && cd / && rm -rf valijson && rm -rf faiss && \
+    cd build && cmake -DCODE_COVERAGE=ON .. && make ${BUILD_THREADS} && \
+    cd / && rm -rf valijson && rm -rf faiss && \
     rm -rf grpc && rm -rf libpng  && rm -rf opencv && rm -rf swig && rm -rf CMake && \
     cp /vdms/config-vdms.json /vdms/build/
 

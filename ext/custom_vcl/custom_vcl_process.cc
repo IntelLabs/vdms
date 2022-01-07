@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
 
             //Free allocated memory
             delete in_image;
-            delete json_string_char;
+            delete[] json_string_char;
             delete json_string;
         }
     }

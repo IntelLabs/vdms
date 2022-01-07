@@ -113,7 +113,7 @@ void QueryHandler::init()
 
 QueryHandler::QueryHandler()
     : _pmgd_qh(),
-    _validator(valijson::Validator::kWeakTypes)
+    _validator(valijson::Validator::kWeakTypes),_autodelete_init(false)
 #ifdef CHRONO_TIMING
     ,ch_tx_total("ch_tx_total")
     ,ch_tx_query("ch_tx_query")

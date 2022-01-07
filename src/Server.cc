@@ -80,6 +80,7 @@ void Server::process_requests()
     }
     catch (comm::ExceptionComm e) {
         print_exception(e);
+        delete server;
         return;
     }
 

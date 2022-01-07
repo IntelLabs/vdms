@@ -138,7 +138,8 @@ namespace VDMS {
         class NodeEdgeIteratorImpl;
         static void init();
         static void destroy();
-        PMGDQueryHandler() { _tx = NULL; _readonly = true; }
+        PMGDQueryHandler() { _tx = NULL; _readonly = true; 
+        _autodelete_init = false; _resultdeletion = false; }
 
         // The vector here can contain just one JL command but will be surrounded by
         // TX begin and end. So just expose one call to the QueryHandler for
