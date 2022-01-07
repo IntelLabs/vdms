@@ -39,16 +39,17 @@
 using namespace comm;
 
 Connection::Connection():
-    _socket_fd(-1)
+    _socket_fd(-1), _buffer_size_limit(DEFAULT_BUFFER_SIZE)
 {
 }
 
 Connection::Connection(int socket_fd):
-    _socket_fd(socket_fd)
+    _socket_fd(socket_fd), _buffer_size_limit(DEFAULT_BUFFER_SIZE)
 {
 }
 
-Connection::Connection(Connection &&c)
+Connection::Connection(Connection &&c):
+    _buffer_size_limit(DEFAULT_BUFFER_SIZE)
 {
     _socket_fd = c._socket_fd;
     c._socket_fd = -1;
@@ -74,10 +75,18 @@ void Connection::shutdown()
     ::shutdown(_socket_fd, SHUT_RDWR);
 }
 
+void Connection::set_buffer_size_limit(uint32_t buffer_size_limit)
+{
+    _buffer_size_limit = std::min(MAX_BUFFER_SIZE, std::max(DEFAULT_BUFFER_SIZE, buffer_size_limit));
+}
+
 void Connection::send_message(const uint8_t *data, uint32_t size)
 {
     if (size > MAX_BUFFER_SIZE) {
         throw ExceptionComm(InvalidMessageSize);
+    }
+    else if (size > _buffer_size_limit) {
+        set_buffer_size_limit(size);
     }
 
     // We need MSG_NOSIGNAL so we don't get SIGPIPE, and we can throw.
@@ -138,6 +147,9 @@ const std::basic_string<uint8_t>& Connection::recv_message()
 
     if (recv_message_size > MAX_BUFFER_SIZE) {
         throw ExceptionComm(InvalidMessageSize);
+    }
+    else if (recv_message_size > _buffer_size_limit) {
+        set_buffer_size_limit(recv_message_size);
     }
 
     buffer_str.resize(recv_message_size);
