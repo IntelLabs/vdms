@@ -60,8 +60,8 @@ protected:
 
     const unsigned MAX_PORT_NUMBER  = 65535;
     const unsigned MAX_RETRIES      = 100;
-    const unsigned DEFAULT_BUFFER_SIZE  = (32*1024*1024);
-    const unsigned MAX_BUFFER_SIZE  = (1024*1024*1024);
+    const unsigned DEFAULT_BUFFER_SIZE  = (32*1024*1024);  // VDMS ORIGINAL DEFAULT SIZE
+    const unsigned MAX_BUFFER_SIZE  = (1024*1024*1024);  // 256MB for ATTD & 1GB Video Curation
 
     std::basic_string<uint8_t> buffer_str;
 
