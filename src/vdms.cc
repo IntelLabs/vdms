@@ -60,7 +60,7 @@ static void* start_autodelete_thread(void* server)
 int main(int argc, char **argv)
 {
     pthread_t request_thread, autodelete_thread;
-    int request_thread_flag, autodelte_thread_flag;
+    int request_thread_flag, autodelete_thread_flag;
 
     printf("VDMS Server\n");
 
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 
     //create a thread for processing request and a thread for the autodelete timer
     request_thread_flag = pthread_create(&request_thread, NULL, start_request_thread, (void*)( &server ) );
-    autodelte_thread_flag = pthread_create(&autodelete_thread, NULL, start_autodelete_thread, (void*)( &server ) );
+    autodelete_thread_flag = pthread_create(&autodelete_thread, NULL, start_autodelete_thread, (void*)( &server ) );
     pthread_join(request_thread, NULL);
     pthread_join(autodelete_thread, NULL);
 
