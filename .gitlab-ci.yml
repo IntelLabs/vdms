@@ -1,0 +1,34 @@
+image: docker:latest
+
+variables:
+  CONTAINER_BASE_IMAGE: "vdms:base"
+  CONTAINER_TEST_IMAGE: "vdms:coverage"
+  CONTAINER_TAG_NAME_PYTHON: "coverage_py"
+  CONTAINER_TAG_NAME_CPP: "coverage_cpp"
+  DOCKER_PROXY_BUILD_ARGS: "--build-arg HTTPS_PROXY=$HTTPS_PROXY --build-arg https_proxy=$HTTPS_PROXY --build-arg HTTP_PROXY=$HTTP_PROXY --build-arg http_proxy=$HTTP_PROXY --build-arg NO_PROXY=$NO_PROXY --build-arg no_proxy=$NO_PROXY"
+  DOCKER_PROXY_RUN_ARGS: "--env HTTPS_PROXY=$HTTPS_PROXY --env https_proxy=$HTTPS_PROXY --env HTTP_PROXY=$HTTP_PROXY --env http_proxy=$HTTP_PROXY --env NO_PROXY=$NO_PROXY --env no_proxy=$NO_PROXY --dns 10.248.2.1"
+
+
+Build Base Docker:
+  stage: build
+  script:
+    - docker build $DOCKER_PROXY_BUILD_ARGS --build-arg MAVEN_OPTS='-Dhttps.proxyHost=proxy-chain.intel.com -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"' -f docker/base/Dockerfile -t $CONTAINER_BASE_IMAGE .
+
+
+# COVERAGE TEST
+CPP Coverage:
+  stage: test
+  before_script:
+    - docker rm -f $CONTAINER_TAG_NAME_CPP
+    - docker build $DOCKER_PROXY_BUILD_ARGS --build-arg MAVEN_OPTS='-Dhttps.proxyHost=proxy-chain.intel.com -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"' -f docker/check-in/Dockerfile -t $CONTAINER_TEST_IMAGE .
+    - mkdir -p `pwd`/reports
+  script:
+    - docker run --name $CONTAINER_TAG_NAME_CPP $DOCKER_PROXY_RUN_ARGS $CONTAINER_TEST_IMAGE bash -c "cd /vdms/tests && chmod +x run_tests.sh && ./run_tests.sh"
+    - docker cp $CONTAINER_TAG_NAME_CPP:/vdms/tests/c_coverage_report.xml c_coverage_report.xml
+  after_script:
+    - docker rm -f $CONTAINER_TAG_NAME_CPP
+  coverage: '/TOTAL.+ ([0-9]{1,3}%)/'
+  artifacts:
+    name: ${CI_JOB_NAME}-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHA}
+    reports:
+      cobertura: c_coverage_report.xml
