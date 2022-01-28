@@ -50,6 +50,7 @@
       { "$ref": "#/definitions/AddDescriptorTop" },
       { "$ref": "#/definitions/ClassifyDescriptorTop" },
       { "$ref": "#/definitions/FindDescriptorTop" },
+      { "$ref": "#/definitions/DeleteExpiredTop" },
 
       { "$ref": "#/definitions/AddBoundingBoxTop" },
       { "$ref": "#/definitions/UpdateBoundingBoxTop" },
@@ -198,7 +199,8 @@
           { "$ref": "#/definitions/operationResize" },
           { "$ref": "#/definitions/operationCrop" },
           { "$ref": "#/definitions/operationFlip" },
-          { "$ref": "#/definitions/operationRotate" }
+          { "$ref": "#/definitions/operationRotate" },
+          { "$ref": "#/definitions/operationCustom" }
         ]
       },
       "uniqueItems": false
@@ -256,6 +258,15 @@
         },
       "required": ["type", "value"],
       "additionalProperties": false
+    },
+
+    "operationCustom": {
+      "type": "object",
+      "properties": {
+        "type":  { "enum": [ "custom" ] }
+        },
+      "required": ["type"],
+      "additionalProperties": true
     },
 
     "operationResize": {
@@ -397,6 +408,13 @@
       },
       "additionalProperties": false
     },
+    "DeleteExpiredTop": {
+      "properties": {
+        "DeleteExpired" : { "type": "object", "$ref": "#/definitions/DeleteExpired" }
+      },
+      "additionalProperties": false
+    },
+
 
     "ClassifyDescriptorTop": {
       "properties": {
@@ -710,6 +728,13 @@
         "constraints": { "type": "object" },
         "results":     { "$ref": "#/definitions/blockResults" },
         "unique":      { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+
+    "DeleteExpired": {
+      "properties": {
+        "results":     { "$ref": "#/definitions/blockResults" }
       },
       "additionalProperties": false
     }

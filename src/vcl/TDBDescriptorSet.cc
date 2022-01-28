@@ -115,7 +115,7 @@ void TDBDescriptorSet::compute_distances(float* q,
         d[i] = sum; // std::sqrt(sum);
     }
 #endif
-    delete sub;
+    delete[] sub;
 }
 
 void TDBDescriptorSet::classify(float* descriptors, unsigned n,

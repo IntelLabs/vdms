@@ -38,6 +38,7 @@
 #include "gtest/gtest.h"
 
 #include "helpers.h"
+#include "Exception.h"
 
 // Image / Video Helpers
 
@@ -52,6 +53,10 @@ void compare_mat_mat(cv::Mat &cv_img, cv::Mat &img, float error)
     int rows     = img.rows;
     int columns  = img.cols;
     int channels = img.channels();
+    if(channels > 3)
+    {
+        throw VCLException(OpenFailed, "Greater than 3 channels in image");
+    }
 
     // We make then continuous for faster comparison, if exact.
     if (exact_comparison && !img.isContinuous()) {

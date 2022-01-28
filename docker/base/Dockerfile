@@ -4,6 +4,7 @@
 ARG UBUNTU_VERSION=20.04
 ARG UBUNTU_NAME=focal
 ARG BUILD_THREADS=-j16
+ARG MAVEN_OPTS='-Dhttps.nonProxyHosts="localhost|127.0.0.1"'
 
 #1
 FROM ubuntu:${UBUNTU_VERSION}
@@ -15,7 +16,7 @@ ARG MAVEN_OPTS
 
 #Install Packages
 RUN apt-get update && apt-get -y install software-properties-common && \
-add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main" && \
+add-apt-repository "deb http://security.ubuntu.com/ubuntu focal-security main" && \
 apt-get -y install g++ git libssl-dev libc-ares-dev apt-transport-https \
 ca-certificates curl gnupg-agent software-properties-common cmake python3-pip \
 build-essential autoconf automake libtool g++ unzip bzip2 libarchive-tools \
@@ -23,7 +24,7 @@ cmake git pkg-config python python-dev wget libbz2-dev libssl-dev liblz4-dev \
 mpich libjsoncpp-dev flex javacc bison openjdk-11-jdk-headless libleveldb-dev \
 libsnappy-dev libhdf5-serial-dev libatlas-base-dev libboost-all-dev \
 libgflags-dev libgoogle-glog-dev liblmdb-dev libjpeg8-dev libtiff5-dev \
-libjasper-dev libgtk-3-dev libopenmpi-dev libgtest-dev ed libgtk2.0-dev \
+libgtk-3-dev libopenmpi-dev libgtest-dev ed libgtk2.0-dev \
 pkg-config libavcodec-dev libavformat-dev libswscale-dev libtbb2 libtbb-dev \
 libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev libopenblas-dev maven && \
 pip3 install numpy
@@ -82,15 +83,14 @@ RUN apt-get install -y maven
 
 RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
     /grpc/third_party/protobuf/src/protoc && \
-    cd /grpc/third_party/protobuf/java/core && mvn package && \
-    echo "cp $(ls target/protobuf-java*.jar) /usr/share/java/protobuf.jar" > \
-    tmp_script && bash tmp_script && \
-    cd / 
+    cd /grpc/third_party/protobuf/java/core && \
+    mvn package && \
+    cp $(ls target/protobuf-java*.jar) /usr/share/java/protobuf.jar
 
 # Valijson
 RUN cd /valijson && cp -r include/* /usr/local/include/
 
-RUN git clone https://github.com/omp87/vdms.git && cd vdms && \
+RUN git clone https://github.com/IntelLabs/vdms.git && cd vdms && \
 git checkout develop && git submodule update --init --recursive && \
 cd src/pmgd && git checkout develop && cd /vdms && mkdir build && \
 cd build && cmake .. && make -j16 && cd / rm -rf valijson && rm -rf faiss && \
