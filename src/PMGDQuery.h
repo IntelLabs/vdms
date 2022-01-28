@@ -45,11 +45,16 @@ namespace VDMS {
     */
     class PMGDQuery
     {
+        int _expiration_limit;
         std::vector<PMGDCmd* > _cmds;
         unsigned _current_group_id;
         PMGDQueryHandler& _pmgd_qh;
         unsigned _current_ref;
         bool _readonly;    // Stays true unless some write cmd sets it to false.
+        bool _resultdeletion; // Indicates whether the results should be deleted
+        bool _resultexpiration; //Indicates whether the result should be stored in expiration_queue
+                                //This takes place only during an add where the _expiration flag is true
+        
 
         Json::Value _json_responses;
 
@@ -80,7 +85,7 @@ namespace VDMS {
         unsigned current_group() { return _current_group_id; }
         unsigned get_available_reference() { return _current_ref++; }
 
-        Json::Value& run();
+        Json::Value& run(bool autodelete_init = false);
 
         //This is a reference to avoid copies
         Json::Value& get_json_responses() {return _json_responses;}
@@ -117,12 +122,15 @@ namespace VDMS {
                     const Json::Value& link,
                     const Json::Value& constraints,
                     const Json::Value& results,
-                    bool unique = false);
+                    bool unique = false,
+                    bool intermediate_query = false);
 
         void QueryEdge(int ref, int src_ref, int dest_ref,
                     const std::string& tag,
                     const Json::Value& constraints,
                     const Json::Value& results,
                     bool unique = false);
+
+        void DeleteExpired();
     };
 }

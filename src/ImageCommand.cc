@@ -44,7 +44,7 @@ ImageCommand::ImageCommand(const std::string &cmd_name):
 {
 }
 
-void ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
+int ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
 {
     // Correct operation type and parameters are guaranteed at this point
     for (auto& op : ops) {
@@ -70,10 +70,30 @@ void ImageCommand::enqueue_operations(VCL::Image& img, const Json::Value& ops)
             img.rotate(get_value<double>(op, "angle"),
                        get_value<bool>(op, "resize"));
         }
+        else if (type == "custom") 
+        {
+            VCL::Image* tmp_image = new VCL::Image(img , true);
+            try
+            {
+                if(custom_vcl_function(img, op) != 0)
+                {
+                    img.deep_copy_cv(tmp_image->get_cvmat(true)); // function completed but error detected
+                    return -1;
+                }
+            }
+            catch ( ... ) 
+            {
+                img.deep_copy_cv(tmp_image->get_cvmat(true)); // function threw exception
+                return -1;
+            }
+            delete tmp_image;
+        }
         else {
             throw ExceptionCommand(ImageError, "Operation not defined");
+            return -1;
         }
     }
+    return 0;
 }
 
 VCL::Image::Format ImageCommand::get_requested_format(const Json::Value& cmd)
@@ -115,6 +135,7 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     Json::Value& error)
 {
     const Json::Value& cmd = jsoncmd[_cmd_name];
+    int operation_flags = 0;
 
     int node_ref = get_value<int>(cmd, "_ref",
                                   query.get_available_reference());
@@ -129,13 +150,19 @@ int AddImage::construct_protobuf(PMGDQuery& query,
  
     VCL::Image img((void*)blob.data(), blob.size(), binary_img_flag);
     if (cmd.isMember("operations")) {
-        enqueue_operations(img, cmd["operations"]);
+        operation_flags = enqueue_operations(img, cmd["operations"]);
     }
 
     std::string img_root = _storage_tdb;
     VCL::Image::Format vcl_format = img.get_image_format();
 
-    if (cmd.isMember("format")) {
+    if(operation_flags != 0)
+    {
+        error["info"] = "custom function process not found";
+        error["status"] = RSCommand::Error;
+        return -1;
+    }
+    else if (cmd.isMember("format")) {
 
         if (format == "png") {
             vcl_format = VCL::Image::Format::PNG;
@@ -250,6 +277,7 @@ Json::Value FindImage::construct_responses(
     const std::string &blob)
 {
     const Json::Value& cmd = json[_cmd_name];
+    int operation_flags = 0;
 
     Json::Value ret;
 
@@ -296,7 +324,7 @@ Json::Value FindImage::construct_responses(
                 VCL::Image img(im_path);
 
                 if (cmd.isMember("operations")) {
-                    enqueue_operations(img, cmd["operations"]);
+                    operation_flags = enqueue_operations(img, cmd["operations"]);
                 }
 
                 // We will return the image in the format the user
@@ -306,6 +334,13 @@ Json::Value FindImage::construct_responses(
                             img.get_image_format() != VCL::Image::Format::TDB ?
                             img.get_image_format() : VCL::Image::Format::PNG;
 
+                if(operation_flags != 0)
+                {
+                    Json::Value return_error;
+                    return_error["info"] = "custom function process not found";
+                    return_error["status"] = RSCommand::Error;
+                    return error(return_error);
+                }
                 if (cmd.isMember("format")) {
                     format = get_requested_format(cmd);
                     if (format == VCL::Image::Format::NONE_IMAGE ||

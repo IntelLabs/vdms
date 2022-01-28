@@ -61,6 +61,11 @@ class ImageTest : public ::testing::Test {
         int rows = img.rows;
         int columns = img.cols;
         int channels = img.channels();
+        if(channels > 3)
+        {
+            throw VCLException(OpenFailed, "Greater than 3 channels in image");
+        }
+
 
         if ( img.isContinuous() ) {
             columns *= rows;
@@ -89,6 +94,11 @@ class ImageTest : public ::testing::Test {
         int rows = img.rows;
         int columns = img.cols;
         int channels = img.channels();
+        if(channels > 3)
+        {
+            throw VCLException(OpenFailed, "Greater than 3 channels in image");
+        }
+
 
         if ( img.isContinuous() ) {
             columns *= rows;

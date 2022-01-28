@@ -65,7 +65,7 @@ TEST(Descriptors_Store, add_ivfflatl2_100d_2add_file)
 
     float results[] = {0,36,100,256};
     for (int i = 0; i < 4; ++i) {
-        EXPECT_EQ(int(distances[i]), int(results[i]));
+        EXPECT_EQ(std::round(distances[i]), std::round(results[i]));
     }
 
     index_f.store();

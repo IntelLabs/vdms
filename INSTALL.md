@@ -44,7 +44,7 @@ Here is the detailed process of installation of VDMS dependencies.
 ### Install CMAKE 
     cd CMake && ./bootstrap && make -j16 && make install && \\
     cd / && cd swig && \ 
-    ./autogen.sh && ./configure && make -j16 && make install 
+    ./autogen.sh && ./configure && make -j16 && make install
 ### Install Faiss
     cd faiss && mkdir build && cd build && \
     cmake -DFAISS_ENABLE_GPU=OFF .. && \\
@@ -147,12 +147,12 @@ Build TileDB
     sudo make install-tiledb
 
 ### [Maven]
-    sudo ln -s /grpc/third_party/protobuf/cmake/build/protoc 
+    sudo ln -s /grpc/third_party/protobuf/cmake/build/protoc
     grpc/third_party/protobuf/src/protoc && \
     sudo apt-get install -y maven && \
     cd /grpc/third_party/protobuf/java/core &&\
     mvn package &&\
-    cp target/protobuf-java-3.13.0.jar /usr/share/java/protobuf.jar &&\
+    cp target/protobuf-java-3.13.0.jar /usr/share/java/protobuf.jar && \
     curl https://storage.googleapis.com/google-code-archive- 
     downloads/v2/code.google.com/json-simple/json-simple-1.1.1.jar -o /usr/share/java/json- 
     simple-1.1.1.jar && cd / &&\
@@ -189,7 +189,7 @@ You may need to change proxy setting for Maven if you are behind a proxy like th
     cd vdms && git checkout develop &&\
     git submodule update --init --recursive && \
     cd vdms && mkdir build && cd build && cmake .. && make -j16 && \
-    cp ../config-vdms.json . 
+    cp ../config-vdms.json .
 
 
 

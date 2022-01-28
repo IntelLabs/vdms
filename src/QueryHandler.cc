@@ -72,6 +72,7 @@ void QueryHandler::init()
     _rs_cmds["AddImage"]           = new AddImage();
     _rs_cmds["UpdateImage"]        = new UpdateImage();
     _rs_cmds["FindImage"]          = new FindImage();
+    _rs_cmds["DeleteExpired"]      = new DeleteExpired();
 
     _rs_cmds["AddDescriptorSet"]   = new AddDescriptorSet();
     _rs_cmds["AddDescriptor"]      = new AddDescriptor();
@@ -112,7 +113,7 @@ void QueryHandler::init()
 
 QueryHandler::QueryHandler()
     : _pmgd_qh(),
-    _validator(valijson::Validator::kWeakTypes)
+    _validator(valijson::Validator::kWeakTypes),_autodelete_init(false)
 #ifdef CHRONO_TIMING
     ,ch_tx_total("ch_tx_total")
     ,ch_tx_query("ch_tx_query")
@@ -368,7 +369,7 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
             construct_results.push_back(cmd_result);
         }
 
-        Json::Value& tx_responses = pmgd_query.run();
+        Json::Value& tx_responses = pmgd_query.run(_autodelete_init);
 
         if (!tx_responses.isArray() || tx_responses.size() != root.size()) {
             Json::StyledWriter writer;
@@ -419,6 +420,7 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
         }
 
         proto_res.set_json(fastWriter.write(json_responses));
+        _pmgd_qh.cleanup_files();
 
     } catch (VCL::Exception& e) {
         print_exception(e);
@@ -455,4 +457,35 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
         error_msg << "Unknown Exception" << std::endl;
         exception_handler();
     }
+}
+
+
+void QueryHandler::reset_autodelete_init_flag()
+{
+    _autodelete_init = false;
+}
+
+void QueryHandler::set_autodelete_init_flag()
+{
+    _autodelete_init = true;
+}
+
+void QueryHandler::regualar_run_autodelete()
+{
+    std::string* json_string = new std::string("[{\"DeleteExpired\": {\"results\": {\"list\": [\"_expiration\"]}}}]");
+    protobufs::queryMessage response;
+    protobufs::queryMessage query;
+    query.set_json(json_string->c_str());
+    process_query(query, response);
+    delete json_string;
+}
+
+void QueryHandler::build_autodelete_queue()
+{
+    std::string* json_string = new std::string("[{\"FindImage\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\">\", 0]}}}, {\"FindVideo\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\">\", 0]}}}], {\"FindFrames\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\">\", 0]}}}], {\"FindDescriptor\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\">\", 0]}}}], {\"FindEntity\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\">\", 0]}}}");
+    protobufs::queryMessage response;
+    protobufs::queryMessage query;
+    query.set_json(json_string->c_str());
+    process_query(query, response);
+    delete json_string;
 }

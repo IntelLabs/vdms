@@ -50,9 +50,18 @@ Server::Server(std::string config_file)
     VDMSConfig::init(config_file);
     _server_port = VDMSConfig::instance()
                         ->get_int_value("port", DEFAULT_PORT);
+    _autodelete_interval = VDMSConfig::instance()
+                        ->get_int_value("autodelete_interval_s", DEFAULT_AUTODELETE_INTERVAL);
 
     PMGDQueryHandler::init();
     QueryHandler::init();
+
+    QueryHandler qh;
+    qh.set_autodelete_init_flag();
+    qh.build_autodelete_queue(); //create priority queue of nodes with _expiration property
+    qh.regualar_run_autodelete(); // delete nodes that have expired since server previous closed
+    qh.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
+
 
     // Verify that the version of the library that we linked against is
     // compatible with the version of the headers we compiled against.
@@ -71,6 +80,7 @@ void Server::process_requests()
     }
     catch (comm::ExceptionComm e) {
         print_exception(e);
+        delete server;
         return;
     }
 
@@ -86,6 +96,19 @@ void Server::process_requests()
     }
 
     delete server;
+}
+
+void Server::autodelete_expired_data()
+{
+    if(_autodelete_interval > 0) //check to ensure valid autodelete_interval
+    {
+        QueryHandler qh;
+        while(!shutdown)
+        {
+            sleep(_autodelete_interval);
+            qh.regualar_run_autodelete(); //delete data expired since startup
+        }
+    }
 }
 
 void Server::install_handler()
