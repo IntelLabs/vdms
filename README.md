@@ -43,5 +43,6 @@ the examples/tutorials.
 
 Conference | Links, Cite | Description
 ------------ | ------------- | -------------
+Industrial and Applications @ VLDB 2021 | [Paper](http://vldb.org/pvldb/vol14/p3240-remis.pdf) | Demonstrate VDMS capabilities in image search application
 Learning Systems @ NIPS 2018 | [Paper](https://export.arxiv.org/abs/1810.11832), [Cite](https://dblp.uni-trier.de/rec/bibtex/journals/corr/abs-1810-11832) | Systems for Machine Learning [Workshop](http://learningsys.org/nips18/cfp.html) @ NIPS
 HotStorage @ ATC 2017 | [Paper](https://www.usenix.org/conference/hotstorage17/program/presentation/gupta-cledat), [Presentation](https://www.usenix.org/conference/hotstorage17/program/presentation/gupta-cledat), [Cite](https://www.usenix.org/biblio/export/bibtex/203374)| Positioning Paper at USENIX ATC 2017 Workshop
