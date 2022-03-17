@@ -50,6 +50,7 @@
       { "$ref": "#/definitions/AddDescriptorTop" },
       { "$ref": "#/definitions/ClassifyDescriptorTop" },
       { "$ref": "#/definitions/FindDescriptorTop" },
+      { "$ref": "#/definitions/DeleteExpiredTop" },
 
       { "$ref": "#/definitions/AddBoundingBoxTop" },
       { "$ref": "#/definitions/UpdateBoundingBoxTop" },
@@ -57,7 +58,8 @@
 
       { "$ref": "#/definitions/AddVideoTop" },
       { "$ref": "#/definitions/UpdateVideoTop" },
-      { "$ref": "#/definitions/FindVideoTop" }
+      { "$ref": "#/definitions/FindVideoTop" },
+      { "$ref": "#/definitions/FindFramesTop" }
     ]
   },
   "uniqueItems": false,
@@ -74,6 +76,12 @@
     "nonNegativeInt": {
       "type": "integer",
       "minimum": 0
+    },
+
+    "nonNegativeIntArray": {
+      "type": "array",
+      "items": {"type": "integer", "minimum": 0},
+      "minimum": 1
     },
 
     "positiveDouble": {
@@ -99,7 +107,17 @@
 
     "imgFormatString": {
       "type": "string",
-      "enum": ["png", "jpg"]
+	"enum": ["png", "jpg", "bin"]
+    },
+
+    "metricFormatString": {
+      "type": "string",
+      "enum": ["L2", "IP"]
+    },
+
+    "engineFormatString": {
+      "type": "string",
+      "enum": ["FaissFlat", "FaissIVFFlat", "TileDBDense", "TileDBSparse"]
     },
 
     "vidCodecString": {
@@ -148,10 +166,11 @@
     "blockLink": {
       "type": "object",
       "properties": {
-        "ref":       { "$ref": "#/definitions/refInt" },
-        "direction": { "$ref": "#/definitions/edgeDirectionString" },
-        "properties":{ "type": "object" },
-        "class":     { "type": "string" }
+        "ref":         { "$ref": "#/definitions/refInt" },
+        "direction":   { "$ref": "#/definitions/edgeDirectionString" },
+        "class":       { "type": "string" },
+        "properties":  { "type": "object" },
+        "constraints": { "type": "object" }
       },
       "required": ["ref"],
       "additionalProperties": false
@@ -180,7 +199,8 @@
           { "$ref": "#/definitions/operationResize" },
           { "$ref": "#/definitions/operationCrop" },
           { "$ref": "#/definitions/operationFlip" },
-          { "$ref": "#/definitions/operationRotate" }
+          { "$ref": "#/definitions/operationRotate" },
+          { "$ref": "#/definitions/operationCustom" }
         ]
       },
       "uniqueItems": false
@@ -194,6 +214,22 @@
           { "$ref": "#/definitions/operationThreshold" },
           { "$ref": "#/definitions/operationResize" },
           { "$ref": "#/definitions/operationCrop" },
+          { "$ref": "#/definitions/operationInterval" }
+        ]
+      },
+      "uniqueItems": false
+    },
+
+    "blockFrameOperations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "anyOf": [
+          { "$ref": "#/definitions/operationThreshold" },
+          { "$ref": "#/definitions/operationResize" },
+          { "$ref": "#/definitions/operationCrop" },
+          { "$ref": "#/definitions/operationFlip" },
+          { "$ref": "#/definitions/operationRotate" },
           { "$ref": "#/definitions/operationInterval" }
         ]
       },
@@ -222,6 +258,15 @@
         },
       "required": ["type", "value"],
       "additionalProperties": false
+    },
+
+    "operationCustom": {
+      "type": "object",
+      "properties": {
+        "type":  { "enum": [ "custom" ] }
+        },
+      "required": ["type"],
+      "additionalProperties": true
     },
 
     "operationResize": {
@@ -363,6 +408,13 @@
       },
       "additionalProperties": false
     },
+    "DeleteExpiredTop": {
+      "properties": {
+        "DeleteExpired" : { "type": "object", "$ref": "#/definitions/DeleteExpired" }
+      },
+      "additionalProperties": false
+    },
+
 
     "ClassifyDescriptorTop": {
       "properties": {
@@ -416,6 +468,13 @@
     "FindVideoTop": {
       "properties": {
         "FindVideo" : { "type": "object", "$ref": "#/definitions/FindVideo" }
+      },
+      "additionalProperties": false
+    },
+
+    "FindFramesTop": {
+      "properties": {
+        "FindFrames" : { "type": "object", "$ref": "#/definitions/FindFrames" }
       },
       "additionalProperties": false
     },
@@ -534,6 +593,8 @@
       "properties": {
         "name":       { "type": "string" },
         "dimensions": { "$ref": "#/definitions/refInt" },
+        "metric":     { "$ref": "#/definitions/metricFormatString" },
+        "engine":     { "$ref": "#/definitions/engineFormatString" },
         "link":       { "$ref": "#/definitions/blockLink" },
         "properties": { "type": "object" }
       },
@@ -569,6 +630,7 @@
         "_ref":        { "$ref": "#/definitions/refInt" },
         "k_neighbors": { "$ref": "#/definitions/positiveInt" },
         "results":     { "$ref": "#/definitions/blockResults" },
+        "link":        { "$ref": "#/definitions/blockLink" },
         "constraints": { "type": "object" },
         "properties":  { "type": "object" }
       },
@@ -619,12 +681,14 @@
 
     "AddVideo": {
       "properties": {
-        "_ref":       { "$ref": "#/definitions/refInt" },
-        "codec":      { "$ref": "#/definitions/vidCodecString" },
-        "container":  { "$ref": "#/definitions/vidContainerString" },
-        "link":       { "$ref": "#/definitions/blockLink" },
-        "operations": { "$ref": "#/definitions/blockVideoOperations" },
-        "properties": { "type": "object" }
+        "_ref":             { "$ref": "#/definitions/refInt" },
+        "index_frames":     { "type": "boolean" },
+        "from_server_file": { "type": "string"},
+        "codec":            { "$ref": "#/definitions/vidCodecString" },
+        "container":        { "$ref": "#/definitions/vidContainerString" },
+        "link":             { "$ref": "#/definitions/blockLink" },
+        "operations":       { "$ref": "#/definitions/blockVideoOperations" },
+        "properties":       { "type": "object" }
       },
       "additionalProperties": false
     },
@@ -651,6 +715,27 @@
         "unique":      { "type": "boolean" }
       },
 
+      "additionalProperties": false
+    },
+
+    "FindFrames": {
+      "properties": {
+        "frames":      { "$ref": "#/definitions/nonNegativeIntArray" },
+        "_ref":        { "$ref": "#/definitions/refInt" },
+        "link":        { "$ref": "#/definitions/blockLink" },
+        "operations":  { "$ref": "#/definitions/blockFrameOperations" },
+        "format":      { "$ref": "#/definitions/imgFormatString" },
+        "constraints": { "type": "object" },
+        "results":     { "$ref": "#/definitions/blockResults" },
+        "unique":      { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+
+    "DeleteExpired": {
+      "properties": {
+        "results":     { "$ref": "#/definitions/blockResults" }
+      },
       "additionalProperties": false
     }
 

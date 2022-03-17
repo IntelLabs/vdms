@@ -1,3 +1,4 @@
+
 /**
  * @file   RSCommand.cc
  *
@@ -37,7 +38,7 @@
 #include "QueryHandler.h"
 #include "ExceptionsCommand.h"
 #include "VDMSConfig.h"
-#include "VCL.h"
+#include "vcl/VCL.h"
 #include "defines.h"
 
 using namespace VDMS;
@@ -367,6 +368,38 @@ Json::Value FindEntity::construct_responses(
     // but it is ok and avoids a copy
     ret[_cmd_name].swap(findEnt);
 
+    return ret;
+}
+
+//========= DeleteExpired definitions =========
+
+DeleteExpired::DeleteExpired() : RSCommand("DeleteExpired")
+{
+}
+
+int DeleteExpired::construct_protobuf(
+    PMGDQuery& query,
+    const Json::Value& jsoncmd,
+    const std::string& blob,
+    int grp_id,
+    Json::Value& error)
+{
+    const Json::Value& cmd = jsoncmd[_cmd_name];
+    query.DeleteExpired();
+    return 0;
+}
+
+Json::Value DeleteExpired::construct_responses(
+    Json::Value& response,
+    const Json::Value& json,
+    protobufs::queryMessage &query_res,
+    const std::string &blob)
+{
+    Json::Value ret;
+    Json::Value ret_internal;
+    ret_internal["status"] = RSCommand::Success;
+    ret_internal["info"]   = "AutoDelete";
+    ret["DeleteExpired"] = ret_internal;
     return ret;
 }
 

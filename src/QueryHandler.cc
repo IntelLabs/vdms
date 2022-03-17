@@ -46,7 +46,7 @@
 #include "pmgd.h"
 #include "util.h"
 
-#include "api_schema/APISchema.h"
+#include "APISchema.h"
 #include <jsoncpp/json/writer.h>
 #include <valijson/adapters/jsoncpp_adapter.hpp>
 #include <valijson/utils/jsoncpp_utils.hpp>
@@ -72,6 +72,7 @@ void QueryHandler::init()
     _rs_cmds["AddImage"]           = new AddImage();
     _rs_cmds["UpdateImage"]        = new UpdateImage();
     _rs_cmds["FindImage"]          = new FindImage();
+    _rs_cmds["DeleteExpired"]      = new DeleteExpired();
 
     _rs_cmds["AddDescriptorSet"]   = new AddDescriptorSet();
     _rs_cmds["AddDescriptor"]      = new AddDescriptor();
@@ -85,6 +86,7 @@ void QueryHandler::init()
     _rs_cmds["AddVideo"]           = new AddVideo();
     _rs_cmds["UpdateVideo"]        = new UpdateVideo();
     _rs_cmds["FindVideo"]          = new FindVideo();
+    _rs_cmds["FindFrames"]         = new FindFrames();
 
     // Load the string containing the schema (api_schema/APISchema.h)
     Json::Reader reader;
@@ -111,7 +113,7 @@ void QueryHandler::init()
 
 QueryHandler::QueryHandler()
     : _pmgd_qh(),
-    _validator(valijson::Validator::kWeakTypes)
+    _validator(valijson::Validator::kWeakTypes),_autodelete_init(false)
 #ifdef CHRONO_TIMING
     ,ch_tx_total("ch_tx_total")
     ,ch_tx_query("ch_tx_query")
@@ -191,6 +193,26 @@ bool QueryHandler::syntax_checker(const Json::Value& root, Json::Value& error)
         std::cerr << str_error.str();
         error["info"] = str_error.str();
         return false;
+    }
+
+    for (auto& cmdTop : root) {
+        const std::string cmd_str = cmdTop.getMemberNames()[0];
+        auto& cmd = cmdTop[cmd_str];
+        if (cmd.isMember("constraints")) {
+            for (auto & member : cmd["constraints"].getMemberNames()) {
+                if (!cmd["constraints"][member].isArray()) {
+                    error["info"] = "Constraint for property '" +  member +
+                                    "' must be an array";
+                    return false;
+                }
+                auto size = cmd["constraints"][member].size();
+                if (size != 2 && size != 4) {
+                    error["info"] = "Constraint for property '" +  member +
+                                    "' must be an array of size 2 or 4";
+                    return false;
+                }
+            }
+        }
     }
 
     return true;
@@ -282,7 +304,9 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
         std::cerr << "End Failed Query: " << std::endl;
         exception_error["info"] = error_msg.str();
         exception_error["status"] = RSCommand::Error;
-        proto_res.set_json(fastWriter.write(exception_error));
+        Json::Value response;
+        response.append(exception_error);
+        proto_res.set_json(fastWriter.write(response));
     };
 
     try {
@@ -345,15 +369,22 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
             construct_results.push_back(cmd_result);
         }
 
-        Json::Value& tx_responses = pmgd_query.run();
+        Json::Value& tx_responses = pmgd_query.run(_autodelete_init);
 
-        if (tx_responses.size() != root.size()) { // error
-            cmd_current = "Transaction";
-            cmd_result = tx_responses;
-            cmd_result["info"] = "Failed PMGDTransaction";
+        if (!tx_responses.isArray() || tx_responses.size() != root.size()) {
+            Json::StyledWriter writer;
+            std::cerr << "PMGD Response:" << std::endl;
+            std::cerr << writer.write(tx_responses) << std::endl;
+
+            std::string tx_error_msg("Failed PMGD Transaction");
+            if (!tx_responses.isArray() && tx_responses.isMember("info")) {
+                tx_error_msg += ": " + tx_responses["info"].asString();
+            }
+
             cmd_result["status"] = RSCommand::Error;
-            Json::StyledWriter w;
-            std::cerr << w.write(tx_responses);
+            cmd_result["info"] = tx_error_msg;
+
+            cmd_current = "Transaction";
             error(cmd_result, cmd_current);
             return;
         }
@@ -389,6 +420,7 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
         }
 
         proto_res.set_json(fastWriter.write(json_responses));
+        _pmgd_qh.cleanup_files();
 
     } catch (VCL::Exception& e) {
         print_exception(e);
@@ -425,4 +457,35 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
         error_msg << "Unknown Exception" << std::endl;
         exception_handler();
     }
+}
+
+
+void QueryHandler::reset_autodelete_init_flag()
+{
+    _autodelete_init = false;
+}
+
+void QueryHandler::set_autodelete_init_flag()
+{
+    _autodelete_init = true;
+}
+
+void QueryHandler::regualar_run_autodelete()
+{
+    std::string* json_string = new std::string("[{\"DeleteExpired\": {\"results\": {\"list\": [\"_expiration\"]}}}]");
+    protobufs::queryMessage response;
+    protobufs::queryMessage query;
+    query.set_json(json_string->c_str());
+    process_query(query, response);
+    delete json_string;
+}
+
+void QueryHandler::build_autodelete_queue()
+{
+    std::string* json_string = new std::string("[{\"FindImage\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\">\", 0]}}}, {\"FindVideo\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\">\", 0]}}}], {\"FindFrames\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\">\", 0]}}}], {\"FindDescriptor\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\">\", 0]}}}], {\"FindEntity\": {\"results\": {\"list\": [\"_expiration\"]}, \"constraints\": {\"_expiration\": [\">\", 0]}}}");
+    protobufs::queryMessage response;
+    protobufs::queryMessage query;
+    query.set_json(json_string->c_str());
+    process_query(query, response);
+    delete json_string;
 }

@@ -42,8 +42,26 @@ void printUsage()
     exit(0);
 }
 
+
+
+static void* start_request_thread(void* server)
+{
+    ((VDMS::Server*)(server))->process_requests();
+    return NULL;
+}
+
+static void* start_autodelete_thread(void* server)
+{
+    ((VDMS::Server*)(server))->autodelete_expired_data();
+    return NULL;
+}
+
+
 int main(int argc, char **argv)
 {
+    pthread_t request_thread, autodelete_thread;
+    int request_thread_flag, autodelete_thread_flag;
+
     printf("VDMS Server\n");
 
     if (argc != 3 && argc != 1) {
@@ -62,7 +80,12 @@ int main(int argc, char **argv)
 
     printf("Server will start processing requests... \n");
     VDMS::Server server(config_file);
-    server.process_requests();
+
+    //create a thread for processing request and a thread for the autodelete timer
+    request_thread_flag = pthread_create(&request_thread, NULL, start_request_thread, (void*)( &server ) );
+    autodelete_thread_flag = pthread_create(&autodelete_thread, NULL, start_autodelete_thread, (void*)( &server ) );
+    pthread_join(request_thread, NULL);
+    pthread_join(autodelete_thread, NULL);
 
     printf("Server shutting down... \n");
 

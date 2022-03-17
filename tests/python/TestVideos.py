@@ -24,20 +24,9 @@
 # THE SOFTWARE.
 #
 
-from threading import Thread
-import sys
-import os
-import urllib
-import time
-import json
-import unittest
-import numpy as np
-import vdms
+import TestCommand
 
-hostname = "localhost"
-port = 55557
-
-class TestVideos(unittest.TestCase):
+class TestVideos(TestCommand.TestCommand):
 
     #Methos to insert one image
     def insertVideo(self, db, props=None):
@@ -70,8 +59,8 @@ class TestVideos(unittest.TestCase):
         self.assertEqual(response[0]["AddVideo"]["status"], 0)
 
     def test_addVideo(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         all_queries = []
         video_arr = []
@@ -107,9 +96,95 @@ class TestVideos(unittest.TestCase):
         for i in range(0, number_of_inserts):
             self.assertEqual(response[i]["AddVideo"]["status"], 0)
 
+    def test_addVideoFromLocalFile_invalid_command(self):
+
+        # The test is meant to fail if both blob and a local file are specified
+        db = self.create_connection()
+
+        with open("../test_videos/Megamind.avi", 'rb') as fd:
+            video_blob = fd.read()
+
+        video_params = {}
+        video_params["from_server_file"] = "BigFile.mp4"
+        video_params["codec"]           = "h264"
+
+        query = {}
+        query["AddVideo"] = video_params
+
+        response, obj_array = db.query([query], [[video_blob]])
+        self.assertEqual(response[0]["status"], -1)
+
+    def test_addVideoFromLocalFile_file_not_found(self):
+
+        db = self.create_connection()
+
+        video_params = {}
+        video_params["from_server_file"] = "BigFile.mp4"
+        video_params["codec"]           = "h264"
+
+        query = {}
+        query["AddVideo"] = video_params
+
+        response, obj_array = db.query([query], [[]])
+        self.assertEqual(response[0]["status"], -1)
+
+    def test_addVideoFromLocalFile_success(self):
+
+        db = self.create_connection()
+
+        video_params = {}
+        video_params["from_server_file"] = "../../tests/videos/Megamind.mp4"
+        video_params["codec"]           = "h264"
+
+        query = {}
+        query["AddVideo"] = video_params
+
+        response, obj_array = db.query([query], [[]])
+        self.assertEqual(response[0]["AddVideo"]["status"], 0)
+
+
+    def test_extractKeyFrames(self):
+
+        db = self.create_connection()
+
+        fd = open("../../tests/videos/Megamind.mp4", 'rb')
+        video_blob = fd.read()
+        fd.close()
+
+        video_name = "video_test_index_frames"
+
+        props = {}
+        props["name"] = video_name
+
+        video_params = {}
+        video_params["index_frames"] = True
+        video_params["properties"]   = props
+        video_params["codec"]        = "h264"
+
+        query = {}
+        query["AddVideo"] = video_params
+
+        response, obj_array = db.query([query], [[video_blob]])
+
+        self.assertEqual(response[0]["AddVideo"]["status"], 0)
+
+        entity = {}
+        entity["class"] = "VD:KF"
+        entity["results"] = {'count': ''}
+
+        query = {}
+        query["FindEntity"] = entity
+
+        response, res_arr = db.query([query])
+
+        self.assertEqual(response[0]["FindEntity"]["status"], 0)
+
+        # we know that this video has exactly four key frames
+        self.assertEqual(response[0]["FindEntity"]["count"],  4)
+
     def test_findVideo(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "video_1_"
 
@@ -141,9 +216,139 @@ class TestVideos(unittest.TestCase):
         for i in range(0, number_of_inserts):
             self.assertEqual(response[i]["FindVideo"]["status"], 0)
 
+    def test_FindFramesByFrames(self):
+
+        db = self.create_connection()
+
+        prefix_name = "video_2_"
+
+        number_of_inserts = 2
+
+        for i in range(0, number_of_inserts):
+            props = {}
+            props["name"] = prefix_name + str(i)
+            self.insertVideo(db, props=props)
+
+        all_queries = []
+
+        for i in range(0,number_of_inserts):
+            constraints = {}
+            constraints["name"] = ["==", prefix_name + str(i)]
+
+            video_params = {}
+            video_params["constraints"] = constraints
+            video_params["frames"] = [f for f in range(0, 10)]
+
+            query = {}
+            query["FindFrames"] = video_params
+
+            all_queries.append(query)
+
+        response, img_array = db.query(all_queries)
+
+        self.assertEqual(response[0]["FindFrames"]["status"], 0)
+        self.assertEqual(response[1]["FindFrames"]["status"], 0)
+        self.assertEqual(len(img_array), 2 * len(video_params["frames"]) )
+
+    def test_FindFramesByInterval(self):
+
+        db = self.create_connection()
+
+        prefix_name = "video_3_"
+
+        number_of_inserts = 2
+
+        for i in range(0, number_of_inserts):
+            props = {}
+            props["name"] = prefix_name + str(i)
+            self.insertVideo(db, props=props)
+
+        all_queries = []
+
+        for i in range(0,number_of_inserts):
+            constraints = {}
+            constraints["name"] = ["==", prefix_name + str(i)]
+
+            number_of_frames = 10
+            operations = []
+            interval_operation = {}
+            interval_operation["type"]  = "interval"
+            interval_operation["start"] = 0
+            interval_operation["stop"]  = number_of_frames
+            interval_operation["step"]  = 1
+            operations.append(interval_operation)
+
+            video_params = {}
+            video_params["constraints"] = constraints
+            video_params["operations"]  = operations
+
+            query = {}
+            query["FindFrames"] = video_params
+
+            all_queries.append(query)
+
+        response, img_array = db.query(all_queries)
+
+        self.assertEqual(response[0]["FindFrames"]["status"], 0)
+        self.assertEqual(response[1]["FindFrames"]["status"], 0)
+        self.assertEqual(len(img_array), 2 * number_of_frames)
+
+    def test_FindFramesMissingParameters(self):
+
+        db = self.create_connection()
+
+        constraints = {}
+        constraints["name"] = ["==", "video_1"]
+
+        video_params = {}
+        video_params["constraints"] = constraints
+
+        query = {}
+        query["FindFrames"] = video_params
+
+        all_queries = []
+        all_queries.append(query)
+
+        response, img = db.query(all_queries)
+
+        self.assertEqual(response[0]["status"], -1)
+        self.assertEqual(img, [])
+
+    def test_FindFramesInvalidParameters(self):
+
+        db = self.create_connection()
+
+        constraints = {}
+        constraints["name"] = ["==", "video_1"]
+
+        operations = []
+        interval_operation = {}
+        interval_operation["type"]  = "interval"
+        interval_operation["start"] = 10
+        interval_operation["stop"]  = 20
+        interval_operation["step"]  = 1
+        operations.append(interval_operation)
+
+        video_params = {}
+        video_params["constraints"] = constraints
+        video_params["operations"]  = operations
+        video_params["frames"]      = [1]
+
+
+        query = {}
+        query["FindFrames"] = video_params
+
+        all_queries = []
+        all_queries.append(query)
+
+        response, img = db.query(all_queries)
+
+        self.assertEqual(response[0]["status"], -1)
+        self.assertEqual(img, [])
+
     def test_findVideoResults(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "resvideo_1_"
 
@@ -180,8 +385,8 @@ class TestVideos(unittest.TestCase):
             self.assertEqual(response[i]["FindVideo"]["status"], 0)
 
     def test_addVideoWithLink(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         all_queries = []
 
@@ -233,8 +438,8 @@ class TestVideos(unittest.TestCase):
         self.assertEqual(response[1]["AddVideo"]["status"], 0)
 
     def test_findVid_multiple_results(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "vid_multiple"
 
@@ -266,8 +471,8 @@ class TestVideos(unittest.TestCase):
         self.assertEqual(response[0]["FindVideo"]["returned"], number_of_inserts)
 
     def test_findVideoNoBlob(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "fvid_no_blob_"
 
@@ -302,8 +507,8 @@ class TestVideos(unittest.TestCase):
         self.assertEqual(len(img_array), 0)
 
     def test_updateVideo(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "fvid_update_"
 

@@ -36,7 +36,7 @@
 #include <unordered_map>
 
 #include "PMGDQuery.h"
-#include "protobuf/queryMessage.pb.h"
+#include "queryMessage.pb.h"
 
 // Json parsing files
 #include <jsoncpp/json/value.h>
@@ -143,6 +143,23 @@ namespace VDMS {
     {
     public:
         FindEntity();
+        int construct_protobuf(PMGDQuery& query,
+                               const Json::Value& root,
+                               const std::string& blob,
+                               int grp_id,
+                               Json::Value& error);
+
+        Json::Value construct_responses(
+            Json::Value& json_responses,
+            const Json::Value& json,
+            protobufs::queryMessage &response,
+            const std::string &blob);
+    };
+
+    class DeleteExpired : public RSCommand
+    {
+    public:
+        DeleteExpired();
         int construct_protobuf(PMGDQuery& query,
                                const Json::Value& root,
                                const std::string& blob,

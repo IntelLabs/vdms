@@ -87,3 +87,10 @@
 #define VDMS_VID_TAG           "VD:VID"
 #define VDMS_VID_EDGE          "VD:VIDLINK"
 #define VDMS_VID_PATH_PROP     "VD:videoPath"
+
+// Key frames (KF)
+
+#define VDMS_KF_TAG       "VD:KF"
+#define VDMS_KF_EDGE      "VD:KFLINK"
+#define VDMS_KF_IDX_PROP  "VD:frameIndex"
+#define VDMS_KF_BASE_PROP "VD:frameBase"

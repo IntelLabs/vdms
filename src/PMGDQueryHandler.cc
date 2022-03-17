@@ -34,6 +34,7 @@
 #include "PMGDQueryHandler.h"
 #include "util.h"   // PMGD util
 #include "PMGDIterators.h"
+#include "defines.h"
 
 // TODO In the complete version of VDMS, this file will live
 // within PMGD which would replace the PMGD namespace. Some of
@@ -42,6 +43,8 @@ using namespace PMGD;
 using namespace VDMS;
 
 PMGD::Graph *PMGDQueryHandler::_db;
+std::list<AutoDeleteNode*> PMGDQueryHandler::_expiration_timestamp_queue;
+std::vector<std::string> PMGDQueryHandler::_cleanup_filename_list;
 
 void PMGDQueryHandler::init()
 {
@@ -51,7 +54,7 @@ void PMGDQueryHandler::init()
 
     PMGD::Graph::Config config;
     config.num_allocators = nalloc;
-
+    
     // TODO: Include allocators timeouts params as parameters for VDMS.
     // These parameters can be loaded everytime VDMS is run.
     // We need PMGD to support these as config params before we can do it here.
@@ -70,14 +73,32 @@ void PMGDQueryHandler::destroy()
 
 std::vector<PMGDCmdResponses>
               PMGDQueryHandler::process_queries(const PMGDCmds &cmds,
-              int num_groups, bool readonly)
+              int num_groups, bool readonly, bool resultdeletion, bool autodelete_init)
 {
     std::vector<PMGDCmdResponses> responses(num_groups);
-
+    int retry_count = 0;
+    while(retry_count < PMGD_QUERY_RETRY_LIMIT)
+    {
+        if(_tx == NULL)
+        {
+            retry_count = PMGD_QUERY_RETRY_LIMIT; //exit retry loop
+        }
+        else
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(20 * retry_count)); //backoff but for a onger time each try
+            retry_count++;
+        }
+    }
     assert(_tx == NULL);
 
     // Assuming one query handler handles one TX at a time.
     _readonly = readonly;
+    _resultdeletion = resultdeletion;
+    _autodelete_init = autodelete_init;
+    if(_resultdeletion)
+    {
+        _readonly = false; // change flag so database can be written
+    }
 
     for (const auto cmd : cmds) {
         PMGDCmdResponse *response = new PMGDCmdResponse();
@@ -127,9 +148,12 @@ void PMGDQueryHandler::error_cleanup(std::vector<PMGDCmdResponses> &responses,
 }
 
 int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
-                                     PMGDCmdResponse *response)
+                                     PMGDCmdResponse *response, bool autodelete_init)
 {
+
     int retval = 0;
+    PMGD::protobufs::Node* an;
+
     try {
         int code = cmd->cmd_id();
         response->set_cmd_grp_id(cmd->cmd_grp_id());
@@ -161,7 +185,7 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
                 retval = add_edge(cmd->add_edge(), response);
                 break;
             case PMGDCmd::QueryNode:
-                retval = query_node(cmd->query_node(), response);
+                retval = query_node(cmd->query_node(), response, autodelete_init);
                 break;
             case PMGDCmd::QueryEdge:
                 retval = query_edge(cmd->query_edge(), response);
@@ -171,6 +195,9 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
                 break;
             case PMGDCmd::UpdateEdge:
                 update_edge(cmd->update_edge(), response);
+                break;
+            case PMGDCmd::DeleteExpired:
+                retval = delete_expired_nodes();
                 break;
         }
     }
@@ -186,9 +213,10 @@ int PMGDQueryHandler::process_query(const PMGDCmd *cmd,
 int PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
                                   PMGDCmdResponse *response)
 {
+    Json::UInt64 expiration_time;
     long id = cn.identifier();
     if (id >= 0 && _cached_nodes.find(id) != _cached_nodes.end()) {
-        set_response(response, PMGDCmdResponse::Error, "Reuse of _ref value\n");
+        set_response(response, PMGDCmdResponse::Error, "Reuse of _ref value");
         return -1;
     }
 
@@ -216,12 +244,27 @@ int PMGDQueryHandler::add_node(const protobufs::AddNode &cn,
     // Since the node wasn't found, now add it.
     StringID sid(cn.node().tag().c_str());
     Node &n = _db->add_node(sid);
+
     if (id >= 0)
         _cached_nodes[id] = new ReusableNodeIterator(&n);
 
     for (int i = 0; i < cn.node().properties_size(); ++i) {
         const PMGDProp &p = cn.node().properties(i);
         set_property(n, p);
+        if(cn.expiration_flag()) //Get the expiration time while iterating through the properties
+        {
+            if(p.key() == "_expiration")
+            {
+                expiration_time = (Json::UInt64) p.int_value();
+            }
+        }
+    }
+
+    //add to deletion priority queue
+    if(cn.expiration_flag())
+    {
+        AutoDeleteNode* tmpDeleteNode = new AutoDeleteNode(expiration_time, &n);
+        insert_into_queue(&_expiration_timestamp_queue, tmpDeleteNode);
     }
 
     set_response(response, protobufs::NodeID, PMGDCmdResponse::Success);
@@ -246,7 +289,7 @@ int PMGDQueryHandler::update_node(const protobufs::UpdateNode &un,
 
     if (it == _cached_nodes.end()) {
         if (!query) {
-            set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update\n");
+            set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update");
             return -1;
         }
         else {
@@ -257,7 +300,7 @@ int PMGDQueryHandler::update_node(const protobufs::UpdateNode &un,
             if (qn_id >= 0)
                 it = _cached_nodes.find(qn_id);
             else {
-                set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update\n");
+                set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update");
                 return -1;
             }
         }
@@ -287,7 +330,7 @@ int PMGDQueryHandler::add_edge(const protobufs::AddEdge &ce,
     response->set_node_edge(false);
     long id = ce.identifier();
     if (id >= 0 && _cached_edges.find(id) != _cached_edges.end()) {
-        set_response(response, PMGDCmdResponse::Error, "Reuse of _ref value\n");
+        set_response(response, PMGDCmdResponse::Error, "Reuse of _ref value");
         return -1;
     }
 
@@ -367,7 +410,7 @@ int PMGDQueryHandler::update_edge(const protobufs::UpdateEdge &ue,
 
     if (it == _cached_edges.end()) {
         if (!query) {
-            set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update\n");
+            set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update");
             return -1;
         }
         else {
@@ -378,7 +421,7 @@ int PMGDQueryHandler::update_edge(const protobufs::UpdateEdge &ue,
             if (qe_id >= 0)
                 it = _cached_edges.find(qe_id);
             else {
-                set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update\n");
+                set_response(response, PMGDCmdResponse::Error, "Undefined _ref value used in update");
                 return -1;
             }
         }
@@ -440,18 +483,17 @@ void PMGDQueryHandler::set_property(Element &e, const PMGDProp &p)
 }
 
 int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
-                                    PMGDCmdResponse *response)
+                                    PMGDCmdResponse *response, bool autodelete_init)
 {
     ReusableNodeIterator *start_ni = NULL;
     PMGD::Direction dir;
     StringID edge_tag;
     const PMGDQueryConstraints &qc = qn.constraints();
     const PMGDQueryResultInfo &qr = qn.results();
-
     long id = qn.identifier();
     if (id >= 0 && _cached_nodes.find(id) != _cached_nodes.end()) {
         set_response(response, PMGDCmdResponse::Error,
-                       "Reuse of _ref value\n");
+                       "Reuse of _ref value");
         return -1;
     }
 
@@ -462,7 +504,7 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         if (link.nb_unique()) {
             // TODO Add support for unique neighbors across iterators
             set_response(response, PMGDCmdResponse::Error,
-                           "Non-repeated neighbors not supported\n");
+                           "Non-repeated neighbors not supported");
             return -1;
         }
 
@@ -470,7 +512,7 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         auto start = _cached_nodes.find(start_id);
         if (start == _cached_nodes.end()) {
             set_response(response, PMGDCmdResponse::Error,
-                           "Undefined _ref value used in link\n");
+                           "Undefined _ref value used in link");
             return -1;
         }
         start_ni = start->second;
@@ -491,15 +533,23 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     for (int i = 0; i < qc.predicates_size(); ++i) {
         const PMGDPropPred &p_pp = qc.predicates(i);
         PropertyPredicate j_pp = construct_search_term(p_pp);
-        search.add(j_pp);
+        search.add_node_predicate(j_pp);
+    }
+
+    if (has_link) { // Check for edges constraints
+        for (int i = 0; i < qn.link().predicates_size(); ++i) {
+            const PMGDPropPred &p_pp = qn.link().predicates(i);
+            PropertyPredicate j_pp = construct_search_term(p_pp);
+            search.add_edge_predicate(j_pp);
+        }
     }
 
     PMGD::NodeIterator ni = has_link ?
                        PMGD::NodeIterator(new MultiNeighborIteratorImpl(start_ni, search, dir, edge_tag))
                        : search.eval_nodes();
-    if (!bool(ni)) {
+    if (!bool(ni) && id >= 0) {
         set_response(response, PMGDCmdResponse::Empty,
-                       "Null search iterator\n");
+                       "Null search iterator");
         if (has_link)
             start_ni->reset();
         return -1;
@@ -515,7 +565,7 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
     if (!(id >= 0 || qc.unique() || qr.sort())) {
         // If not reusable
         build_results<NodeIterator>(ni, qr, response);
-
+        
         // Make sure the starting iterator is reset for later use.
         if (has_link)
             start_ni->reset();
@@ -528,7 +578,7 @@ int PMGDQueryHandler::query_node(const protobufs::QueryNode &qn,
         tni->next();
         if (bool(*tni)) {  // Not unique and that is an error here.
             set_response(response, PMGDCmdResponse::NotUnique,
-                           "Query response not unique\n");
+                           "Query response not unique");
             if (has_link)
                 start_ni->reset();
             delete tni;
@@ -566,21 +616,20 @@ int PMGDQueryHandler::query_edge(const protobufs::QueryEdge &qe,
 {
     ReusableNodeIterator *start_ni = NULL;
     PMGD::Direction dir;
-    StringID edge_tag;
     const PMGDQueryConstraints &qc = qe.constraints();
     const PMGDQueryResultInfo &qr = qe.results();
     response->set_node_edge(false);
 
     if (qc.p_op() == protobufs::Or) {
         set_response(response, PMGDCmdResponse::Error,
-                       "Or operation not implemented\n");
+                       "Or operation not implemented");
         return -1;
     }
 
     long id = qe.identifier();
     if (id >= 0 && _cached_edges.find(id) != _cached_edges.end()) {
         set_response(response, PMGDCmdResponse::Error,
-                       "Reuse of _ref value\n");
+                       "Reuse of _ref value");
         return -1;
     }
 
@@ -610,13 +659,13 @@ int PMGDQueryHandler::query_edge(const protobufs::QueryEdge &qe,
     for (int i = 0; i < qc.predicates_size(); ++i) {
         const PMGDPropPred &p_pp = qc.predicates(i);
         PropertyPredicate j_pp = construct_search_term(p_pp);
-        search.add(j_pp);
+        search.add_node_predicate(j_pp);
     }
 
     EdgeIterator ei = PMGD::EdgeIterator(new NodeEdgeIteratorImpl(search, src_ni, dest_ni));
-    if (!bool(ei)) {
+    if (!bool(ei) && id >= 0) {
         set_response(response, PMGDCmdResponse::Empty,
-                       "Null search iterator\n");
+                       "Null search iterator");
         // Make sure the src and dest Node iterators are resettled.
         if (src_ni != NULL) src_ni->reset();
         if (dest_ni != NULL) dest_ni->reset();
@@ -643,7 +692,7 @@ int PMGDQueryHandler::query_edge(const protobufs::QueryEdge &qe,
         tei->next();
         if (bool(*tei)) {  // Not unique and that is an error here.
             set_response(response, PMGDCmdResponse::NotUnique,
-                           "Query response not unique\n");
+                           "Query response not unique");
             delete tei;
             if (src_ni != NULL) src_ni->reset();
             if (dest_ni != NULL) dest_ni->reset();
@@ -711,6 +760,7 @@ Property PMGDQueryHandler::construct_search_property(const PMGDProp &p)
         // multiple levels of calls.
         throw PMGDException(PropertyTypeInvalid, "Search on blob property not permitted");
     }
+    return 0;
 }
 
 namespace VDMS {
@@ -757,6 +807,32 @@ void PMGDQueryHandler::build_results(Iterator &ni,
                 }
                 construct_protobuf_property(j_p, p_p);
             }
+            if(_resultdeletion && !(ni->get_tag() ==VDMS_DESC_SET_TAG) ) // DescriptorSets should be ignored - they are returned with Descriptors
+            {
+                delete_by_value((&_expiration_timestamp_queue), (void*)(&(*ni)));
+                Property img_prop;
+                if(ni->check_property(VDMS_IM_PATH_PROP, img_prop)) //delete image if present
+                {
+                    _cleanup_filename_list.push_back(img_prop.string_value());
+                }
+                Property vid_prop;
+                if(ni->check_property(VDMS_VID_PATH_PROP, vid_prop))  //delete image if present
+                {
+                    _cleanup_filename_list.push_back(vid_prop.string_value());
+                }
+                Property blob_prop;
+                if( ni->check_property(VDMS_EN_BLOB_PATH_PROP, blob_prop)) //delete image if present
+                {
+                    _cleanup_filename_list.push_back(blob_prop.string_value());
+                }
+                _db->remove(*ni);
+            }
+            if(_autodelete_init)
+            {
+                uint64_t tmp_timestamp = (uint64_t) ni->get_property("_expiration").int_value();
+                AutoDeleteNode* tmpNode = new AutoDeleteNode(Json::UInt64(tmp_timestamp), &(*ni)); 
+                insert_into_queue(&_expiration_timestamp_queue, tmpNode);
+            }
             count++;
             if (count >= limit)
                 break;
@@ -777,6 +853,16 @@ void PMGDQueryHandler::build_results(Iterator &ni,
         avg = true;
     case protobufs::Sum:
     {
+        // Since the iterator can be null if no _ref is used, make sure
+        // it has elements before proceeding, else return.
+        if (!bool(ni)) {
+            if (avg)
+                response->set_op_float_value(0.0);
+            else
+                response->set_op_int_value(0);
+            break;
+        }
+
         // We currently only use the first property key even if multiple
         // are provided. And we can assume that the syntax checker makes
         // sure of getting one for sure.
@@ -809,7 +895,7 @@ void PMGDQueryHandler::build_results(Iterator &ni,
         }
         else {
             set_response(response, PMGDCmdResponse::Error,
-                           "Wrong first property for sum/average\n");
+                           "Wrong first property for sum/average");
         }
         break;
     }
@@ -823,7 +909,7 @@ void PMGDQueryHandler::build_results(Iterator &ni,
     }
     default:
         set_response(response, PMGDCmdResponse::Error,
-                       "Unknown operation type for query\n");
+                       "Unknown operation type for query");
     }
 }
 
@@ -857,4 +943,130 @@ void PMGDQueryHandler::construct_missing_property(PMGDProp *p_p)
     // Assumes matching enum values!
     p_p->set_type(PMGDProp::StringType);
     p_p->set_string_value("Missing property");
+}
+
+int PMGDQueryHandler::delete_expired_nodes()
+{
+    AutoDeleteNode* tmp_node;
+    Json::UInt64 current_timestamp = std::chrono::time_point_cast<std::chrono::seconds>(std::chrono::system_clock::now()).time_since_epoch().count();
+    Json::UInt64 this_timestamp = 0;
+
+    //Continue to loop until queue is empty or we find timestamp greater than current time
+    while(this_timestamp < current_timestamp && !_expiration_timestamp_queue.empty())
+        {
+            tmp_node = _expiration_timestamp_queue.front();
+            this_timestamp = tmp_node->GetExpirationTimestamp();
+            if(this_timestamp < current_timestamp)
+            {
+                Property img_prop;
+                PMGD::Node* tmp_node_node = (PMGD::Node*) tmp_node->GetNode();
+                if( tmp_node_node->check_property(VDMS_IM_PATH_PROP, img_prop)) //delete image if present
+                {
+                    remove(img_prop.string_value().c_str());
+                }
+                Property vid_prop;
+                if( tmp_node_node->check_property(VDMS_VID_PATH_PROP, vid_prop))  //delete image if present
+                {
+                    remove(vid_prop.string_value().c_str());                    
+                }
+                Property blob_prop;
+                if( tmp_node_node->check_property(VDMS_EN_BLOB_PATH_PROP, blob_prop)) //delete image if present
+                {
+                    remove(blob_prop.string_value().c_str());
+                }
+
+
+                _db->remove(*((PMGD::Node*)(tmp_node->GetNode()))); //can assume Node since expiration only implemented for nodes
+                _expiration_timestamp_queue.pop_front();
+                if(!_expiration_timestamp_queue.empty())
+                {
+                    tmp_node = _expiration_timestamp_queue.front();
+                    this_timestamp = tmp_node->GetExpirationTimestamp();
+                }
+            }
+        }
+    return 0;
+}
+
+void PMGDQueryHandler::cleanup_files()
+{
+    cleanup_pmgd_files(&_cleanup_filename_list);
+}
+
+void insert_into_queue(std::list<AutoDeleteNode*>* queue, AutoDeleteNode* new_element)
+{
+    bool insert_flag;
+    long new_timestamp = new_element->GetExpirationTimestamp();
+  
+    if(queue->empty())
+    {
+        queue->push_front(new_element);
+    }
+    else
+    {
+        //We assume new entries will have a higher timestamp so start at back of queue and move forward
+        std::list<AutoDeleteNode*>::iterator it = queue->end();
+        it--;
+        std::list<AutoDeleteNode*>::iterator begin = queue->begin();
+        insert_flag = false;
+
+        if(new_timestamp >= queue->back()->GetExpirationTimestamp())
+        {
+            queue->push_back(new_element);
+        }
+        else
+        {
+            while(it != begin && insert_flag == false)
+            {
+                if( (*it)->GetExpirationTimestamp() < new_timestamp)
+                {
+                    queue->insert(std::next(it), new_element);
+                    insert_flag = true;
+                }
+                it--;
+            }
+            if(insert_flag == false)
+            {
+                if(new_timestamp < (*begin)->GetExpirationTimestamp())
+                {
+                    queue->push_front(new_element);
+                }
+                else
+                {
+                    it = begin;
+                    it++;
+                    queue->insert(it, new_element);
+                }
+
+            }
+        }
+    }
+}
+
+void delete_by_value(std::list<AutoDeleteNode*>* queue, void* p_delete_node)
+{
+    bool delete_flag;
+    std::list<AutoDeleteNode*>::iterator it = queue->begin();
+    std::list<AutoDeleteNode*>::iterator end = queue->end();
+    delete_flag = false;
+    
+    while(it != end && delete_flag == false)
+    {
+        if(((*it)->GetNode()) == (p_delete_node))
+        {
+            queue->erase(it);
+            delete_flag = true;
+        }
+        it++;
+    }
+}
+
+void cleanup_pmgd_files(std::vector<std::string>* p_cleanup_list)
+{
+    std::vector<std::string>::iterator it = p_cleanup_list->begin();
+    while(it != p_cleanup_list->end())
+    {
+        remove((*it).c_str());
+        it++;
+    }
 }

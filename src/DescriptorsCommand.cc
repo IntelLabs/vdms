@@ -36,6 +36,8 @@
 #include "ExceptionsCommand.h"
 #include "defines.h"
 
+#include "vcl/utils.h"
+
 using namespace VDMS;
 
 DescriptorsCommand::DescriptorsCommand(const std::string& cmd_name) :
@@ -72,7 +74,7 @@ std::string DescriptorsCommand::get_set_path(PMGDQuery &query_tx,
 
     // Query set node
     query.add_group();
-    query.QueryNode(-1, VDMS_DESC_SET_TAG, link, constraints, results, unique);
+    query.QueryNode(-1, VDMS_DESC_SET_TAG, link, constraints, results, unique, true);
 
     Json::Value& query_responses = query.run();
 
@@ -161,7 +163,7 @@ Json::Value AddDescriptorSet::construct_responses(
     };
 
     if (resp["status"] != RSCommand::Success) {
-        error(resp);
+        return error(resp);
     }
 
     int dimensions = cmd["dimensions"].asInt();
@@ -264,11 +266,8 @@ int AddDescriptor::construct_protobuf(
 
     Json::Value props = get_value<Json::Value>(cmd, "properties");
 
-    std::string label;
-    if (cmd.isMember("label")) {
-        label = cmd["label"].asString();
-        props[VDMS_DESC_LABEL_PROP] = label;
-    }
+    std::string label = get_value<std::string>(cmd, "label", "None");
+    props[VDMS_DESC_LABEL_PROP] = label;
 
     int dimensions;
     std::string set_path = get_set_path(query, set_name, dimensions);
@@ -519,10 +518,6 @@ int FindDescriptor::construct_protobuf(
     // Add label/id as required.
     // Remove the variables with "_"
     if (results.isMember("list")) {
-
-        results["list"].append(VDMS_DESC_LABEL_PROP);
-        results["list"].append(VDMS_DESC_ID_PROP);
-
         int pos = -1;
         for (int i = 0; i <  results["list"].size(); ++i) {
             if (results["list"][i].asString() == "_label" ||
@@ -536,16 +531,19 @@ int FindDescriptor::construct_protobuf(
         }
     }
 
+    results["list"].append(VDMS_DESC_LABEL_PROP);
+    results["list"].append(VDMS_DESC_ID_PROP);
+
     // Case (1)
     if (cmd.isMember("link")) {
 
         // Query for the Descriptors related to user-defined link
         // that match the user-defined constraints
-        // We will need to the the AND operation
+        // We will need to do the AND operation
         // on the construct_response.
 
         int desc_ref = get_value<int>(cmd, "_ref",
-                                  query.get_available_reference());
+                                      query.get_available_reference());
 
         query.QueryNode(
             desc_ref,
@@ -576,7 +574,7 @@ int FindDescriptor::construct_protobuf(
         query.QueryNode(
             ref_set,
             VDMS_DESC_SET_TAG,
-            link_set, constraints_set, results_set, unique);
+            link_set, constraints_set, results_set, unique, true);
 
         Json::Value link_to_set;
         link_to_set["ref"] = ref_set;
@@ -586,7 +584,7 @@ int FindDescriptor::construct_protobuf(
         query.QueryNode(
             get_value<int>(cmd, "_ref", -1),
             VDMS_DESC_TAG,
-            link_to_set, constraints, results, false);
+            link_to_set, constraints, results, false, false);
     }
     // Case (3), Just want the descriptor by value, we only need the set
     else {
@@ -650,8 +648,7 @@ int FindDescriptor::construct_protobuf(
             }
 
             Json::Value node_constraints = constraints;
-            node_constraints[VDMS_DESC_ID_PROP].append("==");
-            node_constraints[VDMS_DESC_ID_PROP].append(ids_array);
+            cp_result["ids_array"] = ids_array;
 
             query.QueryNode(
                 get_value<int>(cmd, "_ref", -1),
@@ -669,16 +666,54 @@ int FindDescriptor::construct_protobuf(
     return 0;
 }
 
-void FindDescriptor::convert_properties(Json::Value& entities)
+void FindDescriptor::populate_blobs(const std::string& set_path,
+                                    const Json::Value& results,
+                                    Json::Value& entities,
+                                    protobufs::queryMessage &query_res)
 {
+    if (get_value<bool>(results, "blob", false)) {
+
+        VCL::DescriptorSet* set = _dm->get_descriptors_handler(set_path);
+        int dim = set->get_dimensions();
+
+        for (auto& ent : entities) {
+            long id = ent[VDMS_DESC_ID_PROP].asInt64();
+
+            ent["blob"] = true;
+
+            std::string* desc_blob = query_res.add_blobs();
+            desc_blob->resize(sizeof(float) * dim);
+
+            set->get_descriptors(&id, 1,(float*)(*desc_blob).data());
+        }
+    }
+}
+
+void FindDescriptor::convert_properties(Json::Value& entities,
+                                        Json::Value& list)
+{
+    bool flag_label = false;
+    bool flag_id    = false;
+
+    for (auto& prop : list) {
+        if (prop.asString() == "_label") {
+            flag_label = true;
+        }
+        if (prop.asString() == "_id") {
+            flag_id = true;
+        }
+    }
+
     for (auto& element : entities) {
 
         if (element.isMember(VDMS_DESC_LABEL_PROP)) {
-            element["_label"] = element[VDMS_DESC_LABEL_PROP];
+            if (flag_label)
+                element["_label"] = element[VDMS_DESC_LABEL_PROP];
             element.removeMember(VDMS_DESC_LABEL_PROP);
         }
         if (element.isMember(VDMS_DESC_ID_PROP)) {
-            element["_id"] = element[VDMS_DESC_ID_PROP];
+            if (flag_id)
+                element["_id"] = element[VDMS_DESC_ID_PROP];
             element.removeMember(VDMS_DESC_ID_PROP);
         }
     }
@@ -712,6 +747,7 @@ Json::Value FindDescriptor::construct_responses(
     }
 
     const Json::Value& results = cmd["results"];
+    Json::Value list = get_value<Json::Value>(results, "list");
 
     // Case (1)
     if (cmd.isMember("link")) {
@@ -726,16 +762,56 @@ Json::Value FindDescriptor::construct_responses(
             return_error["info"]    = "Descriptors Not Found";
             return error(return_error);
         }
+
+        const Json::Value& set_response = json_responses[1];
+        const Json::Value& set = set_response["entities"][0];
+
+        // These properties should always exist
+        assert(set.isMember(VDMS_DESC_SET_PATH_PROP));
+        assert(set.isMember(VDMS_DESC_SET_DIM_PROP));
+        std::string set_path = set[VDMS_DESC_SET_PATH_PROP].asString();
+        int dim = set[VDMS_DESC_SET_DIM_PROP].asInt();
+
+        if (findDesc.isMember("entities")) {
+            try {
+                Json::Value& entities = findDesc["entities"];
+                populate_blobs(set_path, results, entities, query_res);
+                convert_properties(entities, list);
+            } catch (VCL::Exception e) {
+                print_exception(e);
+                findDesc["status"] = RSCommand::Error;
+                findDesc["info"]   = "VCL Exception";
+                return error(findDesc);
+            }
+        }
     }
     // Case (2)
     else if (!cmd.isMember("k_neighbors")) {
 
         assert(json_responses.size() == 2);
 
+        const Json::Value& set_response = json_responses[0];
+        const Json::Value& set = set_response["entities"][0];
+
+        // These properties should always exist
+        assert(set.isMember(VDMS_DESC_SET_PATH_PROP));
+        assert(set.isMember(VDMS_DESC_SET_DIM_PROP));
+        std::string set_path = set[VDMS_DESC_SET_PATH_PROP].asString();
+        int dim = set[VDMS_DESC_SET_DIM_PROP].asInt();
+
         findDesc = json_responses[1];
 
         if (findDesc.isMember("entities")) {
-            convert_properties(findDesc["entities"]);
+            try {
+                Json::Value& entities = findDesc["entities"];
+                populate_blobs(set_path, results, entities, query_res);
+                convert_properties(entities, list);
+            } catch (VCL::Exception e) {
+                print_exception(e);
+                findDesc["status"] = RSCommand::Error;
+                findDesc["info"]   = "VCL Exception";
+                return error(findDesc);
+            }
         }
 
         if (findDesc["status"] != 0) {
@@ -784,14 +860,13 @@ Json::Value FindDescriptor::construct_responses(
         std::vector<float>* distances;
 
         bool compute_distance = false;
-        if (results.isMember("list")) {
 
-            for (int i = 0; i < results["list"].size(); ++i) {
-                if (results["list"][i].asString() == "_distance") {
-                    compute_distance = true;
-                    break;
-                }
+        Json::Value list = get_value<Json::Value>(results, "list");
 
+        for (auto& prop : list) {
+            if (prop.asString() == "_distance") {
+                compute_distance = true;
+                break;
             }
         }
 
@@ -799,6 +874,9 @@ Json::Value FindDescriptor::construct_responses(
         assert(cache.isMember("cache_obj_id"));
 
         long cache_obj_id = cache["cache_obj_id"].asInt64();
+
+        assert(cache.isMember("ids_array"));
+        Json::Value ids_array = cache["ids_array"];
 
         // Get from Cache
         IDDistancePair* pair = _cache_map[cache_obj_id];
@@ -815,11 +893,10 @@ Json::Value FindDescriptor::construct_responses(
             return error(return_error);
         }
 
-        Json::Value entities = findDesc["entities"];
+        Json::Value aux_entities = findDesc["entities"];
         findDesc.removeMember("entities");
 
-        convert_properties(entities);
-
+        uint64_t new_cnt = 0;
         for (int i = 0; i < (*ids).size(); ++i) {
 
             Json::Value desc_data;
@@ -827,10 +904,17 @@ Json::Value FindDescriptor::construct_responses(
             long d_id = (*ids)[i];
             bool pass_constraints = false;
 
-            for (auto ent : entities) {
-                if (ent["_id"].asInt64() == d_id) {
-                    desc_data = ent;
-                    pass_constraints = true;
+            for (auto ent : aux_entities) {
+                if (ent[VDMS_DESC_ID_PROP].asInt64() == d_id) {
+                    for (int idx=0; idx< ids_array.size(); ++idx){
+                        if (ent[VDMS_DESC_ID_PROP].asInt64() == ids_array[idx].asInt64()) {
+                            desc_data = ent;
+                            pass_constraints = true;
+                            break;
+                        }
+                    }
+                }
+                if(pass_constraints){
                     break;
                 }
             }
@@ -839,7 +923,6 @@ Json::Value FindDescriptor::construct_responses(
                 continue;
 
             if (compute_distance) {
-
                 desc_data["_distance"] = (*distances)[i];
 
                 // Should be already sorted,
@@ -848,30 +931,24 @@ Json::Value FindDescriptor::construct_responses(
                 // desc_data["cache_id"]  = Json::Int64((*ids)[i]);
             }
 
-            if (results.isMember("blob")) {
-
-                desc_data["blob"] = true;
-
-                try {
-                    VCL::DescriptorSet* set =
-                            _dm->get_descriptors_handler(set_path);
-
-                    std::string* desc_blob = query_res.add_blobs();
-                    desc_blob->resize(sizeof(float) * dim);
-
-                    set->get_descriptors(&(*ids)[i], 1,
-                                         (float*)(*desc_blob).data());
-
-                } catch (VCL::Exception e) {
-                    print_exception(e);
-                    findDesc["status"] = RSCommand::Error;
-                    findDesc["info"]   = "VCL Exception";
-                    return error(findDesc);
-                }
-
-            }
-
             findDesc["entities"].append(desc_data);
+            new_cnt++;
+        }
+
+        if (findDesc.isMember("returned"))
+            findDesc["returned"] = Json::Int64(new_cnt);
+
+        if (findDesc.isMember("entities")) {
+            try {
+                Json::Value& entities = findDesc["entities"];
+                populate_blobs(set_path, results, entities, query_res);
+                convert_properties(entities, list);
+            } catch (VCL::Exception e) {
+                print_exception(e);
+                findDesc["status"] = RSCommand::Error;
+                findDesc["info"]   = "VCL Exception";
+                return error(findDesc);
+            }
         }
 
         if (cache.isMember("cache_obj_id")) {
@@ -880,6 +957,15 @@ Json::Value FindDescriptor::construct_responses(
             // because tbb does not have a lock free way to do this.
             IDDistancePair* pair = _cache_map[cache["cache_obj_id"].asInt64()];
             delete pair;
+        }
+    }
+
+    if (findDesc.isMember("entities")) {
+        for (auto& ent : findDesc["entities"]) {
+            if (ent.getMemberNames().size() == 0) {
+                findDesc.removeMember("entities");
+                break;
+            }
         }
     }
 

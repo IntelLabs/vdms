@@ -24,20 +24,10 @@
 # THE SOFTWARE.
 #
 
-from threading import Thread
-import sys
-import os
-import urllib
-import time
-import json
-import unittest
-import numpy as np
-import vdms
+import TestCommand
 
-hostname = "localhost"
-port = 55557
+class TestBoundingBox(TestCommand.TestCommand):
 
-class TestBoundingBox(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         self.number_of_inserts = 2
@@ -113,8 +103,8 @@ class TestBoundingBox(unittest.TestCase):
             self.assertEqual(response[i+1]["AddBoundingBox"]["status"], 0)
 
     def test_addBoundingBox(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         all_queries = []
 
@@ -144,8 +134,8 @@ class TestBoundingBox(unittest.TestCase):
             self.assertEqual(response[i]["AddBoundingBox"]["status"], 0)
 
     def test_findBoundingBox(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "find_my_bb_"
 
@@ -180,8 +170,8 @@ class TestBoundingBox(unittest.TestCase):
         self.assertEqual(response[1]["FindBoundingBox"]["entities"][0]["name"], prefix_name + "1")
 
     def test_findBoundingBoxCoordinates(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "find_my_bb_coords_"
 
@@ -218,8 +208,8 @@ class TestBoundingBox(unittest.TestCase):
             self.assertEqual(response[i]["FindBoundingBox"]["entities"][0]["_coordinates"]["h"], 100)
 
     def test_addBoundingBoxWithImage(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         all_queries = []
         imgs_arr = []
@@ -265,8 +255,8 @@ class TestBoundingBox(unittest.TestCase):
         self.assertEqual(response[1]["AddBoundingBox"]["status"], 0)
 
     def test_findBoundingBoxesInImage(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         img_name = "my_brain_multiple"
         imgprops = {}
@@ -312,8 +302,8 @@ class TestBoundingBox(unittest.TestCase):
 
 
     def test_findBoundingBoxByCoordinates(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         all_queries = []
 
@@ -340,15 +330,14 @@ class TestBoundingBox(unittest.TestCase):
         self.assertEqual(response[0]["FindBoundingBox"]["status"], 0)
 
     def test_findBoundingBoxBlob(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "my_brain_return_"
         all_queries = []
 
         for i in range(0, self.number_of_inserts):
-            db = vdms.vdms()
-            db.connect(hostname, port)
+            db = self.create_connection()
 
             img_name = prefix_name + str(i)
             imgprops = {}
@@ -381,15 +370,14 @@ class TestBoundingBox(unittest.TestCase):
             self.assertEqual(response[i]["FindBoundingBox"]["entities"][0]["name"], prefix_name + str(i) + "_bb_0")
 
     def test_findBoundingBoxBlobComplex(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "my_brain_complex_"
         all_queries = []
 
         for i in range(0, self.number_of_inserts):
-            db = vdms.vdms()
-            db.connect(hostname, port)
+            db = self.create_connection()
 
             img_name = prefix_name + str(i)
             imgprops = {}
@@ -425,8 +413,8 @@ class TestBoundingBox(unittest.TestCase):
             self.assertIn(test, response[0]["FindBoundingBox"]["entities"])
 
     def test_updateBoundingBox(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "update_bb_"
 
@@ -473,14 +461,14 @@ class TestBoundingBox(unittest.TestCase):
 
         all_queries.append(query)
 
-        response, img_array = db.query(all_queries)        
+        response, img_array = db.query(all_queries)
 
         self.assertEqual(response[0]["FindBoundingBox"]["status"], 0)
         self.assertEqual(response[0]["FindBoundingBox"]["entities"][0]["name"], "updated_bb_0")
 
     def test_updateBoundingBoxCoords(self):
-        db = vdms.vdms()
-        db.connect(hostname, port)
+
+        db = self.create_connection()
 
         prefix_name = "update_bb_"
 
@@ -530,7 +518,7 @@ class TestBoundingBox(unittest.TestCase):
 
         all_queries.append(query)
 
-        response, img_array = db.query(all_queries)        
+        response, img_array = db.query(all_queries)
 
         self.assertEqual(response[0]["FindBoundingBox"]["status"], 0)
         self.assertEqual(response[0]["FindBoundingBox"]["entities"][0]["_coordinates"]["x"], 15)
