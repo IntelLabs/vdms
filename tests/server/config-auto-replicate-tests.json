@@ -1,0 +1,10 @@
+{
+    "port": 55555,
+    "autoreplicate_interval":5,
+    "unit":"s",
+    "max_simultaneous_clients": 100,
+    "backup_path":"",
+    "db_root_path": "db_backup",
+    "backup_flag" : "true",
+    "more-info": "github.com/IntelLabs/vdms"
+}

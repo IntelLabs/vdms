@@ -3,6 +3,8 @@ sh cleandbs.sh
 mkdir dbs  # necessary for Descriptors
 mkdir temp # necessary for Videos
 mkdir videos_tests
+mkdir backups
+
 
 echo 'not the vdms application - this file is needed for shared key' > vdms
 
