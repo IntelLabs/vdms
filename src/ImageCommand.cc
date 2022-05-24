@@ -199,7 +199,7 @@ int AddImage::construct_protobuf(PMGDQuery& query,
     // Add Image node
     query.AddNode(node_ref, VDMS_IM_TAG, props, Json::Value());
 
-    img.store(file_name, vcl_format);
+    img.store(file_name, vcl_format);    
 
     // In case we need to cleanup the query
     error["image_added"] = file_name;

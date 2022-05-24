@@ -90,7 +90,7 @@ VDMSConfig::VDMSConfig(std::string config_file)
     std::ifstream file(config_file);
 
     bool parsingSuccessful = reader.parse(file, json_config);
-
+   
     if (!parsingSuccessful){
         std::cout << "Error parsing config file." << std::endl;
         std::cout << "Exiting..." << std::endl;

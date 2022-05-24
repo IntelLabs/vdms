@@ -72,7 +72,7 @@ Server::Server(std::string config_file)
     _db_path =     VDMSConfig::instance()
                         ->get_string_value("db_root_path", DEFAULT_DB_ROOT);                 
                                           
-                                    
+               
 
     PMGDQueryHandler::init();
     QueryHandler::init();

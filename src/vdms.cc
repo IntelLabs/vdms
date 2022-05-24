@@ -76,7 +76,7 @@ int main(int argc, char **argv)
     }
 
     std::string config_file = "config-vdms.json";
-    bool backup=false; //default of backing up the db folder to be false
+   
      
 
     if (argc == 3){
@@ -106,19 +106,14 @@ int main(int argc, char **argv)
             config_file = temp_name_2+".json";
            
         }
-        //  else if (option=="-backup" ){
-        //     backup=true;
-        //     config_file = std::string (argv[2]);
-             
-      
-        //  }
+       
         
 
     }
 
 
 
-    //
+ 
     printf("Server will start processing requests... \n");
     VDMS::Server server(config_file);
 
@@ -131,7 +126,6 @@ int main(int argc, char **argv)
     pthread_join(request_thread, NULL);
     pthread_join(autodelete_thread, NULL);
     pthread_join(auto_replicate_thread, NULL);
-
 
     
 

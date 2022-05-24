@@ -285,8 +285,8 @@ void QueryHandler::cleanup_query(const std::vector<std::string>& images,
     }
 
     for (auto& vid_path : videos) {
-        VCL::Video img(vid_path);
-        img.delete_video();
+        VCL::Video vid(vid_path);
+        vid.delete_video();
     }
 }
 
