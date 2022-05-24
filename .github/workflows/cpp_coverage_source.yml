@@ -43,21 +43,24 @@ jobs:
     outputs:
       source_coverage: ${{ steps.report_coverage.outputs.source_coverage}}
       target_coverage: ${{ steps.report_coverage.outputs.target_coverage}}
-      # source_coverage_report: ${{ steps.report_coverage.outputs.source_coverage_report}}
-      # target_coverage_report: ${{ steps.report_coverage.outputs.target_coverage_report}}
+
+    # Cancels previous workflows for same PR
+    concurrency:
+        group: ${{ matrix.coverage_type }}-${{ github.event.pull_request.number }}
+        cancel-in-progress: true
 
     # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:      
+    steps:
       - name: Clean workspace if git module is found
         run: git submodule status || rm -rf "$GITHUB_WORKSPACE"/* "$GITHUB_WORKSPACE"/.gi*
-      
+
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout ${{ matrix.coverage_type }} Branch
         uses: actions/checkout@v3
         with:
           submodules: true
           ref: ${{ matrix.branch_ref }}
-      
+
       - name: Build and Run Docker Container
         run: |
           set -x
@@ -67,9 +70,9 @@ jobs:
 
           docker build --build-arg MAVEN_OPTS='-Dhttps.proxyHost=proxy-chain.intel.com -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"' \
             -f docker/check-in/Dockerfile -t ${{ matrix.container_tag }} .
-          
+
           docker run -d --name ${{ matrix.container_name }} ${{ matrix.container_tag }}
-         
+
       - name: Get ${{ matrix.coverage_type }} Coverage
         shell: bash
         run: |
@@ -77,10 +80,10 @@ jobs:
           mkdir -p coverage
           echo "${{ matrix.container_name }}"
 
-          # Make sure coverage script is available          
+          # Make sure coverage script is available
           if [ ! -f docker/check-in/run_coverage.sh ]; then
             docker exec ${{ matrix.container_name }} bash -c "touch /run_coverage.sh && echo 'cd /vdms/tests && chmod +x run_tests.sh && ./run_tests.sh' >> /run_coverage.sh && chmod +x /run_coverage.sh && mkdir -p /vdms/tests/coverage_report"
-            docker exec ${{ matrix.container_name }} bash -c "echo 'gcovr -k --root /vdms -e /vdms/src/pmgd -e /vdms/build/CMakeFiles -f "/vdms/client/.*\.cc" -f "/vdms/ext/.*\.cc" -f "/vdms/src/.*\.cc" -f src/SearchExpression.cc --exclude-unreachable-branches --xml-pretty --xml=/vdms/tests/coverage_report/c_coverage_report.xml --txt=/vdms/tests/coverage_report/c_coverage_report.txt' >> /run_coverage.sh  && echo "echo 'DONE'" >> /run_coverage.sh" 
+            docker exec ${{ matrix.container_name }} bash -c "echo 'gcovr -k --root /vdms -e /vdms/src/pmgd -e /vdms/build/CMakeFiles -f "/vdms/client/.*\.cc" -f "/vdms/ext/.*\.cc" -f "/vdms/src/.*\.cc" -f src/SearchExpression.cc --exclude-unreachable-branches --xml-pretty --xml=/vdms/tests/coverage_report/c_coverage_report.xml --txt=/vdms/tests/coverage_report/c_coverage_report.txt' >> /run_coverage.sh  && echo "echo 'DONE'" >> /run_coverage.sh"
             docker exec ${{ matrix.container_name }} bash -c "echo 'cat /vdms/tests/coverage_report/c_coverage_report.txt' >> /run_coverage.sh"
           fi
 
@@ -110,7 +113,7 @@ jobs:
           echo "${{ matrix.coverage_type }} Coverage: ${coverage_value}"
           echo "::set-output name=${{ matrix.output_name }}::${coverage_value}"
           # echo "::set-output name=${{ matrix.report_name }}::${coverage_report}"
-  
+
   compare_coverage:
     name: Compare Reported Coverage
 
