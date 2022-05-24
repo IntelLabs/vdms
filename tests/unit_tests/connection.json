@@ -1,0 +1,30 @@
+[ {
+    "FindEntity" : 
+     {
+        "class" :"Person",
+        "_ref" : 1,
+        "constraints" : {
+            "name":["==", "Ali1"]
+        }
+    }
+}, {
+    "FindEntity":
+    {
+        "class": "Movie",
+        "_ref": 2,
+        "constraints":{
+            "name":["==", "Ali Baba1"]
+        }
+
+    }
+},
+{    
+"AddConnection":{
+        "class" : "Has",
+        "ref1" : 1,
+        "ref2" :2
+
+
+}
+    }
+]
