@@ -185,6 +185,8 @@ Json::Value AddDescriptorSet::construct_responses(
         eng = VCL::TileDBDense;
     else if (eng_str == "TileDBSparse")
         eng = VCL::TileDBSparse;
+    else if (eng_str == "Flinng")
+        eng = VCL::Flinng;
     else
         throw ExceptionCommand(DescriptorSetError, "Engine not supported");
 

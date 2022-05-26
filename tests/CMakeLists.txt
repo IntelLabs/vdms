@@ -13,7 +13,7 @@ project(tests
 find_package( OpenCV REQUIRED )
 find_package( Threads REQUIRED )
 
-link_directories(/usr/local/lib /usr/lib/x86_64-linux-gnu/ )
+link_directories(/usr/local/lib /usr/lib/x86_64-linux-gnu/)
 include_directories(
     ../src
     ../include/
@@ -53,6 +53,7 @@ target_link_libraries(unit_tests
     avformat
     dms
     faiss
+    flinng
     gtest
     jsoncpp
     pmgd

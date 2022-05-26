@@ -1,4 +1,4 @@
-#Copyright (C) 2021 Intel Corporation
+#Copyright (C) 2021 Intel Corporation 
 #SPDX-License-Identifier: MIT
 
 ARG UBUNTU_VERSION=20.04
@@ -37,6 +37,7 @@ RUN git clone --branch v1.40.0 https://github.com/grpc/grpc.git && \
     git clone --branch v0.6 https://github.com/tristanpenman/valijson.git && \
     git clone --branch v3.21.2 https://github.com/Kitware/CMake.git && \
     git clone --branch v1.7.1 https://github.com/facebookresearch/faiss.git && \
+    git clone https://github.com/tonyzhang617/FLINNG.git && \
     curl http://zlib.net/zlib-1.2.12.tar.gz -o zlib-1.2.12.tar.gz && \
     curl https://downloads.apache.org/commons/codec/binaries/commons-codec-1.15-bin.tar.gz -o /commons-codec-1.15-bin.tar.gz && \
     curl https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/json-simple/json-simple-1.1.1.jar -o /usr/share/java/json-simple-1.1.1.jar && \
@@ -45,6 +46,7 @@ RUN git clone --branch v1.40.0 https://github.com/grpc/grpc.git && \
 RUN cd /CMake && ./bootstrap && make ${BUILD_THREADS} && make install && \
     cd /swig && ./autogen.sh && ./configure && make ${BUILD_THREADS} && make install && \
     cd /faiss && mkdir build && cd build && cmake -DFAISS_ENABLE_GPU=OFF .. && make ${BUILD_THREADS} && make install && \
+    cd /FLINNG && mkdir build && cd build && cmake .. && make ${BUILD_THREADS} && make install && \
     cd /grpc && git submodule update --init --recursive && cd third_party/protobuf/cmake && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make ${BUILD_THREADS} && make install && \
     cd ../../../abseil-cpp && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make ${BUILD_THREADS} && make install && \
     cd ../../re2/ && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make ${BUILD_THREADS} && make install && \

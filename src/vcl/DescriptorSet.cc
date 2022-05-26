@@ -35,8 +35,10 @@
 
 #include "vcl/DescriptorSet.h"
 #include "DescriptorSetData.h"
+#include "DescriptorParams.h"
 #include "FaissDescriptorSet.h"
 #include "TDBDescriptorSet.h"
+#include "FlinngDescriptorSet.h"
 
 #define INFO_FILE_NAME "eng_info.txt"
 
@@ -54,6 +56,8 @@ DescriptorSet::DescriptorSet(const std::string &set_path)
         _set = new TDBDenseDescriptorSet(set_path);
     else if (_eng == DescriptorSetEngine(TileDBSparse))
         _set = new TDBSparseDescriptorSet(set_path);
+    else if (_eng == DescriptorSetEngine(Flinng))
+        _set = new FlinngDescriptorSet(set_path);
     else {
         std::cerr << "Index Not supported" << std::endl;
         throw VCLException(UnsupportedIndex, "Index not supported");
@@ -63,7 +67,8 @@ DescriptorSet::DescriptorSet(const std::string &set_path)
 DescriptorSet::DescriptorSet(const std::string &set_path,
                              unsigned dim,
                              DescriptorSetEngine eng,
-                             DistanceMetric metric):
+                             DistanceMetric metric,
+                             VCL::DescriptorParams* param):
     _eng(eng)
 {
     if (eng == DescriptorSetEngine(FaissFlat))
@@ -74,6 +79,8 @@ DescriptorSet::DescriptorSet(const std::string &set_path,
         _set = new TDBDenseDescriptorSet(set_path, dim, metric);
     else if (eng == DescriptorSetEngine(TileDBSparse))
         _set = new TDBSparseDescriptorSet(set_path, dim, metric);
+     else if (eng == DescriptorSetEngine(Flinng))
+        _set = new FlinngDescriptorSet(set_path, dim, metric, param);
     else {
         std::cerr << "Index Not supported" << std::endl;
         throw VCLException(UnsupportedIndex, "Index not supported");
@@ -137,6 +144,12 @@ void DescriptorSet::search(DescDataArray queries, unsigned n_queries,
     _set->search(queries, n_queries, k, descriptors_ids, distances);
 }
 
+void DescriptorSet::search(DescDataArray queries, unsigned n_queries,
+                           unsigned k, long* descriptors_ids)
+{
+    _set->search(queries, n_queries, k, descriptors_ids);
+}
+
 void DescriptorSet::radius_search(DescData queries, float radius,
                                   long* descriptors_ids, float* distances)
 {
@@ -148,9 +161,19 @@ long DescriptorSet::add(DescDataArray descriptors, unsigned n, long* labels)
     return _set->add(descriptors, n, labels);
 }
 
+long DescriptorSet::add_and_store(DescDataArray descriptors, unsigned n, long* labels)
+{
+    return _set->add_and_store(descriptors, n, labels);
+}
+
 void DescriptorSet::train()
 {
     _set->train();
+}
+
+void DescriptorSet::finalize_index() 
+{
+    _set->finalize_index();
 }
 
 void DescriptorSet::train(DescDataArray descriptors, unsigned n)
@@ -199,12 +222,28 @@ long DescriptorSet::add(DescDataArray descriptors, unsigned n,
     return add(descriptors, n, labels.size() > 0 ? (long*) labels.data() : NULL);
 }
 
+long DescriptorSet::add_and_store(DescDataArray descriptors, unsigned n,
+                        LabelIdVector& labels)
+{
+    if (n != labels.size() && labels.size() != 0)
+        throw VCLException(SizeMismatch, "Labels Vector of Wrong Size");
+
+    return add_and_store(descriptors, n, labels.size() > 0 ? (long*) labels.data() : NULL);
+}
+
 void DescriptorSet::search(DescDataArray queries, unsigned n, unsigned k,
                            DescIdVector& ids, DistanceVector& distances)
 {
     ids.resize(n * k);
     distances.resize(n * k);
     search(queries, n, k, ids.data(), distances.data());
+}
+
+void DescriptorSet::search(DescDataArray queries, unsigned n, unsigned k,
+                           DescIdVector& ids)
+{
+    ids.resize(n * k);
+    search(queries, n, k, ids.data());
 }
 
 std::vector<long> DescriptorSet::classify(DescDataArray descriptors, unsigned n,

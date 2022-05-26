@@ -71,7 +71,6 @@ Server::Server(std::string config_file)
                         ->get_string_value("backup_path", DEFAULT_BACKUP_PATH);  
     _db_path =     VDMSConfig::instance()
                         ->get_string_value("db_root_path", DEFAULT_DB_ROOT);                 
-                                          
 
     PMGDQueryHandler::init();
     QueryHandler::init();

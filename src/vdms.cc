@@ -108,7 +108,6 @@ int main(int argc, char **argv)
     }
 
 
-
  
     printf("Server will start processing requests... \n");
     VDMS::Server server(config_file);

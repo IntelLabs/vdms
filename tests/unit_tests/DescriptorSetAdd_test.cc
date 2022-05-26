@@ -81,6 +81,8 @@ TEST(Descriptors_Add, add_flatl2_100d)
     delete [] xb;
 }
 
+
+
 TEST(Descriptors_Add, add_and_radius_search_flatl2_100d)
 {
     int d = 100;
@@ -231,6 +233,342 @@ TEST(Descriptors_Add, add_flatl2_100d_2add)
     index.store();
     delete [] xb;
 }
+
+//Flinng Tests
+
+TEST(Descriptors_Add, add_flinngIP_100d)
+{
+    int d = 100;
+    int nb = 10000;
+    float init=0.0; 
+    int cluster_size=5; 
+    float clusterhead_std=1.0; 
+    float cluster_std=0.1;
+
+    int n_clusters= floor((nb/cluster_size));
+
+
+    float *xb = generate_desc_normal_cluster(d, nb, init, cluster_size, clusterhead_std, cluster_std);
+    std::string index_filename = "dbs/add_flinngIP_100d";
+
+    VCL::DescriptorParams* param = new VCL::DescriptorParams(3, nb/10, 10, 12);
+    VCL::DescriptorSet index(index_filename, unsigned(d), VCL::Flinng, VCL::DistanceMetric::IP, param);
+    
+
+    index.add_and_store(xb, nb);
+    index.finalize_index();
+
+    std::vector<float> cluster_head(n_clusters * d);
+    std::vector<long> descriptors(n_clusters*cluster_size);
+    std::vector<float> distances(n_clusters*cluster_size);
+
+    for (int i = 0; i < n_clusters ; i++) {
+        for (int j = 0; j < cluster_size; j++){
+            if((i*cluster_size + j) % cluster_size == 0) {
+                for (int z = 0; z < d; z++)
+                    cluster_head[i * d + z] = xb[ d*(i*cluster_size + j) + z];
+            }
+        }
+    }
+
+    //search with distances
+    index.search(cluster_head.data(), n_clusters, cluster_size, descriptors, distances);
+    
+
+    int correct=0;
+    float recall=0.0;
+    for(int i = 0; i < n_clusters; ++i){      
+      for (int j = 0; j < cluster_size; ++j) {
+        if((i* cluster_size <= descriptors[i*cluster_size+j]) && (descriptors[i*cluster_size+j] < (i+1)*cluster_size)) 
+          correct++;        
+      }
+    }
+    recall=static_cast<float>(correct) /(n_clusters*cluster_size);      
+    //std::cout << "\n Recall (Angular Similarity) = " << recall  << std::endl;
+    EXPECT_GE(recall, 0.7);
+
+    //search without returning distances
+    std::vector<long> descriptors2(n_clusters*cluster_size);
+    index.search(cluster_head.data(), n_clusters, cluster_size, descriptors2);
+    
+    EXPECT_EQ(descriptors,descriptors2);
+
+
+    index.store();
+  
+    delete [] xb;
+}
+
+
+
+TEST(Descriptors_Add, add_flinngL2_100d)
+{
+    int d = 100;
+    int nb = 10000;
+    float init=0.0; 
+    int cluster_size=5; 
+    float clusterhead_std=1.0; 
+    float cluster_std=0.1;
+
+    int n_clusters= floor((nb/cluster_size));
+
+
+    float *xb = generate_desc_normal_cluster(d, nb, init, cluster_size, clusterhead_std, cluster_std);
+    std::string index_filename = "dbs/add_flinngL2_100d";
+
+    VCL::DescriptorParams* param = new VCL::DescriptorParams(3, nb/10, 10, 12);
+    VCL::DescriptorSet index(index_filename, unsigned(d), VCL::Flinng, VCL::DistanceMetric::L2, param);
+    
+
+    index.add_and_store(xb, nb);
+    index.finalize_index();
+
+    std::vector<float> cluster_head(n_clusters * d);
+    std::vector<long> descriptors(n_clusters*cluster_size);
+    std::vector<float> distances(n_clusters*cluster_size);
+
+    for (int i = 0; i < n_clusters ; i++) {
+        for (int j = 0; j < cluster_size; j++){
+            if((i*cluster_size + j) % cluster_size == 0) {
+                for (int z = 0; z < d; z++)
+                    cluster_head[i * d + z] = xb[ d*(i*cluster_size + j) + z];
+            }
+        }
+    }
+
+    index.search(cluster_head.data(), n_clusters, cluster_size, descriptors, distances);
+
+    int correct=0;
+    float recall=0.0;
+    for(int i = 0; i < n_clusters; ++i){      
+      for (int j = 0; j < cluster_size; ++j) {
+        if((i* cluster_size <= descriptors[i*cluster_size+j]) && (descriptors[i*cluster_size+j] < (i+1)*cluster_size)) 
+          correct++;        
+      }
+    }
+    recall=static_cast<float>(correct) /(n_clusters*cluster_size);      
+    EXPECT_GE(recall, 0.7);
+    
+    //search without returning distances
+    std::vector<long> descriptors2(n_clusters*cluster_size);
+    index.search(cluster_head.data(), n_clusters, cluster_size, descriptors2);
+    
+    EXPECT_EQ(descriptors,descriptors2);
+
+    index.store();
+    delete [] xb;
+}
+
+
+TEST(Descriptors_Add, add_recons_flinngIP_100d)
+{
+    int d = 100;
+    int nb = 10000;
+    float init=0.0; 
+    int cluster_size=5; 
+    float clusterhead_std=1.0; 
+    float cluster_std=0.1;
+
+    int n_clusters= floor((nb/cluster_size));
+
+
+    float *xb = generate_desc_normal_cluster(d, nb, init, cluster_size, clusterhead_std, cluster_std);
+    std::string index_filename = "dbs/add_recons_flinngIP_100d";
+
+    VCL::DescriptorParams* param = new VCL::DescriptorParams(3, nb/10, 10, 12);
+    VCL::DescriptorSet index(index_filename, unsigned(d), VCL::Flinng, VCL::DistanceMetric::IP, param);
+    
+    std::vector<long> classes(nb);
+
+    for (int i = 0; i < n_clusters ; i++) {
+        for (int j = 0; j < cluster_size; j++){
+            classes[i*cluster_size + j] =  i;
+        }
+    }
+
+    index.add_and_store(xb, nb,classes);
+    index.finalize_index();
+
+    std::vector<float> cluster_head(n_clusters * d);
+    std::vector<long> descriptors(n_clusters*cluster_size);
+    std::vector<float> distances(n_clusters*cluster_size);
+
+    for (int i = 0; i < n_clusters ; i++) {
+        for (int j = 0; j < cluster_size; j++){
+            if((i*cluster_size + j) % cluster_size == 0) {
+                for (int z = 0; z < d; z++)
+                    cluster_head[i * d + z] = xb[ d*(i*cluster_size + j) + z];
+            }
+        }
+    }
+
+    index.search(cluster_head.data(), n_clusters, cluster_size, descriptors);
+    descriptors.clear();
+
+    float *recons = new float[d * nb];
+    for (int i = 0; i < nb; ++i) {
+        descriptors.push_back(i);
+    }
+
+    index.get_descriptors(descriptors, recons);
+
+    for (int i = 0; i < nb*d; ++i) {
+        EXPECT_EQ(xb[i], recons[i]);
+    }
+
+    index.store();
+
+    delete [] xb;
+    
+}
+
+
+TEST(Descriptors_Add, add_flinngIP_100d_2add)
+{           
+    int d = 100;
+    int nb = 10000;
+    float init=0.0; 
+    int cluster_size=5; 
+    float clusterhead_std=1.0; 
+    float cluster_std=0.1;
+    int cluster_increment = 2;
+    
+
+    int n_clusters= floor((nb/cluster_size));
+
+
+    float *xb = generate_desc_normal_cluster(d, nb, init, cluster_size, clusterhead_std, cluster_std);
+    std::string index_filename = "dbs/add_flingIP_100d_2add";
+
+    VCL::DescriptorParams* param = new VCL::DescriptorParams(3, nb/10, 10, 12);
+    VCL::DescriptorSet index(index_filename, unsigned(d), VCL::Flinng, VCL::DistanceMetric::IP, param);
+    
+
+    index.add_and_store(xb, nb);
+    index.finalize_index();
+
+    std::vector<float> cluster_head(n_clusters * d);
+    std::vector<long> descriptors(n_clusters*cluster_size);
+    std::vector<float> distances(n_clusters*cluster_size);
+
+    for (int i = 0; i < n_clusters ; i++) {
+        for (int j = 0; j < cluster_size; j++){
+            if((i*cluster_size + j) % cluster_size == 0) {
+                for (int z = 0; z < d; z++)
+                    cluster_head[i * d + z] = xb[ d*(i*cluster_size + j) + z];
+            }
+        }
+    }
+
+           
+    float *new_neighbors = create_additional_neighbors(d, cluster_increment, n_clusters, cluster_head.data(), cluster_std);
+    
+
+    index.add_and_store(new_neighbors, n_clusters*cluster_increment); //add 2nd time
+    index.finalize_index();   
+
+
+    cluster_size += cluster_increment;
+    descriptors.resize(n_clusters*cluster_size);  
+
+    index.search(cluster_head.data(), n_clusters, cluster_size, descriptors);
+    
+    
+    int correct=0;
+    float recall=0.0;
+    int old_cluster_size = cluster_size - cluster_increment;
+
+    for(int i = 0; i < n_clusters; ++i){              
+      for (int j = 0; j < cluster_size ; ++j) {          
+        if((i* old_cluster_size <= descriptors[i*cluster_size+j]) && (descriptors[i*cluster_size+j] < (i+1)*old_cluster_size)){
+            correct++; //within the old cluster
+            }
+        if(((nb+ i*cluster_increment) <= descriptors[i*cluster_size+j]) && (descriptors[i*cluster_size+j] < (nb+(i+1)*cluster_increment))){
+            correct++; //within the new neighbors appended at end of index
+            }         
+        }
+    }
+    recall=static_cast<float>(correct) /(n_clusters*cluster_size);
+    //std::cout <<"2 adds Recall = " << recall <<std::endl;      
+    EXPECT_GE(recall, 0.7); 
+
+    index.store();
+    delete [] xb;
+}
+
+
+
+TEST(Descriptors_Add, add_flinngIP_same)
+{
+    int d = 100;
+    int nb = 10000;
+    float init=0.0; 
+    int cluster_size=5; 
+    float clusterhead_std=1.0; 
+    float cluster_std=0.1;
+
+    int n_clusters= floor((nb/cluster_size));
+
+
+    float *xb = generate_desc_normal_cluster(d, nb, init, cluster_size, clusterhead_std, cluster_std);
+    std::string index_filename = "dbs/add_flinngIP_same";
+
+    VCL::DescriptorParams* param = new VCL::DescriptorParams(3, nb/10, 10, 12);
+    VCL::DescriptorSet index(index_filename, unsigned(d), VCL::Flinng, VCL::DistanceMetric::IP, param);
+    
+
+    index.add_and_store(xb, nb);
+    
+
+    std::vector<float> cluster_head(n_clusters * d);
+    
+    for (int i = 0; i < n_clusters ; i++) {
+        for (int j = 0; j < cluster_size; j++){
+            if((i*cluster_size + j) % cluster_size == 0) {
+                for (int z = 0; z < d; z++)
+                    cluster_head[i * d + z] = xb[ d*(i*cluster_size + j) + z];
+            }
+        }
+    }
+
+
+    index.add_and_store(xb, nb); //adding same vectors again
+    index.finalize_index();
+    //std::cout << "\n Total number of elements = " << index.get_n_descriptors()  << std::endl;
+
+    std::vector<long> descriptors(n_clusters*cluster_size* 2);
+
+    index.search(cluster_head.data(), n_clusters, cluster_size* 2, descriptors);
+    
+
+    int correct=0;
+    float recall=0.0;
+    for(int i = 0; i < n_clusters; ++i){      
+      for (int j = 0; j < cluster_size* 2; ++j) {
+          if((i* cluster_size <= descriptors[i*cluster_size*2+j]) && (descriptors[i*cluster_size*2+j] < (i+1)*cluster_size)){
+              correct++; //within the first added nb elements
+          }
+          if(((nb+ i*cluster_size) <= descriptors[i*cluster_size*2+j]) && (descriptors[i*cluster_size*2+j] < (nb+(i+1)*cluster_size))){
+              correct++; //within the 2nd added nb elements appended at the end of index
+          }          
+
+      }
+    }
+    recall=static_cast<float>(correct) /(n_clusters*cluster_size*2);      
+    //std::cout << "\n Recall (Angular Similarity) = " << recall  << std::endl;
+    EXPECT_GE(recall, 0.7);
+
+    index.store();
+  
+    delete [] xb;
+}
+
+
+
+
+
+
+
 
 // TileDB Dense Tests
 
@@ -485,9 +823,33 @@ TEST(Descriptors_Add, add_and_search_10k)
                                          std::to_string(d) + "_" +
                                          std::to_string(eng);
 
+                      
+    
+    
+            
+            /*
+            //Disbaled FLINNG, since dataset is not normalized
+            //Todo in future versions add support for arbitrary datasets
+            VCL::DescriptorParams* param = NULL;
+
+            if (eng == VCL::Flinng)                
+                param = new VCL::DescriptorParams(3, nb/10, 10, 12);
+            
+            VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
+            */
             VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
-            index.add(xb, nb);
+            /*
+            if (eng == VCL::Flinng){
+                index.add_and_store(xb, nb);
+                index.finalize_index();
+            }                
+            else{
+                index.add(xb, nb);
+            }
+            */
+
+           index.add(xb, nb);
 
             std::vector<float> distances;
             std::vector<long> desc_ids;

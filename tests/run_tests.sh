@@ -8,7 +8,6 @@ mkdir backups
 # Start server for client test
 ./../build/vdms -cfg unit_tests/config-tests.json > tests_screen.log 2> tests_log.log &
 
-
 echo 'not the vdms application - this file is needed for shared key' > vdms
 
 # Gets coverage for files in ../src and ../include

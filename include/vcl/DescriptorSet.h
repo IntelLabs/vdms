@@ -37,13 +37,14 @@
 #include <string>
 #include <vector>
 #include <map>
-
+#include "DescriptorParams.h"
 #include "Exception.h"
 
 namespace VCL {
 
     enum DescriptorSetEngine {FaissFlat, FaissIVFFlat,
-                              TileDBDense, TileDBSparse};
+                              TileDBDense, TileDBSparse,
+                              Flinng};
 
     enum DistanceMetric {L2, IP};
 
@@ -58,6 +59,7 @@ namespace VCL {
         typedef float* DescDataArray;
 
         class DescriptorSetData;
+        class DescriptorParams;
 
     private:
 
@@ -85,7 +87,8 @@ namespace VCL {
          */
         DescriptorSet(const std::string &set_path, unsigned dim,
                       DescriptorSetEngine eng = FaissFlat,
-                      DistanceMetric metric = L2);
+                      DistanceMetric metric = L2,
+                      VCL::DescriptorParams *param = NULL);
 
         ~DescriptorSet();
 
@@ -122,6 +125,8 @@ namespace VCL {
          */
         unsigned get_dimensions();
 
+        void finalize_index();
+
         /**
          *  Returns the number of descriptors in the set
          */
@@ -144,6 +149,8 @@ namespace VCL {
          */
         long add(DescDataArray descriptors, unsigned n, long* labels = NULL);
 
+        long add_and_store(DescDataArray descriptors, unsigned n, long* labels = NULL);
+
         /**
          *  Search for the k closest neighborhs
          *
@@ -157,6 +164,8 @@ namespace VCL {
         void search(DescDataArray queries, unsigned n, unsigned k,
                     long* ids, float* distances);
 
+        void search(DescDataArray queries, unsigned n, unsigned k,
+                    long* ids);
         /**
          *  Search for neighborhs within a radius.
          *
@@ -235,6 +244,7 @@ namespace VCL {
          */
         long add(DescDataArray descriptors, unsigned n, LabelIdVector& labels);
 
+        long add_and_store(DescDataArray descriptors, unsigned n, LabelIdVector& labels);
         /**
          *  Search for the k closest neighborhs
          *      // Add comment on why we use k and n_queries.
@@ -249,6 +259,8 @@ namespace VCL {
         void search(DescDataArray query, unsigned n, unsigned k,
                     DescIdVector& ids, DistanceVector& distances);
 
+        void search(DescDataArray query, unsigned n, unsigned k,
+                    DescIdVector& ids);
         /**
          *  Find the label of the feature vector, based on the closest
          *  neighbors.
