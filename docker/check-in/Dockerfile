@@ -26,7 +26,7 @@ RUN apt-get update && apt-get -y install software-properties-common && \
     libgflags-dev libgoogle-glog-dev liblmdb-dev libjpeg8-dev libtiff5-dev \
     libgtk-3-dev libopenmpi-dev libgtest-dev ed libgtk2.0-dev \
     pkg-config libavcodec-dev libavformat-dev libswscale-dev libtbb2 libtbb-dev \
-    libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev libopenblas-dev maven lcov && \
+    libjpeg-dev libpng-dev libtiff-dev libdc1394-22-dev libopenblas-dev maven librdkafka-dev lcov && \
     pip3 install numpy coverage vdms gcovr
 
 #Pull Dependencies
@@ -37,14 +37,14 @@ RUN git clone --branch v1.40.0 https://github.com/grpc/grpc.git && \
     git clone --branch v0.6 https://github.com/tristanpenman/valijson.git && \
     git clone --branch v3.21.2 https://github.com/Kitware/CMake.git && \
     git clone --branch v1.7.1 https://github.com/facebookresearch/faiss.git && \
-    wget -c http://zlib.net/zlib-1.2.12.tar.gz && \
+    curl http://zlib.net/zlib-1.2.12.tar.gz -o zlib-1.2.12.tar.gz && \
     curl https://downloads.apache.org/commons/codec/binaries/commons-codec-1.15-bin.tar.gz -o /commons-codec-1.15-bin.tar.gz && \
     curl https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/json-simple/json-simple-1.1.1.jar -o /usr/share/java/json-simple-1.1.1.jar && \
     wget https://github.com/TileDB-Inc/TileDB/archive/1.3.1.tar.gz
 
 RUN cd /CMake && ./bootstrap && make ${BUILD_THREADS} && make install && \
     cd /swig && ./autogen.sh && ./configure && make ${BUILD_THREADS} && make install && \
-    cd /faiss && mkdir build && cd build && cmake -DFAISS_ENABLE_GPU=OFF .. && make ${BUILD_THREADS} && make ${BUILD_THREADS} && make install && \
+    cd /faiss && mkdir build && cd build && cmake -DFAISS_ENABLE_GPU=OFF .. && make ${BUILD_THREADS} && make install && \
     cd /grpc && git submodule update --init --recursive && cd third_party/protobuf/cmake && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make ${BUILD_THREADS} && make install && \
     cd ../../../abseil-cpp && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make ${BUILD_THREADS} && make install && \
     cd ../../re2/ && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make ${BUILD_THREADS} && make install && \
@@ -53,7 +53,7 @@ RUN cd /CMake && ./bootstrap && make ${BUILD_THREADS} && make install && \
     -DgRPC_CARES_PROVIDER=package -DgRPC_PROTOBUF_PROVIDER=package \
     -DgRPC_RE2_PROVIDER=package -DgRPC_SSL_PROVIDER=package \
     -DgRPC_ZLIB_PROVIDER=package -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE ../.. && make ${BUILD_THREADS} && make install && \
-    cd / && tar -zxf zlib-1.2.12.tar.gz && cd zlib-1.2.12 && ./configure && make ${BUILD_THREADS} && make install && \
+    cd / && gunzip zlib-1.2.12.tar.gz && tar -xvf zlib-1.2.12.tar && cd zlib-1.2.12 && ./configure && make ${BUILD_THREADS} && make install && \
     cd / && rm -rf zlib-1.2.12.tar zlib-1.2.12 && \
     cd /libpng && git checkout libpng12 && ./configure && make ${BUILD_THREADS} && make install
 

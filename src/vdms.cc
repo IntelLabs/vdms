@@ -76,8 +76,6 @@ int main(int argc, char **argv)
     }
 
     std::string config_file = "config-vdms.json";
-   
-     
 
     if (argc == 3){
         std::string option(argv[1]);
@@ -106,8 +104,6 @@ int main(int argc, char **argv)
             config_file = temp_name_2+".json";
            
         }
-       
-        
 
     }
 

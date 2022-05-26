@@ -37,6 +37,7 @@
 #include <jsoncpp/json/json.h>
 #include <jsoncpp/json/value.h>
 
+
 namespace VDMS {
 
     /* This class takes care of the transaction and conversion

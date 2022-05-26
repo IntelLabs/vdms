@@ -1,5 +1,4 @@
 cmake_minimum_required (VERSION 3.10)
-
 option(CODE_COVERAGE "Collect coverage" OFF)
 IF(CODE_COVERAGE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -coverage -fprofile-arcs -ftest-coverage")

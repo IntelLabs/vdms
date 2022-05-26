@@ -1,0 +1,98 @@
+version: "3.8"
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.5.0
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+  broker:
+    image: confluentinc/cp-server:7.0.1
+    hostname: broker
+    container_name: broker
+    depends_on:
+      - zookeeper
+    
+    ports:
+      - "9092:9092"
+      - "19092:19092"
+      - "9101:9101"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENERS: PLAINTEXT://broker:9092,PLAINTEXT_HOST://broker:19092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:9092,PLAINTEXT_HOST://localhost:19092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_JMX_PORT: 9101
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker:9092
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
+      CONFLUENT_METRICS_ENABLE: 'true'
+      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+      KAFKA_MESSAGE_MAX_BYTES: 200000
+  schema-registry:
+    image: confluentinc/cp-schema-registry:5.5.0
+    hostname: schema-registry
+    container_name: schema-registry
+    depends_on:
+      - zookeeper
+      - broker
+    ports:
+      - "8082:8082"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper:2181'     
+  create-topics:
+    image: confluentinc/cp-kafka:5.5.0
+    hostname: create-topics
+    container_name: create-topics
+    depends_on:
+      - broker
+    command: "
+      bash -c 'cub kafka-ready -b broker:29092 1 120 && \
+      kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --partitions 2 --replication-factor 1 --topic vdms-query'"
+    environment:
+      KAFKA_BROKER_ID: ignored
+      KAFKA_ZOOKEEPER_CONNECT: ignored    
+  data_store_1:
+    build: '../docker/base'
+    image: vdms_dist:1
+    container_name: 'data_store_1'
+    ports:
+      - '55560:55560'
+    # network_mode: "host"
+    networks:
+      - default
+   
+    
+    
+  data_store_2:
+    image: 'vdms_dist:1'
+    container_name: 'data_store_2'
+    network_mode: host
+  #   # volumes: 
+  #   #   - type: 'bind'
+  #   #   - 'vdms_data_2:/vdms/build/db'
+  #   environment:
+  #      NETWORK_PORT: 55561
+  #   hostname: 'data_store_2'
+  #   ports:
+  #     - '55561:55561'    
+# volumes:
+#    - 'vdms_data_1':
+#    - 'vdms_data_2':
+
+
+
+      
