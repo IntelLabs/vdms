@@ -71,24 +71,24 @@ services:
     container_name: 'data_store_1'
     ports:
       - '55560:55560'
-    # network_mode: "host"
-    networks:
-      - default
-   
+    network_mode: "host"
+    #networks:
+     # - default
     
     
   data_store_2:
     image: 'vdms_dist:1'
     container_name: 'data_store_2'
     network_mode: host
+    ports:
+      - '55561:55561'  
   #   # volumes: 
   #   #   - type: 'bind'
   #   #   - 'vdms_data_2:/vdms/build/db'
   #   environment:
   #      NETWORK_PORT: 55561
   #   hostname: 'data_store_2'
-  #   ports:
-  #     - '55561:55561'    
+    
 # volumes:
 #    - 'vdms_data_1':
 #    - 'vdms_data_2':
