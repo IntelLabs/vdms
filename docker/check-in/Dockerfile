@@ -16,21 +16,21 @@ ARG MAVEN_OPTS
 
 #Install Packages
 RUN apt-get update && apt-get -y install software-properties-common && \
-    add-apt-repository "deb http://security.ubuntu.com/ubuntu focal-security main" && \
+    add-apt-repository "deb http://security.ubuntu.com/ubuntu ${UBUNTU_NAME}-security main" && \
     apt-get -y install apt-transport-https autoconf automake bison build-essential \
-    bzip2 ca-certificates cmake curl ed flex g++ git gnupg-agent javacc libarchive-tools \
+    bzip2 ca-certificates curl ed flex g++ git gnupg-agent javacc libarchive-tools \
     libatlas-base-dev libavcodec-dev libavformat-dev libboost-all-dev libbz2-dev \
     libc-ares-dev libdc1394-22-dev libgflags-dev libgoogle-glog-dev libgtest-dev \
     libgtk-3-dev libgtk2.0-dev libhdf5-serial-dev libjpeg-dev libjpeg8-dev libjsoncpp-dev \
     libleveldb-dev liblmdb-dev liblz4-dev libopenblas-dev libopenmpi-dev \
     libpng-dev librdkafka-dev libsnappy-dev libssl-dev libswscale-dev libtbb-dev \
     libtbb2 libtiff-dev libtiff5-dev libtool maven mpich openjdk-11-jdk-headless \
-    pkg-config python python-dev python3-pip unzip wget lcov && \
-    pip3 install numpy coverage vdms gcovr
+    pkg-config python python-dev python3-pip unzip wget lcov
+
+RUN pip3 install numpy coverage vdms gcovr
 
 #Pull Dependencies
 RUN git clone --branch v1.40.0 https://github.com/grpc/grpc.git && \
-    git clone --branch libpng12 https://github.com/glennrp/libpng.git && \
     git clone --branch v4.0.2 https://github.com/swig/swig.git && \
     git clone --branch 4.5.3 https://github.com/opencv/opencv.git && \
     git clone --branch v0.6 https://github.com/tristanpenman/valijson.git && \
@@ -55,8 +55,7 @@ RUN cd /CMake && ./bootstrap && make ${BUILD_THREADS} && make install && \
     -DgRPC_RE2_PROVIDER=package -DgRPC_SSL_PROVIDER=package \
     -DgRPC_ZLIB_PROVIDER=package -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE ../.. && make ${BUILD_THREADS} && make install && \
     cd / && gunzip zlib-1.2.12.tar.gz && tar -xvf zlib-1.2.12.tar && cd zlib-1.2.12 && ./configure && make ${BUILD_THREADS} && make install && \
-    cd / && rm -rf zlib-1.2.12.tar zlib-1.2.12 && \
-    cd /libpng && git checkout libpng12 && ./configure && make ${BUILD_THREADS} && make install
+    cd / && rm -rf zlib-1.2.12.tar zlib-1.2.12 
 
 # Google Test & OpenCV
 RUN cd /usr/src/gtest && cmake . && make ${BUILD_THREADS} && mv lib/libgtest* /usr/lib/ && \
@@ -76,7 +75,7 @@ RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc /grpc/third_party/protob
 # Valijson
 RUN cd /valijson && cp -r include/* /usr/local/include/ && \
     cd / && rm -rf valijson && rm -rf faiss && \
-    rm -rf grpc && rm -rf libpng  && rm -rf opencv && rm -rf swig && rm -rf CMake
+    rm -rf grpc && rm -rf opencv && rm -rf swig && rm -rf CMake
 
 FROM base_build
 
@@ -86,7 +85,8 @@ COPY docker/check-in/run_coverage.sh /run_coverage.sh
 RUN [ -d /vdms/build ]; rm -rf /vdms/build
 RUN cd /vdms && [ -d /vdms/.git ]; git submodule update --init --recursive && mkdir build && \
     cd build && cmake -DCODE_COVERAGE=ON .. && make ${BUILD_THREADS} && \
-    cp /vdms/config-vdms.json /vdms/build/ && mkdir -p /vdms/tests/coverage_report
+    cp /vdms/config-vdms.json /vdms/build/ && \
+    mkdir -p /vdms/tests/coverage_report
 
 RUN chmod +x /run_coverage.sh && \
     echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
