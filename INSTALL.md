@@ -8,7 +8,7 @@ apt-get update
 apt-get -y install software-properties-common
 add-apt-repository "deb http://security.ubuntu.com/ubuntu focal-security main"
 apt-get -y install apt-transport-https autoconf automake bison build-essential \
-    bzip2 ca-certificates cmake curl ed flex g++ git gnupg-agent javacc libarchive-tools \
+    bzip2 ca-certificates curl ed flex g++ git gnupg-agent javacc libarchive-tools \
     libatlas-base-dev libavcodec-dev libavformat-dev libboost-all-dev libbz2-dev \
     libc-ares-dev libdc1394-22-dev libgflags-dev libgoogle-glog-dev libgtest-dev \
     libgtk-3-dev libgtk2.0-dev libhdf5-serial-dev libjpeg-dev libjpeg8-dev libjsoncpp-dev \
@@ -23,7 +23,6 @@ Here we clone the repositories for grpc v1.40.0, libpng12, Swig v4.0.2, OpenCV 4
 Here we assume `/` is the working directory. This is important when installing the dependencies.
 ```bash
 git clone --branch v1.40.0 https://github.com/grpc/grpc.git && \
-git clone --branch libpng12 https://github.com/glennrp/libpng.git && \
 git clone --branch v4.0.2 https://github.com/swig/swig.git && \
 git clone --branch 4.5.3 https://github.com/opencv/opencv.git && \
 git clone --branch v0.6 https://github.com/tristanpenman/valijson.git && \
@@ -104,13 +103,6 @@ make -j && make install
 cd / && rm -rf zlib-1.2.12.tar zlib-1.2.12
 ```
 
-### Libpng
-```bash
-cd /libpng && git checkout libpng12
-./configure
-make -j && make install
-```
-
 ### gtest
 Unfortunately apt doesn't build gtest;
 you need to do the following steps to get it to work correctly:
@@ -160,9 +152,7 @@ rm -rf /TileDB-1.3.1
 
 ### Maven
 ```bash
-ln -s /grpc/third_party/protobuf/cmake/build/protoc
-grpc/third_party/protobuf/src/protoc
-
+ln -s /grpc/third_party/protobuf/cmake/build/protoc grpc/third_party/protobuf/src/protoc
 cd /grpc/third_party/protobuf/java/core
 mvn package
 cp target/protobuf-java-3.13.0.jar /usr/share/java/protobuf.jar
