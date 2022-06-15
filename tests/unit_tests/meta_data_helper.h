@@ -41,6 +41,9 @@ class Meta_Data{
         Json::Value construct_find_image();
         Json::Value construct_descriptor();
         Json::Value construct_find_descriptor();
+        Json::Value construct_flinng_descriptor();
+        Json::Value construct_find_flinng_descriptor();
+        Json::Value construct_Flinng_Set(std::string&, int&);
         std::string get_server(){return _server_name;}
         int get_port() {return _port;}
 

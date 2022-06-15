@@ -1,6 +1,6 @@
 #include "meta_data_helper.h"
 
-TEST(BBs, add_BB){
+TEST(CLIENT_CPP, add_BB){
      Meta_Data* meta_obj=new Meta_Data();
      meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
     Json::Value tuple ;
@@ -13,7 +13,7 @@ TEST(BBs, add_BB){
     EXPECT_EQ(status1, 0);
 }
 
-TEST(BBs, add_BB_with_image){
+TEST(CLIENT_CPP, add_BB_with_image){
     std::fstream jpgimage("../tests/images/large1.jpg");
     jpgimage.seekg(0, jpgimage.end);
     int length = jpgimage.tellg();
