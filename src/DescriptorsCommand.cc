@@ -138,18 +138,17 @@ int AddDescriptorSet::construct_protobuf(
     props[VDMS_DESC_SET_DIM_PROP]  = cmd["dimensions"].asInt();
     props[VDMS_DESC_SET_PATH_PROP] = desc_set_path;
     if (cmd.isMember("flinng_num_rows"))
-        _flinng_num_rows = cmd["flinng_num_rows"].asInt();
-     
+         _flinng_num_rows = cmd["flinng_num_rows"].asInt();
     if (cmd.isMember("flinng_cells_per_row"))
-         _flinng_cells_per_row =cmd["flinng_cells_per_row"].asInt();
-    if (cmd.isMember("flinng_num_hash_tables"))    
+        _flinng_cells_per_row =cmd["flinng_cells_per_row"].asInt();
+    if (cmd.isMember("flinng_num_hash_tables")) 
         _flinng_num_hash_tables =cmd["flinng_num_hash_tables"].asInt();
-     if (cmd.isMember("flinng_hashes_per_table"))
-     _flinng_hashes_per_table =cmd["flinng_hashes_per_table"].asInt();
-     if (cmd.isMember("flinng_sub_hash_bits"))
-     _flinng_sub_hash_bits = cmd["flinng_sub_hash_bits"].asInt();
-     if (cmd.isMember("flinng_cut_off"))
-     _flinng_cut_off =  cmd["flinng_cut_off"].asInt();
+    if (cmd.isMember("flinng_hashes_per_table"))
+        _flinng_hashes_per_table =cmd["flinng_hashes_per_table"].asInt();
+    if (cmd.isMember("flinng_sub_hash_bits"))
+       _flinng_sub_hash_bits = cmd["flinng_sub_hash_bits"].asInt();
+    if (cmd.isMember("flinng_cut_off"))
+       _flinng_cut_off =  cmd["flinng_cut_off"].asInt();
 
     Json::Value constraints;
     constraints[VDMS_DESC_SET_NAME_PROP].append("==");

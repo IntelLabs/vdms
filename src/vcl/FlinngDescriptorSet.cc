@@ -143,11 +143,9 @@ long FlinngDescriptorSet::add(float* descriptors, unsigned n, long* labels=NULL)
     _index->add(descriptors, n); 
     _n_total +=n;
      if(!is_finalized){
-         finalize_index();
-         is_finalized=true;
-     }
+        finalize_index();
+        is_finalized=true; }
     _lock.unlock();
-
     return id_first;
 }
 
@@ -169,11 +167,9 @@ long FlinngDescriptorSet::add_and_store(float* descriptors, unsigned n, long* la
     _index->add_and_store(descriptors, n);
     _n_total += n;
     if(!is_finalized){
-         finalize_index();
-         is_finalized=true;
-     }
+        finalize_index();
+        is_finalized=true; }
     _lock.unlock();
-
     return id_first;
 }
 
