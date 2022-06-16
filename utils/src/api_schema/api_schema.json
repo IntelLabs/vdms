@@ -596,7 +596,13 @@
         "metric":     { "$ref": "#/definitions/metricFormatString" },
         "engine":     { "$ref": "#/definitions/engineFormatString" },
         "link":       { "$ref": "#/definitions/blockLink" },
-        "properties": { "type": "object" }
+        "properties": { "type": "object" },
+        "flinng_num_rows":{ "$ref": "#/definitions/refInt" },
+        "flinng_cells_per_row":{ "$ref": "#/definitions/refInt" },
+        "flinng_num_hash_tables":{ "$ref": "#/definitions/refInt" },
+        "flinng_hashes_per_table":{ "$ref": "#/definitions/refInt" },
+        "flinng_sub_hash_bits":{ "$ref": "#/definitions/refInt" },
+        "flinng_cut_off":{ "$ref": "#/definitions/refInt" }
       },
       "required": ["name", "dimensions"],
       "additionalProperties": false

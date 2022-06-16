@@ -1,7 +1,7 @@
 
 #include "meta_data_helper.h"
 
-TEST(entities, add_two_entities_with_connection)
+TEST(CLIENT_CPP, add_two_CLIENT_CPP_with_connection)
 {
     Meta_Data* meta_obj=new Meta_Data();
     meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
@@ -27,7 +27,7 @@ TEST(entities, add_two_entities_with_connection)
 
 } 
 
-TEST(entities, add_single_entity)
+TEST(CLIENT_CPP, add_single_entity)
 {
     Meta_Data* meta_obj=new Meta_Data();
     meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
@@ -45,7 +45,7 @@ TEST(entities, add_single_entity)
 
 }
 
-TEST(entities, add_single_entity_expiration)
+TEST(CLIENT_CPP, add_single_entity_expiration)
 {
     Meta_Data* meta_obj=new Meta_Data();
     meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
@@ -63,7 +63,7 @@ TEST(entities, add_single_entity_expiration)
 
 }
 
-TEST(entities, add_single_entity_constraints)
+TEST(CLIENT_CPP, add_single_entity_constraints)
 {
     Meta_Data* meta_obj=new Meta_Data();
     meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
@@ -81,7 +81,7 @@ TEST(entities, add_single_entity_constraints)
 }
 
 
-TEST(entities, add_multiple_entities)
+TEST(CLIENT_CPP, add_multiple_CLIENT_CPP)
 {
     Meta_Data* meta_obj=new Meta_Data();
     meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
@@ -104,7 +104,7 @@ TEST(entities, add_multiple_entities)
 
 
 }
-TEST (entities, add_multiple_from_file){
+TEST (CLIENT_CPP, add_multiple_from_file){
 
     Meta_Data* meta_obj=new Meta_Data();
     meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(),meta_obj->get_port()));
@@ -137,7 +137,7 @@ TEST (entities, add_multiple_from_file){
 
 }
 
-TEST (entities, add_two_from_file){
+TEST (CLIENT_CPP, add_two_from_file){
 
     Meta_Data* meta_obj=new Meta_Data();
     meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(),meta_obj->get_port()));
@@ -170,7 +170,7 @@ TEST (entities, add_two_from_file){
 
 }
 
-TEST (entities, add_connection_from_file){
+TEST (CLIENT_CPP, add_connection_from_file){
 
     Meta_Data* meta_obj=new Meta_Data();
     meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
@@ -203,7 +203,7 @@ TEST (entities, add_connection_from_file){
 
 }
 
-TEST(entities, add_multiple_entities_constraints)
+TEST(CLIENT_CPP, add_multiple_CLIENT_CPP_constraints)
 {
     Meta_Data* meta_obj=new Meta_Data();
     meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));

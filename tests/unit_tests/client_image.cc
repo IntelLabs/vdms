@@ -2,7 +2,7 @@
 
 
 
-TEST(Images, add_image){
+TEST(CLIENT_CPP, add_image){
     
     std::string image;
 
@@ -37,7 +37,7 @@ TEST(Images, add_image){
 
 
 
-TEST(Images, add_image_resize_operation){
+TEST(CLIENT_CPP, add_image_resize_operation){
     
     std::string image;
 
@@ -75,7 +75,7 @@ TEST(Images, add_image_resize_operation){
     EXPECT_EQ(status1, 0);
 }
 
-TEST(Images, find_image){
+TEST(CLIENT_CPP, find_image){
    
     Meta_Data* meta_obj=new Meta_Data();
      meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));

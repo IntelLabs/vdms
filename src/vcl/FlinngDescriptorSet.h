@@ -55,6 +55,7 @@ namespace VCL {
     protected:
 
         std::string _flinng_file;
+        bool is_finalized; 
 
         flinng::BaseDenseFlinng32* _index; //FLinng have a base class by this name
         //depending on metric to be used will point to the right index

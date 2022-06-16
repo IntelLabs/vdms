@@ -4,7 +4,53 @@ Meta_Data::Meta_Data(){
    
    
 }
+Json::Value Meta_Data::construct_Flinng_Set( std::string& name, int& dim ){
 
+    Json::Value descriptor_set;
+    Json::Value set_query;
+    Json::Value tuple;
+    descriptor_set["name"] = name ;
+    descriptor_set["dimensions"] = dim;
+    descriptor_set["metric"] ="IP";
+    descriptor_set["engine"]="Flinng";
+    descriptor_set["flinng_num_rows"]=3;
+    descriptor_set["flinng_cells_per_row"]=100;
+    descriptor_set["flinng_num_hash_tables"]=12;
+    descriptor_set["flinng_hashes_per_table"]=10;
+    descriptor_set["flinng_sub_hash_bits"]=2;
+    descriptor_set["flinng_cut_off"]=6;
+    set_query["AddDescriptorSet"] = descriptor_set;
+  
+    return set_query;
+    
+}
+Json::Value Meta_Data::construct_flinng_descriptor(){
+    
+   
+    Json::Value tuple;
+    std::shared_ptr<VDMS::VDMSClient> test_aclient;
+    std::string name="flinng_test_2060";
+    int dim =100;
+    tuple.append(construct_Flinng_Set(name, dim));
+    test_aclient.reset ( new VDMS::VDMSClient(get_server(), get_port()));
+    VDMS::Response response =test_aclient->query(_fastwriter.write(tuple));
+    Json::Value result;
+    _reader.parse(response.json.c_str(),  result); 
+    Json::Value AddDesc;
+    Json::Value Desc;
+    
+    Desc["set"] ="flinng_test_2060";
+    Desc["label"] ="Person";
+    Desc["_ref"]=1;
+    Desc["properties"]["id"]=123;
+    Desc["properties"]["name"]="Ali";
+    AddDesc["AddDescriptor"] = Desc;
+    tuple.append(AddDesc);
+    return tuple;
+    
+
+
+}
 
 Json::Value Meta_Data::construct_descriptor(){
     Json::Value descriptor_set;
@@ -46,6 +92,23 @@ Json::Value Meta_Data::construct_find_descriptor()
   Desc["results"]["list"][0] = "_distance";
   Desc["results"]["list"][1] = "id";
   Desc["set"]= "features_vectors_store1";
+  Desc["k_neighbors"]=5;
+//   Desc["blob"] =true;
+  FindDesc["FindDescriptor"] = Desc;
+  tuple.append(FindDesc);
+  FindDesc.clear();
+  Desc.clear();
+return tuple;
+}
+
+Json::Value Meta_Data::construct_find_flinng_descriptor()
+{
+  Json::Value FindDesc;
+  Json::Value Desc;
+  Json::Value tuple;
+  Desc["results"]["list"][0] = "_distance";
+  Desc["results"]["list"][1] = "id";
+  Desc["set"]= "flinng_test_2060";
   Desc["k_neighbors"]=5;
 //   Desc["blob"] =true;
   FindDesc["FindDescriptor"] = Desc;
@@ -120,9 +183,6 @@ Json::Value Meta_Data::constuct_BB(bool with_image){
     image["format"]="png";
     image["_ref"]=12;
     add_image["AddImage"]=image;
-
-    
-   
     
     Json::Value BB_coord;
     Json::Value BB;

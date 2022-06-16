@@ -2,7 +2,7 @@
 #include "meta_data_helper.h"
 
 
-TEST(entities, find_single_entity)
+TEST(CLIENT_CPP, find_single_entity)
 {
     Meta_Data* meta_obj=new Meta_Data();
      meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
@@ -19,7 +19,7 @@ TEST(entities, find_single_entity)
 
 
 }
-TEST(entities, find_single_delete_flag)
+TEST(CLIENT_CPP, find_single_delete_flag)
 {
  Meta_Data* meta_obj=new Meta_Data();
      meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
@@ -37,7 +37,7 @@ TEST(entities, find_single_delete_flag)
 }
 
 
-TEST(entities, find_single_expiration_flag)
+TEST(CLIENT_CPP, find_single_expiration_flag)
 {
     Meta_Data* meta_obj=new Meta_Data();
      meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
@@ -55,7 +55,7 @@ TEST(entities, find_single_expiration_flag)
 
 }
 
-TEST(entities, find_single_expiration_flag_auto_delete)
+TEST(CLIENT_CPP, find_single_expiration_flag_auto_delete)
 {
     Meta_Data* meta_obj=new Meta_Data();
      meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
