@@ -1,5 +1,4 @@
 cmake_minimum_required (VERSION 3.10)
-
 option(CODE_COVERAGE "Collect coverage" OFF)
 IF(CODE_COVERAGE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -coverage -fprofile-arcs -ftest-coverage")
@@ -23,9 +22,11 @@ include_directories(
     /usr/include/jsoncpp
     ../src/pmgd/include
     ../src/pmgd/util
+    ../client/cpp
+    ../utils/
 )
 
-add_executable(unit_test
+add_executable(unit_tests
     main.cc
     server/json_queries.cc
     unit_tests/pmgd_queries.cc
@@ -38,13 +39,21 @@ add_executable(unit_test
     unit_tests/DescriptorSetTrain_test.cc
     unit_tests/DescriptorSetReadFS_test.cc
     unit_tests/DescriptorSetStore_test.cc
+    unit_tests/client_add_entity.cc
+    unit_tests/meta_data.cc
+    unit_tests/client_find_entities.cc
+    unit_tests/client_image.cc
+    unit_tests/client_bounding_box.cc
+    unit_tests/client_descriptors.cc
+    unit_tests/client_videos.cc
 )
 
-target_link_libraries(unit_test
+target_link_libraries(unit_tests
     avcodec
     avformat
     dms
     faiss
+    flinng
     gtest
     jsoncpp
     pmgd
@@ -53,6 +62,7 @@ target_link_libraries(unit_test
     pthread
     tiledb
     vcl
+    vdms-client
     vdms-utils
     ${CMAKE_THREAD_LIBS_INIT}
     ${OpenCV_LIBS}

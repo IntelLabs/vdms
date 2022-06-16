@@ -69,6 +69,8 @@ namespace VCL {
 
         enum OperationType { READ, WRITE, RESIZE, CROP, THRESHOLD, INTERVAL };
 
+	enum OperationResult { PASS, CONTINUE, BREAK };
+
     /*  *********************** */
     /*        CONSTRUCTORS      */
     /*  *********************** */
@@ -305,9 +307,20 @@ namespace VCL {
      */
     void delete_video();
 
+    /**
+     * Read a frame from the video file.
+     * To improve the performance, if we read multiple frames, we should 
+     * read from the smallest index to the largest index.
+     *
+     * @param index  The index of the frame within the video.
+     * @return The pointer to the frame if it succeeds and NULL if it fails
+     */
+    VCL::Image* read_frame(int index);
+
     private:
 
         class Operation;
+	class Read;
 
         // Forward declaration of VideoTest class, that is used for the unit
         // test to accesss private methods of this class
@@ -319,7 +332,7 @@ namespace VCL {
 
         bool _flag_stored; // Flag to avoid unnecessary read/write
 
-        std::vector<VCL::Image> _frames;
+	std::shared_ptr<Read> _video_read;
 
         VideoSize _size;
 
@@ -351,18 +364,38 @@ namespace VCL {
          *   () operator
          */
         class Operation {
+	protected:
+	    // Pointer to the video object to be handled
+	    Video* _video;
 
         public:
+
+	    Operation(Video* video): 
+		_video(video)	
+	    {
+
+	    }
 
             /**
              *  Implemented by the specific operation, performs what
              *    the operation is supposed to do
+	     *  This function should be executed for every frame
              *
-             *  @param img  A pointer to the current Video object
+	     *  @param index  The index of frame to be processed
+	     *  @return  PASS the frame should be passed to the next operation object 
+	     *           CONTINUE Abort the current frame operation
+	     *           BREAK Abort the whole video operation 
              */
-            virtual void operator()(Video *video) = 0;
+            virtual OperationResult operator()(int index) = 0;
 
             virtual OperationType get_type() = 0;
+
+	    /**
+	     *   This function is called after the video operation, to tell the Operation
+	     *   object to release the resources and update video metadata.
+	     *
+	     */
+	    virtual void finalize() { }
         };
 
     /*  *********************** */
@@ -372,9 +405,27 @@ namespace VCL {
         /**
          *  Extends Operation, reads Video from the file system
          */
-        class Read : public Operation {
+        class Read : public Operation, public std::enable_shared_from_this<Read> {
+
+	    // The currently opened video file
+	    cv::VideoCapture _inputVideo;
+	    // The cached frames
+            std::vector<VCL::Image> _frames;
+	    // The range of cached frames
+	    int _frame_index_starting, _frame_index_ending;
+	    // The path of the currently opened video file
+	    std::string _video_id;
+
 
             Video::Codec read_codec(char* fourcc);
+
+	    // Open the video file and initialize VideoCapture handler
+	    void open();
+
+	    // Reopen the VideoCapture handler, this happens if 
+	    // * the video file changes
+	    // * we want to read the frames all over again
+	    void reopen();
 
         public:
 
@@ -382,9 +433,35 @@ namespace VCL {
              *  Reads an Video from the file system (based on specified path)
              *
              */
-            void operator()(Video *video);
+	    Read(Video* video) 
+		: Operation(video),
+                  _frame_index_starting(0),
+                  _frame_index_ending(0),
+                  _video_id(video->_video_id)
+	    {
+
+	    };
+
+            OperationResult operator()(int index);
+
+	    void finalize();
 
             OperationType get_type() { return READ; };
+
+	    // Reset or close the VideoCapture handler
+	    void reset();
+
+	    /**
+             * Read a frame from the video file.
+             * To improve the performance, if we read multiple frames, we should
+             * read from the smallest index to the largest index.
+             *
+             * @param index  The index of the frame within the video.
+             * @return The pointer to the frame if it succeeds and NULL if it fails
+             */
+	    VCL::Image* read_frame(int index);
+
+	    ~Read();
         };
 
     /*  *********************** */
@@ -396,25 +473,36 @@ namespace VCL {
          */
         class Write : public Operation {
         private:
+	    cv::VideoWriter _outputVideo;
             std::string  _outname;
             Video::Codec _codec;
+	    int _frame_count;
+	    int _last_write;
 
             int get_fourcc();
 
         public:
 
-            Write(std::string outname, Video::Codec codec) :
-                _outname(outname), _codec(codec)
+            Write(Video* video, std::string outname, Video::Codec codec) 
+		: Operation(video), 
+		  _outname(outname), 
+		  _codec(codec),
+		  _frame_count(0),
+		  _last_write(-1)
             {
-            }
+            };
 
             /**
              *  Writes an Video to the file system.
              *
              */
-            void operator()(Video *video);
+            OperationResult operator()(int index);
 
             OperationType get_type() { return WRITE; };
+
+	    void finalize();
+
+	    ~Write();
         };
 
     /*  *********************** */
@@ -434,7 +522,9 @@ namespace VCL {
              *
              *  @param size  Struct that contains w and h
              */
-            Resize(const cv::Size &size) : _size(size)
+            Resize(Video* video, const cv::Size &size)
+                : Operation(video),
+		  _size(size)
             {
             };
 
@@ -443,7 +533,7 @@ namespace VCL {
              *
              *  @param video  A pointer to the current Video object
              */
-            void operator()(Video *video);
+            OperationResult operator()(int index);
 
             OperationType get_type() { return RESIZE; };
         };
@@ -458,6 +548,9 @@ namespace VCL {
             int _stop;
             int _step;
             Video::Unit _u;
+	    bool _fps_updated;
+
+	    void update_fps();
 
         public:
             /**
@@ -468,11 +561,13 @@ namespace VCL {
              *  @param stop  Last frame
              *  @param step  Number of frames to be skipped in between.
              */
-            Interval(Video::Unit u, const int start , const int stop, int step)
-                : _u(u),
+            Interval(Video* video, Video::Unit u, const int start , const int stop, int step)
+                : Operation(video),
+		  _u(u),
                   _start(start),
                   _stop(stop),
-                  _step(step)
+                  _step(step),
+		  _fps_updated(false)
             {
             };
 
@@ -481,9 +576,10 @@ namespace VCL {
              *
              *  @param video  A pointer to the current Video object
              */
-            void operator()(Video *video);
+            OperationResult operator()(int index);
 
             OperationType get_type() { return INTERVAL; };
+
         };
 
     /*  *********************** */
@@ -505,8 +601,9 @@ namespace VCL {
              *  @param rect  Contains dimensions and coordinates of
              *    desired area
              */
-            Crop(const Rectangle &rect )
-                : _rect(rect)
+            Crop(Video* video, const Rectangle &rect )
+                : Operation(video),
+		  _rect(rect)
             {
             };
 
@@ -515,7 +612,7 @@ namespace VCL {
              *
              *  @param video  A pointer to the current Video object
              */
-            void operator()(Video *video);
+            OperationResult operator()(int index);
 
             OperationType get_type() { return CROP; };
         };
@@ -539,8 +636,9 @@ namespace VCL {
              *
              *  @param value  Minimum value pixels should be
              */
-            Threshold(const int value)
-                : _threshold(value)
+            Threshold(Video* video, const int value)
+                : Operation(video),
+		  _threshold(value)
             {
             };
 
@@ -549,7 +647,7 @@ namespace VCL {
              *
              *  @param img  A pointer to the current Video object
              */
-            void operator()(Video *video);
+            OperationResult operator()(int index);
 
             OperationType get_type() { return THRESHOLD; };
         };
@@ -564,7 +662,7 @@ namespace VCL {
          *
          * @return true if video was read, false otherwise
          */
-        bool is_read(void);
+        // bool is_read(void);
 
         /**
          *  Performs the set of operations that have been requested

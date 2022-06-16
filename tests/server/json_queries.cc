@@ -61,6 +61,28 @@ std::string singleAddImage(" \
             } \
         } \
     ");
+TEST( AutoReplicate, default_replicate)
+{
+    
+
+    VDMSConfig::init("server/config-auto-replicate-tests.json");
+    PMGDQueryHandler::init();
+    QueryHandler::init();
+    std::string backup_path ="backups";
+    std::string db_path="db_backup"; 
+    int port =55555;
+
+    QueryHandler qh_base;
+    qh_base.regualar_run_autoreplicate(backup_path, db_path, port); // set flag to show autodelete queue has been initialized
+    QueryHandlerTester query_handler(qh_base);
+
+    
+
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+
+}    
+
 
 TEST(AddImage, simpleAdd)
 {

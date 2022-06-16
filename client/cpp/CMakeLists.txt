@@ -4,5 +4,5 @@ find_package( OpenCV REQUIRED )
 
 include_directories(../../utils/include/)
 add_library(vdms-client SHARED VDMSClient.cc)
-target_link_libraries(vdms-client vcl pmgd pmgd-util protobuf vdms-utils)
+target_link_libraries(vdms-client protobuf vdms_protobuf vdms-utils)
 
