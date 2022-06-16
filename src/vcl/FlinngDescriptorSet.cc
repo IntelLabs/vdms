@@ -130,6 +130,8 @@ long FlinngDescriptorSet::add(float* descriptors, unsigned n, long* labels=NULL)
     assert(n > 0);
 
     _lock.lock();
+
+    is_finalized=false;
     
 
     long id_first = _n_total;
@@ -142,9 +144,7 @@ long FlinngDescriptorSet::add(float* descriptors, unsigned n, long* labels=NULL)
 
     _index->add(descriptors, n); 
     _n_total +=n;
-     if(!is_finalized){
-        finalize_index();
-        is_finalized=true; }
+     
     _lock.unlock();
     return id_first;
 }
@@ -155,6 +155,8 @@ long FlinngDescriptorSet::add_and_store(float* descriptors, unsigned n, long* la
 
     _lock.lock();
     
+    is_finalized=false;
+
     long id_first = _n_total;
 
     if (labels != NULL) {
@@ -166,9 +168,6 @@ long FlinngDescriptorSet::add_and_store(float* descriptors, unsigned n, long* la
     
     _index->add_and_store(descriptors, n);
     _n_total += n;
-    if(!is_finalized){
-        finalize_index();
-        is_finalized=true; }
     _lock.unlock();
     return id_first;
 }
@@ -196,16 +195,26 @@ bool FlinngDescriptorSet::is_trained()
 void FlinngDescriptorSet::search(float* query, unsigned n_queries, unsigned k,
                               long * descriptors, float* distances)
 {
-     
+     if(!is_finalized){
+         _lock.lock();
+        finalize_index();
+        is_finalized=true;
+        _lock.unlock(); 
+        }
      _index->search_with_distance(query, n_queries, k, descriptors, distances);
 }
 
 void FlinngDescriptorSet::search(float* query, unsigned n_queries, unsigned k,
                               long * descriptors)
 {
-    if(is_finalized){
-         _index->search(query, n_queries, k, descriptors);
-    }
+    if(!is_finalized){
+         _lock.lock();
+        finalize_index();
+        is_finalized=true;
+        _lock.unlock(); 
+        }
+    _index->search(query, n_queries, k, descriptors);
+    
 }
 
 void FlinngDescriptorSet::radius_search(float* query, float radius,
