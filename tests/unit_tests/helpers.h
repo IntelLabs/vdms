@@ -55,6 +55,14 @@ void generate_desc_linear_increase(int d, int nb, float* xb, float init = 0);
 
 float* generate_desc_linear_increase(int d, int nb, float init = 0);
 
+void generate_desc_normal_cluster(int d, int nb, float* xb, float init = 0, int cluster_size=5, float clusterhead_std=1.0, float cluster_std=0.1);
+
+float* generate_desc_normal_cluster(int d, int nb, float init = 0, int cluster_size=5, float clusterhead_std=1.0, float cluster_std=0.1);
+
+void create_additional_neighbors(int d, int cluster_increment, int n_clusters, float* cluster_heads, float cluster_std, float *neighbors);
+
+float* create_additional_neighbors(int d, int cluster_increment, int n_clusters, float* cluster_heads, float cluster_std);
+
 void check_arrays_float(float* a, float* b, int d);
 
 std::map<long, std::string> animals_map();

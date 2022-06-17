@@ -34,11 +34,14 @@
 */
 #include <iostream>
 
+
 #include "Server.h"
 
 void printUsage()
 {
     std::cout << "Usage: vdms -cfg config-file.json" << std::endl;
+    
+    std::cout << "Usage: vdms -restore db.tar.gz" << std::endl;
     exit(0);
 }
 
@@ -49,6 +52,10 @@ static void* start_request_thread(void* server)
     ((VDMS::Server*)(server))->process_requests();
     return NULL;
 }
+static void* start_replication_thread(void* server){
+    ((VDMS::Server*)(server))->auto_replicate_data();
+}
+
 
 static void* start_autodelete_thread(void* server)
 {
@@ -59,8 +66,8 @@ static void* start_autodelete_thread(void* server)
 
 int main(int argc, char **argv)
 {
-    pthread_t request_thread, autodelete_thread;
-    int request_thread_flag, autodelete_thread_flag;
+    pthread_t request_thread, autodelete_thread, auto_replicate_thread;
+    int request_thread_flag, autodelete_thread_flag, auto_replcation_flag;
 
     printf("VDMS Server\n");
 
@@ -72,20 +79,50 @@ int main(int argc, char **argv)
 
     if (argc == 3){
         std::string option(argv[1]);
-        if (option != "-cfg")
+        
+        if (option != "-cfg" && option!="-restore"  && option!="-backup")
             printUsage();
-
+        if(option =="-cfg")
         config_file = std::string (argv[2]);
+    
+   
+       
+        else if (option=="-restore" ){
+            void* server;
+            
+            std::string db_name(argv[2]);
+            size_t file_ext1 = db_name.find_last_of(".");
+            
+           std::string temp_name_1= db_name.substr(0,file_ext1);
+           
+           size_t file_ext2 = temp_name_1.find_last_of(".");
+
+            std::string temp_name_2= temp_name_1.substr(0,file_ext2);
+                  
+            ((VDMS::Server*)(server))->untar_data(db_name);
+           
+            config_file = temp_name_2+".json";
+           
+        }
+
     }
 
+
+ 
     printf("Server will start processing requests... \n");
     VDMS::Server server(config_file);
 
     //create a thread for processing request and a thread for the autodelete timer
     request_thread_flag = pthread_create(&request_thread, NULL, start_request_thread, (void*)( &server ) );
     autodelete_thread_flag = pthread_create(&autodelete_thread, NULL, start_autodelete_thread, (void*)( &server ) );
+    auto_replcation_flag = pthread_create(&auto_replicate_thread, NULL, start_replication_thread, (void*)( &server ) );
+    
+
     pthread_join(request_thread, NULL);
     pthread_join(autodelete_thread, NULL);
+    pthread_join(auto_replicate_thread, NULL);
+
+    
 
     printf("Server shutting down... \n");
 
