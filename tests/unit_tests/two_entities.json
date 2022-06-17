@@ -1,0 +1,33 @@
+[
+        {
+            "AddEntity" :
+            {
+                    "class" : "Person",
+                    "_ref":1,
+                    
+                    "properties" :
+                    {
+                            "Address" : "90 royal lane kingsland",
+                            "City" : "Jodhpur",
+                            "Gender" : "F",
+                            "age" : 20,
+                            "email" : "mymail.1@gmail.com", 
+                            "name": "Ali1"
+                            
+                    }
+            }
+    },
+    {
+        "AddEntity" :
+        {
+                "class" : "Movie",
+                "_ref":2,
+                
+                "properties" :{
+                    "name" :"Ali Baba1",
+                    "year":2021
+
+                }
+            }
+         }
+         ]

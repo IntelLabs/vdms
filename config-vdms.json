@@ -1,6 +1,10 @@
 {
     "port": 55555,
+    "autoreplicate_interval":-1, // it should be > 0
+    "unit":"s", 
     "max_simultaneous_clients": 100,
+    // "backup_path":"backups_test", // set this if you want different path to store the back up file
     "db_root_path": "db",
+    "backup_flag" : "false",
     "more-info": "github.com/IntelLabs/vdms"
 }

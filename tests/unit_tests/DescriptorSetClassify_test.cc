@@ -190,6 +190,108 @@ TEST(Descriptors_Classify, classify_ivfflatl2_4d_labels)
     delete [] xb;
 }
 
+TEST(Descriptors_Classify, classify_flinngIP_100d_labels)
+{
+    int d = 100;
+    int nb = 10000;
+    
+    float init=0.0; 
+    int offset = 10;
+    float clusterhead_std=1.0; 
+    float cluster_std=0.1;
+
+    int n_clusters= floor((nb/offset));        
+
+    float *xb = generate_desc_normal_cluster(d, nb, init, offset, clusterhead_std, cluster_std);
+    std::string index_filename = "dbs/classify_flinngIP_100d_labels";
+
+    VCL::DescriptorParams* param = new VCL::DescriptorParams(3, nb/10, 10, 12);
+    VCL::DescriptorSet index(index_filename, unsigned(d), VCL::Flinng, VCL::DistanceMetric::IP, param);
+    
+    /*
+    std::vector<long> classes(nb);
+
+    for (int i = 0; i < n_clusters ; i++) {
+        for (int j = 0; j < offset; j++){
+            classes[i*offset + j] =  i;
+        }
+    }
+    */
+
+   auto class_map = animals_map();
+   std::vector<long> classes = classes_increasing_offset(nb, offset);
+   index.set_labels_map(class_map);
+
+
+
+    index.add_and_store(xb, nb,classes);
+    index.finalize_index();
+
+    std::vector<float> cluster_head(n_clusters * d);
+    std::vector<long> descriptors(n_clusters*offset);
+
+    for (int i = 0; i < n_clusters ; i++) {
+        for (int j = 0; j < offset; j++){
+            if((i*offset + j) % offset == 0) {
+                for (int z = 0; z < d; z++)
+                    cluster_head[i * d + z] = xb[ d*(i*offset + j) + z];
+            }
+        }
+    }
+
+    index.search(cluster_head.data(), n_clusters, offset, descriptors);
+
+    int correct=0;
+    float recall=0.0;
+    for(int i = 0; i < n_clusters; ++i){      
+      for (int j = 0; j < offset; ++j) {
+        if((i* offset <= descriptors[i*offset+j]) && (descriptors[i*offset+j] < (i+1)*offset)) 
+          correct++;        
+      }
+    }
+    recall=static_cast<float>(correct) /(n_clusters*offset);      
+    EXPECT_GE(recall, 0.7);    
+    
+    
+    std::vector<long> desc_ids;
+    index.search(xb, 1, offset, desc_ids);
+    
+
+    correct=0;
+    recall=0.0;
+    for (int j = 0; j < offset; ++j) {
+        if((0 <= desc_ids[j]) && (desc_ids[j] < offset)){
+              correct++; 
+              } 
+        }
+    
+    recall=static_cast<float>(correct) /offset;
+    EXPECT_GE(recall, 0.7);
+
+    std::vector<long> ret_ids = index.classify(xb, 60);
+    std::vector<std::string> ret = index.label_id_to_string(ret_ids);
+
+    for (int i = 0; i < offset; ++i) {
+        EXPECT_EQ(ret[i], "parrot");
+        EXPECT_EQ(ret[i+offset], "dog");
+        EXPECT_EQ(ret[i+2*offset], "cat");
+        EXPECT_EQ(ret[i+3*offset], "messi");
+        EXPECT_EQ(ret[i+4*offset], "bird");
+        EXPECT_EQ(ret[i+5*offset], "condor");
+    }
+
+
+    index.search(xb, 1, offset, desc_ids);
+    ret = index.get_str_labels(desc_ids);
+
+    for (auto& label : ret){
+        EXPECT_EQ(label, "parrot");
+    }    
+
+    delete [] xb;
+}
+
+
 TEST(Descriptors_Classify, classify_labels_10k)
 {
     int nb = 10000;

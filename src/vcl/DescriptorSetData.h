@@ -147,6 +147,9 @@ namespace VCL {
          */
         virtual long add(float* descriptors, unsigned n_descriptors,
                          long* labels = NULL) = 0;
+        
+        virtual long add_and_store(float* descriptors, unsigned n_descriptors,
+                         long* labels = NULL) {return 0;}
 
         /**
          *  Search for the k closest neighborhs
@@ -160,6 +163,9 @@ namespace VCL {
          */
         virtual void search(float* query, unsigned n, unsigned k,
                             long* descriptors, float* distances) = 0;
+        
+        virtual void search(float* query, unsigned n, unsigned k,
+                            long* descriptors) {}
 
         /**
          *  Search for neighborhs within a radius.
@@ -219,6 +225,8 @@ namespace VCL {
         virtual void train(float* descriptors, unsigned n) { train(); }
 
         virtual bool is_trained() {return false;}
+
+        virtual void finalize_index() {}
 
         /**
          *  Writes the DescriptorSet Index to the system. This will overwrite

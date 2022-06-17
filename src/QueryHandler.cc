@@ -113,7 +113,9 @@ void QueryHandler::init()
 
 QueryHandler::QueryHandler()
     : _pmgd_qh(),
-    _validator(valijson::Validator::kWeakTypes),_autodelete_init(false)
+    _validator(valijson::Validator::kWeakTypes),
+    _autodelete_init(false),
+    _autoreplicate_init(false)
 #ifdef CHRONO_TIMING
     ,ch_tx_total("ch_tx_total")
     ,ch_tx_query("ch_tx_query")
@@ -283,8 +285,8 @@ void QueryHandler::cleanup_query(const std::vector<std::string>& images,
     }
 
     for (auto& vid_path : videos) {
-        VCL::Video img(vid_path);
-        img.delete_video();
+        VCL::Video vid(vid_path);
+        vid.delete_video();
     }
 }
 
@@ -458,8 +460,55 @@ void QueryHandler::process_query(protobufs::queryMessage& proto_query,
         exception_handler();
     }
 }
+void QueryHandler::reset_autoreplicate_init_flag()
+{
+    _autoreplicate_init = true;
+}
+void QueryHandler::set_autoreplicate_init_flag( )
+{
+    _autoreplicate_init = false;
+}
+void QueryHandler::regualar_run_autoreplicate( std::string& backup_path, std::string& db_path, int& server_port)
+{
+    std::string command = "bsdtar cvfz ";
+    std::string name;
+    std::ostringstream oss;
+    Json::Value config_file; 
+    std::ofstream file_id;
+    name.clear();
+    auto t = std::time(nullptr);
+    auto tm = *std::localtime(&t);
+    oss<<asctime(&tm);
+    name=oss.str();
+    name.erase(remove(name.begin(), name.end(), ' '), name.end());
+    name.erase(std::remove(name.begin(), name.end(), '\n'),name.end());
+    // name.replace(name.find(":"),name.size(),"_");
+    std::string full_name=backup_path+"/" +name;
 
+    command = command + " "  + full_name +".tar.gz  " + db_path; // current_date_time
+    std::cout <<command <<std::endl;
+    
+    
+    system(command.c_str());
+    
+    config_file["port"]=server_port;
+    config_file["db_root_path"]= full_name;
+    config_file["more-info"] ="github.com/IntelLabs/vdms";
+    std::string config_file_name =full_name+".json";
+    std::cout << "Name is" << config_file_name <<std::endl;
+    file_id.open(config_file_name);
+    Json::StyledWriter Writer;
+    file_id << Writer.write( config_file);
+    file_id.close();
+    
+    command = "bsdtar cvfz ";
+    oss.str(std::string());
+    name.clear();
+    config_file.clear();
+        
+        
 
+}
 void QueryHandler::reset_autodelete_init_flag()
 {
     _autodelete_init = false;

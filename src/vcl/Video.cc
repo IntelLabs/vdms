@@ -43,7 +43,8 @@ Video::Video() :
     _fps(0),
     _video_id(""),
     _flag_stored(true),
-    _codec(Video::Codec::NOCODEC)
+    _codec(Video::Codec::NOCODEC),
+    _video_read(nullptr)
 {
 }
 
@@ -83,8 +84,10 @@ Video::Video(const Video &video)
 
     _flag_stored = video._flag_stored;
 
-    _frames     = video._frames;
+    //_frames     = video._frames;
     _operations = video._operations;
+
+    _video_read = video._video_read;
 
     for (const auto& op : video._operations)
         _operations.push_back(op);
@@ -98,6 +101,7 @@ Video& Video::operator=(Video vid)
 
 Video::~Video()
 {
+    _video_read = nullptr;
     _operations.clear();
     _key_frame_decoder.reset();
 }
@@ -116,16 +120,43 @@ Video::Codec Video::get_codec() const
     return _codec;
 }
 
+Image* Video::read_frame(int index) {
+    if (_video_read == nullptr) {
+        throw VCLException(UnsupportedOperation, "Video file not opened");   
+    }
+
+    Image* pframe = _video_read->read_frame(index);
+    if (pframe == nullptr) _video_read = nullptr; // Reaching the end, close the input video
+    return pframe;
+}
+
+// FIXME video read object is not released correctly.
 cv::Mat Video::get_frame(unsigned frame_number)
 {
     cv::Mat frame;
 
     if (_key_frame_decoder == nullptr) {
-        perform_operations();
-        if (frame_number >= _size.frame_count)
+	bool new_read = false;
+	std::shared_ptr<Read> video_read;
+	//_video_read not initialized, the current function is called directly
+	if (_video_read == nullptr) {
+	    video_read = std::make_shared<Read>(this);
+	    // open the video file
+	    (*video_read)(0);
+	    new_read = true;
+	}
+	// _video_read initialized, the current function is called by get_frames
+	else {
+	    video_read = _video_read;
+	}
+	VCL::Image* pframe = video_read->read_frame(frame_number);
+	if (new_read) {
+	    _video_read = nullptr;
+	}
+        if (pframe == nullptr)
             throw VCLException(OutOfBounds, "Frame requested is out of bounds");
 
-        frame =  _frames.at(frame_number).get_cvmat();
+        frame =  pframe->get_cvmat();
     }
     else {
 
@@ -140,6 +171,7 @@ cv::Mat Video::get_frame(unsigned frame_number)
     return frame;
 }
 
+// FIXME video read object is not released correctly.
 std::vector<cv::Mat> Video::get_frames(std::vector<unsigned> frame_list)
 {
     std::vector<cv::Mat> image_list;
@@ -151,8 +183,14 @@ std::vector<cv::Mat> Video::get_frames(std::vector<unsigned> frame_list)
     if (_key_frame_decoder == nullptr) {
         // Key frame information is not available: video will be decoded using
         // OpenCV.
+	_video_read = std::make_shared<Read>(this);
+        // open the video file
+        (*_video_read)(0);
+	    
         for (const auto& f : frame_list)
             image_list.push_back(get_frame(f));
+
+        _video_read = nullptr;
     }
     else {
         // Key frame information is set, video will be partially decoded using
@@ -257,11 +295,6 @@ void Video::set_key_frame_list(KeyFrameList& key_frames)
     /*       UTILITIES          */
     /*  *********************** */
 
-bool Video::is_read(void)
-{
-    return (_size.frame_count > 0);
-}
-
 void Video::perform_operations()
 {
     try
@@ -279,17 +312,38 @@ void Video::perform_operations()
         // - An object is instantiated through any of the non-default
         //   constructors, and has pushed operations explicitely: a 'read'
         //   operation is pushed to the head of the queue.
-        if ((_operations.empty() || _operations.front()->get_type() != READ)
-            && !is_read()) {
+        if (_operations.empty() || _operations.front()->get_type() != READ) {
+            //&& !is_read()) {
             if (_video_id.empty())
                 throw VCLException(OpenFailed, "video_id is not initialized");
-            _operations.push_front(std::make_shared<Read>());
+            _operations.push_front(std::make_shared<Read>(this));
         }
-        for (const auto& op : _operations) {
+
+	if (_operations.size() == 1) {
+	   // If only read operation exists, we should add another operation to
+	   // avoid the useless loop.
+	   _operations.push_back(std::make_shared<Interval>(this, Video::FRAMES, 0, 0, 1)); 
+	}
+
+	for (const auto& op : _operations) {
             if ( op == NULL )
                 throw VCLException(ObjectEmpty, "Nothing to be done");
-            (*op)(this);
-        }
+	}
+
+	Video::OperationResult res = PASS;
+	for (int index = 0; res != BREAK; index++) {
+            for (const auto& op : _operations) {
+                res = (*op)(index);
+		if (res != PASS) break;
+            }
+	}
+
+	for (const auto& op : _operations) {
+	    op->finalize();
+	}
+    // FIXME Do we need to clear _operations when some exception happened?
+    // Right now, we assume that we should have another try and hence the
+    // vector _operations should be kept.
     } catch( cv::Exception& e ) {
         throw VCLException(OpenCVError, e.what());
     }
@@ -303,11 +357,12 @@ void Video::swap(Video& rhs) noexcept
 
     swap(_video_id, rhs._video_id);
     swap(_flag_stored, rhs._flag_stored);
-    swap(_frames, rhs._frames);
+    //swap(_frames, rhs._frames);
     swap(_size, rhs._size);
     swap(_fps, rhs._fps);
     swap(_codec, rhs._codec);
     swap(_operations, rhs._operations);
+    swap(_video_read, rhs._video_read);
 }
 
     /*  *********************** */
@@ -317,32 +372,32 @@ void Video::swap(Video& rhs) noexcept
 void Video::resize(int width, int height)
 {
     _flag_stored = false;
-    _operations.push_back(std::make_shared<Resize>(cv::Size(width, height)));
+    _operations.push_back(std::make_shared<Resize>(this, cv::Size(width, height)));
 }
 
 void Video::interval(Video::Unit u, int start, int stop, int step)
 {
     _flag_stored = false;
-    _operations.push_back(std::make_shared<Interval>(u, start, stop, step));
+    _operations.push_back(std::make_shared<Interval>(this, u, start, stop, step));
 }
 
 void Video::crop(const Rectangle &rect)
 {
     _flag_stored = false;
-    _operations.push_back(std::make_shared<Crop>(rect));
+    _operations.push_back(std::make_shared<Crop>(this, rect));
 }
 
 void Video::threshold(int value)
 {
     _flag_stored = false;
-    _operations.push_back(std::make_shared<Threshold>(value));
+    _operations.push_back(std::make_shared<Threshold>(this, value));
 }
 
 void Video::store(const std::string &video_id, Video::Codec video_codec)
 {
     // out_name cannot be assigned to _video_id here as the read operation
     // may be pending and the input file name is needed for the read.
-    _operations.push_back(std::make_shared<Write>(video_id, video_codec));
+    _operations.push_back(std::make_shared<Write>(this, video_id, video_codec));
     perform_operations();
 }
 
@@ -366,6 +421,107 @@ void Video::delete_video()
     /*       READ OPERATION    */
     /*  *********************** */
 
+Video::Read::~Read() {
+    if (_inputVideo.isOpened()) {
+        _inputVideo.release();
+        _frames.clear();
+        _frame_index_starting = 0;
+        _frame_index_ending = 0;
+        _video_id = "";
+    }
+}
+
+void Video::Read::finalize() {
+    reset();
+}
+
+void Video::Read::open() 
+{
+    _video_id = _video->_video_id;
+    if (!_inputVideo.open(_video_id)) {
+        throw VCLException(OpenFailed,
+                           "Could not open the output video for read");	
+    }
+
+    _video->_fps = static_cast<float>(_inputVideo.get(cv::CAP_PROP_FPS));
+    _video->_size.frame_count  = static_cast<int>(
+                                                 _inputVideo.get(cv::CAP_PROP_FRAME_COUNT));
+    _video->_size.width        = static_cast<int>(
+                                                 _inputVideo.get(cv::CAP_PROP_FRAME_WIDTH));
+    _video->_size.height       = static_cast<int>(
+                                                 _inputVideo.get(cv::CAP_PROP_FRAME_HEIGHT));
+
+
+    // Get Codec Type- Int form
+    int ex = static_cast<int>(_inputVideo.get(cv::CAP_PROP_FOURCC));
+    char fourcc[] = {(char)((ex & 0XFF)),
+                     (char)((ex & 0XFF00) >> 8),
+                     (char)((ex & 0XFF0000) >> 16),
+                     (char)((ex & 0XFF000000) >> 24),
+                     0};
+
+    _video->_codec = read_codec(fourcc);
+
+    _video->_video_read = shared_from_this();
+}
+
+void Video::Read::reset()
+{
+    if (_inputVideo.isOpened()) {
+        _inputVideo.release();
+	_frames.clear();
+	_frame_index_starting = 0;
+	_frame_index_ending = 0;
+	_video_id = "";
+    
+	if (_video->_video_read == shared_from_this()) {
+	    _video->_video_read = nullptr;
+        }
+    }
+}
+
+void Video::Read::reopen()
+{
+    reset();
+    open();
+}
+
+VCL::Image* Video::Read::read_frame(int index)
+{
+    cv::Mat mat;
+
+    if (!_inputVideo.isOpened()) {
+	open();
+    }
+
+    if (index < _frame_index_starting) { // Read the video file all over again
+	reopen(); // _frame_index_ending = 0;
+        _frame_index_starting = index;
+    }
+    else if (index > _frame_index_starting + 30) { // The cached vector is full
+	_frames.clear();
+	_frame_index_starting = index;
+    }
+
+    // Skip the frames that are too "old"
+    while (_frame_index_ending < _frame_index_starting) {
+	_inputVideo >> mat;
+	if (mat.empty()) return nullptr;
+	_frame_index_ending++;
+    }
+
+    // Read the frames with indices up to <index>
+    while (_frame_index_ending <= index) {
+	_inputVideo >> mat;
+        if (mat.empty()) return nullptr;
+	_frames.push_back(VCL::Image(mat, false));
+        _frame_index_ending++;
+    }
+
+    return &_frames[index - _frame_index_starting];
+
+}
+
 Video::Codec Video::Read::read_codec(char* fourcc)
 {
     std::string codec(fourcc);
@@ -383,46 +539,19 @@ Video::Codec Video::Read::read_codec(char* fourcc)
         throw VCLException(UnsupportedFormat, codec + " is not supported");
 }
 
-void Video::Read::operator()(Video *video)
+Video::OperationResult Video::Read::operator()(int index)
 {
-    cv::VideoCapture inputVideo(video->_video_id);
-
-    video->_fps = static_cast<float>(inputVideo.get(cv::CAP_PROP_FPS));
-    video->_size.frame_count  = static_cast<int>(
-						 inputVideo.get(cv::CAP_PROP_FRAME_COUNT));
-    video->_size.width        = static_cast<int>(
-						 inputVideo.get(cv::CAP_PROP_FRAME_WIDTH));
-    video->_size.height       = static_cast<int>(
-						 inputVideo.get(cv::CAP_PROP_FRAME_HEIGHT));
-
-    // Get Codec Type- Int form
-    int ex = static_cast<int>(inputVideo.get(cv::CAP_PROP_FOURCC));
-    char fourcc[] = {(char)((ex & 0XFF)),
-                     (char)((ex & 0XFF00) >> 8),
-                     (char)((ex & 0XFF0000) >> 16),
-                     (char)((ex & 0XFF000000) >> 24),
-                     0};
-
-    video->_codec = read_codec(fourcc);
-
-    video->_frames.clear();
-
-    // Read all the frames
-    // TODO, If interval operation is specified, it make sense to
-    // apply this here as well, as will prevent copying some frames.
-
-    while(true) {
-
-        cv::Mat mat_frame;
-        inputVideo >> mat_frame; // Read frame
-
-        if (mat_frame.empty())
-            break;
-
-        video->_frames.push_back(VCL::Image(mat_frame, false));
+    // The video object is changed, reset the InputCapture handler.
+    if (_video_id != _video->_video_id) {
+	_video_id = _video->_video_id;
+	reset();
     }
 
-    inputVideo.release();
+    if (!_inputVideo.isOpened()) {
+	open();
+    }
+    if (_video->_size.frame_count <= index) return BREAK;
+    return PASS;
 }
 
     /*  *********************** */
@@ -449,100 +578,132 @@ int Video::Write::get_fourcc()
     }
 }
 
-void Video::Write::operator()(Video *video)
+Video::OperationResult Video::Write::operator()(int index)
 {
-    cv::VideoWriter outputVideo(
-                    _outname,
-                    get_fourcc(),
-                    video->_fps,
-                    cv::Size(video->_size.width, video->_size.height));
+    VCL::Image* frame = _video->read_frame(index);
+    if (frame == NULL) return BREAK;
 
-    if (!outputVideo.isOpened()) {
-        throw VCLException(OpenFailed,
-                "Could not open the output video for write");
+    if (_last_write == index) return PASS;
+    else if (_last_write > index) {
+        // Write the video file all over again.
+	// Probably some exceptions happened before.
+	_outputVideo.release();
+	_last_write = -1;
     }
 
-    for (auto& frame : video->_frames) {
-        outputVideo << frame.get_cvmat(false);
-    }
-    outputVideo.release();
+    if (!_outputVideo.isOpened()) {
+        _outputVideo.open(
+            _outname,
+            get_fourcc(),
+            _video->_fps,
+            cv::Size(_video->_size.width, _video->_size.height));
 
-    video->_video_id = _outname;
-    video->_codec    = _codec;
-    video->_flag_stored = true;
+	if (!_outputVideo.isOpened()) {
+            throw VCLException(OpenFailed,
+                    "Could not open the output video for write");
+	}
+    }
+
+
+    _outputVideo << frame->get_cvmat(false);
+    _frame_count++;
+    _last_write = index;
+    return PASS;
+}
+
+void Video::Write::finalize() 
+{
+    if (!_outputVideo.isOpened()) {
+        _outputVideo.release();
+
+        _video->_video_id = _outname;
+        _video->_codec    = _codec;
+        _video->_flag_stored = true;
+        _video->_size.frame_count = _frame_count;
+    }
+}
+
+Video::Write::~Write() {
+    finalize();
 }
 
     /*  *********************** */
     /*       RESIZE OPERATION   */
     /*  *********************** */
 
-void Video::Resize::operator()(Video *video)
+Video::OperationResult Video::Resize::operator()(int index)
 {
-    for (auto& frame : video->_frames) {
-        // VCL::Image expect the params (h,w) (contrary to openCV convention)
-        frame.resize(_size.height, _size.width);
-    }
-
-    video->_size.width  = _size.width;
-    video->_size.height = _size.height;
+    VCL::Image* frame = _video->read_frame(index);
+    if (frame == NULL) return BREAK;
+    // VCL::Image expect the params (h,w) (contrary to openCV convention)
+    frame->resize(_size.height, _size.width);
+    _video->_size.width  = _size.width;
+    _video->_size.height = _size.height;
+    return PASS;
 }
-
+    
     /*  *********************** */
     /*       CROP OPERATION     */
     /*  *********************** */
 
-void Video::Crop::operator()(Video *video)
+Video::OperationResult Video::Crop::operator()(int index)
 {
-    for (auto& frame : video->_frames) {
-        frame.crop(_rect);
-    }
-
-    video->_size.width  = _rect.width;
-    video->_size.height = _rect.height;
+    VCL::Image* frame = _video->read_frame(index);
+    if (frame == NULL) return BREAK;
+    frame->crop(_rect);
+    _video->_size.width  = _rect.width;
+    _video->_size.height = _rect.height;
+    return PASS;
 }
 
     /*  *********************** */
     /*    THRESHOLD OPERATION   */
     /*  *********************** */
 
-void Video::Threshold::operator()(Video *video)
+Video::OperationResult Video::Threshold::operator()(int index)
 {
-    for (auto& frame : video->_frames) {
-        frame.threshold(_threshold);
-    }
+    VCL::Image* frame = _video->read_frame(index);
+    if (frame == NULL) return BREAK;
+    frame->threshold(_threshold);
+    return PASS;
 }
 
     /*  *********************** */
     /*   INTERVAL Operation     */
     /*  *********************** */
 
-void Video::Interval::operator()(Video *video)
+Video::OperationResult Video::Interval::operator()(int index)
 {
-    if (_u != Video::Unit::FRAMES)
+    if (_u != Video::Unit::FRAMES) {
+	_fps_updated = false;
         throw VCLException(UnsupportedOperation,
                 "Only Unit::FRAMES supported for interval operation");
-
-    std::vector<VCL::Image>& frames = video->_frames;
-    unsigned nframes = frames.size();
-
-    if (_start >= nframes)
-        throw VCLException(SizeMismatch,
-                "Start Frame cannot be greater than number of frames");
-
-    if (_stop >= nframes)
-        throw VCLException(SizeMismatch,
-                "End Frame cannot be greater than number of frames");
-
-    std::vector<VCL::Image> interval_vector;
-
-    for (int i = _start; i < _stop; i += _step) {
-        interval_vector.push_back(frames[i]);
     }
 
-    frames.insert(frames.begin(), interval_vector.begin(),
-                                  interval_vector.end());
-    frames.erase(frames.begin() + interval_vector.size(), frames.end());
+    unsigned nframes = _video->_size.frame_count;
 
-    video->_fps /= _step;
-    video->_size.frame_count = interval_vector.size();
+    if (_start >= nframes) {
+        _fps_updated = false;
+        throw VCLException(SizeMismatch,
+                "Start Frame cannot be greater than number of frames");
+    }
+
+    if (_stop >= nframes) {
+	_fps_updated = false;
+        throw VCLException(SizeMismatch,
+                "End Frame cannot be greater than number of frames");
+    }
+
+    if (index < _start) return CONTINUE;
+    if (index >= _stop) return BREAK;
+    if ( (index - _start) % _step != 0) return CONTINUE;
+    update_fps();
+    return PASS;
+}
+
+void Video::Interval::update_fps() {
+    if (!_fps_updated) {
+        _video->_fps /= _step;
+	_fps_updated = true;
+    }
 }
