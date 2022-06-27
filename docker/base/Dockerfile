@@ -67,19 +67,9 @@ RUN cd / && tar xf 1.3.1.tar.gz && rm 1.3.1.tar.gz && \
     ../bootstrap --prefix=/usr/local/ && make $BUILD_THREADS && make install-tiledb && \
     rm -rf /TileDB-1.3.1
 
-<<<<<<< HEAD
-
-RUN apt-get install -y maven
-
-RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc \
-    /grpc/third_party/protobuf/src/protoc && \
-    cd /grpc/third_party/protobuf/java/core && \
-    mvn package && \
-=======
 # Maven
 RUN ln -s /grpc/third_party/protobuf/cmake/build/protoc /grpc/third_party/protobuf/src/protoc && \
     cd /grpc/third_party/protobuf/java/core && mvn package && \
->>>>>>> develop
     cp $(ls target/protobuf-java*.jar) /usr/share/java/protobuf.jar
 
 # Valijson
