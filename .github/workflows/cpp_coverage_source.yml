@@ -18,8 +18,10 @@ jobs:
   coverage_job:
     name: Coverage Test
 
-    # The type of runner that the job will run on
-    runs-on: self-hosted
+    # Specify runner job will run on
+    runs-on:
+      group: intellabs-generic-runners
+      labels: vdms-check-in
 
     strategy:
       fail-fast: true
@@ -117,8 +119,11 @@ jobs:
   compare_coverage:
     name: Compare Reported Coverage
 
-    # The type of runner that the job will run on
-    runs-on: self-hosted
+    # Specify runner job will run on
+    runs-on:
+      group: intellabs-generic-runners
+      labels: vdms-check-in
+
     needs: coverage_job
     steps:
       - name: Comment Coverage
