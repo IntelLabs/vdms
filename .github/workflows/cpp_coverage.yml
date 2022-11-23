@@ -17,8 +17,6 @@ env:
 jobs:
   coverage_job:
     name: Coverage Test
-
-    # Specify runner job will run on
     runs-on:
       group: intellabs-generic-runners
       labels: vdms-check-in
@@ -70,7 +68,7 @@ jobs:
           docker stop $(docker ps -aqf "name=${{ matrix.container_name }}") || true
           docker rm $(docker ps -aqf "name=${{ matrix.container_name }}") || true
 
-          docker build --build-arg MAVEN_OPTS='-Dhttps.proxyHost=proxy-chain.intel.com -Dhttps.proxyPort=912 -Dhttps.nonProxyHosts="localhost|127.0.0.1"' \
+          docker build --build-arg MAVEN_OPTS=${{ secrets.MAVEN_OPTS }} \
             -f docker/check-in/Dockerfile -t ${{ matrix.container_tag }} .
 
           docker run -d --name ${{ matrix.container_name }} ${{ matrix.container_tag }}
@@ -92,17 +90,12 @@ jobs:
           docker exec ${{ matrix.container_name }} bash -c "./run_coverage.sh"
           docker cp $(docker ps -a | grep ${{ matrix.container_name }} | awk '{print $1}'):/vdms/tests/coverage_report/c_coverage_report.txt coverage/c_coverage_report_target.txt
 
-          # report="$(<coverage/c_coverage_report_target.txt)"
-          # report="${report//'%'/'%25'}"
-          # report="${report//$'\n'/'%0A'}"
-          # report="${report//$'\r'/'%0D'}"
-          # echo "coverage_report="$report"" >> $GITHUB_ENV
-
           docker cp $(docker ps -a | grep ${{ matrix.container_name }} | awk '{print $1}'):/vdms/tests/coverage_report/c_coverage_report.xml coverage/c_coverage_report_target.xml
           echo "coverage_value=$(cat coverage/c_coverage_report_target.xml | grep -oP 'coverage line-rate="([-+]?\d*\.\d+|\d+)"' | grep -oP "[-+]?\d*\.\d+|\d+" | awk '{print $1*100}')" >> $GITHUB_ENV
 
           docker ps -aqf "name=${{ matrix.container_name }}" | xargs docker stop
           docker ps -aqf "name=${{ matrix.container_name }}" | xargs docker rm
+          docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
 
       - name: Report ${{ matrix.coverage_type }} Coverage
         id: report_coverage
@@ -113,24 +106,19 @@ jobs:
             exit 1
           fi
           echo "${{ matrix.coverage_type }} Coverage: ${coverage_value}"
-          echo "::set-output name=${{ matrix.output_name }}::${coverage_value}"
-          # echo "::set-output name=${{ matrix.report_name }}::${coverage_report}"
+          echo "${{ matrix.output_name }}=${coverage_value}" >> $GITHUB_OUTPUT
 
   compare_coverage:
     name: Compare Reported Coverage
-
-    # Specify runner job will run on
     runs-on:
       group: intellabs-generic-runners
       labels: vdms-check-in
-
     needs: coverage_job
     steps:
       - name: Comment Coverage
         if: (github.event_name == 'pull_request')
         uses: actions/github-script@v3
         with:
-          # \n\n\nTarget Report: ${{ needs.coverage_job.outputs.target_coverage_report }}\n\n\nSource Report: ${{ needs.coverage_job.outputs.source_coverage_report }}'
           script: |
             github.issues.createComment({
               issue_number: ${{ github.event.number }},

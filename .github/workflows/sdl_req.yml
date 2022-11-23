@@ -1,0 +1,242 @@
+# Uses docker/check-in/Dockerfile.base 
+# Dockerfile.base -> Same as docker/base/Dockerfile but builds VDMS with local changes instead of external repo
+name: SDL Requirements using Docker Image
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master and develop branch
+# on:
+#   pull_request:
+#     types: [ opened, edited, synchronize, reopened ]
+#     branches:
+#       - develop
+#       - master
+on:
+  push:
+    branches:
+      - develop
+
+
+# Environment variables
+env:
+  ARTIFACT_DIR: SDL_artifacts
+  DOCKER_ARTIFACT_DIR: Docker_artifacts
+  NEW_BASE_DOCKERFILE: docker/check-in/Dockerfile.base
+  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN}}
+  SNYK_API: ${{ secrets.SNYK_API}}
+  # CHECKOUT_REF: ${{ github.event.pull_request.head.sha }}
+
+jobs:
+  Build:
+    # This job builds docker container for later use
+    name: Build Docker
+    runs-on:
+      group: intellabs-generic-runners
+      labels: vdms-check-in
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+          # ref: ${{ env.CHECKOUT_REF }}
+      - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }}
+      - name: Build Docker Container
+        run: |
+          docker build --build-arg MAVEN_OPTS=${{ secrets.MAVEN_OPTS }} -f ${{ env.NEW_BASE_DOCKERFILE}} -t vdms:latest .
+          docker save -o ${{ env.DOCKER_ARTIFACT_DIR }}/image.tar vdms:latest
+      - name: Upload Docker Image Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: image.tar
+          path: ${{ env.DOCKER_ARTIFACT_DIR }}/image.tar
+          retention-days: 1
+
+  Hadolint:
+    # This job check formatting of Dockerfile
+    name: Haskell Dockerfile Linter
+    runs-on:
+      group: intellabs-generic-runners
+      labels: vdms-check-in
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+          # ref: ${{ env.CHECKOUT_REF }}
+      - run: mkdir -p ${{ env.ARTIFACT_DIR }}
+      - name: Run Hadolint Docker Container
+        id: get_hadolint
+        run: |
+          set -x
+          docker run --rm -i hadolint/hadolint:latest < ${{ env.NEW_BASE_DOCKERFILE}} 2>&1 | tee ${{ env.ARTIFACT_DIR }}/hadolint_output.txt
+          output=$(cat ${{ env.ARTIFACT_DIR }}/hadolint_output.txt | awk '{print $2}' | sort -u)
+
+          echo "hadolint_output<<EOF" >> $GITHUB_ENV
+          echo "$output" >> $GITHUB_ENV 
+          echo "EOF" >> $GITHUB_ENV
+      - name: Print Hadolint Results in Job Summary
+        shell: bash
+        run: |
+          set -x
+          echo "### Hadolint Returned Rule Codes" > $GITHUB_STEP_SUMMARY
+          echo "${{ env.hadolint_output }}" >> $GITHUB_STEP_SUMMARY
+      - name: Upload Hadolint Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: sdl-artifacts
+          path: ${{ env.ARTIFACT_DIR }}/hadolint_output.txt
+  
+  Snyk:
+    # This job runs Snyk for Vulnerabilities and extract list of dependencies
+    name: Snyk Scan for Vulnerabilities
+    needs: Build
+    runs-on:
+      group: intellabs-generic-runners
+      labels: vdms-check-in
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+          # ref: ${{ env.CHECKOUT_REF }}
+      - run: |
+          export no_proxy+=',snyk.devtools.intel.com'
+          export NO_PROXY+=',snyk.devtools.intel.com'
+          export DOCKER_PROXY_RUN_ARGS="\
+            --env HTTPS_PROXY=$HTTPS_PROXY \
+            --env https_proxy=$https_proxy \
+            --env HTTP_PROXY=$HTTP_PROXY \
+            --env http_proxy=$http_proxy \
+            --env NO_PROXY=$NO_PROXY \
+            --env no_proxy=$no_proxy"
+          mkdir -p ${{ env.ARTIFACT_DIR }}
+      - name: Download docker image
+        uses: actions/download-artifact@v3
+        with:
+          name: image.tar
+          path: ${{ env.DOCKER_ARTIFACT_DIR }}
+      - name: Load Docker Image
+        run: |
+          docker load -i ${{ env.DOCKER_ARTIFACT_DIR }}/image.tar
+      - name: Run Snyk Docker Image Scan
+        env:
+          PROJ_NAME: 'EVS/vdms'
+        run: |
+          docker run --rm -i $DOCKER_PROXY_RUN_ARGS --env SNYK_TOKEN=${{ env.SNYK_TOKEN}} --env SNYK_API=${{ env.SNYK_API}} --env SNYK_DISABLE_ANALYTICS=1 \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v ${PWD}:/vdms/ \
+            snyk/snyk:docker snyk container test -d vdms:latest --file=/vdms/${{ env.NEW_BASE_DOCKERFILE}} --exclude-base-image-vulns --project-name="$PROJ_NAME" > snyk.log  || true && \
+            mv snyk.log ${{ env.ARTIFACT_DIR }}/docker_snyk_scan.log
+          
+          output_checks=$(cat ${{ env.ARTIFACT_DIR }}/docker_snyk_scan.log | grep "Tested ")
+
+          echo "snyk_image_results<<EOF" >> $GITHUB_ENV
+          echo "$output_checks" >> $GITHUB_ENV 
+          echo "EOF" >> $GITHUB_ENV
+          
+      - name: Get Python Environment requirements.txt & Run Snyk Python Scan
+        env:
+          PROJ_NAME: 'EVS/vdms-python'
+        run: |
+          docker run --rm -i vdms:latest bash -c "pip3 freeze -l" | tee requirements.txt
+          docker run --rm -i $DOCKER_PROXY_RUN_ARGS --env SNYK_TOKEN=${{ env.SNYK_TOKEN}} --env SNYK_API=${{ env.SNYK_API}} --env SNYK_DISABLE_ANALYTICS=1 --env COMMAND="pip install -r /app/requirements.txt" \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v ${PWD}:/app/ \
+            snyk/snyk:python-3.8 snyk test -d --file=/app/requirements.txt --package-manager=pip --exclude-base-image-vulns --project-name="$PROJ_NAME" > docker_snyk_python_scan.log || true && \
+            mv docker_snyk_python_scan.log ${{ env.ARTIFACT_DIR }}/docker_snyk_python_scan.log
+          
+          output_checks=$(cat ${{ env.ARTIFACT_DIR }}/docker_snyk_python_scan.log | grep "Tested ")
+
+          echo "snyk_python_results<<EOF" >> $GITHUB_ENV
+          echo "$output_checks" >> $GITHUB_ENV 
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Get SBOM (Dependencies)
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/docker/sbom-cli-plugin/main/install.sh | sh -s --
+          docker sbom --format spdx-tag-value --output sbom_vdms_docker.txt vdms:latest
+          docker sbom --format spdx-tag-value --output sbom_ubuntuBase_docker.txt ubuntu:20.04
+          
+          python3 docker/check-in/spdx2csv.py -i sbom_vdms_docker.txt -o ${{ env.ARTIFACT_DIR }}/sbom_vdms_docker.csv
+          python3 docker/check-in/spdx2csv.py -i sbom_ubuntuBase_docker.txt -o ${{ env.ARTIFACT_DIR }}/sbom_ubuntuBase_docker.csv
+          rm sbom_vdms_docker.txt sbom_ubuntuBase_docker.txt
+
+          diff ${{ env.ARTIFACT_DIR }}/sbom_ubuntuBase_docker.csv ${{ env.ARTIFACT_DIR }}/sbom_vdms_docker.csv | grep ">" | cut -d" " -f2 > ${{ env.ARTIFACT_DIR }}/sbom_onlyVDMS.csv
+          sed -i '1s/^/Package,Version,License,Package Supplier,SPDXID\n/' ${{ env.ARTIFACT_DIR }}/sbom_onlyVDMS.csv
+      - name: Upload SNYK & Dependency Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: sdl-artifacts
+          path: ${{ env.ARTIFACT_DIR }}
+      - name: Print SNYK Results in Job Summary
+        shell: bash
+        run: |
+          echo "### SNYK Results" > $GITHUB_STEP_SUMMARY
+          echo "Docker Scan :point_right:${{ env.snyk_image_results }}" >> $GITHUB_STEP_SUMMARY
+          echo "Python 3.8 Scan :point_right:${{ env.snyk_python_results }}" >> $GITHUB_STEP_SUMMARY
+  
+  CIS:
+    # This job runs CIS Docker Benchmark
+    name: CIS Docker Benchmark
+    needs: Build
+    runs-on:
+      group: intellabs-generic-runners
+      labels: vdms-check-in
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+          # ref: ${{ env.CHECKOUT_REF }}
+      - name: Download Docker Image
+        uses: actions/download-artifact@v3
+        with:
+          name: image.tar
+          path: ${{ env.DOCKER_ARTIFACT_DIR }}
+      - name: Load Docker Image
+        run: |
+          docker stop vdms_test-CIS  || true
+          docker rm vdms_test-CIS || true
+          docker load -i ${{ env.DOCKER_ARTIFACT_DIR }}/image.tar
+      - name: Run Benchmark
+        id: run_CIS
+        run: |
+          set -x
+          mkdir -p ${{ env.ARTIFACT_DIR }}
+          git clone https://github.com/docker/docker-bench-security.git
+          cd docker-bench-security
+
+          # docker container run --net=host -d --name vdms_test vdms:latest
+          docker container run --net=host -d \
+            --security-opt=no-new-privileges \
+            --health-cmd='cd /vdms/build && ./vdms || exit 1' \
+            --restart on-failure:5 \
+            --name vdms_test-CIS vdms:latest
+
+          mkdir -p ${{ env.ARTIFACT_DIR }}
+          sh docker-bench-security.sh -c container_runtime -i vdms_test-CIS -l cis_output.txt
+          cd ..
+          mv docker-bench-security/cis_output.txt  ${{ env.ARTIFACT_DIR }}/cis_output.txt  
+
+          docker stop vdms_test-CIS && docker rm vdms_test-CIS 
+          docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
+          output_checks=$(cat ${{ env.ARTIFACT_DIR }}/cis_output.txt | grep "Checks:" | sed 's/^.*Checks/Checks/')
+          output_score=$(cat ${{ env.ARTIFACT_DIR }}/cis_output.txt | grep "Score:" | sed 's/^.*Score/Score/')
+
+          echo "cis_output_checks<<EOF" >> $GITHUB_ENV
+          echo "$output_checks" >> $GITHUB_ENV 
+          echo "EOF" >> $GITHUB_ENV
+
+          echo "cis_output_score<<EOF" >> $GITHUB_ENV
+          echo "$output_score" >> $GITHUB_ENV 
+          echo "EOF" >> $GITHUB_ENV
+      - name: Upload CIS Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: sdl-artifacts
+          path: ${{ env.ARTIFACT_DIR }}/cis_output.txt
+      - name: Print CIS Results in Job Summary
+        shell: bash
+        run: |
+          echo "### CIS Docker Results" > $GITHUB_STEP_SUMMARY
+          echo "${{ env.cis_output_checks }}" >> $GITHUB_STEP_SUMMARY
+          echo "${{ env.cis_output_score }}" >> $GITHUB_STEP_SUMMARY
