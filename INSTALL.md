@@ -30,7 +30,7 @@ git clone --branch v3.21.2 https://github.com/Kitware/CMake.git && \
 git clone --branch v1.7.1 https://github.com/facebookresearch/faiss.git && \
 git clone https://github.com/tonyzhang617/FLINNG.git
 
-curl http://zlib.net/zlib-1.2.12.tar.gz -o zlib-1.2.12.tar.gz && \
+curl http://zlib.net/zlib-1.2.13.tar.gz -o zlib-1.2.13.tar.gz && \
 curl https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/json-simple/json-simple-1.1.1.jar \
     -o /usr/share/java/json-simple-1.1.1.jar && \
 wget https://github.com/TileDB-Inc/TileDB/archive/1.3.1.tar.gz
@@ -97,10 +97,10 @@ make -j && make install
 
 ### Zlib
 ```bash
-cd / && gunzip zlib-1.2.12.tar.gz && tar -xvf zlib-1.2.12.tar
-cd zlib-1.2.12 && ./configure
+cd / && gunzip zlib-1.2.13.tar.gz && tar -xvf zlib-1.2.13.tar
+cd zlib-1.2.13 && ./configure
 make -j && make install
-cd / && rm -rf zlib-1.2.12.tar zlib-1.2.12
+cd / && rm -rf zlib-1.2.13.tar zlib-1.2.13
 ```
 
 ### gtest

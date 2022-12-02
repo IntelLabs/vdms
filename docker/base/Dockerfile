@@ -41,7 +41,7 @@ RUN git clone --branch v3.21.2 https://github.com/Kitware/CMake.git && \
     git clone --branch v0.6 https://github.com/tristanpenman/valijson.git && \
     curl -L -o /usr/share/java/json-simple-1.1.1.jar https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/json-simple/json-simple-1.1.1.jar && \
     curl -L -o /1.3.1.tar.gz https://github.com/TileDB-Inc/TileDB/archive/refs/tags/1.3.1.tar.gz && \
-    curl -L -o /zlib-1.2.12.tar.gz http://zlib.net/zlib-1.2.12.tar.gz && \
+    curl -L -o /zlib-1.2.13.tar.gz http://zlib.net/zlib-1.2.13.tar.gz && \
     cd /CMake && ./bootstrap && make ${BUILD_THREADS} && make install && \
     cd /swig && ./autogen.sh && ./configure && make ${BUILD_THREADS} && make install && \
     cd /faiss && mkdir build && cd build && cmake -DFAISS_ENABLE_GPU=OFF .. && make ${BUILD_THREADS} && make install && \
@@ -57,7 +57,7 @@ RUN git clone --branch v3.21.2 https://github.com/Kitware/CMake.git && \
             -DgRPC_RE2_PROVIDER=package -DgRPC_SSL_PROVIDER=package \
             -DgRPC_ZLIB_PROVIDER=package -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE ../.. && make ${BUILD_THREADS} && make install && \
     cd /opencv && mkdir build && cd build && cmake -D BUILD_PERF_TESTS=OFF -D BUILD_TESTS=OFF .. && make ${BUILD_THREADS} && make install && \
-    cd / && gunzip zlib-1.2.12.tar.gz && tar -xvf /zlib-1.2.12.tar && cd /zlib-1.2.12 && ./configure && make ${BUILD_THREADS} && make install && \
+    cd / && gunzip zlib-1.2.13.tar.gz && tar -xvf /zlib-1.2.13.tar && cd /zlib-1.2.13 && ./configure && make ${BUILD_THREADS} && make install && \
     cd / && tar -xvf /1.3.1.tar.gz && cd TileDB-1.3.1 && mkdir build && cd build && \
         ../bootstrap --prefix=/usr/local/ && make ${BUILD_THREADS} && make install-tiledb && \
     cd /usr/src/gtest && cmake . && make ${BUILD_THREADS} && mv lib/libgtest* /usr/lib/ && \
@@ -65,7 +65,7 @@ RUN git clone --branch v3.21.2 https://github.com/Kitware/CMake.git && \
     cd /grpc/third_party/protobuf/java/core && mvn package && \
         cp "$(ls target/protobuf-java*.jar)" /usr/share/java/protobuf.jar && \
     cd /valijson && cp -r include/* /usr/local/include/ && \
-    rm -rf /CMake /swig /faiss /FLINNG /grpc /opencv /zlib-1.2.12.tar /zlib-1.2.12 /1.3.1.tar.gz /TileDB-1.3.1 /valijson
+    rm -rf /CMake /swig /faiss /FLINNG /grpc /opencv /zlib-1.2.13.tar /zlib-1.2.13 /1.3.1.tar.gz /TileDB-1.3.1 /valijson
 
 # VDMS
 RUN git clone https://github.com/IntelLabs/vdms.git && cd vdms && \
