@@ -69,13 +69,14 @@ RUN git clone --branch v3.21.2 https://github.com/Kitware/CMake.git && \
 
 # VDMS
 COPY . /vdms
-COPY docker/check-in/run_coverage.sh /run_coverage.sh
+COPY docker/check-in/run_coverage_cpp.sh /run_coverage_cpp.sh
+COPY docker/check-in/run_coverage_py.sh /run_coverage_py.sh
 RUN [ -d /vdms/build ]; rm -rf /vdms/build
 RUN cd /vdms && [ -d /vdms/.git ]; git submodule update --init --recursive && mkdir build && \
     cd build && cmake -DCODE_COVERAGE=ON .. && make ${BUILD_THREADS} && \
     cp /vdms/config-vdms.json /vdms/build/ && \
     mkdir -p /vdms/tests/coverage_report && \
-    chmod +x /run_coverage.sh && \
+    chmod +x /run_coverage_cpp.sh && chmod +x /run_coverage_py.sh && \
     echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
     echo './vdms' >> /start.sh && chmod 755 /start.sh
 

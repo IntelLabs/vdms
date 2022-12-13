@@ -31,10 +31,10 @@ base_dir=$(dirname $(dirname $PWD))
 client_path=${base_dir}/client/python
 export PYTHONPATH=$client_path:${PYTHONPATH}
 
-python3 -m grpc_tools.protoc -I=${base_dir}/utils/src/protobuf --python_out=${client_path}/vdms ${base_dir}/utils/src/protobuf/queryMessage.proto
+# python3 -m grpc_tools.protoc -I=${base_dir}/utils/src/protobuf --python_out=${client_path}/vdms ${base_dir}/utils/src/protobuf/queryMessage.proto
 
 ./../../build/vdms -cfg config-tests.json > screen.log 2> log.log &
-python3 -m unittest discover --pattern=Test*.py -v
+python3 -m coverage run --include="/vdms/*" -m unittest discover --pattern=Test*.py -v
 
 sleep 1
 pkill vdms
