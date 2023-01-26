@@ -73,6 +73,9 @@ jobs:
           docker stop $(docker ps -aqf "name=${{ matrix.container_name }}") || true
           docker rm $(docker ps -aqf "name=${{ matrix.container_name }}") || true
 
+          # docker build -f docker/check-in/Dockerfile -t ${{ matrix.container_tag }} .
+
+          # REMOVE MAVEN AFTER MERGE
           docker build --build-arg MAVEN_OPTS=${{ secrets.MAVEN_OPTS }} \
             -f docker/check-in/Dockerfile -t ${{ matrix.container_tag }} .
 
@@ -86,25 +89,25 @@ jobs:
           echo "${{ matrix.container_name }}"
 
           # Make sure CPP coverage script is available
-          if [ ! -f docker/check-in/run_coverage_cpp.sh ]; then
-            docker exec ${{ matrix.container_name }} bash -c "touch /run_coverage_cpp.sh && echo 'cd /vdms/tests && chmod +x run_tests.sh && ./run_tests.sh' >> /run_coverage_cpp.sh && chmod +x /run_coverage_cpp.sh && mkdir -p /vdms/tests/coverage_report"
-            docker exec ${{ matrix.container_name }} bash -c "echo 'gcovr -k --root /vdms -e /vdms/src/pmgd -e /vdms/build/CMakeFiles -f "/vdms/client/.*\.cc" -f "/vdms/ext/.*\.cc" -f "/vdms/src/.*\.cc" -f src/SearchExpression.cc --exclude-unreachable-branches --xml-pretty --xml=/vdms/tests/coverage_report/c_coverage_report.xml --txt=/vdms/tests/coverage_report/c_coverage_report.txt' >> /run_coverage_cpp.sh  && echo "echo 'DONE'" >> /run_coverage_cpp.sh"
-            docker exec ${{ matrix.container_name }} bash -c "echo 'cat /vdms/tests/coverage_report/c_coverage_report.txt' >> /run_coverage_cpp.sh"
-          fi
+          # if [ ! -f docker/check-in/run_coverage_cpp.sh ]; then
+          #   docker exec ${{ matrix.container_name }} bash -c "touch /run_coverage_cpp.sh && echo 'cd /vdms/tests && chmod +x run_tests.sh && ./run_tests.sh' >> /run_coverage_cpp.sh && chmod +x /run_coverage_cpp.sh && mkdir -p /vdms/tests/coverage_report"
+          #   docker exec ${{ matrix.container_name }} bash -c "echo 'gcovr -k --root /vdms -e /vdms/src/pmgd -e /vdms/build/CMakeFiles -f "/vdms/client/.*\.cc" -f "/vdms/ext/.*\.cc" -f "/vdms/src/.*\.cc" -f src/SearchExpression.cc --exclude-unreachable-branches --xml-pretty --xml=/vdms/tests/coverage_report/c_coverage_report.xml --txt=/vdms/tests/coverage_report/c_coverage_report.txt' >> /run_coverage_cpp.sh  && echo "echo 'DONE'" >> /run_coverage_cpp.sh"
+          #   docker exec ${{ matrix.container_name }} bash -c "echo 'cat /vdms/tests/coverage_report/c_coverage_report.txt' >> /run_coverage_cpp.sh"
+          # fi
 
-          # Make sure Python coverage script is available
-          if [ ! -f docker/check-in/run_coverage_py.sh ]; then
-            docker exec ${{ matrix.container_name }} bash -c "touch /run_coverage_py.sh && echo 'cd /vdms/tests/python && ./run_python_tests.sh' >> /run_coverage_py.sh && chmod +x /run_coverage_py.sh && mkdir -p /vdms/tests/coverage_report"
-            docker exec ${{ matrix.container_name }} bash -c "echo 'python -m coverage report > /vdms/tests/coverage_report/py_coverage_report.txt' >> /run_coverage_py.sh  && echo "echo 'DONE'" >> /run_coverage_py.sh"
-            docker exec ${{ matrix.container_name }} bash -c "echo 'cat /vdms/tests/coverage_report/py_coverage_report.txt' >> /run_coverage_py.sh"
-          fi
+          # # Make sure Python coverage script is available
+          # if [ ! -f docker/check-in/run_coverage_py.sh ]; then
+          #   docker exec ${{ matrix.container_name }} bash -c "touch /run_coverage_py.sh && echo 'cd /vdms/tests/python && ./run_python_tests.sh' >> /run_coverage_py.sh && chmod +x /run_coverage_py.sh && mkdir -p /vdms/tests/coverage_report"
+          #   docker exec ${{ matrix.container_name }} bash -c "echo 'python -m coverage report > /vdms/tests/coverage_report/py_coverage_report.txt' >> /run_coverage_py.sh  && echo "echo 'DONE'" >> /run_coverage_py.sh"
+          #   docker exec ${{ matrix.container_name }} bash -c "echo 'cat /vdms/tests/coverage_report/py_coverage_report.txt' >> /run_coverage_py.sh"
+          # fi
 
-          docker exec ${{ matrix.container_name }} bash -c "./run_coverage_cpp.sh"
+          docker exec ${{ matrix.container_name }} bash -c "cd / && ./run_coverage_cpp.sh"
           docker cp $(docker ps -a | grep ${{ matrix.container_name }} | awk '{print $1}'):/vdms/tests/coverage_report/c_coverage_report.txt coverage/c_coverage_report_target.txt
           docker cp $(docker ps -a | grep ${{ matrix.container_name }} | awk '{print $1}'):/vdms/tests/coverage_report/c_coverage_report.xml coverage/c_coverage_report_target.xml
           echo "coverage_value_cpp=$(cat coverage/c_coverage_report_target.xml | grep -oP 'coverage line-rate="([-+]?\d*\.\d+|\d+)"' | grep -oP "[-+]?\d*\.\d+|\d+" | awk '{print $1*100}')" >> $GITHUB_ENV
 
-          docker exec ${{ matrix.container_name }} bash -c "./run_coverage_py.sh"
+          docker exec ${{ matrix.container_name }} bash -c "cd / && ./run_coverage_py.sh"
           docker cp $(docker ps -a | grep ${{ matrix.container_name }} | awk '{print $1}'):/vdms/tests/coverage_report/py_coverage_report.txt coverage/py_coverage_report_target.txt || true
           docker cp $(docker ps -a | grep ${{ matrix.container_name }} | awk '{print $1}'):/vdms/tests/coverage_report/py_coverage_report.xml coverage/py_coverage_report_target.xml || true
           if [ ! -f coverage/py_coverage_report_target.xml ] && [ "${{ matrix.coverage_type }}" == "Target" ]; then
@@ -126,7 +129,7 @@ jobs:
           if [[ -z $coverage_value_cpp ]]
           then
             exit 1
-          fi          
+          fi
           echo "${{ matrix.coverage_type }} CPP Coverage: ${coverage_value_cpp}"
           echo "${{ matrix.output_cpp_name }}=${coverage_value_cpp}" >> $GITHUB_OUTPUT
 
