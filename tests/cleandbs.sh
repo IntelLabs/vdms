@@ -6,7 +6,8 @@ rm -r dbs
 rm -r temp
 rm -r videos_tests
 rm -r vdms
-rm images/tdb_to_jpg.jpg
-rm images/tdb_to_png.png
-rm images/test_image.jpg
+rm test_images/tdb_to_jpg.jpg
+rm test_images/tdb_to_png.png
+rm test_images/test_image.jpg
+rm test_images/test_image.jpg
 rm -r backups

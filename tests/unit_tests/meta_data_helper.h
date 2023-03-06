@@ -22,7 +22,7 @@ class Meta_Data{
     public:
         std::shared_ptr<VDMS::VDMSClient> _aclient;
         std::string _server_name="localhost";
-        int _port =55557;
+        int _port =55555;
         
         Json::FastWriter  _fastwriter; 
         Json::Reader _reader;
@@ -34,8 +34,12 @@ class Meta_Data{
         Json::Value construct_add_query(int ref, bool const_on, bool experiation);
         Json::Value construct_add_area(int ref, bool const_on);
         Json::Value construct_add_connection(int ref1, int ref2, bool const_on);
-        Json::Value construct_find_entity(bool ,bool);
+        Json::Value construct_find_entity(bool ,bool );
         Json::Value constuct_BB(bool);
+        Json::Value construct_Blob();
+        Json::Value construct_updateBlob();
+        Json::Value construct_findBlob();
+        std::string* read_blob(std::string&);
         Json::Value constuct_image(bool =false, Json::Value operations={});
         Json::Value constuct_video(bool =false);
         Json::Value construct_find_image();

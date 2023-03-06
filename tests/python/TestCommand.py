@@ -39,7 +39,7 @@ class TestCommand(unittest.TestCase):
 
         # VDMS Server Info
         self.hostname = "localhost"
-        self.port = 55557
+        self.port = 55558
 
         db_up = False
         attempts = 0

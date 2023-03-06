@@ -55,7 +55,7 @@ namespace VDMS {
 
         // Blocking call
         VDMS::Response query(const std::string &json_query,
-                             const std::vector<std::string *> blobs = {});
+                             const std::vector<std::string*> blobs = {});
 
     };
 };

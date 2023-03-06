@@ -174,6 +174,77 @@ Json::Value Meta_Data::constuct_image(bool add_operation, Json::Value operations
 
 
     }
+std::string* Meta_Data::read_blob(std::string& fname){
+     std::string video;
+    std::ifstream video_file(fname,
+                    std::ios::in | std::ios::binary | std::ios::ate);
+
+    video.resize(video_file.tellg());
+
+    video_file.seekg(0, std::ios::beg);
+    if( !video_file.read(&video[ 0 ], video.size()))
+        std::cout << "error" << std::endl;
+    std::string* bytes_str =new std::string(video);
+        // std::cout << *bytes_str <<std::endl;
+        return bytes_str;
+    
+    
+}
+Json::Value Meta_Data::construct_updateBlob(){
+    Json::Value blob;
+    Json::Value update_blob;
+    Json::Value tuple;
+    Json::Value cons;
+    Json::Value results;
+    cons["Name"][0]= "==";
+    cons["Name"][1]="sample1-Blob-new";
+    blob["constraints"]=cons;
+    // blob["_ref"]=12;
+    blob["properties"]["colored"]="false";
+    blob["properties"]["length"] =200;
+  
+    update_blob["UpdateBlob"]=blob;
+
+    tuple.append(update_blob);
+    return tuple;
+}
+Json::Value Meta_Data::construct_findBlob(){
+    Json::Value blob;
+    Json::Value find_blob;
+    Json::Value tuple;
+    Json::Value cons;
+    Json::Value results;
+    cons["Name"][0]= "==";
+    cons["Name"][1]="sample1-Blob-new";
+    // blob["constraints"]=cons;
+    //  blob["_ref"]=12;
+    results["list"][0]="Name";
+    blob["results"]=results;
+  
+    find_blob["FindBlob"]=blob;
+   
+    tuple.append(find_blob);
+    return tuple;
+}
+Json::Value Meta_Data::construct_Blob(){
+
+    
+    Json::Value blob;
+    Json::Value add_blob;
+    Json::Value tuple;
+    blob["properties"]["Name"]="sample1-Blob-new";
+    blob["properties"]["colored"]="true";
+    blob["properties"] ["file"] ="audio";
+    blob["_ref"]=12;
+    add_blob["AddBlob"]=blob;
+
+    tuple.append(add_blob);
+   
+    return tuple;
+
+}   
+
+
 Json::Value Meta_Data::constuct_BB(bool with_image){
 
     Json::Value image;
@@ -201,9 +272,6 @@ Json::Value Meta_Data::constuct_BB(bool with_image){
     
     tuple.append(query);
     return tuple;
-
-
-
 
 }
 Json::Value Meta_Data::construct_add_query(int ref, bool const_on, bool experiation){

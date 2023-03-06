@@ -46,6 +46,7 @@ add_executable(unit_tests
     unit_tests/client_bounding_box.cc
     unit_tests/client_descriptors.cc
     unit_tests/client_videos.cc
+    unit_tests/client_blob.cc
 )
 
 target_link_libraries(unit_tests
