@@ -2,9 +2,9 @@
 // This is the run-time config file
 // Sets database paths and other parameters
 {
-    // Network
-    "port": 55565,
-    "db_root_path": "test_db",
+
+    "port": 55558,
+    "db_root_path": "test_db_client",
 
     "more-info": "github.com/IntelLabs/vdms"
 }

@@ -24,17 +24,25 @@
 # THE SOFTWARE.
 #
 
-rm log.log screen.log
-rm -r test_db
-
+TEST_DIR=${PWD}
 base_dir=$(dirname $(dirname $PWD))
 client_path=${base_dir}/client/python
 export PYTHONPATH=$client_path:${PYTHONPATH}
 
+# Uncomment to re-generate queryMessage_pb2.py
 # python3 -m grpc_tools.protoc -I=${base_dir}/utils/src/protobuf --python_out=${client_path}/vdms ${base_dir}/utils/src/protobuf/queryMessage.proto
 
+cd ${TEST_DIR}
+rm  -rf test_db log.log screen.log
+mkdir -p test_db
+
 ./../../build/vdms -cfg config-tests.json > screen.log 2> log.log &
-python3 -m coverage run --include="../../*" --omit="../*" -m unittest discover --pattern=Test*.py -v
+py_unittest_pid=$!
 
 sleep 1
-pkill vdms
+
+echo 'Running Python tests...'
+python3 -m coverage run --include="../../*" --omit="../*" -m unittest discover --pattern=Test*.py -v
+
+rm  -rf test_db log.log screen.log
+kill -9 $py_unittest_pid

@@ -24,10 +24,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
     libleveldb-dev liblmdb-dev liblz4-dev libopenblas-dev libopenmpi-dev \
     libpng-dev librdkafka-dev libsnappy-dev libssl-dev libswscale-dev libtbb-dev \
     libtbb2 libtiff-dev libtiff5-dev libtool mpich openjdk-11-jdk-headless \
-    pkg-config python3-dev python3-pip unzip lcov && \
+    pkg-config python3-dev python3-pip unzip lcov gdb && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
     update-alternatives --install /usr/bin/python python /usr/bin/python3 1 && \
-    pip3 install --no-cache-dir "numpy>=1.23.2" gcovr
+    pip3 install --no-cache-dir "numpy>=1.23.2" "gcovr>=5.2"
 
 # Pull and Install Dependencies
 WORKDIR /dependencies

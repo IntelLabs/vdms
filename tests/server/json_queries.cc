@@ -70,7 +70,7 @@ TEST( AutoReplicate, default_replicate)
     QueryHandler::init();
     std::string backup_path ="backups";
     std::string db_path="db_backup";
-    int port =55555;
+    int port =55557;
 
     QueryHandler qh_base;
     qh_base.regualar_run_autoreplicate(backup_path, db_path, port); // set flag to show autodelete queue has been initialized

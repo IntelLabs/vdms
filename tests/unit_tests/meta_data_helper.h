@@ -8,7 +8,7 @@
 #include <list>
 #include <time.h>
 #include <regex>
-#include <vector> 
+#include <vector>
 #include <jsoncpp/json/writer.h>
 #include <jsoncpp/json/reader.h>
 
@@ -22,14 +22,14 @@ class Meta_Data{
     public:
         std::shared_ptr<VDMS::VDMSClient> _aclient;
         std::string _server_name="localhost";
-        int _port =55555;
-        
-        Json::FastWriter  _fastwriter; 
+        int _port =55558;
+
+        Json::FastWriter  _fastwriter;
         Json::Reader _reader;
-        Json::Value _result; 
+        Json::Value _result;
 
         Meta_Data ();
-        
+
 
         Json::Value construct_add_query(int ref, bool const_on, bool experiation);
         Json::Value construct_add_area(int ref, bool const_on);
@@ -53,6 +53,6 @@ class Meta_Data{
 
 
 
-      
+
 
 };
