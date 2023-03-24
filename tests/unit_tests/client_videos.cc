@@ -24,7 +24,7 @@ string readFileIntoString(const string& path) {
 
 
 
-TEST(CLIENT_CPP, add_single_video){
+TEST(CLIENT_CPP_Video, add_single_video){
     
 
     // std::string video;

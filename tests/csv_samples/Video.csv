@@ -1,0 +1,6 @@
+VideoPath,format,compressto,prop_name,ops_resize,ops_interval
+../tests/test_videos/Megamind.avi,avi,h264,Good,"200,175",
+../tests/test_videos/Megamind.avi,avi,h264,Good,,"10,50,2"
+../tests/test_videos/Megamind.avi,avi,h264,Good,,
+../tests/test_videos/Megamind.avi,avi,h264,Good,,
+../tests/test_videos/Megamind.avi,avi,h264,Good,,

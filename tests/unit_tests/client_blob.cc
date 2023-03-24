@@ -1,10 +1,19 @@
 #include "meta_data_helper.h"
+#include "CSVParserUtil.h"
 TEST(BLOB, add_Blob){
     std::string filename ="../tests/test_images/large1.jpg";
     std::vector<std::string*> blobs;
-
+    VDMS::CSVParserUtil csv_util;
+    std::string* blob_data_ptr = nullptr;
+           
+    csv_util.read_blob_image(filename, &blob_data_ptr);
+    
+    if(blob_data_ptr!=nullptr){
+              blobs.push_back(blob_data_ptr);
+            // std::cout <<*blobs[0] <<std::endl;
+           }
     Meta_Data* meta_obj=new Meta_Data();
-    blobs.push_back(meta_obj->read_blob(filename));
+    // -blobs.push_back(meta_obj->read_blob(filename));
      meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
     Json::Value tuple ;
     tuple=meta_obj->construct_Blob();

@@ -50,9 +50,4 @@ class Meta_Data{
         Json::Value construct_Flinng_Set(std::string&, int&);
         std::string get_server(){return _server_name;}
         int get_port() {return _port;}
-
-
-
-
-
 };

@@ -40,6 +40,7 @@ add_executable(unit_tests
     unit_tests/DescriptorSetReadFS_test.cc
     unit_tests/DescriptorSetStore_test.cc
     unit_tests/client_add_entity.cc
+    unit_tests/client_csv.cc
     unit_tests/meta_data.cc
     unit_tests/client_find_entities.cc
     unit_tests/client_image.cc

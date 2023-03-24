@@ -1,5 +1,5 @@
 sh cleandbs.sh
-
+mkdir test_db_client
 mkdir dbs  # necessary for Descriptors
 mkdir temp # necessary for Videos
 mkdir videos_tests
@@ -17,4 +17,3 @@ echo 'Running C++ tests...'
     --gtest_filter=-ImageTest.CreateNameTDB:ImageTest.NoMetadata:VideoTest.CreateUnique:Descriptors_Add.add_1by1_and_search_1k
 
 # kill -9 $cpp_unittest_pid $client_test_pid
-# sh cleandbs.sh
