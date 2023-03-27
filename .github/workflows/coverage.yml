@@ -57,7 +57,7 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: Clean workspace if git module is found
-        run: git submodule status || rm -rf "$GITHUB_WORKSPACE"/* "$GITHUB_WORKSPACE"/.gi*
+        run: rm -rf ${GITHUB_WORKSPACE}/*
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout ${{ matrix.coverage_type }} Branch
@@ -72,13 +72,6 @@ jobs:
 
           docker stop $(docker ps -aqf "name=${{ matrix.container_name }}") || true
           docker rm $(docker ps -aqf "name=${{ matrix.container_name }}") || true
-
-          sed -i 's|"numpy>=1.23.2" gcovr|"numpy>=1.23.2" "gcovr>=5.2"|g'  docker/check-in/Dockerfile
-
-          # Corrections for target until merged
-          sed -i 's|/vdms/build/CMakeFiles|/vdms/build -e /vdms/tests --gcov-ignore-errors=no_working_dir_found|g'  docker/check-in/run_coverage_cpp.sh
-          sed -i 's|\"/vdms/client/.*\.cc\" \-f \"/vdms/ext/.*\.cc\" \-f \"/vdms/src/.*\.cc\"|\"/vdms/.*/.*\.cc\"|g'  docker/check-in/run_coverage_cpp.sh
-          sed -i '/src\/SearchExpression.cc/d'  docker/check-in/run_coverage_cpp.sh
 
           docker build --rm -f docker/check-in/Dockerfile -t ${{ matrix.container_tag }} .
 
@@ -99,16 +92,8 @@ jobs:
 
           docker cp ${{ matrix.container_name }}:/vdms/tests/coverage_report/py_coverage_report.txt coverage/py_coverage_report_target.txt || true
           docker cp ${{ matrix.container_name }}:/vdms/tests/coverage_report/py_coverage_report.xml coverage/py_coverage_report_target.xml || true
-          if [ ! -f coverage/py_coverage_report_target.xml ] && [ "${{ matrix.coverage_type }}" == "Target" ]; then
-            echo "coverage_value_py=0" >> $GITHUB_ENV
-          else
-            echo "coverage_value_py=$(cat coverage/py_coverage_report_target.xml | grep "coverage version" | grep -oP 'line-rate="([-+]?\d*\.\d+|\d+)"' | grep -oP "[-+]?\d*\.\d+|\d+"| awk '{print $1*100}')" >> $GITHUB_ENV
-          fi
 
-          docker ps -aqf "name=${{ matrix.container_name }}" | xargs docker stop
-          # docker ps -aqf "name=${{ matrix.container_name }}" | xargs docker rm
-          docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
-
+          echo "coverage_value_py=$(cat coverage/py_coverage_report_target.xml | grep "coverage version" | grep -oP 'line-rate="([-+]?\d*\.\d+|\d+)"' | grep -oP "[-+]?\d*\.\d+|\d+"| awk '{print $1*100}')" >> $GITHUB_ENV
       - name: Report ${{ matrix.coverage_type }} Coverage
         id: report_coverage
         run: |
@@ -129,6 +114,13 @@ jobs:
           fi
           echo "${{ matrix.coverage_type }} Python Coverage: ${coverage_value_py}"
           echo "${{ matrix.output_py_name }}=${coverage_value_py}" >> $GITHUB_OUTPUT
+      - name: Cleanup
+        if: always()
+        run: |
+          rm /tmp/tmp-* || true
+          rm -rf ${{ env.ARTIFACT_DIR }}|| true
+          docker ps -aqf "name=${{ matrix.container_name }}" | xargs docker stop
+          docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
 
   compare_coverage:
     name: Compare Reported Coverage
