@@ -56,8 +56,10 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      - name: Clean workspace if git module is found
-        run: rm -rf ${GITHUB_WORKSPACE}/*
+      # - name: Clean workspace if git module is found
+      #   run: |
+      #     sudo chown -R $USER:$USER $GITHUB_WORKSPACE
+      #     rm -rf ${GITHUB_WORKSPACE}/*
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout ${{ matrix.coverage_type }} Branch
@@ -118,7 +120,7 @@ jobs:
         if: always()
         run: |
           rm /tmp/tmp-* || true
-          rm -rf ${{ env.ARTIFACT_DIR }}|| true
+          rm -rf /tmp/tmp-* ${{ env.ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/* || true
           docker ps -aqf "name=${{ matrix.container_name }}" | xargs docker stop
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
 

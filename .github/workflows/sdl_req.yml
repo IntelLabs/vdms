@@ -75,9 +75,12 @@ jobs:
 
   Bandit:
     name: Run Bandit
-    runs-on: gasp
+    runs-on:
+      group: intellabs-generic-runners
+      labels: vdms-check-in
+    # runs-on: gasp (unstable)
     container:
-      image: cache-registry.caas.intel.com/cache/library/python:3.8-slim
+      image: python:3.8-slim
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v3
@@ -131,11 +134,14 @@ jobs:
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
 
   BDBA:
-    runs-on: gasp
+    runs-on:
+      group: intellabs-generic-runners
+      labels: vdms-check-in
+    # runs-on: gasp (unstable)
     name: BDBA
     needs: BuildLatest
     container:
-      image: cache-registry.caas.intel.com/cache/library/python:3.8-slim
+      image: python:3.8-slim
     steps:
       - name: Download Docker Image
         uses: actions/download-artifact@v3
@@ -202,6 +208,8 @@ jobs:
           docker run --rm -i --env SNYK_TOKEN=${{ env.SNYK_TOKEN}} \
             --env SNYK_API=${{ env.SNYK_API}} --env SNYK_DISABLE_ANALYTICS=1 \
             --env COMMAND="pip install -r /app/requirements.txt --proxy $HTTP_PROXY" \
+            --env NO_PROXY=${{ secrets.NO_PROXY }} --env HTTP_PROXY="" --env HTTPS_PROXY="" \
+            --env no_proxy=${{ secrets.NO_PROXY }} --env http_proxy="" --env https_proxy="" \
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v ${PWD}:/app/ \
             snyk/snyk:python-3.8 snyk test -d --file=/app/requirements.txt --package-manager=pip --exclude-base-image-vulns \
@@ -237,10 +245,10 @@ jobs:
       group: intellabs-generic-runners
       labels: vdms-check-in
     steps:
-      - name: Checkout Branch
-        uses: actions/checkout@v3
-        with:
-          submodules: true
+      # - name: Checkout Branch
+      #   uses: actions/checkout@v3
+      #   with:
+      #     submodules: true
           # ref: ${{ env.CHECKOUT_REF }}
       - name: Download Docker Image
         uses: actions/download-artifact@v3
@@ -293,7 +301,7 @@ jobs:
         # cf. https://github.com/actions/upload-artifact/issues/256
         if: always()
         run: |
-          rm /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${{ env.ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/* || true
+          rm /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${{ env.ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/docker-bench-security || true
           docker stop vdms_test-CIS && docker rm vdms_test-CIS
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
 
