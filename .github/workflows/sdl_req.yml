@@ -50,8 +50,8 @@ jobs:
         id: get_hadolint
         run: |
           set -x
-          docker run --rm -i hadolint/hadolint:latest < ${{ env.NEW_BASE_DOCKERFILE}} 2>&1 | tee ${{ env.ARTIFACT_DIR }}/hadolint_output.txt
-          output=$(cat ${{ env.ARTIFACT_DIR }}/hadolint_output.txt | awk '{print $2}' | sort -u)
+          docker run --rm --env HADOLINT_FORMAT=gnu -i hadolint/hadolint:latest < ${{ env.NEW_BASE_DOCKERFILE}} 2>&1 | tee ${{ env.ARTIFACT_DIR }}/hadolint_output.txt
+          output=$(cat ${{ env.ARTIFACT_DIR }}/hadolint_output.txt | grep hadolint | awk '{print $2}' | sort -u)
 
           echo "hadolint_output<<EOF" >> $GITHUB_ENV
           echo "$output" >> $GITHUB_ENV
@@ -66,7 +66,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: sdl-artifacts
-          path: ${{ env.ARTIFACT_DIR }}/hadolint_output.txt
+          path: ${{ env.ARTIFACT_DIR }}
       - name: Cleanup
         if: always()
         run: |
@@ -282,7 +282,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: CIS Reports
-          path: ${{ env.ARTIFACT_DIR }}/CT249_CIS_report.txt
+          path: ${{ env.ARTIFACT_DIR }}
       - name: Print CIS Results in Job Summary
         shell: bash
         run: |
