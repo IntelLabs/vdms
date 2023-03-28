@@ -8,7 +8,7 @@ sudo apt-get update
 sudo apt-get -y install --no-install-recommends software-properties-common
 sudo add-apt-repository "deb http://security.ubuntu.com/ubuntu focal-security main"
 sudo apt-get -y install --no-install-recommends apt-transport-https autoconf automake bison build-essential \
-    bzip2 ca-certificates curl ed flex g++ git gnupg-agent javacc libarchive-tools \
+    bzip2 ca-certificates curl=7.68.0-1ubuntu2.18 ed flex g++ git gnupg-agent javacc libarchive-tools \
     libatlas-base-dev libavcodec-dev libavformat-dev libboost-all-dev libbz2-dev \
     libc-ares-dev libdc1394-22-dev libgflags-dev libgoogle-glog-dev libgtest-dev \
     libgtk-3-dev libgtk2.0-dev libhdf5-serial-dev libjpeg-dev libjpeg8-dev libjsoncpp-dev \
@@ -16,7 +16,7 @@ sudo apt-get -y install --no-install-recommends apt-transport-https autoconf aut
     libpng-dev librdkafka-dev libsnappy-dev libssl-dev libswscale-dev libtbb-dev \
     libtbb2 libtiff-dev libtiff5-dev libtool maven mpich openjdk-11-jdk-headless \
     pkg-config python3-dev python3-pip unzip
-pip3 install --no-cache-dir "numpy>=1.23.2"
+pip3 install --no-cache-dir "numpy>=1.23.2" "setuptools>=65.5.1"
 ```
 ### Clone/Download Dependencies
 Here we clone the repositories for grpc v1.40.0, libpng12, Swig v4.0.2, OpenCV 4.5.3, Valijson v0.6, CMake v3.21.2, Faiss v1.7.1, and FLINNG. Then download necesarry files for zlib v1.2.13, Json-simple v1.1.1, and TileDB v1.3.1.
@@ -79,7 +79,7 @@ cd tools/distrib/python/grpcio_tools
 python ../make_grpcio_tools.py
 GRPC_PYTHON_BUILD_WITH_CYTHON=1 pip3 install --no-cache-dir .
 
-cd ../../../../third_party/protobuf/cmake 
+cd ../../../../third_party/protobuf/cmake
 mkdir build && cd build
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE ..
 make -j && sudo make install
@@ -131,7 +131,7 @@ make install
 ### Zlib
 ```bash
 cd $VDMS_DEP_DIR && tar -xvzf zlib-1.2.13.tar.gz
-cd zlib-1.2.13 && ./configure 
+cd zlib-1.2.13 && ./configure
 make -j && sudo make install
 ```
 

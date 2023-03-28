@@ -17,7 +17,7 @@ ARG MAVEN_OPTS
 RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common && \
     add-apt-repository "deb http://security.ubuntu.com/ubuntu ${UBUNTU_NAME}-security main" && \
     apt-get install -y --no-install-recommends apt-transport-https autoconf automake bison build-essential \
-    bzip2 ca-certificates curl ed flex g++ git gnupg-agent javacc libarchive-tools \
+    bzip2 ca-certificates curl=7.68.0-1ubuntu2.18 ed flex g++ git gnupg-agent javacc libarchive-tools \
     libatlas-base-dev libavcodec-dev libavformat-dev libboost-all-dev libbz2-dev \
     libc-ares-dev libdc1394-22-dev libgflags-dev libgoogle-glog-dev libgtest-dev \
     libgtk-3-dev libgtk2.0-dev libhdf5-serial-dev libjpeg-dev libjpeg8-dev libjsoncpp-dev \
@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
     pkg-config python3-dev python3-pip unzip lcov gdb && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
     update-alternatives --install /usr/bin/python python /usr/bin/python3 1 && \
-    pip3 install --no-cache-dir "numpy>=1.23.2" "gcovr>=5.2"
+    pip3 install --no-cache-dir "numpy>=1.23.2" "setuptools>=65.5.1" "gcovr>=5.2"
 
 # Pull and Install Dependencies
 WORKDIR /dependencies
