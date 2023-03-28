@@ -35,6 +35,7 @@ jobs:
     name: Haskell Dockerfile Linter
     runs-on:
       group: intellabs-generic-runners
+      labels: vdms-check-in
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v3
