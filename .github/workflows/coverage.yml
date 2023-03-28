@@ -125,6 +125,7 @@ jobs:
           rm -rf /tmp/tmp-* ${{ env.ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/* || true
           docker ps -aqf "name=${{ matrix.container_name }}" | xargs docker stop
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
+          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
 
   compare_coverage:
     name: Compare Reported Coverage

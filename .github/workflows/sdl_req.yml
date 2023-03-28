@@ -37,6 +37,7 @@ jobs:
       group: intellabs-generic-runners
       labels: vdms-check-in
     steps:
+      - run: chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
       - name: Checkout Branch
         uses: actions/checkout@v3
         # with:
@@ -74,6 +75,7 @@ jobs:
         run: |
           rm /tmp/tmp-* || true
           rm -rf ${{ env.ARTIFACT_DIR }}|| true
+          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
 
   Bandit:
     name: Run Bandit
@@ -88,6 +90,7 @@ jobs:
         uses: actions/checkout@v3
         # with:
         #   ref: ${{ env.CHECKOUT_REF }}
+      - run: chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
       - name: Run Bandit
         id: bandit
         run: |
@@ -102,7 +105,9 @@ jobs:
       - name: Cleanup
         # cf. https://github.com/actions/upload-artifact/issues/256
         if: always()
-        run: rm /tmp/tmp-* ${{ env.ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/* || true
+        run: |
+          rm /tmp/tmp-* ${{ env.ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/* || true
+          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
 
   # BUILD LATEST CODE AS DOCKER IMAGE; USED WITH SNYK, CIS, & BDBA JOBS
   BuildLatest:
@@ -117,6 +122,7 @@ jobs:
         with:
           submodules: true
           # ref: ${{ env.CHECKOUT_REF }}
+      - run: chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
       - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }}
       - name: Build Docker Container
         run: |
@@ -134,6 +140,7 @@ jobs:
         run: |
           rm /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/* || true
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
+          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
 
   BDBA:
     runs-on:
@@ -162,7 +169,9 @@ jobs:
       - name: BDBA Failure Check
         if: failure()
         run: echo "Check BDBA Server(https://bdba001.icloud.intel.com/) for binary vdms_latest.tar"
-      - run: rm -rf ${{ env.DOCKER_ARTIFACT_DIR }}
+      - run: |
+          rm -rf ${{ env.DOCKER_ARTIFACT_DIR }}
+          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
 
   Snyk:
     # This job runs Snyk for Vulnerabilities and extract list of dependencies
@@ -186,6 +195,7 @@ jobs:
         with:
           submodules: true
           # ref: ${{ env.CHECKOUT_REF }}
+      - run: chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
       - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }} ${{ env.ARTIFACT_DIR }}
       - name: Download docker image
         uses: actions/download-artifact@v3
@@ -240,6 +250,7 @@ jobs:
           docker stop snyk_py && docker rm snyk_py ${GITHUB_WORKSPACE}/*|| true
           rm /tmp/tmp-* || true
           rm -rf ${{ env.ARTIFACT_DIR }} ${{ env.DOCKER_ARTIFACT_DIR }} || true
+          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
 
   CIS:
     # This job runs CIS Docker Benchmark
@@ -308,6 +319,7 @@ jobs:
           rm /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${{ env.ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/docker-bench-security || true
           docker stop vdms_test-CIS && docker rm vdms_test-CIS
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
+          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
 
   # BUILD LATEST CODE WITH COVERITY AS DOCKER IMAGE
   Coverity:
@@ -321,6 +333,7 @@ jobs:
         with:
           submodules: true
           # ref: ${{ env.CHECKOUT_REF }}
+      - run: chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
       - name: Build Docker Container with Coverity
         run: |
           cp ${{ env.NEW_BASE_DOCKERFILE}} ${{ env.COVERITY_DOCKERFILE}}
@@ -361,12 +374,11 @@ jobs:
           docker exec vdms_test-Coverity bash -c "cov-commit-defects --dir /coverity-results --stream ${COVERITYSTREAM} --url ${COVERITYSERVER} --user ${FACELESS_USERNAME} --password ${FACELESS_AUTHKEY} --debug"
           docker stop vdms_test-Coverity
 
-          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
-
       - name: Cleanup
         # cf. https://github.com/actions/upload-artifact/issues/256
         if: always()
         run: |
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
           rm -rf /tmp/tmp-* coverity-results ${GITHUB_WORKSPACE}/* || true
+          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
 
