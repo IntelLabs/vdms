@@ -56,11 +56,6 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # - name: Clean workspace if git module is found
-      #   run: |
-      #     sudo chown -R $USER:$USER $GITHUB_WORKSPACE
-      #     rm -rf ${GITHUB_WORKSPACE}/*
-
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout ${{ matrix.coverage_type }} Branch
         uses: actions/checkout@v3
@@ -95,8 +90,6 @@ jobs:
           docker cp ${{ matrix.container_name }}:/vdms/tests/coverage_report/py_coverage_report.txt coverage/py_coverage_report_target.txt || true
           docker cp ${{ matrix.container_name }}:/vdms/tests/coverage_report/py_coverage_report.xml coverage/py_coverage_report_target.xml || true
 
-          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
-
           echo "coverage_value_py=$(cat coverage/py_coverage_report_target.xml | grep "coverage version" | grep -oP 'line-rate="([-+]?\d*\.\d+|\d+)"' | grep -oP "[-+]?\d*\.\d+|\d+"| awk '{print $1*100}')" >> $GITHUB_ENV
       - name: Report ${{ matrix.coverage_type }} Coverage
         id: report_coverage
@@ -121,11 +114,10 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          rm /tmp/tmp-* || true
-          rm -rf /tmp/tmp-* ${{ env.ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/* || true
+          rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_REPOSITORY} || true
+          rm -rf /tmp/tmp-* ${{ env.ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/*  || true
           docker ps -aqf "name=${{ matrix.container_name }}" | xargs docker stop
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
-          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
 
   compare_coverage:
     name: Compare Reported Coverage

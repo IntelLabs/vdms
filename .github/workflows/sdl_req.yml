@@ -37,12 +37,11 @@ jobs:
       group: intellabs-generic-runners
       labels: vdms-check-in
     steps:
-      - run: chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
       - name: Checkout Branch
         uses: actions/checkout@v3
         # with:
-        #   ref: ${{ env.CHECKOUT_REF }}
-      - run: mkdir -p ${{ env.ARTIFACT_DIR }} && whoami
+          # ref: ${{ env.CHECKOUT_REF }}
+      - run: mkdir -p ${{ env.ARTIFACT_DIR }}
       # - name: Run Hadolint Docker Container (unstable)
       #   uses: intel-innersource/frameworks.devops.github.actions.hadolint@main
       #   with:
@@ -52,9 +51,8 @@ jobs:
         id: get_hadolint
         run: |
           set -x
-          docker run --rm --env HADOLINT_FORMAT=gnu -i hadolint/hadolint:latest < ${{ env.NEW_BASE_DOCKERFILE}} 2>&1 | tee ${{ env.ARTIFACT_DIR }}/hadolint_output.txt
-          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
-          output=$(cat ${{ env.ARTIFACT_DIR }}/hadolint_output.txt | grep hadolint | awk '{print $2}' | sort -u)
+          docker run --rm --env HADOLINT_FORMAT=gnu -i hadolint/hadolint:latest < ${{ env.NEW_BASE_DOCKERFILE}} 2>&1 | tee ${{ env.ARTIFACT_DIR }}/CT222_hadolint_output.txt
+          output=$(cat ${{ env.ARTIFACT_DIR }}/CT222_hadolint_output.txt | grep hadolint | awk '{print $2}' | sort -u)
 
           echo "hadolint_output<<EOF" >> $GITHUB_ENV
           echo "$output" >> $GITHUB_ENV
@@ -68,14 +66,13 @@ jobs:
       - name: Upload Hadolint Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: sdl-artifacts
-          path: ${{ env.ARTIFACT_DIR }}
+          name: SDL Evidence
+          path: ${{ env.ARTIFACT_DIR }}/CT222_hadolint_output.txt
       - name: Cleanup
         if: always()
         run: |
-          rm /tmp/tmp-* || true
-          rm -rf ${{ env.ARTIFACT_DIR }}|| true
-          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
+          rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
+          rm -rf /tmp/tmp-* ${GITHUB_WORKSPACE}/*  || true
 
   Bandit:
     name: Run Bandit
@@ -89,8 +86,7 @@ jobs:
       - name: Checkout Branch
         uses: actions/checkout@v3
         # with:
-        #   ref: ${{ env.CHECKOUT_REF }}
-      - run: chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
+          # ref: ${{ env.CHECKOUT_REF }}
       - name: Run Bandit
         id: bandit
         run: |
@@ -100,14 +96,14 @@ jobs:
       - name: Upload Bandit Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: Bandit Report
-          path: ${{ env.ARTIFACT_DIR }}
+          name: SDL Evidence
+          path: ${{ env.ARTIFACT_DIR }}/bandit_report.csv
       - name: Cleanup
         # cf. https://github.com/actions/upload-artifact/issues/256
         if: always()
         run: |
-          rm /tmp/tmp-* ${{ env.ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/* || true
-          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
+          rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
+          rm -rf /tmp/tmp-* ${GITHUB_WORKSPACE}/*  || true
 
   # BUILD LATEST CODE AS DOCKER IMAGE; USED WITH SNYK, CIS, & BDBA JOBS
   BuildLatest:
@@ -122,7 +118,6 @@ jobs:
         with:
           submodules: true
           # ref: ${{ env.CHECKOUT_REF }}
-      - run: chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
       - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }}
       - name: Build Docker Container
         run: |
@@ -138,9 +133,9 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          rm /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/* || true
+          rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
+          rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/*  || true
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
-          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
 
   BDBA:
     runs-on:
@@ -149,8 +144,8 @@ jobs:
     # runs-on: gasp (unstable)
     name: BDBA
     needs: BuildLatest
-    container:
-      image: python:3.8-slim
+    # container:
+    #   image: python:3.8-slim
     steps:
       - name: Download Docker Image
         uses: actions/download-artifact@v3
@@ -162,16 +157,21 @@ jobs:
         continue-on-error: true
         env:
           BDBA_TOKEN: "${{ secrets.BDBA_TOKEN }}"
-        uses: intel-innersource/frameworks.actions.bdba@main
-        with:
-          bdba_group: '90'  # Change this to your group
-          bdba_binary: '${{ env.DOCKER_ARTIFACT_DIR }}/vdms_latest.tar'
+          bdba_group: '90'
+        shell: bash
+        run: |
+          apt-get update && apt-get install -y curl
+          curl -k -H "Authorization: Bearer $BDBA_TOKEN" -H "Group: $bdba_group" -T ${{ env.DOCKER_ARTIFACT_DIR }}/vdms_latest.tar "https://bdba001.icloud.intel.com/api/upload/"
+        # uses: intel-innersource/frameworks.actions.bdba@main (causes dir issues)
+        # with:
+        #   bdba_group: '90'  # Change this to your group
+        #   bdba_binary: '${{ env.DOCKER_ARTIFACT_DIR }}/vdms_latest.tar'
       - name: BDBA Failure Check
         if: failure()
         run: echo "Check BDBA Server(https://bdba001.icloud.intel.com/) for binary vdms_latest.tar"
       - run: |
-          rm -rf ${{ env.DOCKER_ARTIFACT_DIR }}
-          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
+          rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
+          rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/* || true
 
   Snyk:
     # This job runs Snyk for Vulnerabilities and extract list of dependencies
@@ -195,7 +195,6 @@ jobs:
         with:
           submodules: true
           # ref: ${{ env.CHECKOUT_REF }}
-      - run: chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
       - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }} ${{ env.ARTIFACT_DIR }}
       - name: Download docker image
         uses: actions/download-artifact@v3
@@ -205,9 +204,13 @@ jobs:
       - name: Load Docker Image
         run: docker load -i ${{ env.DOCKER_ARTIFACT_DIR }}/vdms_latest.tar
       - name: Snyk Docker Image Scan (Test & Monitor)
+        continue-on-error: true
         run: |
+          (NO_PROXY="" HTTP_PROXY="" HTTPS_PROXY="" no_proxy="" http_proxy="" https_proxy="" snyk container test -d vdms:latest --file=${{ env.NEW_BASE_DOCKERFILE}} \
+            --exclude-base-image-vulns --project-name="$PROJ_NAME" || true) > ${{ env.ARTIFACT_DIR }}/CT36_docker_snyk_scan.log
+
           NO_PROXY="" HTTP_PROXY="" HTTPS_PROXY="" no_proxy="" http_proxy="" https_proxy="" snyk container monitor -d vdms:latest --file=${{ env.NEW_BASE_DOCKERFILE}} \
-            --exclude-base-image-vulns --project-name="$PROJ_NAME" > ${{ env.ARTIFACT_DIR }}/CT36_docker_snyk_scan.log  || true
+            --exclude-base-image-vulns --project-name="$PROJ_NAME" || true
 
           # Results
           output_checks=$(cat ${{ env.ARTIFACT_DIR }}/CT36_docker_snyk_scan.log | grep "Tested ")
@@ -215,8 +218,19 @@ jobs:
           echo "$output_checks" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
       - name: Snyk Python Scan (Test & Monitor)
+        continue-on-error: true
         run: |
           docker run --rm -i vdms:latest bash -c "pip3 freeze -l" | tee ${PWD}/requirements.txt
+          (docker run --rm -i --env SNYK_TOKEN=${{ env.SNYK_TOKEN}} \
+            --env SNYK_API=${{ env.SNYK_API}} --env SNYK_DISABLE_ANALYTICS=1 \
+            --env COMMAND="pip install -r /app/requirements.txt --proxy $HTTP_PROXY" \
+            --env NO_PROXY=${{ secrets.NO_PROXY }} --env HTTP_PROXY="" --env HTTPS_PROXY="" \
+            --env no_proxy=${{ secrets.NO_PROXY }} --env http_proxy="" --env https_proxy="" \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v ${PWD}:/app/ \
+            snyk/snyk:python-3.8 snyk test -d --file=/app/requirements.txt --package-manager=pip --exclude-base-image-vulns \
+              --project-name="$PROJ_NAME-python" || true) > ${PWD}/${{ env.ARTIFACT_DIR }}/CT36_docker_snyk_python_scan.log
+
           docker run --rm -i --env SNYK_TOKEN=${{ env.SNYK_TOKEN}} \
             --env SNYK_API=${{ env.SNYK_API}} --env SNYK_DISABLE_ANALYTICS=1 \
             --env COMMAND="pip install -r /app/requirements.txt --proxy $HTTP_PROXY" \
@@ -225,19 +239,30 @@ jobs:
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v ${PWD}:/app/ \
             snyk/snyk:python-3.8 snyk monitor -d --file=/app/requirements.txt --package-manager=pip --exclude-base-image-vulns \
-              --project-name="$PROJ_NAME-python" > ${PWD}/${{ env.ARTIFACT_DIR }}/CT36_docker_snyk_python_scan.log  || true
-
-          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
+              --project-name="$PROJ_NAME-python" || true
 
           # Results
           output_checks=$(cat ${PWD}/${{ env.ARTIFACT_DIR }}/CT36_docker_snyk_python_scan.log | grep "Tested ")
           echo "snyk_python_results<<EOF" >> $GITHUB_ENV
           echo "$output_checks" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+      - name: Check SNYK Output
+        run: |
+          set -x
+
+          if [[ -z $snyk_image_results ]]
+          then
+            exit 1
+          fi
+
+          if [[ -z $snyk_python_results ]]
+          then
+            exit 1
+          fi
       - name: Upload SNYK & Dependency Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: SNYK Reports
+          name: SDL Evidence
           path: ${{ env.ARTIFACT_DIR }}
       - name: Print SNYK Results in Job Summary
         run: |
@@ -247,10 +272,9 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          docker stop snyk_py && docker rm snyk_py ${GITHUB_WORKSPACE}/*|| true
-          rm /tmp/tmp-* || true
-          rm -rf ${{ env.ARTIFACT_DIR }} ${{ env.DOCKER_ARTIFACT_DIR }} || true
-          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
+          docker stop snyk_py && docker rm snyk_py || true
+          rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
+          rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/*  || true
 
   CIS:
     # This job runs CIS Docker Benchmark
@@ -260,11 +284,6 @@ jobs:
       group: intellabs-generic-runners
       labels: vdms-check-in
     steps:
-      # - name: Checkout Branch
-      #   uses: actions/checkout@v3
-      #   with:
-      #     submodules: true
-          # ref: ${{ env.CHECKOUT_REF }}
       - name: Download Docker Image
         uses: actions/download-artifact@v3
         with:
@@ -287,9 +306,8 @@ jobs:
             --restart on-failure:5 \
             --name vdms_test-CIS vdms:latest
 
-          mkdir -p ${{ env.ARTIFACT_DIR }}
-          sh docker-bench-security.sh -c container_runtime -i vdms_test-CIS -l CT249_CIS_report.txt
-          mv CT249_CIS_report.txt  ${{ env.ARTIFACT_DIR }}/CT249_CIS_report.txt
+          sh docker-bench-security.sh -c container_runtime -i vdms_test-CIS -l ../${{ env.ARTIFACT_DIR }}/CT249_CIS_report.txt
+          cd ..
 
           output_checks=$(cat ${{ env.ARTIFACT_DIR }}/CT249_CIS_report.txt | grep "Checks:" | sed 's/^.*Checks/Checks/')
           output_score=$(cat ${{ env.ARTIFACT_DIR }}/CT249_CIS_report.txt | grep "Score:" | sed 's/^.*Score/Score/')
@@ -304,8 +322,8 @@ jobs:
       - name: Upload CIS Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: CIS Reports
-          path: ${{ env.ARTIFACT_DIR }}
+          name: SDL Evidence
+          path: ${{ env.ARTIFACT_DIR }}/CT249_CIS_report.txt
       - name: Print CIS Results in Job Summary
         shell: bash
         run: |
@@ -316,10 +334,10 @@ jobs:
         # cf. https://github.com/actions/upload-artifact/issues/256
         if: always()
         run: |
-          rm /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${{ env.ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/docker-bench-security || true
           docker stop vdms_test-CIS && docker rm vdms_test-CIS
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
-          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
+          rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
+          rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/*  || true
 
   # BUILD LATEST CODE WITH COVERITY AS DOCKER IMAGE
   Coverity:
@@ -332,8 +350,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: true
-          # ref: ${{ env.CHECKOUT_REF }}
-      - run: chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
+        #   ref: ${{ env.CHECKOUT_REF }}
       - name: Build Docker Container with Coverity
         run: |
           cp ${{ env.NEW_BASE_DOCKERFILE}} ${{ env.COVERITY_DOCKERFILE}}
@@ -362,23 +379,23 @@ jobs:
             --env COVERITYSTREAM=${{ env.COVERITYSTREAM }} vdms:coverity
 
           # Configure
-          docker exec -w /vdms/build vdms_test-Coverity bash -c "rm -rf * && cov-configure -gcc && cov-configure --compiler c++ --comptype g++ --template"
+          docker exec -w /vdms/build vdms_test-Coverity bash -c "mkdir -p /coverity-results && cov-configure -gcc && cov-configure --compiler c++ --comptype g++ --template"
 
           # Build
-          docker exec -w /vdms/build vdms_test-Coverity bash -c "mkdir -p /coverity-results && cmake .. && cov-build --dir /coverity-results make"
+          docker exec -w /vdms/build vdms_test-Coverity bash -c "rm -rf * && cmake .. && cov-build --dir /coverity-results make"
 
           # Analyze
           docker exec vdms_test-Coverity bash -c "cov-analyze --dir /coverity-results --concurrency --security --rule --enable-constraint-fpp --enable-fnptr --enable-virtual"
 
           # Commit
           docker exec vdms_test-Coverity bash -c "cov-commit-defects --dir /coverity-results --stream ${COVERITYSTREAM} --url ${COVERITYSERVER} --user ${FACELESS_USERNAME} --password ${FACELESS_AUTHKEY} --debug"
-          docker stop vdms_test-Coverity
 
       - name: Cleanup
         # cf. https://github.com/actions/upload-artifact/issues/256
         if: always()
         run: |
+          docker stop vdms_test-Coverity || true
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
-          rm -rf /tmp/tmp-* coverity-results ${GITHUB_WORKSPACE}/* || true
-          chown -R $(whoami):$(whoami) ${GITHUB_WORKSPACE}
+          rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
+          rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/*  || true
 
