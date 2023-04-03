@@ -158,10 +158,11 @@ jobs:
         env:
           BDBA_TOKEN: "${{ secrets.BDBA_TOKEN }}"
           bdba_group: '90'
+          bdba_product_id: ${{ secrets.BDBA_PRODUCT_ID }}
         shell: bash
         run: |
           apt-get update && apt-get install -y curl
-          curl -k -H "Authorization: Bearer $BDBA_TOKEN" -H "Group: $bdba_group" -T ${{ env.DOCKER_ARTIFACT_DIR }}/vdms_latest.tar "https://bdba001.icloud.intel.com/api/upload/"
+          curl -k -H "Authorization: Bearer $BDBA_TOKEN" -H "Group: $bdba_group" -H "Replace: $bdba_product_id" -T ${{ env.DOCKER_ARTIFACT_DIR }}/vdms_latest.tar "https://bdba001.icloud.intel.com/api/upload/"
         # uses: intel-innersource/frameworks.actions.bdba@main (causes dir issues)
         # with:
         #   bdba_group: '90'  # Change this to your group

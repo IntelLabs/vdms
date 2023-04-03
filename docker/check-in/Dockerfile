@@ -35,7 +35,7 @@ RUN git clone --branch v3.21.2 https://github.com/Kitware/CMake.git && \
     git clone --branch v4.0.2 https://github.com/swig/swig.git && \
     git clone --branch v1.7.1 https://github.com/facebookresearch/faiss.git && \
     git clone https://github.com/tonyzhang617/FLINNG.git && \
-    git clone --branch v1.40.0 https://github.com/grpc/grpc.git && \
+    git clone --recurse-submodules -b v1.40.0 https://github.com/grpc/grpc.git && \
     git clone --branch 4.5.3 https://github.com/opencv/opencv.git && \
     git clone --branch v0.6 https://github.com/tristanpenman/valijson.git && \
     curl -L -o /usr/share/java/json-simple-1.1.1.jar https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/json-simple/json-simple-1.1.1.jar && \
@@ -45,12 +45,12 @@ RUN git clone --branch v3.21.2 https://github.com/Kitware/CMake.git && \
     cd /dependencies/swig && ./autogen.sh && ./configure && make ${BUILD_THREADS} && make install && \
     cd /dependencies/faiss && mkdir build && cd build && cmake -DFAISS_ENABLE_GPU=OFF .. && make ${BUILD_THREADS} && make install && \
     cd /dependencies/FLINNG && mkdir build && cd build && cmake .. && make ${BUILD_THREADS} && make install && \
-    cd /dependencies/grpc && git submodule update --init --recursive && pip3 install --no-cache-dir -r requirements.txt && GRPC_PYTHON_BUILD_WITH_CYTHON=1 pip3 install --no-cache-dir . && \
+    cd /dependencies/grpc && pip3 install --no-cache-dir -r requirements.txt && GRPC_PYTHON_BUILD_WITH_CYTHON=1 pip3 install --no-cache-dir . && \
         cd tools/distrib/python/grpcio_tools && python ../make_grpcio_tools.py && GRPC_PYTHON_BUILD_WITH_CYTHON=1 pip3 install --no-cache-dir . && \
-        cd /dependencies/grpc/third_party/protobuf/cmake && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make ${BUILD_THREADS} && make install && \
+        cd /dependencies/grpc/third_party/zlib && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make ${BUILD_THREADS} && make install && \
+        cd /dependencies/grpc/third_party/protobuf/cmake && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -Dprotobuf_BUILD_TESTS=OFF .. && make ${BUILD_THREADS} && make install && \
         cd ../../../abseil-cpp && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make ${BUILD_THREADS} && make install && \
         cd ../../re2/ && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make ${BUILD_THREADS} && make install && \
-        cd ../../zlib/ && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make ${BUILD_THREADS} && make install && \
         cd /dependencies/grpc/cmake && mkdir build && cd build && cmake -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DgRPC_ABSL_PROVIDER=package \
             -DgRPC_CARES_PROVIDER=package -DgRPC_PROTOBUF_PROVIDER=package \
             -DgRPC_RE2_PROVIDER=package -DgRPC_SSL_PROVIDER=package \

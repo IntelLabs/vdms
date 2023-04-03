@@ -27,7 +27,7 @@ git clone --branch v3.21.2 https://github.com/Kitware/CMake.git && \
 git clone --branch v4.0.2 https://github.com/swig/swig.git && \
 git clone --branch v1.7.1 https://github.com/facebookresearch/faiss.git && \
 git clone https://github.com/tonyzhang617/FLINNG.git && \
-git clone --branch v1.40.0 https://github.com/grpc/grpc.git && \
+git clone --recurse-submodules -b v1.40.0 https://github.com/grpc/grpc.git && \
 git clone --branch 4.5.3 https://github.com/opencv/opencv.git && \
 git clone --branch v0.6 https://github.com/tristanpenman/valijson.git
 
@@ -71,17 +71,21 @@ make -j && sudo make install
 
 ### grpc
 ```bash
-cd $VDMS_DEP_DIR/grpc && git submodule update --init --recursive
-pip3 install --no-cache-dir -r requirements.txt && \
-    GRPC_PYTHON_BUILD_WITH_CYTHON=1 pip3 install --no-cache-dir .
+cd $VDMS_DEP_DIR/grpc
+pip3 install --no-cache-dir -r requirements.txt
+GRPC_PYTHON_BUILD_WITH_CYTHON=1 pip3 install --no-cache-dir .
 
 cd tools/distrib/python/grpcio_tools
 python ../make_grpcio_tools.py
 GRPC_PYTHON_BUILD_WITH_CYTHON=1 pip3 install --no-cache-dir .
 
-cd ../../../../third_party/protobuf/cmake
-mkdir build && cd build
+cd $VDMS_DEP_DIR/grpc/third_party/zlib/ && mkdir build && cd build
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE ..
+make -j && sudo make install
+
+cd $VDMS_DEP_DIR/grpc/third_party/protobuf/cmake
+mkdir build && cd build
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -Dprotobuf_BUILD_TESTS=OFF ..
 make -j && sudo make install
 
 cd ../../../abseil-cpp && mkdir build && cd build
@@ -92,11 +96,7 @@ cd ../../re2/ && mkdir build && cd build
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE ..
 make -j && sudo make install
 
-cd ../../zlib/ && mkdir build && cd build
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE ..
-make -j && sudo make install
-
-cd ../../../cmake && mkdir build && cd build
+cd $VDMS_DEP_DIR/grpc/cmake && mkdir build && cd build
 cmake -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DgRPC_ABSL_PROVIDER=package \
     -DgRPC_CARES_PROVIDER=package -DgRPC_PROTOBUF_PROVIDER=package \
     -DgRPC_RE2_PROVIDER=package -DgRPC_SSL_PROVIDER=package \
