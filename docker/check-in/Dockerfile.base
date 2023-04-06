@@ -11,7 +11,6 @@ FROM ubuntu:${UBUNTU_VERSION}
 # Dockerfile limitations force a repetition of global args
 ARG UBUNTU_VERSION
 ARG UBUNTU_NAME
-ARG MAVEN_OPTS
 
 # Install Packages
 RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common && \
