@@ -116,7 +116,6 @@ void DescriptorSet::DescriptorSetData::write_labels_map()
     out_labels.close();
 }
 
-
 void DescriptorSet::DescriptorSetData::read_labels_map()
 {
     std::ifstream in_labels(_set_path + "/labels.txt");
