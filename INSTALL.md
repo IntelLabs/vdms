@@ -2,7 +2,7 @@
 Here is the detailed process of installation of VDMS dependencies.
 
 ## Dependencies
-Here we will install the Ubuntu 20.04 packages.
+Here we will install the Ubuntu 20.04 and Python3 packages. We assume `python`/`pip` is an alias for `python3`/`pip3`. If your system has both  Python 2 and Python 3, please replace all pip and python commands with pip3 and python3, respectively.
 ```bash
 sudo apt-get update
 sudo apt-get -y install --no-install-recommends software-properties-common
@@ -14,9 +14,9 @@ sudo apt-get -y install --no-install-recommends apt-transport-https autoconf aut
     libgtk-3-dev libgtk2.0-dev libhdf5-serial-dev libjpeg-dev libjpeg8-dev libjsoncpp-dev \
     libleveldb-dev liblmdb-dev liblz4-dev libopenblas-dev libopenmpi-dev \
     libpng-dev librdkafka-dev libsnappy-dev libssl-dev libswscale-dev libtbb-dev \
-    libtbb2 libtiff-dev libtiff5-dev libtool maven mpich openjdk-11-jdk-headless \
+    libtbb2 libtiff-dev libtiff5-dev libtool mpich openjdk-11-jdk-headless \
     pkg-config python3-dev python3-pip unzip
-pip3 install --no-cache-dir "numpy>=1.23.2" "setuptools>=65.5.1"
+pip install --no-cache-dir "numpy>=1.23.2" "setuptools>=65.5.1"
 ```
 ### Clone/Download Dependencies
 Here we clone the repositories for grpc v1.40.0, libpng12, Swig v4.0.2, OpenCV 4.5.3, Valijson v0.6, CMake v3.21.2, Faiss v1.7.1, and FLINNG. Then download necesarry files for zlib v1.2.13, Json-simple v1.1.1, and TileDB v1.3.1.
@@ -72,12 +72,12 @@ make -j && sudo make install
 ### grpc
 ```bash
 cd $VDMS_DEP_DIR/grpc
-pip3 install --no-cache-dir -r requirements.txt
-GRPC_PYTHON_BUILD_WITH_CYTHON=1 pip3 install --no-cache-dir .
+pip install --no-cache-dir -r requirements.txt
+GRPC_PYTHON_BUILD_WITH_CYTHON=1 pip install --no-cache-dir .
 
 cd tools/distrib/python/grpcio_tools
 python ../make_grpcio_tools.py
-GRPC_PYTHON_BUILD_WITH_CYTHON=1 pip3 install --no-cache-dir .
+GRPC_PYTHON_BUILD_WITH_CYTHON=1 pip install --no-cache-dir .
 
 cd $VDMS_DEP_DIR/grpc/third_party/zlib/ && mkdir build && cd build
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE ..
@@ -155,31 +155,6 @@ cd /usr/src/gtest/
 sudo cmake .
 sudo make -j
 sudo mv lib/libgtest* /usr/lib
-```
-
-### Maven
-```bash
-ln -s $VDMS_DEP_DIR/grpc/third_party/protobuf/cmake/build/protoc $VDMS_DEP_DIR/grpc/third_party/protobuf/src/protoc
-cd $VDMS_DEP_DIR/grpc/third_party/protobuf/java/core
-mvn package
-sudo cp "$(ls target/protobuf-java*.jar)" /usr/share/java/protobuf.jar
-```
-
-You may need to change proxy setting for Maven if you are behind a proxy like this example.
-Add setting.xml file to ~/.m2 folder
-```
-<proxies>
-    <proxy>
-    <id>optional</id>
-        <!-- <active>true</active> -->
-        <protocol>https</protocol>
-        <!--<username>proxyuser</username>
-        <password>proxypass</password>-->
-        <host>prox-address</host>
-        <port>proxy-port</port>
-        <nonProxyHosts></nonProxyHosts>
-    </proxy>
-</proxies>
 ```
 
 ### Valijson
