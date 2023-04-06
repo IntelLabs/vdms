@@ -164,58 +164,41 @@ bool VDMS::CSVParserUtil::isInt(const std::string &s)
 
 VDMS::CSVParserUtil::commandType VDMS::CSVParserUtil::get_query_type(const string &str)
 {
-    CSVParserUtil::commandType querytype;
+    CSVParserUtil::commandType querytype = commandType::UNKNOWN;
 
     std::lock_guard<std::mutex> lock(CSVParserUtil::querytype_mutex);
     std::map<std::string, QueryType>::iterator iter;
     iter = commands.find(str);
-    if (iter == commands.end()) {
-        return commandType::UNKNOWN;
-    } else {
+    if (iter != commands.end()) {
         switch (commands[str])
         {
-        case EntityClass:
-            querytype = commandType::AddEntity;
-            break;
-
-        case ConnectionClass:
-            querytype = commandType::AddConnection;
-            break;
-        case ImagePath:
-            querytype = commandType::AddImage;
-            break;
-        case VideoPath:
-            querytype = commandType::AddVideo;
-            break;
-        case DescriptorType:
-            querytype = commandType::AddDescriptorSet;
-            break;
-        case DescriptorClass:
-            querytype = commandType::AddDescriptor;
-            break;
-        case RectangleBound:
-            querytype = commandType::AddBoundingBox;
-
-            break;
-        // case EntityUpdate:
-        //     querytype = commandType::UpdateEntity;
-
-        //     break;
-        // case ConnectionUpdate:
-        //     querytype = commandType::UpdateConnection;
-
-        //     break;
-        // case ImageUpdate:
-        //     querytype = commandType::UpdateImage;
-        //     break;
-        // case RectangleUpdate:
-        //     querytype = commandType::UpdateBoundingBox;
-        //     break;
+            case EntityClass:
+                querytype = commandType::AddEntity;
+                break;
+            case ConnectionClass:
+                querytype = commandType::AddConnection;
+                break;
+            case ImagePath:
+                querytype = commandType::AddImage;
+                break;
+            case VideoPath:
+                querytype = commandType::AddVideo;
+                break;
+            case DescriptorType:
+                querytype = commandType::AddDescriptorSet;
+                break;
+            case DescriptorClass:
+                querytype = commandType::AddDescriptor;
+                break;
+            case RectangleBound:
+                querytype = commandType::AddBoundingBox;
+                break;
         }
-
         //   std::cout << " I executed queryType "<< querytype << std::endl;
-        return querytype;
+        // return querytype;
     }
+
+    return querytype;
 }
 
 VDMS::CSVParserUtil::DATATYPE VDMS::CSVParserUtil::getDataType(const string &str, const string &propname)

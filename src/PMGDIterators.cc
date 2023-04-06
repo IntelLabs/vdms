@@ -97,10 +97,10 @@ bool PMGDQueryHandler::NodeEdgeIteratorImpl::next()
 bool PMGDQueryHandler::NodeEdgeIteratorImpl::_next()
 {
     while (_src_ni != NULL && bool(*_src_ni)) {
-        delete _edge_it;
+        // delete _edge_it;
         _src_ni->next();
         if (bool(*_src_ni)) {
-            _edge_it = new PMGD::EdgeIterator((*_src_ni)->get_edges(_dir, _expr.tag()));
+            _edge_it.reset( new PMGD::EdgeIterator((*_src_ni)->get_edges(_dir, _expr.tag())));
             while (_edge_it != NULL && bool(*_edge_it)) {
                 if (check_predicates())
                     return true;
