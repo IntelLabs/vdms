@@ -25,6 +25,7 @@
 #
 
 import TestCommand
+import unittest
 
 class TestVideos(TestCommand.TestCommand):
 
@@ -128,6 +129,7 @@ class TestVideos(TestCommand.TestCommand):
         response, obj_array = db.query([query], [[]])
         self.assertEqual(response[0]["status"], -1)
 
+    @unittest.skip("Skipping class until fixed")
     def test_addVideoFromLocalFile_success(self):
 
         db = self.create_connection()

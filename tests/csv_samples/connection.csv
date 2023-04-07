@@ -1,0 +1,5 @@
+ConnectionClass,Person@id,Person@id,prop_type
+BloodRelation,1,2,brother 
+BloodRelation,14,16,sister
+BloodRelation,14,15,mother
+BloodRelation,14,13,father

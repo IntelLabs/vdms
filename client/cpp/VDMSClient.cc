@@ -30,12 +30,21 @@
 #include "VDMSClient.h"
 #include "queryMessage.pb.h"
 
+
 using namespace VDMS;
 
 VDMSClient::VDMSClient(std::string addr, int port) : _conn(addr, port)
 {
 }
+// void VDMSClient::parse_csv_file(std::string filename, std::string server, int p){
+//     CSVParser _csv_parser(filename, server, p);
+//     auto start = high_resolution_clock::now(); 
+//     // _csv_parser.create_thread_pool();
+//     auto end = high_resolution_clock::now();
+//     auto duration = duration_cast<milliseconds>(end - start);
+//     cout << "duaration in ms is "<<duration.count() << endl; 
 
+// }
 VDMS::Response VDMSClient::query(const std::string &json,
                                  const std::vector<std::string *> blobs)
 {

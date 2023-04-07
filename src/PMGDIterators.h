@@ -206,7 +206,8 @@ namespace VDMS {
         PMGD::Direction _dir;
         bool _check_dest;
 
-        PMGD::EdgeIterator *_edge_it;
+        // PMGD::EdgeIterator *_edge_it;
+        std::unique_ptr<PMGD::EdgeIterator> _edge_it;
 
         bool _next();
         bool check_predicates();
@@ -232,6 +233,8 @@ namespace VDMS {
                 PMGD::PropertyPredicate pp;
                 if (_num_predicates > 0)
                     pp = _expr.get_node_predicate(0);
+                else
+                    pp = PMGD::PropertyPredicate();
                 return _expr.db().get_edges(_expr.tag(), pp);
             }
             else {
@@ -245,9 +248,10 @@ namespace VDMS {
                              ReusableNodeIterator *dest_ni = NULL)
             : _expr(expr), _num_predicates(_expr.num_node_predicates()),
               _src_ni(src_ni), _dest_ni(dest_ni),
-              _pred_start(0), _check_dest(false),
-              _edge_it(new PMGD::EdgeIterator(return_iterator()))
+              _pred_start(0), _check_dest(false)
+            
         {
+            _edge_it.reset(new PMGD::EdgeIterator(return_iterator()));
             // If the first criteria did not return any edges,
             // there is no node checking on either side.
             if (!bool(*_edge_it))

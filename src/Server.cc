@@ -60,16 +60,16 @@ Server::Server(std::string config_file)
     _autodelete_interval = VDMSConfig::instance()
                         ->get_int_value("autodelete_interval_s", DEFAULT_AUTODELETE_INTERVAL);
     _backup_flag =    VDMSConfig::instance()
-                        ->get_string_value("backup_flag", DEFAULT_AUTOREPLICATE_FLAG) ;                  
+                        ->get_string_value("backup_flag", DEFAULT_AUTOREPLICATE_FLAG) ;
 
     _autoreplecate_interval = VDMSConfig::instance()
                         ->get_int_value("autoreplicate_interval", DEFAULT_AUTOREPLICATE_INTERVAL);
     _replication_unit =  VDMSConfig::instance()
-                        ->get_string_value("unit", DEFAULT_AUTOREPLICATE_UNIT); 
+                        ->get_string_value("unit", DEFAULT_AUTOREPLICATE_UNIT);
     _backup_path =  VDMSConfig::instance()
-                        ->get_string_value("backup_path", DEFAULT_BACKUP_PATH);  
+                        ->get_string_value("backup_path", DEFAULT_BACKUP_PATH);
     _db_path =     VDMSConfig::instance()
-                        ->get_string_value("db_root_path", DEFAULT_DB_ROOT);                 
+                        ->get_string_value("db_root_path", DEFAULT_DB_ROOT);
 
     PMGDQueryHandler::init();
     QueryHandler::init();
@@ -108,7 +108,7 @@ void Server::process_requests()
                 new comm::Connection(server->accept());
             _cm->add_connection(conn_server);
 
-           
+
         }
         catch (comm::ExceptionComm e) {
             print_exception(e);
@@ -118,43 +118,43 @@ void Server::process_requests()
     delete server;
 }
 void Server::untar_data(std::string& name){
-    
-   
+
+
         std::string command="tar -xvSf" + name;
         system(command.c_str());
-    
+
 }
 void Server::auto_replicate_data(){
-    
-    long replication_period;
+
+    long replication_period = 0;
     QueryHandler qh;
- if(_backup_flag =="true"){
+    if(_backup_flag =="true"){
        if (_autoreplecate_interval >0 ){
             if (_replication_unit.compare("h") == 0){
                 replication_period =_autoreplecate_interval*60*60;
             }
             else if (_replication_unit.compare("m") == 0)
                 replication_period =_autoreplecate_interval*60;
-        
-            else     
-                 replication_period= _autoreplecate_interval;
-       }       
-          
+
+            else
+                replication_period= _autoreplecate_interval;
+        }
+
         if(_backup_path.empty()){
             _backup_path=_db_path; //set the defualt path to be db
-        } 
-        
-          
-     if(replication_period > 0) //check to ensure valid autodelete_interval
-      { 
-         
-        while(!shutdown)
-        {
-            sleep(replication_period);
-            qh.regualar_run_autoreplicate(_backup_path, _db_path, _server_port);
         }
-    } 
- } 
+
+
+        if(replication_period > 0) //check to ensure valid autodelete_interval
+        {
+
+            while(!shutdown)
+            {
+                sleep(replication_period);
+                qh.regualar_run_autoreplicate(_backup_path, _db_path, _server_port);
+            }
+        }
+    }
 }
 
 void Server::autodelete_expired_data()

@@ -1,0 +1,11 @@
+ImagePath,ops_threshold,ops_crop,ops_resize,ops_flip,ops_rotate,prop_type,prop_part,format,cons_1
+../tests/test_images/large1.jpg,350,,,,,,image1,jpg,part==image1
+../tests/test_images/large1.jpg,350,"0,0,224,224",,,,,image2,jpg,
+../tests/test_images/large1.jpg,350,,"224,224",,,,image3,jpg,
+../tests/test_images/large1.jpg,350,,,1,,,image4,jpg,
+../tests/test_images/large1.jpg,350,,,,"45,false",,image5,jpg,
+../tests/test_images/large1.jpg,350,,,,"75.5,false",,image6,jpg,
+../tests/test_images/large1.jpg,350,,,,,,image7,png,
+../tests/test_images/large1.jpg,,,,,,,image8,bin,
+../tests/test_images/large1.jpg,350,,,,,,image9,png,
+../tests/test_images/large1.jpg,,,,,,,image10,bin,

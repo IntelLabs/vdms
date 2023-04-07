@@ -74,7 +74,10 @@ namespace VCL {
         inline bool dir_exist(const std::string& dir_name) {
             DIR* dir = opendir(dir_name.c_str());
             if (dir)
+            {
+                closedir(dir);
                 return true;
+            }
 
             return false;
         }
@@ -117,7 +120,7 @@ namespace VCL {
          */
         DescriptorSetData(const std::string &filename, unsigned dim);
 
-        ~DescriptorSetData();
+        virtual ~DescriptorSetData();
 
         DescriptorSetData(const DescriptorSetData&) = delete;
 
@@ -147,7 +150,7 @@ namespace VCL {
          */
         virtual long add(float* descriptors, unsigned n_descriptors,
                          long* labels = NULL) = 0;
-        
+
         virtual long add_and_store(float* descriptors, unsigned n_descriptors,
                          long* labels = NULL) {return 0;}
 
@@ -163,7 +166,7 @@ namespace VCL {
          */
         virtual void search(float* query, unsigned n, unsigned k,
                             long* descriptors, float* distances) = 0;
-        
+
         virtual void search(float* query, unsigned n, unsigned k,
                             long* descriptors) {}
 

@@ -494,6 +494,8 @@ Image::~Image()
     _operations.clear();
     _operations.shrink_to_fit();
     delete _tdb;
+    if(_bin)
+        free(_bin);
 }
 
     /*  *********************** */

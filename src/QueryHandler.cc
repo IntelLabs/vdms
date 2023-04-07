@@ -38,6 +38,7 @@
 #include "DescriptorsCommand.h"
 #include "BoundingBoxCommand.h"
 #include "VideoCommand.h"
+#include "BlobCommand.h"
 
 #include "ExceptionsCommand.h"
 
@@ -87,6 +88,10 @@ void QueryHandler::init()
     _rs_cmds["UpdateVideo"]        = new UpdateVideo();
     _rs_cmds["FindVideo"]          = new FindVideo();
     _rs_cmds["FindFrames"]         = new FindFrames();
+
+      _rs_cmds["AddBlob"]          = new AddBlob();
+    _rs_cmds["UpdateBlob"]       = new UpdateBlob();
+    _rs_cmds["FindBlob"]         = new FindBlob();
 
     // Load the string containing the schema (api_schema/APISchema.h)
     Json::Reader reader;

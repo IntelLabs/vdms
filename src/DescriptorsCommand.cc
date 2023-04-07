@@ -212,8 +212,8 @@ Json::Value AddDescriptorSet::construct_responses(
     // We can probably set up a mechanism
     // to fix a broken link when detected later, same with images.
     try {
-       VCL::DescriptorParams* param = new VCL::DescriptorParams(_flinng_num_rows, _flinng_cells_per_row, _flinng_num_hash_tables,_flinng_hashes_per_table);
-       VCL::DescriptorSet desc_set(desc_set_path, dimensions, eng, metric, param);
+       VCL::DescriptorParams param(_flinng_num_rows, _flinng_cells_per_row, _flinng_num_hash_tables,_flinng_hashes_per_table);
+       VCL::DescriptorSet desc_set(desc_set_path, dimensions, eng, metric, &param);
        desc_set.store();
     }
     catch (VCL::Exception e) {

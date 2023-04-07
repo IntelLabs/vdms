@@ -44,7 +44,7 @@
 class ImageTest : public ::testing::Test {
  protected:
     virtual void SetUp() {
-        img_ = "images/large1.jpg";
+        img_ = "test_images/large1.jpg";
         tdb_img_ = "tdb/test_image.tdb";
         cv_img_ = cv::imread(img_, -1);
 
@@ -215,7 +215,7 @@ TEST_F(ImageTest, MatConstructor)
 
 TEST_F(ImageTest, EncodedBufferConstructor)
 {
-    std::fstream jpgimage("images/large1.jpg");
+    std::fstream jpgimage("test_images/large1.jpg");
 
     jpgimage.seekg(0, jpgimage.end);
     int length = jpgimage.tellg();
@@ -538,19 +538,19 @@ TEST_F(ImageTest, Read)
     VCL::ImageTest img_data;
     img_data.set_format("jpg");
 
-    ASSERT_THROW(img_data.read("images/.jpg"), VCL::Exception);
+    ASSERT_THROW(img_data.read("test_images/.jpg"), VCL::Exception);
 
-    img_data.read("images/large1");
+    img_data.read("test_images/large1");
 
-    EXPECT_EQ("images/large1.jpg", img_data.get_image_id());
+    EXPECT_EQ("test_images/large1.jpg", img_data.get_image_id());
 }
 
 TEST_F(ImageTest, WriteMatToJPG)
 {
     VCL::Image img(cv_img_);
-    img.store("images/test_image", VCL::Image::Format::JPG);
+    img.store("test_images/test_image", VCL::Image::Format::JPG);
 
-    cv::Mat test = cv::imread("images/test_image.jpg");
+    cv::Mat test = cv::imread("test_images/test_image.jpg");
 
     EXPECT_FALSE( test.empty() );
 }
@@ -786,14 +786,14 @@ TEST_F(ImageTest, TDBToPNG)
 {
     VCL::Image img(tdb_img_);
 
-    img.store("images/tdb_to_png", VCL::Image::Format::PNG);
+    img.store("test_images/tdb_to_png", VCL::Image::Format::PNG);
 }
 
 TEST_F(ImageTest, TDBToJPG)
 {
     VCL::Image img(tdb_img_);
 
-    img.store("images/tdb_to_jpg", VCL::Image::Format::JPG);
+    img.store("test_images/tdb_to_jpg", VCL::Image::Format::JPG);
 }
 
 TEST_F(ImageTest, EncodedImage)
