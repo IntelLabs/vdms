@@ -378,7 +378,7 @@ void VDMS::CSVParserUtil::parseOperations(string columnNames, string row, string
 
         else
         {
-            throw "Numeric data is required for resize command";
+            throw "Numeric data is required for threshold command";
         }
     }
 
@@ -435,7 +435,7 @@ void VDMS::CSVParserUtil::parseOperations(string columnNames, string row, string
 
                 else
                 {
-                    throw "Numeric data is required for resize command";
+                    throw "Numeric data is required for rotate angle";
                 }
             }
             else if (c == 1)

@@ -7,7 +7,7 @@ class BoundingBoxQueryParser : public CSVParserUtil{
     public:
         VDMS::Response ParseAddBoundingBox(vector<string> row, vector<string> cols);
         // VDMS::Response ParseUpdateBoundingBox(vector<string> row, vector<string>& cols);
-        
+
 };
 };
 
@@ -15,40 +15,44 @@ VDMS::Response VDMS::BoundingBoxQueryParser::ParseAddBoundingBox(vector<string> 
     if (row.empty() || row[0].empty()) {
         throw "please provide rectangle details";
     }
-    
+
     Json::Value aquery;
     Json::Value allquery;
     std::string command_name = "AddBoundingBox";
-    
+
     aquery["AddBoundingBox"]["_ref"] = 1;
     // aquery["AddBoundingBox"]["image"] = 3;
-    
+
     Json::Value aqueryf;
     // aqueryf["FindImage"]["_ref"] = 3;
-    
+    bool cons = false;
+
     parseRectangle(row[0], "AddBoundingBox", aquery);
-    
+
     for (int j = 1; j < columnNames.size(); j++){
         const string& columnName = columnNames[j];
         const string& cellValue = row[j];
-        
+
         if (cellValue.empty()) {
             continue;
         }
-        
+
         if (columnName.find("prop_") != string::npos){
             parseProperty(columnName, cellValue, command_name, aquery);
         }
-        // else if (columnName.find("cons_") != string::npos){
-        //     std::string find_image = "FindImage";
-        //     parseConstraints(columnName, cellValue, find_image, aqueryf);
-        // }
+        else if (columnName.find("cons_") != string::npos){
+            std::string find_image = "FindImage";
+            parseConstraints(columnName, cellValue, find_image, aqueryf);
+            cons = true;
+        }
     }
-    
-    // allquery.append(aqueryf);
-    
+
+    if (cons)
+        allquery.append(aqueryf);
+
     allquery.append(aquery);
-   return  send_to_vdms(allquery);
+    // std::cout<<allquery<<std::endl;
+    return  send_to_vdms(allquery);
 }
 
 
@@ -72,7 +76,7 @@ void VDMS::BoundingBoxQueryParser::parseRectangle(string row, string queryType, 
                 throw "invalid datatype of the rectangle data";
             }
         }
-       
+
         start = end + 1;
     }
     aquery[queryType]["rectangle"] = rec;
@@ -84,7 +88,7 @@ void VDMS::BoundingBoxQueryParser::parseRectangle(string row, string queryType, 
 //     aquery["UpdateBoundingBox"]["_ref"]=3;
 //     std::string command_name="UpdateBoundingBox";
 //     if(row[0]!=""){
-//         parseRectangle(row[0],command_name,aquery);    
+//         parseRectangle(row[0],command_name,aquery);
 //     }
 //     for(int j=1;j<columnNames.size();j++){
 //         if(row[j]!=""){
@@ -106,4 +110,3 @@ void VDMS::BoundingBoxQueryParser::parseRectangle(string row, string queryType, 
 //     allquery.append(aquery);
 //     return send_to_vdms(allquery);
 // }
-          

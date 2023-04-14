@@ -19,7 +19,6 @@ VDMS::Response VDMS::EntityQueryParser::ParseAddEntity(vector<string> row, vecto
     Json::Value fullquery;
 
     std::string command_name = "AddEntity";
-    // std::cout << command_name << columnNames.size() <<std::endl;
     if (row[0].empty())
     {
         throw "Entity Class not specified";
