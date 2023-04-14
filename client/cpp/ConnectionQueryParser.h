@@ -11,10 +11,10 @@ VDMS::Response VDMS::ConnectionQueryParser::ParseAddConnection(vector<string> ro
    Json::Value aquery;
    Json::Value allquery;
    Json::Value find_query1, find_query2,find_query;
-  
+
    if (row[0].empty()) {
     std::cerr << "Error: Connection Class not provided\n";
-   
+
 }
 
 // Set command name and connection class
@@ -29,14 +29,14 @@ for (int i = 1; i < columnNames.size(); i++) {
      string column_value = row[i];
      string column_type = column_name.substr(0, 5);
      string command="FindEntity";
-    
+
 
     if (column_value.empty()) {
         continue;
     }
-    
-    
-    
+
+
+
     if (column_name.find('@') != std::string::npos) {
         std::size_t at_pos = column_name.find('@');
 
@@ -44,7 +44,7 @@ for (int i = 1; i < columnNames.size(); i++) {
                 // Extract the name and id substrings.
                 std::string class1 = column_name.substr(0, at_pos);
                 std::string class_prop = column_name.substr(at_pos + 1);
-                             
+
                 find_query["FindEntity"]["class"]=class1;
                 find_query["FindEntity"]["_ref"]=ref1++;
                 find_query["FindEntity"]["constraints"][class_prop][0] = "==";
@@ -53,19 +53,13 @@ for (int i = 1; i < columnNames.size(); i++) {
              allquery.append(find_query);
 
     }
-    
-    
-        
-    // if (column_type == "cons_") {
-    //     parseConstraints(column_name, column_value, command, find_query1);
-    //     parseConstraints(column_name, column_value, command, find_query2);
-    // } 
-    // if (column_type == "prop_") {
-    //     parseProperty(column_name, column_value, command_name, aquery);
-    // }
+
+    if (column_type == "prop_") {
+        parseProperty(column_name, column_value, command_name, aquery);
+    }
     find_query.clear();
-    
-    
+
+
 }
 
 // Set connection references
@@ -75,6 +69,7 @@ aquery["AddConnection"]["ref2"] = allquery[1]["FindEntity"]["_ref"];
 
 
 allquery.append(aquery);
+// std::cout<<allquery<<std::endl;
 
 
 return send_to_vdms(allquery);
@@ -106,7 +101,7 @@ return send_to_vdms(allquery);
 //                 for(int v=0;v<rowvec.size();v++){
 //                     aquery["UpdateConnection"]["remove_props"].append(rowvec[v]);
 //                 }
-//             }      
+//             }
 //         }
 //     }
 //     allquery.append(aqueryf);

@@ -16,8 +16,7 @@ VDMS::Response VDMS::DescriptorSetQueryParser::ParseAddDescriptorSet(vector<stri
     Json::Value fullquery;
     std::string command_name="AddDescriptorSet";
     aquery["AddDescriptorSet"]["name"]=row[0];
-   
-            
+
     for(int j=1;j<columnNames.size();j++){
         if(!row[j].empty()){
             if(columnNames[j].find("prop_")!=string::npos){
@@ -36,20 +35,19 @@ VDMS::Response VDMS::DescriptorSetQueryParser::ParseAddDescriptorSet(vector<stri
                     throw "Engine value is not valid";
                 aquery["AddDescriptorSet"]["engine"]=row[j];
             }
-           
+
         }
-              
+
     }
-    
+
     fullquery.append(aquery);
-    // std::cout<<fullquery<<std::endl;
    return send_to_vdms(fullquery);
 }
- 
+
 bool VDMS::DescriptorSetQueryParser::isValidMetric(string& metric) {
-    return (metric=="L2" || metric=="IP");       
+    return (metric=="L2" || metric=="IP");
 }
 
 bool VDMS::DescriptorSetQueryParser::isValidEngine(string& engine) {
-    return (engine=="TileDBDense" || engine=="TileDBSparse" || engine=="FaissFlat" || engine=="FaissIVFFlat");        
+    return (engine=="TileDBDense" || engine=="TileDBSparse" || engine=="FaissFlat" || engine=="FaissIVFFlat");
 }

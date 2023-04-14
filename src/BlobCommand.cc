@@ -46,7 +46,7 @@ BlobCommand::BlobCommand(const std::string &cmd_name):
 
 AddBlob::AddBlob() : BlobCommand("AddBlob")
 {
-   
+
     _storage_bin = VDMSConfig::instance()->get_path_bin();
 }
 
@@ -57,8 +57,8 @@ int AddBlob::construct_protobuf(PMGDQuery& query,
     Json::Value& error)
 {
     const Json::Value& cmd = jsoncmd[_cmd_name];
-   
-    std::cout << " inside ADDBLOB" <<std::endl;
+
+    // std::cout << " inside ADDBLOB" <<std::endl;
     int node_ref = get_value<int>(cmd, "_ref",
                                   query.get_available_reference());
 
@@ -66,12 +66,12 @@ int AddBlob::construct_protobuf(PMGDQuery& query,
     std::string format = "bin";
     char binary_img_flag = 1;
     VCL::Image img((void*)blob.data(), blob.size(), binary_img_flag);
-  
+
 
     std::string blob_root = _storage_bin;
     VCL::Image::Format blob_format = VCL::Image::Format::BIN;
     std::string file_name = VCL::create_unique(blob_root, format);
-    std::cout << "Blob was added in " <<_storage_bin << "\t"<< file_name << std::endl;
+    // std::cout << "Blob was added in " <<_storage_bin << "\t"<< file_name << std::endl;
     Json::Value props = get_value<Json::Value>(cmd, "properties");
     props[VDMS_EN_BLOB_PATH_PROP] = file_name;
 
@@ -80,7 +80,7 @@ int AddBlob::construct_protobuf(PMGDQuery& query,
 
     img.store(file_name, blob_format);
 
-   
+
     error["Blob_added"] = file_name;
 
     if (cmd.isMember("link")) {
@@ -156,7 +156,7 @@ Json::Value FindBlob::construct_responses(
     const std::string &blob)
 {
     const Json::Value& cmd = json[_cmd_name];
-    
+
     Json::Value ret;
 
     auto error = [&](Json::Value& res)
@@ -201,12 +201,12 @@ Json::Value FindBlob::construct_responses(
             try {
                 VCL::Image blob_im(blob_path);
 
-                
+
                 // We will return the image in the format the user
                 // request, or on its format in disk, except for the case
                 // of .tdb, where we will encode as png.
                 VCL::Image::Format format =VCL::Image::Format::BIN;
-                 
+
                 std::vector<unsigned char> blob_buffer;
                 blob_buffer = blob_im.get_encoded_image(format);
 
