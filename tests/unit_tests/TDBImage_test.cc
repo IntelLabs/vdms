@@ -43,7 +43,7 @@ protected:
     virtual void SetUp() {
         tdb_img_ = "tdb/test_image.tdb";
         tdb_test_ = "tdb/write_test.tdb";
-        cv_img_ = cv::imread("images/large1.jpg", cv::IMREAD_ANYCOLOR);
+        cv_img_ = cv::imread("test_images/large1.jpg", cv::IMREAD_ANYCOLOR);
         rect_ = VCL::Rectangle(100, 100, 100, 100);
     }
 

@@ -6,8 +6,15 @@ int custom_vcl_function(VCL::Image& img, const Json::Value& ops)
     //create IPC structures for communicating between processes
     key_t key_ctl_host_remote;
     key_ctl_host_remote = ftok("vdms", 60);
+    
     int msgid_ctl_host_remote = msgget(key_ctl_host_remote, 0666 | IPC_CREAT);
     data_message message_ctl_host_remote;
+    //need size of data message excluding message_type field for msgsnd and msgrcv
+    size_t data_message_size = sizeof(message_ctl_host_remote.data_rows) + 
+                                    sizeof(message_ctl_host_remote.data_cols) + 
+                                    sizeof(message_ctl_host_remote.data_type) + 
+                                    sizeof(message_ctl_host_remote.data_image_size) + 
+                                    sizeof(message_ctl_host_remote.data_json_size);
 
     key_t key_data_host_remote;
     key_data_host_remote = ftok("vdms", 61);
@@ -21,11 +28,12 @@ int custom_vcl_function(VCL::Image& img, const Json::Value& ops)
 
     heartbeat_message message_hb_host_remote;
     heartbeat_message message_hb_remote_host;
+    size_t heartbeat_message_size = sizeof(message_hb_host_remote.status);
 
     //Pass messages to ensure the remote process is functional
     message_hb_host_remote.message_type = (long) vcl_message_type::VCL_MESSAGE_HEARTBEAT;
     message_hb_host_remote.status = 0;
-    int out_alive_msg_status = msgsnd(msgid_ctl_host_remote, &message_hb_host_remote, sizeof(heartbeat_message), 0);
+    int out_alive_msg_status = msgsnd(msgid_ctl_host_remote, &message_hb_host_remote, heartbeat_message_size, 0);
 
     int hb_count = 0;
     int in_alive_msg_status = -1;
@@ -33,7 +41,7 @@ int custom_vcl_function(VCL::Image& img, const Json::Value& ops)
     //try 10 times to determine if process is running
     while(hb_count < 10 && in_alive_msg_status < 0)
     {
-        in_alive_msg_status = msgrcv(msgid_ctl_remote_host, &message_hb_remote_host,sizeof(heartbeat_message) , (long) vcl_message_type::VCL_MESSAGE_HEARTBEAT, IPC_NOWAIT);
+        in_alive_msg_status = msgrcv(msgid_ctl_remote_host, &message_hb_remote_host, heartbeat_message_size, (long) vcl_message_type::VCL_MESSAGE_HEARTBEAT, IPC_NOWAIT);
         hb_count++;
     }
 
@@ -54,14 +62,17 @@ int custom_vcl_function(VCL::Image& img, const Json::Value& ops)
 
         std::string* json_string = new std::string(ops.toStyledString());
         message_ctl_host_remote.data_json_size = json_string->size();
-        
         //image size corresponds with first byte after the image
         memcpy(&(image_buffer[in_image_size]), json_string->c_str(), json_string->size());
-        int msg_send_result = msgsnd(msgid_ctl_host_remote, &message_ctl_host_remote, sizeof(data_message), 0);
+        int msg_send_result = msgsnd(msgid_ctl_host_remote, &message_ctl_host_remote, data_message_size, 0);
         if(msg_send_result < 0)
-        {}
+        {
+            delete json_string;
+            return -1;
+        }
 
-        int msg_recv_result = msgrcv(msgid_ctl_remote_host, &message_ctl_remote_host, sizeof(data_message), (long)vcl_message_type::VCL_MESSAGE_DATA, 0);
+        int msg_recv_result = msgrcv(msgid_ctl_remote_host, &message_ctl_remote_host, data_message_size, (long)vcl_message_type::VCL_MESSAGE_DATA, 0);
+
         if(msg_recv_result < 0)
         {}
 
@@ -87,5 +98,4 @@ int custom_vcl_function(VCL::Image& img, const Json::Value& ops)
     }
 
    return return_value;
- 
 }

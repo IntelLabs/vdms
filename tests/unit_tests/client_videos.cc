@@ -24,7 +24,7 @@ string readFileIntoString(const string& path) {
 
 
 
-TEST(CLIENT_CPP, add_single_video){
+TEST(CLIENT_CPP_Video, add_single_video){
     
 
     // std::string video;
@@ -32,31 +32,15 @@ TEST(CLIENT_CPP, add_single_video){
     std::vector<std::string*> blobs;
 
    
-    const char  *_video_id ="../tests/videos/Megamind.avi";
-     std::ifstream ifile;
-     ifile.open(_video_id);
-
-    int fsize;
-    char* inBuf;
-    ifile.seekg(0, std::ios::end);
-    fsize = (long)ifile.tellg();
-    ifile.seekg(0, std::ios::beg);
-    inBuf = new char[fsize];
-    ifile.read(inBuf, fsize);
-    std::string blob =  (std::string(inBuf));
-    ifile.close();
-    delete[] inBuf;
-       
-    
-    std::string* bytes_str =new std::string(blob);
-    blobs.push_back(bytes_str);
-     Meta_Data* meta_obj=new Meta_Data();
+    std::string filename ="../tests/videos/Megamind.avi";
+     
+          
+    Meta_Data* meta_obj=new Meta_Data();
+    blobs.push_back(meta_obj->read_blob(filename));
      meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
     Json::Value tuple ;
     tuple=meta_obj->constuct_video(false);
-  
-    
-    std::cout<< "Printing bytes_str " <<  bytes_str  << "\t"<< blobs[0] << std::endl;
+     
     
     VDMS::Response response =meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple), blobs);
     Json::Value result;

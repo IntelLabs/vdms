@@ -59,7 +59,11 @@
       { "$ref": "#/definitions/AddVideoTop" },
       { "$ref": "#/definitions/UpdateVideoTop" },
       { "$ref": "#/definitions/FindVideoTop" },
-      { "$ref": "#/definitions/FindFramesTop" }
+      { "$ref": "#/definitions/FindFramesTop" },
+
+      { "$ref": "#/definitions/AddBlobTop" },
+      { "$ref": "#/definitions/UpdateBlobTop" },
+      { "$ref": "#/definitions/FindBlobTop" }
     ]
   },
   "uniqueItems": false,
@@ -451,12 +455,35 @@
       "additionalProperties": false
     },
 
+    "AddBlobTop": {
+      "properties": {
+        "AddBlob" : { "type": "object", "$ref": "#/definitions/AddBlob" }
+      },
+      "additionalProperties": false
+    },
+    "UpdateBlobTop": {
+      "properties": {
+        "UpdateBlob" : { "type": "object", "$ref": "#/definitions/UpdateBlob" }
+      },
+      "additionalProperties": false
+    },
+
+    "FindBlobTop": {
+      "properties": {
+        "FindBlob" : { "type": "object", "$ref": "#/definitions/FindBlob" }
+      },
+      "additionalProperties": false
+    },
+
     "AddVideoTop": {
       "properties": {
         "AddVideo" : { "type": "object", "$ref": "#/definitions/AddVideo" }
       },
       "additionalProperties": false
     },
+
+    
+
 
     "UpdateVideoTop": {
       "properties": {
@@ -685,6 +712,41 @@
       "additionalProperties": false
     },
 
+    "AddBlob": {
+      "properties": {
+        "_ref":             { "$ref": "#/definitions/refInt" },
+        "from_server_file": { "type": "string"},
+         "link":             { "$ref": "#/definitions/blockLink" },
+         "properties":       { "type": "object" }
+        
+      },
+      "additionalProperties": false
+    },
+
+    "UpdateBlob": {
+      "properties": {
+        "_ref":         { "$ref": "#/definitions/refInt" },
+        "properties":   { "type": "object" },
+        "remove_props": { "$ref": "#/definitions/stringArray" },
+        "constraints":  { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+
+    "FindBlob": {
+      "properties": {
+        "_ref":        { "$ref": "#/definitions/refInt" },
+        "link":        { "$ref": "#/definitions/blockLink" },
+        "constraints": { "type": "object" },
+        "results":     { "$ref": "#/definitions/blockResults" },
+        "unique":      { "type": "boolean" }
+      },
+
+      "additionalProperties": false
+    },
+
+
+
     "AddVideo": {
       "properties": {
         "_ref":             { "$ref": "#/definitions/refInt" },
@@ -698,7 +760,7 @@
       },
       "additionalProperties": false
     },
-
+   
     "UpdateVideo": {
       "properties": {
         "_ref":         { "$ref": "#/definitions/refInt" },

@@ -45,6 +45,8 @@
 // Entities
 
 #define VDMS_EN_BLOB_PATH_PROP "VD:blobPath"
+#define VDMS_BLOB_TAG         "VD:BLOB"
+#define VDMS_BLOB_EDGE_TAG    "VD:BLOBLINK"
 
 // Images
 
