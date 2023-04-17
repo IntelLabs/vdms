@@ -14,6 +14,6 @@ echo 'not the vdms application - this file is needed for shared key' > vdms
 
 echo 'Running C++ tests...'
 ./../build/tests/unit_tests \
-    --gtest_filter=-ImageTest.CreateNameTDB:ImageTest.NoMetadata:VideoTest.*:VideoTest.CreateUnique:Descriptors_Add.add_1by1_and_search_1k
+    --gtest_filter=-ImageTest.CreateNameTDB:ImageTest.NoMetadata:VideoTest.CreateUnique:Descriptors_Add.add_1by1_and_search_1k
 
 # kill -9 $cpp_unittest_pid $client_test_pid
