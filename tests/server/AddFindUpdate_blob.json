@@ -1,0 +1,39 @@
+[
+    {
+        "AddBlob":
+        {
+
+            "_ref": 12,
+
+            "properties": {
+                "Name":"blob-sample-1",
+                "colored": "true",
+                "file":"audio"
+            }
+        }
+
+    },
+    {
+        "UpdateBlob" : {
+
+            "constraints": {
+                "Name" : [ "==",  "blob-sample-1" ]
+            },
+
+            "properties": {
+                "colored" : "false",
+                "length" : 200
+            }
+        }
+    },
+    {
+        "FindBlob" : {
+            "constraints" : {
+                "Name" : [ "==", "blob-sample-1" ]
+            },
+            "results" : {
+                "list" : [ "Name" ]
+            }
+        }
+    }
+]

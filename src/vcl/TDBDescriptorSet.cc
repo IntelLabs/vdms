@@ -145,6 +145,8 @@ void TDBDescriptorSet::classify(float* descriptors, unsigned n,
         }
         labels[j] = winner;
     }
+    delete[] distances;
+    delete[] ids_aux;
 }
 
 void TDBDescriptorSet::get_labels(long* ids, unsigned n, long* labels)

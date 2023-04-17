@@ -70,7 +70,5 @@ public:
         this->sub_hash_bits = subhashbits;
         this->cut_off= cutoff;
     }
-
-    ~DescriptorParams();
 };
 };

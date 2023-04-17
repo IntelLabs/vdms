@@ -24,13 +24,10 @@
 # THE SOFTWARE.
 #
 
-import sys
-import os
-import urllib
 import time
-import json
 import unittest
 import vdms
+
 
 class TestCommand(unittest.TestCase):
 
@@ -39,7 +36,7 @@ class TestCommand(unittest.TestCase):
 
         # VDMS Server Info
         self.hostname = "localhost"
-        self.port = 55557
+        self.port = 55565
 
         db_up = False
         attempts = 0
