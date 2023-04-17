@@ -64,7 +64,8 @@ RUN git clone --branch v3.21.2 https://github.com/Kitware/CMake.git && \
 
 
 # VDMS
-RUN git clone https://github.com/IntelLabs/vdms.git && cd vdms && \
+WORKDIR /vdms
+RUN git clone https://github.com/IntelLabs/vdms.git /vdms && cd /vdms && \
     git checkout develop && git submodule update --init --recursive && \
     mkdir build && cd build && cmake .. && make ${BUILD_THREADS} && \
     cp /vdms/config-vdms.json /vdms/build/ && \
