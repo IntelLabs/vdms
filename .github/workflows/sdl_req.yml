@@ -34,7 +34,7 @@ jobs:
   Hadolint:
     name: Haskell Dockerfile Linter
     runs-on:
-      group: intellabs-generic-runners
+      group: intellabs-vdms-runners
       labels: vdms-check-in
     steps:
       - name: Checkout Branch
@@ -77,7 +77,7 @@ jobs:
   Bandit:
     name: Run Bandit
     runs-on:
-      group: intellabs-generic-runners
+      group: intellabs-vdms-runners
       labels: vdms-check-in
     # runs-on: gasp (unstable)
     container:
@@ -110,7 +110,7 @@ jobs:
     # This job builds docker container for later use
     name: Build Latest Docker
     runs-on:
-      group: intellabs-generic-runners
+      group: intellabs-vdms-runners
       labels: vdms-check-in
     steps:
       - name: Checkout Branch
@@ -139,7 +139,7 @@ jobs:
 
   BDBA:
     runs-on:
-      group: intellabs-generic-runners
+      group: intellabs-vdms-runners
       labels: vdms-check-in
     # runs-on: gasp (unstable)
     name: BDBA
@@ -179,7 +179,7 @@ jobs:
     name: Snyk Scan for Vulnerabilities
     needs: BuildLatest
     runs-on:
-      group: intellabs-generic-runners
+      group: intellabs-vdms-runners
       labels: vdms-check-in
     container:
       image: snyk/snyk:docker
@@ -282,7 +282,7 @@ jobs:
     name: CIS Docker Benchmark
     needs: BuildLatest
     runs-on:
-      group: intellabs-generic-runners
+      group: intellabs-vdms-runners
       labels: vdms-check-in
     steps:
       - name: Download Docker Image
@@ -344,7 +344,7 @@ jobs:
   Coverity:
     name: Run Coverity
     runs-on:
-      group: intellabs-generic-runners
+      group: intellabs-vdms-runners
       labels: vdms-check-in
     steps:
       - name: Checkout Branch

@@ -18,7 +18,7 @@ jobs:
   coverage_job:
     name: Coverage Test
     runs-on:
-      group: intellabs-generic-runners
+      group: intellabs-vdms-runners
       labels: vdms-check-in
 
     strategy:
@@ -122,7 +122,7 @@ jobs:
   compare_coverage:
     name: Compare Reported Coverage
     runs-on:
-      group: intellabs-generic-runners
+      group: intellabs-vdms-runners
       labels: vdms-check-in
     needs: coverage_job
     steps:
