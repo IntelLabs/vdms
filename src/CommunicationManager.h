@@ -31,40 +31,39 @@
 
 #pragma once
 
-#include <thread>
-#include <vector>
+#include <condition_variable>
+#include <list>
 #include <mutex>
 #include <queue>
-#include <list>
-#include <condition_variable>
+#include <thread>
+#include <vector>
 
 #include "comm/Connection.h"
 #include "pmgd.h"
 
 namespace VDMS {
-    class CommunicationManager
-    {
-        static const int MAX_CONNECTED_CLIENTS = 500;
+class CommunicationManager {
+  static const int MAX_CONNECTED_CLIENTS = 500;
 
-        // For the thread pool
-        std::mutex _mlock;
-        std::condition_variable _cv;
-        int _num_threads;
-        std::vector<std::thread> _pool;
+  // For the thread pool
+  std::mutex _mlock;
+  std::condition_variable _cv;
+  int _num_threads;
+  std::vector<std::thread> _pool;
 
-        std::mutex _conn_list_lock;
-        std::list<comm::Connection *> _conn_list;
+  std::mutex _conn_list_lock;
+  std::list<comm::Connection *> _conn_list;
 
-        // Monitor new connections queued in for worker threads
-        std::queue<comm::Connection *> _workq;
+  // Monitor new connections queued in for worker threads
+  std::queue<comm::Connection *> _workq;
 
-        bool _shutdown;
-        
-    public:
-        CommunicationManager();
-        ~CommunicationManager();
-        void process_queue();
-        void add_connection(comm::Connection *c);
-        void shutdown();
-    };
+  bool _shutdown;
+
+public:
+  CommunicationManager();
+  ~CommunicationManager();
+  void process_queue();
+  void add_connection(comm::Connection *c);
+  void shutdown();
 };
+}; // namespace VDMS

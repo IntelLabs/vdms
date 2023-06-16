@@ -1,3 +1,5 @@
+#!/bin/bash -e
+
 cd /vdms/tests/python
 
 ./run_python_tests.sh

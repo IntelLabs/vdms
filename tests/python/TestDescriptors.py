@@ -27,10 +27,9 @@
 import TestCommand
 import numpy as np
 
+
 class TestDescriptors(TestCommand.TestCommand):
-
     def addSet(self, name, dim, metric, engine):
-
         db = self.create_connection()
 
         all_queries = []
@@ -52,14 +51,13 @@ class TestDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
 
     def test_addSet(self):
-
         db = self.create_connection()
 
         all_queries = []
 
         descriptor_set = {}
         descriptor_set["name"] = "features_xd"
-        descriptor_set["dimensions"] = 1024*4
+        descriptor_set["dimensions"] = 1024 * 4
 
         query = {}
         query["AddDescriptorSet"] = descriptor_set
@@ -72,7 +70,6 @@ class TestDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
 
     def test_addSetAndDescriptors(self):
-
         db = self.create_connection()
 
         all_queries = []
@@ -97,7 +94,7 @@ class TestDescriptors(TestCommand.TestCommand):
         descriptor_blob = []
 
         x = np.zeros(dims)
-        x = x.astype('float32')
+        x = x.astype("float32")
         # print type(x[0])
         # print "size: ", len(x.tobytes())/4
         descriptor_blob.append(x.tobytes())
@@ -116,7 +113,6 @@ class TestDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["AddDescriptor"]["status"], 0)
 
     def test_addSetAndDescriptorsDimMismatch(self):
-
         db = self.create_connection()
 
         all_queries = []
@@ -140,8 +136,8 @@ class TestDescriptors(TestCommand.TestCommand):
         all_queries = []
         descriptor_blob = []
 
-        x = np.zeros(dims//2)
-        x = x.astype('float32')
+        x = np.zeros(dims // 2)
+        x = x.astype("float32")
         # print type(x[0])
         # print "size: ", len(x.tobytes())/4
         descriptor_blob.append(x.tobytes())
@@ -165,7 +161,7 @@ class TestDescriptors(TestCommand.TestCommand):
         descriptor_blob = []
 
         x = np.zeros(dims)[:-1]
-        x = x.astype('float32')
+        x = x.astype("float32")
         # print type(x[0])
         # print "size: ", len(x.tobytes())/4
         descriptor_blob.append(x.tobytes())
@@ -185,7 +181,6 @@ class TestDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["info"], "Blob Dimensions Mismatch")
 
     def test_addDescriptorsx1000(self):
-
         db = self.create_connection()
 
         all_queries = []
@@ -208,12 +203,12 @@ class TestDescriptors(TestCommand.TestCommand):
         all_queries = []
         descriptor_blob = []
 
-        total = 2;
+        total = 2
 
-        for i in range(1,total):
+        for i in range(1, total):
             x = np.ones(dims)
-            x[2] = 2.34 + i*20
-            x = x.astype('float32')
+            x[2] = 2.34 + i * 20
+            x = x.astype("float32")
             descriptor_blob.append(x.tobytes())
 
             descriptor = {}
@@ -228,11 +223,10 @@ class TestDescriptors(TestCommand.TestCommand):
         response, img_array = db.query(all_queries, [descriptor_blob])
 
         # Check success
-        for x in range(0,total-1):
+        for x in range(0, total - 1):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
 
     def test_classifyDescriptor(self):
-
         db = self.create_connection()
 
         all_queries = []
@@ -255,16 +249,16 @@ class TestDescriptors(TestCommand.TestCommand):
         all_queries = []
         descriptor_blob = []
 
-        total = 2;
+        total = 2
 
         class_counter = -1
-        for i in range(0,total-1):
-            if ((i % 4) == 0):
+        for i in range(0, total - 1):
+            if (i % 4) == 0:
                 class_counter += 1
 
             x = np.ones(dims)
-            x[2] = 2.34 + i*20
-            x = x.astype('float32')
+            x[2] = 2.34 + i * 20
+            x = x.astype("float32")
             descriptor_blob.append(x.tobytes())
 
             descriptor = {}
@@ -279,9 +273,8 @@ class TestDescriptors(TestCommand.TestCommand):
         response, img_array = db.query(all_queries, [descriptor_blob])
 
         # Check success
-        for x in range(0,total-1):
+        for x in range(0, total - 1):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
-
 
         descriptor = {}
         descriptor["set"] = set_name
@@ -289,13 +282,13 @@ class TestDescriptors(TestCommand.TestCommand):
         query = {}
         query["ClassifyDescriptor"] = descriptor
 
-        for i in range(2, total//10, 4):
+        for i in range(2, total // 10, 4):
             all_queries = []
             descriptor_blob = []
 
             x = np.ones(dims)
-            x[2] = 2.34 + i*20 # Calculated to be of class1
-            x = x.astype('float32')
+            x[2] = 2.34 + i * 20  # Calculated to be of class1
+            x = x.astype("float32")
             descriptor_blob.append(x.tobytes())
 
             all_queries.append(query)
@@ -304,5 +297,6 @@ class TestDescriptors(TestCommand.TestCommand):
 
             # Check success
             self.assertEqual(response[0]["ClassifyDescriptor"]["status"], 0)
-            self.assertEqual(response[0]["ClassifyDescriptor"]
-                                      ["label"], "class" + str(int(i/4)))
+            self.assertEqual(
+                response[0]["ClassifyDescriptor"]["label"], "class" + str(int(i / 4))
+            )

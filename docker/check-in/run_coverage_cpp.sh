@@ -1,3 +1,5 @@
+#!/bin/bash -e
+
 cd /vdms/tests
 
 chmod +x run_tests.sh

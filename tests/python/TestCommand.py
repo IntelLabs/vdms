@@ -30,7 +30,6 @@ import vdms
 
 
 class TestCommand(unittest.TestCase):
-
     def __init__(self, *args, **kwargs):
         super(TestCommand, self).__init__(*args, **kwargs)
 
@@ -40,36 +39,37 @@ class TestCommand(unittest.TestCase):
 
         db_up = False
         attempts = 0
-        while(not db_up):
+        while not db_up:
             try:
                 db = vdms.vdms()
                 db.connect(self.hostname, self.port)
                 db.disconnect()
                 db_up = True
-                if (attempts > 0):
+                if attempts > 0:
                     print("Connection to VDMS successful.")
             except:
-                print("Attempt", attempts,
-                      "to connect to VDMS failed, retying...")
+                print("Attempt", attempts, "to connect to VDMS failed, retying...")
                 attempts += 1
-                time.sleep(1) # sleeps 1 second
+                time.sleep(1)  # sleeps 1 second
 
             if attempts > 10:
                 print("Failed to connect to VDMS after 10 attempts")
                 exit()
 
     def create_connection(self):
-
         db = vdms.vdms()
         db.connect(self.hostname, self.port)
 
         return db
 
-    def addEntity(self, class_name, properties=None,
-                  constraints=None,
-                  blob = False, # Generic blob
-                  check_status=True):
-
+    def addEntity(
+        self,
+        class_name,
+        properties=None,
+        constraints=None,
+        blob=False,  # Generic blob
+        check_status=True,
+    ):
         addEntity = {}
         addEntity["class"] = class_name
 
@@ -90,7 +90,7 @@ class TestCommand(unittest.TestCase):
             response, res_arr = db.query(all_queries)
         else:
             blob_arr = []
-            fd = open("../test_images/brain.png", 'rb')
+            fd = open("../test_images/brain.png", "rb")
             blob_arr.append(fd.read())
             fd.close()
 

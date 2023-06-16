@@ -2,58 +2,52 @@
 #include "CSVParserUtil.h"
 #include <mutex>
 
-namespace VDMS
-{
+namespace VDMS {
 
-    class EntityQueryParser : public CSVParserUtil
-    {
-    public:
-        VDMS::Response ParseAddEntity(vector<string> row, vector<string> &cols);
-        // VDMS::Response  ParseUpdateEntity(vector<string> row, vector<string> & cols);
-    };
+class EntityQueryParser : public CSVParserUtil {
+public:
+  VDMS::Response ParseAddEntity(vector<string> row, vector<string> &cols);
+  // VDMS::Response  ParseUpdateEntity(vector<string> row, vector<string> &
+  // cols);
 };
+}; // namespace VDMS
 
-VDMS::Response VDMS::EntityQueryParser::ParseAddEntity(vector<string> row, vector<string> &cols)
-{
-    Json::Value aquery;
-    Json::Value fullquery;
+VDMS::Response VDMS::EntityQueryParser::ParseAddEntity(vector<string> row,
+                                                       vector<string> &cols) {
+  Json::Value aquery;
+  Json::Value fullquery;
 
-    std::string command_name = "AddEntity";
-    if (row[0].empty())
-    {
-        throw "Entity Class not specified";
+  std::string command_name = "AddEntity";
+  if (row[0].empty()) {
+    throw "Entity Class not specified";
+  }
+  if (cols.size() == 0) {
+    throw std::invalid_argument("Error: Column names vector is empty.");
+  }
+  aquery[command_name]["class"] = row[0];
+  aquery[command_name]["_ref"] = 11;
+
+  for (int j = 1; j < cols.size(); j++) {
+
+    if (!row[j].empty()) {
+
+      string columnType = cols[j].substr(0, 5);
+      if (columnType == "prop_") {
+
+        parseProperty(cols[j], row[j], command_name, aquery);
+      } else if (columnType == "cons_") {
+
+        parseConstraints(cols[j], row[j], command_name, aquery);
+      }
     }
-    if (cols.size() == 0)
-    {
-        throw std::invalid_argument("Error: Column names vector is empty.");
-    }
-    aquery[command_name]["class"] = row[0];
-    aquery[command_name]["_ref"] = 11;
+  }
+  fullquery.append(aquery);
 
-    for (int j = 1; j < cols.size(); j++)
-    {
-
-        if (!row[j].empty())
-        {
-
-            string columnType = cols[j].substr(0, 5);
-            if (columnType == "prop_")
-            {
-
-                parseProperty(cols[j], row[j], command_name, aquery);
-            }
-            else if(columnType=="cons_"){
-
-                parseConstraints(cols[j],row[j],command_name,aquery);
-            }
-        }
-    }
-    fullquery.append(aquery);
-
-    return send_to_vdms(fullquery);
+  return send_to_vdms(fullquery);
 }
 
-// VDMS::Response VDMS::EntityQueryParser::ParseUpdateEntity(vector<string> row, vector<string> & cols){
+// VDMS::Response VDMS::EntityQueryParser::ParseUpdateEntity(vector<string> row,
+// vector<string> & cols){
 //     Json:: Value aquery;
 //     Json::Value all_query;
 //     Json::Value find_query;

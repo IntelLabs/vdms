@@ -1,82 +1,77 @@
 #include "meta_data_helper.h"
 
+TEST(CLIENT_CPP, add_image) {
 
+  std::string filename = "../tests/test_images/large1.jpg";
 
-TEST(CLIENT_CPP, add_image){
+  std::vector<std::string *> blobs;
 
+  Meta_Data *meta_obj = new Meta_Data();
+  blobs.push_back(meta_obj->read_blob(filename));
+  meta_obj->_aclient.reset(
+      new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
+  Json::Value tuple;
+  tuple = meta_obj->constuct_image();
 
+  VDMS::Response response =
+      meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple), blobs);
+  Json::Value result;
+  meta_obj->_reader.parse(response.json.c_str(), result);
 
-    std::string filename ="../tests/test_images/large1.jpg";
-
-    std::vector<std::string*> blobs;
-
-    Meta_Data* meta_obj=new Meta_Data();
-    blobs.push_back(meta_obj->read_blob(filename));
-     meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
-    Json::Value tuple ;
-    tuple=meta_obj->constuct_image();
-
-    VDMS::Response response =meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple), blobs);
-    Json::Value result;
-    meta_obj->_reader.parse(response.json.c_str(),  result);
-
-    int status1 = result[0]["AddImage"]["status"].asInt();
-    EXPECT_EQ(status1, 0);
+  int status1 = result[0]["AddImage"]["status"].asInt();
+  EXPECT_EQ(status1, 0);
 }
 
+TEST(CLIENT_CPP, add_image_resize_operation) {
 
+  std::string image;
 
-TEST(CLIENT_CPP, add_image_resize_operation){
-
-    std::string image;
-
-     std::fstream file("../tests/test_images/large1.jpg",
+  std::fstream file("../tests/test_images/large1.jpg",
                     std::ios::in | std::ios::binary | std::ios::ate);
 
-    image.resize(file.tellg());
+  image.resize(file.tellg());
 
-    file.seekg(0, std::ios::beg);
-    if( !file.read(&image[ 0 ], image.size()))
-        std::cout << "error" << std::endl;
+  file.seekg(0, std::ios::beg);
+  if (!file.read(&image[0], image.size()))
+    std::cout << "error" << std::endl;
 
-    std::vector<std::string*> blobs;
+  std::vector<std::string *> blobs;
 
+  std::string *bytes_str = new std::string(image);
 
-    std::string *bytes_str = new std::string(image);
+  blobs.push_back(bytes_str);
+  Json::Value op;
+  op["type"] = "resize";
+  op["width"] = 100;
+  op["height"] = 100;
+  Meta_Data *meta_obj = new Meta_Data();
+  meta_obj->_aclient.reset(
+      new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
+  Json::Value tuple;
+  tuple = meta_obj->constuct_image(true, op);
 
-    blobs.push_back(bytes_str);
-    Json::Value op;
-    op["type"]="resize";
-    op["width"]=100;
-    op["height"]=100;
-    Meta_Data* meta_obj=new Meta_Data();
-     meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
-    Json::Value tuple ;
-    tuple=meta_obj->constuct_image(true, op);
+  VDMS::Response response =
+      meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple), blobs);
+  Json::Value result;
+  meta_obj->_reader.parse(response.json.c_str(), result);
 
-
-    VDMS::Response response =meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple), blobs);
-    Json::Value result;
-    meta_obj->_reader.parse(response.json.c_str(),  result);
-
-
-    int status1 = result[0]["AddImage"]["status"].asInt();
-    EXPECT_EQ(status1, 0);
+  int status1 = result[0]["AddImage"]["status"].asInt();
+  EXPECT_EQ(status1, 0);
 }
 
-TEST(CLIENT_CPP, find_image){
+TEST(CLIENT_CPP, find_image) {
 
-    Meta_Data* meta_obj=new Meta_Data();
-     meta_obj->_aclient.reset ( new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
-    Json::Value tuple ;
-    tuple=meta_obj->construct_find_image();
+  Meta_Data *meta_obj = new Meta_Data();
+  meta_obj->_aclient.reset(
+      new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
+  Json::Value tuple;
+  tuple = meta_obj->construct_find_image();
 
+  VDMS::Response response =
+      meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple));
+  Json::Value result;
+  meta_obj->_reader.parse(response.json.c_str(), result);
 
-    VDMS::Response response =meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple));
-    Json::Value result;
-    meta_obj->_reader.parse(response.json.c_str(),  result);
-
-
-    int status1 = result[0]["FindImage"]["status"].asInt();
-    EXPECT_EQ(status1, 0);
+  int status1 = result[0]["FindImage"]["status"].asInt();
+  EXPECT_EQ(status1, 0);
 }

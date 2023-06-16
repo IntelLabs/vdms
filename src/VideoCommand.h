@@ -30,117 +30,98 @@
  */
 
 #pragma once
-#include <string>
-#include <mutex>
-#include <vector>
 #include "vcl/Video.h"
+#include <mutex>
+#include <string>
+#include <vector>
 
-#include "RSCommand.h"
 #include "ExceptionsCommand.h"
+#include "RSCommand.h"
 
 namespace VDMS {
 
 // Helper classes for handling various JSON commands.
 
-    class VideoCommand: public RSCommand
-    {
-    protected:
-        void enqueue_operations(VCL::Video& video, const Json::Value& op);
+class VideoCommand : public RSCommand {
+protected:
+  void enqueue_operations(VCL::Video &video, const Json::Value &op);
 
-        VCL::Video::Codec string_to_codec(const std::string& codec);
+  VCL::Video::Codec string_to_codec(const std::string &codec);
 
-        virtual Json::Value check_responses(Json::Value& responses);
+  virtual Json::Value check_responses(Json::Value &responses);
 
-    public:
+public:
+  VideoCommand(const std::string &cmd_name);
 
-        VideoCommand(const std::string &cmd_name);
+  virtual int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                                 const std::string &blob, int grp_id,
+                                 Json::Value &error) = 0;
 
-        virtual int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error) = 0;
+  virtual bool need_blob(const Json::Value &cmd) { return false; }
+};
 
-        virtual bool need_blob(const Json::Value& cmd) { return false; }
-    };
+class AddVideo : public VideoCommand {
+  const std::string DEFAULT_VIDEO_PATH = "videos/database";
 
-    class AddVideo: public VideoCommand
-    {
-        const std::string DEFAULT_VIDEO_PATH = "videos/database";
+  std::string _storage_video;
 
-        std::string _storage_video;
+public:
+  AddVideo();
 
-    public:
-        AddVideo();
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
 
-        int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error);
+  Json::Value construct_responses(Json::Value &json_responses,
+                                  const Json::Value &json,
+                                  protobufs::queryMessage &response,
+                                  const std::string &blob);
 
-        Json::Value construct_responses(
-                Json::Value &json_responses,
-                const Json::Value &json,
-                protobufs::queryMessage &response,
-                const std::string &blob);
+  bool need_blob(const Json::Value &cmd);
+};
 
-        bool need_blob(const Json::Value& cmd);
-    };
+class UpdateVideo : public VideoCommand {
+public:
+  UpdateVideo();
 
-    class UpdateVideo: public VideoCommand
-    {
-    public:
-        UpdateVideo();
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
 
-        int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error);
+  Json::Value construct_responses(Json::Value &json_responses,
+                                  const Json::Value &json,
+                                  protobufs::queryMessage &response,
+                                  const std::string &blob);
+};
 
-        Json::Value construct_responses(
-                Json::Value &json_responses,
-                const Json::Value &json,
-                protobufs::queryMessage &response,
-                const std::string &blob);
-    };
+class FindVideo : public VideoCommand {
+public:
+  FindVideo();
 
-    class FindVideo: public VideoCommand
-    {
-    public:
-        FindVideo();
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
 
-        int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error);
+  Json::Value construct_responses(Json::Value &json_responses,
+                                  const Json::Value &json,
+                                  protobufs::queryMessage &response,
+                                  const std::string &blob);
+};
 
-        Json::Value construct_responses(
-                Json::Value &json_responses,
-                const Json::Value &json,
-                protobufs::queryMessage &response,
-                const std::string &blob);
-    };
+class FindFrames : public VideoCommand {
+  bool get_interval_index(const Json::Value &cmd, Json::ArrayIndex &op_index);
 
-    class FindFrames: public VideoCommand
-    {
-        bool get_interval_index (const Json::Value& cmd, Json::ArrayIndex& op_index);
-    public:
-        FindFrames();
+public:
+  FindFrames();
 
-        int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error) override;
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error) override;
 
-        Json::Value construct_responses(
-                Json::Value &json_responses,
-                const Json::Value &json,
-                protobufs::queryMessage &response,
-                const std::string &blob) override;
-    };
+  Json::Value construct_responses(Json::Value &json_responses,
+                                  const Json::Value &json,
+                                  protobufs::queryMessage &response,
+                                  const std::string &blob) override;
+};
 
 }; // namespace VDMS

@@ -34,136 +34,131 @@
 
 #pragma once
 
+#include <fstream>
+#include <map>
 #include <stdlib.h>
 #include <string>
 #include <vector>
-#include <fstream>
-#include <map>
 
 #include <tiledb/tiledb>
 
-#include "vcl/Exception.h"
 #include "DescriptorSetData.h"
 #include "TDBObject.h"
+#include "vcl/Exception.h"
 
 namespace VCL {
 
-    typedef std::vector<float> DescBuffer;
-    typedef std::vector<float> DistanceData;
+typedef std::vector<float> DescBuffer;
+typedef std::vector<float> DistanceData;
 
-    class TDBDescriptorSet: public DescriptorSet::DescriptorSetData,
-                               public TDBObject {
+class TDBDescriptorSet : public DescriptorSet::DescriptorSetData,
+                         public TDBObject {
 
-    protected:
-        const unsigned long MAX_DESC = 100000;
-        const unsigned long METADATA_OFFSET = MAX_DESC - 2;
+protected:
+  const unsigned long MAX_DESC = 100000;
+  const unsigned long METADATA_OFFSET = MAX_DESC - 2;
 
-        // this is caching data
-        std::vector<long> _label_ids; // we need to move this
+  // this is caching data
+  std::vector<long> _label_ids; // we need to move this
 
-        void compute_distances(float* q, DistanceData& d, DescBuffer& data);
+  void compute_distances(float *q, DistanceData &d, DescBuffer &data);
 
-        virtual void read_descriptor_metadata()  = 0;
-        virtual void write_descriptor_metadata() = 0;
+  virtual void read_descriptor_metadata() = 0;
+  virtual void write_descriptor_metadata() = 0;
 
-    public:
+public:
+  /**
+   *  Loads an existing collection located at collection_path
+   *  or created a new collection if it does not exist
+   *
+   *  @param collection_path  Full Path to the collection folder
+   */
+  TDBDescriptorSet(const std::string &collection_path);
 
-        /**
-         *  Loads an existing collection located at collection_path
-         *  or created a new collection if it does not exist
-         *
-         *  @param collection_path  Full Path to the collection folder
-         */
-        TDBDescriptorSet(const std::string &collection_path);
+  TDBDescriptorSet(const std::string &collection_path, unsigned dim);
 
-        TDBDescriptorSet(const std::string &collection_path, unsigned dim);
+  ~TDBDescriptorSet();
 
-        ~TDBDescriptorSet();
+  virtual long add(float *descriptors, unsigned n_descriptors,
+                   long *classes) = 0;
 
-        virtual long add(float* descriptors, unsigned n_descriptors, long* classes) = 0;
+  virtual void train();
 
-        virtual void train();
+  virtual void train(float *descriptors, unsigned n) { train(); }
 
-        virtual void train(float* descriptors, unsigned n) { train(); }
+  bool is_trained() { return true; }
 
-        bool is_trained() { return true; }
+  virtual void search(float *query, unsigned n_queries, unsigned k,
+                      long *descriptors, float *distances) = 0;
 
-        virtual void search(float* query, unsigned n_queries, unsigned k,
-                            long* descriptors, float* distances) = 0;
+  virtual void classify(float *descriptors, unsigned n, long *labels,
+                        unsigned quorum);
 
-        virtual void classify(float* descriptors, unsigned n, long* labels,
-                              unsigned quorum);
+  virtual void get_descriptors(long *ids, unsigned n, float *descriptors);
 
-        virtual void get_descriptors(long* ids, unsigned n,
-                                     float* descriptors);
+  virtual void get_labels(long *ids, unsigned n, long *labels);
 
-        virtual void get_labels(long* ids, unsigned n, long* labels);
-
-        void store();
-        void store(std::string set_path);
-    };
-
-    class TDBDenseDescriptorSet : public TDBDescriptorSet {
-
-    private:
-
-        // This is for caching, accelerates searches fairly well.
-        bool _flag_buffer_updated;
-        std::vector<float> _buffer;
-
-        void load_buffer();
-        void read_descriptor_metadata();
-        void write_descriptor_metadata();
-
-    public:
-        TDBDenseDescriptorSet(const std::string &collection_path);
-
-        TDBDenseDescriptorSet(const std::string &collection_path,
-                                 unsigned dim, DistanceMetric metric);
-
-        ~TDBDenseDescriptorSet() {};
-
-        long add(float* descriptors, unsigned n_descriptors, long* classes);
-
-        void search(float* query, unsigned n_queries, unsigned k,
-                    long* descriptors, float* distances);
-
-        void get_descriptors(long* ids, unsigned n, float* descriptors);
-    };
-
-    class TDBSparseDescriptorSet : public TDBDescriptorSet {
-
-    private:
-
-        void read_descriptor_metadata();
-        void write_descriptor_metadata();
-
-        void load_neighbors(float* query, unsigned k,
-                            std::vector<float>& descriptors,
-                            std::vector<long>& desc_ids,
-                            std::vector<long>& desc_labels);
-
-        void search(float* query, unsigned n_queries, unsigned k,
-                    long* descriptors, float* distances, long* labels);
-
-    public:
-        TDBSparseDescriptorSet(const std::string &collection_path);
-
-        TDBSparseDescriptorSet(const std::string &collection_path,
-                                  unsigned dim, DistanceMetric metric);
-
-        ~TDBSparseDescriptorSet() {};
-
-        long add(float* descriptors, unsigned n_descriptors, long* classes);
-
-        void search(float* query, unsigned n_queries, unsigned k,
-                    long* descriptors, float* distances);
-
-        void classify(float* descriptors, unsigned n, long* labels,
-                      unsigned quorum);
-
-        void get_descriptors(long* ids, unsigned n, float* descriptors);
-
-        void get_labels(long* ids, unsigned n, long* labels);
-    };
+  void store();
+  void store(std::string set_path);
 };
+
+class TDBDenseDescriptorSet : public TDBDescriptorSet {
+
+private:
+  // This is for caching, accelerates searches fairly well.
+  bool _flag_buffer_updated;
+  std::vector<float> _buffer;
+
+  void load_buffer();
+  void read_descriptor_metadata();
+  void write_descriptor_metadata();
+
+public:
+  TDBDenseDescriptorSet(const std::string &collection_path);
+
+  TDBDenseDescriptorSet(const std::string &collection_path, unsigned dim,
+                        DistanceMetric metric);
+
+  ~TDBDenseDescriptorSet(){};
+
+  long add(float *descriptors, unsigned n_descriptors, long *classes);
+
+  void search(float *query, unsigned n_queries, unsigned k, long *descriptors,
+              float *distances);
+
+  void get_descriptors(long *ids, unsigned n, float *descriptors);
+};
+
+class TDBSparseDescriptorSet : public TDBDescriptorSet {
+
+private:
+  void read_descriptor_metadata();
+  void write_descriptor_metadata();
+
+  void load_neighbors(float *query, unsigned k, std::vector<float> &descriptors,
+                      std::vector<long> &desc_ids,
+                      std::vector<long> &desc_labels);
+
+  void search(float *query, unsigned n_queries, unsigned k, long *descriptors,
+              float *distances, long *labels);
+
+public:
+  TDBSparseDescriptorSet(const std::string &collection_path);
+
+  TDBSparseDescriptorSet(const std::string &collection_path, unsigned dim,
+                         DistanceMetric metric);
+
+  ~TDBSparseDescriptorSet(){};
+
+  long add(float *descriptors, unsigned n_descriptors, long *classes);
+
+  void search(float *query, unsigned n_queries, unsigned k, long *descriptors,
+              float *distances);
+
+  void classify(float *descriptors, unsigned n, long *labels, unsigned quorum);
+
+  void get_descriptors(long *ids, unsigned n, float *descriptors);
+
+  void get_labels(long *ids, unsigned n, long *labels);
+};
+}; // namespace VCL

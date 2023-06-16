@@ -33,53 +33,48 @@
 
 #include <csignal>
 
-#include "pmgd.h"
 #include "CommunicationManager.h"
+#include "pmgd.h"
 #include <chrono>
 
-
 namespace VDMS {
-    class Server
-    {
-        static const int DEFAULT_PORT = 55555;
-        static const int DEFAULT_AUTODELETE_INTERVAL = -1;
-        static const int DEFAULT_AUTOREPLICATE_INTERVAL = -1;
-        std::string DEFAULT_AUTOREPLICATE_UNIT ="s" ;
-        std::string DEFAULT_BACKUP_PATH =".";
-        std::string DEFAULT_DB_ROOT ="db";
-        std::string DEFAULT_AUTOREPLICATE_FLAG="false";
-        
+class Server {
+  static const int DEFAULT_PORT = 55555;
+  static const int DEFAULT_AUTODELETE_INTERVAL = -1;
+  static const int DEFAULT_AUTOREPLICATE_INTERVAL = -1;
+  std::string DEFAULT_AUTOREPLICATE_UNIT = "s";
+  std::string DEFAULT_BACKUP_PATH = ".";
+  std::string DEFAULT_DB_ROOT = "db";
+  std::string DEFAULT_AUTOREPLICATE_FLAG = "false";
 
+  CommunicationManager *_cm;
 
-        CommunicationManager *_cm;
+  // TODO: Partitioner here
 
-        // TODO: Partitioner here
+  int _server_port;
+  int _autodelete_interval;
+  int _autoreplecate_interval;
+  std::string _replication_unit;
+  std::string _backup_path;
+  std::string _db_path;
+  std::string _backup_flag;
 
-        int _server_port;
-        int _autodelete_interval;
-        int _autoreplecate_interval;
-        std::string _replication_unit;
-        std::string _backup_path;
-        std::string _db_path;
-        std::string _backup_flag;
-    
-        bool _untar;
+  bool _untar;
 
+  // Handle ^c
+  static bool shutdown;
+  void install_handler();
+  static void sighandler(int signo) {
+    Server::shutdown =
+        (signo == SIGINT) || (signo == SIGTERM) || (signo == SIGQUIT);
+  }
 
-        // Handle ^c
-        static bool shutdown;
-        void install_handler();
-        static void sighandler(int signo)
-            { Server::shutdown = (signo == SIGINT) ||
-                                 (signo == SIGTERM)||
-                                 (signo == SIGQUIT); }
-
-    public:
-        Server(std::string config_file);
-        void process_requests();
-        void autodelete_expired_data();
-        void auto_replicate_data();
-        void untar_data(std::string&);
-        ~Server();
-    };
+public:
+  Server(std::string config_file);
+  void process_requests();
+  void autodelete_expired_data();
+  void auto_replicate_data();
+  void untar_data(std::string &);
+  ~Server();
 };
+}; // namespace VDMS

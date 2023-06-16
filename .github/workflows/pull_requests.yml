@@ -1,4 +1,4 @@
-name: Compare Coverage
+name: Checkin Workflow
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master and develop branch
@@ -9,10 +9,6 @@ on:
       - develop
       - master
 
-# Environment variables
-env:
-  GITHUB_PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
-
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   coverage_job:
@@ -20,40 +16,33 @@ jobs:
     runs-on:
       group: intellabs-vdms-runners
       labels: vdms-check-in
-
     strategy:
       fail-fast: true
       matrix:
         include:
           - coverage_type: Source
-            container_name: coverage_source_${GITHUB_PULL_REQUEST_NUMBER}
-            # container_output: coverage_cpp_source_output
+            container_name: coverage_source_${{ github.event.pull_request.number }}
             container_tag: "vdms:source_coverage"
             output_cpp_name: source_coverage_cpp
             output_py_name: source_coverage_py
-            # report_name: source_coverage_report
-            branch_ref: ${{ github.event.pull_request.head.sha }}
+            branch_ref: ${{ github.event.pull_request.head.ref }}
+            # branch_ref: ${{ github.event.pull_request.head.sha }}
           - coverage_type: Target
-            container_name: coverage_cpp_target_${GITHUB_PULL_REQUEST_NUMBER}
-            # container_output: coverage_cpp_target_output
+            container_name: coverage_cpp_target_${{ github.event.pull_request.number }}
             container_tag: "vdms:target_coverage"
-            # output_name: target_coverage
             output_cpp_name: target_coverage_cpp
             output_py_name: target_coverage_py
-            # report_name: target_coverage_report
             branch_ref: ${{ github.event.pull_request.base.ref }}
-
     outputs:
       source_coverage_cpp: ${{ steps.report_coverage.outputs.source_coverage_cpp}}
       source_coverage_py: ${{ steps.report_coverage.outputs.source_coverage_py}}
+      modify_source: ${{ steps.git_check.outputs.modify_source}}
       target_coverage_cpp: ${{ steps.report_coverage.outputs.target_coverage_cpp}}
       target_coverage_py: ${{ steps.report_coverage.outputs.target_coverage_py}}
-
     # Cancels previous workflows for same PR
     concurrency:
         group: ${{ matrix.coverage_type }}-${{ github.event.pull_request.number }}
         cancel-in-progress: true
-
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -62,6 +51,19 @@ jobs:
         with:
           submodules: true
           ref: ${{ matrix.branch_ref }}
+
+      - name: Format C++ Code (clang-format)
+        if: ${{ matrix.coverage_type }} == "Source"
+        run: find "${PWD}" -type f -not -path "${PWD}/src/pmgd/*" -not -path "${PWD}/build/*" -not -path "${PWD}/src/vcl/DescriptorSet.cc" -regex '.*\.\(cc\|cpp\|h\|hpp\)' | xargs clang-format -i || true
+
+      - name: Format Python Code (black code)
+        if: ${{ matrix.coverage_type }} == "Source"
+        uses: DataDog/action-py-black-formatter@v2.5
+
+      - name: Check for modified files
+        if: ${{ matrix.coverage_type }} == "Source"
+        id: git_check
+        run: echo "modify_source=$(if git diff-index --quiet HEAD --; then echo "false"; else echo "true"; fi)" >> $GITHUB_OUTPUT
 
       - name: Build and Run Docker Container
         run: |
@@ -91,6 +93,7 @@ jobs:
           docker cp ${{ matrix.container_name }}:/vdms/tests/coverage_report/py_coverage_report.xml coverage/py_coverage_report_target.xml || true
 
           echo "coverage_value_py=$(cat coverage/py_coverage_report_target.xml | grep "coverage version" | grep -oP 'line-rate="([-+]?\d*\.\d+|\d+)"' | grep -oP "[-+]?\d*\.\d+|\d+"| awk '{print $1*100}')" >> $GITHUB_ENV
+
       - name: Report ${{ matrix.coverage_type }} Coverage
         id: report_coverage
         run: |
@@ -111,6 +114,7 @@ jobs:
           fi
           echo "${{ matrix.coverage_type }} Python Coverage: ${coverage_value_py}"
           echo "${{ matrix.output_py_name }}=${coverage_value_py}" >> $GITHUB_OUTPUT
+
       - name: Cleanup
         if: always()
         run: |
@@ -137,6 +141,7 @@ jobs:
               repo: context.repo.repo,
               body: 'Target CPP Coverage: ${{ needs.coverage_job.outputs.target_coverage_cpp }}%\nSource CPP Coverage: ${{ needs.coverage_job.outputs.source_coverage_cpp }}%\n\n\nTarget Python Coverage: ${{ needs.coverage_job.outputs.target_coverage_py }}%\nSource Python Coverage: ${{ needs.coverage_job.outputs.source_coverage_py }}%'
             })
+
       - name: Compare Coverage
         run: |
           echo "Source CPP Coverage: ${{needs.coverage_job.outputs.source_coverage_cpp}}"
@@ -160,3 +165,44 @@ jobs:
           else
             echo "Python coverage threshold met!"
           fi
+
+  commit_format:
+    name: Commit Format
+    runs-on:
+      group: intellabs-vdms-runners
+      labels: vdms-check-in
+    needs: coverage_job
+    steps:
+      # Checkout code doesn't persist across jobs
+      # If formatting needed, checkout and format again
+      - name: Checkout Source Branch
+        uses: actions/checkout@v3
+        if: needs.coverage_job.outputs.modify_source == 'true'
+        with:
+          submodules: true
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - if: needs.coverage_job.outputs.modify_source == 'true'
+        run: find "${PWD}" -type f -not -path "${PWD}/src/pmgd/*" -not -path "${PWD}/build/*" -not -path "${PWD}/src/vcl/DescriptorSet.cc" -regex '.*\.\(cc\|cpp\|h\|hpp\)' | xargs clang-format -i || true
+
+      - if: needs.coverage_job.outputs.modify_source == 'true'
+        uses: DataDog/action-py-black-formatter@v2.5
+
+      # Update Code and Push (Should be last steps of workflow since it changes commit)
+      - name: Commit Lint Changes
+        id: format_commit
+        continue-on-error: true
+        if: needs.coverage_job.outputs.modify_source == 'true'
+        run: |
+          git config --global user.name ${{ secrets.FACELESS_NAME }}
+          git config --global user.email ${{ secrets.FACELESS_NAME }}@intel.com
+          git remote set-url origin https://x-access-token:${{ secrets.FACELESS_TOKEN }}@github.com/${{ github.repository }}
+          git commit -am "Automated format changes"
+          git push
+
+      - name: Check Push Failure
+        if: steps.format_commit.outcome != 'success' && needs.coverage_job.outputs.modify_source == 'true'
+        run: |
+          echo "Please provide sys-vdms write access to fork (if applicable)."
+          exit 1
+

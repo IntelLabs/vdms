@@ -26,10 +26,9 @@
 
 import TestCommand
 
+
 class TestEntitiesBlob(TestCommand.TestCommand):
-
     def test_addEntityWithBlob(self, thID=0):
-
         db = self.create_connection()
 
         props = {}
@@ -50,7 +49,7 @@ class TestEntitiesBlob(TestCommand.TestCommand):
         all_queries.append(query)
 
         blob_arr = []
-        fd = open("../test_images/brain.png", 'rb')
+        fd = open("../test_images/brain.png", "rb")
         blob_arr.append(fd.read())
         fd.close()
 
@@ -59,7 +58,6 @@ class TestEntitiesBlob(TestCommand.TestCommand):
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
 
     def test_addEntityWithBlobNoBlob(self, thID=0):
-
         db = self.create_connection()
 
         props = {}
@@ -82,11 +80,9 @@ class TestEntitiesBlob(TestCommand.TestCommand):
         response, res_arr = db.query(all_queries)
 
         self.assertEqual(response[0]["status"], -1)
-        self.assertEqual(response[0]["info"],
-                         "Expected blobs: 1. Received blobs: 0")
+        self.assertEqual(response[0]["info"], "Expected blobs: 1. Received blobs: 0")
 
     def test_addEntityWithBlobAndFind(self, thID=0):
-
         db = self.create_connection()
 
         props = {}
@@ -107,7 +103,7 @@ class TestEntitiesBlob(TestCommand.TestCommand):
         all_queries.append(query)
 
         blob_arr = []
-        fd = open("../test_images/brain.png", 'rb')
+        fd = open("../test_images/brain.png", "rb")
         blob_arr.append(fd.read())
         fd.close()
 
@@ -140,4 +136,3 @@ class TestEntitiesBlob(TestCommand.TestCommand):
         self.assertEqual(len(res_arr), len(blob_arr))
         self.assertEqual(len(res_arr[0]), len(blob_arr[0]))
         self.assertEqual((res_arr[0]), (blob_arr[0]))
-

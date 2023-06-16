@@ -34,5 +34,5 @@ import unittest
 import numpy as np
 import vdms
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

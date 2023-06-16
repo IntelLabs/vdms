@@ -31,8 +31,8 @@
 
 #pragma once
 
-#include <vector>
 #include "pmgd.h"
+#include <vector>
 
 /// Search expression to query a PMGD Lake database
 ///
@@ -46,55 +46,56 @@
 /// Calling Eval() returns a node iterator.
 namespace VDMS {
 
-    class SearchExpression
-    {
-        PMGD::StringID _tag;
+class SearchExpression {
+  PMGD::StringID _tag;
 
-        /// Opaque definition of a node iterator
-        class NodeAndIteratorImpl;
-        class NodeOrIteratorImpl;
+  /// Opaque definition of a node iterator
+  class NodeAndIteratorImpl;
+  class NodeOrIteratorImpl;
 
-        /// Opaque definition of an edge iterator
-        class EdgeAndIteratorImpl;
+  /// Opaque definition of an edge iterator
+  class EdgeAndIteratorImpl;
 
-        bool _or;
+  bool _or;
 
-        /// The conjunctions of property predicates
-        std::vector<PMGD::PropertyPredicate> _node_predicates;
+  /// The conjunctions of property predicates
+  std::vector<PMGD::PropertyPredicate> _node_predicates;
 
-        /// The conjunctions of property predicates for edges
-        std::vector<PMGD::PropertyPredicate> _edge_predicates;
+  /// The conjunctions of property predicates for edges
+  std::vector<PMGD::PropertyPredicate> _edge_predicates;
 
-        /// A pointer to the database
-        PMGD::Graph &_db;
+  /// A pointer to the database
+  PMGD::Graph &_db;
 
-    public:
-        /// Construction requires a handle to a database
-        SearchExpression(PMGD::Graph &db, PMGD::StringID tag, bool p_or) :
-            _db(db), _tag(tag), _or(p_or) {}
+public:
+  /// Construction requires a handle to a database
+  SearchExpression(PMGD::Graph &db, PMGD::StringID tag, bool p_or)
+      : _db(db), _tag(tag), _or(p_or) {}
 
-        PMGD::Graph &db() const { return _db; }
-        const PMGD::StringID tag() const { return _tag; };
+  PMGD::Graph &db() const { return _db; }
+  const PMGD::StringID tag() const { return _tag; };
 
-        void add_node_predicate(PMGD::PropertyPredicate pp) {
-                _node_predicates.push_back(pp); }
-        const PMGD::PropertyPredicate &get_node_predicate(int i) const {
-                return _node_predicates.at(i); }
-        const size_t num_node_predicates() const {
-                return _node_predicates.size(); }
+  void add_node_predicate(PMGD::PropertyPredicate pp) {
+    _node_predicates.push_back(pp);
+  }
+  const PMGD::PropertyPredicate &get_node_predicate(int i) const {
+    return _node_predicates.at(i);
+  }
+  const size_t num_node_predicates() const { return _node_predicates.size(); }
 
-        void add_edge_predicate(PMGD::PropertyPredicate pp) {
-                _edge_predicates.push_back(pp); }
-        const std::vector<PMGD::PropertyPredicate>& get_edge_predicates() const {
-                return _edge_predicates; }
+  void add_edge_predicate(PMGD::PropertyPredicate pp) {
+    _edge_predicates.push_back(pp);
+  }
+  const std::vector<PMGD::PropertyPredicate> &get_edge_predicates() const {
+    return _edge_predicates;
+  }
 
-        PMGD::NodeIterator eval_nodes();
-        PMGD::NodeIterator eval_nodes(const PMGD::Node &node,
-                                      PMGD::Direction dir = PMGD::Any,
-                                      PMGD::StringID edgetag = 0,
-                                      bool unique = true);
+  PMGD::NodeIterator eval_nodes();
+  PMGD::NodeIterator eval_nodes(const PMGD::Node &node,
+                                PMGD::Direction dir = PMGD::Any,
+                                PMGD::StringID edgetag = 0, bool unique = true);
 
-        PMGD::EdgeIterator eval_edges();
-    };
+  PMGD::EdgeIterator eval_edges();
+};
 
-}; // end VDMS namespace
+}; // namespace VDMS
