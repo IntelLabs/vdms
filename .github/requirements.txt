@@ -1,0 +1,16 @@
+certifi==2019.11.28
+chardet==3.0.4
+coverage==7.2.3
+Cython==0.29.34
+dbus-python==1.2.16
+grpcio==1.40.0
+grpcio-tools==1.40.0
+idna==2.8
+numpy==1.24.2
+protobuf==3.20.3
+PyGObject==3.36.0
+python-apt==2.0.1+ubuntu0.20.4.1
+requests==2.22.0
+requests-unixsocket==0.2.0
+six==1.14.0
+urllib3==1.25.8

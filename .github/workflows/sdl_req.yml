@@ -15,11 +15,15 @@ on:
     branches:
       - develop
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 # Environment variables
 env:
   ARTIFACT_DIR: SDL_artifacts
   DOCKER_ARTIFACT_DIR: Docker_artifacts
-  NEW_BASE_DOCKERFILE: docker/check-in/Dockerfile.base
+  CHECKIN_DOCKERFILE: docker/check-in/Dockerfile.base
   SNYK_TOKEN: ${{ secrets.SNYK_TOKEN}}
   SNYK_API: ${{ secrets.SNYK_API}}
   # CHECKOUT_REF: ${{ github.event.pull_request.head.sha }}
@@ -31,8 +35,10 @@ env:
 
 jobs:
   # RUN HADOLINT & BANDIT; NO DOCKER BUILD NEEDED
+  # Check format of Dockerfile we will release (docker/base/Dockerfile)
   Hadolint:
     name: Haskell Dockerfile Linter
+    needs: delete
     runs-on:
       group: intellabs-vdms-runners
       labels: vdms-check-in
@@ -40,18 +46,13 @@ jobs:
       - name: Checkout Branch
         uses: actions/checkout@v3
         # with:
-          # ref: ${{ env.CHECKOUT_REF }}
+        #   ref: ${{ env.CHECKOUT_REF }}
       - run: mkdir -p ${{ env.ARTIFACT_DIR }}
-      # - name: Run Hadolint Docker Container (unstable)
-      #   uses: intel-innersource/frameworks.devops.github.actions.hadolint@main
-      #   with:
-      #     dockerfile: ${{ env.NEW_BASE_DOCKERFILE}}
-      #     report_path: ${{ env.ARTIFACT_DIR }}
       - name: Run Hadolint Docker Container
         id: get_hadolint
         run: |
           set -x
-          docker run --rm --env HADOLINT_FORMAT=gnu -i hadolint/hadolint:latest < ${{ env.NEW_BASE_DOCKERFILE}} 2>&1 | tee ${{ env.ARTIFACT_DIR }}/CT222_hadolint_output.txt
+          docker run --rm --env HADOLINT_FORMAT=gnu -i hadolint/hadolint:latest < docker/base/Dockerfile 2>&1 | tee ${{ env.ARTIFACT_DIR }}/CT222_hadolint_output.txt
           output=$(cat ${{ env.ARTIFACT_DIR }}/CT222_hadolint_output.txt | grep hadolint | awk '{print $2}' | sort -u)
 
           echo "hadolint_output<<EOF" >> $GITHUB_ENV
@@ -76,21 +77,19 @@ jobs:
 
   Bandit:
     name: Run Bandit
+    needs: delete
     runs-on:
       group: intellabs-vdms-runners
       labels: vdms-check-in
-    # runs-on: gasp (unstable)
-    container:
-      image: python:3.8-slim
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v1
         # with:
-          # ref: ${{ env.CHECKOUT_REF }}
+        #   ref: ${{ env.CHECKOUT_REF }}
       - name: Run Bandit
         id: bandit
         run: |
-          pip install bandit
+          python3 -m pip install --user bandit
           mkdir -p ${{ env.ARTIFACT_DIR }}
           bandit ./ -r -c .github/workflows/ipas_default.config -f csv -o ${{ env.ARTIFACT_DIR }}/bandit_report.csv
       - name: Upload Bandit Artifacts
@@ -106,9 +105,34 @@ jobs:
           rm -rf /tmp/tmp-* ${GITHUB_WORKSPACE}/*  || true
 
   # BUILD LATEST CODE AS DOCKER IMAGE; USED WITH SNYK, CIS, & BDBA JOBS
+  delete:
+      name: Remove old artifacts
+      runs-on:
+        group: intellabs-vdms-runners
+        labels: vdms-check-in
+      steps:
+      - uses: actions/github-script@v6
+        id: artifact
+        with:
+          # Delete all artifacts
+          script: |
+            const res = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            })
+
+            res.data.artifacts
+              .forEach(({ id }) => {
+                github.rest.actions.deleteArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: id,
+                })
+              })
   BuildLatest:
     # This job builds docker container for later use
     name: Build Latest Docker
+    needs: delete
     runs-on:
       group: intellabs-vdms-runners
       labels: vdms-check-in
@@ -121,7 +145,7 @@ jobs:
       - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }}
       - name: Build Docker Container
         run: |
-          docker build --rm -f ${{ env.NEW_BASE_DOCKERFILE}} -t vdms:latest .
+          docker build --rm -f ${{ env.CHECKIN_DOCKERFILE}} -t vdms:latest .
           docker save -o ${{ env.DOCKER_ARTIFACT_DIR }}/vdms_latest.tar vdms:latest
       - name: Upload Docker Image Artifact
         if: success()
@@ -138,10 +162,10 @@ jobs:
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
 
   BDBA:
+    # CT7
     runs-on:
       group: intellabs-vdms-runners
       labels: vdms-check-in
-    # runs-on: gasp (unstable)
     name: BDBA
     needs: BuildLatest
     # container:
@@ -163,10 +187,6 @@ jobs:
         run: |
           apt-get update && apt-get install -y curl
           curl -k -H "Authorization: Bearer $BDBA_TOKEN" -H "Group: $bdba_group" -H "Replace: $bdba_product_id" -T ${{ env.DOCKER_ARTIFACT_DIR }}/vdms_latest.tar "https://bdba001.icloud.intel.com/api/upload/"
-        # uses: intel-innersource/frameworks.actions.bdba@main (causes dir issues)
-        # with:
-        #   bdba_group: '90'  # Change this to your group
-        #   bdba_binary: '${{ env.DOCKER_ARTIFACT_DIR }}/vdms_latest.tar'
       - name: BDBA Failure Check
         if: failure()
         run: echo "Check BDBA Server(https://bdba001.icloud.intel.com/) for binary vdms_latest.tar"
@@ -174,22 +194,13 @@ jobs:
           rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
           rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/* || true
 
-  Snyk:
-    # This job runs Snyk for Vulnerabilities and extract list of dependencies
-    name: Snyk Scan for Vulnerabilities
+  Trivy:
+    # This job runs Trivy for Vulnerabilities (Replaces Snyk) for CT247, CT248 and SBOM for CT37
+    name: Trivy Scan for Vulnerabilities
     needs: BuildLatest
     runs-on:
       group: intellabs-vdms-runners
       labels: vdms-check-in
-    container:
-      image: snyk/snyk:docker
-      env:
-        SNYK_TOKEN: ${{ env.SNYK_TOKEN}}
-        SNYK_API: ${{ env.SNYK_API}}
-        SNYK_DISABLE_ANALYTICS: 1
-        PROJ_NAME: EVS_vdms
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v3
@@ -204,72 +215,50 @@ jobs:
           path: ${{ env.DOCKER_ARTIFACT_DIR }}
       - name: Load Docker Image
         run: docker load -i ${{ env.DOCKER_ARTIFACT_DIR }}/vdms_latest.tar
-      - name: Snyk Docker Image Scan (Test & Monitor)
-        continue-on-error: true
+      - name: Run Trivy vulnerability scanner
         run: |
-          (NO_PROXY="" HTTP_PROXY="" HTTPS_PROXY="" no_proxy="" http_proxy="" https_proxy="" snyk container test -d vdms:latest --file=${{ env.NEW_BASE_DOCKERFILE}} \
-            --exclude-base-image-vulns --project-name="$PROJ_NAME" || true) > ${{ env.ARTIFACT_DIR }}/CT36_docker_snyk_scan.log
+          # Exporting Fixable Results as CSV (For SDL)
+          docker run $DOCKER_PROXY_RUN_ARGS \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v $HOME/.cache:/root/.cache \
+            -v ${{ env.ARTIFACT_DIR }}:/logs \
+            -v $PWD:/local_repo aquasec/trivy:latest image \
+            --list-all-pkgs --ignore-unfixed --format template \
+            --template @/local_repo/.github/workflows/trivy_csv.tmpl \
+            --output /logs/trivy-report-imagescan_CT247_CT248.csv \
+            vdms:latest
 
-          NO_PROXY="" HTTP_PROXY="" HTTPS_PROXY="" no_proxy="" http_proxy="" https_proxy="" snyk container monitor -d vdms:latest --file=${{ env.NEW_BASE_DOCKERFILE}} \
-            --exclude-base-image-vulns --project-name="$PROJ_NAME" || true
+          # Obtain Summary Result
+          output_checks=$(docker run $DOCKER_PROXY_RUN_ARGS \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v $HOME/.cache:/root/.cache \
+            -v $PWD:/local_repo aquasec/trivy:latest image \
+            --ignore-unfixed --scanners vuln vdms:latest | grep "Total:")
 
-          # Results
-          output_checks=$(cat ${{ env.ARTIFACT_DIR }}/CT36_docker_snyk_scan.log | grep "Tested ")
-          echo "snyk_image_results<<EOF" >> $GITHUB_ENV
+          echo "trivy_image_results<<EOF" >> $GITHUB_ENV
           echo "$output_checks" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
-      - name: Snyk Python Scan (Test & Monitor)
-        continue-on-error: true
+      - name: Get Docker Image SBOM
         run: |
-          docker run --rm -i vdms:latest bash -c "pip3 freeze -l" | tee ${PWD}/requirements.txt
-          (docker run --rm -i --env SNYK_TOKEN=${{ env.SNYK_TOKEN}} \
-            --env SNYK_API=${{ env.SNYK_API}} --env SNYK_DISABLE_ANALYTICS=1 \
-            --env COMMAND="pip install -r /app/requirements.txt --proxy $HTTP_PROXY" \
-            --env NO_PROXY=${{ secrets.NO_PROXY }} --env HTTP_PROXY="" --env HTTPS_PROXY="" \
-            --env no_proxy=${{ secrets.NO_PROXY }} --env http_proxy="" --env https_proxy="" \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v ${PWD}:/app/ \
-            snyk/snyk:python-3.8 snyk test -d --file=/app/requirements.txt --package-manager=pip --exclude-base-image-vulns \
-              --project-name="$PROJ_NAME-python" || true) > ${PWD}/${{ env.ARTIFACT_DIR }}/CT36_docker_snyk_python_scan.log
+          docker sbom --format spdx-tag-value --output ${{ env.ARTIFACT_DIR }}/sbom_docker_CT36.txt vdms:latest
+          python3 ${GITHUB_WORKSPACE}/docker/check-in/spdx2csv.py -i ${{ env.ARTIFACT_DIR }}/sbom_docker_CT36.txt \
+            -o ${{ env.ARTIFACT_DIR }}/vdms_sbom_docker_CT36.csv
 
-          docker run --rm -i --env SNYK_TOKEN=${{ env.SNYK_TOKEN}} \
-            --env SNYK_API=${{ env.SNYK_API}} --env SNYK_DISABLE_ANALYTICS=1 \
-            --env COMMAND="pip install -r /app/requirements.txt --proxy $HTTP_PROXY" \
-            --env NO_PROXY=${{ secrets.NO_PROXY }} --env HTTP_PROXY="" --env HTTPS_PROXY="" \
-            --env no_proxy=${{ secrets.NO_PROXY }} --env http_proxy="" --env https_proxy="" \
-            -v /var/run/docker.sock:/var/run/docker.sock \
-            -v ${PWD}:/app/ \
-            snyk/snyk:python-3.8 snyk monitor -d --file=/app/requirements.txt --package-manager=pip --exclude-base-image-vulns \
-              --project-name="$PROJ_NAME-python" || true
-
-          # Results
-          output_checks=$(cat ${PWD}/${{ env.ARTIFACT_DIR }}/CT36_docker_snyk_python_scan.log | grep "Tested ")
-          echo "snyk_python_results<<EOF" >> $GITHUB_ENV
+          output_checks=$(echo "SBOM Total packages: $(($(cat ${{ env.ARTIFACT_DIR }}/vdms_sbom_docker_CT36.csv | wc -l)-1))")
+          echo "sbom_image_results<<EOF" >> $GITHUB_ENV
           echo "$output_checks" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
-      - name: Check SNYK Output
-        run: |
-          set -x
-
-          if [[ -z $snyk_image_results ]]
-          then
-            exit 1
-          fi
-
-          if [[ -z $snyk_python_results ]]
-          then
-            exit 1
-          fi
-      - name: Upload SNYK & Dependency Artifacts
+      - name: Upload Trivy & SBOM Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: SDL Evidence
           path: ${{ env.ARTIFACT_DIR }}
-      - name: Print SNYK Results in Job Summary
+      - name: Print Results in Job Summary
         run: |
-          echo "### SNYK Results" > $GITHUB_STEP_SUMMARY
-          echo "Docker Scan :point_right:${{ env.snyk_image_results }}" >> $GITHUB_STEP_SUMMARY
-          echo "Python 3.8 Scan :point_right:${{ env.snyk_python_results }}" >> $GITHUB_STEP_SUMMARY
+          echo "### Results" > $GITHUB_STEP_SUMMARY
+          echo "Vulnerability Scan (fixable) :point_right:${{ env.trivy_image_results }}" >> $GITHUB_STEP_SUMMARY
+          echo "SBOM :point_right:${{ env.sbom_image_results }}" >> $GITHUB_STEP_SUMMARY
+
       - name: Cleanup
         if: always()
         run: |
@@ -351,14 +340,14 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: true
-        #   ref: ${{ env.CHECKOUT_REF }}
+          # ref: ${{ env.CHECKOUT_REF }}
       - name: Build Docker Container with Coverity
         run: |
-          cp ${{ env.NEW_BASE_DOCKERFILE}} ${{ env.COVERITY_DOCKERFILE}}
+          cp ${{ env.CHECKIN_DOCKERFILE}} ${{ env.COVERITY_DOCKERFILE}}
           sed -i -e 's|CMD \["/start.sh"]|RUN mkdir /coverity \&\& cd /coverity \&\& \\|g' ${{ env.COVERITY_DOCKERFILE}}
-          echo "    curl -L -o cov-analysis-linux64-2022.3.1.sh  https://ubit-artifactory-or.intel.com/artifactory/coverity-or-local/Enterprise/cov-analysis-linux64-2022.3.1.sh && chmod +x cov-analysis-linux64-2022.3.1.sh && \\"  >> ${{ env.COVERITY_DOCKERFILE}}
+          echo "    curl -L -o cov-analysis-linux64-2023.3.0.sh  https://ubit-artifactory-or.intel.com/artifactory/coverity-or-local/Enterprise/cov-analysis-linux64-2023.3.0.sh && chmod +x cov-analysis-linux64-2023.3.0.sh && \\"  >> ${{ env.COVERITY_DOCKERFILE}}
           echo "    curl -L -o license.dat https://ubit-artifactory-or.intel.com/artifactory/coverity-or-local/Enterprise/license.dat && \\"  >> ${{ env.COVERITY_DOCKERFILE}}
-          echo "    ./cov-analysis-linux64-2022.3.1.sh -q --installation.dir=/opt/coverity/analysis/ \\
+          echo "    ./cov-analysis-linux64-2023.3.0.sh -q --installation.dir=/opt/coverity/analysis/ \\
             --license.agreement=agree --license.region=0 --license.type.choice=0 \\
             --license.cov.path=/coverity/license.dat --component.sdk=false --component.skip.documentation=true"  >> ${{ env.COVERITY_DOCKERFILE}}
           echo "ENV PATH /opt/coverity/analysis/bin:$PATH" >> ${{ env.COVERITY_DOCKERFILE}}

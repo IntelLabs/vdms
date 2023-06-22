@@ -62,6 +62,15 @@ RUN git clone --branch v3.21.2 https://github.com/Kitware/CMake.git && \
     cd /dependencies/valijson && cp -r include/* /usr/local/include/ && \
     rm -rf /dependencies
 
+# COVERITY
+RUN mkdir -p /coverity /coverity-results && cd /coverity && \
+    curl -L -o cov-analysis-linux64-2023.3.0.sh  https://ubit-artifactory-or.intel.com/artifactory/coverity-or-local/Enterprise/cov-analysis-linux64-2023.3.0.sh && \
+    chmod +x cov-analysis-linux64-2023.3.0.sh && \
+    curl -L -o license.dat https://ubit-artifactory-or.intel.com/artifactory/coverity-or-local/Enterprise/license.dat && \
+    ./cov-analysis-linux64-2023.3.0.sh -q --installation.dir=/opt/coverity/analysis/ \
+        --license.agreement=agree --license.region=0 --license.type.choice=0 \
+        --license.cov.path=/coverity/license.dat --component.sdk=false --component.skip.documentation=true
+ENV PATH /opt/coverity/analysis/bin:$PATH
 
 # VDMS
 COPY ./.git /vdms/.git
@@ -79,7 +88,7 @@ COPY ./docker/check-in/run_coverage_py.sh /
 WORKDIR /vdms
 
 RUN cd /vdms && git submodule update --init --recursive && mkdir build && \
-    cd build && cmake -DCODE_COVERAGE=ON .. && make ${BUILD_THREADS} && \
+    cd build && cmake -DCODE_COVERAGE=ON .. &&  make && \
     cp /vdms/config-vdms.json /vdms/build/ && \
     mkdir -p /vdms/tests/coverage_report && \
     chmod +x /run_coverage_cpp.sh && chmod +x /run_coverage_py.sh && \

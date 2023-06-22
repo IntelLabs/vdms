@@ -4,7 +4,7 @@ name: Checkin Workflow
 # events but only for the master and develop branch
 on:
   pull_request:
-    types: [ opened, edited, synchronize, reopened ]
+    types: [opened, edited, synchronize, reopened]
     branches:
       - develop
       - master
@@ -13,9 +13,18 @@ on:
 jobs:
   coverage_job:
     name: Coverage Test
+
     runs-on:
       group: intellabs-vdms-runners
       labels: vdms-check-in
+
+    env:
+      COV_URL: ${{ secrets.COVERITYSERVER }}
+      COV_USER: ${{ secrets.FACELESS_NAME }}
+      COVERITY_PASSPHRASE: ${{ secrets.FACELESS_AUTHKEY }}
+      COVERITY_PROJECT: Vdms 2
+      COVERITY_STREAM: ${{ secrets.COVERITYSTREAM}}
+
     strategy:
       fail-fast: true
       matrix:
@@ -39,10 +48,12 @@ jobs:
       modify_source: ${{ steps.git_check.outputs.modify_source}}
       target_coverage_cpp: ${{ steps.report_coverage.outputs.target_coverage_cpp}}
       target_coverage_py: ${{ steps.report_coverage.outputs.target_coverage_py}}
+
     # Cancels previous workflows for same PR
     concurrency:
-        group: ${{ matrix.coverage_type }}-${{ github.event.pull_request.number }}
-        cancel-in-progress: true
+      group: ${{ matrix.coverage_type }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -52,18 +63,20 @@ jobs:
           submodules: true
           ref: ${{ matrix.branch_ref }}
 
-      - name: Format C++ Code (clang-format)
-        if: ${{ matrix.coverage_type }} == "Source"
-        run: find "${PWD}" -type f -not -path "${PWD}/src/pmgd/*" -not -path "${PWD}/build/*" -not -path "${PWD}/src/vcl/DescriptorSet.cc" -regex '.*\.\(cc\|cpp\|h\|hpp\)' | xargs clang-format -i || true
+      - if: matrix.coverage_type  == 'Source'
+        name: Format C++ Code (clang-format)
+        run: find "${PWD}" -type f -not -path "${PWD}/src/pmgd/*" -not -path "${PWD}/build/*" -regex '.*\.\(cc\|cpp\|h\|hpp\)' | xargs clang-format -i || true
 
-      - name: Format Python Code (black code)
-        if: ${{ matrix.coverage_type }} == "Source"
+      - if: matrix.coverage_type  == 'Source'
+        name: Format Python Code (black code)
         uses: DataDog/action-py-black-formatter@v2.5
 
-      - name: Check for modified files
-        if: ${{ matrix.coverage_type }} == "Source"
+      - if: matrix.coverage_type  == 'Source'
+        name: Check for modified files
         id: git_check
-        run: echo "modify_source=$(if git diff-index --quiet HEAD --; then echo "false"; else echo "true"; fi)" >> $GITHUB_OUTPUT
+        run: |
+          echo "modify_source=$(if git diff-index --quiet HEAD --; then echo "false"; else echo "true"; fi)" >> $GITHUB_OUTPUT
+          echo "added_modified=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .ts$ | xargs)" >> $GITHUB_OUTPUT
 
       - name: Build and Run Docker Container
         run: |
@@ -73,8 +86,31 @@ jobs:
           docker rm $(docker ps -aqf "name=${{ matrix.container_name }}") || true
 
           docker build --rm -f docker/check-in/Dockerfile -t ${{ matrix.container_tag }} .
+          docker run --rm -d -v ${PWD}:/local_repo --name ${{ matrix.container_name }} ${{ matrix.container_tag }}
 
-          docker run --rm -d --name ${{ matrix.container_name }} ${{ matrix.container_tag }}
+      - if: matrix.coverage_type  == 'Source'
+        name: Coverity Incremental Scan
+        run: |
+          docker exec -w /vdms/build ${{ matrix.container_name }} bash -c "cov-configure -gcc --xml-option=skip_file:'/pmgd/' && \
+            cov-configure --compiler c++ --comptype g++ --template --xml-option=skip_file:'/pmgd/'"
+
+          docker exec -w /vdms/build ${{ matrix.container_name }} bash -c "rm -rf * && cmake -DCODE_COVERAGE=ON .. && cov-build --dir /coverity-results --desktop make"
+
+          docker exec ${{ matrix.container_name }} bash -c "cov-run-desktop --dir /coverity-results --set-new-defect-owner false --strip-path `pwd` \
+            --url $COV_URL --stream $COVERITY_STREAM --user ${COV_USER} --password ${COVERITY_PASSPHRASE} \
+            --present-in-reference false --ignore-uncapturable-inputs true --webapp-security \
+            --json-output-v7 /local_repo/coverity-results.json --scm git  --reference-snapshot scm --analyze-scm-modified"
+
+      - if: matrix.coverage_type  == 'Source'
+        name: Parse Coverity JSON
+        uses: synopsys-sig/coverity-report-output-v7-json@v0.1.1
+        with:
+          json-file-path: ./coverity-results.json
+          github-token: ${{ secrets.FACELESS_TOKEN }}
+          coverity-url: ${COV_URL}
+          coverity-username: ${COV_USER}
+          coverity-password: ${COVERITY_PASSPHRASE}
+          coverity-project-name: ${COVERITY_PROJECT}
 
       - name: Get ${{ matrix.coverage_type }} Coverage
         shell: bash
@@ -115,8 +151,8 @@ jobs:
           echo "${{ matrix.coverage_type }} Python Coverage: ${coverage_value_py}"
           echo "${{ matrix.output_py_name }}=${coverage_value_py}" >> $GITHUB_OUTPUT
 
-      - name: Cleanup
-        if: always()
+      - if: always()
+        name: Cleanup
         run: |
           rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_REPOSITORY} || true
           rm -rf /tmp/tmp-* ${{ env.ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/*  || true
@@ -131,7 +167,6 @@ jobs:
     needs: coverage_job
     steps:
       - name: Comment Coverage
-        if: (github.event_name == 'pull_request')
         uses: actions/github-script@v6
         with:
           script: |
@@ -141,29 +176,28 @@ jobs:
               repo: context.repo.repo,
               body: 'Target CPP Coverage: ${{ needs.coverage_job.outputs.target_coverage_cpp }}%\nSource CPP Coverage: ${{ needs.coverage_job.outputs.source_coverage_cpp }}%\n\n\nTarget Python Coverage: ${{ needs.coverage_job.outputs.target_coverage_py }}%\nSource Python Coverage: ${{ needs.coverage_job.outputs.source_coverage_py }}%'
             })
-
+      - id: comp_diff
+        run: |
+          echo "CPP_DIFF=$(echo '${{needs.coverage_job.outputs.target_coverage_cpp}}-${{needs.coverage_job.outputs.source_coverage_cpp}}' | bc )" >> $GITHUB_ENV
+          echo "PY_DIFF=$(echo '${{needs.coverage_job.outputs.target_coverage_py}}-${{needs.coverage_job.outputs.source_coverage_py}}' | bc )" >> $GITHUB_ENV
       - name: Compare Coverage
         run: |
           echo "Source CPP Coverage: ${{needs.coverage_job.outputs.source_coverage_cpp}}"
           echo "Target CPP Coverage: ${{needs.coverage_job.outputs.target_coverage_cpp}}"
 
-          if ${{ needs.coverage_job.outputs.target_coverage_cpp > needs.coverage_job.outputs.source_coverage_cpp }}
+          if ${{ steps.comp_diff.outputs.CPP_DIFF > 0.01  }}
           then
             echo 'CPP Coverage below CPP Target'
             exit 1
-          else
-            echo "CPP Coverage threshold met!"
           fi
 
           echo "Source Python Coverage: ${{needs.coverage_job.outputs.source_coverage_py}}"
           echo "Target Python Coverage: ${{needs.coverage_job.outputs.target_coverage_py}}"
 
-          if ${{ needs.coverage_job.outputs.target_coverage_py > needs.coverage_job.outputs.source_coverage_py }}
+          if ${{ steps.comp_diff.outputs.PY_DIFF > 0.01  }}
           then
-            echo 'Python coverage below target'
+            echo 'Python Coverage below Target'
             exit 1
-          else
-            echo "Python coverage threshold met!"
           fi
 
   commit_format:
@@ -175,9 +209,9 @@ jobs:
     steps:
       # Checkout code doesn't persist across jobs
       # If formatting needed, checkout and format again
-      - name: Checkout Source Branch
+      - if: needs.coverage_job.outputs.modify_source == 'true'
+        name: Checkout Source Branch
         uses: actions/checkout@v3
-        if: needs.coverage_job.outputs.modify_source == 'true'
         with:
           submodules: true
           ref: ${{ github.event.pull_request.head.ref }}
@@ -189,10 +223,10 @@ jobs:
         uses: DataDog/action-py-black-formatter@v2.5
 
       # Update Code and Push (Should be last steps of workflow since it changes commit)
-      - name: Commit Lint Changes
+      - if: needs.coverage_job.outputs.modify_source == 'true'
+        name: Commit Lint Changes
         id: format_commit
         continue-on-error: true
-        if: needs.coverage_job.outputs.modify_source == 'true'
         run: |
           git config --global user.name ${{ secrets.FACELESS_NAME }}
           git config --global user.email ${{ secrets.FACELESS_NAME }}@intel.com
@@ -200,9 +234,8 @@ jobs:
           git commit -am "Automated format changes"
           git push
 
-      - name: Check Push Failure
-        if: steps.format_commit.outcome != 'success' && needs.coverage_job.outputs.modify_source == 'true'
+      - if: steps.format_commit.outcome != 'success' && needs.coverage_job.outputs.modify_source == 'true'
+        name: Check Push Failure
         run: |
           echo "Please provide sys-vdms write access to fork (if applicable)."
           exit 1
-
