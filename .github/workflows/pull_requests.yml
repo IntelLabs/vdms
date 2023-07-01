@@ -34,8 +34,7 @@ jobs:
             container_tag: "vdms:source_coverage"
             output_cpp_name: source_coverage_cpp
             output_py_name: source_coverage_py
-            branch_ref: ${{ github.event.pull_request.head.ref }}
-            # branch_ref: ${{ github.event.pull_request.head.sha }}
+            branch_ref: ${{ github.event.pull_request.head.sha }}
           - coverage_type: Target
             container_name: coverage_cpp_target_${{ github.event.pull_request.number }}
             container_tag: "vdms:target_coverage"
@@ -62,6 +61,7 @@ jobs:
         with:
           submodules: true
           ref: ${{ matrix.branch_ref }}
+          fetch-depth: 0
 
       - if: matrix.coverage_type  == 'Source'
         name: Format C++ Code (clang-format)
@@ -75,8 +75,9 @@ jobs:
         name: Check for modified files
         id: git_check
         run: |
+          echo "commit_id=$(git log -1 --format='%H')" >> $GITHUB_OUTPUT
           echo "modify_source=$(if git diff-index --quiet HEAD --; then echo "false"; else echo "true"; fi)" >> $GITHUB_OUTPUT
-          echo "added_modified=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .ts$ | xargs)" >> $GITHUB_OUTPUT
+          echo "added_modified=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} HEAD -- . ':!.github' ':!docker'| xargs)" >> $GITHUB_OUTPUT
 
       - name: Build and Run Docker Container
         run: |
@@ -86,31 +87,18 @@ jobs:
           docker rm $(docker ps -aqf "name=${{ matrix.container_name }}") || true
 
           docker build --rm -f docker/check-in/Dockerfile -t ${{ matrix.container_tag }} .
-          docker run --rm -d -v ${PWD}:/local_repo --name ${{ matrix.container_name }} ${{ matrix.container_tag }}
+          # docker run --rm -d -v ${PWD}:/local_repo --name ${{ matrix.container_name }} ${{ matrix.container_tag }}
 
-      - if: matrix.coverage_type  == 'Source'
-        name: Coverity Incremental Scan
-        run: |
-          docker exec -w /vdms/build ${{ matrix.container_name }} bash -c "cov-configure -gcc --xml-option=skip_file:'/pmgd/' && \
-            cov-configure --compiler c++ --comptype g++ --template --xml-option=skip_file:'/pmgd/'"
-
-          docker exec -w /vdms/build ${{ matrix.container_name }} bash -c "rm -rf * && cmake -DCODE_COVERAGE=ON .. && cov-build --dir /coverity-results --desktop make"
-
-          docker exec ${{ matrix.container_name }} bash -c "cov-run-desktop --dir /coverity-results --set-new-defect-owner false --strip-path `pwd` \
-            --url $COV_URL --stream $COVERITY_STREAM --user ${COV_USER} --password ${COVERITY_PASSPHRASE} \
-            --present-in-reference false --ignore-uncapturable-inputs true --webapp-security \
-            --json-output-v7 /local_repo/coverity-results.json --scm git  --reference-snapshot scm --analyze-scm-modified"
-
-      - if: matrix.coverage_type  == 'Source'
-        name: Parse Coverity JSON
-        uses: synopsys-sig/coverity-report-output-v7-json@v0.1.1
+      - if: matrix.coverage_type  == 'Source' &&  steps.git_check.outputs.added_modified
+        uses: ./.github/actions/coverity-incremental-scan
         with:
-          json-file-path: ./coverity-results.json
-          github-token: ${{ secrets.FACELESS_TOKEN }}
-          coverity-url: ${COV_URL}
-          coverity-username: ${COV_USER}
-          coverity-password: ${COVERITY_PASSPHRASE}
-          coverity-project-name: ${COVERITY_PROJECT}
+          repo_dir: ${PWD}
+          github_repo_dir: /vdms
+          github_ref: ${{ steps.git_check.outputs.commit_id }}
+          prNumber: ${{ github.event.pull_request.number }}
+          docker_container_name: ${{ matrix.container_name }}_tmp
+          docker_container_tag: ${{ matrix.container_tag }}
+          modified_files: ${{ steps.git_check.outputs.added_modified }}
 
       - name: Get ${{ matrix.coverage_type }} Coverage
         shell: bash
@@ -118,6 +106,7 @@ jobs:
           set -x
           mkdir -p coverage
           echo "${{ matrix.container_name }}"
+          docker run --rm -d -v ${PWD}:/local_repo --name ${{ matrix.container_name }} ${{ matrix.container_tag }}
 
           docker exec ${{ matrix.container_name }} bash -c "cd / && ./run_coverage_cpp.sh && cd / && ./run_coverage_py.sh"
 
@@ -156,7 +145,7 @@ jobs:
         run: |
           rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_REPOSITORY} || true
           rm -rf /tmp/tmp-* ${{ env.ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/*  || true
-          docker ps -aqf "name=${{ matrix.container_name }}" | xargs docker stop
+          docker ps -aqf "name=${{ matrix.container_name }}" | xargs docker stop || true
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
 
   compare_coverage:
@@ -213,11 +202,13 @@ jobs:
         name: Checkout Source Branch
         uses: actions/checkout@v3
         with:
-          submodules: true
+          fetch-depth: 0
           ref: ${{ github.event.pull_request.head.ref }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          token: ${{ secrets.FACELESS_TOKEN || github.token }}
 
       - if: needs.coverage_job.outputs.modify_source == 'true'
-        run: find "${PWD}" -type f -not -path "${PWD}/src/pmgd/*" -not -path "${PWD}/build/*" -not -path "${PWD}/src/vcl/DescriptorSet.cc" -regex '.*\.\(cc\|cpp\|h\|hpp\)' | xargs clang-format -i || true
+        run: find "${PWD}" -type f -not -path "${PWD}/src/pmgd/*" -not -path "${PWD}/build/*" -regex '.*\.\(cc\|cpp\|h\|hpp\)' | xargs clang-format -i || true
 
       - if: needs.coverage_job.outputs.modify_source == 'true'
         uses: DataDog/action-py-black-formatter@v2.5
@@ -230,7 +221,7 @@ jobs:
         run: |
           git config --global user.name ${{ secrets.FACELESS_NAME }}
           git config --global user.email ${{ secrets.FACELESS_NAME }}@intel.com
-          git remote set-url origin https://x-access-token:${{ secrets.FACELESS_TOKEN }}@github.com/${{ github.repository }}
+          git remote set-url origin https://x-access-token:${{ secrets.FACELESS_TOKEN }}@github.com/${{ github.event.pull_request.head.repo.full_name }}
           git commit -am "Automated format changes"
           git push
 
