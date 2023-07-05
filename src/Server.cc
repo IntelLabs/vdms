@@ -34,10 +34,10 @@
 #include <stdlib.h> /* system, NULL, EXIT_FAILURE */
 #include <thread>
 
+#include "Exception.h"
 #include <jsoncpp/json/json.h>
 #include <jsoncpp/json/value.h> //to create the config file
 
-#include "Exception.h"
 #include "Server.h"
 #include "comm/Connection.h"
 
@@ -53,19 +53,35 @@ bool Server::shutdown = false;
 
 Server::Server(std::string config_file) {
   VDMSConfig::init(config_file);
-  _server_port = VDMSConfig::instance()->get_int_value("port", DEFAULT_PORT);
-  _autodelete_interval = VDMSConfig::instance()->get_int_value(
-      "autodelete_interval_s", DEFAULT_AUTODELETE_INTERVAL);
-  _backup_flag = VDMSConfig::instance()->get_string_value(
-      "backup_flag", DEFAULT_AUTOREPLICATE_FLAG);
+  _autoreplicate_settings.server_port =
+      VDMSConfig::instance()->get_int_value("port", DEFAULT_PORT);
 
-  _autoreplecate_interval = VDMSConfig::instance()->get_int_value(
-      "autoreplicate_interval", DEFAULT_AUTOREPLICATE_INTERVAL);
-  _replication_unit = VDMSConfig::instance()->get_string_value(
-      "unit", DEFAULT_AUTOREPLICATE_UNIT);
-  _backup_path = VDMSConfig::instance()->get_string_value("backup_path",
-                                                          DEFAULT_BACKUP_PATH);
-  _db_path =
+  _autoreplicate_settings.max_simultaneous_clients =
+      VDMSConfig::instance()->get_int_value(
+          "max_simultaneous_clients",
+          500); // Default from CommunicationManager.h
+
+  _autoreplicate_settings.autodelete_interval =
+      VDMSConfig::instance()->get_int_value("autodelete_interval_s",
+                                            DEFAULT_AUTODELETE_INTERVAL);
+  _autoreplicate_settings.backup_flag =
+      VDMSConfig::instance()->get_string_value("backup_flag",
+                                               DEFAULT_AUTOREPLICATE_FLAG);
+
+  _autoreplicate_settings.autoreplicate_interval =
+      VDMSConfig::instance()->get_int_value("autoreplicate_interval",
+                                            DEFAULT_AUTOREPLICATE_INTERVAL);
+  _autoreplicate_settings.autoreplication_unit =
+      VDMSConfig::instance()->get_string_value("unit",
+                                               DEFAULT_AUTOREPLICATE_UNIT);
+
+  _autoreplicate_settings.replication_time =
+      VDMSConfig::instance()->get_string_value("replication_time",
+                                               DEFAULT_AUTOREPLICATE_UNIT);
+  _autoreplicate_settings.backup_path =
+      VDMSConfig::instance()->get_string_value("backup_path",
+                                               DEFAULT_BACKUP_PATH);
+  _autoreplicate_settings.db_path =
       VDMSConfig::instance()->get_string_value("db_root_path", DEFAULT_DB_ROOT);
 
   PMGDQueryHandler::init();
@@ -92,7 +108,7 @@ Server::Server(std::string config_file) {
 void Server::process_requests() {
   comm::ConnServer *server;
   try {
-    server = new comm::ConnServer(_server_port);
+    server = new comm::ConnServer(_autoreplicate_settings.server_port);
   } catch (comm::ExceptionComm e) {
     print_exception(e);
     delete server;
@@ -103,8 +119,9 @@ void Server::process_requests() {
     try {
       comm::Connection *conn_server = new comm::Connection(server->accept());
       _cm->add_connection(conn_server);
+    }
 
-    } catch (comm::ExceptionComm e) {
+    catch (comm::ExceptionComm e) {
       print_exception(e);
     }
   }
@@ -116,41 +133,91 @@ void Server::untar_data(std::string &name) {
   std::string command = "tar -xvSf" + name;
   system(command.c_str());
 }
-void Server::auto_replicate_data() {
-
+void Server::auto_replicate_interval() {
   long replication_period = 0;
   QueryHandler qh;
-  if (_backup_flag == "true") {
-    if (_autoreplecate_interval > 0) {
-      if (_replication_unit.compare("h") == 0) {
-        replication_period = _autoreplecate_interval * 60 * 60;
-      } else if (_replication_unit.compare("m") == 0)
-        replication_period = _autoreplecate_interval * 60;
 
-      else
-        replication_period = _autoreplecate_interval;
-    }
+  if (_autoreplicate_settings.backup_path.empty()) {
+    _autoreplicate_settings.backup_path =
+        _autoreplicate_settings.db_path; // set the default path to be db
+  }
 
-    if (_backup_path.empty()) {
-      _backup_path = _db_path; // set the defualt path to be db
-    }
-
-    if (replication_period > 0) // check to ensure valid autodelete_interval
-    {
-
-      while (!shutdown) {
-        sleep(replication_period);
-        qh.regualar_run_autoreplicate(_backup_path, _db_path, _server_port);
-      }
+  if (_autoreplicate_settings.autoreplicate_interval > 0) {
+    if (_autoreplicate_settings.autoreplication_unit.compare("h") == 0) {
+      replication_period =
+          _autoreplicate_settings.autoreplicate_interval * 60 * 60;
+    } else if (_autoreplicate_settings.autoreplication_unit.compare("m") == 0) {
+      replication_period = _autoreplicate_settings.autoreplicate_interval * 60;
+    } else {
+      replication_period = _autoreplicate_settings.autoreplicate_interval;
     }
   }
+  if (replication_period <= 0) {
+    std::cout << "Error: auto-replication interval must be a positive number."
+              << std::endl;
+    return;
+  }
+
+  while (!shutdown) {
+    // Sleep for the replication period
+    std::this_thread::sleep_for(std::chrono::seconds(replication_period));
+
+    // Execute the auto-replicate function
+    qh.regualar_run_autoreplicate(_autoreplicate_settings);
+  }
 }
+
+void Server::auto_replicate_data_exact_time() {
+  QueryHandler qh;
+
+  std::istringstream iss(_autoreplicate_settings.replication_time);
+  std::string time;
+  char delimiter;
+  std::getline(iss, time);
+
+  int hour, minute;
+  char period;
+  std::istringstream timeTokenIss(time);
+  timeTokenIss >> std::setw(2) >> hour >> delimiter >> std::setw(2) >> minute >>
+      period; // Extract hour, minute, and period
+  if (period == 'P') {
+    hour += 12; // Convert to 24-hour format
+  }
+
+  while (!shutdown) {
+    // Get the current time
+    auto now = std::chrono::system_clock::now();
+    auto now_time = std::chrono::system_clock::to_time_t(now);
+    struct std::tm *now_tm = std::localtime(&now_time);
+
+    // Calculate the next replication time
+    std::tm replicate_tm = *now_tm;
+    replicate_tm.tm_hour = hour;  // set the desired hour
+    replicate_tm.tm_min = minute; // set the desired minute
+    replicate_tm.tm_sec = 0;      // set seconds to 0
+    auto replicate_time =
+        std::chrono::system_clock::from_time_t(std::mktime(&replicate_tm));
+    if (now > replicate_time) {
+      replicate_time += std::chrono::hours(
+          24); // if the specified time has passed, set it for the next day
+    }
+
+    // Sleep until the next replication time
+    auto duration = replicate_time - now;
+    std::this_thread::sleep_for(duration);
+
+    // Execute the auto-replicate function
+    qh.regualar_run_autoreplicate(_autoreplicate_settings);
+  }
+}
+
 void Server::autodelete_expired_data() {
-  if (_autodelete_interval > 0) // check to ensure valid autodelete_interval
+  if (_autoreplicate_settings.autodelete_interval >
+      0) // check to ensure valid autodelete_interval
   {
     QueryHandler qh;
     while (!shutdown) {
-      sleep(_autodelete_interval);
+      sleep(_autoreplicate_settings.autodelete_interval);
       qh.regualar_run_autodelete(); // delete data expired since startup
     }
   }

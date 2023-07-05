@@ -410,7 +410,6 @@ void QueryHandler::process_query(protobufs::queryMessage &proto_query,
         json_responses.append(cmd_result);
       }
     }
-
     proto_res.set_json(fastWriter.write(json_responses));
     _pmgd_qh.cleanup_files();
 
@@ -448,15 +447,9 @@ void QueryHandler::process_query(protobufs::queryMessage &proto_query,
     exception_handler();
   }
 }
-void QueryHandler::reset_autoreplicate_init_flag() {
-  _autoreplicate_init = true;
-}
-void QueryHandler::set_autoreplicate_init_flag() {
-  _autoreplicate_init = false;
-}
-void QueryHandler::regualar_run_autoreplicate(std::string &backup_path,
-                                              std::string &db_path,
-                                              int &server_port) {
+
+void QueryHandler::regualar_run_autoreplicate(
+    ReplicationConfig &replicate_settings) {
   std::string command = "bsdtar cvfz ";
   std::string name;
   std::ostringstream oss;
@@ -469,23 +462,74 @@ void QueryHandler::regualar_run_autoreplicate(std::string &backup_path,
   name = oss.str();
   name.erase(remove(name.begin(), name.end(), ' '), name.end());
   name.erase(std::remove(name.begin(), name.end(), '\n'), name.end());
-  // name.replace(name.find(":"),name.size(),"_");
-  std::string full_name = backup_path + "/" + name;
+  std::string full_name = replicate_settings.backup_path + "/" + name;
 
-  command =
-      command + " " + full_name + ".tar.gz  " + db_path; // current_date_time
-  std::cout << command << std::endl;
+  command = command + " " + full_name + ".tar.gz  " +
+            replicate_settings.db_path; // current_date_time
 
   system(command.c_str());
 
-  config_file["port"] = server_port;
-  config_file["db_root_path"] = full_name;
+  if (replicate_settings.server_port != 0) {
+    config_file["port"] = replicate_settings.server_port;
+  }
+
+  if (!full_name.empty()) {
+    config_file["db_root_path"] = full_name;
+  }
+
+  if (replicate_settings.autodelete_interval > 0) {
+    config_file["autodelete_interval"] =
+        replicate_settings
+            .autodelete_interval; // expired data removed daily (86400 secs)
+  }
+
+  if (replicate_settings.expiration_time > 0) {
+    config_file["expiration_time"] = replicate_settings.expiration_time;
+  }
+
   config_file["more-info"] = "github.com/IntelLabs/vdms";
+
+  if (!replicate_settings.replication_time.empty()) {
+    config_file["autoreplicate_time"] = replicate_settings.replication_time;
+  }
+
+  if (!replicate_settings.autoreplication_unit.empty()) {
+    config_file["unit"] = replicate_settings.autoreplication_unit;
+  }
+
+  if (replicate_settings.autoreplicate_interval > 0) {
+    config_file["autoreplicate_interval"] =
+        replicate_settings.autoreplicate_interval;
+  }
+
+  if (replicate_settings.max_simultaneous_clients > 0) {
+    config_file["max_simultaneous_clients"] =
+        replicate_settings.max_simultaneous_clients;
+  }
+
+  if (!replicate_settings.backup_flag.empty()) {
+    config_file["backup_flag"] = replicate_settings.backup_flag;
+  }
+  if (!replicate_settings.backup_flag.empty()) {
+    config_file["backup_path"] = replicate_settings.backup_path;
+  }
+  if (!replicate_settings.backup_flag.empty()) {
+    config_file["images_path"] = replicate_settings.images_path;
+  }
+  if (!replicate_settings.backup_flag.empty()) {
+    config_file["blobs_path"] = replicate_settings.blobs_path;
+  }
+  if (!replicate_settings.backup_flag.empty()) {
+    config_file["descriptor_path"] = replicate_settings.descriptor_path;
+  }
+  if (!replicate_settings.backup_flag.empty()) {
+    config_file["pmgd_num_allocators"] = replicate_settings.pmgd_num_allocators;
+  }
+  std::cout << config_file << std::endl;
+  // write the configuration file
   std::string config_file_name = full_name + ".json";
-  std::cout << "Name is" << config_file_name << std::endl;
-  file_id.open(config_file_name);
-  Json::StyledWriter Writer;
-  file_id << Writer.write(config_file);
+  file_id.open(config_file_name.c_str(), std::ios::out);
+  file_id << config_file << std::endl;
   file_id.close();
 
   command = "bsdtar cvfz ";
@@ -493,6 +537,13 @@ void QueryHandler::regualar_run_autoreplicate(std::string &backup_path,
   name.clear();
   config_file.clear();
 }
+void QueryHandler::reset_autoreplicate_init_flag() {
+  _autoreplicate_init = true;
+}
+void QueryHandler::set_autoreplicate_init_flag() {
+  _autoreplicate_init = false;
+}
+
 void QueryHandler::reset_autodelete_init_flag() { _autodelete_init = false; }
 
 void QueryHandler::set_autodelete_init_flag() { _autodelete_init = true; }

@@ -48,7 +48,10 @@ static void *start_request_thread(void *server) {
   return NULL;
 }
 static void *start_replication_thread(void *server) {
-  ((VDMS::Server *)(server))->auto_replicate_data();
+  VDMS::Server *srv = (VDMS::Server *)server;
+  // If replication time is not set, use auto-replication interval
+  srv->auto_replicate_interval();
+
   return NULL;
 }
 

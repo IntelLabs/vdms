@@ -37,8 +37,8 @@
 
 #include "PMGDQueryHandler.h" // to provide the database connection
 #include "RSCommand.h"
+#include "Server.h"
 #include "chrono/Chrono.h"
-#include "comm/Connection.h"
 
 // Json parsing files
 #include <jsoncpp/json/value.h>
@@ -90,6 +90,6 @@ public:
   void build_autodelete_queue();
   void set_autoreplicate_init_flag();
   void reset_autoreplicate_init_flag();
-  void regualar_run_autoreplicate(std::string &, std::string &, int &);
+  void regualar_run_autoreplicate(ReplicationConfig &);
 };
 } // namespace VDMS
