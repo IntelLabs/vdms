@@ -41,7 +41,7 @@ runs:
         docker exec ${{ inputs.docker_container_name }} bash -c "cov-run-desktop --dir /coverity-results --set-new-defect-owner false --strip-path /vdms \
           --url $COV_URL --stream $COVERITY_STREAM --user ${COV_USER} --password ${COVERITY_PASSPHRASE} \
           --present-in-reference false --ignore-uncapturable-inputs true --impact-regex 'Medium|High' \
-          --relative-paths true --sort file,classification:d \
+          --relative-paths true --sort classification:d,file \
           --json-output-v7 /local_repo/coverity-results.json ${{ inputs.modified_files }}"
 
     - name: Parse JSON

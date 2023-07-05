@@ -40,7 +40,6 @@
 
 #define ATTRIBUTE_SPARSE_ID "id"
 #define ATTRIBUTE_SPARSE_LABEL "label"
-
 #define DIMENSION_LOWER_LIMIT -10000
 #define DIMENSION_UPPER_LIMIT 10000
 #define DIMENSION_TILE_SIZE 250
@@ -86,7 +85,6 @@ TDBSparseDescriptorSet::TDBSparseDescriptorSet(const std::string &filename,
 
   std::vector<long> num_values{1, 1};
   descriptorSetObject.set_schema_sparse(_set_path, num_values);
-
   write_descriptor_metadata();
 }
 
@@ -97,16 +95,14 @@ void TDBSparseDescriptorSet::read_descriptor_metadata() {
   coords[0] += 1.0f;
   coords[1] += 1.0f;
 
-  auto max_elements = array.max_buffer_elements(coords);
-  std::vector<long> id_val(max_elements[ATTRIBUTE_SPARSE_ID].second);
-  std::vector<long> label_val(max_elements[ATTRIBUTE_SPARSE_LABEL].second);
-
   tiledb::Query md_read(_ctx, array, TILEDB_READ);
-
+  std::vector<long> id_val(DIMENSION_UPPER_LIMIT);
+  std::vector<long> label_val(DIMENSION_UPPER_LIMIT);
   md_read.set_subarray(coords);
   md_read.set_layout(TILEDB_ROW_MAJOR);
-  md_read.set_buffer(ATTRIBUTE_SPARSE_ID, id_val);
-  md_read.set_buffer(ATTRIBUTE_SPARSE_LABEL, label_val);
+  md_read.set_data_buffer(ATTRIBUTE_SPARSE_ID, id_val);
+  md_read.set_data_buffer(ATTRIBUTE_SPARSE_LABEL, label_val);
+
   md_read.submit();
   array.close();
 
@@ -120,20 +116,23 @@ void TDBSparseDescriptorSet::write_descriptor_metadata() {
 
   long dims = _dimensions;
   long n_total = _n_total;
-  // We use the ID attribute to store _dimension
-  // and the LABEL attibute to store _n_total;
   tiledb::Array array(_ctx, _set_path, TILEDB_WRITE);
   tiledb::Query query(_ctx, array);
-  query.set_layout(TILEDB_GLOBAL_ORDER);
-  query.set_buffer(ATTRIBUTE_SPARSE_ID, &dims, 1);
-  query.set_buffer(ATTRIBUTE_SPARSE_LABEL, &n_total, 1);
-  query.set_buffer(TILEDB_COORDS, coords);
+  query.set_layout(TILEDB_UNORDERED);
+  query.set_data_buffer(ATTRIBUTE_SPARSE_ID, &dims, 1);
+  query.set_data_buffer(ATTRIBUTE_SPARSE_LABEL, &n_total, 1);
+
+  query.set_data_buffer(TILEDB_COORDS, coords.data(), coords.size());
+
   query.submit();
+
   query.finalize();
+
   array.close();
 }
 
-long TDBSparseDescriptorSet::add(float *descriptors, unsigned n, long *labels) {
+long TDBSparseDescriptorSet::add(float *descriptors, unsigned int n,
+                                 long *labels) {
   try {
     std::vector<long> att_id(n);
     std::iota(att_id.begin(), att_id.end(), _n_total);
@@ -151,10 +150,11 @@ long TDBSparseDescriptorSet::add(float *descriptors, unsigned n, long *labels) {
     {
       tiledb::Array array(_ctx, _set_path, TILEDB_WRITE);
       tiledb::Query query(_ctx, array);
-      query.set_layout(TILEDB_GLOBAL_ORDER);
-      query.set_buffer(ATTRIBUTE_SPARSE_ID, att_id);
-      query.set_buffer(ATTRIBUTE_SPARSE_LABEL, labels_for_query, n);
-      query.set_buffer(TILEDB_COORDS, descriptors, n * _dimensions);
+      // query.set_layout(TILEDB_GLOBAL_ORDER);
+      query.set_data_buffer(ATTRIBUTE_SPARSE_ID, att_id);
+      query.set_data_buffer(ATTRIBUTE_SPARSE_LABEL, labels_for_query, n);
+      query.set_data_buffer(TILEDB_COORDS, descriptors, n * _dimensions);
+
       query.submit();
       query.finalize();
       array.close();
@@ -201,21 +201,19 @@ void TDBSparseDescriptorSet::load_neighbors(float *q, unsigned k,
                                 : DIMENSION_UPPER_LIMIT;
     }
 
-    auto max_sizes = array.max_buffer_elements(subarray);
-
-    // Prepare cell buffers
-    descriptors.resize(max_sizes[TILEDB_COORDS].second);
-    desc_ids.resize(max_sizes[ATTRIBUTE_SPARSE_ID].second);
-    desc_labels.resize(max_sizes[ATTRIBUTE_SPARSE_LABEL].second);
-
     // Create query
-    tiledb::Query query(_ctx, array);
-    query.set_layout(TILEDB_ROW_MAJOR).set_subarray(subarray);
-    query.set_buffer(ATTRIBUTE_SPARSE_LABEL, desc_labels);
-    query.set_buffer(ATTRIBUTE_SPARSE_ID, desc_ids);
-    query.set_buffer(TILEDB_COORDS, descriptors);
 
-    // Submit query
+    tiledb::Query query(_ctx, array);
+
+    descriptors.resize(query.est_result_size(TILEDB_COORDS));
+    desc_ids.resize(query.est_result_size(ATTRIBUTE_SPARSE_ID));
+    desc_labels.resize(query.est_result_size(ATTRIBUTE_SPARSE_LABEL));
+    query.set_layout(TILEDB_ROW_MAJOR);
+    query.set_subarray(subarray)
+        .set_data_buffer(ATTRIBUTE_SPARSE_LABEL, desc_labels)
+        .set_data_buffer(ATTRIBUTE_SPARSE_ID, desc_ids)
+        .set_data_buffer(TILEDB_COORDS, descriptors);
+
     query.submit();
 
     auto result_el = query.result_buffer_elements();
@@ -276,8 +274,8 @@ void TDBSparseDescriptorSet::search(float *query, unsigned n, unsigned k,
   for (int i = 0; i < n; ++i) {
 
     load_neighbors(query + i * _dimensions, k, descs, desc_ids, desc_labels);
-    unsigned found = desc_ids.size();
 
+    unsigned found = desc_ids.size();
     std::vector<float> d(found);
     std::vector<long> idxs(found);
 
@@ -333,20 +331,19 @@ void TDBSparseDescriptorSet::get_descriptors(long *ids, unsigned n,
   }
 
   tiledb::Array array(_ctx, _set_path, TILEDB_READ);
-  auto max_sizes = array.max_buffer_elements(subarray);
 
-  // Prepare cell buffers
   std::vector<float> buffer;
-  buffer.resize(max_sizes[TILEDB_COORDS].second);
+
   std::vector<long> desc_ids;
-  desc_ids.resize(max_sizes[ATTRIBUTE_SPARSE_ID].second);
 
   // Create query
   tiledb::Query query(_ctx, array);
+  desc_ids.resize(query.est_result_size(ATTRIBUTE_SPARSE_ID));
+  buffer.resize(query.est_result_size(TILEDB_COORDS));
   query.set_layout(TILEDB_ROW_MAJOR);
   query.set_subarray(subarray);
-  query.set_buffer(ATTRIBUTE_SPARSE_ID, desc_ids);
-  query.set_buffer(TILEDB_COORDS, buffer);
+  query.set_data_buffer(ATTRIBUTE_SPARSE_ID, desc_ids);
+  query.set_data_buffer(TILEDB_COORDS, buffer);
 
   // Submit query
   query.submit();
@@ -396,19 +393,19 @@ void TDBSparseDescriptorSet::get_labels(long *ids, unsigned n, long *labels) {
   }
 
   tiledb::Array array(_ctx, _set_path, TILEDB_READ);
-  auto max_sizes = array.max_buffer_elements(subarray);
 
-  // Prepare cell buffers
-  std::vector<long> desc_ids;
-  desc_ids.resize(max_sizes[ATTRIBUTE_SPARSE_ID].second);
-  std::vector<long> desc_labels;
-  desc_labels.resize(max_sizes[ATTRIBUTE_SPARSE_LABEL].second);
+  // auto max_sizes = array.max_buffer_elements(subarray);
 
   // Create query
   tiledb::Query query(_ctx, array);
+  std::vector<long> desc_ids;
+  std::vector<long> desc_labels;
+  desc_ids.resize(query.est_result_size(ATTRIBUTE_SPARSE_ID));
+  desc_labels.resize(query.est_result_size(ATTRIBUTE_SPARSE_LABEL));
+
   query.set_layout(TILEDB_ROW_MAJOR).set_subarray(subarray);
-  query.set_buffer(ATTRIBUTE_SPARSE_LABEL, desc_labels);
-  query.set_buffer(ATTRIBUTE_SPARSE_ID, desc_ids);
+  query.set_data_buffer(ATTRIBUTE_SPARSE_LABEL, desc_labels);
+  query.set_data_buffer(ATTRIBUTE_SPARSE_ID, desc_ids);
 
   // Submit query
   query.submit();

@@ -39,7 +39,7 @@
 
 #include "TDBDescriptorSet.h"
 
-#include <tiledb/map.h>
+// #include <tiledb/map.h>
 
 #define ATTRIBUTE_DESC "descriptor"
 #define ATTRIBUTE_LABEL "label"
@@ -86,8 +86,8 @@ void TDBDenseDescriptorSet::load_buffer() {
       tiledb::Query query(_ctx, array);
       query.set_layout(TILEDB_ROW_MAJOR);
       query.set_subarray<uint64_t>({0, _n_total - 1});
-      query.set_buffer(ATTRIBUTE_DESC, _buffer);
-      query.set_buffer(ATTRIBUTE_LABEL, _label_ids);
+      query.set_data_buffer(ATTRIBUTE_DESC, _buffer);
+      query.set_data_buffer(ATTRIBUTE_LABEL, _label_ids);
       query.submit();
     }
 
@@ -108,7 +108,7 @@ void TDBDenseDescriptorSet::read_descriptor_metadata() {
   md_read.set_subarray(subarray);
   md_read.set_layout(TILEDB_ROW_MAJOR);
 
-  md_read.set_buffer(ATTRIBUTE_LABEL, values);
+  md_read.set_data_buffer(ATTRIBUTE_LABEL, values);
   md_read.submit();
   array.close();
 
@@ -130,8 +130,8 @@ void TDBDenseDescriptorSet::write_descriptor_metadata() {
   tiledb::Query query(_ctx, array);
   query.set_layout(TILEDB_ROW_MAJOR);
   query.set_subarray<uint64_t>({METADATA_OFFSET, METADATA_OFFSET + 1});
-  query.set_buffer(ATTRIBUTE_LABEL, metadata);
-  query.set_buffer(ATTRIBUTE_DESC, aux_dims);
+  query.set_data_buffer(ATTRIBUTE_LABEL, metadata);
+  query.set_data_buffer(ATTRIBUTE_DESC, aux_dims);
   query.submit();
   query.finalize();
 }
@@ -152,8 +152,9 @@ long TDBDenseDescriptorSet::add(float *descriptors, unsigned n, long *labels) {
       tiledb::Query query(_ctx, array);
       query.set_layout(TILEDB_ROW_MAJOR);
       query.set_subarray<uint64_t>({_n_total, _n_total + n - 1});
-      query.set_buffer(ATTRIBUTE_DESC, descriptors, n * _dimensions);
-      query.set_buffer(ATTRIBUTE_LABEL, labels_buffer, n);
+      query.set_data_buffer(ATTRIBUTE_DESC, descriptors, n * _dimensions);
+      query.set_data_buffer(ATTRIBUTE_LABEL, labels_buffer, n);
+
       query.submit();
       query.finalize();
     }

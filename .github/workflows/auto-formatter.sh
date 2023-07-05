@@ -16,7 +16,7 @@ check_package(){
             echo "$PACKAGE_NAME exists!"
         else
             echo "Installing $PACKAGE_NAME"
-            python3 -m pip install --upgrade --no-cache-dir '$PACKAGE_NAME'
+            python3 -m pip install --upgrade --no-cache-dir "${PACKAGE_NAME}"
         fi
     else
         echo "UNKNOWN Package type ($PACKAGE_TYPE). Choose apt or python"

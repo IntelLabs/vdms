@@ -38,7 +38,7 @@ RUN git clone --branch v3.21.2 https://github.com/Kitware/CMake.git && \
     git clone --branch 4.5.3 https://github.com/opencv/opencv.git && \
     git clone --branch v0.6 https://github.com/tristanpenman/valijson.git && \
     curl -L -o /usr/share/java/json-simple-1.1.1.jar https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/json-simple/json-simple-1.1.1.jar && \
-    curl -L -o /dependencies/1.3.1.tar.gz https://github.com/TileDB-Inc/TileDB/archive/refs/tags/1.3.1.tar.gz && \
+    curl -L -o /dependencies/2.14.0.tar.gz https://github.com/TileDB-Inc/TileDB/archive/refs/tags/2.14.0.tar.gz && \
     curl -L -o /dependencies/zlib-1.2.13.tar.gz http://zlib.net/zlib-1.2.13.tar.gz && \
     cd /dependencies/CMake && ./bootstrap && make ${BUILD_THREADS} && make install && \
     cd /dependencies/swig && ./autogen.sh && ./configure && make ${BUILD_THREADS} && make install && \
@@ -56,7 +56,7 @@ RUN git clone --branch v3.21.2 https://github.com/Kitware/CMake.git && \
             -DgRPC_ZLIB_PROVIDER=package -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE ../.. && make ${BUILD_THREADS} && make install && \
     cd /dependencies/opencv && mkdir build && cd build && cmake -D BUILD_PERF_TESTS=OFF -D BUILD_TESTS=OFF .. && make ${BUILD_THREADS} && make install && \
     cd /dependencies/ && tar -xvzf zlib-1.2.13.tar.gz && cd zlib-1.2.13 && ./configure && make ${BUILD_THREADS} && make install && \
-    cd /dependencies/ && tar -xvf 1.3.1.tar.gz && cd TileDB-1.3.1 && mkdir build && cd build && \
+    cd /dependencies/ && tar -xvf 2.14.0.tar.gz && cd TileDB-2.14.0 && mkdir build && cd build && \
         ../bootstrap --prefix=/usr/local/ && make ${BUILD_THREADS} && make install-tiledb && \
     cd /usr/src/gtest && cmake . && make ${BUILD_THREADS} && mv lib/libgtest* /usr/lib/ && \
     cd /dependencies/valijson && cp -r include/* /usr/local/include/ && \

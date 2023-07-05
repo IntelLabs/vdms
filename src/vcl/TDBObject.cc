@@ -140,7 +140,6 @@ void TDBObject::reset_arrays() {
 
 void TDBObject::delete_object() {
   std::string object_id = _group + _name;
-
   tiledb::Object::remove(_ctx, object_id);
 }
 
@@ -199,9 +198,19 @@ void TDBObject::set_num_attributes(int num) { _num_attributes = num; }
 
 void TDBObject::set_attributes(const std::vector<std::string> &attributes) {
   _attributes.clear();
+  std::vector<char *> charArrays;
 
-  for (int x = 0; x < attributes.size(); ++x) {
-    _attributes.push_back(const_cast<char *>(attributes[x].c_str()));
+  // Convert string values to C-style strings and store in charArrays
+  for (auto x = 0; x < attributes.size(); ++x) {
+    char *charArray =
+        new char[attributes[x].length() + 1]; // +1 for null terminator
+    std::strcpy(charArray, attributes[x].c_str());
+    charArrays.push_back(charArray);
+  }
+
+  // Add the char arrays to _attributes vector
+  for (auto x = 0; x < charArrays.size(); ++x) {
+    _attributes.push_back(charArrays[x]);
   }
 }
 
@@ -209,8 +218,11 @@ template <class T>
 void TDBObject::set_single_attribute(std::string &attribute,
                                      CompressionType compressor,
                                      T cell_val_num) {
-  _compressed = compressor;
-  auto a = tiledb::Attribute::create<T>(_ctx, attribute, convert_to_tiledb());
+
+  tiledb::FilterList filter_list(_ctx);
+  tiledb::Filter filter = convert_to_tiledb();
+  filter_list.add_filter(filter);
+  auto a = tiledb::Attribute::create<T>(_ctx, attribute, filter_list);
   a.set_cell_val_num((long)cell_val_num);
   _full_attributes.push_back(a);
 }
@@ -273,9 +285,11 @@ void TDBObject::set_schema_attributes(tiledb::ArraySchema &array_schema,
                                       std::vector<T> &cell_val_num) {
   if (_full_attributes.empty()) {
     for (int x = 0; x < _attributes.size(); ++x) {
-      auto compressor = convert_to_tiledb();
+      tiledb::FilterList filter_list(_ctx);
+      filter_list.add_filter(convert_to_tiledb());
+
       auto attr =
-          tiledb::Attribute::create<T>(_ctx, _attributes[x], compressor);
+          tiledb::Attribute::create<T>(_ctx, _attributes[x], filter_list);
       attr.set_cell_val_num(cell_val_num[x]);
       array_schema.add_attribute(attr);
     }
@@ -405,6 +419,10 @@ void TDBObject::set_schema(std::vector<T> &cell_val_num,
                            const std::string &object_id, ORDER tile_order,
                            ORDER data_order,
                            tiledb::ArraySchema &array_schema) {
+  for (const T &value : cell_val_num) {
+    // Access the value using the reference
+  }
+
   if (tile_order == ORDER::ROW)
     array_schema.set_tile_order(TILEDB_ROW_MAJOR);
   else if (tile_order == ORDER::COLUMN)
@@ -472,14 +490,14 @@ void TDBObject::read_metadata(const std::string &array_name,
                               std::vector<uint64_t> &values,
                               std::string &attribute) {
   try {
+
     tiledb::Array array(_ctx, array_name, TILEDB_READ);
     tiledb::Query md_read(_ctx, array, TILEDB_READ);
-
     md_read.set_subarray(subarray);
     md_read.set_layout(TILEDB_ROW_MAJOR);
 
     std::vector<unsigned char> temp_values(values.size() * 2);
-    md_read.set_buffer(attribute, temp_values);
+    md_read.set_data_buffer(attribute, temp_values);
     md_read.submit();
     array.close();
 
@@ -528,37 +546,46 @@ void TDBObject::find_tile_extents() {
   }
 }
 
-tiledb::Compressor TDBObject::convert_to_tiledb() {
+tiledb::Filter TDBObject::convert_to_tiledb() {
+  tiledb::Filter f(_ctx, TILEDB_FILTER_ZSTD);
+
+  int level = -1;
+
   switch (static_cast<int>(_compressed)) {
   case 0:
-    return tiledb::Compressor(TILEDB_NO_COMPRESSION, -1);
+    f = tiledb::Filter(_ctx, TILEDB_FILTER_NONE);
+    f.set_option(TILEDB_COMPRESSION_LEVEL, &level);
+    break;
   case 1:
-    return tiledb::Compressor(TILEDB_GZIP, -1);
+    f = tiledb::Filter(_ctx, TILEDB_FILTER_GZIP);
+    f.set_option(TILEDB_COMPRESSION_LEVEL, &level);
+    break;
   case 2:
-    return tiledb::Compressor(TILEDB_ZSTD, -1);
+    f = tiledb::Filter(_ctx, TILEDB_FILTER_ZSTD);
+    f.set_option(TILEDB_COMPRESSION_LEVEL, &level);
+    break;
   case 3:
-    return tiledb::Compressor(TILEDB_LZ4, -1);
+    f = tiledb::Filter(_ctx, TILEDB_FILTER_LZ4);
+    f.set_option(TILEDB_COMPRESSION_LEVEL, &level);
+    break;
+
   case 4:
-    return tiledb::Compressor(TILEDB_BLOSC_LZ, -1);
+    f = tiledb::Filter(_ctx, TILEDB_FILTER_RLE);
+    f.set_option(TILEDB_COMPRESSION_LEVEL, &level);
+    break;
   case 5:
-    return tiledb::Compressor(TILEDB_BLOSC_LZ4, -1);
+    f = tiledb::Filter(_ctx, TILEDB_FILTER_BZIP2);
+    f.set_option(TILEDB_COMPRESSION_LEVEL, &level);
+    break;
   case 6:
-    return tiledb::Compressor(TILEDB_BLOSC_LZ4HC, -1);
-  case 7:
-    return tiledb::Compressor(TILEDB_BLOSC_SNAPPY, -1);
-  case 8:
-    return tiledb::Compressor(TILEDB_BLOSC_ZLIB, -1);
-  case 9:
-    return tiledb::Compressor(TILEDB_BLOSC_ZSTD, -1);
-  case 10:
-    return tiledb::Compressor(TILEDB_RLE, -1);
-  case 11:
-    return tiledb::Compressor(TILEDB_BZIP2, -1);
-  case 12:
-    return tiledb::Compressor(TILEDB_DOUBLE_DELTA, -1);
+    f = tiledb::Filter(_ctx, TILEDB_FILTER_DOUBLE_DELTA);
+    f.set_option(TILEDB_COMPRESSION_LEVEL, &level);
+    break;
   default:
     throw VCLException(TileDBError, "Compression type not supported.\n");
   }
+
+  return f;
 }
 
 /*  *********************** */

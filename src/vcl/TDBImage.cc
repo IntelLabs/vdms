@@ -285,8 +285,8 @@ void TDBImage::write(const std::string &image_id, bool metadata) {
     write_image_metadata(array);
     std::vector<uint64_t> subarray = {1, _img_height, 0, _img_width - 1};
     write_query.set_subarray(subarray);
-    write_query.set_buffer(_attributes[0], _raw_data,
-                           _img_height * _img_width * _img_channels);
+    write_query.set_data_buffer(_attributes[0], _raw_data,
+                                _img_height * _img_width * _img_channels);
   } else {
     size_t buffer_size = _img_height * _img_width;
     unsigned char *blue_buffer = new unsigned char[buffer_size];
@@ -294,15 +294,14 @@ void TDBImage::write(const std::string &image_id, bool metadata) {
     unsigned char *red_buffer = new unsigned char[buffer_size];
 
     int count = 0;
-    for (int i = 0; i < buffer_size; ++i) {
+    for (unsigned int i = 0; i < buffer_size; ++i) {
       blue_buffer[i] = _raw_data[count];
       green_buffer[i] = _raw_data[count + 1];
       red_buffer[i] = _raw_data[count + 2];
     }
-
-    write_query.set_buffer(_attributes[0], blue_buffer, buffer_size);
-    write_query.set_buffer(_attributes[1], green_buffer, buffer_size);
-    write_query.set_buffer(_attributes[2], red_buffer, buffer_size);
+    write_query.set_data_buffer(_attributes[0], blue_buffer, buffer_size);
+    write_query.set_data_buffer(_attributes[1], green_buffer, buffer_size);
+    write_query.set_data_buffer(_attributes[2], red_buffer, buffer_size);
   }
 
   write_query.submit();
@@ -352,7 +351,7 @@ void TDBImage::write(const cv::Mat &cv_img, bool metadata) {
 
   if (_num_attributes == 1) {
     std::memcpy(_raw_data, cv_img.data, buffer_size);
-    write_query.set_buffer(_attributes[0], _raw_data, buffer_size);
+    write_query.set_data_buffer(_attributes[0], _raw_data, buffer_size);
   } else {
     std::vector<cv::Mat> channels(3);
     cv::split(cv_img, channels);
@@ -362,7 +361,7 @@ void TDBImage::write(const cv::Mat &cv_img, bool metadata) {
     unsigned char *red_buffer = new unsigned char[size];
 
     const unsigned char *bp;
-    for (int i = 0; i < _img_height; ++i) {
+    for (unsigned int i = 0; i < _img_height; ++i) {
       bp = channels[0].ptr<unsigned char>(i);
       unsigned char *b = &blue_buffer[i * _img_width];
       std::memcpy(b, bp, _img_width);
@@ -376,15 +375,14 @@ void TDBImage::write(const cv::Mat &cv_img, bool metadata) {
     }
 
     const unsigned char *rp;
-    for (int i = 0; i < _img_height; ++i) {
+    for (unsigned int i = 0; i < _img_height; ++i) {
       rp = channels[2].ptr<unsigned char>(i);
       unsigned char *r = &red_buffer[i * _img_width];
       std::memcpy(r, rp, _img_width);
     }
-
-    write_query.set_buffer(_attributes[0], blue_buffer, buffer_size);
-    write_query.set_buffer(_attributes[1], green_buffer, buffer_size);
-    write_query.set_buffer(_attributes[2], red_buffer, buffer_size);
+    write_query.set_data_buffer(_attributes[0], blue_buffer, buffer_size);
+    write_query.set_data_buffer(_attributes[1], green_buffer, buffer_size);
+    write_query.set_data_buffer(_attributes[2], red_buffer, buffer_size);
 
     delete[] blue_buffer;
     delete[] green_buffer;
@@ -583,7 +581,7 @@ long TDBImage::get_index(int row, int column) const {
 int TDBImage::get_tile_height(int row, int number_tiles) const {
   int tile_height = int(_tile_dimension[0]);
 
-  if (row / _tile_dimension[0] == number_tiles)
+  if (row / _tile_dimension[0] == (unsigned int)number_tiles)
     tile_height = _img_height - (number_tiles)*_tile_dimension[0];
 
   return tile_height;
@@ -592,7 +590,7 @@ int TDBImage::get_tile_height(int row, int number_tiles) const {
 int TDBImage::get_tile_width(int column, int number_tiles) const {
   int tile_width = int(_tile_dimension[1]);
 
-  if (column / _tile_dimension[1] == number_tiles)
+  if (column / _tile_dimension[1] == (unsigned int)number_tiles)
     tile_width = _img_width - (number_tiles)*_tile_dimension[1];
 
   return tile_width;
@@ -652,7 +650,7 @@ void TDBImage::write_image_metadata(tiledb::Array &array) {
   tiledb::Query md_write(_ctx, array);
   md_write.set_subarray(subarray);
   md_write.set_layout(TILEDB_ROW_MAJOR);
-  md_write.set_buffer(_attributes[_num_attributes - 1], metadata);
+  md_write.set_data_buffer(_attributes[_num_attributes - 1], metadata);
 
   md_write.submit();
 }
@@ -694,7 +692,7 @@ void TDBImage::read_from_tdb(std::vector<uint64_t> subarray) {
     int buffer_size = _img_height * _img_width * _img_channels;
     _raw_data = new unsigned char[buffer_size];
 
-    read_query.set_buffer(_attributes[0], _raw_data, buffer_size);
+    read_query.set_data_buffer(_attributes[0], _raw_data, buffer_size);
     read_query.submit();
   }
 
@@ -705,9 +703,9 @@ void TDBImage::read_from_tdb(std::vector<uint64_t> subarray) {
     unsigned char *green_buffer = new unsigned char[buffer_size];
     unsigned char *red_buffer = new unsigned char[buffer_size];
 
-    read_query.set_buffer(_attributes[0], blue_buffer, buffer_size);
-    read_query.set_buffer(_attributes[1], green_buffer, buffer_size);
-    read_query.set_buffer(_attributes[2], red_buffer, buffer_size);
+    read_query.set_data_buffer(_attributes[0], blue_buffer, buffer_size);
+    read_query.set_data_buffer(_attributes[1], green_buffer, buffer_size);
+    read_query.set_data_buffer(_attributes[2], red_buffer, buffer_size);
 
     read_query.submit();
 

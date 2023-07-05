@@ -167,24 +167,22 @@ jobs:
             })
       - id: comp_diff
         run: |
-          echo "CPP_DIFF=$(echo '${{needs.coverage_job.outputs.target_coverage_cpp}}-${{needs.coverage_job.outputs.source_coverage_cpp}}' | bc )" >> $GITHUB_ENV
-          echo "PY_DIFF=$(echo '${{needs.coverage_job.outputs.target_coverage_py}}-${{needs.coverage_job.outputs.source_coverage_py}}' | bc )" >> $GITHUB_ENV
+          echo "CPP_DIFF=$(echo '${{ needs.coverage_job.outputs.target_coverage_cpp }}-${{ needs.coverage_job.outputs.source_coverage_cpp }}' | bc )" >> $GITHUB_ENV
+          echo "PY_DIFF=$(echo '${{ needs.coverage_job.outputs.target_coverage_py }}-${{ needs.coverage_job.outputs.source_coverage_py }}' | bc )" >> $GITHUB_ENV
       - name: Compare Coverage
         run: |
-          echo "Source CPP Coverage: ${{needs.coverage_job.outputs.source_coverage_cpp}}"
-          echo "Target CPP Coverage: ${{needs.coverage_job.outputs.target_coverage_cpp}}"
+          echo "Source CPP Coverage: ${{ needs.coverage_job.outputs.source_coverage_cpp }}"
+          echo "Target CPP Coverage: ${{ needs.coverage_job.outputs.target_coverage_cpp }}"
 
-          if ${{ steps.comp_diff.outputs.CPP_DIFF > 0.01  }}
-          then
+          if (( $(echo "${{ env.CPP_DIFF }} > 0.01" | bc -l) )); then
             echo 'CPP Coverage below CPP Target'
             exit 1
           fi
 
-          echo "Source Python Coverage: ${{needs.coverage_job.outputs.source_coverage_py}}"
-          echo "Target Python Coverage: ${{needs.coverage_job.outputs.target_coverage_py}}"
+          echo "Source Python Coverage: ${{ needs.coverage_job.outputs.source_coverage_py }}"
+          echo "Target Python Coverage: ${{ needs.coverage_job.outputs.target_coverage_py }}"
 
-          if ${{ steps.comp_diff.outputs.PY_DIFF > 0.01  }}
-          then
+          if (( $(echo "${{ env.PY_DIFF }} > 0.01" | bc -l) )); then
             echo 'Python Coverage below Target'
             exit 1
           fi

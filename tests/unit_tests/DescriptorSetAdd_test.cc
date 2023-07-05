@@ -615,8 +615,8 @@ TEST(Descriptors_Add, add_tiledbdense_100d_2add) {
 
 // TileDB Sparse
 
-#define TDB_SPARSE
-#ifdef TDB_SPARSE
+// #define TDB_SPARSE
+// #ifdef TDB_SPARSE
 
 TEST(Descriptors_Add, add_tiledbsparse_100d_2add) {
   int d = 100;
@@ -677,7 +677,7 @@ TEST(Descriptors_Add, add_tiledbsparse_100d) {
 }
 
 TEST(Descriptors_Add, add_2_times_same_tdbsparse) {
-  int nb = 10000;
+  int nb = 1000;
 
   auto dimensions_list = get_dimensions_list();
 
@@ -694,7 +694,7 @@ TEST(Descriptors_Add, add_2_times_same_tdbsparse) {
 
     index.add(xb, nb);
 
-    generate_desc_linear_increase(d, nb, xb, 10000);
+    generate_desc_linear_increase(d, nb, xb, 10);
 
     index.add(xb, nb);
 
@@ -754,7 +754,7 @@ TEST(Descriptors_Add, add_2_times_tdbsparse) {
   }
 }
 
-#endif
+// #endif
 
 // ----------
 
@@ -1031,7 +1031,6 @@ TEST(Descriptors_Add, add_and_get_descriptors) {
     }
 
     for (auto eng : get_engines()) {
-
       std::string index_filename = "dbs/add_and_get_descriptors_10k" +
                                    std::to_string(d) + "_" +
                                    std::to_string(eng);

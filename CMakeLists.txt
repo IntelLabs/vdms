@@ -1,4 +1,6 @@
 cmake_minimum_required (VERSION 3.17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+set(CMAKE_CXX_STANDARD 17)
 
 IF(CODE_COVERAGE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -coverage -fprofile-arcs -ftest-coverage")
@@ -41,27 +43,27 @@ else()
   link_directories(/usr/local/lib /usr/lib/x86_64-linux-gnu/)
   include_directories(/usr/include/jsoncpp utils/include/ src/pmgd/include src/pmgd/util include/ src/vcl /usr/include ${CMAKE_CURRENT_BINARY_DIR}/utils/src/protobuf)
   add_library(dms SHARED
-                        src/BoundingBoxCommand.cc
-                        src/BlobCommand.cc
-                        src/CommunicationManager.cc
-                        src/DescriptorsCommand.cc
-                        src/DescriptorsManager.cc
-                        src/ExceptionsCommand.cc
-                        src/ImageCommand.cc
-                        src/PMGDIterators.cc
-                        src/PMGDQuery.cc
-                        src/PMGDQueryHandler.cc
-                        src/QueryHandler.cc
-                        src/QueryMessage.cc
-                        src/RSCommand.cc
-                        src/SearchExpression.cc
-                        src/Server.cc
-                        src/VDMSConfig.cc
-                        src/VideoCommand.cc
-                        src/AutoDeleteNode.cc
-                        ${PROTO_SRCS} ${PROTO_HDRS}
-                        )
-  target_link_libraries(dms vcl pmgd pmgd-util protobuf vdms-utils pthread)
+    src/BoundingBoxCommand.cc
+    src/BlobCommand.cc
+    src/CommunicationManager.cc
+    src/DescriptorsCommand.cc
+    src/DescriptorsManager.cc
+    src/ExceptionsCommand.cc
+    src/ImageCommand.cc
+    src/PMGDIterators.cc
+    src/PMGDQuery.cc
+    src/PMGDQueryHandler.cc
+    src/QueryHandler.cc
+    src/QueryMessage.cc
+    src/RSCommand.cc
+    src/SearchExpression.cc
+    src/Server.cc
+    src/VDMSConfig.cc
+    src/VideoCommand.cc
+    src/AutoDeleteNode.cc
+    ${PROTO_SRCS} ${PROTO_HDRS}
+  )
+  target_link_libraries(dms vcl pmgd pmgd-util protobuf tbb tiledb vdms-utils pthread)
 
 
   add_executable(vdms src/vdms.cc)

@@ -412,7 +412,7 @@ private:
   /**
    *  Converts the VCL CompressionType to TileDB compression
    */
-  tiledb::Compressor convert_to_tiledb();
+  tiledb::Filter convert_to_tiledb();
 
   /**
    *  Determines the size of the TDBObject array as well as
