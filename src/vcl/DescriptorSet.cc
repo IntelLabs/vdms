@@ -29,9 +29,11 @@
  *
  */
 
+#include <filesystem>
 #include <iostream>
 #include <stdlib.h>
 #include <string>
+
 // clang-format off
 #include "vcl/DescriptorSet.h"
 #include "DescriptorSetData.h"
@@ -43,10 +45,13 @@
 
 #define INFO_FILE_NAME "eng_info.txt"
 
+namespace fs = std::filesystem;
+
 namespace VCL {
 
 DescriptorSet::DescriptorSet(const std::string &set_path) {
   read_set_info(set_path);
+  _remote = nullptr;
 
   if (_eng == DescriptorSetEngine(FaissFlat))
     _set = new FaissFlatDescriptorSet(set_path);
@@ -68,6 +73,8 @@ DescriptorSet::DescriptorSet(const std::string &set_path, unsigned dim,
                              DescriptorSetEngine eng, DistanceMetric metric,
                              VCL::DescriptorParams *param)
     : _eng(eng) {
+  _remote = nullptr;
+
   if (eng == DescriptorSetEngine(FaissFlat))
     _set = new FaissFlatDescriptorSet(set_path, dim, metric);
   else if (eng == DescriptorSetEngine(FaissIVFFlat))
@@ -169,6 +176,23 @@ void DescriptorSet::get_descriptors(long *ids, unsigned n,
 void DescriptorSet::store() {
   _set->store();
   write_set_info();
+
+  // grab the descriptor files from local storage, upload them, delete the local
+  // copies not deleting the local copies currently to resolve concurrency
+  // issues
+  if (_storage == Storage::AWS) {
+    std::string dir_path = _set->get_path();
+    std::vector<std::string> filenames;
+
+    for (const auto &file : fs::directory_iterator(dir_path)) {
+      filenames.push_back(file.path());
+    }
+
+    for (int i = 0; i < filenames.size(); i++) {
+      _remote->Write(filenames[i]);
+      // std::remove(filename.c_str());
+    }
+  }
 }
 
 void DescriptorSet::store(std::string set_path) {
@@ -277,4 +301,15 @@ std::vector<std::string> DescriptorSet::get_str_labels(DescIdVector &ids) {
   return _set->get_str_labels(ids.data(), ids.size());
 }
 
+void DescriptorSet::set_connection(RemoteConnection *remote) {
+  if (!remote->connected())
+    remote->start();
+
+  if (!remote->connected()) {
+    throw VCLException(SystemNotFound, "No remote connection started");
+  }
+
+  _remote = remote;
+  _storage = Storage::AWS;
+}
 } // namespace VCL

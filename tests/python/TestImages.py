@@ -28,7 +28,7 @@ import TestCommand
 
 
 class TestImages(TestCommand.TestCommand):
-    # Methos to insert one image
+    # Method to insert one image
     def insertImage(self, db, props=None, collections=None, format="png"):
         imgs_arr = []
         all_queries = []

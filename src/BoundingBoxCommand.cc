@@ -107,7 +107,9 @@ int UpdateBoundingBox::construct_protobuf(PMGDQuery &query,
 
 //========= FindBoundingBox definitions =========
 
-FindBoundingBox::FindBoundingBox() : RSCommand("FindBoundingBox") {}
+FindBoundingBox::FindBoundingBox() : RSCommand("FindBoundingBox") {
+  //_use_aws_storage = VDMSConfig::instance()->get_aws_flag();
+}
 
 int FindBoundingBox::construct_protobuf(PMGDQuery &query,
                                         const Json::Value &jsoncmd,
@@ -276,7 +278,13 @@ Json::Value FindBoundingBox::construct_responses(
         }
 
         try {
-          VCL::Image img(im_path);
+          std::string bucket_name = "";
+          if (_use_aws_storage) {
+            bucket_name = VDMSConfig::instance()->get_bucket_name();
+          }
+
+          VCL::Image img(im_path, bucket_name);
+
           img.crop(VCL::Rectangle(
               get_value<int>(coords, "x"), get_value<int>(coords, "y"),
               get_value<int>(coords, "w"), get_value<int>(coords, "h")));

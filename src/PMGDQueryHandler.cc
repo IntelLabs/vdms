@@ -80,7 +80,7 @@ PMGDQueryHandler::process_queries(const PMGDCmds &cmds, int num_groups,
       retry_count = PMGD_QUERY_RETRY_LIMIT; // exit retry loop
     } else {
       std::this_thread::sleep_for(std::chrono::milliseconds(
-          20 * retry_count)); // backoff but for a onger time each try
+          20 * retry_count)); // backoff but for a longer time each try
       retry_count++;
     }
   }

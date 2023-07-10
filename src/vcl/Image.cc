@@ -46,6 +46,8 @@ Image::Read::Read(const std::string &filename, Image::Format format)
     : Operation(format), _fullpath(filename) {}
 
 void Image::Read::operator()(Image *img) {
+  std::string typestr = img->_storage == Storage::LOCAL ? "LOCAL" : "AWS";
+
   if (_format == Image::Format::TDB) {
     if (img->_tdb == NULL)
       throw VCLException(TileDBNotFound, "Image::Format indicates image \
@@ -55,23 +57,33 @@ void Image::Read::operator()(Image *img) {
     img->_height = img->_tdb->get_image_height();
     img->_width = img->_tdb->get_image_width();
     img->_channels = img->_tdb->get_image_channels();
-  } else if (_format == Image::Format::BIN) {
-    FILE *bin_file;
-    bin_file = fopen(_fullpath.c_str(), "rb");
-    if (bin_file != NULL) {
-      img->_bin = (char *)malloc(sizeof(char) * img->_bin_size);
-      if (img->_bin != NULL)
-        fread(img->_bin, 1, img->_bin_size, bin_file);
-      fclose(bin_file);
+  } else if (img->_storage == Storage::LOCAL) {
+    if (_format == Image::Format::BIN) {
+      FILE *bin_file;
+      bin_file = fopen(_fullpath.c_str(), "rb");
+      if (bin_file != NULL) {
+        img->_bin = (char *)malloc(sizeof(char) * img->_bin_size);
+        if (img->_bin != NULL)
+          fread(img->_bin, 1, img->_bin_size, bin_file);
+        fclose(bin_file);
+      } else {
+        throw VCLException(OpenFailed, _fullpath + " could not be written");
+      }
     } else {
-      throw VCLException(OpenFailed, _fullpath + " could not be written");
+      cv::Mat img_read = cv::imread(_fullpath, cv::IMREAD_ANYCOLOR);
+      img->shallow_copy_cv(img_read);
+      if (img->_cv_img.empty())
+        throw VCLException(ObjectEmpty,
+                           _fullpath + " could not be read, object is empty");
     }
-  } else {
-    cv::Mat img_read = cv::imread(_fullpath, cv::IMREAD_ANYCOLOR);
-    img->shallow_copy_cv(img_read);
-    if (img->_cv_img.empty())
-      throw VCLException(ObjectEmpty, _fullpath + " could not be read, \
-                object is empty");
+  } else //_type == S3
+  {
+    std::vector<unsigned char> data = img->_remote->Read(_fullpath);
+    if (!data.empty())
+      img->deep_copy_cv(cv::imdecode(cv::Mat(data), cv::IMREAD_ANYCOLOR));
+    else
+      throw VCLException(
+          ObjectEmpty, _fullpath + " could not be read from RemoteConnection");
   }
 }
 
@@ -85,18 +97,30 @@ Image::Write::Write(const std::string &filename, Image::Format format,
       _fullpath(filename) {}
 
 void Image::Write::operator()(Image *img) {
-
   if (_format == Image::Format::TDB) {
     if (img->_tdb == NULL) {
-      img->_tdb = new TDBImage(_fullpath);
-      img->_tdb->set_compression(img->_compress);
+      if (img->_storage == Storage::LOCAL) {
+        img->_tdb = new TDBImage(_fullpath);
+        img->_tdb->set_compression(img->_compress);
+      } else if (img->_storage == Storage::AWS) {
+        img->_tdb = new TDBImage(_fullpath, *(img->_remote));
+      } else {
+        throw VCLException(
+            UnsupportedSystem,
+            "The system specified by the path is not supported currently");
+      }
     }
 
-    if (img->_tdb->has_data())
+    if (img->_tdb->has_data()) {
+      if (img->_storage == Storage::LOCAL) {
+        img->_tdb->set_configuration(img->_remote);
+      }
       img->_tdb->write(_fullpath, _metadata);
-    else
+    } else {
       img->_tdb->write(img->_cv_img, _metadata);
-  } else if (_format == Image::Format::BIN) {
+    }
+  } else if (_format == Image::Format::BIN) // TODO: Implement Remote
+  {
     FILE *bin_file;
     bin_file = fopen(_fullpath.c_str(), "wb");
     if (bin_file != NULL) {
@@ -112,12 +136,18 @@ void Image::Write::operator()(Image *img) {
     else
       cv_img = img->_cv_img;
 
-    if (!cv_img.empty())
-      cv::imwrite(_fullpath, cv_img);
-
-    else
-      throw VCLException(ObjectEmpty, _fullpath + " could not be written \
-                object is empty");
+    if (!cv_img.empty()) {
+      if (img->_storage == Storage::LOCAL) {
+        cv::imwrite(_fullpath, cv_img);
+      } else {
+        std::vector<unsigned char> data;
+        std::string ext = "." + img->format_to_string(_format);
+        cv::imencode(ext, cv_img, data);
+        img->_remote->Write(_fullpath, data);
+      }
+    } else
+      throw VCLException(ObjectEmpty,
+                         _fullpath + " could not be written, object is empty");
   }
 }
 
@@ -260,9 +290,18 @@ Image::Image() {
   _image_id = "";
   _bin = nullptr;
   _bin_size = 0;
+  _remote = nullptr;
 }
 
-Image::Image(const std::string &image_id) {
+Image::Image(const std::string &image_id, std::string bucket_name) {
+  _remote = nullptr;
+
+  if (bucket_name.length() != 0) {
+    VCL::RemoteConnection *connection = new VCL::RemoteConnection();
+    connection->_bucket_name = bucket_name;
+    set_connection(connection);
+  }
+
   _channels = 0;
   _height = 0;
   _width = 0;
@@ -291,6 +330,8 @@ Image::Image(const cv::Mat &cv_img, bool copy) {
     throw VCLException(ObjectEmpty, "Image object is empty");
   }
 
+  _remote = nullptr;
+
   if (copy)
     deep_copy_cv(cv_img);
   else
@@ -308,6 +349,7 @@ Image::Image(const cv::Mat &cv_img, bool copy) {
 Image::Image(void *buffer, long size, char binary_image_flag, int flags) {
   _bin = 0;
   _bin_size = 0;
+  _remote = nullptr;
 
   _tdb = nullptr;
   _bin = nullptr;
@@ -321,6 +363,7 @@ Image::Image(void *buffer, long size, char binary_image_flag, int flags) {
 Image::Image(void *buffer, cv::Size dimensions, int cv_type) {
   _bin = 0;
   _bin_size = 0;
+  _remote = nullptr;
 
   _height = dimensions.height;
   _width = dimensions.width;
@@ -338,6 +381,7 @@ Image::Image(void *buffer, cv::Size dimensions, int cv_type) {
 Image::Image(const Image &img, bool copy) {
   _bin = 0;
   _bin_size = 0;
+  _remote = nullptr;
 
   _height = img._height;
   _width = img._width;
@@ -379,6 +423,7 @@ Image::Image(const Image &img, bool copy) {
 Image::Image(Image &&img) noexcept {
   _bin = 0;
   _bin_size = 0;
+  _remote = nullptr;
 
   _format = img._format;
   _compress = img._compress;
@@ -704,6 +749,22 @@ void Image::set_minimum_dimension(int dimension) {
   }
 }
 
+void Image::set_connection(RemoteConnection *remote) {
+  if (!remote->connected())
+    remote->start();
+
+  if (!remote->connected()) {
+    throw VCLException(SystemNotFound, "No remote connection started");
+  }
+
+  _remote = remote;
+  _storage = Storage::AWS;
+
+  if (_tdb != NULL) {
+    _tdb->set_configuration(remote);
+  }
+}
+
 /*  *********************** */
 /*    IMAGE INTERACTIONS    */
 /*  *********************** */
@@ -742,6 +803,8 @@ void Image::delete_image() {
 
   if (exists(_image_id)) {
     std::remove(_image_id.c_str());
+  } else if (_remote != NULL) {
+    _remote->Remove_Object(_image_id);
   }
 }
 

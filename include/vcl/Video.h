@@ -55,6 +55,8 @@ class Video {
 public:
   enum Codec { NOCODEC = 0, MJPG, XVID, H263, H264, AVC1 };
 
+  // enum class Storage { LOCAL = 0, AWS = 1 };
+
   struct VideoSize {
     unsigned width;
     unsigned height;
@@ -66,6 +68,8 @@ public:
   enum OperationType { READ, WRITE, RESIZE, CROP, THRESHOLD, INTERVAL };
 
   enum OperationResult { PASS, CONTINUE, BREAK };
+
+  RemoteConnection *_remote; // Remote connection (if one exists)
 
   /*  *********************** */
   /*        CONSTRUCTORS      */
@@ -232,6 +236,12 @@ public:
    */
   void set_key_frame_list(KeyFrameList &key_frames);
 
+  /**
+   * Sets the RemoteConnection if AWS storage is being used
+   *
+   */
+  void set_connection(RemoteConnection *remote);
+
   /*  *********************** */
   /*    Video INTERACTIONS    */
   /*  *********************** */
@@ -345,6 +355,8 @@ private:
   KeyFrameList _key_frame_list;
 
   std::list<std::shared_ptr<Operation>> _operations;
+
+  Storage _storage = Storage::LOCAL;
 
   /*  *********************** */
   /*        OPERATION         */
@@ -640,5 +652,4 @@ protected:
    */
   void swap(Video &rhs) noexcept;
 };
-
 } // namespace VCL

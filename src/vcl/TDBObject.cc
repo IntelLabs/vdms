@@ -78,6 +78,27 @@ TDBObject::TDBObject(const std::string &object_id) : _config(NULL) {
   _extent = -1;
 }
 
+TDBObject::TDBObject(const std::string &object_id, RemoteConnection &connection)
+    : _config(NULL) {
+  set_config(&connection);
+
+  _num_dimensions = 0;
+  _tile_capacity = 0;
+
+  size_t pos = get_path_delimiter(object_id);
+
+  _group = get_group(object_id, pos);
+  _name = get_name(object_id, pos);
+
+  // set default values
+  _num_attributes = 1;
+  const char *attr = "value";
+  _attributes.push_back(attr);
+  _compressed = CompressionType::LZ4;
+  _min_tile_dimension = 4;
+  _extent = -1;
+}
+
 TDBObject::TDBObject(const TDBObject &tdb) : _config(NULL) {
   _num_dimensions = 0;
   _tile_capacity = 0;
@@ -243,6 +264,10 @@ template void TDBObject::set_single_attribute(std::string &attribute,
                                               unsigned char cell_val_num);
 
 void TDBObject::set_compression(CompressionType comp) { _compressed = comp; }
+
+void TDBObject::set_config(RemoteConnection *remote) {
+  // TODO: Implement this
+}
 
 /*  *********************** */
 /*  PROTECTED GET FUNCTIONS */

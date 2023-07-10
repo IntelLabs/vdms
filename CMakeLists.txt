@@ -9,10 +9,11 @@ IF(CODE_COVERAGE)
 ENDIF()
 
 project(vdms_application)
-add_compile_options(-g -fPIC)
+add_compile_options(-g -fPIC -std=c++17)
 
 find_package( OpenCV REQUIRED )
 find_package(Protobuf REQUIRED)
+find_package(AWSSDK REQUIRED COMPONENTS core s3)
 
 include_directories(${Protobuf_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -29,7 +30,6 @@ if (CLIENT)
   include_directories(utils)
   add_subdirectory(utils)
   add_subdirectory(client/cpp)
-
 
 else()
   add_subdirectory(src/pmgd)
@@ -65,7 +65,6 @@ else()
   )
   target_link_libraries(dms vcl pmgd pmgd-util protobuf tbb tiledb vdms-utils pthread)
 
-
   add_executable(vdms src/vdms.cc)
-  target_link_libraries(vdms dms vdms_protobuf vcl tiledb faiss flinng jsoncpp ${OpenCV_LIBS})
-endif ()
+  target_link_libraries(vdms dms vdms_protobuf vcl tiledb faiss flinng jsoncpp ${OpenCV_LIBS} ${AWSSDK_LINK_LIBRARIES})
+endif ()  

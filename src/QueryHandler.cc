@@ -543,7 +543,6 @@ void QueryHandler::reset_autoreplicate_init_flag() {
 void QueryHandler::set_autoreplicate_init_flag() {
   _autoreplicate_init = false;
 }
-
 void QueryHandler::reset_autodelete_init_flag() { _autodelete_init = false; }
 
 void QueryHandler::set_autodelete_init_flag() { _autodelete_init = true; }

@@ -51,6 +51,8 @@
 #define PARAM_DB_VIDEOS "videos_path"
 #define PARAM_DB_DESCRIPTORS "descriptors_path"
 #define PARAM_DB_TMP "tmp_path"
+#define PARAM_STORAGE_TYPE "storage_type"
+#define PARAM_BUCKET_NAME "bucket_name"
 
 #define PARAM_NODE_EXPIRATION "expiration_time"
 #define DEFAULT_NODE_EXPIRATION 0
@@ -97,6 +99,10 @@ private:
   std::string path_videos;
   std::string path_descriptors;
   std::string path_tmp;
+  std::string storage_type;
+
+  bool aws_flag;               // use aws flag
+  std::string aws_bucket_name; // aws bucket name
 
   VDMSConfig(std::string config_file);
 
@@ -123,6 +129,9 @@ public:
   const std::string &get_path_videos() { return path_videos; }
   const std::string &get_path_descriptors() { return path_descriptors; }
   const std::string &get_path_tmp() { return path_tmp; }
+  const std::string &get_storage_type() { return storage_type; }
+  const std::string &get_bucket_name() { return aws_bucket_name; }
+  const bool get_aws_flag() { return aws_flag; }
 };
 
 }; // namespace VDMS

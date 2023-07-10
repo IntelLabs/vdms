@@ -106,7 +106,10 @@ jobs:
           set -x
           mkdir -p coverage
           echo "${{ matrix.container_name }}"
-          docker run --rm -d -v ${PWD}:/local_repo --name ${{ matrix.container_name }} ${{ matrix.container_tag }}
+          docker run --rm -d -v ${PWD}:/local_repo --name ${{ matrix.container_name }} \
+            --env AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+            --env AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            ${{ matrix.container_tag }}
 
           docker exec ${{ matrix.container_name }} bash -c "cd / && ./run_coverage_cpp.sh && cd / && ./run_coverage_py.sh"
 

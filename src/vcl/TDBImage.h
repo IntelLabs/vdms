@@ -79,6 +79,8 @@ public:
    */
   TDBImage(const std::string &image_id);
 
+  TDBImage(const std::string &image_id, RemoteConnection &connection);
+
   /**
    *  Creates a TDBImage from a buffer of raw data
    *
@@ -165,6 +167,8 @@ public:
    *  @param channels  Number of channels in the image
    */
   void set_image_properties(int height, int width, int channels);
+
+  void set_configuration(RemoteConnection *remote);
 
   /*  *********************** */
   /*    TDBIMAGE INTERACTION  */

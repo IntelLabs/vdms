@@ -29,6 +29,7 @@
  *
  */
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 
@@ -38,6 +39,7 @@
 #include "defines.h"
 
 using namespace VDMS;
+namespace fs = std::filesystem;
 
 VideoCommand::VideoCommand(const std::string &cmd_name) : RSCommand(cmd_name) {}
 
@@ -103,6 +105,7 @@ Json::Value VideoCommand::check_responses(Json::Value &responses) {
 
 AddVideo::AddVideo() : VideoCommand("AddVideo") {
   _storage_video = VDMSConfig::instance()->get_path_videos();
+  //_use_aws_storage = VDMSConfig::instance()->get_aws_flag();
 }
 
 int AddVideo::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
@@ -115,6 +118,14 @@ int AddVideo::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
   const std::string from_server_file =
       get_value<std::string>(cmd, "from_server_file", "");
   VCL::Video video;
+
+  if (_use_aws_storage) {
+    VCL::RemoteConnection *connection = new VCL::RemoteConnection();
+    std::string bucket = VDMSConfig::instance()->get_bucket_name();
+    connection->_bucket_name = bucket;
+    video.set_connection(connection);
+  }
+
   if (from_server_file.empty())
     video = VCL::Video((void *)blob.data(), blob.size());
   else
@@ -153,6 +164,11 @@ int AddVideo::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
   VCL::Video::Codec vcl_codec = string_to_codec(codec);
 
   video.store(file_name, vcl_codec);
+
+  if (_use_aws_storage) {
+    video._remote->Write(file_name);
+    std::remove(file_name.c_str()); // remove the local copy of the file
+  }
 
   // Add key-frames (if extracted) as nodes connected to the video
   for (const auto &frame : frame_list) {
@@ -232,7 +248,9 @@ Json::Value UpdateVideo::construct_responses(Json::Value &responses,
 
 //========= FindVideo definitions =========
 
-FindVideo::FindVideo() : VideoCommand("FindVideo") {}
+FindVideo::FindVideo() : VideoCommand("FindVideo") {
+  //_use_aws_storage = VDMSConfig::instance()->get_aws_flag();
+}
 
 int FindVideo::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
                                   const std::string &blob, int grp_id,
@@ -290,6 +308,18 @@ Json::Value FindVideo::construct_responses(Json::Value &responses,
     try {
       if (!cmd.isMember("operations") && !cmd.isMember("container") &&
           !cmd.isMember("codec")) {
+        // grab the video from aws and put it where vdms expects it
+        if (_use_aws_storage) {
+          VCL::RemoteConnection *connection = new VCL::RemoteConnection();
+          std::string bucket = VDMSConfig::instance()->get_bucket_name();
+          connection->_bucket_name = bucket;
+          VCL::Video video(video_path);
+          video.set_connection(connection);
+          video._remote->Read_Video(
+              video_path); // this takes the file from aws and puts it back in
+                           // the local database location
+        }
+
         // Return video as is.
         std::ifstream ifile(video_path, std::ifstream::in);
         ifile.seekg(0, std::ios::end);
@@ -300,8 +330,11 @@ Json::Value FindVideo::construct_responses(Json::Value &responses,
         video_str->resize(encoded_size);
         ifile.read((char *)(video_str->data()), encoded_size);
         ifile.close();
-      } else {
 
+        if (_use_aws_storage) {
+          bool result = fs::remove(video_path);
+        }
+      } else {
         VCL::Video video(video_path);
 
         if (cmd.isMember("operations")) {
@@ -352,7 +385,9 @@ Json::Value FindVideo::construct_responses(Json::Value &responses,
 
 //========= FindFrames definitions =========
 
-FindFrames::FindFrames() : VideoCommand("FindFrames") {}
+FindFrames::FindFrames() : VideoCommand("FindFrames") {
+  //_use_aws_storage = VDMSConfig::instance()->get_aws_flag();
+}
 
 bool FindFrames::get_interval_index(const Json::Value &cmd,
                                     Json::ArrayIndex &op_index) {
@@ -471,6 +506,18 @@ Json::Value FindFrames::construct_responses(Json::Value &responses,
 
       VCL::Video video(video_path);
 
+      // grab the video from aws here if necessary
+      if (_use_aws_storage) {
+        VCL::RemoteConnection *connection = new VCL::RemoteConnection();
+        std::string bucket = VDMSConfig::instance()->get_bucket_name();
+        connection->_bucket_name = bucket;
+        VCL::Video video(video_path);
+        video.set_connection(connection);
+        video._remote->Read_Video(
+            video_path); // this takes the file from aws and puts it back in the
+                         // local database location
+      }
+
       // By default, return frames as PNGs
       VCL::Image::Format format = VCL::Image::Format::PNG;
 
@@ -510,6 +557,11 @@ Json::Value FindFrames::construct_responses(Json::Value &responses,
           return_error["info"] = "Image Data not found";
           return error(return_error);
         }
+      }
+
+      // delete the video from local storage here, done with it for now
+      if (_use_aws_storage) {
+        std::remove(video_path.c_str());
       }
     }
 

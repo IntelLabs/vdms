@@ -43,7 +43,9 @@
 
 using namespace VDMS;
 
-RSCommand::RSCommand(const std::string &cmd_name) : _cmd_name(cmd_name) {}
+RSCommand::RSCommand(const std::string &cmd_name) : _cmd_name(cmd_name) {
+  _use_aws_storage = VDMSConfig::instance()->get_aws_flag();
+}
 
 Json::Value RSCommand::construct_responses(Json::Value &response,
                                            const Json::Value &json,

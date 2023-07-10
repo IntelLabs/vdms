@@ -39,6 +39,7 @@
 #include <vector>
 
 #include "vcl/Exception.h"
+#include "vcl/RemoteConnection.h"
 #include "vcl/utils.h"
 #include <tiledb/tiledb>
 
@@ -101,6 +102,8 @@ public:
    *  @param object_id  The path of the TDBObject
    */
   TDBObject(const std::string &object_id);
+
+  TDBObject(const std::string &object_id, RemoteConnection &connection);
 
   /**
    *  Creates a TDBObject from an existing TDBObject
@@ -228,6 +231,8 @@ public:
    *  @see Image.h for details on CompressionType
    */
   void set_compression(CompressionType comp);
+
+  void set_config(RemoteConnection *remote);
 
   /**
    *  Sets the tile extents in the TDBObject

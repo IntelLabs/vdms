@@ -88,6 +88,7 @@ class AddDescriptorSet : public DescriptorsCommand {
       _flinng_sub_hash_bits; // sub_hash_bits * hashes_per_table must be
                              // less than 32, otherwise segfault will happen
   uint64_t _flinng_cut_off;
+  // bool _use_aws_storage;
 
 public:
   AddDescriptorSet();
@@ -103,8 +104,12 @@ public:
 };
 
 class AddDescriptor : public DescriptorsCommand {
+  // bool _use_aws_storage;
+
   long insert_descriptor(const std::string &blob, const std::string &path,
                          int dim, const std::string &label, Json::Value &error);
+
+  void retrieve_aws_descriptorSet(const std::string &set_path);
 
 public:
   AddDescriptor();

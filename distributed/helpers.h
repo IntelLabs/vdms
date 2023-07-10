@@ -81,8 +81,7 @@ std::string query_body(std::string &query,
             << msg_image.length() << std::endl;
   msg_image[msg_image.length() - 1] = '\0';
   proto_query.SerializeToArray((void *)msg_image.data(), msg_image.length());
-std:
-  string t(msg_image.begin(), msg_image.end());
+  std::string t(msg_image.begin(), msg_image.end());
   return t;
 }
 

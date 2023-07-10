@@ -58,6 +58,8 @@ public:
 };
 
 class FindBoundingBox : public RSCommand {
+  // bool _use_aws_storage;
+
 public:
   FindBoundingBox();
 

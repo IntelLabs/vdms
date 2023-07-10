@@ -66,6 +66,8 @@ public:
     NotUnique = 3
   };
 
+  bool _use_aws_storage;
+
   RSCommand(const std::string &cmd_name);
 
   virtual bool need_blob(const Json::Value &cmd) { return false; }

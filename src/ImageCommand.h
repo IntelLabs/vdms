@@ -67,6 +67,7 @@ class AddImage : public ImageCommand {
   std::string _storage_png;
   std::string _storage_jpg;
   std::string _storage_bin;
+  // bool _use_aws_storage;
 
 public:
   AddImage();
@@ -91,6 +92,8 @@ public:
 };
 
 class FindImage : public ImageCommand {
+  // bool _use_aws_storage;
+
 public:
   FindImage();
   int construct_protobuf(PMGDQuery &tx, const Json::Value &root,

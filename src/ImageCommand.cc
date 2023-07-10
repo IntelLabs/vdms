@@ -107,6 +107,7 @@ AddImage::AddImage() : ImageCommand("AddImage") {
   _storage_png = VDMSConfig::instance()->get_path_png();
   _storage_jpg = VDMSConfig::instance()->get_path_jpg();
   _storage_bin = VDMSConfig::instance()->get_path_bin();
+  //_use_aws_storage = VDMSConfig::instance()->get_aws_flag();
 }
 
 int AddImage::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
@@ -124,6 +125,13 @@ int AddImage::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
   }
 
   VCL::Image img((void *)blob.data(), blob.size(), binary_img_flag);
+  if (_use_aws_storage) {
+    VCL::RemoteConnection *connection = new VCL::RemoteConnection();
+    std::string bucket = VDMSConfig::instance()->get_bucket_name();
+    connection->_bucket_name = bucket;
+    img.set_connection(connection);
+  }
+
   if (cmd.isMember("operations")) {
     operation_flags = enqueue_operations(img, cmd["operations"]);
   }
@@ -200,7 +208,9 @@ int UpdateImage::construct_protobuf(PMGDQuery &query,
 
 //========= FindImage definitions =========
 
-FindImage::FindImage() : ImageCommand("FindImage") {}
+FindImage::FindImage() : ImageCommand("FindImage") {
+  //_use_aws_storage = VDMSConfig::instance()->get_aws_flag();
+}
 
 int FindImage::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
                                   const std::string &blob, int grp_id,
@@ -209,7 +219,7 @@ int FindImage::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
 
   Json::Value results = get_value<Json::Value>(cmd, "results");
 
-  // Unless otherwhis specified, we return the blob.
+  // Unless otherwise specified, we return the blob.
   if (get_value<bool>(results, "blob", true)) {
     results["list"].append(VDMS_IM_PATH_PROP);
   }
@@ -270,6 +280,13 @@ Json::Value FindImage::construct_responses(Json::Value &responses,
 
       try {
         VCL::Image img(im_path);
+
+        if (_use_aws_storage) {
+          VCL::RemoteConnection *connection = new VCL::RemoteConnection();
+          std::string bucket = VDMSConfig::instance()->get_bucket_name();
+          connection->_bucket_name = bucket;
+          img.set_connection(connection);
+        }
 
         if (cmd.isMember("operations")) {
           operation_flags = enqueue_operations(img, cmd["operations"]);

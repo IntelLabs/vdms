@@ -29,7 +29,7 @@ import unittest
 
 
 class TestVideos(TestCommand.TestCommand):
-    # Methos to insert one image
+    # Method to insert one video
     def insertVideo(self, db, props=None):
         video_arr = []
         all_queries = []

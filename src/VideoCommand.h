@@ -62,8 +62,8 @@ public:
 
 class AddVideo : public VideoCommand {
   const std::string DEFAULT_VIDEO_PATH = "videos/database";
-
   std::string _storage_video;
+  // bool _use_aws_storage;
 
 public:
   AddVideo();
@@ -95,6 +95,8 @@ public:
 };
 
 class FindVideo : public VideoCommand {
+  // bool _use_aws_storage;
+
 public:
   FindVideo();
 
@@ -109,6 +111,7 @@ public:
 };
 
 class FindFrames : public VideoCommand {
+  // bool _use_aws_storage;
   bool get_interval_index(const Json::Value &cmd, Json::ArrayIndex &op_index);
 
 public:

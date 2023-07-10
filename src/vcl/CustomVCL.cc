@@ -5,7 +5,6 @@ int custom_vcl_function(VCL::Image &img, const Json::Value &ops) {
   // create IPC structures for communicating between processes
   key_t key_ctl_host_remote;
   key_ctl_host_remote = ftok("vdms", 60);
-
   int msgid_ctl_host_remote = msgget(key_ctl_host_remote, 0666 | IPC_CREAT);
   data_message message_ctl_host_remote;
   // need size of data message excluding message_type field for msgsnd and

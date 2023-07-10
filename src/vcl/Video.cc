@@ -41,13 +41,17 @@ using namespace VCL;
 Video::Video()
     : _size({.width = 0, .height = 0, .frame_count = 0}), _fps(0),
       _video_id(""), _flag_stored(true), _codec(Video::Codec::NOCODEC),
-      _video_read(nullptr) {}
+      _video_read(nullptr), _remote(nullptr) {}
 
-Video::Video(const std::string &video_id) : Video() { _video_id = video_id; }
+Video::Video(const std::string &video_id) : Video() {
+  _video_id = video_id;
+  _remote = nullptr;
+}
 
 Video::Video(void *buffer, long size) : Video() {
   std::string uname = create_unique("/tmp/tmp/", "vclvideoblob");
   std::ofstream outfile(uname, std::ofstream::binary);
+  _remote = nullptr;
 
   if (outfile.is_open()) {
     outfile.write((char *)buffer, size);
@@ -60,6 +64,7 @@ Video::Video(void *buffer, long size) : Video() {
 
 Video::Video(const Video &video) {
   _video_id = video._video_id;
+  _remote = nullptr;
 
   _size = video._size;
 
@@ -323,6 +328,18 @@ void Video::swap(Video &rhs) noexcept {
   swap(_video_read, rhs._video_read);
 }
 
+void Video::set_connection(RemoteConnection *remote) {
+  if (!remote->connected())
+    remote->start();
+
+  if (!remote->connected()) {
+    throw VCLException(SystemNotFound, "No remote connection started");
+  }
+
+  _remote = remote;
+  _storage = Storage::AWS;
+}
+
 /*  *********************** */
 /*   VIDEO INTERACTION      */
 /*  *********************** */
@@ -548,13 +565,15 @@ Video::OperationResult Video::Write::operator()(int index) {
 }
 
 void Video::Write::finalize() {
-  if (!_outputVideo.isOpened()) {
-    _outputVideo.release();
+  if (_video->_storage == Storage::LOCAL) {
+    if (!_outputVideo.isOpened()) {
+      _outputVideo.release();
 
-    _video->_video_id = _outname;
-    _video->_codec = _codec;
-    _video->_flag_stored = true;
-    _video->_size.frame_count = _frame_count;
+      _video->_video_id = _outname;
+      _video->_codec = _codec;
+      _video->_flag_stored = true;
+      _video->_size.frame_count = _frame_count;
+    }
   }
 }
 

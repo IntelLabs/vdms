@@ -666,8 +666,7 @@ TEST_F(VideoTest, KeyFrameDecodingSuccess) {
 
     video_data.set_key_frame_list(key_frame_list);
 
-  std:
-    vector<unsigned> frame_query = {15, 30, 110, 150};
+    std::vector<unsigned> frame_query = {15, 30, 110, 150};
     int first_query_len = frame_query.size();
 
     std::vector<cv::Mat> mat_list = video_data.get_frames(frame_query);

@@ -36,6 +36,8 @@
 
 #include "DescriptorParams.h"
 #include "Exception.h"
+#include "RemoteConnection.h"
+#include "utils.h"
 #include <map>
 #include <string>
 #include <vector>
@@ -51,6 +53,7 @@ enum DescriptorSetEngine {
 };
 
 enum DistanceMetric { L2, IP };
+// enum class Storage { LOCAL = 0, AWS = 1 };
 
 class DescriptorSet {
 
@@ -67,6 +70,9 @@ public:
 private:
   DescriptorSetData *_set;
   DescriptorSetEngine _eng;
+
+  RemoteConnection *_remote;
+  Storage _storage = Storage::LOCAL;
 
   void write_set_info();
   void read_set_info(const std::string &set_path);
@@ -354,5 +360,13 @@ public:
    *  @return vector with the string labels
    */
   long get_label_id(const std::string &label);
+
+  /**
+   * Set the remote connection used to write to AWS
+   *
+   *  @param remote pointer to RemoteConnection object
+   *  @return void
+   */
+  void set_connection(RemoteConnection *remote);
 };
 }; // namespace VCL

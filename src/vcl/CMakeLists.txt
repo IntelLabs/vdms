@@ -23,6 +23,7 @@ add_library(vcl SHARED
     utils.cc
     Video.cc
     CustomVCL.cc
+    RemoteConnection.cc
 )
 link_directories( /usr/local/lib )
 target_link_libraries(vcl lapack faiss tiledb flinng avformat avcodec swscale ${OpenCV_LIBS})

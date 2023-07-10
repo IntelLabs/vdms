@@ -4,6 +4,8 @@ cd /vdms/tests
 
 chmod +x run_tests.sh
 ./run_tests.sh
+chmod +x run_aws_tests.sh
+./run_aws_tests.sh
 
 gcovr --root /vdms \
     -e /vdms/src/pmgd -e /vdms/build -e /vdms/distributed -e /vdms/tests \

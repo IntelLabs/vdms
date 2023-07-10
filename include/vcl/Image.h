@@ -42,6 +42,7 @@
 #include <opencv2/imgproc.hpp>
 
 #include "Exception.h"
+#include "RemoteConnection.h"
 #include "TDBImage.h"
 #include "utils.h"
 
@@ -57,6 +58,8 @@ class Image {
 public:
   enum class Format { NONE_IMAGE = 0, JPG = 1, PNG = 2, TDB = 3, BIN = 4 };
 
+  // enum class Storage { LOCAL = 0, AWS = 1 };
+
   /*  *********************** */
   /*        CONSTRUCTORS      */
   /*  *********************** */
@@ -66,8 +69,10 @@ public:
    *    image data can be found in the system).
    *
    *  @param image_id  The full path to the image
+   *  @param bucket_name  Optional parameter for bucket name if using AWS
+   *  storage
    */
-  Image(const std::string &image_id);
+  Image(const std::string &image_id, std::string bucket_name = "");
 
   /**
    *  Creates an Image object from the OpenCV Mat
@@ -238,6 +243,8 @@ public:
 
   void set_minimum_dimension(int dimension);
 
+  void set_connection(RemoteConnection *remote);
+
   /*  *********************** */
   /*    IMAGE INTERACTIONS    */
   /*  *********************** */
@@ -371,9 +378,13 @@ private:
   // Maintains order of operations requested
   std::vector<std::shared_ptr<Operation>> _operations;
 
+  // Remote connection (if one exists)
+  RemoteConnection *_remote;
+
   // Image format and compression type
   Format _format;
   CompressionType _compress;
+  Storage _storage = Storage::LOCAL;
 
   // Full path to image
   std::string _image_id;

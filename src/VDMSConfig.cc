@@ -53,6 +53,8 @@
 #define DEFAULT_PATH_VIDEOS "videos"
 #define DEFAULT_PATH_DESCRIPTORS "descriptors"
 #define DEFAULT_PATH_TMP "tmp"
+#define DEFAULT_STORAGE_TYPE "local"
+#define DEFAULT_BUCKET_NAME "vdms_bucket"
 
 using namespace VDMS;
 
@@ -249,4 +251,13 @@ void VDMSConfig::build_dirs() {
   path_tmp = get_string_value(PARAM_DB_TMP, path_tmp);
   check_or_create(path_tmp);
   create_directory_layer(&directory_list, path_tmp);
+
+  // get storage type, set use_aws flag
+  storage_type = get_string_value(PARAM_STORAGE_TYPE, DEFAULT_STORAGE_TYPE);
+  if (storage_type == DEFAULT_STORAGE_TYPE) {
+    aws_flag = false;
+  } else {
+    aws_flag = true;
+    aws_bucket_name = get_string_value(PARAM_BUCKET_NAME, DEFAULT_BUCKET_NAME);
+  }
 }

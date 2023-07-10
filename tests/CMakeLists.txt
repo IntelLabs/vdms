@@ -15,11 +15,13 @@ project(tests
 )
 find_package( OpenCV REQUIRED )
 find_package( Threads REQUIRED )
+find_package(AWSSDK REQUIRED COMPONENTS core s3)
 
-link_directories(/usr/local/lib /usr/lib/x86_64-linux-gnu/)
+link_directories(/usr/local/lib/ /usr/lib/x86_64-linux-gnu/)
 include_directories(
     ../src
     ../include/
+    ../include/vcl
     ../utils/include/
     ../src/vcl
     /usr/include/jsoncpp
@@ -36,6 +38,7 @@ add_executable(unit_tests
     unit_tests/helpers.cc
     unit_tests/TDBImage_test.cc
     unit_tests/Image_test.cc
+    unit_tests/RemoteConnection_test.cc
     unit_tests/Video_test.cc
     unit_tests/DescriptorSetAdd_test.cc
     unit_tests/DescriptorSetClassify_test.cc
@@ -71,4 +74,5 @@ target_link_libraries(unit_tests
     vdms-utils
     ${CMAKE_THREAD_LIBS_INIT}
     ${OpenCV_LIBS}
+    ${AWSSDK_LINK_LIBRARIES}
 )

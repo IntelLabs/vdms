@@ -29,6 +29,7 @@
  *
  */
 
+#include <filesystem>
 #include <iostream>
 
 #include "DescriptorsCommand.h"
@@ -39,6 +40,7 @@
 #include "vcl/utils.h"
 
 using namespace VDMS;
+namespace fs = std::filesystem;
 
 DescriptorsCommand::DescriptorsCommand(const std::string &cmd_name)
     : RSCommand(cmd_name) {
@@ -113,6 +115,8 @@ AddDescriptorSet::AddDescriptorSet() : DescriptorsCommand("AddDescriptorSet") {
   _flinng_hashes_per_table = 14;
   _flinng_sub_hash_bits = 2;
   _flinng_cut_off = 6;
+
+  //_use_aws_storage = VDMSConfig::instance()->get_aws_flag();
 }
 
 int AddDescriptorSet::construct_protobuf(PMGDQuery &query,
@@ -200,16 +204,27 @@ Json::Value AddDescriptorSet::construct_responses(
 
   // We can probably set up a mechanism
   // to fix a broken link when detected later, same with images.
+  VCL::DescriptorParams *param = nullptr;
   try {
-    VCL::DescriptorParams param(_flinng_num_rows, _flinng_cells_per_row,
-                                _flinng_num_hash_tables,
-                                _flinng_hashes_per_table);
-    VCL::DescriptorSet desc_set(desc_set_path, dimensions, eng, metric, &param);
+    param = new VCL::DescriptorParams(_flinng_num_rows, _flinng_cells_per_row,
+                                      _flinng_num_hash_tables,
+                                      _flinng_hashes_per_table);
+    VCL::DescriptorSet desc_set(desc_set_path, dimensions, eng, metric, param);
+
+    if (_use_aws_storage) {
+      VCL::RemoteConnection *connection = new VCL::RemoteConnection();
+      std::string bucket = VDMSConfig::instance()->get_bucket_name();
+      connection->_bucket_name = bucket;
+      desc_set.set_connection(connection);
+    }
+
     desc_set.store();
+    delete (param);
   } catch (VCL::Exception e) {
     print_exception(e);
     resp["status"] = RSCommand::Error;
     resp["info"] = std::string("VCL Exception: ") + e.msg;
+    delete (param);
     return error(resp);
   }
 
@@ -222,7 +237,9 @@ Json::Value AddDescriptorSet::construct_responses(
 
 // AddDescriptor Methods
 
-AddDescriptor::AddDescriptor() : DescriptorsCommand("AddDescriptor") {}
+AddDescriptor::AddDescriptor() : DescriptorsCommand("AddDescriptor") {
+  //_use_aws_storage = VDMSConfig::instance()->get_aws_flag();
+}
 
 long AddDescriptor::insert_descriptor(const std::string &blob,
                                       const std::string &set_path, int dim,
@@ -259,6 +276,32 @@ long AddDescriptor::insert_descriptor(const std::string &blob,
   return id_first;
 }
 
+void AddDescriptor::retrieve_aws_descriptorSet(const std::string &set_path) {
+  // check if folder already exists at path, if so, don't even try to hit AWS
+  if (fs::exists(set_path)) {
+    return;
+  }
+
+  VCL::RemoteConnection *connection = new VCL::RemoteConnection();
+  std::string bucket = VDMSConfig::instance()->get_bucket_name();
+  connection->_bucket_name = bucket;
+
+  if (!connection->connected()) {
+    connection->start();
+  }
+  if (!connection->connected()) {
+    throw VCLException(SystemNotFound, "No remote connection started");
+  }
+
+  std::vector<std::string> files = connection->ListFilesInFolder(set_path);
+  for (auto file : files) {
+    // if file isn't already on disk, retrieve it from AWS
+    if (!fs::exists(file)) {
+      connection->RetrieveFile(file);
+    }
+  }
+}
+
 int AddDescriptor::construct_protobuf(PMGDQuery &query,
                                       const Json::Value &jsoncmd,
                                       const std::string &blob, int grp_id,
@@ -281,10 +324,24 @@ int AddDescriptor::construct_protobuf(PMGDQuery &query,
     return -1;
   }
 
+  // retrieve the descriptor set from AWS here
+  // operations are currently done in memory with no subsequent write to disk
+  // so there's no need to re-upload to AWS
+  if (_use_aws_storage) {
+    retrieve_aws_descriptorSet(set_path);
+  }
+
   long id = insert_descriptor(blob, set_path, dimensions, label, error);
 
   if (id < 0) {
     error["status"] = RSCommand::Error;
+
+    if (_use_aws_storage) {
+      // delete files in set_path
+      std::uintmax_t n = fs::remove_all(set_path);
+      std::cout << "Deleted " << n << " files or directories\n";
+    }
+
     return -1;
   }
 
@@ -322,6 +379,15 @@ int AddDescriptor::construct_protobuf(PMGDQuery &query,
 
   Json::Value props_edge;
   query.AddEdge(-1, set_ref, node_ref, VDMS_DESC_SET_EDGE_TAG, props_edge);
+
+  // TODO: deleting files here causes problems with concurrency (TestRetail.py)
+  // keeping local copies as a temporary solution
+  // if(_use_aws_storage)
+  // {
+  //     //delete files in set_path
+  //     std::uintmax_t n = fs::remove_all(set_path);
+  //     std::cout << "Deleted " << n << " files or directories\n";
+  // }
 
   return 0;
 }
