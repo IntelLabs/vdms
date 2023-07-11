@@ -15,7 +15,7 @@ sudo apt-get -y install --no-install-recommends apt-transport-https autoconf aut
     libleveldb-dev liblmdb-dev liblz4-dev libopenblas-dev libopenmpi-dev \
     libpng-dev librdkafka-dev libsnappy-dev libssl-dev libswscale-dev libtbb-dev \
     libtbb2 libtiff-dev libtiff5-dev libtool mpich openjdk-11-jdk-headless \
-    pkg-config python3-dev python3-pip unzip
+    pkg-config python3-dev python3-pip unzip libzmq3-dev libcurl4-openssl-dev
 pip install --no-cache-dir "numpy>=1.23.2" "setuptools>=65.5.1"
 ```
 ### Clone/Download Dependencies

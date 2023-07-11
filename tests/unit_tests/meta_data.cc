@@ -167,6 +167,23 @@ Json::Value Meta_Data::construct_find_image() {
   return tuple;
 }
 
+Json::Value Meta_Data::construct_find_image_withop(Json::Value operations) {
+  Json::Value tuple;
+
+  Json::Value results;
+  results["blob"] = true;
+
+  Json::Value image;
+  image["results"] = results;
+  image["operations"] = operations;
+
+  Json::Value find_image;
+  find_image["FindImage"] = image;
+
+  tuple.append(find_image);
+  return tuple;
+}
+
 std::string *Meta_Data::read_blob(std::string &fname) {
   std::string video;
   std::ifstream video_file(fname,

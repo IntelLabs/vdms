@@ -27,6 +27,8 @@
  *
  */
 
+#include "ImageLoop.h"
+#include "stats/SystemStats.h"
 #include "vcl/Image.h"
 #include "gtest/gtest.h"
 
@@ -785,4 +787,77 @@ TEST_F(ImageTest, NoMetadata) {
   tdbimg.set_dimensions(dims);
 
   cv::Mat mat = tdbimg.get_cvmat();
+}
+
+TEST_F(ImageTest, SyncRemote) {
+  VCL::Image img(img_);
+
+  cv::Mat cv_img_flipped = cv::imread("../remote_function_test/syncremote.jpg");
+
+  std::string _url = "http://localhost:5010/image";
+  Json::Value _options;
+  _options["format"] = "jpg";
+  _options["id"] = "flip";
+  img.syncremoteOperation(_url, _options);
+  cv::Mat vcl_img_flipped = img.get_cvmat();
+
+  EXPECT_FALSE(vcl_img_flipped.empty());
+  compare_mat_mat(vcl_img_flipped, cv_img_flipped);
+}
+
+TEST_F(ImageTest, UDF) {
+  SystemStats systemStats;
+  VCL::Image img(img_);
+
+  cv::Mat cv_img_flipped = cv::imread("../udf_test/syncremote.jpg");
+
+  Json::Value _options;
+  _options["format"] = "jpg";
+  _options["id"] = "flip";
+  _options["port"] = 5555;
+  img.userOperation(_options);
+  cv::Mat vcl_img_flipped = img.get_cvmat();
+
+  systemStats.log_stats("TestUDF");
+
+  FILE *f = fopen(systemStats.logFileName.data(), "r");
+  ASSERT_TRUE(f != NULL);
+
+  if (f) {
+    fclose(f);
+  }
+
+  EXPECT_FALSE(vcl_img_flipped.empty());
+  compare_mat_mat(vcl_img_flipped, cv_img_flipped);
+}
+
+TEST_F(ImageTest, ImageLoop) {
+  VCL::Image img(img_);
+  ImageLoop imageLoop;
+
+  std::string _url = "http://localhost:5010/image";
+  Json::Value _options;
+  _options["format"] = "jpg";
+  _options["id"] = "flip";
+
+  img.flip(0);
+  img.remoteOperation(_url, _options);
+
+  imageLoop.set_nrof_entities(1);
+
+  imageLoop.enqueue(&img);
+
+  while (imageLoop.is_loop_running()) {
+    continue;
+  }
+
+  std::map<std::string, VCL::Image *> imageMap = imageLoop.get_image_map();
+  std::map<std::string, VCL::Image *>::iterator iter = imageMap.begin();
+
+  while (iter != imageMap.end()) {
+    std::vector<unsigned char> img_enc =
+        iter->second->get_encoded_image_async(img.get_image_format());
+    ASSERT_TRUE(!img_enc.empty());
+    iter++;
+  }
 }

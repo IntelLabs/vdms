@@ -75,3 +75,72 @@ TEST(CLIENT_CPP, find_image) {
   int status1 = result[0]["FindImage"]["status"].asInt();
   EXPECT_EQ(status1, 0);
 }
+
+TEST(CLIENT_CPP, find_image_remote) {
+
+  Meta_Data *meta_obj = new Meta_Data();
+  meta_obj->_aclient.reset(
+      new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
+  Json::Value tuple;
+  Json::Value op;
+  op["type"] = "remoteOp";
+  op["url"] = "http://localhost:5010/image";
+  op["options"]["id"] = "flip";
+  op["options"]["format"] = "jpg";
+  tuple = meta_obj->construct_find_image_withop(op);
+
+  VDMS::Response response =
+      meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple));
+  Json::Value result;
+  meta_obj->_reader.parse(response.json.c_str(), result);
+
+  int status1 = result[0]["FindImage"]["status"].asInt();
+  EXPECT_EQ(status1, 0);
+  delete meta_obj;
+}
+
+TEST(CLIENT_CPP, find_image_syncremote) {
+
+  Meta_Data *meta_obj = new Meta_Data();
+  meta_obj->_aclient.reset(
+      new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
+  Json::Value tuple;
+  Json::Value op;
+  op["type"] = "syncremoteOp";
+  op["url"] = "http://localhost:5010/image";
+  op["options"]["id"] = "flip";
+  op["options"]["format"] = "jpg";
+  tuple = meta_obj->construct_find_image_withop(op);
+
+  VDMS::Response response =
+      meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple));
+  Json::Value result;
+  meta_obj->_reader.parse(response.json.c_str(), result);
+
+  int status1 = result[0]["FindImage"]["status"].asInt();
+  EXPECT_EQ(status1, 0);
+  delete meta_obj;
+}
+
+TEST(CLIENT_CPP, find_image_udf) {
+
+  Meta_Data *meta_obj = new Meta_Data();
+  meta_obj->_aclient.reset(
+      new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
+  Json::Value tuple;
+  Json::Value op;
+  op["type"] = "userOp";
+  op["options"]["id"] = "flip";
+  op["options"]["format"] = "jpg";
+  op["options"]["port"] = 5555;
+  tuple = meta_obj->construct_find_image_withop(op);
+
+  VDMS::Response response =
+      meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple));
+  Json::Value result;
+  meta_obj->_reader.parse(response.json.c_str(), result);
+
+  int status1 = result[0]["FindImage"]["status"].asInt();
+  EXPECT_EQ(status1, 0);
+  delete meta_obj;
+}

@@ -22,8 +22,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends software-proper
     libgtk-3-dev libgtk2.0-dev libhdf5-serial-dev libjpeg-dev libjpeg8-dev libjsoncpp-dev \
     libleveldb-dev liblmdb-dev liblz4-dev libopenblas-dev libopenmpi-dev \
     libpng-dev librdkafka-dev libsnappy-dev libssl-dev libswscale-dev libtbb-dev \
-    libtbb2 libtiff-dev libtiff5-dev libtool maven mpich openjdk-11-jdk-headless \
-    libcurl4-openssl-dev uuid-dev zlib1g-dev libpulse-dev \
+    libtbb2 libtiff-dev libtiff5-dev libtool mpich openjdk-11-jdk-headless \
+    libcurl4-openssl-dev uuid-dev zlib1g-dev libpulse-dev libzmq3-dev \
     pkg-config python3-dev python3-pip unzip && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
     update-alternatives --install /usr/bin/python python /usr/bin/python3 1 && \

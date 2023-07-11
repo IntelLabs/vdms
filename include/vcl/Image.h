@@ -5,7 +5,7 @@
  *
  * The MIT License
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2023 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,13 +38,18 @@
 #include <string>
 
 #include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
+#include <opencv2/objdetect.hpp>
 
 #include "Exception.h"
 #include "RemoteConnection.h"
 #include "TDBImage.h"
 #include "utils.h"
+#include <curl/curl.h>
+#include <jsoncpp/json/value.h>
+#include <zmq.hpp>
 
 namespace VCL {
 
@@ -145,9 +150,11 @@ public:
   /**
    *  Gets the dimensions of the image in pixels (width, height) using
    *    an OpenCV Size object
+   *  @param performOp Specify if operations should be performed first. Default
+   * is true.
    *  @return The dimension of the image in pixels as an OpenCV Size object
    */
-  cv::Size get_dimensions();
+  cv::Size get_dimensions(bool performOp = true);
 
   /**
    *  Gets the format of the Image object
@@ -177,28 +184,34 @@ public:
    *
    *  @param roi  The region of interest (starting x coordinate, starting
    *    y coordinate, height, width)
+   *  @param performOp Specify if operations should be performed first. Default
+   * is true.
    *  @return A new Image object that is only the requested area
    */
-  Image get_area(const Rectangle &roi) const;
+  Image get_area(const Rectangle &roi, bool performOp = true) const;
 
   /**
    *  Gets an OpenCV Mat that contains the image data
    *
    *  @param copy Specify if a deep copy of the cvmat will be made before
    *              returning the cvmat object.
+   *  @param performOp Specify if operations should be performed first. Default
+   * is true.
    *  @return An OpenCV Mat
    */
-  cv::Mat get_cvmat(bool copy = true);
+  cv::Mat get_cvmat(bool copy = true, bool performOp = true);
 
   /**
    *  Gets the raw image data
    *
    *  @param  buffer  A buffer (of any type) that will contain the image
    *     data when the function ends
+   *  @param  performOp Specify if operations should be performed first. Default
+   * is true.
    *  @param  buffer_size  The pixel size of the image (length of
    *     the buffer, not bytes)
    */
-  void get_raw_data(void *buffer, long buffer_size);
+  void get_raw_data(void *buffer, long buffer_size, bool performOp = true);
 
   /**
    *  Gets encoded image data in a buffer
@@ -207,10 +220,53 @@ public:
    *  @param params  Optional parameters
    *  @return  A vector containing the encoded image
    *  @see OpenCV documentation for imencode for more details
-   */
+
+/**
+*  Gets encoded image data in a buffer
+*
+*  @param format  The Format the Image should be encoded as
+*  @param params  Optional parameters
+*  @return  A vector containing the encoded image
+*  @see OpenCV documentation for imencode for more details
+*/
   std::vector<unsigned char>
   get_encoded_image(VCL::Image::Format format,
                     const std::vector<int> &params = std::vector<int>());
+
+  /**
+   *  Gets encoded image data in a buffer in a async way
+   *
+   *  @param format  The Format the Image should be encoded as
+   *  @param params  Optional parameters
+   *  @param enc_img_vec Vector of operated images
+   *  @return  A vector containing the encoded image
+   *  @see OpenCV documentation for imencode for more details
+   */
+  std::vector<unsigned char>
+  get_encoded_image_async(VCL::Image::Format format,
+                          const std::vector<int> &params = std::vector<int>());
+
+  /**
+   *  Executes the operations in the operation vector
+   *
+   *  @return  -1 if operation should run on a separate thread otherwise 0
+   */
+  int execute_operation();
+
+  /**
+   *  @return Size of the operations vector
+   */
+  int get_enqueued_operation_count();
+
+  /**
+   *  @return Number of operations completed
+   */
+  int get_op_completed();
+
+  /**
+   *  @return Parameters required to run a remote operation
+   */
+  Json::Value get_remoteOp_params();
 
   /*  *********************** */
   /*        SET FUNCTIONS     */
@@ -242,6 +298,16 @@ public:
   void set_image_type(int cv_type);
 
   void set_minimum_dimension(int dimension);
+
+  /**
+   *  Updates the number of operations completed
+   */
+  void update_op_completed();
+
+  /**
+   *  Set parameters to run a remote operation
+   */
+  void set_remoteOp_params(Json::Value options, std::string url);
 
   void set_connection(RemoteConnection *remote);
 
@@ -315,6 +381,29 @@ public:
   void rotate(float angle, bool keep_size);
 
   /**
+   *  Performs a remote operation on the image.
+   *
+   *  @param url  Remote url
+   *  @param options  operation options
+   */
+  void syncremoteOperation(std::string url, Json::Value options);
+
+  /**
+   *  Performs a remote operation on the image.
+   *
+   *  @param url  Remote url
+   *  @param options  operation options
+   */
+  void remoteOperation(std::string url, Json::Value options);
+
+  /**
+   *  Performs a user defined operation on the image.
+   *
+   *  @param options  operation options
+   */
+  void userOperation(Json::Value options);
+
+  /**
    *  Checks to see if the Image has a depth associated with it.
    *    Currently returns false, as we do not support depth camera
    *    input yet.
@@ -351,6 +440,8 @@ public:
    */
   template <class T> void copy_to_buffer(T *buffer);
 
+  std::string format_to_string(Image::Format format);
+
 private:
   /**
    *  Default constructor, creates an empty Image object.
@@ -377,6 +468,12 @@ private:
 
   // Maintains order of operations requested
   std::vector<std::shared_ptr<Operation>> _operations;
+
+  // Count of operations executed
+  int _op_completed;
+
+  // Parameters required for remote operations
+  Json::Value remoteOp_params;
 
   // Remote connection (if one exists)
   RemoteConnection *_remote;
@@ -405,8 +502,6 @@ private:
    */
   void perform_operations();
 
-  std::string format_to_string(Image::Format format);
-
   /**
    *  Creates full path to Image with appropriate extension based
    *    on the Image::Format
@@ -429,7 +524,10 @@ private:
     CROP,
     THRESHOLD,
     FLIP,
-    ROTATE
+    ROTATE,
+    SYNCREMOTEOPERATION,
+    REMOTEOPERATION,
+    USEROPERATION
   };
 
   /**
@@ -693,6 +791,102 @@ private:
     void operator()(Image *img);
 
     OperationType get_type() const { return OperationType::ROTATE; };
+  };
+
+  /*  *********************** */
+  /*    SYNC OPERATION   */
+  /*  *********************** */
+  /**  Extends Operation, performs a remote operation that
+   */
+  class SyncRemoteOperation : public Operation {
+  private:
+    /** Minimum value pixels should be */
+    std::string _url;
+    Json::Value _options;
+
+  public:
+    /**
+     *  Constructor, sets the flip code value.
+     *
+     *  @param url  The current format of the image data
+     *  @param options
+     *  @see Image.h for more details on Format
+     */
+    SyncRemoteOperation(std::string url, Json::Value options, Format format)
+        : Operation(format), _url(url), _options(options){};
+
+    /**
+     *  Performs the remote operation
+     *
+     *  @param img  A pointer to the current Image object
+     */
+    void operator()(Image *img);
+
+    OperationType get_type() const {
+      return OperationType::SYNCREMOTEOPERATION;
+    };
+  };
+
+  /*  *********************** */
+  /*    REMOTE OPERATION   */
+  /*  *********************** */
+  /**  Extends Operation, performs a remote operation that
+   */
+  class RemoteOperation : public Operation {
+  private:
+    /** Minimum value pixels should be */
+    std::string _url;
+    Json::Value _options;
+
+  public:
+    /**
+     *  Constructor, sets the flip code value.
+     *
+     *  @param url  The current format of the image data
+     *  @param options
+     *  @see Image.h for more details on Format
+     */
+    RemoteOperation(std::string url, Json::Value options, Format format)
+        : Operation(format), _url(url), _options(options){};
+
+    /**
+     *  Performs the remote operation
+     *
+     *  @param img  A pointer to the current Image object
+     */
+    void operator()(Image *img);
+
+    OperationType get_type() const { return OperationType::REMOTEOPERATION; };
+  };
+
+  /*  *********************** */
+  /*    USER OPERATION   */
+  /*  *********************** */
+  /**  Extends Operation, performs a user operation that
+   */
+  class UserOperation : public Operation {
+  private:
+    /** Minimum value pixels should be */
+    Json::Value _options;
+
+  public:
+    /**
+     *  Constructor, sets the flip code value.
+     *
+     *  @param options
+     *  @see Image.h for more details on Format
+     */
+    UserOperation(Json::Value options, Format format)
+        : Operation(format), _options(options){};
+
+    /**
+     *  Performs the user operation
+     *
+     *  @param img  A pointer to the current Image object
+     */
+    void operator()(Image *img);
+
+    OperationType get_type() const { return OperationType::USEROPERATION; };
   };
 
   /*  *********************** */

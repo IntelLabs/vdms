@@ -5,7 +5,7 @@
  *
  * The MIT License
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2023 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"),
@@ -39,6 +39,8 @@
 #include "ExceptionsCommand.h"
 #include "RSCommand.h"
 
+#include <curl/curl.h>
+
 namespace VDMS {
 
 // Helper classes for handling various JSON commands.
@@ -55,7 +57,8 @@ public:
 
   // We use this function for enqueueing operations for an 'Image' object
   // that is allocated outside of <*>Image operations
-  int enqueue_operations(VCL::Image &img, const Json::Value &op);
+  int enqueue_operations(VCL::Image &img, const Json::Value &op,
+                         bool is_addition = false);
 
   // Checks if 'format' parameter is specified, and if so, returns the
   // corresponding VCL::Image::Format type.

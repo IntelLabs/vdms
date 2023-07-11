@@ -204,6 +204,9 @@
           { "$ref": "#/definitions/operationCrop" },
           { "$ref": "#/definitions/operationFlip" },
           { "$ref": "#/definitions/operationRotate" },
+          { "$ref": "#/definitions/operationUser" },
+          { "$ref": "#/definitions/operationSyncRemote" },
+          { "$ref": "#/definitions/operationRemote" },
           { "$ref": "#/definitions/operationCustom" }
         ]
       },
@@ -218,7 +221,10 @@
           { "$ref": "#/definitions/operationThreshold" },
           { "$ref": "#/definitions/operationResize" },
           { "$ref": "#/definitions/operationCrop" },
-          { "$ref": "#/definitions/operationInterval" }
+          { "$ref": "#/definitions/operationInterval" },
+          { "$ref": "#/definitions/operationUser" },
+          { "$ref": "#/definitions/operationRemote" },
+          { "$ref": "#/definitions/operationSyncRemote" }
         ]
       },
       "uniqueItems": false
@@ -315,6 +321,38 @@
         "resize": { "type": "boolean" }
       },
       "required": ["type", "angle", "resize"],
+      "additionalProperties": false
+    },
+
+    "operationSyncRemote" : {
+      "type": "object",
+      "properties": {
+        "type":   { "enum": [ "syncremoteOp" ] },
+        "url":   { "type": [ "string" ] },
+        "options":   { "type": [ "object" ] }
+      },
+      "required": ["type", "url"],
+      "additionalProperties": false
+    },
+    
+    "operationRemote" : {
+      "type": "object",
+      "properties": {
+        "type":   { "enum": [ "remoteOp" ] },
+        "url":   { "type": [ "string" ] },
+        "options":   { "type": [ "object" ] }
+      },
+      "required": ["type", "url"],
+      "additionalProperties": false
+    },
+
+    "operationUser" : {
+      "type": "object",
+      "properties": {
+        "type":   { "enum": [ "userOp" ] },
+        "options":   { "type": [ "object" ] }
+      },
+      "required": ["type"],
       "additionalProperties": false
     },
 

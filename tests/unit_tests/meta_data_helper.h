@@ -41,6 +41,7 @@ public:
   Json::Value constuct_image(bool = false, Json::Value operations = {});
   Json::Value constuct_video(bool = false);
   Json::Value construct_find_image();
+  Json::Value construct_find_image_withop(Json::Value operations);
   Json::Value construct_descriptor();
   Json::Value construct_find_descriptor();
   Json::Value construct_flinng_descriptor();

@@ -5,7 +5,7 @@
  *
  * The MIT License
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2023 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,13 @@
  *
  */
 
+#include <chrono>
+#include <fcntl.h>
+#include <fstream>
 #include <stddef.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "vcl/Exception.h"
 #include "vcl/Image.h"
@@ -169,6 +175,7 @@ void Image::Resize::operator()(Image *img) {
     } else
       throw VCLException(ObjectEmpty, "Image object is empty");
   }
+  img->_op_completed++;
 }
 
 /*  *********************** */
@@ -192,6 +199,7 @@ void Image::Crop::operator()(Image *img) {
     } else
       throw VCLException(ObjectEmpty, "Image object is empty");
   }
+  img->_op_completed++;
 }
 
 /*  *********************** */
@@ -208,6 +216,7 @@ void Image::Threshold::operator()(Image *img) {
     else
       throw VCLException(ObjectEmpty, "Image object is empty");
   }
+  img->_op_completed++;
 }
 
 /*  *********************** */
@@ -228,6 +237,7 @@ void Image::Flip::operator()(Image *img) {
     } else
       throw VCLException(ObjectEmpty, "Image object is empty");
   }
+  img->_op_completed++;
 }
 
 /*  *********************** */
@@ -271,6 +281,229 @@ void Image::Rotate::operator()(Image *img) {
     } else
       throw VCLException(ObjectEmpty, "Image object is empty");
   }
+  img->_op_completed++;
+}
+
+/*  *********************** */
+/*    REMOTE OPERATION      */
+/*  *********************** */
+
+void Image::RemoteOperation::operator()(Image *img) {
+  if (_format == Image::Format::TDB) {
+    // Not implemented
+    throw VCLException(NotImplemented,
+                       "Operation not supported for this format");
+  } else {
+    if (!img->_cv_img.empty()) {
+      img->set_remoteOp_params(_options, _url);
+    } else
+      throw VCLException(ObjectEmpty, "Image object is empty");
+  }
+}
+
+/*  *********************** */
+/*    SYNCREMOTE OPERATION  */
+/*  *********************** */
+
+size_t writeCallback(char *ip, size_t size, size_t nmemb, void *op) {
+  ((std::string *)op)->append((char *)ip, size * nmemb);
+  return size * nmemb;
+}
+
+void Image::SyncRemoteOperation::operator()(Image *img) {
+  if (_format == Image::Format::TDB) {
+    // Not implemented
+    throw VCLException(NotImplemented,
+                       "Operation not supported for this format");
+  } else {
+    if (!img->_cv_img.empty()) {
+
+      std::string readBuffer;
+
+      CURL *curl = NULL;
+
+      CURLcode res;
+      struct curl_slist *headers = NULL;
+      curl_mime *form = NULL;
+      curl_mimepart *field = NULL;
+
+      curl = curl_easy_init();
+
+      if (curl) {
+        auto time_now = std::chrono::system_clock::now();
+        std::chrono::duration<double> utc_time = time_now.time_since_epoch();
+
+        VCL::Image::Format img_format = img->get_image_format();
+        std::string format = img->format_to_string(img_format);
+
+        if (format == "" && _options.isMember("format")) {
+          format = _options["format"].toStyledString().data();
+          format.erase(std::remove(format.begin(), format.end(), '\n'),
+                       format.end());
+          format = format.substr(1, format.size() - 2);
+        } else {
+          format = "jpg";
+        }
+
+        std::string filePath =
+            "/tmp/tempfile" + std::to_string(utc_time.count()) + "." + format;
+        cv::imwrite(filePath, img->_cv_img);
+
+        std::ofstream tsfile;
+
+        auto opstart = std::chrono::system_clock::now();
+
+        form = curl_mime_init(curl);
+
+        field = curl_mime_addpart(form);
+        curl_mime_name(field, "imageData");
+        if (curl_mime_filedata(field, filePath.data()) != CURLE_OK) {
+          if (std::remove(filePath.data()) != 0) {
+          }
+          throw VCLException(ObjectEmpty, "Unable to create file for remoting");
+        }
+
+        field = curl_mime_addpart(form);
+        curl_mime_name(field, "jsonData");
+        if (curl_mime_data(field, _options.toStyledString().data(),
+                           _options.toStyledString().length()) != CURLE_OK) {
+          if (std::remove(filePath.data()) != 0) {
+          }
+          throw VCLException(ObjectEmpty, "Unable to create curl mime data");
+        }
+
+        // Post data
+        if (curl_easy_setopt(curl, CURLOPT_URL, _url.data()) != CURLE_OK) {
+          throw VCLException(UndefinedException, "CURL setup error with URL");
+        }
+        if (curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback) !=
+            CURLE_OK) {
+          throw VCLException(UndefinedException,
+                             "CURL setup error with callback");
+        }
+        if (curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer) !=
+            CURLE_OK) {
+          throw VCLException(UndefinedException,
+                             "CURL setup error with read buffer");
+        }
+        if (curl_easy_setopt(curl, CURLOPT_MIMEPOST, form) != CURLE_OK) {
+          throw VCLException(UndefinedException, "CURL setup error with form");
+        }
+
+        res = curl_easy_perform(curl);
+
+        curl_easy_cleanup(curl);
+        curl_mime_free(form);
+
+        // Decode the response
+
+        std::vector<unsigned char> vectordata(readBuffer.begin(),
+                                              readBuffer.end());
+        cv::Mat data_mat(vectordata, true);
+        cv::Mat decoded_mat(cv::imdecode(data_mat, 1));
+
+        img->shallow_copy_cv(decoded_mat);
+
+        if (std::remove(filePath.data()) != 0) {
+        }
+      }
+
+    } else
+      throw VCLException(ObjectEmpty, "Image object is empty");
+  }
+  img->_op_completed++;
+}
+
+/*  *********************** */
+/*    USER OPERATION        */
+/*  *********************** */
+
+void Image::UserOperation::operator()(Image *img) {
+  if (_format == Image::Format::TDB) {
+    // Not implemented
+    throw VCLException(NotImplemented,
+                       "Operation not supported for this format");
+  } else {
+    if (!img->_cv_img.empty()) {
+
+      std::string opfile;
+
+      zmq::context_t context(1);
+      zmq::socket_t socket(context, zmq::socket_type::req);
+
+      std::string port = _options["port"].asString();
+      std::string address = "tcp://127.0.0.1:" + port;
+
+      socket.connect(address.data());
+
+      auto time_now = std::chrono::system_clock::now();
+      std::chrono::duration<double> utc_time = time_now.time_since_epoch();
+
+      VCL::Image::Format img_format = img->get_image_format();
+      std::string format = img->format_to_string(img_format);
+
+      if (format == "" && _options.isMember("format")) {
+        format = _options["format"].toStyledString().data();
+        format.erase(std::remove(format.begin(), format.end(), '\n'),
+                     format.end());
+        format = format.substr(1, format.size() - 2);
+      } else {
+        format = "jpg";
+      }
+
+      std::string filePath =
+          "/tmp/tempfile" + std::to_string(utc_time.count()) + "." + format;
+      cv::imwrite(filePath, img->_cv_img);
+
+      // std::string operation_id = _options["id"].toStyledString().data();
+      // operation_id.erase(std::remove(operation_id.begin(),
+      // operation_id.end(), '\n'), operation_id.end()); operation_id =
+      // operation_id.substr(1, operation_id.size() - 2);
+
+      _options["ipfile"] = filePath;
+
+      // std::string message_to_send = filePath + "::" + operation_id;
+      std::string message_to_send = _options.toStyledString();
+
+      int message_len = message_to_send.length();
+      zmq::message_t ipfile(message_len);
+      memcpy(ipfile.data(), message_to_send.data(), message_len);
+
+      socket.send(ipfile, 0);
+
+      while (true) {
+        char buffer[256];
+        int size = socket.recv(buffer, 255, 0);
+
+        buffer[size] = '\0';
+        opfile = buffer;
+
+        break;
+      }
+
+      std::ifstream rfile;
+      rfile.open(opfile);
+
+      if (rfile) {
+        rfile.close();
+      } else {
+        if (std::remove(filePath.data()) != 0) {
+        }
+        throw VCLException(OpenFailed, "UDF Error");
+      }
+
+      VCL::Image res_image(opfile);
+      img->shallow_copy_cv(res_image.get_cvmat(true));
+
+      if (std::remove(filePath.data()) != 0) {
+      }
+
+      if (std::remove(opfile.data()) != 0) {
+      }
+    } else
+      throw VCLException(ObjectEmpty, "Image object is empty");
+  }
+  img->_op_completed++;
 }
 
 /*  *********************** */
@@ -291,6 +524,7 @@ Image::Image() {
   _bin = nullptr;
   _bin_size = 0;
   _remote = nullptr;
+  _op_completed = 0;
 }
 
 Image::Image(const std::string &image_id, std::string bucket_name) {
@@ -323,6 +557,8 @@ Image::Image(const std::string &image_id, std::string bucket_name) {
     _tdb = nullptr;
 
   read(image_id);
+
+  _op_completed = 0;
 }
 
 Image::Image(const cv::Mat &cv_img, bool copy) {
@@ -344,6 +580,8 @@ Image::Image(const cv::Mat &cv_img, bool copy) {
   _tdb = nullptr;
   _bin = nullptr;
   _bin_size = 0;
+
+  _op_completed = 0;
 }
 
 Image::Image(void *buffer, long size, char binary_image_flag, int flags) {
@@ -358,6 +596,7 @@ Image::Image(void *buffer, long size, char binary_image_flag, int flags) {
   _format = Image::Format::NONE_IMAGE;
   _compress = CompressionType::LZ4;
   _image_id = "";
+  _op_completed = 0;
 }
 
 Image::Image(void *buffer, cv::Size dimensions, int cv_type) {
@@ -376,6 +615,8 @@ Image::Image(void *buffer, cv::Size dimensions, int cv_type) {
 
   set_data_from_raw(buffer, _height * _width * _channels);
   _tdb->set_compression(_compress);
+
+  _op_completed = 0;
 }
 
 Image::Image(const Image &img, bool copy) {
@@ -418,6 +659,9 @@ Image::Image(const Image &img, bool copy) {
     for (int i = start; i < img._operations.size(); ++i)
       _operations.push_back(img._operations[i]);
   }
+
+  _op_completed = img._op_completed;
+  remoteOp_params = img.remoteOp_params;
 }
 
 Image::Image(Image &&img) noexcept {
@@ -433,6 +677,9 @@ Image::Image(Image &&img) noexcept {
   shallow_copy_cv(img._cv_img);
 
   img._tdb = NULL;
+
+  _op_completed = img._op_completed;
+  remoteOp_params = img.remoteOp_params;
 }
 
 Image &Image::operator=(const Image &img) {
@@ -478,6 +725,9 @@ Image &Image::operator=(const Image &img) {
       _operations.push_back(img._operations[i]);
   }
 
+  _op_completed = img._op_completed;
+  remoteOp_params = img.remoteOp_params;
+
   delete temp;
 
   return *this;
@@ -497,10 +747,10 @@ Image::~Image() {
 
 std::string Image::get_image_id() const { return _image_id; }
 
-cv::Size Image::get_dimensions() {
+cv::Size Image::get_dimensions(bool performOp) {
   //  TODO: iterate over operations themsevles to determine
   //        image size, rather than performing the operations.
-  if (_operations.size() > 0)
+  if (_operations.size() > 0 && performOp)
     perform_operations();
   return cv::Size(_width, _height);
 }
@@ -526,7 +776,7 @@ long Image::get_raw_data_size() {
 
 int Image::get_image_type() const { return _cv_type; }
 
-Image Image::get_area(const Rectangle &roi) const {
+Image Image::get_area(const Rectangle &roi, bool performOp) const {
   Image area(*this);
 
   if (area._format == Image::Format::TDB && area._operations.size() == 1) {
@@ -540,7 +790,8 @@ Image Image::get_area(const Rectangle &roi) const {
 
   area._operations.push_back(op);
 
-  area.perform_operations();
+  if (performOp)
+    area.perform_operations();
 
   area._height = roi.height;
   area._width = roi.width;
@@ -548,8 +799,9 @@ Image Image::get_area(const Rectangle &roi) const {
   return area;
 }
 
-cv::Mat Image::get_cvmat(bool copy) {
-  perform_operations();
+cv::Mat Image::get_cvmat(bool copy, bool performOp) {
+  if (performOp)
+    perform_operations();
 
   cv::Mat mat = (_format == Format::TDB) ? _tdb->get_cvmat() : _cv_img;
 
@@ -559,8 +811,9 @@ cv::Mat Image::get_cvmat(bool copy) {
     return mat;
 }
 
-void Image::get_raw_data(void *buffer, long buffer_size) {
-  perform_operations();
+void Image::get_raw_data(void *buffer, long buffer_size, bool performOp) {
+  if (performOp)
+    perform_operations();
 
   switch (_cv_type % 8) {
   case 0:
@@ -612,6 +865,12 @@ void Image::get_raw_data(void *buffer, long buffer_size) {
   }
 }
 
+int Image::get_enqueued_operation_count() { return _operations.size(); }
+
+int Image::get_op_completed() { return _op_completed; }
+
+Json::Value Image::get_remoteOp_params() { return remoteOp_params; }
+
 std::vector<unsigned char>
 Image::get_encoded_image(Image::Format format, const std::vector<int> &params) {
 
@@ -632,6 +891,42 @@ Image::get_encoded_image(Image::Format format, const std::vector<int> &params) {
   else {
     perform_operations();
 
+    std::string extension = "." + format_to_string(format);
+
+    if (_cv_img.empty()) {
+      if (_tdb == NULL)
+        throw VCLException(ObjectEmpty, "No data to encode");
+      else {
+        cv::Mat img = _tdb->get_cvmat();
+        shallow_copy_cv(img);
+      }
+    }
+
+    std::vector<unsigned char> buffer;
+    cv::imencode(extension, _cv_img, buffer, params);
+    return buffer;
+  }
+}
+
+std::vector<unsigned char>
+Image::get_encoded_image_async(Image::Format format,
+                               const std::vector<int> &params) {
+
+  // When data is stored in raw binary format, read data from file
+  if (format == VCL::Image::Format::BIN) {
+    std::ifstream bin_image(_image_id, std::ios::in | std::ifstream::binary);
+    long file_size = bin_image.tellg();
+    bin_image.seekg(0, std::ios::end);
+    file_size = bin_image.tellg() - file_size;
+    std::vector<unsigned char> buffer(file_size, 0);
+    bin_image.seekg(0, std::ios::beg);
+    bin_image.read((char *)&buffer[0], file_size);
+    bin_image.close();
+    return buffer;
+
+  }
+
+  else {
     std::string extension = "." + format_to_string(format);
 
     if (_cv_img.empty()) {
@@ -749,6 +1044,13 @@ void Image::set_minimum_dimension(int dimension) {
   }
 }
 
+void Image::set_remoteOp_params(Json::Value options, std::string url) {
+  remoteOp_params["options"] = options;
+  remoteOp_params["url"] = url;
+}
+
+void Image::update_op_completed() { _op_completed++; }
+
 void Image::set_connection(RemoteConnection *remote) {
   if (!remote->connected())
     remote->start();
@@ -782,6 +1084,20 @@ void Image::perform_operations() {
   }
 
   _operations.clear();
+}
+
+int Image::execute_operation() {
+  std::shared_ptr<Operation> op = _operations[_op_completed];
+  if (op == NULL)
+    throw VCLException(ObjectEmpty, "Nothing to be done");
+
+  if ((*op).get_type() != VCL::Image::OperationType::REMOTEOPERATION) {
+    (*op)(this);
+    return 0;
+  } else {
+    (*op)(this);
+    return -1;
+  }
 }
 
 void Image::read(const std::string &image_id) {
@@ -834,6 +1150,20 @@ void Image::flip(int code) {
 
 void Image::rotate(float angle, bool keep_size) {
   _operations.push_back(std::make_shared<Rotate>(angle, keep_size, _format));
+}
+
+void Image::syncremoteOperation(std::string url, Json::Value options) {
+  _operations.push_back(
+      std::make_shared<SyncRemoteOperation>(url, options, _format));
+}
+
+void Image::remoteOperation(std::string url, Json::Value options) {
+  _operations.push_back(
+      std::make_shared<RemoteOperation>(url, options, _format));
+}
+
+void Image::userOperation(Json::Value options) {
+  _operations.push_back(std::make_shared<UserOperation>(options, _format));
 }
 
 /*  *********************** */
