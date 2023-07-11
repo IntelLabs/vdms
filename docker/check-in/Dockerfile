@@ -95,7 +95,7 @@ WORKDIR /vdms
 RUN cd /vdms && curl -L -o minio https://dl.min.io/server/minio/release/linux-amd64/minio && \
     chmod +x minio && mkdir -p minio_files/minio-bucket && \
     git submodule update --init --recursive && mkdir build && \
-    cd build && cmake -DCODE_COVERAGE=ON .. &&  make && \
+    cd build && cmake -DCODE_COVERAGE=ON .. &&  make ${BUILD_THREADS} && \
     cp /vdms/config-vdms.json /vdms/build/ && \
     mkdir -p /vdms/tests/coverage_report && \
     chmod +x /run_coverage_cpp.sh && chmod +x /run_coverage_py.sh && \
