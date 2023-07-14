@@ -52,4 +52,4 @@ echo 'Running Python AWS S3 tests...'
 python3 -m coverage run --include="../../*" --omit="../*" -m unittest discover --pattern=Test*.py -v
 
 rm  -rf test_db log.log screen.log
-kill -9 $py_unittest_pid $py_minio_pid
+kill -9 $py_unittest_pid $py_minio_pid  || true

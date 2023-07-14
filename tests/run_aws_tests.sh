@@ -16,4 +16,4 @@ sleep 2
 echo 'Running C++ tests...'
 ./../build/tests/unit_tests --gtest_filter=RemoteConnectionTest.*
 
-kill -9 $cpp_unittest_pid $py_minio_pid
+kill -9 $py_minio_pid  || true

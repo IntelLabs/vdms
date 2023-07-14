@@ -64,12 +64,8 @@ jobs:
           fetch-depth: 0
 
       - if: matrix.coverage_type  == 'Source'
-        name: Format C++ Code (clang-format)
-        run: find "${PWD}" -type f -not -path "${PWD}/src/pmgd/*" -not -path "${PWD}/build/*" -regex '.*\.\(cc\|cpp\|h\|hpp\)' | xargs clang-format -i || true
-
-      - if: matrix.coverage_type  == 'Source'
-        name: Format Python Code (black code)
-        uses: DataDog/action-py-black-formatter@v2.5
+        name: Format C++ Code (clang-format) and Python (black code)
+        run: ./.github/workflows/auto-formatter.sh
 
       - if: matrix.coverage_type  == 'Source'
         name: Check for modified files
@@ -79,15 +75,13 @@ jobs:
           echo "modify_source=$(if git diff-index --quiet HEAD --; then echo "false"; else echo "true"; fi)" >> $GITHUB_OUTPUT
           echo "added_modified=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} HEAD -- . ':!.github' ':!docker'| xargs)" >> $GITHUB_OUTPUT
 
-      - name: Build and Run Docker Container
+      - name: Build Docker Container
         run: |
           set -x
 
-          docker stop $(docker ps -aqf "name=${{ matrix.container_name }}") || true
-          docker rm $(docker ps -aqf "name=${{ matrix.container_name }}") || true
+          docker stop $(docker ps -aqf "name=${{ matrix.container_name }}") | xargs docker rm || true
 
-          docker build --rm -f docker/check-in/Dockerfile -t ${{ matrix.container_tag }} .
-          # docker run --rm -d -v ${PWD}:/local_repo --name ${{ matrix.container_name }} ${{ matrix.container_tag }}
+          docker build --rm --build-arg="BUILD_COVERAGE=on" --build-arg="BUILD_COVERITY=on" -f docker/check-in/Dockerfile -t ${{ matrix.container_tag }} .
 
       - if: matrix.coverage_type  == 'Source' &&  steps.git_check.outputs.added_modified
         uses: ./.github/actions/coverity-incremental-scan
@@ -105,11 +99,10 @@ jobs:
         run: |
           set -x
           mkdir -p coverage
-          echo "${{ matrix.container_name }}"
+
           docker run --rm -d -v ${PWD}:/local_repo --name ${{ matrix.container_name }} \
             --env AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
-            --env AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
-            ${{ matrix.container_tag }}
+            --env AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} ${{ matrix.container_tag }}
 
           docker exec ${{ matrix.container_name }} bash -c "cd / && ./run_coverage_cpp.sh && cd / && ./run_coverage_py.sh"
 
@@ -148,7 +141,8 @@ jobs:
         run: |
           rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_REPOSITORY} || true
           rm -rf /tmp/tmp-* ${{ env.ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/*  || true
-          docker ps -aqf "name=${{ matrix.container_name }}" | xargs docker stop || true
+
+          docker stop $(docker ps -aqf "name=${{ matrix.container_name }}") | xargs docker rm || true
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
 
   compare_coverage:
@@ -209,10 +203,7 @@ jobs:
           token: ${{ secrets.FACELESS_TOKEN || github.token }}
 
       - if: needs.coverage_job.outputs.modify_source == 'true'
-        run: find "${PWD}" -type f -not -path "${PWD}/src/pmgd/*" -not -path "${PWD}/build/*" -regex '.*\.\(cc\|cpp\|h\|hpp\)' | xargs clang-format -i || true
-
-      - if: needs.coverage_job.outputs.modify_source == 'true'
-        uses: DataDog/action-py-black-formatter@v2.5
+        run: ./.github/workflows/auto-formatter.sh
 
       # Update Code and Push (Should be last steps of workflow since it changes commit)
       - if: needs.coverage_job.outputs.modify_source == 'true'

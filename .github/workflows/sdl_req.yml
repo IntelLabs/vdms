@@ -1,19 +1,19 @@
-# Uses docker/check-in/Dockerfile.base
-# Dockerfile.base -> Same as docker/base/Dockerfile but builds VDMS with local changes instead of external repo
+# Uses docker/check-in/Dockerfile without coverage or coverity
+# Same as docker/base/Dockerfile but builds VDMS with local changes instead of external repo
 name: SDL Requirements using Docker Image
 
-# Controls when the action will run. Triggers the workflow on push or pull request
+# Controls when the action will run. Triggers the workflow on push or pull request (for testing)
 # events but only for the master and develop branch
+on:
+  push:
+    branches:
+      - develop
 # on:
 #   pull_request:
 #     types: [ opened, edited, synchronize, reopened ]
 #     branches:
 #       - develop
 #       - master
-on:
-  push:
-    branches:
-      - develop
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -23,20 +23,42 @@ concurrency:
 env:
   ARTIFACT_DIR: SDL_artifacts
   DOCKER_ARTIFACT_DIR: Docker_artifacts
-  CHECKIN_DOCKERFILE: docker/check-in/Dockerfile.base
-  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN}}
-  SNYK_API: ${{ secrets.SNYK_API}}
+  CHECKIN_DOCKERFILE: docker/check-in/Dockerfile
   # CHECKOUT_REF: ${{ github.event.pull_request.head.sha }}
   FACELESS_USERNAME: ${{ secrets.FACELESS_NAME}}
-  COVERITY_DOCKERFILE: docker/check-in/Dockerfile.coverity
   FACELESS_AUTHKEY: ${{ secrets.FACELESS_AUTHKEY}}
   COVERITYSTREAM: ${{ secrets.COVERITYSTREAM}}
   COVERITYSERVER: ${{ secrets.COVERITYSERVER }}
 
 jobs:
+  delete:
+      name: Remove old artifacts
+      runs-on:
+        group: intellabs-vdms-runners
+        labels: vdms-check-in
+      steps:
+        - uses: actions/github-script@v6
+          id: artifact
+          with:
+            # Delete all artifacts
+            script: |
+              const res = await github.rest.actions.listArtifactsForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+              })
+
+              res.data.artifacts
+                .forEach(({ id }) => {
+                  github.rest.actions.deleteArtifact({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    artifact_id: id,
+                  })
+                })
+
   # RUN HADOLINT & BANDIT; NO DOCKER BUILD NEEDED
-  # Check format of Dockerfile we will release (docker/base/Dockerfile)
   Hadolint:
+    # Check format of Dockerfile we will release (docker/base/Dockerfile)
     name: Haskell Dockerfile Linter
     needs: delete
     runs-on:
@@ -104,31 +126,8 @@ jobs:
           rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
           rm -rf /tmp/tmp-* ${GITHUB_WORKSPACE}/*  || true
 
-  # BUILD LATEST CODE AS DOCKER IMAGE; USED WITH SNYK, CIS, & BDBA JOBS
-  delete:
-      name: Remove old artifacts
-      runs-on:
-        group: intellabs-vdms-runners
-        labels: vdms-check-in
-      steps:
-      - uses: actions/github-script@v6
-        id: artifact
-        with:
-          # Delete all artifacts
-          script: |
-            const res = await github.rest.actions.listArtifactsForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-            })
-
-            res.data.artifacts
-              .forEach(({ id }) => {
-                github.rest.actions.deleteArtifact({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  artifact_id: id,
-                })
-              })
+  # BUILD LATEST CODE AS DOCKER IMAGE
+  # USED WITH TRIVY, CIS, & BDBA JOBS
   BuildLatest:
     # This job builds docker container for later use
     name: Build Latest Docker
@@ -145,7 +144,8 @@ jobs:
       - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }}
       - name: Build Docker Container
         run: |
-          docker build --rm -f ${{ env.CHECKIN_DOCKERFILE}} -t vdms:latest .
+          docker build --rm --build-arg="BUILD_COVERAGE=off" --build-arg="BUILD_COVERITY=off" \
+            -f ${{ env.CHECKIN_DOCKERFILE}} -t vdms:latest .
           docker save -o ${{ env.DOCKER_ARTIFACT_DIR }}/vdms_latest.tar vdms:latest
       - name: Upload Docker Image Artifact
         if: success()
@@ -168,8 +168,6 @@ jobs:
       labels: vdms-check-in
     name: BDBA
     needs: BuildLatest
-    # container:
-    #   image: python:3.8-slim
     steps:
       - name: Download Docker Image
         uses: actions/download-artifact@v3
@@ -241,6 +239,7 @@ jobs:
       - name: Get Docker Image SBOM
         run: |
           docker sbom --format spdx-tag-value --output ${{ env.ARTIFACT_DIR }}/sbom_docker_CT36.txt vdms:latest
+
           python3 ${GITHUB_WORKSPACE}/docker/check-in/spdx2csv.py -i ${{ env.ARTIFACT_DIR }}/sbom_docker_CT36.txt \
             -o ${{ env.ARTIFACT_DIR }}/vdms_sbom_docker_CT36.csv
 
@@ -262,7 +261,6 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
-          docker stop snyk_py && docker rm snyk_py || true
           rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
           rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/*  || true
 
@@ -324,7 +322,7 @@ jobs:
         # cf. https://github.com/actions/upload-artifact/issues/256
         if: always()
         run: |
-          docker stop vdms_test-CIS && docker rm vdms_test-CIS
+          docker stop vdms_test-CIS && docker rm vdms_test-CIS || true
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
           rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
           rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/*  || true
@@ -343,16 +341,9 @@ jobs:
           # ref: ${{ env.CHECKOUT_REF }}
       - name: Build Docker Container with Coverity
         run: |
-          cp ${{ env.CHECKIN_DOCKERFILE}} ${{ env.COVERITY_DOCKERFILE}}
-          sed -i -e 's|CMD \["/start.sh"]|RUN mkdir /coverity \&\& cd /coverity \&\& \\|g' ${{ env.COVERITY_DOCKERFILE}}
-          echo "    curl -L -o cov-analysis-linux64-2023.3.0.sh  https://ubit-artifactory-or.intel.com/artifactory/coverity-or-local/Enterprise/cov-analysis-linux64-2023.3.0.sh && chmod +x cov-analysis-linux64-2023.3.0.sh && \\"  >> ${{ env.COVERITY_DOCKERFILE}}
-          echo "    curl -L -o license.dat https://ubit-artifactory-or.intel.com/artifactory/coverity-or-local/Enterprise/license.dat && \\"  >> ${{ env.COVERITY_DOCKERFILE}}
-          echo "    ./cov-analysis-linux64-2023.3.0.sh -q --installation.dir=/opt/coverity/analysis/ \\
-            --license.agreement=agree --license.region=0 --license.type.choice=0 \\
-            --license.cov.path=/coverity/license.dat --component.sdk=false --component.skip.documentation=true"  >> ${{ env.COVERITY_DOCKERFILE}}
-          echo "ENV PATH /opt/coverity/analysis/bin:$PATH" >> ${{ env.COVERITY_DOCKERFILE}}
-          echo 'CMD ["/start.sh"]' >> ${{ env.COVERITY_DOCKERFILE}}
-          docker build --rm -f ${{ env.COVERITY_DOCKERFILE}} -t vdms:coverity .
+          docker build --rm --build-arg="BUILD_COVERAGE=off" --build-arg="BUILD_COVERITY=on" \
+            -f ${{ env.CHECKIN_DOCKERFILE}} -t vdms:coverity .
+
       - name: Run Coverity with GCC
         env:
             DOCKER_PROXY_RUN_ARGS: "--env HTTPS_PROXY=$HTTPS_PROXY \
@@ -384,7 +375,7 @@ jobs:
         # cf. https://github.com/actions/upload-artifact/issues/256
         if: always()
         run: |
-          docker stop vdms_test-Coverity || true
+          docker stop vdms_test-Coverity && docker rm vdms_test-Coverity || true
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
           rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
           rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/*  || true

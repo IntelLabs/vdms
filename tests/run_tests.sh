@@ -39,4 +39,4 @@ echo 'Running C++ tests...'
 pkill -9 -f udf_server.py
 pkill -9 -f udf_local.py
 
-kill -9 $cpp_unittest_pid $client_test_pid
+kill -9 $cpp_unittest_pid $client_test_pid  || true

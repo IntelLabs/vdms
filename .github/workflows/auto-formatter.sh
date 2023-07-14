@@ -35,4 +35,4 @@ find "${REPO_DIR}" -type f -not -path "${REPO_DIR}/src/pmgd/*" \
 
 # Run Linter on Python Code
 check_package python 'black>=23.1.0'
-black ${REPO_DIR}/
+black ${REPO_DIR}/ --exclude="client/python/vdms/queryMessage_pb2.py"
