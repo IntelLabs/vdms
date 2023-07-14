@@ -82,16 +82,16 @@ COPY ./CMakeLists.txt /vdms/
 COPY ./config-vdms.json /vdms/
 COPY ./docker/check-in/run_coverage_cpp.sh /
 COPY ./docker/check-in/run_coverage_py.sh /
-ENV PATH /opt/coverity/analysis/bin:$PATH
 
 # COVERITY & MINIO for S3 Testing
 WORKDIR /coverity
+ENV COVERITY_VERSION="2023.3.4"
 RUN if [ "${BUILD_COVERITY}" = "on" ]; then \
         mkdir -p /coverity /opt/coverity ; \
-        curl -L -o /coverity/cov-analysis-linux64-2023.3.0.sh  https://ubit-artifactory-or.intel.com/artifactory/coverity-or-local/Enterprise/cov-analysis-linux64-2023.3.0.sh ; \
+        curl -L -o /coverity/cov-analysis-linux64-${COVERITY_VERSION}.sh  https://ubit-artifactory-or.intel.com/artifactory/coverity-or-local/Enterprise/cov-analysis-linux64-${COVERITY_VERSION}.sh ; \
         curl -L -o /coverity/license.dat https://ubit-artifactory-or.intel.com/artifactory/coverity-or-local/Enterprise/license.dat ; \
-        chmod +x /coverity/cov-analysis-linux64-2023.3.0.sh ; \
-        ./cov-analysis-linux64-2023.3.0.sh -q \
+        chmod +x /coverity/cov-analysis-linux64-${COVERITY_VERSION}.sh ; \
+        ./cov-analysis-linux64-${COVERITY_VERSION}.sh -q \
             --installation.dir=/opt/coverity/analysis \
             --license.agreement=agree \
             --license.region=0 \
@@ -99,8 +99,10 @@ RUN if [ "${BUILD_COVERITY}" = "on" ]; then \
             --license.cov.path=/coverity/license.dat \
             --component.sdk=false \
             --component.skip.documentation=true; \
-        rm /coverity/cov-analysis-linux64-2023.3.0.sh ; \
+        rm /coverity/cov-analysis-linux64-${COVERITY_VERSION}.sh ; \
     fi
+
+ENV PATH /opt/coverity/analysis/bin:$PATH
 
 RUN if [ "${BUILD_COVERAGE}" = "on" ]; then \
         apt-get update ; \
