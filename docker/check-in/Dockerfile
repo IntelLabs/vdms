@@ -23,8 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-suggests --no-install-reco
     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 1 && \
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 1 && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
-    ln -s /usr/bin/python3 /usr/bin/python && \
-    pip install --no-cache-dir "numpy>=1.25.1" "grpcio==1.40.0" "grpcio-tools==1.40.0"
+    ln -s /usr/bin/python3 /usr/bin/python
 
 # Pull and Install Dependencies
 ENV CMAKE_VERSION="v3.26.4" \
@@ -36,7 +35,8 @@ ENV CMAKE_VERSION="v3.26.4" \
     TILEDB_VERSION="2.14.1"
 
 WORKDIR /dependencies
-RUN git clone --branch ${CMAKE_VERSION} https://github.com/Kitware/CMake.git && \
+RUN pip install --no-cache-dir "numpy>=1.25.1" "protobuf==${PROTOBUF_VERSION}" "coverage>=7.2.7" && \
+    git clone --branch ${CMAKE_VERSION} https://github.com/Kitware/CMake.git && \
         cd CMake && ./bootstrap && make ${BUILD_THREADS} && make install && \
     cd /usr/src/gtest && cmake . && make ${BUILD_THREADS} && mv lib/libgtest* /usr/lib/ && \
     git clone --branch ${FAISS_VERSION} https://github.com/facebookresearch/faiss.git /dependencies/faiss && \
@@ -109,7 +109,7 @@ RUN if [ "${BUILD_COVERAGE}" = "on" ]; then \
         apt-get install -y --no-install-suggests --no-install-recommends gdb ; \
         apt-get clean ; \
         rm -rf /var/lib/apt/lists/* ; \
-        pip3 install --no-cache-dir "gcovr>=6.0" "coverage>=7.2.7" ; \
+        pip3 install --no-cache-dir "gcovr>=6.0" ; \
         curl -L -o /vdms/minio https://dl.min.io/server/minio/release/linux-amd64/minio ; \
         chmod +x /vdms/minio ; \
         mkdir -p /vdms/minio_files/minio-bucket ; \

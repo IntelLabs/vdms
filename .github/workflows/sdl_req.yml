@@ -219,12 +219,12 @@ jobs:
           docker run $DOCKER_PROXY_RUN_ARGS \
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v $HOME/.cache:/root/.cache \
-            -v ${{ env.ARTIFACT_DIR }}:/logs \
             -v $PWD:/local_repo aquasec/trivy:latest image \
             --list-all-pkgs --ignore-unfixed --format template \
             --template @/local_repo/.github/workflows/trivy_csv.tmpl \
-            --output /logs/trivy-report-imagescan_CT247_CT248.csv \
-            vdms:latest
+            --output /local_repo/trivy-report-imagescan_CT247_CT248.csv vdms:latest
+
+          mv /local_repo/trivy-report-imagescan_CT247_CT248.csv ${{ env.ARTIFACT_DIR }}/trivy-report-imagescan_CT247_CT248.csv
 
           # Obtain Summary Result
           output_checks=$(docker run $DOCKER_PROXY_RUN_ARGS \
@@ -236,6 +236,12 @@ jobs:
           echo "trivy_image_results<<EOF" >> $GITHUB_ENV
           echo "$output_checks" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+      - name: Upload Trivy Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: SDL Evidence
+          path: ${{ env.ARTIFACT_DIR }}/trivy-report-imagescan_CT247_CT248.csv
+          if-no-files-found: error
       - name: Get Docker Image SBOM
         run: |
           docker sbom --format spdx-tag-value --output ${{ env.ARTIFACT_DIR }}/sbom_docker_CT36.txt vdms:latest
@@ -247,11 +253,12 @@ jobs:
           echo "sbom_image_results<<EOF" >> $GITHUB_ENV
           echo "$output_checks" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
-      - name: Upload Trivy & SBOM Artifacts
+      - name: Upload SBOM Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: SDL Evidence
           path: ${{ env.ARTIFACT_DIR }}
+          if-no-files-found: error
       - name: Print Results in Job Summary
         run: |
           echo "### Results" > $GITHUB_STEP_SUMMARY

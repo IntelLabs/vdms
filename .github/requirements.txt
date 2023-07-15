@@ -1,9 +1,8 @@
 blinker==1.6.2
 click==8.1.5
+coverage==7.2.7
 dbus-python==1.2.16
 Flask==2.3.2
-grpcio==1.40.0
-grpcio-tools==1.40.0
 importlib-metadata==6.8.0
 imutils==0.5.4
 itsdangerous==2.1.2
@@ -17,8 +16,7 @@ PyGObject==3.38.0
 python-apt==2.2.1
 pyzmq==25.1.0
 scipy==1.11.1
-six==1.16.0
 sk-video==1.1.10
 Werkzeug==2.3.6
-zipp==3.16.1
+zipp==3.16.2
 zmq==0.0.0
