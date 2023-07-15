@@ -43,7 +43,7 @@ py_unittest_pid=$!
 sleep 1
 
 echo 'Running Python tests...'
-python3 -m coverage run --include="../../*" --omit="../*" -m unittest discover --pattern=Test*.py -v
+python3 -m coverage run --include="../../*" --omit="${base_dir}/client/python/vdms/queryMessage_pb2.py,../*" -m unittest discover --pattern=Test*.py -v
 
 rm  -rf test_db log.log screen.log
 kill -9 $py_unittest_pid || true
