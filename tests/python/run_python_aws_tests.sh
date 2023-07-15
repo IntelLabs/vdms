@@ -31,7 +31,7 @@ client_path=${base_dir}/client/python
 export PYTHONPATH=$client_path:${PYTHONPATH}
 
 # Uncomment to re-generate queryMessage_pb2.py
-# python3 -m grpc_tools.protoc -I=${base_dir}/utils/src/protobuf --python_out=${client_path}/vdms ${base_dir}/utils/src/protobuf/queryMessage.proto
+# protoc -I=${base_dir}/utils/src/protobuf --python_out=${client_path}/vdms ${base_dir}/utils/src/protobuf/queryMessage.proto
 
 cd ${TEST_DIR}
 rm  -rf test_db log.log screen.log
