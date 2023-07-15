@@ -224,7 +224,7 @@ jobs:
             --template @/local_repo/.github/workflows/trivy_csv.tmpl \
             --output /local_repo/trivy-report-imagescan_CT247_CT248.csv vdms:latest
 
-          mv /local_repo/trivy-report-imagescan_CT247_CT248.csv ${{ env.ARTIFACT_DIR }}/trivy-report-imagescan_CT247_CT248.csv
+          mv $PWD/trivy-report-imagescan_CT247_CT248.csv ${{ env.ARTIFACT_DIR }}/trivy-report-imagescan_CT247_CT248.csv
 
           # Obtain Summary Result
           output_checks=$(docker run $DOCKER_PROXY_RUN_ARGS \
