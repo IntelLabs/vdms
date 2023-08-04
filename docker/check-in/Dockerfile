@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-suggests --no-install-reco
     libdc1394-22-dev libgflags-dev libgoogle-glog-dev libgtest-dev libgtk-3-dev libgtk2.0-dev \
     libhdf5-dev libjpeg-dev libjpeg62-turbo-dev libjsoncpp-dev libleveldb-dev liblmdb-dev \
     liblz4-dev libopenblas-dev libopenmpi-dev libpng-dev librdkafka-dev libsnappy-dev libssl-dev \
-    libswscale-dev libtbb-dev libtbb2 libtiff-dev libtiff5-dev libtool libzmq3-dev linux-libc-dev=5.10.179-2 mpich \
+    libswscale-dev libtbb-dev libtbb2 libtiff-dev libtiff5-dev libtool libzmq3-dev linux-libc-dev mpich \
     openjdk-11-jdk-headless pkg-config procps python3-dev python3-pip software-properties-common \
     swig unzip uuid-dev && \
     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 1 && \
