@@ -29,37 +29,34 @@
 
 #pragma once
 
+#include "comm/Connection.h"
 #include <string>
 #include <vector>
-#include "comm/Connection.h"
 // #include "CSVParser.h"
 
 namespace VDMS {
 
-    struct Response {
-        std::string json;
-        std::vector<std::string> blobs;
-    };
-    
-
-    class VDMSClient {
-        static const int VDMS_PORT = 55555;
-
-        // The constructor of the ConnClient class already connects to the
-        // server if instantiated with the right address and port and it gets
-        // disconnected when the class goes out of scope. For now, we
-        // will leave the functioning like that. If the client has a need to
-        // disconnect and connect specifically, then we can add explicit calls.
-        comm::ConnClient _conn;
-        
-
-    public:
-        VDMSClient(std::string addr = "localhost", int port = VDMS_PORT);
-
-        // Blocking call
-        VDMS::Response query(const std::string &json_query,
-                             const std::vector<std::string *> blobs = {});
-        // void parse_csv_file(std::string filename, std::string , int); 
-    
-    };
+struct Response {
+  std::string json;
+  std::vector<std::string> blobs;
 };
+
+class VDMSClient {
+  static const int VDMS_PORT = 55555;
+
+  // The constructor of the ConnClient class already connects to the
+  // server if instantiated with the right address and port and it gets
+  // disconnected when the class goes out of scope. For now, we
+  // will leave the functioning like that. If the client has a need to
+  // disconnect and connect specifically, then we can add explicit calls.
+  comm::ConnClient _conn;
+
+public:
+  VDMSClient(std::string addr = "localhost", int port = VDMS_PORT);
+
+  // Blocking call
+  VDMS::Response query(const std::string &json_query,
+                       const std::vector<std::string *> blobs = {});
+  // void parse_csv_file(std::string filename, std::string , int);
+};
+}; // namespace VDMS

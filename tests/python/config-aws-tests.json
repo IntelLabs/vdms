@@ -1,0 +1,11 @@
+// VDMS Config File
+// This is the run-time config file
+// Sets database paths and other parameters
+{
+    // Network
+    "port": 55565,
+    "db_root_path": "test_db",
+    "storage_type": "aws", //local, aws, etc
+    "bucket_name": "minio-bucket",
+    "more-info": "github.com/IntelLabs/vdms"
+}

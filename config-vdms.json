@@ -6,5 +6,7 @@
     // "backup_path":"backups_test", // set this if you want different path to store the back up file
     "db_root_path": "db",
     "backup_flag" : "false",
+    "storage_type": "local", //local, aws, etc
+    "bucket_name": "minio-bucket",
     "more-info": "github.com/IntelLabs/vdms"
 }

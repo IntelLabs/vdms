@@ -31,18 +31,15 @@
 #include "QueryHandler.h"
 
 namespace VDMS {
-    class QueryHandlerTester
-    {
-        QueryHandler& _qh;
-    public:
+class QueryHandlerTester {
+  QueryHandler &_qh;
 
-        QueryHandlerTester(QueryHandler& qh): _qh(qh)
-        {}
+public:
+  QueryHandlerTester(QueryHandler &qh) : _qh(qh) {}
 
-        void pq(protobufs::queryMessage& proto_query,
-                               protobufs::queryMessage& response)
-        {
-            _qh.process_query(proto_query, response);
-        }
-    };
+  void pq(protobufs::queryMessage &proto_query,
+          protobufs::queryMessage &response) {
+    _qh.process_query(proto_query, response);
+  }
 };
+}; // namespace VDMS

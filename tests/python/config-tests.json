@@ -5,6 +5,7 @@
     // Network
     "port": 55565,
     "db_root_path": "test_db",
-
+    "storage_type": "local", //local, aws, etc
+    "bucket_name": "minio-bucket",
     "more-info": "github.com/IntelLabs/vdms"
 }

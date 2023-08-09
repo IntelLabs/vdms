@@ -27,10 +27,9 @@
 import TestCommand
 import numpy as np
 
+
 class TestDescriptors(TestCommand.TestCommand):
-
     def addSet(self, name, dim, metric, engine):
-
         db = self.create_connection()
 
         all_queries = []
@@ -52,7 +51,6 @@ class TestDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
 
     def test_addDifferentSets(self):
-
         self.addSet("128-L2-FaissFlat", 128, "L2", "FaissFlat")
         self.addSet("128-IP-FaissFlat", 128, "IP", "FaissFlat")
         self.addSet("128-L2-FaissIVFFlat", 128, "L2", "FaissIVFFlat")
@@ -67,7 +65,6 @@ class TestDescriptors(TestCommand.TestCommand):
         self.addSet("4075-L2-TileDBDense", 4075, "L2", "TileDBDense")
 
     def test_addDescriptorsx1000FaissIVFFlat(self):
-
         db = self.create_connection()
 
         all_queries = []
@@ -92,12 +89,12 @@ class TestDescriptors(TestCommand.TestCommand):
         all_queries = []
         descriptor_blob = []
 
-        total =2;
+        total = 2
 
-        for i in range(1,total):
+        for i in range(1, total):
             x = np.ones(dims)
-            x[2] = 2.34 + i*20
-            x = x.astype('float32')
+            x[2] = 2.34 + i * 20
+            x = x.astype("float32")
             descriptor_blob.append(x.tobytes())
 
             descriptor = {}
@@ -112,12 +109,10 @@ class TestDescriptors(TestCommand.TestCommand):
         response, img_array = db.query(all_queries, [descriptor_blob])
 
         # Check success
-        for x in range(0,total-1):
+        for x in range(0, total - 1):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
 
-
     def test_addDescriptorsx1000TileDBSparse(self):
-
         db = self.create_connection()
 
         all_queries = []
@@ -142,12 +137,12 @@ class TestDescriptors(TestCommand.TestCommand):
         all_queries = []
         descriptor_blob = []
 
-        total = 2;
+        total = 2
 
-        for i in range(1,total):
+        for i in range(1, total):
             x = np.ones(dims)
-            x[2] = 2.34 + i*20
-            x = x.astype('float32')
+            x[2] = 2.34 + i * 20
+            x = x.astype("float32")
             descriptor_blob.append(x.tobytes())
 
             descriptor = {}
@@ -162,11 +157,10 @@ class TestDescriptors(TestCommand.TestCommand):
         response, img_array = db.query(all_queries, [descriptor_blob])
 
         # Check success
-        for x in range(0,total-1):
+        for x in range(0, total - 1):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
 
     def test_addDescriptorsx1000TileDBDense(self):
-
         db = self.create_connection()
 
         all_queries = []
@@ -192,12 +186,12 @@ class TestDescriptors(TestCommand.TestCommand):
         all_queries = []
         descriptor_blob = []
 
-        total = 2;
+        total = 2
 
-        for i in range(1,total):
+        for i in range(1, total):
             x = np.ones(dims)
-            x[2] = 2.34 + i*20
-            x = x.astype('float32')
+            x[2] = 2.34 + i * 20
+            x = x.astype("float32")
             descriptor_blob.append(x.tobytes())
 
             descriptor = {}
@@ -212,5 +206,5 @@ class TestDescriptors(TestCommand.TestCommand):
         response, img_array = db.query(all_queries, [descriptor_blob])
 
         # Check success
-        for x in range(0,total-1):
+        for x in range(0, total - 1):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)

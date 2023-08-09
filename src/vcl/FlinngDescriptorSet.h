@@ -34,82 +34,74 @@
 
 #pragma once
 
-#include <stdlib.h>
-#include <string>
-#include <vector>
-#include <unordered_map>
 #include <map>
 #include <mutex>
+#include <stdlib.h>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "DescriptorSetData.h"
-//#include "../../../FLINNG/include/lib_flinng.h" //todo update make files for flinng lib include directory
+//#include "../../../FLINNG/include/lib_flinng.h" //todo update make files for
+// flinng lib include directory
+#include "DescriptorParams.h"
 #include "lib_flinng.h"
-#include "DescriptorParams.h" 
-
-
 
 namespace VCL {
 
-    class FlinngDescriptorSet : public DescriptorSet::DescriptorSetData {
+class FlinngDescriptorSet : public DescriptorSet::DescriptorSetData {
 
-    protected:
+protected:
+  std::string _flinng_file;
+  bool is_finalized;
 
-        std::string _flinng_file;
-        bool is_finalized; 
+  flinng::BaseDenseFlinng32 *_index; // FLinng have a base class by this name
+  // depending on metric to be used will point to the right index
+  flinng::FlinngBuilder *_builder;
 
-        flinng::BaseDenseFlinng32* _index; //FLinng have a base class by this name
-        //depending on metric to be used will point to the right index
-        flinng::FlinngBuilder* _builder;
- 
+  std::mutex _lock;
+  std::vector<long> _label_ids;
 
-        std::mutex _lock;
-        std::vector<long> _label_ids;
+  void write_label_ids();
+  void read_label_ids();
 
-        void write_label_ids();
-        void read_label_ids();
+  void train_core(float *descriptors, unsigned n);
+  void getFlinngParams(VCL::DescriptorParams *par,
+                       flinng::FlinngBuilder *builder);
 
-        void train_core(float* descriptors, unsigned n);
-        void getFlinngParams(VCL::DescriptorParams* par, flinng::FlinngBuilder* builder);
+public:
+  FlinngDescriptorSet(const std::string &set_path);
+  FlinngDescriptorSet(const std::string &set_path, unsigned dim,
+                      DistanceMetric metric, VCL::DescriptorParams *par = NULL);
 
-    public:
+  ~FlinngDescriptorSet();
 
-        FlinngDescriptorSet(const std::string &set_path);
-        FlinngDescriptorSet(const std::string &set_path, unsigned dim, DistanceMetric metric, VCL::DescriptorParams* par = NULL);
+  virtual long add(float *descriptors, unsigned n_descriptors, long *classes);
+  virtual long add_and_store(float *descriptors, unsigned n_descriptors,
+                             long *classes);
 
+  void train();
 
-        ~FlinngDescriptorSet();
+  void train(float *descriptors, unsigned n);
 
-        virtual long add(float* descriptors, unsigned n_descriptors,
-                         long* classes);
-        virtual long add_and_store(float* descriptors, unsigned n_descriptors, long* classes);
+  bool is_trained();
 
-        void train();
+  void finalize_index();
 
-        void train(float* descriptors, unsigned n);
+  void search(float *query, unsigned n, unsigned k, long *ids);
 
-        bool is_trained();
+  void search(float *query, unsigned n, unsigned k, long *ids,
+              float *distances);
 
-        void finalize_index();
+  void radius_search(float *query, float radius, long *ids, float *distances);
 
-        void search(float* query, unsigned n, unsigned k,
-                    long* ids); 
+  void classify(float *descriptors, unsigned n, long *ids, unsigned quorum);
 
-        void search(float* query, unsigned n, unsigned k,
-                    long* ids, float* distances);
+  void get_descriptors(long *ids, unsigned n, float *descriptors);
 
-        void radius_search(float* query, float radius,
-                           long* ids, float* distances);
+  void get_labels(long *ids, unsigned n, long *labels);
 
-        void classify(float* descriptors, unsigned n, long* ids,
-                      unsigned quorum);
-
-        void get_descriptors(long* ids, unsigned n, float* descriptors);
-
-        void get_labels(long* ids, unsigned n, long* labels);
-
-        void store();
-        void store(std::string set_path);
-
-    };
+  void store();
+  void store(std::string set_path);
 };
-
+}; // namespace VCL

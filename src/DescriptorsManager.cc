@@ -27,59 +27,51 @@
  *
  */
 
-#include <iostream>
 #include "DescriptorsManager.h"
+#include <iostream>
 
 using namespace VDMS;
 
-DescriptorsManager* DescriptorsManager::_dm;
+DescriptorsManager *DescriptorsManager::_dm;
 
-bool DescriptorsManager::init()
-{
-    if(_dm)
-        return false;
+bool DescriptorsManager::init() {
+  if (_dm)
+    return false;
 
-    _dm = new DescriptorsManager();
-    return true;
+  _dm = new DescriptorsManager();
+  return true;
 }
 
-DescriptorsManager* DescriptorsManager::instance()
-{
-    if(_dm)
-        return _dm;
+DescriptorsManager *DescriptorsManager::instance() {
+  if (_dm)
+    return _dm;
 
-    std::cerr << "ERROR: DescriptorsManager not init" << std::endl;
-    return NULL;
+  std::cerr << "ERROR: DescriptorsManager not init" << std::endl;
+  return NULL;
 }
 
-DescriptorsManager::DescriptorsManager()
-{
+DescriptorsManager::DescriptorsManager() {}
+
+void DescriptorsManager::flush() {
+  for (auto desc_set : _descriptors_handlers) {
+    desc_set.second->store();
+    delete desc_set.second;
+  }
+  _descriptors_handlers.clear();
 }
 
-void DescriptorsManager::flush()
-{
-    for (auto desc_set : _descriptors_handlers) {
-        desc_set.second->store();
-        delete desc_set.second;
-    }
-    _descriptors_handlers.clear();
+VCL::DescriptorSet *
+DescriptorsManager::get_descriptors_handler(std::string path) {
+  VCL::DescriptorSet *desc_ptr;
+
+  auto element = _descriptors_handlers.find(path);
+
+  if (element == _descriptors_handlers.end()) {
+    desc_ptr = new VCL::DescriptorSet(path);
+    _descriptors_handlers[path] = desc_ptr;
+  } else {
+    desc_ptr = element->second;
+  }
+
+  return desc_ptr;
 }
-
-VCL::DescriptorSet* DescriptorsManager::get_descriptors_handler(
-    std::string path)
-{
-    VCL::DescriptorSet* desc_ptr;
-
-    auto element = _descriptors_handlers.find(path);
-
-    if (element == _descriptors_handlers.end()) {
-        desc_ptr = new VCL::DescriptorSet(path);
-        _descriptors_handlers[path] = desc_ptr;
-    }
-    else {
-        desc_ptr = element->second;
-    }
-
-    return desc_ptr;
-}
-
