@@ -28,111 +28,103 @@
  */
 
 #include <cpuid.h>
-#include <string>
 #include <sstream>
+#include <string>
 #include <sys/stat.h>
 
-#include "vcl/utils.h"
-#include "vcl/Exception.h"
 #include "../VDMSConfig.h"
+#include "vcl/Exception.h"
+#include "vcl/utils.h"
 
 namespace VCL {
 
-    uint64_t rdrand()
-    {
-        static const unsigned retry_limit = 10;
-        unsigned retries = retry_limit;
-        do {
-            uint64_t val;
-            bool r;
-            __asm("rdrand %0; setc %1" : "=r"(val), "=r"(r));
-            if (r)
-                return val;
-        } while (--retries);
+uint64_t rdrand() {
+  static const unsigned retry_limit = 10;
+  unsigned retries = retry_limit;
+  do {
+    uint64_t val;
+    bool r;
+    __asm("rdrand %0; setc %1" : "=r"(val), "=r"(r));
+    if (r)
+      return val;
+  } while (--retries);
 
-        throw VCLException(UndefinedException, "Random number not generated\n");
-    }
-
-    bool supports_rdrand()
-    {
-        const unsigned int flag_rdrand = (1 << 30);
-
-        unsigned int eax, ebx, ecx, edx;
-        __cpuid(1, eax, ebx, ecx, edx);
-
-        return ((ecx & flag_rdrand) == flag_rdrand);
-    }
-
-    uint64_t combine(uint64_t a, uint64_t b)
-    {
-        int multiplier = 1;
-
-        while (multiplier <= a) {
-            multiplier *= 10;
-        }
-
-        return a*multiplier + b;
-    }
-
-    uint64_t get_uint64()
-    {
-        if ( supports_rdrand() ) {
-            return combine(rdrand(), rdrand());
-        }
-        else {
-            init_rand;
-
-            return combine(rand(), rand());
-        }
-    }
-
-    std::string get_extension(const std::string &object_id)
-    {
-        size_t file_ext = object_id.find_last_of(".");
-        size_t dir_ext = object_id.find_last_of("/");
-
-        if ( file_ext != std::string::npos ) {
-            if ( file_ext > dir_ext + 2 )
-                return object_id.substr(file_ext + 1);
-            else
-                throw VCLException(ObjectEmpty, object_id + " does not have a valid extension");
-        }
-        else
-            return "";
-    }
-
-    bool exists(const std::string &name)
-    {
-        struct stat filestatus;
-
-        return (stat (name.c_str(), &filestatus) == 0);
-    }
-
-    std::string create_unique(const std::string &path,
-                              const std::string &extension)
-    {
-
-      std::ostringstream tmp_stream;
-      for(int i = 0; i < DIRECTORY_LAYERS; i++)
-	{
-	  tmp_stream << std::internal << std::setfill('0') << std::setw(CHARS_PER_LAYER_NAME) << std::rand() % DIRECTORIES_PER_LAYER << "/" ;
-	}
-
-      
-        std::string unique_id;
-        std::string name;
-        const char& last = path.back();
-
-        do {
-            uint64_t id = get_uint64();
-            std::stringstream ss;
-            ss << std::hex << id;
-            unique_id = ss.str();
-            name = path + std::string((last != '/')? "/":"") + tmp_stream.str() +
-                   unique_id + "." + extension;
-
-        } while (exists(name));
-
-        return name;
-    }
+  throw VCLException(UndefinedException, "Random number not generated\n");
 }
+
+bool supports_rdrand() {
+  const unsigned int flag_rdrand = (1 << 30);
+
+  unsigned int eax, ebx, ecx, edx;
+  __cpuid(1, eax, ebx, ecx, edx);
+
+  return ((ecx & flag_rdrand) == flag_rdrand);
+}
+
+uint64_t combine(uint64_t a, uint64_t b) {
+  int multiplier = 1;
+
+  while (multiplier <= a) {
+    multiplier *= 10;
+  }
+
+  return a * multiplier + b;
+}
+
+uint64_t get_uint64() {
+  if (supports_rdrand()) {
+    return combine(rdrand(), rdrand());
+  } else {
+    init_rand;
+
+    return combine(rand(), rand());
+  }
+}
+
+std::string get_extension(const std::string &object_id) {
+  size_t file_ext = object_id.find_last_of(".");
+  size_t dir_ext = object_id.find_last_of("/");
+
+  if (file_ext != std::string::npos) {
+    if (file_ext > dir_ext + 2)
+      return object_id.substr(file_ext + 1);
+    else
+      throw VCLException(ObjectEmpty,
+                         object_id + " does not have a valid extension");
+  } else
+    return "";
+}
+
+bool exists(const std::string &name) {
+  struct stat filestatus;
+
+  return (stat(name.c_str(), &filestatus) == 0);
+}
+
+std::string create_unique(const std::string &path,
+                          const std::string &extension) {
+
+  std::ostringstream tmp_stream;
+  for (int i = 0; i < DIRECTORY_LAYERS; i++) {
+    tmp_stream << std::internal << std::setfill('0')
+               << std::setw(CHARS_PER_LAYER_NAME)
+               << std::rand() % DIRECTORIES_PER_LAYER << "/";
+  }
+
+  std::string unique_id;
+  std::string name;
+  const char &last = path.back();
+
+  do {
+    uint64_t id = get_uint64();
+    std::stringstream ss;
+    ss << std::hex << id;
+    unique_id = ss.str();
+    name = path + std::string((last != '/') ? "/" : "") + tmp_stream.str() +
+           unique_id + "." + extension;
+
+  } while (exists(name));
+
+  return name;
+}
+} // namespace VCL

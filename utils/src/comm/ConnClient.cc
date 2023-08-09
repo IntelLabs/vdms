@@ -27,10 +27,10 @@
  *
  */
 
-#include <string>
-#include <cstring>
-#include <unistd.h>
 #include <cstdlib>
+#include <cstring>
+#include <string>
+#include <unistd.h>
 
 #include <netdb.h>
 
@@ -38,56 +38,49 @@
 
 using namespace comm;
 
-ConnClient::ConnClient()
-{
+ConnClient::ConnClient() {
   _server.port = 0;
-    //create TCP/IP socket
-    _socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+  // create TCP/IP socket
+  _socket_fd = socket(AF_INET, SOCK_STREAM, 0);
 
-    if (_socket_fd < 0) {
-        throw ExceptionComm(SocketFail);
-    }
+  if (_socket_fd < 0) {
+    throw ExceptionComm(SocketFail);
+  }
 
-    int option = 1; // To set REUSEADDR to true
-    if (setsockopt(_socket_fd, SOL_SOCKET,
-            SO_REUSEADDR, &option, sizeof option) == -1) {
-        throw ExceptionComm(SocketFail);
-    }
+  int option = 1; // To set REUSEADDR to true
+  if (setsockopt(_socket_fd, SOL_SOCKET, SO_REUSEADDR, &option,
+                 sizeof option) == -1) {
+    throw ExceptionComm(SocketFail);
+  }
 }
 
-ConnClient::ConnClient(ServerAddress srv) :
-                    ConnClient(srv.addr, srv.port)
-{
+ConnClient::ConnClient(ServerAddress srv) : ConnClient(srv.addr, srv.port) {}
+
+ConnClient::ConnClient(std::string addr, int port) : ConnClient() {
+  if (port > MAX_PORT_NUMBER || port <= 0) {
+    throw ExceptionComm(PortError);
+  }
+
+  _server.addr = addr;
+  _server.port = port;
+  connect();
 }
 
-ConnClient::ConnClient(std::string addr, int port) : ConnClient()
-{
-    if (port > MAX_PORT_NUMBER || port <= 0) {
-        throw ExceptionComm(PortError);
-    }
+void ConnClient::connect() {
+  struct hostent *server = gethostbyname(_server.addr.c_str());
 
-    _server.addr = addr;
-    _server.port = port;
-    connect();
-}
+  if (server == NULL) {
+    throw ExceptionComm(ServerAddError);
+  }
 
-void ConnClient::connect()
-{
-    struct hostent *server = gethostbyname(_server.addr.c_str());
+  struct sockaddr_in svrAddr;
+  memset(&svrAddr, 0, sizeof(svrAddr));
+  svrAddr.sin_family = AF_INET;
 
-    if (server == NULL) {
-        throw ExceptionComm(ServerAddError);
-    }
+  memcpy(&svrAddr.sin_addr.s_addr, server->h_addr, server->h_length);
+  svrAddr.sin_port = htons(_server.port);
 
-    struct sockaddr_in svrAddr;
-    memset(&svrAddr, 0, sizeof(svrAddr));
-    svrAddr.sin_family = AF_INET;
-
-    memcpy(&svrAddr.sin_addr.s_addr, server->h_addr, server->h_length);
-    svrAddr.sin_port = htons(_server.port);
-
-    if (::connect(_socket_fd,(struct sockaddr *) &svrAddr,
-                  sizeof(svrAddr)) < 0) {
-        throw ExceptionComm(ConnectionError);
-    }
+  if (::connect(_socket_fd, (struct sockaddr *)&svrAddr, sizeof(svrAddr)) < 0) {
+    throw ExceptionComm(ConnectionError);
+  }
 }

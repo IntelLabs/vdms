@@ -35,14 +35,13 @@
 #include "queryMessage.pb.h"
 
 namespace VDMS {
-    class QueryMessage
-    {
-        comm::Connection* _conn;
+class QueryMessage {
+  comm::Connection *_conn;
 
-    public:
-        QueryMessage(comm::Connection* conn);
+public:
+  QueryMessage(comm::Connection *conn);
 
-        protobufs::queryMessage get_query();
-        void send_response(protobufs::queryMessage cmd);
-    };
+  protobufs::queryMessage get_query();
+  void send_response(protobufs::queryMessage cmd);
 };
+}; // namespace VDMS

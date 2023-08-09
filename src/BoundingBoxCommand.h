@@ -30,55 +30,47 @@
  */
 
 #pragma once
-#include <string>
 #include <mutex>
+#include <string>
 #include <vector>
 
-#include "RSCommand.h"
 #include "ExceptionsCommand.h"
+#include "RSCommand.h"
 
 namespace VDMS {
 
-    class AddBoundingBox : public RSCommand
-    {
-    public:
-        AddBoundingBox();
+class AddBoundingBox : public RSCommand {
+public:
+  AddBoundingBox();
 
-        int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error);
-    };
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
+};
 
-    class UpdateBoundingBox : public RSCommand
-    {
-        public:
-        UpdateBoundingBox();
+class UpdateBoundingBox : public RSCommand {
+public:
+  UpdateBoundingBox();
 
-        int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error);
-    };
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
+};
 
-    class FindBoundingBox : public RSCommand
-    {
-    public:
-        FindBoundingBox();
+class FindBoundingBox : public RSCommand {
+  // bool _use_aws_storage;
 
-        int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error);
+public:
+  FindBoundingBox();
 
-        Json::Value construct_responses(
-                Json::Value &json_responses,
-                const Json::Value &json,
-                protobufs::queryMessage &response,
-                const std::string &blob);
-    };
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
+
+  Json::Value construct_responses(Json::Value &json_responses,
+                                  const Json::Value &json,
+                                  protobufs::queryMessage &response,
+                                  const std::string &blob);
+};
 
 }; // namespace VDMS

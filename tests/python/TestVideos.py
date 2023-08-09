@@ -27,15 +27,14 @@
 import TestCommand
 import unittest
 
+
 class TestVideos(TestCommand.TestCommand):
-
-    #Methos to insert one image
+    # Method to insert one video
     def insertVideo(self, db, props=None):
-
         video_arr = []
         all_queries = []
 
-        fd = open("../test_videos/Megamind.avi", 'rb')
+        fd = open("../test_videos/Megamind.avi", "rb")
         video_arr.append(fd.read())
         fd.close()
 
@@ -46,7 +45,7 @@ class TestVideos(TestCommand.TestCommand):
             props["test_case"] = "test_case_prop"
             video_parms["properties"] = props
 
-        video_parms["codec"]     = "h264"
+        video_parms["codec"] = "h264"
         video_parms["container"] = "mp4"
 
         query = {}
@@ -60,7 +59,6 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(response[0]["AddVideo"]["status"], 0)
 
     def test_addVideo(self):
-
         db = self.create_connection()
 
         all_queries = []
@@ -68,15 +66,15 @@ class TestVideos(TestCommand.TestCommand):
 
         number_of_inserts = 2
 
-        for i in range(0,number_of_inserts):
-            #Read Brain Image
-            fd = open("../test_videos/Megamind.avi", 'rb')
+        for i in range(0, number_of_inserts):
+            # Read Brain Image
+            fd = open("../test_videos/Megamind.avi", "rb")
             video_arr.append(fd.read())
             fd.close()
 
             op_params_resize = {}
             op_params_resize["height"] = 512
-            op_params_resize["width"]  = 512
+            op_params_resize["width"] = 512
             op_params_resize["type"] = "resize"
 
             props = {}
@@ -98,16 +96,15 @@ class TestVideos(TestCommand.TestCommand):
             self.assertEqual(response[i]["AddVideo"]["status"], 0)
 
     def test_addVideoFromLocalFile_invalid_command(self):
-
         # The test is meant to fail if both blob and a local file are specified
         db = self.create_connection()
 
-        with open("../test_videos/Megamind.avi", 'rb') as fd:
+        with open("../test_videos/Megamind.avi", "rb") as fd:
             video_blob = fd.read()
 
         video_params = {}
         video_params["from_server_file"] = "BigFile.mp4"
-        video_params["codec"]           = "h264"
+        video_params["codec"] = "h264"
 
         query = {}
         query["AddVideo"] = video_params
@@ -116,12 +113,11 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(response[0]["status"], -1)
 
     def test_addVideoFromLocalFile_file_not_found(self):
-
         db = self.create_connection()
 
         video_params = {}
         video_params["from_server_file"] = "BigFile.mp4"
-        video_params["codec"]           = "h264"
+        video_params["codec"] = "h264"
 
         query = {}
         query["AddVideo"] = video_params
@@ -131,12 +127,11 @@ class TestVideos(TestCommand.TestCommand):
 
     @unittest.skip("Skipping class until fixed")
     def test_addVideoFromLocalFile_success(self):
-
         db = self.create_connection()
 
         video_params = {}
         video_params["from_server_file"] = "../../tests/videos/Megamind.mp4"
-        video_params["codec"]           = "h264"
+        video_params["codec"] = "h264"
 
         query = {}
         query["AddVideo"] = video_params
@@ -144,12 +139,10 @@ class TestVideos(TestCommand.TestCommand):
         response, obj_array = db.query([query], [[]])
         self.assertEqual(response[0]["AddVideo"]["status"], 0)
 
-
     def test_extractKeyFrames(self):
-
         db = self.create_connection()
 
-        fd = open("../../tests/videos/Megamind.mp4", 'rb')
+        fd = open("../../tests/videos/Megamind.mp4", "rb")
         video_blob = fd.read()
         fd.close()
 
@@ -160,8 +153,8 @@ class TestVideos(TestCommand.TestCommand):
 
         video_params = {}
         video_params["index_frames"] = True
-        video_params["properties"]   = props
-        video_params["codec"]        = "h264"
+        video_params["properties"] = props
+        video_params["codec"] = "h264"
 
         query = {}
         query["AddVideo"] = video_params
@@ -172,7 +165,7 @@ class TestVideos(TestCommand.TestCommand):
 
         entity = {}
         entity["class"] = "VD:KF"
-        entity["results"] = {'count': ''}
+        entity["results"] = {"count": ""}
 
         query = {}
         query["FindEntity"] = entity
@@ -182,24 +175,23 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindEntity"]["status"], 0)
 
         # we know that this video has exactly four key frames
-        self.assertEqual(response[0]["FindEntity"]["count"],  4)
+        self.assertEqual(response[0]["FindEntity"]["count"], 4)
 
     def test_findVideo(self):
-
         db = self.create_connection()
 
         prefix_name = "video_1_"
 
         number_of_inserts = 2
 
-        for i in range(0,number_of_inserts):
+        for i in range(0, number_of_inserts):
             props = {}
             props["name"] = prefix_name + str(i)
             self.insertVideo(db, props=props)
 
         all_queries = []
 
-        for i in range(0,number_of_inserts):
+        for i in range(0, number_of_inserts):
             constraints = {}
             constraints["name"] = ["==", prefix_name + str(i)]
 
@@ -219,7 +211,6 @@ class TestVideos(TestCommand.TestCommand):
             self.assertEqual(response[i]["FindVideo"]["status"], 0)
 
     def test_FindFramesByFrames(self):
-
         db = self.create_connection()
 
         prefix_name = "video_2_"
@@ -233,7 +224,7 @@ class TestVideos(TestCommand.TestCommand):
 
         all_queries = []
 
-        for i in range(0,number_of_inserts):
+        for i in range(0, number_of_inserts):
             constraints = {}
             constraints["name"] = ["==", prefix_name + str(i)]
 
@@ -250,10 +241,9 @@ class TestVideos(TestCommand.TestCommand):
 
         self.assertEqual(response[0]["FindFrames"]["status"], 0)
         self.assertEqual(response[1]["FindFrames"]["status"], 0)
-        self.assertEqual(len(img_array), 2 * len(video_params["frames"]) )
+        self.assertEqual(len(img_array), 2 * len(video_params["frames"]))
 
     def test_FindFramesByInterval(self):
-
         db = self.create_connection()
 
         prefix_name = "video_3_"
@@ -267,22 +257,22 @@ class TestVideos(TestCommand.TestCommand):
 
         all_queries = []
 
-        for i in range(0,number_of_inserts):
+        for i in range(0, number_of_inserts):
             constraints = {}
             constraints["name"] = ["==", prefix_name + str(i)]
 
             number_of_frames = 10
             operations = []
             interval_operation = {}
-            interval_operation["type"]  = "interval"
+            interval_operation["type"] = "interval"
             interval_operation["start"] = 0
-            interval_operation["stop"]  = number_of_frames
-            interval_operation["step"]  = 1
+            interval_operation["stop"] = number_of_frames
+            interval_operation["step"] = 1
             operations.append(interval_operation)
 
             video_params = {}
             video_params["constraints"] = constraints
-            video_params["operations"]  = operations
+            video_params["operations"] = operations
 
             query = {}
             query["FindFrames"] = video_params
@@ -296,7 +286,6 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(len(img_array), 2 * number_of_frames)
 
     def test_FindFramesMissingParameters(self):
-
         db = self.create_connection()
 
         constraints = {}
@@ -317,7 +306,6 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(img, [])
 
     def test_FindFramesInvalidParameters(self):
-
         db = self.create_connection()
 
         constraints = {}
@@ -325,17 +313,16 @@ class TestVideos(TestCommand.TestCommand):
 
         operations = []
         interval_operation = {}
-        interval_operation["type"]  = "interval"
+        interval_operation["type"] = "interval"
         interval_operation["start"] = 10
-        interval_operation["stop"]  = 20
-        interval_operation["step"]  = 1
+        interval_operation["stop"] = 20
+        interval_operation["step"] = 1
         operations.append(interval_operation)
 
         video_params = {}
         video_params["constraints"] = constraints
-        video_params["operations"]  = operations
-        video_params["frames"]      = [1]
-
+        video_params["operations"] = operations
+        video_params["frames"] = [1]
 
         query = {}
         query["FindFrames"] = video_params
@@ -349,21 +336,20 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(img, [])
 
     def test_findVideoResults(self):
-
         db = self.create_connection()
 
         prefix_name = "resvideo_1_"
 
         number_of_inserts = 2
 
-        for i in range(0,number_of_inserts):
+        for i in range(0, number_of_inserts):
             props = {}
             props["name"] = prefix_name + str(i)
             self.insertVideo(db, props=props)
 
         all_queries = []
 
-        for i in range(0,number_of_inserts):
+        for i in range(0, number_of_inserts):
             constraints = {}
             constraints["name"] = ["==", prefix_name + str(i)]
 
@@ -387,7 +373,6 @@ class TestVideos(TestCommand.TestCommand):
             self.assertEqual(response[i]["FindVideo"]["status"], 0)
 
     def test_addVideoWithLink(self):
-
         db = self.create_connection()
 
         all_queries = []
@@ -423,7 +408,7 @@ class TestVideos(TestCommand.TestCommand):
 
         imgs_arr = []
 
-        fd = open("../test_videos/Megamind.avi", 'rb')
+        fd = open("../test_videos/Megamind.avi", "rb")
         imgs_arr.append(fd.read())
         fd.close()
 
@@ -440,13 +425,12 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(response[1]["AddVideo"]["status"], 0)
 
     def test_findVid_multiple_results(self):
-
         db = self.create_connection()
 
         prefix_name = "vid_multiple"
 
         number_of_inserts = 4
-        for i in range(0,number_of_inserts):
+        for i in range(0, number_of_inserts):
             props = {}
             props["name"] = prefix_name
             self.insertVideo(db, props=props)
@@ -473,19 +457,18 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindVideo"]["returned"], number_of_inserts)
 
     def test_findVideoNoBlob(self):
-
         db = self.create_connection()
 
         prefix_name = "fvid_no_blob_"
 
-        for i in range(0,2):
+        for i in range(0, 2):
             props = {}
             props["name"] = prefix_name + str(i)
             self.insertVideo(db, props=props)
 
         all_queries = []
 
-        for i in range(0,2):
+        for i in range(0, 2):
             constraints = {}
             constraints["name"] = ["==", prefix_name + str(i)]
 
@@ -509,12 +492,11 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(len(img_array), 0)
 
     def test_updateVideo(self):
-
         db = self.create_connection()
 
         prefix_name = "fvid_update_"
 
-        for i in range(0,2):
+        for i in range(0, 2):
             props = {}
             props["name"] = prefix_name + str(i)
             self.insertVideo(db, props=props)

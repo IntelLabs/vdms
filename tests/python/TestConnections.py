@@ -27,10 +27,9 @@
 from threading import Thread
 import TestCommand
 
+
 class TestConnections(TestCommand.TestCommand):
-
     def test_FindEntity_link_constraints_float(self):
-
         db = self.create_connection()
 
         props = {}
@@ -38,22 +37,25 @@ class TestConnections(TestCommand.TestCommand):
         props["lastname"] = "Bonachon"
         props["age"] = 29
 
-        response, arr = self.addEntity("felcflo_People", properties=props,
-                                       check_status=True)
+        response, arr = self.addEntity(
+            "felcflo_People", properties=props, check_status=True
+        )
 
         props = {}
         props["type"] = "foo"
         props["name"] = "alligator"
 
-        response, arr = self.addEntity("felcflo_foo", properties=props,
-                                       check_status=True)
+        response, arr = self.addEntity(
+            "felcflo_foo", properties=props, check_status=True
+        )
 
         props = {}
         props["type"] = "foo"
         props["name"] = "cat"
 
-        response, arr = self.addEntity("felcflo_foo", properties=props,
-                                       check_status=True)
+        response, arr = self.addEntity(
+            "felcflo_foo", properties=props, check_status=True
+        )
 
         all_queries = []
 
@@ -64,7 +66,7 @@ class TestConnections(TestCommand.TestCommand):
                     "name": ["==", "Jon"],
                     "lastname": ["==", "Bonachon"],
                 },
-                "_ref": 2
+                "_ref": 2,
             }
         }
         all_queries.append(fE)
@@ -72,10 +74,8 @@ class TestConnections(TestCommand.TestCommand):
         fE = {
             "FindEntity": {
                 "class": "felcflo_foo",
-                "constraints": {
-                    "name": ["==", "alligator"]
-                },
-                "_ref": 3
+                "constraints": {"name": ["==", "alligator"]},
+                "_ref": 3,
             }
         }
         all_queries.append(fE)
@@ -83,38 +83,28 @@ class TestConnections(TestCommand.TestCommand):
         fE = {
             "FindEntity": {
                 "class": "felcflo_foo",
-                "constraints": {
-                    "name": ["==", "cat"]
-                },
-                "_ref": 4
+                "constraints": {"name": ["==", "cat"]},
+                "_ref": 4,
             }
         }
         all_queries.append(fE)
 
         aC = {
-
             "AddConnection": {
                 "class": "foo_connection",
                 "ref1": 2,
                 "ref2": 3,
-                "properties":{
-                    "name": "best_type_of_connection",
-                    "probablity": 0.3
-                }
+                "properties": {"name": "best_type_of_connection", "probablity": 0.3},
             }
         }
         all_queries.append(aC)
 
         aC = {
-
             "AddConnection": {
                 "class": "foo_connection",
                 "ref1": 2,
                 "ref2": 4,
-                "properties":{
-                    "name": "best_type_of_connection",
-                    "probablity": 0.6
-                }
+                "properties": {"name": "best_type_of_connection", "probablity": 0.6},
             }
         }
         all_queries.append(aC)
@@ -133,9 +123,7 @@ class TestConnections(TestCommand.TestCommand):
             "FindEntity": {
                 "class": "felcflo_People",
                 "_ref": 1,
-                "results": {
-                    "list": ["name", "lastname"]
-                }
+                "results": {"list": ["name", "lastname"]},
             }
         }
         all_queries.append(fE)
@@ -147,13 +135,10 @@ class TestConnections(TestCommand.TestCommand):
                     "ref": 1,
                     "constraints": {
                         "probablity": [">=", 0.5],
-                        "name": ["==", "best_type_of_connection"]
-                    }
-
+                        "name": ["==", "best_type_of_connection"],
+                    },
                 },
-                "results": {
-                    "list": ["name"]
-                }
+                "results": {"list": ["name"]},
             }
         }
         all_queries.append(fE)
@@ -169,9 +154,7 @@ class TestConnections(TestCommand.TestCommand):
             "FindEntity": {
                 "class": "felcflo_People",
                 "_ref": 1,
-                "results": {
-                    "list": ["name", "lastname"]
-                }
+                "results": {"list": ["name", "lastname"]},
             }
         }
         all_queries.append(fE)
@@ -183,13 +166,10 @@ class TestConnections(TestCommand.TestCommand):
                     "ref": 1,
                     "constraints": {
                         "probablity": [">=", 0.1],
-                        "name": ["==", "best_type_of_connection"]
-                    }
-
+                        "name": ["==", "best_type_of_connection"],
+                    },
                 },
-                "results": {
-                    "list": ["name"]
-                }
+                "results": {"list": ["name"]},
             }
         }
         all_queries.append(fE)
@@ -203,9 +183,7 @@ class TestConnections(TestCommand.TestCommand):
             "FindEntity": {
                 "class": "felcflo_People",
                 "_ref": 1,
-                "results": {
-                    "list": ["name", "lastname"]
-                }
+                "results": {"list": ["name", "lastname"]},
             }
         }
         all_queries.append(fE)
@@ -217,13 +195,10 @@ class TestConnections(TestCommand.TestCommand):
                     "ref": 1,
                     "constraints": {
                         "probablity": [">=", 1.0],
-                        "name": ["==", "best_type_of_connection"]
-                    }
-
+                        "name": ["==", "best_type_of_connection"],
+                    },
                 },
-                "results": {
-                    "list": ["name"]
-                }
+                "results": {"list": ["name"]},
             }
         }
         all_queries.append(fE)
@@ -232,7 +207,6 @@ class TestConnections(TestCommand.TestCommand):
         self.assertEqual(len(response[1]["FindEntity"]["entities"]), 0)
 
     def test_FindEntity_link_constraints_string(self):
-
         db = self.create_connection()
 
         props = {}
@@ -240,22 +214,25 @@ class TestConnections(TestCommand.TestCommand):
         props["lastname"] = "Bonachon"
         props["age"] = 29
 
-        response, arr = self.addEntity("felcstr_People", properties=props,
-                                       check_status=True)
+        response, arr = self.addEntity(
+            "felcstr_People", properties=props, check_status=True
+        )
 
         props = {}
         props["type"] = "foo"
         props["name"] = "alligator"
 
-        response, arr = self.addEntity("felcstr_foo", properties=props,
-                                       check_status=True)
+        response, arr = self.addEntity(
+            "felcstr_foo", properties=props, check_status=True
+        )
 
         props = {}
         props["type"] = "foo"
         props["name"] = "cat"
 
-        response, arr = self.addEntity("felcstr_foo", properties=props,
-                                       check_status=True)
+        response, arr = self.addEntity(
+            "felcstr_foo", properties=props, check_status=True
+        )
 
         all_queries = []
 
@@ -266,7 +243,7 @@ class TestConnections(TestCommand.TestCommand):
                     "name": ["==", "Jon"],
                     "lastname": ["==", "Bonachon"],
                 },
-                "_ref": 2
+                "_ref": 2,
             }
         }
         all_queries.append(fE)
@@ -274,10 +251,8 @@ class TestConnections(TestCommand.TestCommand):
         fE = {
             "FindEntity": {
                 "class": "felcstr_foo",
-                "constraints": {
-                    "name": ["==", "alligator"]
-                },
-                "_ref": 3
+                "constraints": {"name": ["==", "alligator"]},
+                "_ref": 3,
             }
         }
         all_queries.append(fE)
@@ -285,38 +260,28 @@ class TestConnections(TestCommand.TestCommand):
         fE = {
             "FindEntity": {
                 "class": "felcstr_foo",
-                "constraints": {
-                    "name": ["==", "cat"]
-                },
-                "_ref": 4
+                "constraints": {"name": ["==", "cat"]},
+                "_ref": 4,
             }
         }
         all_queries.append(fE)
 
         aC = {
-
             "AddConnection": {
                 "class": "foo_connection",
                 "ref1": 2,
                 "ref2": 3,
-                "properties":{
-                    "name": "best_type_of_connection_1",
-                    "probablity": 0.3
-                }
+                "properties": {"name": "best_type_of_connection_1", "probablity": 0.3},
             }
         }
         all_queries.append(aC)
 
         aC = {
-
             "AddConnection": {
                 "class": "foo_connection",
                 "ref1": 2,
                 "ref2": 4,
-                "properties":{
-                    "name": "best_type_of_connection",
-                    "probablity": 0.6
-                }
+                "properties": {"name": "best_type_of_connection", "probablity": 0.6},
             }
         }
         all_queries.append(aC)
@@ -335,9 +300,7 @@ class TestConnections(TestCommand.TestCommand):
             "FindEntity": {
                 "class": "felcstr_People",
                 "_ref": 1,
-                "results": {
-                    "list": ["name", "lastname"]
-                }
+                "results": {"list": ["name", "lastname"]},
             }
         }
         all_queries.append(fE)
@@ -347,14 +310,9 @@ class TestConnections(TestCommand.TestCommand):
                 "class": "felcstr_foo",
                 "link": {
                     "ref": 1,
-                    "constraints": {
-                        "name": ["==", "best_type_of_connection_1"]
-                    }
-
+                    "constraints": {"name": ["==", "best_type_of_connection_1"]},
                 },
-                "results": {
-                    "list": ["name"]
-                }
+                "results": {"list": ["name"]},
             }
         }
         all_queries.append(fE)
@@ -370,9 +328,7 @@ class TestConnections(TestCommand.TestCommand):
             "FindEntity": {
                 "class": "felcstr_People",
                 "_ref": 1,
-                "results": {
-                    "list": ["name", "lastname"]
-                }
+                "results": {"list": ["name", "lastname"]},
             }
         }
         all_queries.append(fE)
@@ -382,13 +338,9 @@ class TestConnections(TestCommand.TestCommand):
                 "class": "felcstr_foo",
                 "link": {
                     "ref": 1,
-                    "constraints": {
-                        "name": [">=", "best_type_of_connection"]
-                    }
+                    "constraints": {"name": [">=", "best_type_of_connection"]},
                 },
-                "results": {
-                    "list": ["name"]
-                }
+                "results": {"list": ["name"]},
             }
         }
         all_queries.append(fE)
@@ -402,9 +354,7 @@ class TestConnections(TestCommand.TestCommand):
             "FindEntity": {
                 "class": "felcstr_People",
                 "_ref": 1,
-                "results": {
-                    "list": ["name", "lastname"]
-                }
+                "results": {"list": ["name", "lastname"]},
             }
         }
         all_queries.append(fE)
@@ -414,13 +364,9 @@ class TestConnections(TestCommand.TestCommand):
                 "class": "felcstr_foo",
                 "link": {
                     "ref": 1,
-                    "constraints": {
-                        "name": ["<", "best_type_of_connection"]
-                    }
+                    "constraints": {"name": ["<", "best_type_of_connection"]},
                 },
-                "results": {
-                    "list": ["name"]
-                }
+                "results": {"list": ["name"]},
             }
         }
         all_queries.append(fE)
@@ -434,9 +380,7 @@ class TestConnections(TestCommand.TestCommand):
             "FindEntity": {
                 "class": "felcstr_People",
                 "_ref": 1,
-                "results": {
-                    "list": ["name", "lastname"]
-                }
+                "results": {"list": ["name", "lastname"]},
             }
         }
         all_queries.append(fE)
@@ -446,14 +390,9 @@ class TestConnections(TestCommand.TestCommand):
                 "class": "felcstr_foo",
                 "link": {
                     "ref": 1,
-                    "constraints": {
-                        "name": ["==", "best_type_of_connection"]
-                    }
-
+                    "constraints": {"name": ["==", "best_type_of_connection"]},
                 },
-                "results": {
-                    "list": ["name"]
-                }
+                "results": {"list": ["name"]},
             }
         }
         all_queries.append(fE)

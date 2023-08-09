@@ -2,7 +2,11 @@ build/
 db/
 *.gcov
 **/__pycache__/
+fr_client
+tmp
+*.onnx
 
 # VS Code Specific
 .devcontainer
 .vscode
+.coverage

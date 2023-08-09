@@ -26,15 +26,14 @@
 
 import TestCommand
 
+
 class TestImages(TestCommand.TestCommand):
-
-    #Methos to insert one image
+    # Method to insert one image
     def insertImage(self, db, props=None, collections=None, format="png"):
-
         imgs_arr = []
         all_queries = []
 
-        fd = open("../test_images/brain.png", 'rb')
+        fd = open("../test_images/brain.png", "rb")
         imgs_arr.append(fd.read())
         fd.close()
 
@@ -61,7 +60,6 @@ class TestImages(TestCommand.TestCommand):
         self.assertEqual(response[0]["AddImage"]["status"], 0)
 
     def test_addImage(self):
-
         db = self.create_connection()
 
         all_queries = []
@@ -69,15 +67,15 @@ class TestImages(TestCommand.TestCommand):
 
         number_of_inserts = 2
 
-        for i in range(0,number_of_inserts):
-            #Read Brain Image
-            fd = open("../test_images/brain.png", 'rb')
+        for i in range(0, number_of_inserts):
+            # Read Brain Image
+            fd = open("../test_images/brain.png", "rb")
             imgs_arr.append(fd.read())
             fd.close()
 
             op_params_resize = {}
             op_params_resize["height"] = 512
-            op_params_resize["width"]  = 512
+            op_params_resize["width"] = 512
             op_params_resize["type"] = "resize"
 
             props = {}
@@ -101,19 +99,18 @@ class TestImages(TestCommand.TestCommand):
             self.assertEqual(response[i]["AddImage"]["status"], 0)
 
     def test_findEntityImage(self):
-
         db = self.create_connection()
 
         prefix_name = "fent_brain_"
 
-        for i in range(0,2):
+        for i in range(0, 2):
             props = {}
             props["name"] = prefix_name + str(i)
             self.insertImage(db, props=props)
 
         all_queries = []
 
-        for i in range(0,2):
+        for i in range(0, 2):
             constraints = {}
             constraints["name"] = ["==", prefix_name + str(i)]
 
@@ -134,29 +131,31 @@ class TestImages(TestCommand.TestCommand):
 
         self.assertEqual(response[0]["FindEntity"]["status"], 0)
         self.assertEqual(response[1]["FindEntity"]["status"], 0)
-        self.assertEqual(response[0]["FindEntity"]["entities"][0]["name"], prefix_name + "0")
-        self.assertEqual(response[1]["FindEntity"]["entities"][0]["name"], prefix_name + "1")
+        self.assertEqual(
+            response[0]["FindEntity"]["entities"][0]["name"], prefix_name + "0"
+        )
+        self.assertEqual(
+            response[1]["FindEntity"]["entities"][0]["name"], prefix_name + "1"
+        )
 
     def test_findImage(self):
-
         db = self.create_connection()
 
         prefix_name = "fimg_brain_"
 
-        for i in range(0,2):
+        for i in range(0, 2):
             props = {}
             props["name"] = prefix_name + str(i)
             self.insertImage(db, props=props)
 
         all_queries = []
 
-        for i in range(0,2):
+        for i in range(0, 2):
             constraints = {}
             constraints["name"] = ["==", prefix_name + str(i)]
 
             img_params = {}
             img_params["constraints"] = constraints
-
 
             query = {}
             query["FindImage"] = img_params
@@ -170,19 +169,18 @@ class TestImages(TestCommand.TestCommand):
         self.assertEqual(len(img_array), 2)
 
     def test_findImageResults(self):
-
         db = self.create_connection()
 
         prefix_name = "fimg_results_"
 
-        for i in range(0,2):
+        for i in range(0, 2):
             props = {}
             props["name"] = prefix_name + str(i)
             self.insertImage(db, props=props)
 
         all_queries = []
 
-        for i in range(0,2):
+        for i in range(0, 2):
             constraints = {}
             constraints["name"] = ["==", prefix_name + str(i)]
 
@@ -202,12 +200,15 @@ class TestImages(TestCommand.TestCommand):
 
         self.assertEqual(response[0]["FindImage"]["status"], 0)
         self.assertEqual(response[1]["FindImage"]["status"], 0)
-        self.assertEqual(response[0]["FindImage"]["entities"][0]["name"], prefix_name + "0")
-        self.assertEqual(response[1]["FindImage"]["entities"][0]["name"], prefix_name + "1")
+        self.assertEqual(
+            response[0]["FindImage"]["entities"][0]["name"], prefix_name + "0"
+        )
+        self.assertEqual(
+            response[1]["FindImage"]["entities"][0]["name"], prefix_name + "1"
+        )
         self.assertEqual(len(img_array), 2)
 
     def test_addImageWithLink(self):
-
         db = self.create_connection()
 
         all_queries = []
@@ -244,7 +245,7 @@ class TestImages(TestCommand.TestCommand):
 
         imgs_arr = []
 
-        fd = open("../test_images/brain.png", 'rb')
+        fd = open("../test_images/brain.png", "rb")
         imgs_arr.append(fd.read())
         fd.close()
 
@@ -261,13 +262,12 @@ class TestImages(TestCommand.TestCommand):
         self.assertEqual(response[1]["AddImage"]["status"], 0)
 
     def test_findImage_multiple_results(self):
-
         db = self.create_connection()
 
         prefix_name = "fimg_brain_multiple"
 
         number_of_inserts = 4
-        for i in range(0,number_of_inserts):
+        for i in range(0, number_of_inserts):
             props = {}
             props["name"] = prefix_name
             self.insertImage(db, props=props)
@@ -294,19 +294,18 @@ class TestImages(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindImage"]["returned"], number_of_inserts)
 
     def test_findImageNoBlob(self):
-
         db = self.create_connection()
 
         prefix_name = "fimg_no_blob_"
 
-        for i in range(0,2):
+        for i in range(0, 2):
             props = {}
             props["name"] = prefix_name + str(i)
             self.insertImage(db, props=props)
 
         all_queries = []
 
-        for i in range(0,2):
+        for i in range(0, 2):
             constraints = {}
             constraints["name"] = ["==", prefix_name + str(i)]
 
@@ -330,12 +329,11 @@ class TestImages(TestCommand.TestCommand):
         self.assertEqual(len(img_array), 0)
 
     def test_findImageRefNoBlobNoPropsResults(self):
-
         db = self.create_connection()
 
         prefix_name = "fimg_no_blob_no_res"
 
-        for i in range(0,2):
+        for i in range(0, 2):
             props = {}
             props["name"] = prefix_name + str(i)
             props["id"] = i
@@ -343,7 +341,7 @@ class TestImages(TestCommand.TestCommand):
 
         all_queries = []
 
-        for i in range(0,1):
+        for i in range(0, 1):
             constraints = {}
             constraints["name"] = ["==", prefix_name + str(i)]
 
@@ -353,8 +351,8 @@ class TestImages(TestCommand.TestCommand):
 
             img_params = {}
             img_params["constraints"] = constraints
-            img_params["results"]     = results
-            img_params["_ref"]        = 22
+            img_params["results"] = results
+            img_params["_ref"] = 22
 
             query = {}
             query["FindImage"] = img_params
@@ -368,12 +366,11 @@ class TestImages(TestCommand.TestCommand):
         self.assertEqual(len(img_array), 0)
 
     def test_updateImage(self):
-
         db = self.create_connection()
 
         prefix_name = "fimg_update_"
 
-        for i in range(0,2):
+        for i in range(0, 2):
             props = {}
             props["name"] = prefix_name + str(i)
             self.insertImage(db, props=props)
@@ -401,7 +398,6 @@ class TestImages(TestCommand.TestCommand):
         self.assertEqual(len(img_array), 0)
 
     def ztest_zFindImageWithCollection(self):
-
         db = self.create_connection()
 
         prefix_name = "fimg_brain_collection_"
@@ -410,7 +406,7 @@ class TestImages(TestCommand.TestCommand):
         colls = {}
         colls = ["brainScans"]
 
-        for i in range(0,number_of_inserts):
+        for i in range(0, number_of_inserts):
             props = {}
             props["name"] = prefix_name + str(i)
 
@@ -418,8 +414,7 @@ class TestImages(TestCommand.TestCommand):
 
         all_queries = []
 
-        for i in range(0,1):
-
+        for i in range(0, 1):
             results = {}
             results["list"] = ["name"]
 

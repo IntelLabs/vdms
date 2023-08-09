@@ -30,158 +30,139 @@
  */
 
 #pragma once
-#include <string>
 #include <mutex>
-#include <vector>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
-#include <jsoncpp/json/value.h>
 #include <jsoncpp/json/json.h>
+#include <jsoncpp/json/value.h>
 
-#include "QueryHandler.h" // to provide the database connection
 #include "DescriptorsManager.h"
+#include "QueryHandler.h" // to provide the database connection
 #include "tbb/concurrent_unordered_map.h"
 
-namespace VDMS{
+namespace VDMS {
 
-    typedef std::pair<std::vector<long>, std::vector<float>> IDDistancePair;
+typedef std::pair<std::vector<long>, std::vector<float>> IDDistancePair;
 
-    // This class encapsulates common behavior of Descriptors-related cmds.
-    class DescriptorsCommand : public RSCommand
-    {
-    protected:
-        DescriptorsManager* _dm;
+// This class encapsulates common behavior of Descriptors-related cmds.
+class DescriptorsCommand : public RSCommand {
+protected:
+  DescriptorsManager *_dm;
 
-        // IDDistancePair is a pointer so that we can free its content
-        // without having to use erase methods, which are not lock free
-        // for this data structure in tbb
-        tbb::concurrent_unordered_map<long, IDDistancePair*> _cache_map;
+  // IDDistancePair is a pointer so that we can free its content
+  // without having to use erase methods, which are not lock free
+  // for this data structure in tbb
+  tbb::concurrent_unordered_map<long, IDDistancePair *> _cache_map;
 
-        // Will return the path to the set and the dimensions
-        std::string get_set_path(PMGDQuery& query_tx,
-                                 const std::string& set, int& dim);
+  // Will return the path to the set and the dimensions
+  std::string get_set_path(PMGDQuery &query_tx, const std::string &set,
+                           int &dim);
 
-        bool check_blob_size(const std::string& blob, const int dimensions,
-                             const long n_desc);
+  bool check_blob_size(const std::string &blob, const int dimensions,
+                       const long n_desc);
 
-    public:
-        DescriptorsCommand(const std::string& cmd_name);
+public:
+  DescriptorsCommand(const std::string &cmd_name);
 
-        virtual bool need_blob(const Json::Value& cmd) { return false; }
+  virtual bool need_blob(const Json::Value &cmd) { return false; }
 
-        virtual int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error) = 0;
+  virtual int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                                 const std::string &blob, int grp_id,
+                                 Json::Value &error) = 0;
 
-        virtual Json::Value construct_responses(
-                Json::Value& json_responses,
-                const Json::Value &json,
-                protobufs::queryMessage &response,
-                const std::string &blob) = 0;
-    };
+  virtual Json::Value construct_responses(Json::Value &json_responses,
+                                          const Json::Value &json,
+                                          protobufs::queryMessage &response,
+                                          const std::string &blob) = 0;
+};
 
-    class AddDescriptorSet: public DescriptorsCommand
-    {
-        std::string _storage_sets;
-        uint64_t _flinng_num_rows;
-        uint64_t _flinng_cells_per_row;
-        uint64_t _flinng_num_hash_tables;
-        uint64_t _flinng_hashes_per_table; 
-        uint64_t _flinng_sub_hash_bits; //sub_hash_bits * hashes_per_table must be less than 32, otherwise segfault will happen
-        uint64_t _flinng_cut_off;
+class AddDescriptorSet : public DescriptorsCommand {
+  std::string _storage_sets;
+  uint64_t _flinng_num_rows;
+  uint64_t _flinng_cells_per_row;
+  uint64_t _flinng_num_hash_tables;
+  uint64_t _flinng_hashes_per_table;
+  uint64_t
+      _flinng_sub_hash_bits; // sub_hash_bits * hashes_per_table must be
+                             // less than 32, otherwise segfault will happen
+  uint64_t _flinng_cut_off;
+  // bool _use_aws_storage;
 
-    public:
-        AddDescriptorSet();
+public:
+  AddDescriptorSet();
 
-        int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error);
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
 
-        Json::Value construct_responses(
-                Json::Value& json_responses,
-                const Json::Value &json,
-                protobufs::queryMessage &response,
-                const std::string &blob);
-    };
+  Json::Value construct_responses(Json::Value &json_responses,
+                                  const Json::Value &json,
+                                  protobufs::queryMessage &response,
+                                  const std::string &blob);
+};
 
-    class AddDescriptor: public DescriptorsCommand
-    {
-        long insert_descriptor(const std::string& blob,
-                               const std::string& path,
-                               int dim,
-                               const std::string& label,
-                               Json::Value& error);
+class AddDescriptor : public DescriptorsCommand {
+  // bool _use_aws_storage;
 
-    public:
-        AddDescriptor();
+  long insert_descriptor(const std::string &blob, const std::string &path,
+                         int dim, const std::string &label, Json::Value &error);
 
-        int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error);
+  void retrieve_aws_descriptorSet(const std::string &set_path);
 
-        bool need_blob(const Json::Value& cmd) { return true; }
+public:
+  AddDescriptor();
 
-        Json::Value construct_responses(
-                Json::Value& json_responses,
-                const Json::Value &json,
-                protobufs::queryMessage &response,
-                const std::string &blob);
-    };
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
 
-    class ClassifyDescriptor: public DescriptorsCommand
-    {
+  bool need_blob(const Json::Value &cmd) { return true; }
 
-    public:
-        ClassifyDescriptor();
+  Json::Value construct_responses(Json::Value &json_responses,
+                                  const Json::Value &json,
+                                  protobufs::queryMessage &response,
+                                  const std::string &blob);
+};
 
-        int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error);
+class ClassifyDescriptor : public DescriptorsCommand {
 
-        bool need_blob(const Json::Value& cmd) { return true; }
+public:
+  ClassifyDescriptor();
 
-        Json::Value construct_responses(
-                Json::Value& json_responses,
-                const Json::Value &json,
-                protobufs::queryMessage &response,
-                const std::string &blob);
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
 
-    };
+  bool need_blob(const Json::Value &cmd) { return true; }
 
-    class FindDescriptor: public DescriptorsCommand
-    {
+  Json::Value construct_responses(Json::Value &json_responses,
+                                  const Json::Value &json,
+                                  protobufs::queryMessage &response,
+                                  const std::string &blob);
+};
 
-    private:
-      void convert_properties(Json::Value& entities, Json::Value& list);
-      void populate_blobs(const std::string& set_path,
-                          const Json::Value& results,
-                          Json::Value& entities,
-                          protobufs::queryMessage &query_res);
+class FindDescriptor : public DescriptorsCommand {
 
-    public:
-        FindDescriptor();
+private:
+  void convert_properties(Json::Value &entities, Json::Value &list);
+  void populate_blobs(const std::string &set_path, const Json::Value &results,
+                      Json::Value &entities,
+                      protobufs::queryMessage &query_res);
 
-        int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error);
+public:
+  FindDescriptor();
 
-        bool need_blob(const Json::Value& cmd);
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
 
-        Json::Value construct_responses(
-                Json::Value& json_responses,
-                const Json::Value &json,
-                protobufs::queryMessage &response,
-                const std::string &blob);
+  bool need_blob(const Json::Value &cmd);
 
-    };
-  }
+  Json::Value construct_responses(Json::Value &json_responses,
+                                  const Json::Value &json,
+                                  protobufs::queryMessage &response,
+                                  const std::string &blob);
+};
+} // namespace VDMS
