@@ -35,12 +35,21 @@
 
 #include "pmgd.h"
 #include "CommunicationManager.h"
+#include <chrono>
+
 
 namespace VDMS {
     class Server
     {
         static const int DEFAULT_PORT = 55555;
         static const int DEFAULT_AUTODELETE_INTERVAL = -1;
+        static const int DEFAULT_AUTOREPLICATE_INTERVAL = -1;
+        std::string DEFAULT_AUTOREPLICATE_UNIT ="s" ;
+        std::string DEFAULT_BACKUP_PATH =".";
+        std::string DEFAULT_DB_ROOT ="db";
+        std::string DEFAULT_AUTOREPLICATE_FLAG="false";
+        
+
 
         CommunicationManager *_cm;
 
@@ -48,6 +57,14 @@ namespace VDMS {
 
         int _server_port;
         int _autodelete_interval;
+        int _autoreplecate_interval;
+        std::string _replication_unit;
+        std::string _backup_path;
+        std::string _db_path;
+        std::string _backup_flag;
+    
+        bool _untar;
+
 
         // Handle ^c
         static bool shutdown;
@@ -61,6 +78,8 @@ namespace VDMS {
         Server(std::string config_file);
         void process_requests();
         void autodelete_expired_data();
+        void auto_replicate_data();
+        void untar_data(std::string&);
         ~Server();
     };
 };

@@ -61,6 +61,28 @@ std::string singleAddImage(" \
             } \
         } \
     ");
+TEST( AutoReplicate, default_replicate)
+{
+
+
+    VDMSConfig::init("server/config-auto-replicate-tests.json");
+    PMGDQueryHandler::init();
+    QueryHandler::init();
+    std::string backup_path ="backups";
+    std::string db_path="db_backup";
+    int port =55557;
+
+    QueryHandler qh_base;
+    qh_base.regualar_run_autoreplicate(backup_path, db_path, port); // set flag to show autodelete queue has been initialized
+    QueryHandlerTester query_handler(qh_base);
+
+
+
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+
+}
+
 
 TEST(AddImage, simpleAdd)
 {
@@ -391,7 +413,7 @@ TEST(QueryHandler, EmptyResultCheck)
     PMGDQueryHandler::init();
     QueryHandler::init();
 
-    QueryHandler qh_base;    
+    QueryHandler qh_base;
     qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
     QueryHandlerTester query_handler(qh_base);
 
@@ -608,6 +630,70 @@ TEST(QueryHandler, CustomFunctionNoProcess)
     const Json::Value& query = parsed[0];
     EXPECT_EQ(query["info"], "custom function process not found");
     EXPECT_EQ(query["status"], -1);
+    VDMSConfig::destroy();
+    PMGDQueryHandler::destroy();
+}
+
+
+TEST(QueryHandler, AddUpdateFind_Blob)
+{
+
+    Json::StyledWriter writer;
+
+    std::ifstream ifile;
+    int fsize;
+    char * inBuf;
+    ifile.open("server/AddFindUpdate_blob.json", std::ifstream::in);
+    ifile.seekg(0, std::ios::end);
+    fsize = (int)ifile.tellg();
+    ifile.seekg(0, std::ios::beg);
+    inBuf = new char[fsize];
+    ifile.read(inBuf, fsize);
+    std::string json_query = std::string(inBuf);
+    ifile.close();
+    delete[] inBuf;
+
+    Json::Reader reader;
+    Json::Value root;
+    Json::Value parsed;
+
+    VDMSConfig::init("unit_tests/config-tests.json");
+    PMGDQueryHandler::init();
+    QueryHandler::init();
+
+    QueryHandler qh_base;
+    qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has been initialized
+    QueryHandlerTester query_handler(qh_base);
+
+    VDMS::protobufs::queryMessage proto_query;
+    proto_query.set_json(json_query);
+
+    std::string image;
+    std::ifstream file("test_images/brain.png",
+                    std::ios::in | std::ios::binary | std::ios::ate);
+
+    image.resize(file.tellg());
+
+    file.seekg(0, std::ios::beg);
+    if( !file.read(&image[ 0 ], image.size()))
+        std::cout << "error" << std::endl;
+
+    proto_query.add_blobs(image);
+    VDMS::protobufs::queryMessage response;
+
+    query_handler.pq(proto_query, response );
+
+    reader.parse(response.json().c_str(), parsed);
+    // std::cout << writer.write(parsed) << std::endl;
+
+    // Verify results returned.
+    for (int j = 0; j < parsed.size(); j++) {
+        const Json::Value& query = parsed[j];
+        ASSERT_EQ(query.getMemberNames().size(), 1);
+        std::string cmd = query.getMemberNames()[0];
+        EXPECT_EQ(query[cmd]["status"].asInt(), 0);
+    }
+
     VDMSConfig::destroy();
     PMGDQueryHandler::destroy();
 }

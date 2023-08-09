@@ -1,0 +1,118 @@
+[
+        {
+                "AddEntity" :
+                {
+                        "class" : "Person",
+                        "constraints" :
+                        {
+                                "age" :
+                                [
+                                        "<=",
+                                        30.0,
+                                        ">",
+                                        5.0
+                                ]
+                        },
+                        "properties" :
+                        {
+                                "Address" : "90 royal lane kingsland",
+                                "City" : "Jodhpur",
+                                "Gender" : "F",
+                                "age" : 20.0,
+                               
+                                "email" : "mymail.1@gmail.com",
+                                "has_dog" : true,
+                                "height" : 34.234100341796875,
+                                "id" : 1234.0,
+                                "lastname" : "jha",
+                                "name" : "aaron,jha,k'umar",
+                                "weight" : 50.110000610351562
+                        }
+                }
+        },
+        {
+                "AddEntity" :
+                {
+                        "class" : "Person",
+                        "constraints" :
+                        {
+                                "age" :
+                                [
+                                        "<=",
+                                        30.0
+                                ],
+                                "dob" :
+                                [
+                                        "<=",
+                                        {
+                                                "_date" : "2022-01-05T19:57:39.456214"
+                                        },
+                                        "<=",
+                                        {
+                                                "_date" : "2022-01-05T19:57:39.456214"
+                                        }
+                                ]
+                        },
+                        "properties" :
+                        {
+                                "Address" : "90 royal lane kingsland",
+                                "City" : "Jodhpur",
+                                "Gender" : "M",
+                                "age" : 20.0,
+                                "dob" :
+                                {
+                                        "_date" : "2022-01-05T19:57:39.456214"
+                                },
+                                "email" : "mymail.1@gmail.com",
+                                "has_dog" : false,
+                                "height" : 34.234100341796875,
+                                "id" : 1234.0,
+                                "lastname" : "jha",
+                                "middlename" : "kumar",
+                                "name" : "aaron",
+                                "weight" : 50.110000610351562
+                        }
+                }
+        },
+        {
+                "AddEntity" :
+                {
+                        "class" : "Person",
+                        "constraints" :
+                        {
+                                "age" :
+                                [
+                                        "<=",
+                                        50.0,
+                                        ">=",
+                                        60.0
+                                ],
+                                "dob" :
+                                [
+                                        "==",
+                                        {
+                                                "_date" : "2022-01-05T19:57:39.456214"
+                                        }
+                                ]
+                        },
+                        "properties" :
+                        {
+                                "Address" : "90 royal lane kingsland",
+                                "City" : "jod",
+                                "Gender" : "F",
+                                "age" : 20.0,
+                                "dob" :
+                                {
+                                        "_date" : "2022-01-05T19:57:39.456214"
+                                },
+                                "email" : "mymail.1@gmail.com",
+                                "has_dog" : true,
+                                "height" : 34.234100341796875,
+                                "id" : 1234.0,
+                                "lastname" : "jha",
+                                "name" : "Poonam",
+                                "weight" : 50.110000610351562
+                        }
+                }
+        }
+]

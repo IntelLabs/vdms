@@ -1,0 +1,10 @@
+// VDMS Config File
+// This is the run-time config file
+// Sets database paths and other parameters
+{
+   
+    "port": 55557,
+    "db_root_path": "test_db_1",
+
+    "more-info": "github.com/IntelLabs/vdms"
+}

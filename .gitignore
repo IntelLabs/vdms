@@ -1,6 +1,7 @@
 build/
 db/
 *.gcov
+**/__pycache__/
 
 # VS Code Specific
 .devcontainer

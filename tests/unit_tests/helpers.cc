@@ -40,6 +40,12 @@
 #include "helpers.h"
 #include "Exception.h"
 
+
+#include <vector>
+#include <random>
+
+
+
 // Image / Video Helpers
 
 void compare_mat_mat(cv::Mat &cv_img, cv::Mat &img, float error)
@@ -144,6 +150,81 @@ float* generate_desc_linear_increase(int d, int nb, float init)
     return xb;
 }
 
+void generate_desc_normal_cluster(int d, int nb, float* xb, float init, int cluster_size, float clusterhead_std, float cluster_std){
+  //std::cout << "\n Creating a Clustered Dataset ... \n";
+  //std::cout << "nb= " <<nb <<" cluster size = " <<cluster_size << " d= " <<d<<"... \n";
+
+  std::srand(init);
+  std::default_random_engine gen;
+  std::normal_distribution<float> cluster_head_dist(0.0f, clusterhead_std); //cluster head standard deviation can be arbitrary
+  std::normal_distribution<float> cluster_dist(0.0f, cluster_std); //cluster (neighbors close to cluster head) standard deviation should be a small noise (e.g. 1%-10%)
+    
+  if((nb % cluster_size) != 0) {
+      std::cout << "NOTE: Clustered Dataset Not Balanced, total number of elements not a multiple of cluster size, clusters will not have same number of items\n";
+  }
+
+  int n_clusters= floor((nb/cluster_size));
+  int total = (floor((nb/cluster_size)) * cluster_size);
+  int remaining = nb - total;
+    
+  std::vector<float> cluster_head(n_clusters * d);   
+     
+  for (uint64_t i = 0; i < cluster_head.size(); ++i) { //create cluster heads, they will be used as the list queries
+        cluster_head[i] = cluster_head_dist(gen);
+  }
+
+  //create total dataset, cluster heads with neighbors around each
+  for (int i = 0; i < n_clusters ; i++) {
+    for (int j = 0; j < cluster_size; j++){
+      if((i*cluster_size + j) % cluster_size == 0) { //cluster head
+        for (int z = 0; z < d; z++)
+          xb[ d*(i*cluster_size + j) + z] = cluster_head[i * d + z];
+      }
+        else{ //cluster neighbor
+          for (int z = 0; z < d; z++)
+            xb[d*(i*cluster_size + j) + z] = cluster_head[i * d + z] + cluster_dist(gen);
+        }
+    }
+  }
+  for (int i = 0; i < remaining; i++) {      
+      for (int z = 0; z < d; z++) {
+        xb[total*d + i*d + z] = cluster_head[n_clusters*d + z] + cluster_dist(gen);
+      }
+  }
+  //end create total dataset
+}
+
+float* generate_desc_normal_cluster(int d, int nb, float init, int cluster_size, float clusterhead_std, float cluster_std){
+    float *xb = new float[d * nb]; //total dataset
+    generate_desc_normal_cluster(d, nb, xb, init, cluster_size, clusterhead_std, cluster_std);
+    return xb;
+}
+
+
+void create_additional_neighbors(int d, int cluster_increment, int n_clusters, float* cluster_heads, float cluster_std, float *neighbors){
+    
+    std::default_random_engine gen;
+    std::normal_distribution<float> cluster_dist(0.0f, cluster_std); //cluster (neighbors close to cluster head) standard deviation should be a small noise (e.g. 1%-10%)
+    
+    //create increment neighbors dataset as new neihgbors near cluster heads
+    for (int i = 0; i < n_clusters ; i++) {
+        for (int j = 0; j < cluster_increment; j++){
+          for (int z = 0; z < d; z++){
+            neighbors[d*(i*cluster_increment + j) + z] = cluster_heads[i*d + z] + cluster_dist(gen);
+          }
+
+        }
+    }  
+
+}
+
+
+float* create_additional_neighbors(int d, int cluster_increment, int n_clusters, float* cluster_heads, float cluster_std){
+    float *neighbors = new float[d * cluster_increment * n_clusters]; //total additional neighbors
+    create_additional_neighbors(d, cluster_increment, n_clusters, cluster_heads, cluster_std , neighbors);
+    return neighbors;
+}
+
 std::map<long, std::string> animals_map()
 {
     std::map<long, std::string> class_map;
@@ -178,6 +259,9 @@ std::vector<VCL::DescriptorSetEngine> get_engines()
     engs.push_back(VCL::FaissIVFFlat);
     engs.push_back(VCL::TileDBDense);
     engs.push_back(VCL::TileDBSparse);
+    //engs.push_back(VCL::Flinng); 
+    //FLINNG only supports normalized dataset
+    //disable general tests until support for arbitrary datasets is added
 
     return engs;
 }
