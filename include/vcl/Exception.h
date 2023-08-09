@@ -34,73 +34,62 @@
 #include <string>
 
 namespace VCL {
-    enum ExceptionType {
-      UndefinedException,
+enum ExceptionType {
+  UndefinedException,
 
-      UnsupportedFormat,
-      UnsupportedOperation,
-      UnsupportedIndex,
+  UnsupportedFormat,
+  UnsupportedOperation,
+  UnsupportedIndex,
 
-      ObjectNotFound,
-      OpenFailed,
-      NotImplemented,
+  ObjectNotFound,
+  OpenFailed,
+  NotImplemented,
 
-      ObjectEmpty,
+  ObjectEmpty,
 
-      SizeMismatch,
-      OutOfBounds,
+  SizeMismatch,
+  OutOfBounds,
 
-      TileDBNotFound,
-      TileDBError,
+  TileDBNotFound,
+  TileDBError,
 
-      OpenCVError,
+  OpenCVError,
 
-      UnsupportedSystem,
-      SystemNotFound,
-      FFmpegInitFailed,
-      FFmpegParseFailed,
-      FFmpegDecodeFailed,
+  UnsupportedSystem,
+  SystemNotFound,
+  FFmpegInitFailed,
+  FFmpegParseFailed,
+  FFmpegDecodeFailed,
 
-    };
-
-    struct Exception {
-      // Which exception
-      int num;            ///< Exception number
-      const char *name;   ///< Exception name
-
-      // Additional information
-      std::string msg;
-      int errno_val;
-
-      // Where it was thrown
-      const char *file;   ///< Source file name
-      int line;           ///< Source line number
-
-      Exception(int exc, const char *exc_name, const char *f, int l)
-          : num(exc), name(exc_name),
-            msg(), errno_val(0),
-            file(f), line(l)
-      {}
-
-      Exception(int exc, const char *exc_name,
-                  const std::string &m,
-                  const char *f, int l)
-            : num(exc), name(exc_name),
-              msg(m), errno_val(0),
-              file(f), line(l)
-        {}
-
-      Exception(int exc, const char *exc_name,
-                  int err, const std::string &m,
-                  const char *f, int l)
-            : num(exc), name(exc_name),
-              msg(m), errno_val(err),
-              file(f), line(l)
-        {}
-    };
-
-#define VCLException(name, ...) \
-    VCL::Exception(VCL::name, #name, ##__VA_ARGS__, __FILE__, __LINE__)
 };
 
-extern void print_exception(const VCL::Exception &e, FILE *f= stdout);
+struct Exception {
+  // Which exception
+  int num;          ///< Exception number
+  const char *name; ///< Exception name
+
+  // Additional information
+  std::string msg;
+  int errno_val;
+
+  // Where it was thrown
+  const char *file; ///< Source file name
+  int line;         ///< Source line number
+
+  Exception(int exc, const char *exc_name, const char *f, int l)
+      : num(exc), name(exc_name), msg(), errno_val(0), file(f), line(l) {}
+
+  Exception(int exc, const char *exc_name, const std::string &m, const char *f,
+            int l)
+      : num(exc), name(exc_name), msg(m), errno_val(0), file(f), line(l) {}
+
+  Exception(int exc, const char *exc_name, int err, const std::string &m,
+            const char *f, int l)
+      : num(exc), name(exc_name), msg(m), errno_val(err), file(f), line(l) {}
+};
+
+#define VCLException(name, ...)                                                \
+  VCL::Exception(VCL::name, #name, ##__VA_ARGS__, __FILE__, __LINE__)
+}; // namespace VCL
+
+extern void print_exception(const VCL::Exception &e, FILE *f = stdout);

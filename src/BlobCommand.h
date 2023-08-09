@@ -30,83 +30,64 @@
  */
 
 #pragma once
-#include <string>
-#include <mutex>
-#include <vector>
-#include "vcl/Image.h"
 #include "vcl/CustomVCL.h"
+#include "vcl/Image.h"
+#include <mutex>
+#include <string>
+#include <vector>
 
-#include "RSCommand.h"
 #include "ExceptionsCommand.h"
+#include "RSCommand.h"
 
 namespace VDMS {
 
 // Helper classes for handling various JSON commands.
 
-    class BlobCommand: public RSCommand
-    {
-    public:
+class BlobCommand : public RSCommand {
+public:
+  BlobCommand(const std::string &cmd_name);
 
-        BlobCommand(const std::string &cmd_name);
+  virtual int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                                 const std::string &blob, int grp_id,
+                                 Json::Value &error) = 0;
 
-        virtual int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error) = 0;
+  virtual bool need_blob(const Json::Value &cmd) { return false; }
+};
 
-        virtual bool need_blob(const Json::Value& cmd) { return false; }
+class AddBlob : public BlobCommand {
 
-        
-        
-    };
+  std::string _storage_bin;
 
-    class AddBlob: public BlobCommand
-    {
-        
-        std::string _storage_bin;
+public:
+  AddBlob();
 
-    public:
-        AddBlob();
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
 
-        int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error);
+  bool need_blob(const Json::Value &cmd) { return true; }
+};
 
-        bool need_blob(const Json::Value& cmd) { return true; }
-    };
+class UpdateBlob : public BlobCommand {
+public:
+  UpdateBlob();
 
-    class UpdateBlob: public BlobCommand
-    {
-    public:
-        UpdateBlob();
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
+};
 
-        int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error);
+class FindBlob : public BlobCommand {
+public:
+  FindBlob();
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
 
-        
-    };
-
-    class FindBlob: public BlobCommand
-    {
-    public:
-        FindBlob();
-        int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error);
-
-        Json::Value construct_responses(
-                Json::Value &json_responses,
-                const Json::Value &json,
-                protobufs::queryMessage &response,
-                const std::string &blob);
-    };
+  Json::Value construct_responses(Json::Value &json_responses,
+                                  const Json::Value &json,
+                                  protobufs::queryMessage &response,
+                                  const std::string &blob);
+};
 
 }; // namespace VDMS

@@ -1,73 +1,76 @@
-#Copyright (C) 2021 Intel Corporation
+#Copyright (C) 2023 Intel Corporation
 #SPDX-License-Identifier: MIT
 
-ARG UBUNTU_VERSION=20.04
-ARG UBUNTU_NAME=focal
-ARG BUILD_THREADS=-j16
+ARG BASE_VERSION=11.7-slim
+ARG BUILD_THREADS="-j16"
 
-#1
-FROM ubuntu:${UBUNTU_VERSION}
+FROM debian:${BASE_VERSION}
 
 # Dockerfile limitations force a repetition of global args
-ARG UBUNTU_VERSION
-ARG UBUNTU_NAME
+ARG BUILD_THREADS
 
 # Install Packages
-RUN apt-get update && apt-get install -y --no-install-recommends software-properties-common && \
-    add-apt-repository "deb http://security.ubuntu.com/ubuntu ${UBUNTU_NAME}-security main" && \
-    apt-get install -y --no-install-recommends apt-transport-https autoconf automake bison build-essential \
-    bzip2 ca-certificates curl=7.68.0-1ubuntu2.18 ed flex g++ git gnupg-agent javacc libarchive-tools \
-    libatlas-base-dev libavcodec-dev libavformat-dev libboost-all-dev libbz2-dev \
-    libc-ares-dev libdc1394-22-dev libgflags-dev libgoogle-glog-dev libgtest-dev \
-    libgtk-3-dev libgtk2.0-dev libhdf5-serial-dev libjpeg-dev libjpeg8-dev libjsoncpp-dev \
-    libleveldb-dev liblmdb-dev liblz4-dev libopenblas-dev libopenmpi-dev \
-    libpng-dev librdkafka-dev libsnappy-dev libssl-dev libswscale-dev libtbb-dev \
-    libtbb2 libtiff-dev libtiff5-dev libtool mpich openjdk-11-jdk-headless \
-    pkg-config python3-dev python3-pip unzip && \
+RUN apt-get update && apt-get install -y --no-install-suggests --no-install-recommends \
+    apt-transport-https autoconf automake bison build-essential bzip2 ca-certificates \
+    curl ed flex g++-9 gcc-9 git gnupg-agent javacc libarchive-tools libatlas-base-dev \
+    libavcodec-dev libavformat-dev libboost-all-dev libbz2-dev libc-ares-dev libcurl4-openssl-dev \
+    libdc1394-22-dev libgflags-dev libgoogle-glog-dev libgtest-dev libgtk-3-dev libgtk2.0-dev \
+    libhdf5-dev libjpeg-dev libjpeg62-turbo-dev libjsoncpp-dev libleveldb-dev liblmdb-dev \
+    liblz4-dev libopenblas-dev libopenmpi-dev libpng-dev librdkafka-dev libsnappy-dev libssl-dev \
+    libswscale-dev libtbb-dev libtbb2 libtiff-dev libtiff5-dev libtool libzmq3-dev linux-libc-dev mpich \
+    openjdk-11-jdk-headless pkg-config procps python3-dev python3-pip software-properties-common \
+    swig unzip uuid-dev && \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 1 && \
+    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 1 && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
-    update-alternatives --install /usr/bin/python python /usr/bin/python3 1 && \
-    pip3 install --no-cache-dir "numpy>=1.23.2" "setuptools>=65.5.1"
+    ln -s /usr/bin/python3 /usr/bin/python
 
 # Pull and Install Dependencies
+ENV CMAKE_VERSION="v3.26.4" \
+    PROTOBUF_VERSION="3.20.3" \
+    OPENCV_VERSION="4.5.5" \
+    FAISS_VERSION="v1.7.3" \
+    VALIJSON_VERSION="v0.6" \
+    AWS_SDK_VERSION="1.11.0" \
+    TILEDB_VERSION="2.14.1"
+
 WORKDIR /dependencies
-RUN git clone --branch v3.21.2 https://github.com/Kitware/CMake.git && \
-    git clone --branch v4.0.2 https://github.com/swig/swig.git && \
-    git clone --branch v1.7.1 https://github.com/facebookresearch/faiss.git && \
-    git clone https://github.com/tonyzhang617/FLINNG.git && \
-    git clone --recurse-submodules -b v1.40.0 https://github.com/grpc/grpc.git && \
-    git clone --branch 4.5.3 https://github.com/opencv/opencv.git && \
-    git clone --branch v0.6 https://github.com/tristanpenman/valijson.git && \
-    curl -L -o /usr/share/java/json-simple-1.1.1.jar https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/json-simple/json-simple-1.1.1.jar && \
-    curl -L -o /dependencies/1.3.1.tar.gz https://github.com/TileDB-Inc/TileDB/archive/refs/tags/1.3.1.tar.gz && \
-    curl -L -o /dependencies/zlib-1.2.13.tar.gz http://zlib.net/zlib-1.2.13.tar.gz && \
-    cd /dependencies/CMake && ./bootstrap && make ${BUILD_THREADS} && make install && \
-    cd /dependencies/swig && ./autogen.sh && ./configure && make ${BUILD_THREADS} && make install && \
-    cd /dependencies/faiss && mkdir build && cd build && cmake -DFAISS_ENABLE_GPU=OFF .. && make ${BUILD_THREADS} && make install && \
-    cd /dependencies/FLINNG && mkdir build && cd build && cmake .. && make ${BUILD_THREADS} && make install && \
-    cd /dependencies/grpc && pip3 install --no-cache-dir -r requirements.txt && GRPC_PYTHON_BUILD_WITH_CYTHON=1 pip3 install --no-cache-dir . && \
-        cd tools/distrib/python/grpcio_tools && python ../make_grpcio_tools.py && GRPC_PYTHON_BUILD_WITH_CYTHON=1 pip3 install --no-cache-dir . && \
-        cd /dependencies/grpc/third_party/zlib && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make ${BUILD_THREADS} && make install && \
-        cd /dependencies/grpc/third_party/protobuf/cmake && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE -Dprotobuf_BUILD_TESTS=OFF .. && make ${BUILD_THREADS} && make install && \
-        cd ../../../abseil-cpp && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make ${BUILD_THREADS} && make install && \
-        cd ../../re2/ && mkdir build && cd build && cmake -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE .. && make ${BUILD_THREADS} && make install && \
-        cd /dependencies/grpc/cmake && mkdir build && cd build && cmake -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DgRPC_ABSL_PROVIDER=package \
-            -DgRPC_CARES_PROVIDER=package -DgRPC_PROTOBUF_PROVIDER=package \
-            -DgRPC_RE2_PROVIDER=package -DgRPC_SSL_PROVIDER=package \
-            -DgRPC_ZLIB_PROVIDER=package -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE ../.. && make ${BUILD_THREADS} && make install && \
-    cd /dependencies/opencv && mkdir build && cd build && cmake -D BUILD_PERF_TESTS=OFF -D BUILD_TESTS=OFF .. && make ${BUILD_THREADS} && make install && \
-    cd /dependencies/ && tar -xvzf zlib-1.2.13.tar.gz && cd zlib-1.2.13 && ./configure && make ${BUILD_THREADS} && make install && \
-    cd /dependencies/ && tar -xvf 1.3.1.tar.gz && cd TileDB-1.3.1 && mkdir build && cd build && \
-        ../bootstrap --prefix=/usr/local/ && make ${BUILD_THREADS} && make install-tiledb && \
+RUN pip install --no-cache-dir "numpy>=1.25.1" "protobuf==${PROTOBUF_VERSION}" "coverage>=7.2.7" && \
+    git clone --branch ${CMAKE_VERSION} https://github.com/Kitware/CMake.git && \
+        cd CMake && ./bootstrap && make ${BUILD_THREADS} && make install && \
     cd /usr/src/gtest && cmake . && make ${BUILD_THREADS} && mv lib/libgtest* /usr/lib/ && \
-    cd /dependencies/valijson && cp -r include/* /usr/local/include/ && \
-    rm -rf /dependencies
+    git clone --branch ${FAISS_VERSION} https://github.com/facebookresearch/faiss.git /dependencies/faiss && \
+        cd /dependencies/faiss && mkdir build && cd build && cmake -DFAISS_ENABLE_GPU=OFF .. && \
+        make ${BUILD_THREADS} && make install && cd /dependencies/ && \
+    git clone https://github.com/tonyzhang617/FLINNG.git && \
+        cd /dependencies/FLINNG && mkdir build && cd build && cmake .. && make ${BUILD_THREADS} && make install && cd /dependencies && \
+    curl -L -o /dependencies/${PROTOBUF_VERSION}.tar.gz \
+        https://github.com/protocolbuffers/protobuf/archive/refs/tags/v${PROTOBUF_VERSION}.tar.gz && \
+        cd /dependencies/ && tar -xvf ${PROTOBUF_VERSION}.tar.gz && \
+        cd protobuf-${PROTOBUF_VERSION}  && ./autogen.sh && ./configure &&  make -j$(nproc) && \
+        make install && ldconfig && cd /dependencies && \
+    git clone --branch ${OPENCV_VERSION} https://github.com/opencv/opencv.git && \
+        cd opencv && mkdir build && cd build && cmake -D BUILD_PERF_TESTS=OFF -D BUILD_TESTS=OFF .. && \
+        make ${BUILD_THREADS} && make install && cd /dependencies/ && \
+    git clone --branch ${VALIJSON_VERSION} https://github.com/tristanpenman/valijson.git && \
+        cd valijson && cp -r include/* /usr/local/include/ && cd /dependencies && \
+    curl -L -o /dependencies/${TILEDB_VERSION}.tar.gz \
+        https://github.com/TileDB-Inc/TileDB/archive/refs/tags/${TILEDB_VERSION}.tar.gz && \
+        cd /dependencies/ && tar -xvf ${TILEDB_VERSION}.tar.gz && cd TileDB-${TILEDB_VERSION} && \
+            mkdir build && cd build && ../bootstrap --prefix=/usr/local/ && make ${BUILD_THREADS} && \
+            make install-tiledb && cd /dependencies && \
+    git clone -b ${AWS_SDK_VERSION} --recurse-submodules https://github.com/aws/aws-sdk-cpp && \
+        mkdir -p aws-sdk-cpp/build && cd aws-sdk-cpp/build && \
+        cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=/usr/local/ -DCMAKE_INSTALL_PREFIX=/usr/local/ \
+            -DBUILD_ONLY="s3" -DCUSTOM_MEMORY_MANAGEMENT=OFF -DENABLE_TESTING=OFF && \
+        make ${BUILD_THREADS} && make install && \
+    rm -rf /dependencies /usr/local/share/doc /usr/local/share/man
 
 
 # VDMS
 WORKDIR /vdms
-RUN git clone https://github.com/IntelLabs/vdms.git /vdms && cd /vdms && \
-    git checkout develop && git submodule update --init --recursive && \
-    mkdir build && cd build && cmake .. && make ${BUILD_THREADS} && \
+RUN git clone -b develop --recurse-submodules https://github.com/IntelLabs/vdms.git /vdms && \
+    mkdir -p /vdms/build && cd /vdms/build && cmake .. && make ${BUILD_THREADS} && \
     cp /vdms/config-vdms.json /vdms/build/ && \
     echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
     echo './vdms' >> /start.sh && chmod 755 /start.sh

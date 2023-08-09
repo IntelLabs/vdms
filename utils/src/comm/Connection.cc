@@ -27,10 +27,10 @@
  *
  */
 
+#include <assert.h>
+#include <cstdlib>
 #include <string>
 #include <unistd.h>
-#include <cstdlib>
-#include <assert.h>
 
 #include <netdb.h>
 
@@ -38,132 +38,116 @@
 
 using namespace comm;
 
-Connection::Connection():
-    _socket_fd(-1), _buffer_size_limit(DEFAULT_BUFFER_SIZE)
-{
+Connection::Connection()
+    : _socket_fd(-1), _buffer_size_limit(DEFAULT_BUFFER_SIZE) {}
+
+Connection::Connection(int socket_fd)
+    : _socket_fd(socket_fd), _buffer_size_limit(DEFAULT_BUFFER_SIZE) {}
+
+Connection::Connection(Connection &&c)
+    : _buffer_size_limit(DEFAULT_BUFFER_SIZE) {
+  _socket_fd = c._socket_fd;
+  c._socket_fd = -1;
 }
 
-Connection::Connection(int socket_fd):
-    _socket_fd(socket_fd), _buffer_size_limit(DEFAULT_BUFFER_SIZE)
-{
+Connection &Connection::operator=(Connection &&c) {
+  _socket_fd = c._socket_fd;
+  c._socket_fd = -1;
+  return *this;
 }
 
-Connection::Connection(Connection &&c):
-    _buffer_size_limit(DEFAULT_BUFFER_SIZE)
-{
-    _socket_fd = c._socket_fd;
-    c._socket_fd = -1;
+Connection::~Connection() {
+  if (_socket_fd != -1) {
+    ::close(_socket_fd);
+    _socket_fd = -1;
+  }
 }
 
-Connection& Connection::operator=(Connection &&c)
-{
-    _socket_fd = c._socket_fd;
-    c._socket_fd = -1;
-    return *this;
+void Connection::shutdown() { ::shutdown(_socket_fd, SHUT_RDWR); }
+
+void Connection::set_buffer_size_limit(uint32_t buffer_size_limit) {
+  _buffer_size_limit = std::min(
+      MAX_BUFFER_SIZE, std::max(DEFAULT_BUFFER_SIZE, buffer_size_limit));
 }
 
-Connection::~Connection()
-{
-    if (_socket_fd != -1) {
-        ::close(_socket_fd);
-        _socket_fd = -1;
-    }
-}
+void Connection::send_message(const uint8_t *data, uint32_t size) {
+  if (size > MAX_BUFFER_SIZE) {
+    throw ExceptionComm(InvalidMessageSize);
+  } else if (size > _buffer_size_limit) {
+    set_buffer_size_limit(size);
+  }
 
-void Connection::shutdown()
-{
-    ::shutdown(_socket_fd, SHUT_RDWR);
-}
+  // We need MSG_NOSIGNAL so we don't get SIGPIPE, and we can throw.
+  int ret = ::send(_socket_fd, (const char *)&size, sizeof(size), MSG_NOSIGNAL);
 
-void Connection::set_buffer_size_limit(uint32_t buffer_size_limit)
-{
-    _buffer_size_limit = std::min(MAX_BUFFER_SIZE, std::max(DEFAULT_BUFFER_SIZE, buffer_size_limit));
-}
+  if (ret != sizeof(size)) {
+    throw ExceptionComm(WriteFail);
+  }
 
-void Connection::send_message(const uint8_t *data, uint32_t size)
-{
-    if (size > MAX_BUFFER_SIZE) {
-        throw ExceptionComm(InvalidMessageSize);
-    }
-    else if (size > _buffer_size_limit) {
-        set_buffer_size_limit(size);
-    }
-
+  int bytes_sent = 0;
+  while (bytes_sent < size) {
     // We need MSG_NOSIGNAL so we don't get SIGPIPE, and we can throw.
-    int ret = ::send(_socket_fd, (const char*)&size, sizeof(size), MSG_NOSIGNAL);
-
-    if (ret != sizeof(size)) {
-        throw ExceptionComm(WriteFail);
+    int ret = ::send(_socket_fd, (const char *)data + bytes_sent,
+                     size - bytes_sent, MSG_NOSIGNAL);
+    if (ret < 0) {
+      throw ExceptionComm(WriteFail);
     }
 
-    int bytes_sent = 0;
-    while (bytes_sent < size) {
-        // We need MSG_NOSIGNAL so we don't get SIGPIPE, and we can throw.
-        int ret = ::send(_socket_fd,
-                        (const char*)data + bytes_sent,
-                        size - bytes_sent, MSG_NOSIGNAL);
-        if (ret < 0) {
-            throw ExceptionComm(WriteFail);
-        }
-
-        bytes_sent += ret;
-    }
+    bytes_sent += ret;
+  }
 }
 
-const std::basic_string<uint8_t>& Connection::recv_message()
-{
-    uint32_t recv_message_size;
+const std::basic_string<uint8_t> &Connection::recv_message() {
+  uint32_t recv_message_size;
 
-    auto recv_and_check = [this](void* buffer, uint32_t size, int flags)
-    {
-        size_t bytes_recv = 0;
+  auto recv_and_check = [this](void *buffer, uint32_t size, int flags) {
+    size_t bytes_recv = 0;
 
-        while (bytes_recv < size) {
+    while (bytes_recv < size) {
 
-            int ret = ::recv(_socket_fd, (void*)((char*)buffer + bytes_recv),
-                    size - bytes_recv, flags);
+      int ret = ::recv(_socket_fd, (void *)((char *)buffer + bytes_recv),
+                       size - bytes_recv, flags);
 
-            if (ret < 0) {
-                throw ExceptionComm(ReadFail);
-            }
-            // When a stream socket peer has performed an orderly shutdown, the
-            // return value will be 0 (the traditional "end-of-file" return).
-            else if (ret == 0) {
-                throw ExceptionComm(ConnectionShutDown);
-            }
-
-            bytes_recv += ret;
-        }
-
-        return bytes_recv;
-    };
-
-    size_t bytes_recv = recv_and_check(&recv_message_size, sizeof(uint32_t),
-                                       MSG_WAITALL);
-
-    if (bytes_recv != sizeof(recv_message_size)) {
+      if (ret < 0) {
         throw ExceptionComm(ReadFail);
+      }
+      // When a stream socket peer has performed an orderly shutdown, the
+      // return value will be 0 (the traditional "end-of-file" return).
+      else if (ret == 0) {
+        throw ExceptionComm(ConnectionShutDown);
+      }
+
+      bytes_recv += ret;
     }
 
-    if (recv_message_size > MAX_BUFFER_SIZE) {
-        throw ExceptionComm(InvalidMessageSize);
-    }
-    else if (recv_message_size > _buffer_size_limit) {
-        set_buffer_size_limit(recv_message_size);
-    }
+    return bytes_recv;
+  };
 
-    buffer_str.resize(recv_message_size);
+  size_t bytes_recv =
+      recv_and_check(&recv_message_size, sizeof(uint32_t), MSG_WAITALL);
 
-    uint8_t *buffer = (uint8_t*) buffer_str.data();
-    bytes_recv = recv_and_check(buffer, recv_message_size, MSG_WAITALL);
+  if (bytes_recv != sizeof(recv_message_size)) {
+    throw ExceptionComm(ReadFail);
+  }
 
-    if (recv_message_size != bytes_recv) {
-        throw ExceptionComm(ReadFail);
-    }
+  if (recv_message_size > MAX_BUFFER_SIZE) {
+    throw ExceptionComm(InvalidMessageSize);
+  } else if (recv_message_size > _buffer_size_limit) {
+    set_buffer_size_limit(recv_message_size);
+  }
 
-    if (recv_message_size != buffer_str.size()) {
-        throw ExceptionComm(ReadFail);
-    }
+  buffer_str.resize(recv_message_size);
 
-    return buffer_str;
+  uint8_t *buffer = (uint8_t *)buffer_str.data();
+  bytes_recv = recv_and_check(buffer, recv_message_size, MSG_WAITALL);
+
+  if (recv_message_size != bytes_recv) {
+    throw ExceptionComm(ReadFail);
+  }
+
+  if (recv_message_size != buffer_str.size()) {
+    throw ExceptionComm(ReadFail);
+  }
+
+  return buffer_str;
 }

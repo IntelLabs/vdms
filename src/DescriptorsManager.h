@@ -29,36 +29,34 @@
 
 #pragma once
 
-#include <thread>
-#include <vector>
 #include <mutex>
 #include <queue>
+#include <thread>
+#include <vector>
 
-#include "vcl/DescriptorSet.h"
 #include "tbb/concurrent_unordered_map.h"
+#include "vcl/DescriptorSet.h"
 
 namespace VDMS {
 
-    class DescriptorsManager
-    {
-        static DescriptorsManager* _dm;
-        tbb::concurrent_unordered_map <std::string, VCL::DescriptorSet* >
-            _descriptors_handlers;
+class DescriptorsManager {
+  static DescriptorsManager *_dm;
+  tbb::concurrent_unordered_map<std::string, VCL::DescriptorSet *>
+      _descriptors_handlers;
 
-        DescriptorsManager();
+  DescriptorsManager();
 
-    public:
+public:
+  static bool init();
+  static DescriptorsManager *instance();
 
-        static bool init();
-        static DescriptorsManager* instance();
-
-        /**
-         *  Handles descriptors and lock for the descriptor
-         *  This is a blocking call until the descriptor is free
-         *
-         *  @param path  Path to the descriptor set
-         */
-        VCL::DescriptorSet* get_descriptors_handler(std::string path);
-        void flush();
-    };
+  /**
+   *  Handles descriptors and lock for the descriptor
+   *  This is a blocking call until the descriptor is free
+   *
+   *  @param path  Path to the descriptor set
+   */
+  VCL::DescriptorSet *get_descriptors_handler(std::string path);
+  void flush();
 };
+}; // namespace VDMS

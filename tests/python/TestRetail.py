@@ -34,10 +34,9 @@ n_cameras = 15
 dim = 1000
 name = "features_vectors_store1"
 
+
 class TestEntities(TestCommand.TestCommand):
-
     def add_descriptor_set(self, name, dim):
-
         db = self.create_connection()
 
         all_queries = []
@@ -57,7 +56,6 @@ class TestEntities(TestCommand.TestCommand):
         self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
 
     def build_store(self):
-
         db = self.create_connection()
 
         all_queries = []
@@ -65,69 +63,61 @@ class TestEntities(TestCommand.TestCommand):
         store_ref = 999
 
         query = {
-            "AddEntity" :
-            {
-                "_ref" : store_ref,
-                "class" : "Store",
-                "constraints" : { "Name" : [ "==", "Walmart" ] },
-                "properties" : {
-                    "Address" : "1428 alex way, Hillsboro 97124",
-                    "Name" : "Walmart",
-                    "Type" : "grocerys"
-                }
+            "AddEntity": {
+                "_ref": store_ref,
+                "class": "Store",
+                "constraints": {"Name": ["==", "Walmart"]},
+                "properties": {
+                    "Address": "1428 alex way, Hillsboro 97124",
+                    "Name": "Walmart",
+                    "Type": "grocerys",
+                },
             }
         }
 
         all_queries.append(query)
 
-        areas_tag = ["ChildrenClothes",
-                     "WomenClothes",
-                     "MenClothes",
-                     "Computers",
-                     "Sport",
-                     "Food",
-                     "ChildrenClothes",
-                     "WomenClothes",
-                     "MenClothes",
-                     "Computers",
-                     "Sport",
-                     "Food",
-                     "ChildrenClothes",
-                     "ChildrenClothes",
-                     "WomenClothes",
-                     "MenClothes",
-                     "Computers",
-                     "Sport",
-                     "Food",
-                     "ChildrenClothes"
-                     ]
+        areas_tag = [
+            "ChildrenClothes",
+            "WomenClothes",
+            "MenClothes",
+            "Computers",
+            "Sport",
+            "Food",
+            "ChildrenClothes",
+            "WomenClothes",
+            "MenClothes",
+            "Computers",
+            "Sport",
+            "Food",
+            "ChildrenClothes",
+            "ChildrenClothes",
+            "WomenClothes",
+            "MenClothes",
+            "Computers",
+            "Sport",
+            "Food",
+            "ChildrenClothes",
+        ]
 
-        for i in range(1,n_cameras+1):
-
+        for i in range(1, n_cameras + 1):
             addCamera = {
-                "AddEntity" :
-                {
+                "AddEntity": {
                     "_ref": i,
-                    "class" : "Camera",
-                    "constraints" : { "Name" : [ "==",  "cam" + str(i) ] },
-                    "properties" : {
-                        "Name" : "cam" + str(i)
-                    }
+                    "class": "Camera",
+                    "constraints": {"Name": ["==", "cam" + str(i)]},
+                    "properties": {"Name": "cam" + str(i)},
                 }
             }
 
             all_queries.append(addCamera)
 
             addArea = {
-                "AddEntity" :
-                {
-                    "_ref" : n_cameras * 10 + i,
-                    "class" : "Area",
-                    "constraints" : { "Name" : [ "==", "Area" + str(i) ] },
-                    "properties" : {
-                        "Name" : "Area" + str(i),
-                        "Tag" : areas_tag[i]
-                    }
+                "AddEntity": {
+                    "_ref": n_cameras * 10 + i,
+                    "class": "Area",
+                    "constraints": {"Name": ["==", "Area" + str(i)]},
+                    "properties": {"Name": "Area" + str(i), "Tag": areas_tag[i]},
                 }
             }
 
@@ -140,22 +130,20 @@ class TestEntities(TestCommand.TestCommand):
             all_queries.append(addArea)
 
             addConnection = {
-                "AddConnection" :
-                {
-                    "class" : "Covers",
-                    "ref1" : i,
-                    "ref2" : n_cameras * 10 + i
+                "AddConnection": {
+                    "class": "Covers",
+                    "ref1": i,
+                    "ref2": n_cameras * 10 + i,
                 }
             }
 
             all_queries.append(addConnection)
 
             addConnection = {
-                "AddConnection" :
-                {
-                    "class" : "Consists_Of",
-                    "ref1" : store_ref,
-                    "ref2" : n_cameras * 10 + i
+                "AddConnection": {
+                    "class": "Consists_Of",
+                    "ref1": store_ref,
+                    "ref2": n_cameras * 10 + i,
                 }
             }
 
@@ -166,14 +154,13 @@ class TestEntities(TestCommand.TestCommand):
 
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
 
-        for i in range(1,n_cameras+1):
-            self.assertEqual(response[(i-1)*4+1]["AddEntity"]["status"], 0)
-            self.assertEqual(response[(i-1)*4+2]["AddEntity"]["status"], 0)
-            self.assertEqual(response[(i-1)*4+3]["AddConnection"]["status"], 0)
-            self.assertEqual(response[(i-1)*4+4]["AddConnection"]["status"], 0)
+        for i in range(1, n_cameras + 1):
+            self.assertEqual(response[(i - 1) * 4 + 1]["AddEntity"]["status"], 0)
+            self.assertEqual(response[(i - 1) * 4 + 2]["AddEntity"]["status"], 0)
+            self.assertEqual(response[(i - 1) * 4 + 3]["AddConnection"]["status"], 0)
+            self.assertEqual(response[(i - 1) * 4 + 4]["AddConnection"]["status"], 0)
 
     def single(self, thID, db, results):
-
         # id = "19149ec8-fa0d-4ed0-9cfb-3e0811b75391"
         id = "19149ec8-fa0d-4ed0-9cfb-3e0811b" + str(thID)
 
@@ -183,11 +170,10 @@ class TestEntities(TestCommand.TestCommand):
         descriptor_blob = []
         x = np.ones(dim)
         x[2] = 2.34 + np.random.random_sample()
-        x = x.astype('float32')
+        x = x.astype("float32")
         descriptor_blob.append(x.tobytes())
 
         try:
-
             response, res_arr = db.query(all_queries, [descriptor_blob])
 
             for i in range(0, len(response)):
@@ -209,7 +195,6 @@ class TestEntities(TestCommand.TestCommand):
 
     @unittest.skip("Skipping class until fixed")
     def test_concurrent(self):
-
         self.build_store()
         self.add_descriptor_set(name, dim)
 
@@ -223,13 +208,11 @@ class TestEntities(TestCommand.TestCommand):
             db_list.append(db)
 
         results = [None] * concurrency * retries
-        for ret in range(0,retries):
-
+        for ret in range(0, retries):
             thread_arr = []
-            for i in range(0,concurrency):
+            for i in range(0, concurrency):
                 idx = concurrency * ret + i
-                thread_add = Thread(
-                    target=self.single,args=(idx, db_list[i], results) )
+                thread_add = Thread(target=self.single, args=(idx, db_list[i], results))
                 thread_add.start()
                 thread_arr.append(thread_add)
 
@@ -237,7 +220,7 @@ class TestEntities(TestCommand.TestCommand):
             error_counter = 0
             for th in thread_arr:
                 th.join()
-                if (results[idx] == -1):
+                if results[idx] == -1:
                     error_counter += 1
                 idx += 1
 

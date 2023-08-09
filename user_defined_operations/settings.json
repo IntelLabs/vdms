@@ -1,0 +1,8 @@
+{
+    "opfile": "/tmp/tmp_op_file",
+    "port": 5555,
+    "functions" : {
+        "facedetect" : "facedetect",
+        "flip": "flip"
+    }
+}

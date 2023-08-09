@@ -27,18 +27,18 @@
 from threading import Thread
 import TestCommand
 
+
 class TestEntities(TestCommand.TestCommand):
-
     def addSingleEntity(self, thID, results):
-
         props = {}
         props["name"] = "Luis"
         props["lastname"] = "Ferro"
         props["age"] = 27
         props["threadid"] = thID
 
-        response, arr = self.addEntity("AwesomePeople", properties=props,
-                                       check_status=False)
+        response, arr = self.addEntity(
+            "AwesomePeople", properties=props, check_status=False
+        )
 
         try:
             self.assertEqual(response[0]["AddEntity"]["status"], 0)
@@ -48,11 +48,10 @@ class TestEntities(TestCommand.TestCommand):
         results[thID] = 0
 
     def findEntity(self, thID, results):
-
         db = self.create_connection()
 
         constraints = {}
-        constraints["threadid"] = ["==",thID]
+        constraints["threadid"] = ["==", thID]
 
         findEntity = {}
         findEntity["constraints"] = constraints
@@ -71,25 +70,23 @@ class TestEntities(TestCommand.TestCommand):
         response, res_arr = db.query(all_queries)
 
         try:
-
             self.assertEqual(response[0]["FindEntity"]["status"], 0)
-            self.assertEqual(response[0]["FindEntity"]["entities"][0]
-                                        ["lastname"], "Ferro")
-            self.assertEqual(response[0]["FindEntity"]["entities"][0]
-                                        ["threadid"], thID)
+            self.assertEqual(
+                response[0]["FindEntity"]["entities"][0]["lastname"], "Ferro"
+            )
+            self.assertEqual(response[0]["FindEntity"]["entities"][0]["threadid"], thID)
         except:
             results[thID] = -1
 
         results[thID] = 0
 
     def test_runMultipleAdds(self):
-
         # Test concurrent AddEntities
         concurrency = 32
         thread_arr = []
         results = [None] * concurrency
-        for i in range(0,concurrency):
-            thread_add = Thread(target=self.addSingleEntity,args=(i, results) )
+        for i in range(0, concurrency):
+            thread_add = Thread(target=self.addSingleEntity, args=(i, results))
             thread_add.start()
             thread_arr.append(thread_add)
 
@@ -97,7 +94,7 @@ class TestEntities(TestCommand.TestCommand):
         error_counter = 0
         for th in thread_arr:
             th.join()
-            if (results[idx] == -1):
+            if results[idx] == -1:
                 error_counter += 1
             idx += 1
 
@@ -106,23 +103,22 @@ class TestEntities(TestCommand.TestCommand):
         thread_arr = []
 
         # Tests concurrent AddEntities and FindEntities (that should exists)
-        results      = [None] * concurrency * 2
-        for i in range(0,concurrency):
+        results = [None] * concurrency * 2
+        for i in range(0, concurrency):
             addidx = concurrency + i
-            thread_add = Thread(target=self.addSingleEntity,args=(addidx, results) )
+            thread_add = Thread(target=self.addSingleEntity, args=(addidx, results))
             thread_add.start()
             thread_arr.append(thread_add)
 
-            thread_find = Thread(
-                            target=self.findEntity,args=(i, results) )
+            thread_find = Thread(target=self.findEntity, args=(i, results))
             thread_find.start()
             thread_arr.append(thread_find)
 
         idx = 0
         error_counter = 0
         for th in thread_arr:
-            th.join();
-            if (results[idx] == -1):
+            th.join()
+            if results[idx] == -1:
                 error_counter += 1
 
             idx += 1
@@ -130,9 +126,9 @@ class TestEntities(TestCommand.TestCommand):
         self.assertEqual(error_counter, 0)
 
     def test_addFindEntity(self):
-        results      = [None] * 1
-        self.addSingleEntity(0, results);
-        self.findEntity(0, results);
+        results = [None] * 1
+        self.addSingleEntity(0, results)
+        self.findEntity(0, results)
 
     def test_addEntityWithLink(self):
         db = self.create_connection()
@@ -186,11 +182,7 @@ class TestEntities(TestCommand.TestCommand):
 
         all_queries = []
 
-        props = {
-                "name": "Luis",
-                "lastname": "Ferro",
-                "age": 25
-        }
+        props = {"name": "Luis", "lastname": "Ferro", "age": 25}
         addEntity = {}
         addEntity["_ref"] = 32
         addEntity["properties"] = props
@@ -208,14 +200,12 @@ class TestEntities(TestCommand.TestCommand):
         all_queries = []
 
         # this format is invalid, as each constraint must be an array
-        constraints = {
-            "name": "Luis"
-        }
+        constraints = {"name": "Luis"}
 
         entity = {}
         entity["constraints"] = constraints
         entity["class"] = "SomePeople"
-        entity["results"] = {'count': ''}
+        entity["results"] = {"count": ""}
 
         query = {}
         query["FindEntity"] = entity
@@ -225,13 +215,12 @@ class TestEntities(TestCommand.TestCommand):
         response, blob_arr = db.query(all_queries)
 
         self.assertEqual(response[0]["status"], -1)
-        self.assertEqual(response[0]["info"],
-                            "Constraint for property 'name' must be an array")
+        self.assertEqual(
+            response[0]["info"], "Constraint for property 'name' must be an array"
+        )
 
         # Another invalid format
-        constraints = {
-            "name": []
-        }
+        constraints = {"name": []}
         entity["constraints"] = constraints
         all_queries = []
         all_queries.append(query)
@@ -239,19 +228,19 @@ class TestEntities(TestCommand.TestCommand):
         response, blob_arr = db.query(all_queries)
 
         self.assertEqual(response[0]["status"], -1)
-        self.assertEqual(response[0]["info"],
-                "Constraint for property 'name' must be an array of size 2 or 4");
+        self.assertEqual(
+            response[0]["info"],
+            "Constraint for property 'name' must be an array of size 2 or 4",
+        )
 
     def test_FindWithSortKey(self):
-
         db = self.create_connection()
 
         all_queries = []
 
         number_of_inserts = 10
 
-        for i in range(0,number_of_inserts):
-
+        for i in range(0, number_of_inserts):
             props = {}
             props["name"] = "entity_" + str(i)
             props["id"] = i
@@ -293,15 +282,13 @@ class TestEntities(TestCommand.TestCommand):
             self.assertEqual(response[0]["FindEntity"]["entities"][i]["id"], i)
 
     def test_FindWithSortBlock(self):
-
         db = self.create_connection()
 
         all_queries = []
 
         number_of_inserts = 10
 
-        for i in range(0,number_of_inserts):
-
+        for i in range(0, number_of_inserts):
             props = {}
             props["name"] = "entity_" + str(i)
             props["id"] = i
@@ -369,5 +356,7 @@ class TestEntities(TestCommand.TestCommand):
 
         self.assertEqual(response[0]["FindEntity"]["status"], 0)
         for i in range(0, number_of_inserts):
-            self.assertEqual(response[0]["FindEntity"]["entities"][i]["id"],
-                             number_of_inserts - 1 - i)
+            self.assertEqual(
+                response[0]["FindEntity"]["entities"][i]["id"],
+                number_of_inserts - 1 - i,
+            )

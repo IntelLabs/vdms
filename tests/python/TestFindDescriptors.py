@@ -28,10 +28,9 @@ import TestCommand
 import numpy as np
 import unittest
 
+
 class TestFindDescriptors(TestCommand.TestCommand):
-
     def create_set_and_insert(self, set_name, dims, total, labels=True):
-
         db = self.create_connection()
 
         all_queries = []
@@ -53,13 +52,13 @@ class TestFindDescriptors(TestCommand.TestCommand):
         descriptor_blob = []
 
         class_counter = -1
-        for i in range(0,total):
-            if ((i % 4) == 0):
+        for i in range(0, total):
+            if (i % 4) == 0:
                 class_counter += 1
 
             x = np.ones(dims)
-            x[2] = 2.34 + i*20
-            x = x.astype('float32')
+            x[2] = 2.34 + i * 20
+            x = x.astype("float32")
             descriptor_blob.append(x.tobytes())
 
             descriptor = {}
@@ -80,12 +79,11 @@ class TestFindDescriptors(TestCommand.TestCommand):
         response, img_array = db.query(all_queries, [descriptor_blob])
 
         # Check success
-        for x in range(0,total):
+        for x in range(0, total):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByConstraints(self):
-
         # Add Set
         set_name = "features_128d_4_findbyConst"
         dims = 128
@@ -104,7 +102,9 @@ class TestFindDescriptors(TestCommand.TestCommand):
         finddescriptor["constraints"] = constraints
 
         results = {}
-        results["list"] = ["myid",]
+        results["list"] = [
+            "myid",
+        ]
         finddescriptor["results"] = results
 
         query = {}
@@ -118,12 +118,10 @@ class TestFindDescriptors(TestCommand.TestCommand):
         # Check success
         self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
         self.assertEqual(response[0]["FindDescriptor"]["returned"], 1)
-        self.assertEqual(response[0]["FindDescriptor"]
-                                    ["entities"][0]["myid"], 202)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["myid"], 202)
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescUnusedRef(self):
-
         # Add Set
         set_name = "features_128d_4_findunusedRef"
         dims = 128
@@ -160,7 +158,6 @@ class TestFindDescriptors(TestCommand.TestCommand):
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByConst_get_id(self):
-
         # Add Set
         set_name = "features_128d_4_findDescriptors_id"
         dims = 128
@@ -193,12 +190,10 @@ class TestFindDescriptors(TestCommand.TestCommand):
         # Check success
         self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
         self.assertEqual(response[0]["FindDescriptor"]["returned"], 1)
-        self.assertEqual(response[0]["FindDescriptor"]
-                                    ["entities"][0]["myid"], 202)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["myid"], 202)
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByConst_blobTrue(self):
-
         # Add Set
         set_name = "features_128d_4_findDescriptors_id_blob"
         dims = 128
@@ -232,14 +227,12 @@ class TestFindDescriptors(TestCommand.TestCommand):
         # Check success
         self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
         self.assertEqual(response[0]["FindDescriptor"]["returned"], 1)
-        self.assertEqual(response[0]["FindDescriptor"]
-                                    ["entities"][0]["myid"], 202)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["myid"], 202)
         self.assertEqual(len(fv_array), 1)
-        self.assertEqual(len(fv_array[0]), dims*4)
+        self.assertEqual(len(fv_array[0]), dims * 4)
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByConst_multiple_blobTrue(self):
-
         # Add Set
         set_name = "features_128d_4_findDescriptors_m_blob"
         dims = 128
@@ -276,11 +269,10 @@ class TestFindDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindDescriptor"]["returned"], 3)
         self.assertEqual(response[0]["FindDescriptor"]["entities"][1]["myid"], 201)
         self.assertEqual(len(fv_array), 3)
-        self.assertEqual(len(fv_array[0]), dims*4)
+        self.assertEqual(len(fv_array[0]), dims * 4)
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByBlob(self):
-
         # Add Set
         set_name = "findwith_blob"
         dims = 128
@@ -310,8 +302,8 @@ class TestFindDescriptors(TestCommand.TestCommand):
 
         descriptor_blob = []
         x = np.ones(dims)
-        x[2] = x[2] = 2.34 + 1*20  #2.34 + 1*20
-        x = x.astype('float32')
+        x[2] = x[2] = 2.34 + 1 * 20  # 2.34 + 1*20
+        x = x.astype("float32")
         descriptor_blob.append(x.tobytes())
 
         response, blob_array = db.query(all_queries, [descriptor_blob])
@@ -322,16 +314,12 @@ class TestFindDescriptors(TestCommand.TestCommand):
         # Check success
         self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
         self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
-        self.assertEqual(response[0]["FindDescriptor"]
-                                    ["entities"][0]["_distance"], 0)
-        self.assertEqual(response[0]["FindDescriptor"]
-                                    ["entities"][1]["_distance"], 400)
-        self.assertEqual(response[0]["FindDescriptor"]
-                                    ["entities"][2]["_distance"], 400)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["_distance"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][1]["_distance"], 400)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][2]["_distance"], 400)
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByBlobNoLabels(self):
-
         # Add Set
         set_name = "findwith_blob_no_labels"
         dims = 128
@@ -361,8 +349,8 @@ class TestFindDescriptors(TestCommand.TestCommand):
 
         descriptor_blob = []
         x = np.ones(dims)
-        x[2] = 2.34 + 1*20
-        x = x.astype('float32')
+        x[2] = 2.34 + 1 * 20
+        x = x.astype("float32")
         descriptor_blob.append(x.tobytes())
 
         response, blob_array = db.query(all_queries, [descriptor_blob])
@@ -376,7 +364,6 @@ class TestFindDescriptors(TestCommand.TestCommand):
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByBlobNoResults(self):
-
         # Add Set
         set_name = "findwith_blobNoResults"
         dims = 128
@@ -405,8 +392,8 @@ class TestFindDescriptors(TestCommand.TestCommand):
 
         descriptor_blob = []
         x = np.ones(dims)
-        x[2] = 2.34 + 30*20
-        x = x.astype('float32')
+        x[2] = 2.34 + 30 * 20
+        x = x.astype("float32")
         descriptor_blob.append(x.tobytes())
 
         response, blob_array = db.query(all_queries, [descriptor_blob])
@@ -419,7 +406,6 @@ class TestFindDescriptors(TestCommand.TestCommand):
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByBlobUnusedRef(self):
-
         # Add Set
         set_name = "findwith_blobUnusedRef"
         dims = 50
@@ -449,8 +435,8 @@ class TestFindDescriptors(TestCommand.TestCommand):
 
         descriptor_blob = []
         x = np.ones(dims)
-        x[2] = 2.34 + 1*20
-        x = x.astype('float32')
+        x[2] = 2.34 + 1 * 20
+        x = x.astype("float32")
         descriptor_blob.append(x.tobytes())
 
         response, blob_array = db.query(all_queries, [descriptor_blob])
@@ -463,7 +449,6 @@ class TestFindDescriptors(TestCommand.TestCommand):
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByBlobAndConstraints(self):
-
         # Add Set
         set_name = "findwith_blob_const"
         dims = 128
@@ -497,8 +482,8 @@ class TestFindDescriptors(TestCommand.TestCommand):
 
         descriptor_blob = []
         x = np.ones(dims)
-        x[2] = 2.34 + 2*20
-        x = x.astype('float32')
+        x[2] = 2.34 + 2 * 20
+        x = x.astype("float32")
         descriptor_blob.append(x.tobytes())
 
         response, blob_array = db.query(all_queries, [descriptor_blob])
@@ -510,12 +495,10 @@ class TestFindDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
         self.assertEqual(response[0]["FindDescriptor"]["returned"], 1)
 
-        self.assertEqual(response[0]["FindDescriptor"]
-                                    ["entities"][0]["_distance"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["_distance"], 0)
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByBlobWithLink(self):
-
         # Add Set
         set_name = "findwith_blob_link"
         dims = 128
@@ -542,15 +525,15 @@ class TestFindDescriptors(TestCommand.TestCommand):
         descriptor_blob = []
 
         class_counter = -1
-        for i in range(0,total): #-1):
-            if ((i % 4) == 0):
+        for i in range(0, total):  # -1):
+            if (i % 4) == 0:
                 class_counter += 1
 
             reference = i + 2
 
             x = np.ones(dims)
-            x[2] = 2.34 + i*20
-            x = x.astype('float32')
+            x[2] = 2.34 + i * 20
+            x = x.astype("float32")
             descriptor_blob.append(x.tobytes())
 
             descriptor = {}
@@ -586,12 +569,12 @@ class TestFindDescriptors(TestCommand.TestCommand):
         response, img_array = db.query(all_queries, [descriptor_blob])
 
         # Check success
-        for x in range(0,total-1,2):
+        for x in range(0, total - 1, 2):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
-            self.assertEqual(response[x+1]["AddEntity"]  ["status"], 0)
+            self.assertEqual(response[x + 1]["AddEntity"]["status"], 0)
 
         kn = 3
-        reference = 102 # because I can
+        reference = 102  # because I can
 
         all_queries = []
 
@@ -612,8 +595,8 @@ class TestFindDescriptors(TestCommand.TestCommand):
 
         descriptor_blob = []
         x = np.ones(dims)
-        x[2] = 2.34 + 1*20
-        x = x.astype('float32')
+        x[2] = 2.34 + 1 * 20
+        x = x.astype("float32")
         descriptor_blob.append(x.tobytes())
 
         results = {}
@@ -635,7 +618,6 @@ class TestFindDescriptors(TestCommand.TestCommand):
 
         response, blob_array = db.query(all_queries, [descriptor_blob])
 
-
         self.assertEqual(len(blob_array), kn)
         # This checks that the received blobs is the same as the inserted.
         self.assertEqual(descriptor_blob[0], blob_array[0])
@@ -644,19 +626,13 @@ class TestFindDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
         self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
 
-        self.assertEqual(response[0]["FindDescriptor"]
-                                    ["entities"][0]["_distance"], 0)
-        self.assertEqual(response[0]["FindDescriptor"]
-                                    ["entities"][1]["_distance"], 400)
-        self.assertEqual(response[0]["FindDescriptor"]
-                                    ["entities"][2]["_distance"], 400)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["_distance"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][1]["_distance"], 400)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][2]["_distance"], 400)
 
         self.assertEqual(response[1]["FindEntity"]["status"], 0)
         self.assertEqual(response[1]["FindEntity"]["returned"], kn)
 
-        self.assertEqual(response[1]["FindEntity"]
-                                    ["entities"][0]["entity_prop"], 200)
-        self.assertEqual(response[1]["FindEntity"]
-                                    ["entities"][1]["entity_prop"], 201)
-        self.assertEqual(response[1]["FindEntity"]
-                                    ["entities"][2]["entity_prop"], 202)
+        self.assertEqual(response[1]["FindEntity"]["entities"][0]["entity_prop"], 200)
+        self.assertEqual(response[1]["FindEntity"]["entities"][1]["entity_prop"], 201)
+        self.assertEqual(response[1]["FindEntity"]["entities"][2]["entity_prop"], 202)

@@ -34,12 +34,12 @@
 
 #pragma once
 
-#include <stdlib.h>
-#include <string>
-#include <vector>
-#include <unordered_map>
 #include <map>
 #include <mutex>
+#include <stdlib.h>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "DescriptorSetData.h"
 
@@ -48,73 +48,65 @@
 
 namespace VCL {
 
-    class FaissDescriptorSet : public DescriptorSet::DescriptorSetData {
+class FaissDescriptorSet : public DescriptorSet::DescriptorSetData {
 
-    protected:
+protected:
+  std::string _faiss_file;
 
-        std::string _faiss_file;
+  faiss::Index *_index;
 
-        faiss::Index* _index;
+  std::mutex _lock;
+  std::vector<long> _label_ids;
 
-        std::mutex _lock;
-        std::vector<long> _label_ids;
+  void write_label_ids();
+  void read_label_ids();
 
-        void write_label_ids();
-        void read_label_ids();
+  void train_core(float *descriptors, unsigned n);
 
-        void train_core(float* descriptors, unsigned n);
+public:
+  FaissDescriptorSet(const std::string &set_path);
+  FaissDescriptorSet(const std::string &set_path, unsigned dim);
 
-    public:
+  ~FaissDescriptorSet();
 
-        FaissDescriptorSet(const std::string &set_path);
-        FaissDescriptorSet(const std::string &set_path, unsigned dim);
+  virtual long add(float *descriptors, unsigned n_descriptors, long *classes);
 
-        ~FaissDescriptorSet();
+  void train();
 
-        virtual long add(float* descriptors, unsigned n_descriptors,
-                         long* classes);
+  void train(float *descriptors, unsigned n);
 
-        void train();
+  bool is_trained();
 
-        void train(float* descriptors, unsigned n);
+  void search(float *query, unsigned n, unsigned k, long *ids,
+              float *distances);
 
-        bool is_trained();
+  void radius_search(float *query, float radius, long *ids, float *distances);
 
-        void search(float* query, unsigned n, unsigned k,
-                    long* ids, float* distances);
+  void classify(float *descriptors, unsigned n, long *ids, unsigned quorum);
 
-        void radius_search(float* query, float radius,
-                           long* ids, float* distances);
+  void get_descriptors(long *ids, unsigned n, float *descriptors);
 
-        void classify(float* descriptors, unsigned n, long* ids,
-                      unsigned quorum);
+  void get_labels(long *ids, unsigned n, long *labels);
 
-        void get_descriptors(long* ids, unsigned n, float* descriptors);
-
-        void get_labels(long* ids, unsigned n, long* labels);
-
-        void store();
-        void store(std::string set_path);
-
-    };
-
-    class FaissFlatDescriptorSet : public FaissDescriptorSet {
-
-    public:
-
-        FaissFlatDescriptorSet(const std::string& set_path);
-        FaissFlatDescriptorSet(const std::string& set_path, unsigned dim,
-                                 DistanceMetric metric);
-    };
-
-    class FaissIVFFlatDescriptorSet : public FaissDescriptorSet {
-
-    public:
-
-        FaissIVFFlatDescriptorSet(const std::string& set_path);
-        FaissIVFFlatDescriptorSet(const std::string& set_path, unsigned dim,
-                                    DistanceMetric metric);
-
-        long add(float* descriptors, unsigned n_descriptors, long* classes);
-    };
+  void store();
+  void store(std::string set_path);
 };
+
+class FaissFlatDescriptorSet : public FaissDescriptorSet {
+
+public:
+  FaissFlatDescriptorSet(const std::string &set_path);
+  FaissFlatDescriptorSet(const std::string &set_path, unsigned dim,
+                         DistanceMetric metric);
+};
+
+class FaissIVFFlatDescriptorSet : public FaissDescriptorSet {
+
+public:
+  FaissIVFFlatDescriptorSet(const std::string &set_path);
+  FaissIVFFlatDescriptorSet(const std::string &set_path, unsigned dim,
+                            DistanceMetric metric);
+
+  long add(float *descriptors, unsigned n_descriptors, long *classes);
+};
+}; // namespace VCL
