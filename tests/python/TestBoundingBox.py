@@ -26,15 +26,14 @@
 
 import TestCommand
 
-class TestBoundingBox(TestCommand.TestCommand):
 
+class TestBoundingBox(TestCommand.TestCommand):
     @classmethod
     def setUpClass(self):
         self.number_of_inserts = 2
 
-    #Method to insert one bounding box
+    # Method to insert one bounding box
     def insertBoundingBox(self, db, props=None):
-
         all_queries = []
         bb = {}
 
@@ -62,7 +61,7 @@ class TestBoundingBox(TestCommand.TestCommand):
         all_queries = []
         imgs_arr = []
 
-        fd = open("../test_images/brain.png", 'rb')
+        fd = open("../test_images/brain.png", "rb")
         imgs_arr.append(fd.read())
         fd.close()
 
@@ -79,8 +78,8 @@ class TestBoundingBox(TestCommand.TestCommand):
         basename = imgprops["name"] + "_bb_"
         for x in range(0, numBoxes):
             bb_coords = {}
-            bb_coords["x"] = x*10
-            bb_coords["y"] = x*10
+            bb_coords["x"] = x * 10
+            bb_coords["y"] = x * 10
             bb_coords["h"] = 100
             bb_coords["w"] = 100
 
@@ -100,10 +99,9 @@ class TestBoundingBox(TestCommand.TestCommand):
         self.assertEqual(len(response), numBoxes + 1)
         self.assertEqual(response[0]["AddImage"]["status"], 0)
         for i in range(0, numBoxes):
-            self.assertEqual(response[i+1]["AddBoundingBox"]["status"], 0)
+            self.assertEqual(response[i + 1]["AddBoundingBox"]["status"], 0)
 
     def test_addBoundingBox(self):
-
         db = self.create_connection()
 
         all_queries = []
@@ -134,7 +132,6 @@ class TestBoundingBox(TestCommand.TestCommand):
             self.assertEqual(response[i]["AddBoundingBox"]["status"], 0)
 
     def test_findBoundingBox(self):
-
         db = self.create_connection()
 
         prefix_name = "find_my_bb_"
@@ -166,11 +163,14 @@ class TestBoundingBox(TestCommand.TestCommand):
 
         self.assertEqual(response[0]["FindBoundingBox"]["status"], 0)
         self.assertEqual(response[1]["FindBoundingBox"]["status"], 0)
-        self.assertEqual(response[0]["FindBoundingBox"]["entities"][0]["name"], prefix_name + "0")
-        self.assertEqual(response[1]["FindBoundingBox"]["entities"][0]["name"], prefix_name + "1")
+        self.assertEqual(
+            response[0]["FindBoundingBox"]["entities"][0]["name"], prefix_name + "0"
+        )
+        self.assertEqual(
+            response[1]["FindBoundingBox"]["entities"][0]["name"], prefix_name + "1"
+        )
 
     def test_findBoundingBoxCoordinates(self):
-
         db = self.create_connection()
 
         prefix_name = "find_my_bb_coords_"
@@ -202,19 +202,26 @@ class TestBoundingBox(TestCommand.TestCommand):
 
         for i in range(0, self.number_of_inserts):
             self.assertEqual(response[i]["FindBoundingBox"]["status"], 0)
-            self.assertEqual(response[i]["FindBoundingBox"]["entities"][0]["_coordinates"]["x"], 10)
-            self.assertEqual(response[i]["FindBoundingBox"]["entities"][0]["_coordinates"]["y"], 10)
-            self.assertEqual(response[i]["FindBoundingBox"]["entities"][0]["_coordinates"]["w"], 100)
-            self.assertEqual(response[i]["FindBoundingBox"]["entities"][0]["_coordinates"]["h"], 100)
+            self.assertEqual(
+                response[i]["FindBoundingBox"]["entities"][0]["_coordinates"]["x"], 10
+            )
+            self.assertEqual(
+                response[i]["FindBoundingBox"]["entities"][0]["_coordinates"]["y"], 10
+            )
+            self.assertEqual(
+                response[i]["FindBoundingBox"]["entities"][0]["_coordinates"]["w"], 100
+            )
+            self.assertEqual(
+                response[i]["FindBoundingBox"]["entities"][0]["_coordinates"]["h"], 100
+            )
 
     def test_addBoundingBoxWithImage(self):
-
         db = self.create_connection()
 
         all_queries = []
         imgs_arr = []
 
-        fd = open("../test_images/brain.png", 'rb')
+        fd = open("../test_images/brain.png", "rb")
         imgs_arr.append(fd.read())
         fd.close()
 
@@ -255,7 +262,6 @@ class TestBoundingBox(TestCommand.TestCommand):
         self.assertEqual(response[1]["AddBoundingBox"]["status"], 0)
 
     def test_findBoundingBoxesInImage(self):
-
         db = self.create_connection()
 
         img_name = "my_brain_multiple"
@@ -290,19 +296,32 @@ class TestBoundingBox(TestCommand.TestCommand):
 
         self.assertEqual(response[0]["FindImage"]["status"], 0)
         self.assertEqual(response[1]["FindBoundingBox"]["status"], 0)
-        self.assertEqual(response[1]["FindBoundingBox"]["returned"], self.number_of_inserts)
+        self.assertEqual(
+            response[1]["FindBoundingBox"]["returned"], self.number_of_inserts
+        )
 
         for i in range(0, self.number_of_inserts):
             ind = self.number_of_inserts - i - 1
-            self.assertEqual(response[1]["FindBoundingBox"]["entities"][i]["_coordinates"]["x"], 10 * ind)
-            self.assertEqual(response[1]["FindBoundingBox"]["entities"][i]["_coordinates"]["y"], 10 * ind)
-            self.assertEqual(response[1]["FindBoundingBox"]["entities"][i]["_coordinates"]["w"], 100)
-            self.assertEqual(response[1]["FindBoundingBox"]["entities"][i]["_coordinates"]["h"], 100)
-            self.assertEqual(response[1]["FindBoundingBox"]["entities"][i]["name"], "my_brain_multiple_bb_" + str(ind))
-
+            self.assertEqual(
+                response[1]["FindBoundingBox"]["entities"][i]["_coordinates"]["x"],
+                10 * ind,
+            )
+            self.assertEqual(
+                response[1]["FindBoundingBox"]["entities"][i]["_coordinates"]["y"],
+                10 * ind,
+            )
+            self.assertEqual(
+                response[1]["FindBoundingBox"]["entities"][i]["_coordinates"]["w"], 100
+            )
+            self.assertEqual(
+                response[1]["FindBoundingBox"]["entities"][i]["_coordinates"]["h"], 100
+            )
+            self.assertEqual(
+                response[1]["FindBoundingBox"]["entities"][i]["name"],
+                "my_brain_multiple_bb_" + str(ind),
+            )
 
     def test_findBoundingBoxByCoordinates(self):
-
         db = self.create_connection()
 
         all_queries = []
@@ -330,7 +349,6 @@ class TestBoundingBox(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindBoundingBox"]["status"], 0)
 
     def test_findBoundingBoxBlob(self):
-
         db = self.create_connection()
 
         prefix_name = "my_brain_return_"
@@ -367,10 +385,12 @@ class TestBoundingBox(TestCommand.TestCommand):
         for i in range(0, self.number_of_inserts):
             coord = self.number_of_inserts - i - 1
             self.assertEqual(response[i]["FindBoundingBox"]["status"], 0)
-            self.assertEqual(response[i]["FindBoundingBox"]["entities"][0]["name"], prefix_name + str(i) + "_bb_0")
+            self.assertEqual(
+                response[i]["FindBoundingBox"]["entities"][0]["name"],
+                prefix_name + str(i) + "_bb_0",
+            )
 
     def test_findBoundingBoxBlobComplex(self):
-
         db = self.create_connection()
 
         prefix_name = "my_brain_complex_"
@@ -413,7 +433,6 @@ class TestBoundingBox(TestCommand.TestCommand):
             self.assertIn(test, response[0]["FindBoundingBox"]["entities"])
 
     def test_updateBoundingBox(self):
-
         db = self.create_connection()
 
         prefix_name = "update_bb_"
@@ -464,10 +483,11 @@ class TestBoundingBox(TestCommand.TestCommand):
         response, img_array = db.query(all_queries)
 
         self.assertEqual(response[0]["FindBoundingBox"]["status"], 0)
-        self.assertEqual(response[0]["FindBoundingBox"]["entities"][0]["name"], "updated_bb_0")
+        self.assertEqual(
+            response[0]["FindBoundingBox"]["entities"][0]["name"], "updated_bb_0"
+        )
 
     def test_updateBoundingBoxCoords(self):
-
         db = self.create_connection()
 
         prefix_name = "update_bb_"
@@ -521,7 +541,15 @@ class TestBoundingBox(TestCommand.TestCommand):
         response, img_array = db.query(all_queries)
 
         self.assertEqual(response[0]["FindBoundingBox"]["status"], 0)
-        self.assertEqual(response[0]["FindBoundingBox"]["entities"][0]["_coordinates"]["x"], 15)
-        self.assertEqual(response[0]["FindBoundingBox"]["entities"][0]["_coordinates"]["y"], 15)
-        self.assertEqual(response[0]["FindBoundingBox"]["entities"][0]["_coordinates"]["w"], 75)
-        self.assertEqual(response[0]["FindBoundingBox"]["entities"][0]["_coordinates"]["h"], 75)
+        self.assertEqual(
+            response[0]["FindBoundingBox"]["entities"][0]["_coordinates"]["x"], 15
+        )
+        self.assertEqual(
+            response[0]["FindBoundingBox"]["entities"][0]["_coordinates"]["y"], 15
+        )
+        self.assertEqual(
+            response[0]["FindBoundingBox"]["entities"][0]["_coordinates"]["w"], 75
+        )
+        self.assertEqual(
+            response[0]["FindBoundingBox"]["entities"][0]["_coordinates"]["h"], 75
+        )

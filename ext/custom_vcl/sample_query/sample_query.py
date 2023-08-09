@@ -2,7 +2,7 @@ import vdms
 
 db = vdms.vdms()
 db.connect("localhost", 55555)
-image_file = open('images/intel_logo.png', 'rb')
+image_file = open("images/intel_logo.png", "rb")
 image_blob = image_file.read()
 addImage = {}
 addImage["format"] = "png"

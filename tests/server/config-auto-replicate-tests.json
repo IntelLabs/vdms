@@ -1,6 +1,6 @@
 {
     "port": 55557,
-    "autoreplicate_interval":5,
+    "autoreplicate_interval":-5,
     "unit":"s",
     "max_simultaneous_clients": 100,
     "backup_path":"",
