@@ -29,101 +29,97 @@
  *
  */
 
+#include <cassert>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
-#include <cassert>
 #include <fstream>
 #include <iostream>
-#include <cmath>
 #include <list>
 
-#include "vcl/VCL.h"
 #include "helpers.h"
+#include "vcl/VCL.h"
 #include "gtest/gtest.h"
 
-TEST(Descriptors_ReadFS, read_and_search_10k)
-{
-    int nb = 10000;
-    auto dimensions_list = get_dimensions_list();
+TEST(Descriptors_ReadFS, read_and_search_10k) {
+  int nb = 10000;
+  auto dimensions_list = get_dimensions_list();
 
-    for (auto d : dimensions_list) {
+  for (auto d : dimensions_list) {
 
-        float *xb = generate_desc_linear_increase(d, nb);
+    float *xb = generate_desc_linear_increase(d, nb);
 
-        for (auto eng : get_engines()) {
+    for (auto eng : get_engines()) {
 
-            std::string index_filename = "dbs/read_and_search_10k" +
-                                         std::to_string(d) + "_" +
-                                         std::to_string(eng);
-            {
-                VCL::DescriptorSet index(index_filename, unsigned(d), eng);
-                index.add(xb, nb);
-                index.store();
-            }
+      std::string index_filename = "dbs/read_and_search_10k" +
+                                   std::to_string(d) + "_" +
+                                   std::to_string(eng);
+      {
+        VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+        index.add(xb, nb);
+        index.store();
+      }
 
-            VCL::DescriptorSet index_fs(index_filename);
+      VCL::DescriptorSet index_fs(index_filename);
 
-            std::vector<float> distances;
-            std::vector<long> desc_ids;
-            index_fs.search(xb, 1, 4, desc_ids, distances);
+      std::vector<float> distances;
+      std::vector<long> desc_ids;
+      index_fs.search(xb, 1, 4, desc_ids, distances);
 
-            int exp = 0;
-            for (auto& desc : desc_ids) {
-                EXPECT_EQ(desc, exp++);
-            }
+      int exp = 0;
+      for (auto &desc : desc_ids) {
+        EXPECT_EQ(desc, exp++);
+      }
 
-            float results[] = {float(std::pow(0, 2)*d),
-                               float(std::pow(1, 2)*d),
-                               float(std::pow(2, 2)*d),
-                               float(std::pow(3, 2)*d) };
-            for (int i = 0; i < 4; ++i) {
-                EXPECT_EQ(distances[i], results[i]);
-            }
-        }
-
-        delete [] xb;
+      float results[] = {float(std::pow(0, 2) * d), float(std::pow(1, 2) * d),
+                         float(std::pow(2, 2) * d), float(std::pow(3, 2) * d)};
+      for (int i = 0; i < 4; ++i) {
+        EXPECT_EQ(distances[i], results[i]);
+      }
     }
+
+    delete[] xb;
+  }
 }
 
-TEST(Descriptors_ReadFS, read_and_classify_10k)
-{
-    int nb = 10000;
+TEST(Descriptors_ReadFS, read_and_classify_10k) {
+  int nb = 10000;
 
-    auto dimensions_list = get_dimensions_list();
+  auto dimensions_list = get_dimensions_list();
 
-    for (auto d : dimensions_list) {
+  for (auto d : dimensions_list) {
 
-        float *xb = generate_desc_linear_increase(d, nb);
+    float *xb = generate_desc_linear_increase(d, nb);
 
-        for (auto eng : get_engines()) {
-            std::string index_filename = "dbs/read_and_classify_10k" +
-                                         std::to_string(d) + "_" +
-                                         std::to_string(eng);
-            int offset = 10;
+    for (auto eng : get_engines()) {
+      std::string index_filename = "dbs/read_and_classify_10k" +
+                                   std::to_string(d) + "_" +
+                                   std::to_string(eng);
+      int offset = 10;
 
-            {
-                VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+      {
+        VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
-                std::vector<long> classes = classes_increasing_offset(nb, offset);
+        std::vector<long> classes = classes_increasing_offset(nb, offset);
 
-                index.add(xb, nb, classes);
-                index.store();
-            }
+        index.add(xb, nb, classes);
+        index.store();
+      }
 
-            VCL::DescriptorSet index_fs(index_filename);
+      VCL::DescriptorSet index_fs(index_filename);
 
-            std::vector<long> ret_ids = index_fs.classify(xb, 60);
+      std::vector<long> ret_ids = index_fs.classify(xb, 60);
 
-            int exp = 0;
-            int i = 0;
-            for (auto& id : ret_ids) {
-                // printf("%ld - %ld \n", id, exp);
-                EXPECT_EQ(id, exp);
-                if (++i % offset == 0 )
-                    ++exp;
-            }
-        }
-
-        delete [] xb;
+      int exp = 0;
+      int i = 0;
+      for (auto &id : ret_ids) {
+        // printf("%ld - %ld \n", id, exp);
+        EXPECT_EQ(id, exp);
+        if (++i % offset == 0)
+          ++exp;
+      }
     }
+
+    delete[] xb;
+  }
 }

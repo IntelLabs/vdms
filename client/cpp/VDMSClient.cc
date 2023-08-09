@@ -30,48 +30,45 @@
 #include "VDMSClient.h"
 #include "queryMessage.pb.h"
 
-
 using namespace VDMS;
 
-VDMSClient::VDMSClient(std::string addr, int port) : _conn(addr, port)
-{
-}
-// void VDMSClient::parse_csv_file(std::string filename, std::string server, int p){
+VDMSClient::VDMSClient(std::string addr, int port) : _conn(addr, port) {}
+// void VDMSClient::parse_csv_file(std::string filename, std::string server, int
+// p){
 //     CSVParser _csv_parser(filename, server, p);
-//     auto start = high_resolution_clock::now(); 
+//     auto start = high_resolution_clock::now();
 //     // _csv_parser.create_thread_pool();
 //     auto end = high_resolution_clock::now();
 //     auto duration = duration_cast<milliseconds>(end - start);
-//     cout << "duaration in ms is "<<duration.count() << endl; 
+//     cout << "duaration in ms is "<<duration.count() << endl;
 
 // }
 VDMS::Response VDMSClient::query(const std::string &json,
-                                 const std::vector<std::string *> blobs)
-{
-    protobufs::queryMessage cmd;
-    cmd.set_json(json);
+                                 const std::vector<std::string *> blobs) {
+  protobufs::queryMessage cmd;
+  cmd.set_json(json);
 
-    for (auto& it : blobs) {
-        std::string *blob = cmd.add_blobs();
-        *blob = *it;
-    }
+  for (auto &it : blobs) {
+    std::string *blob = cmd.add_blobs();
+    *blob = *it;
+  }
 
-    std::basic_string<uint8_t> msg(cmd.ByteSize(),0);
-    cmd.SerializeToArray((void*)msg.data(), msg.length());
-    _conn.send_message(msg.data(), msg.length());
+  std::basic_string<uint8_t> msg(cmd.ByteSize(), 0);
+  cmd.SerializeToArray((void *)msg.data(), msg.length());
+  _conn.send_message(msg.data(), msg.length());
 
-    // Wait for response (blocking call)
-    msg = _conn.recv_message();
+  // Wait for response (blocking call)
+  msg = _conn.recv_message();
 
-    protobufs::queryMessage protobuf_response;
-    protobuf_response.ParseFromArray((const void*)msg.data(), msg.length());
+  protobufs::queryMessage protobuf_response;
+  protobuf_response.ParseFromArray((const void *)msg.data(), msg.length());
 
-    VDMS::Response response;
-    response.json = protobuf_response.json();
+  VDMS::Response response;
+  response.json = protobuf_response.json();
 
-    for (auto& it : protobuf_response.blobs()) {
-        response.blobs.push_back(it);
-    }
+  for (auto &it : protobuf_response.blobs()) {
+    response.blobs.push_back(it);
+  }
 
-    return response;
+  return response;
 }

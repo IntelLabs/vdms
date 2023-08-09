@@ -5,7 +5,7 @@
  *
  * The MIT License
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2023 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"),
@@ -30,91 +30,83 @@
  */
 
 #pragma once
-#include <string>
-#include <mutex>
-#include <vector>
-#include "vcl/Image.h"
 #include "vcl/CustomVCL.h"
+#include "vcl/Image.h"
+#include <mutex>
+#include <string>
+#include <vector>
 
-#include "RSCommand.h"
 #include "ExceptionsCommand.h"
+#include "RSCommand.h"
+
+#include <curl/curl.h>
 
 namespace VDMS {
 
 // Helper classes for handling various JSON commands.
 
-    class ImageCommand: public RSCommand
-    {
-    public:
+class ImageCommand : public RSCommand {
+public:
+  ImageCommand(const std::string &cmd_name);
 
-        ImageCommand(const std::string &cmd_name);
+  virtual int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                                 const std::string &blob, int grp_id,
+                                 Json::Value &error) = 0;
 
-        virtual int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error) = 0;
+  virtual bool need_blob(const Json::Value &cmd) { return false; }
 
-        virtual bool need_blob(const Json::Value& cmd) { return false; }
+  // We use this function for enqueueing operations for an 'Image' object
+  // that is allocated outside of <*>Image operations
+  int enqueue_operations(VCL::Image &img, const Json::Value &op,
+                         bool is_addition = false);
 
-        // We use this function for enqueueing operations for an 'Image' object
-        // that is allocated outside of <*>Image operations
-        int enqueue_operations(VCL::Image& img, const Json::Value& op);
+  // Checks if 'format' parameter is specified, and if so, returns the
+  // corresponding VCL::Image::Format type.
+  VCL::Image::Format get_requested_format(const Json::Value &cmd);
+};
 
-        // Checks if 'format' parameter is specified, and if so, returns the
-        // corresponding VCL::Image::Format type.
-        VCL::Image::Format get_requested_format(const Json::Value& cmd);
-    };
+class AddImage : public ImageCommand {
+  std::string _storage_tdb;
+  std::string _storage_png;
+  std::string _storage_jpg;
+  std::string _storage_bin;
+  // bool _use_aws_storage;
 
-    class AddImage: public ImageCommand
-    {
-        std::string _storage_tdb;
-        std::string _storage_png;
-        std::string _storage_jpg;
-        std::string _storage_bin;
+public:
+  AddImage();
 
-    public:
-        AddImage();
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
 
-        int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error);
+  bool need_blob(const Json::Value &cmd) { return true; }
+};
 
-        bool need_blob(const Json::Value& cmd) { return true; }
-    };
+class UpdateImage : public ImageCommand {
+public:
+  UpdateImage();
 
-    class UpdateImage: public ImageCommand
-    {
-    public:
-        UpdateImage();
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
 
-        int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error);
+  // TODO In order to support "format" or "operations", we could
+  // implement VCL save operation by adding construct_responses method.
+};
 
-        // TODO In order to support "format" or "operations", we could
-        // implement VCL save operation by adding construct_responses method.
-    };
+class FindImage : public ImageCommand {
+  // bool _use_aws_storage;
 
-    class FindImage: public ImageCommand
-    {
-    public:
-        FindImage();
-        int construct_protobuf(PMGDQuery& tx,
-                               const Json::Value& root,
-                               const std::string& blob,
-                               int grp_id,
-                               Json::Value& error);
+public:
+  FindImage();
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
 
-        Json::Value construct_responses(
-                Json::Value &json_responses,
-                const Json::Value &json,
-                protobufs::queryMessage &response,
-                const std::string &blob);
-    };
+  Json::Value construct_responses(Json::Value &json_responses,
+                                  const Json::Value &json,
+                                  protobufs::queryMessage &response,
+                                  const std::string &blob);
+};
 
 }; // namespace VDMS
