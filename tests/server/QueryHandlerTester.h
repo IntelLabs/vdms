@@ -3,7 +3,7 @@
  *
  * The MIT License
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2023 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"),
@@ -28,14 +28,27 @@
  */
 
 #pragma once
-#include "QueryHandler.h"
+#include "QueryHandlerExample.h"
+#include "QueryHandlerPMGD.h"
 
 namespace VDMS {
-class QueryHandlerTester {
-  QueryHandler &_qh;
+class QueryHandlerPMGDTester {
+  QueryHandlerPMGD &_qh;
 
 public:
-  QueryHandlerTester(QueryHandler &qh) : _qh(qh) {}
+  QueryHandlerPMGDTester(QueryHandlerPMGD &qh) : _qh(qh) {}
+
+  void pq(protobufs::queryMessage &proto_query,
+          protobufs::queryMessage &response) {
+    _qh.process_query(proto_query, response);
+  }
+};
+
+class QueryHandlerExampleTester {
+  QueryHandlerExample &_qh;
+
+public:
+  QueryHandlerExampleTester(QueryHandlerExample &qh) : _qh(qh) {}
 
   void pq(protobufs::queryMessage &proto_query,
           protobufs::queryMessage &response) {

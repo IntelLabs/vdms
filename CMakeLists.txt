@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 3.17)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_CXX_STANDARD 17)
+
 
 IF(CODE_COVERAGE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -coverage -fprofile-arcs -ftest-coverage")
@@ -22,6 +24,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 execute_process(COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/utils/src/api_schema/createApiString.py ${CMAKE_CURRENT_SOURCE_DIR}/utils/src/api_schema/api_schema.json ${CMAKE_CURRENT_BINARY_DIR}/APISchema.h)
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS utils/src/protobuf/partitionerMessages.proto utils/src/protobuf/pmgdMessages.proto utils/src/protobuf/queryMessage.proto)
 add_library(vdms_protobuf SHARED ${PROTO_SRCS} ${PROTO_HDRS})
+
 
 option(CLIENT "Built client library." OFF)
 if (CLIENT)
@@ -54,7 +57,9 @@ else()
     src/PMGDIterators.cc
     src/PMGDQuery.cc
     src/PMGDQueryHandler.cc
-    src/QueryHandler.cc
+    src/QueryHandlerExample.cc
+    src/QueryHandlerBase.cc
+    src/QueryHandlerPMGD.cc
     src/QueryMessage.cc
     src/RSCommand.cc
     src/SearchExpression.cc
@@ -64,9 +69,8 @@ else()
     src/AutoDeleteNode.cc
     src/ImageLoop.cc
     ${PROTO_SRCS} ${PROTO_HDRS}
-)
+          )
   target_link_libraries(dms vcl pmgd pmgd-util protobuf tbb tiledb vdms-utils pthread -lcurl -lzmq ${AWSSDK_LINK_LIBRARIES})
-
   add_executable(vdms src/vdms.cc)
   target_link_libraries(vdms dms vdms_protobuf vcl tiledb faiss flinng jsoncpp ${OpenCV_LIBS} ${AWSSDK_LINK_LIBRARIES})
 endif ()

@@ -448,7 +448,7 @@ void QueryHandler::process_query(protobufs::queryMessage &proto_query,
   }
 }
 
-void QueryHandler::regualar_run_autoreplicate(
+void QueryHandler::regular_run_autoreplicate(
     ReplicationConfig &replicate_settings) {
   std::string command = "bsdtar cvfz ";
   std::string name;
@@ -547,7 +547,7 @@ void QueryHandler::reset_autodelete_init_flag() { _autodelete_init = false; }
 
 void QueryHandler::set_autodelete_init_flag() { _autodelete_init = true; }
 
-void QueryHandler::regualar_run_autodelete() {
+void QueryHandler::regular_run_autodelete() {
   std::string *json_string = new std::string(
       "[{\"DeleteExpired\": {\"results\": {\"list\": [\"_expiration\"]}}}]");
   protobufs::queryMessage response;

@@ -86,10 +86,10 @@ public:
   void process_connection(comm::Connection *c);
   void reset_autodelete_init_flag();
   void set_autodelete_init_flag();
-  void regualar_run_autodelete();
+  void regular_run_autodelete();
   void build_autodelete_queue();
   void set_autoreplicate_init_flag();
   void reset_autoreplicate_init_flag();
-  void regualar_run_autoreplicate(ReplicationConfig &);
+  void regular_run_autoreplicate(ReplicationConfig &);
 };
 } // namespace VDMS
