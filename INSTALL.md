@@ -12,10 +12,10 @@ sudo apt-get install -y --no-install-suggests --no-install-recommends \
     apt-transport-https autoconf automake bison build-essential bzip2 ca-certificates \
     curl ed flex g++-9 gcc-9 git gnupg-agent javacc libarchive-tools libatlas-base-dev \
     libavcodec-dev libavformat-dev libboost-all-dev libbz2-dev libc-ares-dev libcurl4-openssl-dev \
-    libdc1394-22-dev libgflags-dev libgoogle-glog-dev libgtest-dev libgtk-3-dev libgtk2.0-dev \
+    libdc1394-22-dev libgflags-dev libgoogle-glog-dev libgtk-3-dev libgtk2.0-dev \
     libhdf5-dev libjpeg-dev libjpeg62-turbo-dev libjsoncpp-dev libleveldb-dev liblmdb-dev \
     liblz4-dev libopenblas-dev libopenmpi-dev libpng-dev librdkafka-dev libsnappy-dev libssl-dev \
-    libswscale-dev libtbb-dev libtbb2 libtiff-dev libtiff5-dev libtool libzmq3-dev mpich \
+    libswscale-dev libtbb-dev libtbb2 libtiff-dev libtiff5-dev libtool libzmq3-dev linux-libc-dev mpich \
     openjdk-11-jdk-headless pkg-config procps python3-dev python3-pip software-properties-common \
     swig unzip uuid-dev
 ```
@@ -40,29 +40,19 @@ mkdir -p $VDMS_DEP_DIR
 Here we will install the necessary Python3 packages Numpy and Protobuf 3.20.3.
 You can also install the coverage package if interested in running the Python unit tests.
 ```bash
-PROTOBUF_VERSION="3.20.3"
-pip3 install --no-cache-dir "numpy>=1.25.1" "protobuf==${PROTOBUF_VERSION}" "coverage>=7.2.7"
+pip3 install --no-cache-dir "numpy>=1.25.1" "coverage>=7.2.7"
 ```
 
 
-#### CMAKE v3.26.4
-VDMS requires CMake v3.21+.  Here we install CMake v3.26.4.
+#### CMAKE v3.27.2
+VDMS requires CMake v3.21+.  Here we install CMake v3.27.2.
 ```bash
-CMAKE_VERSION="v3.26.4"
+CMAKE_VERSION="v3.27.2"
 git clone --branch ${CMAKE_VERSION} https://github.com/Kitware/CMake.git $VDMS_DEP_DIR/CMake
 cd $VDMS_DEP_DIR/CMake
 ./bootstrap
 make ${BUILD_THREADS}
 make install
-```
-
-### gtest
-Unfortunately apt doesn't build gtest so you need to do the following:
-```bash
-cd /usr/src/gtest/
-cmake .
-make ${BUILD_THREADS}
-mv lib/libgtest* /usr/lib
 ```
 
 ### Faiss v1.7.3
@@ -71,7 +61,7 @@ FAISS_VERSION="v1.7.3"
 git clone --branch ${FAISS_VERSION} https://github.com/facebookresearch/faiss.git $VDMS_DEP_DIR/faiss
 cd $VDMS_DEP_DIR/faiss
 mkdir build && cd build
-cmake -DFAISS_ENABLE_GPU=OFF ..
+cmake -DFAISS_ENABLE_GPU=OFF -DPython_EXECUTABLE=/usr/bin/python3 ..
 make ${BUILD_THREADS}
 make install
 ```
@@ -86,17 +76,36 @@ make ${BUILD_THREADS}
 make install
 ```
 
-### Protobuf 3.20.3
+### Protobuf v24.2 (4.24.2)
 ```bash
-PROTOBUF_VERSION="3.20.3"
-curl -L -o ${VDMS_DEP_DIR}/${PROTOBUF_VERSION}.tar.gz https://github.com/protocolbuffers/protobuf/archive/refs/tags/v${PROTOBUF_VERSION}.tar.gz
-cd ${VDMS_DEP_DIR} && tar -xvf ${PROTOBUF_VERSION}.tar.gz
-cd protobuf-${PROTOBUF_VERSION}
-./autogen.sh
-./configure
+PROTOBUF_VERSION="v24.2"
+git clone -b ${PROTOBUF_VERSION} --recursive https://github.com/protocolbuffers/protobuf.git
+
+cd $VDMS_DEP_DIR/protobuf/third_party/googletest
+mkdir build && cd build
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 ..
 make ${BUILD_THREADS}
 make install
 ldconfig
+
+cd $VDMS_DEP_DIR/protobuf/third_party/abseil-cpp
+mkdir build && cd build
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_PREFIX_PATH=/usr/local/ -DCMAKE_INSTALL_PREFIX=/usr/local/ \
+    -DABSL_BUILD_TESTING=ON -DABSL_ENABLE_INSTALL=ON -DABSL_USE_EXTERNAL_GOOGLETEST=ON \
+    -DABSL_FIND_GOOGLETEST=ON -DCMAKE_CXX_STANDARD=17 ..
+make ${BUILD_THREADS}
+make install
+
+cd $VDMS_DEP_DIR/protobuf
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_CXX_STANDARD=17 \
+    -Dprotobuf_ABSL_PROVIDER=package -DCMAKE_PREFIX_PATH=/usr/local .
+make ${BUILD_THREADS}
+make install
+
+cd python
+python3 setup.py build
+python3 -m pip install .
 ```
 
 ### [OpenCV](https://opencv.org/) 4.5.5

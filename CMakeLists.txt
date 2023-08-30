@@ -14,17 +14,32 @@ project(vdms_application)
 add_compile_options(-g -fPIC -std=c++17)
 
 find_package( OpenCV REQUIRED )
-find_package(Protobuf REQUIRED)
+find_package(Protobuf CONFIG REQUIRED)
 find_package( CURL REQUIRED )
 find_package(AWSSDK REQUIRED COMPONENTS core s3)
 
 include_directories(${Protobuf_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-execute_process(COMMAND python3 ${CMAKE_CURRENT_SOURCE_DIR}/utils/src/api_schema/createApiString.py ${CMAKE_CURRENT_SOURCE_DIR}/utils/src/api_schema/api_schema.json ${CMAKE_CURRENT_BINARY_DIR}/APISchema.h)
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS utils/src/protobuf/partitionerMessages.proto utils/src/protobuf/pmgdMessages.proto utils/src/protobuf/queryMessage.proto)
-add_library(vdms_protobuf SHARED ${PROTO_SRCS} ${PROTO_HDRS})
-
+execute_process(COMMAND python3
+  ${CMAKE_CURRENT_SOURCE_DIR}/utils/src/api_schema/createApiString.py
+  ${CMAKE_CURRENT_SOURCE_DIR}/utils/src/api_schema/api_schema.json
+  ${CMAKE_CURRENT_BINARY_DIR}/APISchema.h
+)
+add_library(vdms_protobuf OBJECT
+  ${CMAKE_CURRENT_SOURCE_DIR}/utils/src/protobuf/partitionerMessages.proto
+  ${CMAKE_CURRENT_SOURCE_DIR}/utils/src/protobuf/pmgdMessages.proto
+  ${CMAKE_CURRENT_SOURCE_DIR}/utils/src/protobuf/queryMessage.proto
+)
+target_link_libraries(vdms_protobuf PUBLIC protobuf::libprotobuf)
+set(PROTO_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(vdms_protobuf PUBLIC "$<BUILD_INTERFACE:${PROTO_BINARY_DIR}>")
+protobuf_generate(
+  LANGUAGE cpp
+  TARGET vdms_protobuf
+  IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/utils/src/protobuf"
+  PROTOC_OUT_DIR "${PROTO_BINARY_DIR}"
+)
 
 option(CLIENT "Built client library." OFF)
 if (CLIENT)
@@ -68,8 +83,7 @@ else()
     src/VideoCommand.cc
     src/AutoDeleteNode.cc
     src/ImageLoop.cc
-    ${PROTO_SRCS} ${PROTO_HDRS}
-          )
+  )
   target_link_libraries(dms vcl pmgd pmgd-util protobuf tbb tiledb vdms-utils pthread -lcurl -lzmq ${AWSSDK_LINK_LIBRARIES})
   add_executable(vdms src/vdms.cc)
   target_link_libraries(vdms dms vdms_protobuf vcl tiledb faiss flinng jsoncpp ${OpenCV_LIBS} ${AWSSDK_LINK_LIBRARIES})

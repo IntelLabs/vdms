@@ -386,12 +386,12 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
     error_msg << "Internal Server Error: Json Exception: " << e.what()
               << std::endl;
     exception_handler();
-  } catch (google::protobuf::FatalException &e) {
-    // Need to be carefull with this, may lead to memory leak.
-    // Protoubuf is not exception safe.
-    error_msg << "Internal Server Error: Protobuf Exception: " << e.what()
-              << std::endl;
-    exception_handler();
+    // } catch (google::protobuf::FatalException &e) {
+    //   // Need to be carefull with this, may lead to memory leak.
+    //   // Protoubuf is not exception safe.
+    //   error_msg << "Internal Server Error: Protobuf Exception: " << e.what()
+    //             << std::endl;
+    //   exception_handler();
   } catch (const std::invalid_argument &e) {
     error_msg << "FATAL: Invalid argument: " << e.what() << std::endl;
     exception_handler();
