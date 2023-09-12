@@ -249,6 +249,10 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
   Json::Value root;
   Json::Value exception_error;
   std::stringstream error_msg;
+
+  std::vector<std::string> images_log;
+  std::vector<std::string> videos_log;
+
   auto exception_handler = [&]() {
     // When exception is catched, we return the message.
     std::cerr << "Failed Query: " << std::endl;
@@ -267,8 +271,7 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
 
     Json::Value cmd_result;
     Json::Value cmd_current;
-    std::vector<std::string> images_log;
-    std::vector<std::string> videos_log;
+
     std::vector<Json::Value> construct_results;
 
     auto error = [&](Json::Value &res, Json::Value &failed_command) {
@@ -372,6 +375,7 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
   } catch (VCL::Exception &e) {
     print_exception(e);
     error_msg << "Internal Server Error: VCL Exception at QH" << std::endl;
+    cleanup_query(images_log, videos_log);
     exception_handler();
   } catch (PMGD::Exception &e) {
     print_exception(e);
