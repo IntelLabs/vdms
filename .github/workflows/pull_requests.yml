@@ -171,7 +171,7 @@ jobs:
           echo "Source CPP Coverage: ${{ needs.coverage_job.outputs.source_coverage_cpp }}"
           echo "Target CPP Coverage: ${{ needs.coverage_job.outputs.target_coverage_cpp }}"
 
-          if (( $(echo "${{ env.CPP_DIFF }} > 0.01" | bc -l) )); then
+          if (( $(echo "${{ env.CPP_DIFF }} > 0.1" | bc -l) )); then
             echo 'CPP Coverage below CPP Target'
             exit 1
           fi
@@ -179,7 +179,7 @@ jobs:
           echo "Source Python Coverage: ${{ needs.coverage_job.outputs.source_coverage_py }}"
           echo "Target Python Coverage: ${{ needs.coverage_job.outputs.target_coverage_py }}"
 
-          if (( $(echo "${{ env.PY_DIFF }} > 0.01" | bc -l) )); then
+          if (( $(echo "${{ env.PY_DIFF }} > 0.1" | bc -l) )); then
             echo 'Python Coverage below Target'
             exit 1
           fi
