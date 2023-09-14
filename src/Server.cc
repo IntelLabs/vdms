@@ -166,29 +166,43 @@ void Server::auto_replicate_interval() {
     _autoreplicate_settings.backup_path =
         _autoreplicate_settings.db_path; // set the default path to be db
   }
-
-  if (_autoreplicate_settings.autoreplicate_interval > 0) {
-    if (_autoreplicate_settings.autoreplication_unit.compare("h") == 0) {
+  try {
+    if (_autoreplicate_settings.autoreplicate_interval ==
+        Disable_Auto_Replicate) {
       replication_period =
-          _autoreplicate_settings.autoreplicate_interval * 60 * 60;
-    } else if (_autoreplicate_settings.autoreplication_unit.compare("m") == 0) {
-      replication_period = _autoreplicate_settings.autoreplicate_interval * 60;
-    } else {
-      replication_period = _autoreplicate_settings.autoreplicate_interval;
+          -1; // this is defualt value of disableing auto-replicate feature
     }
-  }
-  if (replication_period <= 0) {
-    std::cout << "Error: auto-replication interval must be a positive number."
-              << std::endl;
-    return;
-  }
 
-  while (!shutdown) {
-    // Sleep for the replication period
-    std::this_thread::sleep_for(std::chrono::seconds(replication_period));
+    if (_autoreplicate_settings.autoreplicate_interval <
+        Disable_Auto_Replicate) {
+      replication_period =
+          Disable_Auto_Replicate; // this is defualt value of disableing
+                                  // auto-replicate feature
+      throw std::runtime_error(
+          "Error: auto-replication interval must be a positive number.");
+    }
 
-    // Execute the auto-replicate function
-    qh.regular_run_autoreplicate(_autoreplicate_settings);
+    if (_autoreplicate_settings.autoreplicate_interval > 0) {
+      if (_autoreplicate_settings.autoreplication_unit.compare("h") == 0) {
+        replication_period =
+            _autoreplicate_settings.autoreplicate_interval * 60 * 60;
+      } else if (_autoreplicate_settings.autoreplication_unit.compare("m") ==
+                 0) {
+        replication_period =
+            _autoreplicate_settings.autoreplicate_interval * 60;
+      } else {
+        replication_period = _autoreplicate_settings.autoreplicate_interval;
+      }
+      while (!shutdown) {
+        // Sleep for the replication period
+        std::this_thread::sleep_for(std::chrono::seconds(replication_period));
+
+        // Execute the auto-replicate function
+        qh.regular_run_autoreplicate(_autoreplicate_settings);
+      }
+    }
+  } catch (const std::runtime_error &e) {
+    std::cerr << e.what() << std::endl;
   }
 }
 

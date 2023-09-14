@@ -485,8 +485,6 @@ void QueryHandlerPMGD::regular_run_autoreplicate(
   if (!replicate_settings.backup_flag.empty()) {
     config_file["pmgd_num_allocators"] = replicate_settings.pmgd_num_allocators;
   }
-  std::cout << config_file << std::endl;
-  // write the configuration file
   std::string config_file_name = full_name + ".json";
   file_id.open(config_file_name.c_str(), std::ios::out);
   file_id << config_file << std::endl;
