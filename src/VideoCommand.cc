@@ -350,6 +350,13 @@ Json::Value FindVideo::construct_responses(Json::Value &responses,
         VCL::Video::Codec vcl_codec = string_to_codec(codec);
         video.store(file_name, vcl_codec); // to /tmp/ for encoding.
 
+        if (video.get_query_error_response() != "") {
+          Json::Value return_error;
+          return_error["status"] = RSCommand::Error;
+          return_error["info"] = video.get_query_error_response();
+          return error(return_error);
+        }
+
         auto video_enc = video.get_encoded();
         int size = video_enc.size();
 

@@ -555,8 +555,9 @@ TEST_F(ImageTest, ResizeTDB) {
 TEST_F(ImageTest, CropMatThrow) {
   VCL::Image img(img_);
   img.crop(bad_rect_);
-
-  ASSERT_THROW(img.get_cvmat(), VCL::Exception);
+  img.get_cvmat();
+  ASSERT_STREQ(img.get_query_error_response().data(),
+               "Requested area is not within the image");
 }
 
 TEST_F(ImageTest, CropMat) {
@@ -706,8 +707,9 @@ TEST_F(ImageTest, RotateResize) {
 TEST_F(ImageTest, TDBMatThrow) {
   VCL::Image img(tdb_img_);
   img.crop(bad_rect_);
-
-  ASSERT_THROW(img.get_cvmat(), VCL::Exception);
+  img.get_cvmat();
+  ASSERT_STREQ(img.get_query_error_response().data(),
+               "Requested area is not within the image");
 }
 
 TEST_F(ImageTest, CropTDB) {
@@ -860,4 +862,95 @@ TEST_F(ImageTest, ImageLoop) {
     ASSERT_TRUE(!img_enc.empty());
     iter++;
   }
+}
+
+TEST_F(ImageTest, ImageLoopURLError) {
+  VCL::Image img(img_);
+  ImageLoop imageLoop;
+
+  std::string _url = "http://localhost:5010/imag";
+  Json::Value _options;
+  _options["format"] = "jpg";
+  _options["id"] = "flip";
+
+  img.flip(0);
+  img.remoteOperation(_url, _options);
+
+  imageLoop.set_nrof_entities(1);
+
+  imageLoop.enqueue(&img);
+
+  while (imageLoop.is_loop_running()) {
+    continue;
+  }
+
+  std::map<std::string, VCL::Image *> imageMap = imageLoop.get_image_map();
+  std::map<std::string, VCL::Image *>::iterator iter = imageMap.begin();
+
+  ASSERT_TRUE(iter->second->get_query_error_response() != "");
+}
+
+TEST_F(ImageTest, ImageLoopRemoteFunctionError) {
+  VCL::Image img(img_);
+  ImageLoop imageLoop;
+
+  std::string _url = "http://localhost:5010/image";
+  Json::Value _options;
+  _options["format"] = "jpg";
+  _options["id"] = "gray";
+
+  img.flip(0);
+  img.remoteOperation(_url, _options);
+
+  imageLoop.set_nrof_entities(1);
+
+  imageLoop.enqueue(&img);
+
+  while (imageLoop.is_loop_running()) {
+    continue;
+  }
+
+  std::map<std::string, VCL::Image *> imageMap = imageLoop.get_image_map();
+  std::map<std::string, VCL::Image *>::iterator iter = imageMap.begin();
+
+  ASSERT_TRUE(iter->second->get_query_error_response() != "");
+}
+
+TEST_F(ImageTest, ImageLoopSyncRemoteFunctionError) {
+  VCL::Image img(img_);
+  ImageLoop imageLoop;
+
+  std::string _url = "http://localhost:5010/imag";
+  Json::Value _options;
+  _options["format"] = "jpg";
+  _options["id"] = "gray";
+
+  img.flip(0);
+  img.syncremoteOperation(_url, _options);
+
+  imageLoop.set_nrof_entities(1);
+
+  imageLoop.enqueue(&img);
+
+  while (imageLoop.is_loop_running()) {
+    continue;
+  }
+
+  std::map<std::string, VCL::Image *> imageMap = imageLoop.get_image_map();
+  std::map<std::string, VCL::Image *>::iterator iter = imageMap.begin();
+
+  ASSERT_TRUE(iter->second->get_query_error_response() != "");
+}
+
+TEST_F(ImageTest, PipelineException) {
+  VCL::Image img(img_);
+
+  img.threshold(100);
+  img.flip(0);
+  img.resize(50, 80);
+  img.crop(bad_rect_);
+
+  img.get_cvmat();
+  ASSERT_STREQ(img.get_query_error_response().data(),
+               "Requested area is not within the image");
 }

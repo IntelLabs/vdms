@@ -488,7 +488,9 @@ TEST_F(VideoTest, IntervalOutOfBounds) {
     VCL::Video video_data(_video_path_avi_xvid); //
     video_data.interval(VCL::Video::FRAMES, init, end, step);
     // It will only throw when the operations are performed
-    ASSERT_THROW(video_data.get_frame_count(), VCL::Exception);
+    video_data.get_frame_count();
+    ASSERT_STREQ(video_data.get_query_error_response().data(),
+                 "End Frame cannot be greater than number of frames");
   } catch (VCL::Exception &e) {
     print_exception(e);
     ASSERT_TRUE(false);
@@ -500,7 +502,9 @@ TEST_F(VideoTest, IntervalOutOfBounds) {
     VCL::Video video_data(_video_path_avi_xvid); //
     video_data.interval(VCL::Video::FRAMES, init, end, step);
     // It will only throw when the operations are performed
-    ASSERT_THROW(video_data.get_frame_count(), VCL::Exception);
+    video_data.get_frame_count();
+    ASSERT_STREQ(video_data.get_query_error_response().data(),
+                 "Start Frame cannot be greater than number of frames");
   } catch (VCL::Exception &e) {
     print_exception(e);
     ASSERT_TRUE(false);

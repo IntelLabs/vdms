@@ -10,4 +10,5 @@ rm -r vdms
 rm test_images/tdb_to_jpg.jpg
 rm test_images/tdb_to_png.png
 rm test_images/test_image.jpg
+rm remote_function_test/tmpfile*
 rm -r backups

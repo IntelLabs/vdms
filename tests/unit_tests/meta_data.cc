@@ -167,6 +167,23 @@ Json::Value Meta_Data::construct_find_image() {
   return tuple;
 }
 
+Json::Value Meta_Data::construct_find_image_no_entity() {
+  Json::Value tuple;
+
+  Json::Value cons;
+  cons["Name"][0] = "==";
+  cons["Name"][1] = "sample";
+
+  Json::Value image;
+  image["constraints"] = cons;
+
+  Json::Value find_image;
+  find_image["FindImage"] = image;
+
+  tuple.append(find_image);
+  return tuple;
+}
+
 Json::Value Meta_Data::construct_find_image_withop(Json::Value operations) {
   Json::Value tuple;
 

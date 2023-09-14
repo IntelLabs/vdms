@@ -76,6 +76,24 @@ TEST(CLIENT_CPP, find_image) {
   EXPECT_EQ(status1, 0);
 }
 
+TEST(CLIENT_CPP, find_image_noentity) {
+
+  Meta_Data *meta_obj = new Meta_Data();
+  meta_obj->_aclient.reset(
+      new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
+  Json::Value tuple;
+  tuple = meta_obj->construct_find_image_no_entity();
+
+  VDMS::Response response =
+      meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple));
+  Json::Value result;
+  meta_obj->_reader.parse(response.json.c_str(), result);
+
+  std::string info1 = result[0]["FindImage"]["info"].asString();
+  delete meta_obj;
+  EXPECT_STREQ(info1.data(), "No entities found");
+}
+
 TEST(CLIENT_CPP, find_image_remote) {
 
   Meta_Data *meta_obj = new Meta_Data();

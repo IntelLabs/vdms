@@ -268,6 +268,11 @@ public:
    */
   Json::Value get_remoteOp_params();
 
+  /**
+   *  @return The error message if the query fails. Null if query is a success.
+   */
+  std::string get_query_error_response();
+
   /*  *********************** */
   /*        SET FUNCTIONS     */
   /*  *********************** */
@@ -310,6 +315,8 @@ public:
   void set_remoteOp_params(Json::Value options, std::string url);
 
   void set_connection(RemoteConnection *remote);
+
+  void set_query_error_response(std::string error_msg);
 
   /*  *********************** */
   /*    IMAGE INTERACTIONS    */
@@ -485,6 +492,9 @@ private:
 
   // Full path to image
   std::string _image_id;
+
+  // Query Error response
+  std::string _query_error_response = "";
 
   // Image data (OpenCV Mat or TDBImage)
   cv::Mat _cv_img;

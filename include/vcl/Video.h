@@ -200,6 +200,11 @@ public:
    */
   const KeyFrameList &get_key_frame_list();
 
+  /**
+   *  @return The error message if the query fails. Null if query is a success.
+   */
+  std::string get_query_error_response();
+
   /*  *********************** */
   /*        SET FUNCTIONS     */
   /*  *********************** */
@@ -241,6 +246,8 @@ public:
    *
    */
   void set_connection(RemoteConnection *remote);
+
+  void set_query_error_response(std::string error_msg);
 
   /*  *********************** */
   /*    Video INTERACTIONS    */
@@ -335,6 +342,9 @@ private:
   // Full path to the video file.
   // It is called _video_id to keep it consistent with VCL::Image
   std::string _video_id;
+
+  // Query Error response
+  std::string _query_error_response = "";
 
   bool _flag_stored; // Flag to avoid unnecessary read/write
 

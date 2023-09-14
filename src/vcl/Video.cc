@@ -207,8 +207,6 @@ Video::VideoSize Video::get_size() {
 }
 
 std::vector<unsigned char> Video::get_encoded() {
-  if (_flag_stored == false)
-    throw VCLException(ObjectEmpty, "Object not written");
 
   std::ifstream ifile(_video_id, std::ifstream::in);
   ifile.seekg(0, std::ios::end);
@@ -232,6 +230,8 @@ const KeyFrameList &Video::get_key_frame_list() {
   set_key_frame_list(_key_frame_list);
   return _key_frame_list;
 }
+
+std::string Video::get_query_error_response() { return _query_error_response; }
 
 /*  *********************** */
 /*        SET FUNCTIONS     */
@@ -326,6 +326,10 @@ void Video::swap(Video &rhs) noexcept {
   swap(_codec, rhs._codec);
   swap(_operations, rhs._operations);
   swap(_video_read, rhs._video_read);
+}
+
+void Video::set_query_error_response(std::string response_error) {
+  _query_error_response = response_error;
 }
 
 void Video::set_connection(RemoteConnection *remote) {
@@ -584,14 +588,20 @@ Video::Write::~Write() { finalize(); }
 /*  *********************** */
 
 Video::OperationResult Video::Resize::operator()(int index) {
-  VCL::Image *frame = _video->read_frame(index);
-  if (frame == NULL)
+  try {
+    VCL::Image *frame = _video->read_frame(index);
+    if (frame == NULL)
+      return BREAK;
+    // VCL::Image expect the params (h,w) (contrary to openCV convention)
+    frame->resize(_size.height, _size.width);
+    _video->_size.width = _size.width;
+    _video->_size.height = _size.height;
+    return PASS;
+  } catch (VCL::Exception e) {
+    _video->set_query_error_response(e.msg);
+    print_exception(e);
     return BREAK;
-  // VCL::Image expect the params (h,w) (contrary to openCV convention)
-  frame->resize(_size.height, _size.width);
-  _video->_size.width = _size.width;
-  _video->_size.height = _size.height;
-  return PASS;
+  }
 }
 
 /*  *********************** */
@@ -625,34 +635,40 @@ Video::OperationResult Video::Threshold::operator()(int index) {
 /*  *********************** */
 
 Video::OperationResult Video::Interval::operator()(int index) {
-  if (_u != Video::Unit::FRAMES) {
-    _fps_updated = false;
-    throw VCLException(UnsupportedOperation,
-                       "Only Unit::FRAMES supported for interval operation");
-  }
+  try {
+    if (_u != Video::Unit::FRAMES) {
+      _fps_updated = false;
+      throw VCLException(UnsupportedOperation,
+                         "Only Unit::FRAMES supported for interval operation");
+    }
 
-  unsigned nframes = _video->_size.frame_count;
+    unsigned nframes = _video->_size.frame_count;
 
-  if (_start >= nframes) {
-    _fps_updated = false;
-    throw VCLException(SizeMismatch,
-                       "Start Frame cannot be greater than number of frames");
-  }
+    if (_start >= nframes) {
+      _fps_updated = false;
+      throw VCLException(SizeMismatch,
+                         "Start Frame cannot be greater than number of frames");
+    }
 
-  if (_stop >= nframes) {
-    _fps_updated = false;
-    throw VCLException(SizeMismatch,
-                       "End Frame cannot be greater than number of frames");
-  }
+    if (_stop >= nframes) {
+      _fps_updated = false;
+      throw VCLException(SizeMismatch,
+                         "End Frame cannot be greater than number of frames");
+    }
 
-  if (index < _start)
-    return CONTINUE;
-  if (index >= _stop)
+    if (index < _start)
+      return CONTINUE;
+    if (index >= _stop)
+      return BREAK;
+    if ((index - _start) % _step != 0)
+      return CONTINUE;
+    update_fps();
+    return PASS;
+  } catch (VCL::Exception e) {
+    _video->set_query_error_response(e.msg);
+    print_exception(e);
     return BREAK;
-  if ((index - _start) % _step != 0)
-    return CONTINUE;
-  update_fps();
-  return PASS;
+  }
 }
 
 void Video::Interval::update_fps() {
