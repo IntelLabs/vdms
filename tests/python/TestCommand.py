@@ -36,6 +36,7 @@ class TestCommand(unittest.TestCase):
         # VDMS Server Info
         self.hostname = "localhost"
         self.port = 55565
+        aws_port = 55564
 
         db_up = False
         attempts = 0
@@ -47,10 +48,26 @@ class TestCommand(unittest.TestCase):
                 db_up = True
                 if attempts > 0:
                     print("Connection to VDMS successful.")
-            except:
-                print("Attempt", attempts, "to connect to VDMS failed, retying...")
-                attempts += 1
-                time.sleep(1)  # sleeps 1 second
+            except Exception as e:
+                if e.strerror == "Connection refused":
+                    try:
+                        db = vdms.vdms()
+                        db.connect(self.hostname, aws_port)
+                        db.disconnect()
+                        db_up = True
+                        if attempts > 0:
+                            print("Connection to VDMS successful.")
+                        self.port = aws_port
+                    except Exception as e:
+                        print(
+                            "Attempt", attempts, "to connect to VDMS failed, retying..."
+                        )
+                        attempts += 1
+                        time.sleep(1)  # sleeps 1 second
+                else:
+                    print("Attempt", attempts, "to connect to VDMS failed, retying...")
+                    attempts += 1
+                    time.sleep(1)  # sleeps 1 second
 
             if attempts > 10:
                 print("Failed to connect to VDMS after 10 attempts")
