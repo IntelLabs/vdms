@@ -10,7 +10,7 @@ FROM debian:${BASE_VERSION}
 ARG BUILD_THREADS
 
 # Install Packages
-RUN apt-get update && apt-get install -y --no-install-suggests --no-install-recommends \
+RUN apt-get update -y && apt-get upgrade -y && apt-get install -y --no-install-suggests --no-install-recommends \
     apt-transport-https autoconf automake bison build-essential bzip2 ca-certificates \
     curl ed flex g++-9 gcc-9 git gnupg-agent javacc libarchive-tools libatlas-base-dev \
     libavcodec-dev libavformat-dev libboost-all-dev libbz2-dev libc-ares-dev libcurl4-openssl-dev \
@@ -57,7 +57,7 @@ RUN pip install --no-cache-dir "numpy>=1.25.1" "coverage>=7.2.7" && \
             cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_CXX_STANDARD=17 \
                 -Dprotobuf_ABSL_PROVIDER=package -DCMAKE_PREFIX_PATH=/usr/local . && \
             make ${BUILD_THREADS} && make install && \
-        cd python && python3 setup.py build && python3 -m pip install . && cd /dependencies && \
+        cd python && python3 setup.py build && python3 -m pip install --no-cache-dir . && cd /dependencies && \
     git clone --branch ${OPENCV_VERSION} https://github.com/opencv/opencv.git && \
         cd opencv && mkdir build && cd build && cmake -D BUILD_PERF_TESTS=OFF -D BUILD_TESTS=OFF .. && \
             make ${BUILD_THREADS} && make install && cd /dependencies/ && \
