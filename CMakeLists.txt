@@ -83,6 +83,7 @@ else()
     src/VideoCommand.cc
     src/AutoDeleteNode.cc
     src/ImageLoop.cc
+    src/VideoLoop.cc
   )
   target_link_libraries(dms vcl pmgd pmgd-util protobuf tbb tiledb vdms-utils pthread -lcurl -lzmq ${AWSSDK_LINK_LIBRARIES})
   add_executable(vdms src/vdms.cc)

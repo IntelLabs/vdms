@@ -1,6 +1,6 @@
 rm -r jsongraph qhgraph simpleAdd_db simpleAddx10_db simpleUpdate_db
 rm -r entitycheck_db datatypecheck_db db_backup test_db_1
-rm -r tests_log.log tests_screen.log
+rm tests_log.log tests_screen.log tests_remote_screen.log tests_remote_log.log tests_udf_screen.log tests_udf_log.log
 
 rm -r tdb
 rm -r db dbs test_db_client

@@ -3,6 +3,7 @@
     "port": 5555,
     "functions" : {
         "facedetect" : "facedetect",
-        "flip": "flip"
+        "flip": "flip",
+        "caption": "caption"
     }
 }

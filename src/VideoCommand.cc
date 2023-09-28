@@ -36,6 +36,7 @@
 #include "ImageCommand.h" // for enqueue_operations of Image type
 #include "VDMSConfig.h"
 #include "VideoCommand.h"
+#include "VideoLoop.h"
 #include "defines.h"
 
 using namespace VDMS;
@@ -43,8 +44,8 @@ namespace fs = std::filesystem;
 
 VideoCommand::VideoCommand(const std::string &cmd_name) : RSCommand(cmd_name) {}
 
-void VideoCommand::enqueue_operations(VCL::Video &video,
-                                      const Json::Value &ops) {
+void VideoCommand::enqueue_operations(VCL::Video &video, const Json::Value &ops,
+                                      bool is_addition) {
   // Correct operation type and parameters are guaranteed at this point
   for (auto &op : ops) {
     const std::string &type = get_value<std::string>(op, "type");
@@ -58,12 +59,37 @@ void VideoCommand::enqueue_operations(VCL::Video &video,
                      get_value<int>(op, "stop"), get_value<int>(op, "step"));
 
     } else if (type == "resize") {
-      video.resize(get_value<int>(op, "height"), get_value<int>(op, "width"));
+      video.resize(get_value<int>(op, "width"), get_value<int>(op, "height"));
 
     } else if (type == "crop") {
       video.crop(VCL::Rectangle(
           get_value<int>(op, "x"), get_value<int>(op, "y"),
           get_value<int>(op, "width"), get_value<int>(op, "height")));
+    } else if (type == "syncremoteOp") {
+      try {
+        video.syncremoteOperation(get_value<std::string>(op, "url"),
+                                  get_value<Json::Value>(op, "options"));
+      } catch (const std::exception &e) {
+        std::cerr << e.what() << '\n';
+      }
+    } else if (type == "remoteOp") {
+      try {
+        if (is_addition) {
+          video.syncremoteOperation(get_value<std::string>(op, "url"),
+                                    get_value<Json::Value>(op, "options"));
+        } else {
+          video.remoteOperation(get_value<std::string>(op, "url"),
+                                get_value<Json::Value>(op, "options"));
+        }
+      } catch (const std::exception &e) {
+        std::cerr << e.what() << '\n';
+      }
+    } else if (type == "userOp") {
+      try {
+        video.userOperation(get_value<Json::Value>(op, "options"));
+      } catch (const std::exception &e) {
+        std::cerr << e.what() << '\n';
+      }
     } else {
       throw ExceptionCommand(ImageError, "Operation not defined");
     }
@@ -141,7 +167,7 @@ int AddVideo::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
     frame_list = video.get_key_frame_list();
 
   if (cmd.isMember("operations")) {
-    enqueue_operations(video, cmd["operations"]);
+    enqueue_operations(video, cmd["operations"], true);
   }
 
   // The container and codec are checked by the schema.
@@ -164,6 +190,10 @@ int AddVideo::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
   VCL::Video::Codec vcl_codec = string_to_codec(codec);
 
   video.store(file_name, vcl_codec);
+
+  if (video.get_query_error_response() != video.NOERRORSTRING) {
+    throw VCLException(UndefinedException, video.get_query_error_response());
+  }
 
   if (_use_aws_storage) {
     video._remote->Write(file_name);
@@ -278,6 +308,10 @@ Json::Value FindVideo::construct_responses(Json::Value &responses,
   const Json::Value &cmd = json[_cmd_name];
 
   Json::Value ret;
+  bool has_operations = false;
+  std::string no_op_def_video;
+  VCL::Video::Codec op_codec;
+  std::string op_container;
 
   auto error = [&](Json::Value &res) {
     ret[_cmd_name] = res;
@@ -291,10 +325,18 @@ Json::Value FindVideo::construct_responses(Json::Value &responses,
 
   Json::Value &FindVideo = responses[0];
 
-  bool flag_empty = true;
+  if (FindVideo["entities"].size() == 0) {
+    Json::Value return_error;
+    return_error["status"] = RSCommand::Error;
+    return_error["info"] = "No entities found";
+    return error(return_error);
+  }
 
+  bool flag_empty = true;
+  VideoLoop videoLoop;
   for (auto &ent : FindVideo["entities"]) {
 
+    videoLoop.set_nrof_entities(FindVideo["entities"].size());
     if (!ent.isMember(VDMS_VID_PATH_PROP)) {
       continue;
     }
@@ -339,38 +381,43 @@ Json::Value FindVideo::construct_responses(Json::Value &responses,
 
         if (cmd.isMember("operations")) {
           enqueue_operations(video, cmd["operations"]);
+          has_operations = true;
         }
-
         const std::string &container =
             get_value<std::string>(cmd, "container", "mp4");
-        const std::string &file_name =
-            VCL::create_unique("/tmp/tmp/", container);
+        op_container = container;
         const std::string &codec = get_value<std::string>(cmd, "codec", "h264");
 
         VCL::Video::Codec vcl_codec = string_to_codec(codec);
-        video.store(file_name, vcl_codec); // to /tmp/ for encoding.
+        op_codec = vcl_codec;
 
-        if (video.get_query_error_response() != "") {
+        if (video.get_query_error_response() != video.NOERRORSTRING) {
           Json::Value return_error;
           return_error["status"] = RSCommand::Error;
           return_error["info"] = video.get_query_error_response();
           return error(return_error);
         }
 
-        auto video_enc = video.get_encoded();
-        int size = video_enc.size();
-
-        if (size > 0) {
-
-          std::string *video_str = query_res.add_blobs();
-          video_str->resize(size);
-          std::memcpy((void *)video_str->data(), (void *)video_enc.data(),
-                      size);
+        if (has_operations) {
+          videoLoop.enqueue(video);
         } else {
-          Json::Value return_error;
-          return_error["status"] = RSCommand::Error;
-          return_error["info"] = "Video Data not found";
-          error(return_error);
+          std::vector<unsigned char> video_enc =
+              video.get_encoded(container, vcl_codec);
+          no_op_def_video = video.get_video_id();
+          int size = video_enc.size();
+
+          if (size > 0) {
+
+            std::string *video_str = query_res.add_blobs();
+            video_str->resize(size);
+            std::memcpy((void *)video_str->data(), (void *)video_enc.data(),
+                        size);
+          } else {
+            Json::Value return_error;
+            return_error["status"] = RSCommand::Error;
+            return_error["info"] = "Video Data not found";
+            error(return_error);
+          }
         }
       }
     } catch (VCL::Exception e) {
@@ -380,6 +427,41 @@ Json::Value FindVideo::construct_responses(Json::Value &responses,
       return_error["info"] = "VCL Exception";
       return error(return_error);
     }
+  }
+
+  if (has_operations) {
+    while (videoLoop.is_loop_running()) {
+      continue;
+    }
+    std::map<std::string, VCL::Video> videoMap = videoLoop.get_video_map();
+    std::map<std::string, VCL::Video>::iterator iter = videoMap.begin();
+
+    if (iter->second.get_query_error_response() != iter->second.NOERRORSTRING) {
+      Json::Value return_error;
+      return_error["status"] = RSCommand::Error;
+      return_error["info"] = iter->second.get_query_error_response();
+      return error(return_error);
+    }
+
+    while (iter != videoMap.end()) {
+      auto video_enc = iter->second.get_encoded(op_container, op_codec);
+      int size = video_enc.size();
+
+      if (size > 0) {
+
+        std::string *video_str = query_res.add_blobs();
+        video_str->resize(size);
+        std::memcpy((void *)video_str->data(), (void *)video_enc.data(), size);
+      } else {
+        Json::Value return_error;
+        return_error["status"] = RSCommand::Error;
+        return_error["info"] = "Video Data not found";
+        error(return_error);
+      }
+      iter++;
+    }
+  } else {
+    videoLoop.close_no_operation_loop(no_op_def_video);
   }
 
   if (flag_empty) {
@@ -511,8 +593,6 @@ Json::Value FindFrames::construct_responses(Json::Value &responses,
         return error(return_error);
       }
 
-      VCL::Video video(video_path);
-
       // grab the video from aws here if necessary
       if (_use_aws_storage) {
         VCL::RemoteConnection *connection = new VCL::RemoteConnection();
@@ -524,6 +604,8 @@ Json::Value FindFrames::construct_responses(Json::Value &responses,
             video_path); // this takes the file from aws and puts it back in the
                          // local database location
       }
+
+      VCL::Video video(video_path);
 
       // By default, return frames as PNGs
       VCL::Image::Format format = VCL::Image::Format::PNG;

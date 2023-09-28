@@ -5,7 +5,7 @@
  *
  * The MIT License
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2023 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -43,19 +43,20 @@
 #include "KeyFrame.h"
 #include "vcl/Image.h"
 
+#include "../utils/include/stats/SystemStats.h"
 #include "Exception.h"
 #include "utils.h"
 
 namespace VCL {
 
-typedef cv::Rect Rectangle; // spcifiy an ROI inside a video
+typedef cv::Rect Rectangle; // specify an ROI inside a video
 
 class Video {
 
 public:
   enum Codec { NOCODEC = 0, MJPG, XVID, H263, H264, AVC1 };
 
-  // enum class Storage { LOCAL = 0, AWS = 1 };
+  std::string NOERRORSTRING = "";
 
   struct VideoSize {
     unsigned width;
@@ -65,9 +66,17 @@ public:
 
   enum Unit { FRAMES = 0, SECONDS = 1 };
 
-  enum OperationType { READ, WRITE, RESIZE, CROP, THRESHOLD, INTERVAL };
-
-  enum OperationResult { PASS, CONTINUE, BREAK };
+  enum OperationType {
+    READ,
+    WRITE,
+    RESIZE,
+    CROP,
+    THRESHOLD,
+    INTERVAL,
+    SYNCREMOTEOPERATION,
+    REMOTEOPERATION,
+    USEROPERATION
+  };
 
   RemoteConnection *_remote; // Remote connection (if one exists)
 
@@ -137,24 +146,27 @@ public:
 
   /**
    *  Gets the size of the Video in pixels (height * width * channels)
-   *
+   *  @param performOp Specify if operations should be performed first. Default
+   * is true.
    *  @return The size of the Video in pixels
    */
-  VideoSize get_size();
+  VideoSize get_size(bool performOp = true);
 
   /**
    *  Gets the dimensions (height and width) of the Video
-   *
+   *  @param performOp Specify if operations should be performed first. Default
+   * is true.
    *  @return The height and width of the Video as an OpenCV Size object
    */
-  cv::Size get_frame_size();
+  cv::Size get_frame_size(bool performOp = true);
 
   /**
    *  Gets number of frames in the video
-   *
+   *  @param performOp Specify if operations should be performed first. Default
+   * is true.
    *  @return Number of frames in the video
    */
-  long get_frame_count();
+  long get_frame_count(bool performOp = true);
 
   /**
    *  Gets frames per second.
@@ -169,10 +181,11 @@ public:
    *  If key frame information is stored for this video, both this
    *  function and key_frames() performs partial decoding on the video
    *  to exploit key frame information.
-   *
+   *  @param performOp Specify if operations should be performed first. Default
+   * is true.
    *  @return cv::Mat with the specified frame
    */
-  cv::Mat get_frame(unsigned frame_num);
+  cv::Mat get_frame(unsigned frame_num, bool performOp = true);
 
   /**
    *  Gets mutiple frames from the video
@@ -186,9 +199,13 @@ public:
    *  Before calling this method, the store method must be called,
    *  as OpenCV only offers interfaces from encoding/decoding
    *  from/to files.
-   *
+   *  @param container Video container format type, eg. mp4, in which the
+   *  video should be encoded in
+   *  @param vcl_codec The VCL codec, eg H264, in which the video is to be
+   * encoded in
    */
-  std::vector<unsigned char> get_encoded();
+  std::vector<unsigned char> get_encoded(std::string container,
+                                         VCL::Video::Codec vcl_codec);
 
   /**
    *  Invokes key-frame generation on the video, if the video is encoded
@@ -201,9 +218,31 @@ public:
   const KeyFrameList &get_key_frame_list();
 
   /**
+   *  Gets the Codec as a fourcc array.
+   *  @param _codec The VCL codec that is to be converted to fourcc
+   */
+  int get_video_fourcc(VCL::Video::Codec _codec);
+
+  /**
    *  @return The error message if the query fails. Null if query is a success.
    */
   std::string get_query_error_response();
+
+  /**
+   *  @return The number of enqueued operations not executed yet
+   */
+  int get_enqueued_operation_count();
+
+  /**
+   *  @return The parameters sent by client for the remote operation
+   */
+  Json::Value get_remoteOp_params();
+
+  /**
+   *  @return The location of the temporary video file on which operations have
+   * been perfromed
+   */
+  std::string get_operated_video_id();
 
   /*  *********************** */
   /*        SET FUNCTIONS     */
@@ -247,7 +286,28 @@ public:
    */
   void set_connection(RemoteConnection *remote);
 
+  /**
+   *  Sets the _query_error_response message when an exception occurs
+   *
+   *  @param error_msg Error message to be sent to the client.
+   */
   void set_query_error_response(std::string error_msg);
+
+  /**
+   *  Sets the remote parameters that a remote operation will require
+   *
+   *  @param options encapsulated parameters for a specific remote operation.
+   *  @param url remote API url
+   */
+  void set_remoteOp_params(Json::Value options, std::string url);
+
+  /**
+   *  Sets the location of the temporary video file on which operations have
+   * been perfromed
+   *
+   *  @param filename location of the temporary video file
+   */
+  void set_operated_video_id(std::string filename);
 
   /*  *********************** */
   /*    Video INTERACTIONS    */
@@ -300,6 +360,29 @@ public:
   void interval(Unit u, int start, int stop, int step = 1);
 
   /**
+   *  Performs a synchronous remote operation on the video.
+   *
+   *  @param url  Remote url
+   *  @param options  operation options
+   */
+  void syncremoteOperation(std::string url, Json::Value options);
+
+  /**
+   *  Performs a asynchronous remote operation on the video.
+   *
+   *  @param url  Remote url
+   *  @param options  operation options
+   */
+  void remoteOperation(std::string url, Json::Value options);
+
+  /**
+   *  Performs a user defined operation on the video.
+   *
+   *  @param options  operation options
+   */
+  void userOperation(Json::Value options);
+
+  /**
    *  Writes the Video to the system at the given location and in
    *    the given format
    *
@@ -322,18 +405,14 @@ public:
   void delete_video();
 
   /**
-   * Read a frame from the video file.
-   * To improve the performance, if we read multiple frames, we should
-   * read from the smallest index to the largest index.
-   *
-   * @param index  The index of the frame within the video.
-   * @return The pointer to the frame if it succeeds and NULL if it fails
+   *  Initiates execution of the enqueued operation. Called by the VideoLoop.
+   *  @param isRemote If the operation to be executed is a remote operation.
+   * Default is false.
    */
-  VCL::Image *read_frame(int index);
+  int execute_operations(bool isRemote = false);
 
 private:
   class Operation;
-  class Read;
 
   // Forward declaration of VideoTest class, that is used for the unit
   // test to accesss private methods of this class
@@ -343,12 +422,13 @@ private:
   // It is called _video_id to keep it consistent with VCL::Image
   std::string _video_id;
 
+  // Full path to the temporary video file on which operations are performed.
+  std::string _operated_video_id;
+
   // Query Error response
   std::string _query_error_response = "";
 
   bool _flag_stored; // Flag to avoid unnecessary read/write
-
-  std::shared_ptr<Read> _video_read;
 
   VideoSize _size;
 
@@ -368,6 +448,9 @@ private:
 
   Storage _storage = Storage::LOCAL;
 
+  // Remote operation parameters sent by the client
+  Json::Value remoteOp_params;
+
   /*  *********************** */
   /*        OPERATION         */
   /*  *********************** */
@@ -382,129 +465,30 @@ private:
    *   () operator
    */
   class Operation {
-  protected:
-    // Pointer to the video object to be handled
-    Video *_video;
 
   public:
-    Operation(Video *video) : _video(video) {}
-
     /**
      *  Implemented by the specific operation, performs what
      *    the operation is supposed to do
-     *  This function should be executed for every frame
      *
-     *  @param index  The index of frame to be processed
-     *  @return  PASS the frame should be passed to the next operation object
-     *           CONTINUE Abort the current frame operation
-     *           BREAK Abort the whole video operation
+     *  @param video A pointer to the current Video object
+     *  @param frame The frame on which the operation will be performed
+     *  @param args  Any additional parameters required by the operation
      */
-    virtual OperationResult operator()(int index) = 0;
+    virtual void operator()(Video *video, cv::Mat &frame,
+                            std::string args = "") = 0;
 
     virtual OperationType get_type() = 0;
 
     /**
-     *   This function is called after the video operation, to tell the
-     * Operation object to release the resources and update video metadata.
+     *  Implemented by the Resize and Crop operations.
+     *  Used to set the size of the video writer object.
      *
      */
-    virtual void finalize() {}
-  };
-
-  /*  *********************** */
-  /*       READ OPERATION     */
-  /*  *********************** */
-
-  /**
-   *  Extends Operation, reads Video from the file system
-   */
-  class Read : public Operation, public std::enable_shared_from_this<Read> {
-
-    // The currently opened video file
-    cv::VideoCapture _inputVideo;
-    // The cached frames
-    std::vector<VCL::Image> _frames;
-    // The range of cached frames
-    int _frame_index_starting, _frame_index_ending;
-    // The path of the currently opened video file
-    std::string _video_id;
-
-    Video::Codec read_codec(char *fourcc);
-
-    // Open the video file and initialize VideoCapture handler
-    void open();
-
-    // Reopen the VideoCapture handler, this happens if
-    // * the video file changes
-    // * we want to read the frames all over again
-    void reopen();
-
-  public:
-    /**
-     *  Reads an Video from the file system (based on specified path)
-     *
-     */
-    Read(Video *video)
-        : Operation(video), _frame_index_starting(0), _frame_index_ending(0),
-          _video_id(video->_video_id){
-
-          };
-
-    OperationResult operator()(int index);
-
-    void finalize();
-
-    OperationType get_type() { return READ; };
-
-    // Reset or close the VideoCapture handler
-    void reset();
-
-    /**
-     * Read a frame from the video file.
-     * To improve the performance, if we read multiple frames, we should
-     * read from the smallest index to the largest index.
-     *
-     * @param index  The index of the frame within the video.
-     * @return The pointer to the frame if it succeeds and NULL if it fails
-     */
-    VCL::Image *read_frame(int index);
-
-    ~Read();
-  };
-
-  /*  *********************** */
-  /*       WRITE OPERATION    */
-  /*  *********************** */
-  /**
-   *  Extends Operation, writes to the file system in the specified
-   *    format
-   */
-  class Write : public Operation {
-  private:
-    cv::VideoWriter _outputVideo;
-    std::string _outname;
-    Video::Codec _codec;
-    int _frame_count;
-    int _last_write;
-
-    int get_fourcc();
-
-  public:
-    Write(Video *video, std::string outname, Video::Codec codec)
-        : Operation(video), _outname(outname), _codec(codec), _frame_count(0),
-          _last_write(-1){};
-
-    /**
-     *  Writes an Video to the file system.
-     *
-     */
-    OperationResult operator()(int index);
-
-    OperationType get_type() { return WRITE; };
-
-    void finalize();
-
-    ~Write();
+    virtual cv::Size get_video_size() {
+      cv::Size size;
+      return size;
+    };
   };
 
   /*  *********************** */
@@ -524,17 +508,20 @@ private:
      *
      *  @param size  Struct that contains w and h
      */
-    Resize(Video *video, const cv::Size &size)
-        : Operation(video), _size(size){};
+    Resize(const cv::Size &size) : _size(size){};
 
     /**
      *  Resizes an Video to the given dimensions
      *
-     *  @param video  A pointer to the current Video object
+     *  @param video A pointer to the current Video object
+     *  @param frame The frame on which the operation will be performed
+     *  @param args  Any additional parameters required by the operation
      */
-    OperationResult operator()(int index);
+    void operator()(Video *video, cv::Mat &frame, std::string args = NULL);
 
     OperationType get_type() { return RESIZE; };
+
+    cv::Size get_video_size() { return _size; }
   };
 
   /*  *********************** */
@@ -547,9 +534,6 @@ private:
     int _stop;
     int _step;
     Video::Unit _u;
-    bool _fps_updated;
-
-    void update_fps();
 
   public:
     /**
@@ -560,17 +544,17 @@ private:
      *  @param stop  Last frame
      *  @param step  Number of frames to be skipped in between.
      */
-    Interval(Video *video, Video::Unit u, const int start, const int stop,
-             int step)
-        : Operation(video), _u(u), _start(start), _stop(stop), _step(step),
-          _fps_updated(false){};
+    Interval(Video::Unit u, const int start, const int stop, int step)
+        : _u(u), _start(start), _stop(stop), _step(step){};
 
     /**
      *  Resizes an Video to the given dimensions
      *
-     *  @param video  A pointer to the current Video object
+     *  @param video A pointer to the current Video object
+     *  @param frame The frame on which the operation will be performed
+     *  @param args  Any additional parameters required by the operation
      */
-    OperationResult operator()(int index);
+    void operator()(Video *video, cv::Mat &frame, std::string args = NULL);
 
     OperationType get_type() { return INTERVAL; };
   };
@@ -594,16 +578,20 @@ private:
      *  @param rect  Contains dimensions and coordinates of
      *    desired area
      */
-    Crop(Video *video, const Rectangle &rect) : Operation(video), _rect(rect){};
+    Crop(const Rectangle &rect) : _rect(rect){};
 
     /**
      *  Crops the Video to the given area
      *
-     *  @param video  A pointer to the current Video object
+     *  @param video A pointer to the current Video object
+     *  @param frame The frame on which the operation will be performed
+     *  @param args  Any additional parameters required by the operation
      */
-    OperationResult operator()(int index);
+    void operator()(Video *video, cv::Mat &frame, std::string args = NULL);
 
     OperationType get_type() { return CROP; };
+
+    cv::Size get_video_size() { return _rect.size(); }
   };
 
   /*  *********************** */
@@ -625,17 +613,114 @@ private:
      *
      *  @param value  Minimum value pixels should be
      */
-    Threshold(Video *video, const int value)
-        : Operation(video), _threshold(value){};
+    Threshold(const int value) : _threshold(value){};
 
     /**
      *  Performs the thresholding operation
      *
-     *  @param img  A pointer to the current Video object
+     *  @param video A pointer to the current Video object
+     *  @param frame The frame on which the operation will be performed
+     *  @param args  Any additional parameters required by the operation
      */
-    OperationResult operator()(int index);
+    void operator()(Video *video, cv::Mat &frame, std::string args = NULL);
 
     OperationType get_type() { return THRESHOLD; };
+  };
+
+  /*  *********************** */
+  /*    SYNCREMOTE OPERATION   */
+  /*  *********************** */
+  /**  Extends Operation, performs a synchronous remote operation
+   */
+  class SyncRemoteOperation : public Operation {
+  private:
+    std::string _url;
+    Json::Value _options;
+
+  public:
+    /**
+     *
+     *  Constructor, sets the remote url and client options
+     *
+     *  @param url remote server url
+     *  @param options client parameters for the operation
+     */
+    SyncRemoteOperation(std::string url, Json::Value options)
+        : _url(url), _options(options){};
+
+    /**
+     *  Performs the remote operation
+     *
+     *  @param video A pointer to the current Video object
+     *  @param frame The frame on which the operation will be performed
+     *  @param args  Any additional parameters required by the operation
+     */
+    void operator()(Video *video, cv::Mat &frame, std::string args = NULL);
+
+    OperationType get_type() { return SYNCREMOTEOPERATION; };
+  };
+
+  /*  *********************** */
+  /*    REMOTE OPERATION   */
+  /*  *********************** */
+  /**  Extends Operation, performs an asynchronous remote operation
+   */
+  class RemoteOperation : public Operation {
+  private:
+    std::string _url;
+    Json::Value _options;
+
+  public:
+    /**
+     *
+     *  Constructor, sets the remote url and client options
+     *
+     *  @param url remote server url
+     *  @param options client parameters for the operation
+     */
+    RemoteOperation(std::string url, Json::Value options)
+        : _url(url), _options(options){};
+
+    /**
+     *  Performs the remote operation
+     *
+     *  @param video A pointer to the current Video object
+     *  @param frame The frame on which the operation will be performed
+     *  @param args  Any additional parameters required by the operation
+     */
+    void operator()(Video *video, cv::Mat &frame, std::string args = NULL);
+
+    OperationType get_type() { return REMOTEOPERATION; };
+  };
+
+  /*  *********************** */
+  /*    USER DEFINED OPERATION   */
+  /*  *********************** */
+  /**  Extends Operation, performs a udf
+   */
+  class UserOperation : public Operation {
+  private:
+    Json::Value _options;
+
+  public:
+    /**
+     *
+     *  Constructor, sets the client options
+     *
+     *  @param options client parameters for the operation
+     */
+    UserOperation(Json::Value options) : _options(options){};
+
+    /**
+     *  Performs the remote operation
+     *
+     *  @param video A pointer to the current Video object
+     *  @param frame The frame on which the operation will be performed
+     *  @param args  Any additional parameters required by the operation
+     */
+    void operator()(Video *video, cv::Mat &frame, std::string args = NULL);
+
+    OperationType get_type() { return USEROPERATION; };
   };
 
 protected:
@@ -648,18 +733,68 @@ protected:
    *
    * @return true if video was read, false otherwise
    */
-  // bool is_read(void);
+  bool is_read(void);
+
+  /**
+   *  Sets video attributes such as frame count, height, width
+   *  @param vname path to the video file
+   */
+  void initialize_video_attributes(std::string vname);
 
   /**
    *  Performs the set of operations that have been requested
    *  on the Video
+   *  @param is_store Is the function called to perform a write to the data
+   * store
+   *  @param store_id File name to be used for the video stored in the data
+   * store
    */
-  void perform_operations();
+  void perform_operations(bool is_store = false, std::string store_id = "");
+
+  /**
+   *  Checks if sufficient memory is available to perform the
+   *  Video operation
+   * @param VideoSize struct containing the width, height, and frame
+   * count of the video
+   */
+  bool check_sufficient_memory(const struct VideoSize &size);
 
   /**
    * Swaps members of two Video objects, to be used by assignment
    * operator.
+   * @param rhs The video from which the attributes are to be swapped with.
    */
   void swap(Video &rhs) noexcept;
+
+  /**
+   * Get the format of the video file.
+   * @param video_id Path of the video file
+   */
+  std::string get_video_format(char *video_id);
+
+  /**
+   *  Set size of the video writer object
+   *  @param op_count Current operation number
+   */
+  void set_video_writer_size(int op_count);
+
+  /**
+   *  Store a video to the data store
+   *  @param id Input video path
+   *  @param store_id path to the file location where the video should be stored
+   *  @param fname path to the temporary file location
+   */
+  void store_video_no_operation(std::string id, std::string store_id,
+                                std::string fname);
+
+  /**
+   * Perform operations in a frame-by-frame manner on the video.
+   * @param id source video file path
+   * @param op_count index of the current operation being executed
+   * @param fname path to the temporary file location
+   */
+  int perform_single_frame_operations(std::string id, int op_count,
+                                      std::string fname);
 };
+
 } // namespace VCL

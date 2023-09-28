@@ -1,5 +1,5 @@
 # User Defined Operations in VDMS
-This submodule is required to execute user defined operations (UDF) in VDMS using message queues (Support only available for images). Although shipped with VDMS, this submodule can be run independently and interacts with VDMS using message queues.
+This submodule is required to execute user defined operations (UDF) in VDMS using message queues. Although shipped with VDMS, this submodule can be run independently and interacts with VDMS using message queues.
 
 ## Requirements
 - Python 3 or higher
