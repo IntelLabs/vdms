@@ -99,8 +99,8 @@ sudo make install
 #### **Protobuf v24.2 (4.24.2)**
 Install Protobuf (C++ and Python) which requires GoogleTest and Abseil C++ as dependencies.
 ```bash
-PROTOBUF_VERSION="v24.2"
-git clone -b ${PROTOBUF_VERSION} --recursive https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
+PROTOBUF_VERSION="24.2"
+git clone -b v${PROTOBUF_VERSION} --recursive https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
 
 cd $VDMS_DEP_DIR/protobuf/third_party/googletest
 mkdir build && cd build
@@ -124,9 +124,7 @@ cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DC
 make ${BUILD_THREADS}
 sudo make install
 
-cd python
-python3 setup.py build
-python3 -m pip install .
+python3 -m pip install --no-cache-dir "protobuf==4.${PROTOBUF_VERSION}"
 ```
 
 

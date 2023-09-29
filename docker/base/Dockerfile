@@ -27,7 +27,7 @@ RUN apt-get update -y && apt-get upgrade -y && apt-get install -y --no-install-s
 
 # Pull and Install Dependencies
 ENV CMAKE_VERSION="v3.27.2" \
-    PROTOBUF_VERSION="v24.2" \
+    PROTOBUF_VERSION="24.2" \
     OPENCV_VERSION="4.5.5" \
     FAISS_VERSION="v1.7.3" \
     VALIJSON_VERSION="v0.6" \
@@ -45,7 +45,7 @@ RUN pip install --no-cache-dir "numpy>=1.25.1" "coverage>=7.2.7" && \
     git clone https://github.com/tonyzhang617/FLINNG.git && \
         cd /dependencies/FLINNG && mkdir build && cd build && cmake .. && \
             make ${BUILD_THREADS} && make install && cd /dependencies && \
-    git clone -b ${PROTOBUF_VERSION} --recursive https://github.com/protocolbuffers/protobuf.git && \
+    git clone -b v${PROTOBUF_VERSION} --recursive https://github.com/protocolbuffers/protobuf.git && \
         cd /dependencies/protobuf/third_party/googletest && mkdir build && cd build/ && \
             cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 .. && \
             make ${BUILD_THREADS} && make install && ldconfig && \
@@ -57,7 +57,7 @@ RUN pip install --no-cache-dir "numpy>=1.25.1" "coverage>=7.2.7" && \
             cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_CXX_STANDARD=17 \
                 -Dprotobuf_ABSL_PROVIDER=package -DCMAKE_PREFIX_PATH=/usr/local . && \
             make ${BUILD_THREADS} && make install && \
-        cd python && python3 setup.py build && python3 -m pip install --no-cache-dir . && cd /dependencies && \
+        python3 -m pip install --no-cache-dir "protobuf==4.${PROTOBUF_VERSION}" && cd /dependencies && \
     git clone --branch ${OPENCV_VERSION} https://github.com/opencv/opencv.git && \
         cd opencv && mkdir build && cd build && cmake -D BUILD_PERF_TESTS=OFF -D BUILD_TESTS=OFF .. && \
             make ${BUILD_THREADS} && make install && cd /dependencies/ && \
