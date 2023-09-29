@@ -27,6 +27,10 @@ check_package(){
 REPO_DIR=$(dirname "$(dirname "$(dirname "$(readlink -f "$0")")")")
 echo "SCAN DIR: ${REPO_DIR}"
 
+# Convert files from Windows-style line endings (CRLF) to Linux-style line endings (LF)
+check_package apt dos2unix
+find ${REPO_DIR} -type f -exec dos2unix -v -k -s -o {} ';'
+
 # Run Clang-Format on C++ Code (Google C++ Style)
 check_package apt clang-format
 find "${REPO_DIR}" -type f -not -path "${REPO_DIR}/src/pmgd/*" \

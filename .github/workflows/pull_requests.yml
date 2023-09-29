@@ -64,7 +64,7 @@ jobs:
           fetch-depth: 0
 
       - if: matrix.coverage_type  == 'Source'
-        name: Format C++ Code (clang-format) and Python (black code)
+        name: Format C++ Code (clang-format), Python (black code), and apply dos2unix
         run: ./.github/workflows/auto-formatter.sh
 
       - if: matrix.coverage_type  == 'Source'
@@ -72,6 +72,7 @@ jobs:
         id: git_check
         run: |
           echo "commit_id=$(git log -1 --format='%H')" >> $GITHUB_OUTPUT
+          git update-index -q --refresh
           echo "modify_source=$(if git diff-index --quiet HEAD --; then echo "false"; else echo "true"; fi)" >> $GITHUB_OUTPUT
           echo "added_modified=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} HEAD -- . ':!.github' ':!docker'| xargs)" >> $GITHUB_OUTPUT
 
