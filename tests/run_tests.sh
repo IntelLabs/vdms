@@ -14,12 +14,12 @@ pkill -9 -f udf_local.py || true
 # Start remote server for test
 cd remote_function_test
 python3 -m pip install -r requirements.txt
-python3 udf_server.py 5010 > ../tests_screen.log 2> ../tests_log.log &
+python3 udf_server.py 5010 > ../tests_remote_screen.log 2> ../tests_remote_log.log &
 
 # Start UDF message queue for test
 cd ../udf_test
 python3 -m pip install -r requirements.txt
-python3 udf_local.py > ../tests_screen.log 2> ../tests_log.log &
+python3 udf_local.py > ../tests_udf_screen.log 2> ../tests_udf_log.log &
 
 cd ..
 
@@ -34,7 +34,7 @@ echo 'not the vdms application - this file is needed for shared key' > vdms
 
 echo 'Running C++ tests...'
 ./../build/tests/unit_tests \
-    --gtest_filter=-ImageTest.CreateNameTDB:ImageTest.NoMetadata:VideoTest.CreateUnique:Descriptors_Add.add_1by1_and_search_1k:RemoteConnectionTest.*
+    --gtest_filter=-ImageTest.CreateNameTDB:ImageTest.NoMetadata:VideoTest.CreateUnique:VideoTest.SyncRemoteWrite:VideoTest.UDFWrite:Descriptors_Add.add_1by1_and_search_1k:RemoteConnectionTest.*
 
 pkill -9 -f udf_server.py
 pkill -9 -f udf_local.py

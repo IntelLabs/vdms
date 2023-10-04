@@ -1,5 +1,5 @@
 opencv-python==4.5.5.64
-flask
-numpy
-sk-video
-imutils
+flask==2.3.3
+numpy==1.26.0
+sk-video==1.1.10
+imutils==0.5.4

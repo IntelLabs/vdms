@@ -74,4 +74,5 @@ public:
   void get_process_cpu_utilization();
 
   void log_stats(std::string pName);
+  bool query_sufficient_memory(int size_requested);
 };

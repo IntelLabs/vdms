@@ -61,6 +61,7 @@
 #define VDMS_DESC_SET_PATH_PROP "VD:descSetPath"
 #define VDMS_DESC_SET_NAME_PROP "VD:name"
 #define VDMS_DESC_SET_DIM_PROP "VD:dimensions"
+#define VDMS_DESC_SET_ENGIN_PROP "VD:engine"
 
 // Descriptor
 

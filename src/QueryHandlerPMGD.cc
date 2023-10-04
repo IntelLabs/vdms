@@ -1,11 +1,11 @@
 /**
- * @file   QueryHandler.cc
+ * @file   QueryHandler.h
  *
  * @section LICENSE
  *
  * The MIT License
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2023 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"),
@@ -29,7 +29,7 @@
  *
  */
 
-#include "QueryHandler.h"
+#include "QueryHandlerPMGD.h"
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -55,10 +55,9 @@
 
 using namespace VDMS;
 
-std::unordered_map<std::string, RSCommand *> QueryHandler::_rs_cmds;
-valijson::Schema *QueryHandler::_schema = new valijson::Schema;
+std::unordered_map<std::string, RSCommand *> QueryHandlerPMGD::_rs_cmds;
 
-void QueryHandler::init() {
+void QueryHandlerPMGD::init() {
   DescriptorsManager::init();
 
   _rs_cmds["AddEntity"] = new AddEntity();
@@ -114,9 +113,8 @@ void QueryHandler::init() {
   }
 }
 
-QueryHandler::QueryHandler()
-    : _pmgd_qh(), _validator(valijson::Validator::kWeakTypes),
-      _autodelete_init(false), _autoreplicate_init(false)
+QueryHandlerPMGD::QueryHandlerPMGD()
+    : _pmgd_qh(), _autodelete_init(false), _autoreplicate_init(false)
 #ifdef CHRONO_TIMING
       ,
       ch_tx_total("ch_tx_total"), ch_tx_query("ch_tx_query"),
@@ -125,34 +123,8 @@ QueryHandler::QueryHandler()
 {
 }
 
-void QueryHandler::process_connection(comm::Connection *c) {
-  QueryMessage msgs(c);
-
-  try {
-    while (true) {
-      protobufs::queryMessage response;
-      protobufs::queryMessage query = msgs.get_query();
-      CHRONO_TIC(ch_tx_total);
-
-      CHRONO_TIC(ch_tx_query);
-      process_query(query, response);
-      CHRONO_TAC(ch_tx_query);
-
-      CHRONO_TIC(ch_tx_send);
-      msgs.send_response(response);
-      CHRONO_TAC(ch_tx_send);
-
-      CHRONO_TAC(ch_tx_total);
-      CHRONO_PRINT_LAST_MS(ch_tx_total);
-      CHRONO_PRINT_LAST_MS(ch_tx_query);
-      CHRONO_PRINT_LAST_MS(ch_tx_send);
-    }
-  } catch (comm::ExceptionComm e) {
-    print_exception(e);
-  }
-}
-
-bool QueryHandler::syntax_checker(const Json::Value &root, Json::Value &error) {
+bool QueryHandlerPMGD::syntax_checker(const Json::Value &root,
+                                      Json::Value &error) {
   valijson::ValidationResults results;
   valijson::adapters::JsonCppAdapter user_query(root);
   if (!_validator.validate(*_schema, user_query, &results)) {
@@ -219,8 +191,8 @@ bool QueryHandler::syntax_checker(const Json::Value &root, Json::Value &error) {
   return true;
 }
 
-int QueryHandler::parse_commands(const protobufs::queryMessage &proto_query,
-                                 Json::Value &root) {
+int QueryHandlerPMGD::parse_commands(const protobufs::queryMessage &proto_query,
+                                     Json::Value &root) {
   Json::Reader reader;
   const std::string commands = proto_query.json();
 
@@ -270,29 +242,17 @@ int QueryHandler::parse_commands(const protobufs::queryMessage &proto_query,
   return 0;
 }
 
-// TODO create a better mechanism to cleanup queries that
-// includes feature vectors and user-defined blobs
-// For now, we do it for videos/images as a starting point.
-void QueryHandler::cleanup_query(const std::vector<std::string> &images,
-                                 const std::vector<std::string> &videos) {
-  for (auto &img_path : images) {
-    VCL::Image img(img_path);
-    img.delete_image();
-  }
-
-  for (auto &vid_path : videos) {
-    VCL::Video vid(vid_path);
-    vid.delete_video();
-  }
-}
-
-void QueryHandler::process_query(protobufs::queryMessage &proto_query,
-                                 protobufs::queryMessage &proto_res) {
+void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
+                                     protobufs::queryMessage &proto_res) {
   Json::FastWriter fastWriter;
 
   Json::Value root;
   Json::Value exception_error;
   std::stringstream error_msg;
+
+  std::vector<std::string> images_log;
+  std::vector<std::string> videos_log;
+
   auto exception_handler = [&]() {
     // When exception is catched, we return the message.
     std::cerr << "Failed Query: " << std::endl;
@@ -311,8 +271,7 @@ void QueryHandler::process_query(protobufs::queryMessage &proto_query,
 
     Json::Value cmd_result;
     Json::Value cmd_current;
-    std::vector<std::string> images_log;
-    std::vector<std::string> videos_log;
+
     std::vector<Json::Value> construct_results;
 
     auto error = [&](Json::Value &res, Json::Value &failed_command) {
@@ -416,6 +375,7 @@ void QueryHandler::process_query(protobufs::queryMessage &proto_query,
   } catch (VCL::Exception &e) {
     print_exception(e);
     error_msg << "Internal Server Error: VCL Exception at QH" << std::endl;
+    cleanup_query(images_log, videos_log);
     exception_handler();
   } catch (PMGD::Exception &e) {
     print_exception(e);
@@ -448,7 +408,7 @@ void QueryHandler::process_query(protobufs::queryMessage &proto_query,
   }
 }
 
-void QueryHandler::regular_run_autoreplicate(
+void QueryHandlerPMGD::regular_run_autoreplicate(
     ReplicationConfig &replicate_settings) {
   std::string command = "bsdtar cvfz ";
   std::string name;
@@ -525,8 +485,6 @@ void QueryHandler::regular_run_autoreplicate(
   if (!replicate_settings.backup_flag.empty()) {
     config_file["pmgd_num_allocators"] = replicate_settings.pmgd_num_allocators;
   }
-  std::cout << config_file << std::endl;
-  // write the configuration file
   std::string config_file_name = full_name + ".json";
   file_id.open(config_file_name.c_str(), std::ios::out);
   file_id << config_file << std::endl;
@@ -537,17 +495,19 @@ void QueryHandler::regular_run_autoreplicate(
   name.clear();
   config_file.clear();
 }
-void QueryHandler::reset_autoreplicate_init_flag() {
+void QueryHandlerPMGD::reset_autoreplicate_init_flag() {
   _autoreplicate_init = true;
 }
-void QueryHandler::set_autoreplicate_init_flag() {
+void QueryHandlerPMGD::set_autoreplicate_init_flag() {
   _autoreplicate_init = false;
 }
-void QueryHandler::reset_autodelete_init_flag() { _autodelete_init = false; }
+void QueryHandlerPMGD::reset_autodelete_init_flag() {
+  _autodelete_init = false;
+}
 
-void QueryHandler::set_autodelete_init_flag() { _autodelete_init = true; }
+void QueryHandlerPMGD::set_autodelete_init_flag() { _autodelete_init = true; }
 
-void QueryHandler::regular_run_autodelete() {
+void QueryHandlerPMGD::regular_run_autodelete() {
   std::string *json_string = new std::string(
       "[{\"DeleteExpired\": {\"results\": {\"list\": [\"_expiration\"]}}}]");
   protobufs::queryMessage response;
@@ -557,7 +517,7 @@ void QueryHandler::regular_run_autodelete() {
   delete json_string;
 }
 
-void QueryHandler::build_autodelete_queue() {
+void QueryHandlerPMGD::build_autodelete_queue() {
   std::string *json_string = new std::string(
       "[{\"FindImage\": {\"results\": {\"list\": [\"_expiration\"]}, "
       "\"constraints\": {\"_expiration\": [\">\", 0]}}}, {\"FindVideo\": "

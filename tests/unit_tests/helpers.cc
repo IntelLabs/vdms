@@ -45,6 +45,26 @@
 
 // Image / Video Helpers
 
+// source:
+// https://github.com/MasteringOpenCV/code/blob/master/Chapter8_FaceRecognition/recognition.cpp
+// Compare two images by getting the L2 error (square-root of sum of squared
+// error).
+// this is useful for jpeg images with small differences due to encoding
+void compare_image_image(cv::Mat &A, cv::Mat &B, float error) {
+  if (A.rows > 0 && A.rows == B.rows && A.cols > 0 && A.cols == B.cols) {
+    // Calculate the L2 relative error between images.
+    double errorL2 = norm(A, B, cv::NORM_L2);
+    // Convert to a reasonable scale, since L2 error is summed across all pixels
+    // of the image.
+    double similarity = errorL2 / (double)(A.rows * A.cols);
+    // std::cout << "Similarity: " << similarity << std::endl;
+    ASSERT_LT(similarity, error);
+  } else {
+    // Images have a different size
+    ASSERT_TRUE(false);
+  }
+}
+
 void compare_mat_mat(cv::Mat &cv_img, cv::Mat &img, float error) {
   bool exact_comparison = (error == 0.0);
 
@@ -114,6 +134,32 @@ void compare_cvcapture_cvcapture(cv::VideoCapture v1, cv::VideoCapture v2) {
     } else
       throw VCLException(ObjectEmpty, "Error reading frames");
   }
+}
+
+void copy_video_to_temp(std::string source_path, std::string dest_path,
+                        int fourcc) {
+  cv::VideoCapture inputVideo(source_path);
+
+  float _fps = static_cast<float>(inputVideo.get(cv::CAP_PROP_FPS));
+  int frame_count = static_cast<int>(inputVideo.get(cv::CAP_PROP_FRAME_COUNT));
+  int width = static_cast<int>(inputVideo.get(cv::CAP_PROP_FRAME_WIDTH));
+  int height = static_cast<int>(inputVideo.get(cv::CAP_PROP_FRAME_HEIGHT));
+
+  cv::VideoWriter outputVideo(dest_path, fourcc, _fps, cv::Size(width, height));
+
+  while (true) {
+    cv::Mat mat_frame;
+    inputVideo >> mat_frame;
+
+    if (mat_frame.empty()) {
+      break;
+    }
+
+    outputVideo << mat_frame;
+    mat_frame.release();
+  }
+  inputVideo.release();
+  outputVideo.release();
 }
 
 // Descriptors Helpers

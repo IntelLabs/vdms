@@ -57,12 +57,16 @@ class TestDescriptors(TestCommand.TestCommand):
         self.addSet("128-IP-FaissIVFFlat", 128, "IP", "FaissIVFFlat")
         self.addSet("128-L2-TileDBDense", 128, "L2", "TileDBDense")
         self.addSet("128-L2-TileDBSparse", 128, "L2", "TileDBSparse")
+        self.addSet("128-L2-FLINNG", 128, "L2", "Flinng")
+        self.addSet("128-IP-FLINNG", 128, "IP", "Flinng")
 
         self.addSet("4075-L2-FaissFlat", 4075, "L2", "FaissFlat")
         self.addSet("4075-IP-FaissFlat", 4075, "IP", "FaissFlat")
         self.addSet("4075-L2-FaissIVFFlat", 4075, "L2", "FaissIVFFlat")
         self.addSet("4075-IP-FaissIVFFlat", 4075, "IP", "FaissIVFFlat")
         self.addSet("4075-L2-TileDBDense", 4075, "L2", "TileDBDense")
+        self.addSet("4075-L2-FLINNG", 4075, "L2", "Flinng")
+        self.addSet("4075-IP-FLINNG", 4075, "IP", "Flinng")
 
     def test_addDescriptorsx1000FaissIVFFlat(self):
         db = self.create_connection()

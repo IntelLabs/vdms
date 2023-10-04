@@ -44,7 +44,8 @@ namespace VDMS {
 
 class VideoCommand : public RSCommand {
 protected:
-  void enqueue_operations(VCL::Video &video, const Json::Value &op);
+  void enqueue_operations(VCL::Video &video, const Json::Value &op,
+                          bool is_addition = false);
 
   VCL::Video::Codec string_to_codec(const std::string &codec);
 
