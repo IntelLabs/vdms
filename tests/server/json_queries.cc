@@ -37,6 +37,8 @@
 #include "gtest/gtest.h"
 #include <jsoncpp/json/writer.h>
 
+#include "QueryHandlerExample.h"
+#include "QueryHandlerPMGD.h"
 #include "QueryHandlerTester.h"
 #include "VDMSConfig.h"
 #include "pmgd.h"
@@ -61,13 +63,15 @@ std::string singleAddImage(" \
             } \
         } \
     ");
+
 TEST(AutoReplicate, default_replicate) {
 
   std::string path = "server/config-auto-replicate-tests.json";
   std::cout << path << std::endl;
   VDMSConfig::init(path);
   PMGDQueryHandler::init();
-  QueryHandler::init();
+  QueryHandlerPMGD::init();
+
   ReplicationConfig replication_test;
   replication_test.backup_path = "backups";
   replication_test.db_path = "db_backup";
@@ -75,21 +79,52 @@ TEST(AutoReplicate, default_replicate) {
   replication_test.autoreplication_unit = "s";
   replication_test.server_port = 55557;
 
-  QueryHandler qh_base;
-  qh_base.regualar_run_autoreplicate(replication_test);
+  QueryHandlerPMGD qh_base;
+  qh_base.regular_run_autoreplicate(
+      replication_test); // set flag to show autodelete queue has been
+                         // initialized
 }
+
+TEST(ExampleHandler, simplePing) {
+
+  // query contents don't actually matter here, as the example handler ignores
+  // them as long as they're in a valid format
+  // so we're just gonna copy the add image query from above
+  std::string addImg;
+  addImg += "[" + singleAddImage + "]";
+
+  VDMSConfig::init("server/example_handler_test.json");
+  PMGDQueryHandler::init();
+  QueryHandlerExample::init();
+
+  QueryHandlerExample qh_base;
+  QueryHandlerExampleTester query_handler(qh_base);
+
+  VDMS::protobufs::queryMessage proto_query;
+  proto_query.set_json(addImg);
+
+  VDMS::protobufs::queryMessage response;
+  query_handler.pq(proto_query, response);
+
+  Json::Reader json_reader;
+  Json::Value json_response;
+  json_reader.parse(response.json(), json_response);
+
+  EXPECT_EQ(json_response[0]["HiThere"].asString(), "Hello, world!");
+}
+
 TEST(AddImage, simpleAdd) {
   std::string addImg;
   addImg += "[" + singleAddImage + "]";
 
   VDMSConfig::init("server/config-tests.json");
   PMGDQueryHandler::init();
-  QueryHandler::init();
+  QueryHandlerPMGD::init();
 
-  QueryHandler qh_base;
+  QueryHandlerPMGD qh_base;
   qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has
                                         // been initialized
-  QueryHandlerTester query_handler(qh_base);
+  QueryHandlerPMGDTester query_handler(qh_base);
 
   VDMS::protobufs::queryMessage proto_query;
   proto_query.set_json(addImg);
@@ -141,12 +176,12 @@ TEST(UpdateEntity, simpleAddUpdate) {
 
   VDMSConfig::init("server/config-update-tests.json");
   PMGDQueryHandler::init();
-  QueryHandler::init();
+  QueryHandlerPMGD::init();
 
-  QueryHandler qh_base;
+  QueryHandlerPMGD qh_base;
   qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has
                                         // been initialized
-  QueryHandlerTester query_handler(qh_base);
+  QueryHandlerPMGDTester query_handler(qh_base);
 
   VDMS::protobufs::queryMessage proto_query;
   proto_query.set_json(json_query);
@@ -189,12 +224,12 @@ TEST(AddImage, simpleAddx10) {
 
   VDMSConfig::init("server/config-add10-tests.json");
   PMGDQueryHandler::init();
-  QueryHandler::init();
+  QueryHandlerPMGD::init();
 
-  QueryHandler qh_base;
+  QueryHandlerPMGD qh_base;
   qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has
                                         // been initialized
-  QueryHandlerTester query_handler(qh_base);
+  QueryHandlerPMGDTester query_handler(qh_base);
 
   VDMS::protobufs::queryMessage proto_query;
   proto_query.set_json(string_query);
@@ -298,12 +333,12 @@ TEST(QueryHandler, AddAndFind) {
 
   VDMSConfig::init("server/config-addfind-tests.json");
   PMGDQueryHandler::init();
-  QueryHandler::init();
+  QueryHandlerPMGD::init();
 
-  QueryHandler qh_base;
+  QueryHandlerPMGD qh_base;
   qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has
                                         // been initialized
-  QueryHandlerTester query_handler(qh_base);
+  QueryHandlerPMGDTester query_handler(qh_base);
 
   VDMS::protobufs::queryMessage proto_query;
   proto_query.set_json(json_query);
@@ -403,12 +438,12 @@ TEST(QueryHandler, EmptyResultCheck) {
 
   VDMSConfig::init("server/config-emptyresult-tests.json");
   PMGDQueryHandler::init();
-  QueryHandler::init();
+  QueryHandlerPMGD::init();
 
-  QueryHandler qh_base;
+  QueryHandlerPMGD qh_base;
   qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has
                                         // been initialized
-  QueryHandlerTester query_handler(qh_base);
+  QueryHandlerPMGDTester query_handler(qh_base);
 
   VDMS::protobufs::queryMessage proto_query;
   proto_query.set_json(json_query);
@@ -458,12 +493,12 @@ TEST(QueryHandler, DataTypeChecks) {
 
   VDMSConfig::init("server/config-datatype-tests.json");
   PMGDQueryHandler::init();
-  QueryHandler::init();
+  QueryHandlerPMGD::init();
 
-  QueryHandler qh_base;
+  QueryHandlerPMGD qh_base;
   qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has
                                         // been initialized
-  QueryHandlerTester query_handler(qh_base);
+  QueryHandlerPMGDTester query_handler(qh_base);
 
   VDMS::protobufs::queryMessage proto_query;
   proto_query.set_json(json_query);
@@ -535,12 +570,12 @@ TEST(QueryHandler, AutoDeleteNode) {
 
   VDMSConfig::init("server/config-datatype-tests.json");
   PMGDQueryHandler::init();
-  QueryHandler::init();
+  QueryHandlerPMGD::init();
 
-  QueryHandler qh_base;
+  QueryHandlerPMGD qh_base;
   qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has
                                         // been initialized
-  QueryHandlerTester query_handler(qh_base);
+  QueryHandlerPMGDTester query_handler(qh_base);
 
   VDMS::protobufs::queryMessage proto_query_init;
   proto_query_init.set_json(json_query_init);
@@ -559,7 +594,7 @@ TEST(QueryHandler, AutoDeleteNode) {
   qh_base.set_autodelete_init_flag();
   qh_base.build_autodelete_queue();     // create priority queue of nodes with
                                         // _expiration property
-  qh_base.regualar_run_autodelete();    // delete nodes that have expired since
+  qh_base.regular_run_autodelete();     // delete nodes that have expired since
                                         // server previous closed
   qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has
                                         // been initialized
@@ -611,12 +646,12 @@ TEST(QueryHandler, CustomFunctionNoProcess) {
 
   VDMSConfig::init("server/config-datatype-tests.json");
   PMGDQueryHandler::init();
-  QueryHandler::init();
+  QueryHandlerPMGD::init();
 
-  QueryHandler qh_base;
+  QueryHandlerPMGD qh_base;
   qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has
                                         // been initialized
-  QueryHandlerTester query_handler(qh_base);
+  QueryHandlerPMGDTester query_handler(qh_base);
   VDMS::protobufs::queryMessage proto_query;
   proto_query.set_json(json_query);
   proto_query.add_blobs(image);
@@ -655,12 +690,12 @@ TEST(QueryHandler, AddUpdateFind_Blob) {
 
   VDMSConfig::init("unit_tests/config-tests.json");
   PMGDQueryHandler::init();
-  QueryHandler::init();
+  QueryHandlerPMGD::init();
 
-  QueryHandler qh_base;
+  QueryHandlerPMGD qh_base;
   qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has
                                         // been initialized
-  QueryHandlerTester query_handler(qh_base);
+  QueryHandlerPMGDTester query_handler(qh_base);
 
   VDMS::protobufs::queryMessage proto_query;
   proto_query.set_json(json_query);

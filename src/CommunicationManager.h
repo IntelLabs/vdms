@@ -44,6 +44,10 @@
 namespace VDMS {
 class CommunicationManager {
   static const int MAX_CONNECTED_CLIENTS = 500;
+  std::string DEFAULT_QUERY_HANDLER =
+      "pmgd"; // TODO need to move this someplace central between server and
+              // comm manager
+  std::string _q_handler;
 
   // For the thread pool
   std::mutex _mlock;

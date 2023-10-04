@@ -101,10 +101,26 @@ void ImageLoop::operationThread() noexcept {
 
       for (int i = img->get_op_completed(); i < enqueued_operations; i++) {
         int response = img->execute_operation();
-        if (response != 0) {
+        if (response == -1) {
+          // Remote operation encountered. Enqueue to remote thread
           r_enqueue(img);
           flag = 1;
           break;
+        } else if (response == -2) {
+          // Exception thrown. Terminate eventloop.
+          auto const result = imageMap.insert(
+              std::pair<std::string, VCL::Image *>(img->get_image_id(), img));
+          if (not result.second) {
+            result.first->second = img;
+          }
+          _remote_running = false;
+          flag = 0;
+          m_writeBuffer.clear();
+          r_writeBuffer.clear();
+          m_running = false;
+          r_running = false;
+          break;
+
         } else {
           auto const result = imageMap.insert(
               std::pair<std::string, VCL::Image *>(img->get_image_id(), img));
@@ -214,107 +230,140 @@ void ImageLoop::execute_remote_operations(
   int rindex = 0;
   std::vector<std::string> redoBuffer;
   std::vector<VCL::Image *> pendingImages;
-  while (start_index != readBuffer.size()) {
-    CURLM *multi_handle;
-    CURLMsg *msg = NULL;
-    CURL *eh = NULL;
-    CURLcode return_code;
-    int still_running = 0, i = 0, msgs_left = 0;
-    int http_status_code;
-    char *szUrl;
+  try {
+    while (start_index != readBuffer.size()) {
+      CURLM *multi_handle;
+      CURLMsg *msg = NULL;
+      CURL *eh = NULL;
+      CURLcode return_code;
+      int still_running = 0, i = 0, msgs_left = 0;
+      int http_status_code;
+      char *szUrl;
 
-    multi_handle = curl_multi_init();
+      multi_handle = curl_multi_init();
 
-    auto start = readBuffer.begin() + start_index;
-    auto end = readBuffer.begin() + end_index;
+      auto start = readBuffer.begin() + start_index;
+      auto end = readBuffer.begin() + end_index;
 
-    std::vector<VCL::Image *> tempBuffer(start, end);
+      std::vector<VCL::Image *> tempBuffer(start, end);
 
-    for (VCL::Image *img : tempBuffer) {
-      CURL *curl = get_easy_handle(img, responseBuffer[rindex]);
-      rindex++;
-      curl_multi_add_handle(multi_handle, curl);
-    }
-
-    do {
-      CURLMcode mc = curl_multi_perform(multi_handle, &still_running);
-      if (still_running)
-        mc = curl_multi_wait(multi_handle, NULL, 0, 1000, NULL);
-
-      if (mc) {
-        break;
+      for (VCL::Image *img : tempBuffer) {
+        CURL *curl = get_easy_handle(img, responseBuffer[rindex]);
+        rindex++;
+        curl_multi_add_handle(multi_handle, curl);
       }
-    } while (still_running);
 
-    while ((msg = curl_multi_info_read(multi_handle, &msgs_left))) {
-      if (msg->msg == CURLMSG_DONE) {
-        eh = msg->easy_handle;
+      do {
+        CURLMcode mc = curl_multi_perform(multi_handle, &still_running);
+        if (still_running)
+          mc = curl_multi_wait(multi_handle, NULL, 0, 1000, NULL);
 
-        return_code = msg->data.result;
-
-        // Get HTTP status code
-        szUrl = NULL;
-        long rsize = 0;
-
-        curl_easy_getinfo(eh, CURLINFO_RESPONSE_CODE, &http_status_code);
-        curl_easy_getinfo(eh, CURLINFO_EFFECTIVE_URL, &szUrl);
-        curl_easy_getinfo(eh, CURLINFO_REQUEST_SIZE, &rsize);
-
-        if (http_status_code != 200) {
-          std::string delimiter = "=";
-
-          char *p = std::strtok(szUrl, delimiter.data());
-          p = std::strtok(NULL, delimiter.data());
-
-          std::string id(p);
-          redoBuffer.push_back(id);
+        if (mc) {
+          break;
         }
+      } while (still_running);
 
-        curl_multi_remove_handle(multi_handle, eh);
-        curl_easy_cleanup(eh);
-      } else {
-        fprintf(stderr, "error: after curl_multi_info_read(), CURLMsg=%d\n",
-                msg->msg);
+      while ((msg = curl_multi_info_read(multi_handle, &msgs_left))) {
+        if (msg->msg == CURLMSG_DONE) {
+          eh = msg->easy_handle;
+
+          return_code = msg->data.result;
+
+          szUrl = NULL;
+          long rsize = 0;
+
+          curl_easy_getinfo(eh, CURLINFO_RESPONSE_CODE, &http_status_code);
+          curl_easy_getinfo(eh, CURLINFO_EFFECTIVE_URL, &szUrl);
+          curl_easy_getinfo(eh, CURLINFO_REQUEST_SIZE, &rsize);
+
+          if (http_status_code != 200) {
+            // Throw specific exceptions if error codes received as response.
+            if (http_status_code == 0) {
+              throw VCLException(ObjectEmpty, "Remote server is not running.");
+            }
+            if (http_status_code == 400) {
+              throw VCLException(ObjectEmpty,
+                                 "Invalid Request to the Remote Server.");
+            } else if (http_status_code == 404) {
+              throw VCLException(ObjectEmpty,
+                                 "Invalid URL Request. Please check the URL.");
+            } else if (http_status_code == 500) {
+              throw VCLException(ObjectEmpty,
+                                 "Exception occurred at the remote server. "
+                                 "Please check your query.");
+            } else if (http_status_code == 503) {
+              throw VCLException(ObjectEmpty, "Unable to reach remote server");
+            } else {
+              throw VCLException(ObjectEmpty, "Remote Server error.");
+            }
+          }
+
+          curl_multi_remove_handle(multi_handle, eh);
+          curl_easy_cleanup(eh);
+        } else {
+          fprintf(stderr, "error: after curl_multi_info_read(), CURLMsg=%d\n",
+                  msg->msg);
+        }
       }
-    }
 
-    tempBuffer.clear();
-    start_index = end_index;
-    end_index = readBuffer.size() > (end_index + step) ? (end_index + step)
-                                                       : readBuffer.size();
-  }
-  rindex = -1;
-  for (VCL::Image *img : readBuffer) {
-    rindex++;
-    if (std::find(redoBuffer.begin(), redoBuffer.end(),
-                  img->get_image_id().data()) != redoBuffer.end()) {
-      pendingImages.push_back(img);
-      continue;
+      tempBuffer.clear();
+      start_index = end_index;
+      end_index = readBuffer.size() > (end_index + step) ? (end_index + step)
+                                                         : readBuffer.size();
     }
-    int rthresh = 0;
-    auto t_start = std::chrono::high_resolution_clock::now();
-    bool rflag = false;
-    while (responseBuffer[rindex].size() == 0) {
-      continue;
+    rindex = -1;
+    for (VCL::Image *img : readBuffer) {
+      rindex++;
+      if (std::find(redoBuffer.begin(), redoBuffer.end(),
+                    img->get_image_id().data()) != redoBuffer.end()) {
+        pendingImages.push_back(img);
+        continue;
+      }
+
+      int rthresh = 0;
+      auto t_start = std::chrono::high_resolution_clock::now();
+      bool rflag = false;
+      while (responseBuffer[rindex].size() == 0) {
+        continue;
+      }
+      cv::Mat dmat = write_image(responseBuffer[rindex]);
+      if (dmat.empty()) {
+        pendingImages.push_back(img);
+      }
+
+      img->shallow_copy_cv(dmat);
+      img->update_op_completed();
+
+      auto const result = imageMap.insert(
+          std::pair<std::string, VCL::Image *>(img->get_image_id(), img));
+      if (not result.second) {
+        result.first->second = img;
+      }
+      if (rindex == readBuffer.size() - 1 && pendingImages.size() == 0) {
+        _remote_running = false;
+      }
+
+      enqueue(img);
     }
-    cv::Mat dmat = write_image(responseBuffer[rindex]);
-    if (dmat.empty()) {
-      pendingImages.push_back(img);
-    }
-    img->shallow_copy_cv(dmat);
-    img->update_op_completed();
+    readBuffer.clear();
+    std::swap(readBuffer, pendingImages);
+  } catch (VCL::Exception e) {
+    VCL::Image *img = readBuffer[0];
+    img->set_query_error_response(e.msg);
     auto const result = imageMap.insert(
         std::pair<std::string, VCL::Image *>(img->get_image_id(), img));
     if (not result.second) {
       result.first->second = img;
     }
-    if (rindex == readBuffer.size() - 1 && pendingImages.size() == 0) {
-      _remote_running = false;
-    }
-    enqueue(img);
+    readBuffer.clear();
+    print_exception(e);
+    _remote_running = false;
+    m_writeBuffer.clear();
+    r_writeBuffer.clear();
+    m_running = false;
+    r_running = false;
+    return;
   }
-  readBuffer.clear();
-  std::swap(readBuffer, pendingImages);
 }
 
 void ImageLoop::remoteOperationThread() noexcept {

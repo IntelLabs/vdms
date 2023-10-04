@@ -5,7 +5,7 @@
  *
  * The MIT License
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2023 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"),
@@ -28,30 +28,19 @@
  * THE SOFTWARE.
  *
  */
-
 #pragma once
-#include <mutex>
-#include <string>
-#include <unordered_map>
-#include <vector>
 
 #include "PMGDQueryHandler.h" // to provide the database connection
+#include "QueryHandlerBase.h"
 #include "RSCommand.h"
 #include "Server.h"
 #include "chrono/Chrono.h"
 
-// Json parsing files
-#include <jsoncpp/json/value.h>
-#include <valijson/schema.hpp>
-#include <valijson/validator.hpp>
-
 namespace VDMS {
 
-typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
+class QueryHandlerPMGD : public QueryHandlerBase {
 
-// Instance created per worker thread to handle all transactions on a given
-// connection.
-class QueryHandler {
+protected:
   friend class QueryHandlerTester;
 
   static std::unordered_map<std::string, RSCommand *> _rs_cmds;
@@ -62,28 +51,13 @@ class QueryHandler {
   bool syntax_checker(const Json::Value &root, Json::Value &error);
   int parse_commands(const protobufs::queryMessage &proto_query,
                      Json::Value &root);
-  void cleanup_query(const std::vector<std::string> &images,
-                     const std::vector<std::string> &videos);
-
-  void process_query(protobufs::queryMessage &proto_query,
-                     protobufs::queryMessage &response);
-
-  // valijson
-  valijson::Validator _validator;
-  static valijson::Schema *_schema;
-
-#ifdef CHRONO_TIMING
-  ChronoCpu ch_tx_total;
-  ChronoCpu ch_tx_query;
-  ChronoCpu ch_tx_send;
-#endif
 
 public:
   static void init();
+  QueryHandlerPMGD();
 
-  QueryHandler();
-
-  void process_connection(comm::Connection *c);
+  void process_query(protobufs::queryMessage &proto_query,
+                     protobufs::queryMessage &response);
   void reset_autodelete_init_flag();
   void set_autodelete_init_flag();
   void regular_run_autodelete();
@@ -92,4 +66,5 @@ public:
   void reset_autoreplicate_init_flag();
   void regular_run_autoreplicate(ReplicationConfig &);
 };
+
 } // namespace VDMS

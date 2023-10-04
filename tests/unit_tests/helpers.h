@@ -45,9 +45,14 @@
 
 // Image / Video Helpers
 
+void compare_image_image(cv::Mat &A, cv::Mat &B, float error = 0.02);
+
 void compare_mat_mat(cv::Mat &cv_img, cv::Mat &img, float error = 0.0);
 
 void compare_cvcapture_cvcapture(cv::VideoCapture v1, cv::VideoCapture v2);
+
+void copy_video_to_temp(std::string source_path, std::string dest_path,
+                        int fourcc);
 
 // Descriptors Helpers
 

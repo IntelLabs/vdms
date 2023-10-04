@@ -34,6 +34,7 @@
 #include <csignal>
 
 #include "CommunicationManager.h"
+#include "VDMSConfig.h"
 #include "pmgd.h"
 #include <chrono>
 
@@ -66,6 +67,9 @@ struct ReplicationConfig {
   }
 };
 class Server {
+
+  // Defining constants/defaults within the class itself is a bit weird.
+  // Consider refactoring
   static const int DEFAULT_PORT = 55555;
   static const int DEFAULT_AUTODELETE_INTERVAL = -1;
   static const int DEFAULT_AUTOREPLICATE_INTERVAL = -1;
@@ -73,21 +77,27 @@ class Server {
   std::string DEFAULT_BACKUP_PATH = ".";
   std::string DEFAULT_DB_ROOT = "db";
   std::string DEFAULT_AUTOREPLICATE_FLAG = "false";
+  std::string DEFAULT_QUERY_HANDLER = "pmgd";
+  int Disable_Auto_Replicate = -1;
 
   CommunicationManager *_cm;
   ReplicationConfig _autoreplicate_settings;
 
   bool _untar;
 
-  // Handle ^c
+  // signal handling for crtl-c,
   static bool shutdown;
-  void install_handler();
+  void install_signal_handler();
   static void sighandler(int signo) {
     Server::shutdown =
         (signo == SIGINT) || (signo == SIGTERM) || (signo == SIGQUIT);
   }
 
+  // used to select as well as initialize any state for query handlers
+  void setup_query_handler();
+
 public:
+  VDMSConfig *cfg;
   Server(std::string config_file);
   void process_requests();
   void autodelete_expired_data();
