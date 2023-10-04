@@ -27,6 +27,7 @@
  *
  */
 
+#include "VideoLoop.h"
 #include "vcl/Video.h"
 #include "gtest/gtest.h"
 
@@ -102,11 +103,21 @@ public:
 };
 }; // namespace VCL
 
+/**
+ * Create a Video object.
+ * Throw an exception as no video file is
+ * available to count number of frames
+ */
 TEST_F(VideoTest, DefaultConstructor) {
   VCL::Video video_data;
   ASSERT_THROW(video_data.get_frame_count(), VCL::Exception);
 }
 
+/**
+ * Create a video object from a file.
+ * Should have the same number of frames as
+ * the OpenCV video
+ */
 TEST_F(VideoTest, StringConstructor) {
   VCL::Video video_data(_video_path_avi_xvid);
   long input_frame_count = video_data.get_frame_count();
@@ -116,6 +127,10 @@ TEST_F(VideoTest, StringConstructor) {
   ASSERT_EQ(input_frame_count, test_frame_count);
 }
 
+/**
+ * Create a video from a filename that has no extension.
+ * Should successfully create a video of 'mp4' extension.
+ */
 TEST_F(VideoTest, StringConstructorNoFormat) {
   VCL::Video video_data("videos/megamind");
   long input_frame_count = video_data.get_frame_count();
@@ -125,11 +140,19 @@ TEST_F(VideoTest, StringConstructorNoFormat) {
   ASSERT_EQ(input_frame_count, test_frame_count);
 }
 
+/**
+ * Try create a video with an unavailable file location.
+ * Should throw an exception.
+ */
 TEST_F(VideoTest, StringConstructorNoExists) {
   VCL::Video video_data("this/path/does/not/exist.wrongformat");
   ASSERT_THROW(video_data.get_frame_count(), VCL::Exception);
 }
 
+/**
+ * Create a copy of a Video object.
+ * Both videos should have the same frames.
+ */
 TEST_F(VideoTest, CopyConstructor) {
   VCL::Video testVideo4copy(_video_path_avi_xvid);
 
@@ -147,6 +170,10 @@ TEST_F(VideoTest, CopyConstructor) {
   }
 }
 
+/**
+ * Create a video object from a blob.
+ * Should have the same frames as an OpenCV video object.
+ */
 TEST_F(VideoTest, BlobConstructor) {
   std::ifstream ifile;
   ifile.open(_video_path_avi_xvid);
@@ -223,6 +250,10 @@ TEST_F(VideoTest, CreateUnique) {
   }
 }
 
+/**
+ * Create a Video object using an AVI file.
+ * Should have the same frames as an OpenCV video object.
+ */
 TEST_F(VideoTest, ReadAVI_XVID) {
   try {
     VCL::Video video_data(_video_path_avi_xvid);
@@ -244,6 +275,10 @@ TEST_F(VideoTest, ReadAVI_XVID) {
   }
 }
 
+/**
+ * Create a Video object using an MP4 file.
+ * Should have the same frames as an OpenCV video object.
+ */
 TEST_F(VideoTest, ReadMP4_H264) {
   try {
     VCL::Video video_data(_video_path_mp4_h264);
@@ -265,28 +300,27 @@ TEST_F(VideoTest, ReadMP4_H264) {
   }
 }
 
+/**
+ * Create a Video object of MP4 format using an AVI file and write to the data
+ * store. Imitates the VDMS read then store capability. Should have the same
+ * frames as an OpenCV video object.
+ */
 TEST_F(VideoTest, WriteMP4_H264) {
   try {
+    std::string temp_video_input("/tmp/video_test_WriteMP4_H264_input.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
+    std::string temp_video_test("/tmp/video_test_WriteMP4_H264_test.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
+
     std::string write_output_vcl("videos_tests/write_test_vcl.mp4");
     {
-      VCL::Video video_data(_video_path_avi_xvid);
+      VCL::Video video_data(temp_video_input);
       video_data.store(write_output_vcl, VCL::Video::Codec::H264);
     }
 
     // OpenCV writing the video H264
     std::string write_output_ocv("videos_tests/write_test_ocv.mp4");
-    {
-      cv::VideoCapture testWriteVideo(_video_path_avi_xvid);
-
-      cv::VideoWriter testResultVideo(
-          write_output_ocv, get_fourcc(), testWriteVideo.get(cv::CAP_PROP_FPS),
-          cv::Size(testWriteVideo.get(cv::CAP_PROP_FRAME_WIDTH),
-                   testWriteVideo.get(cv::CAP_PROP_FRAME_HEIGHT)));
-
-      for (auto &frame : _frames_xvid) {
-        testResultVideo << frame;
-      }
-    }
+    { copy_video_to_temp(temp_video_test, write_output_ocv, get_fourcc()); }
 
     VCL::Video video_data(write_output_vcl);
     long input_frame_count = video_data.get_frame_count();
@@ -307,34 +341,40 @@ TEST_F(VideoTest, WriteMP4_H264) {
       compare_mat_mat(input_frame, test_frame);
     }
 
+    std::remove(temp_video_input.data());
+    std::remove(temp_video_test.data());
+
   } catch (VCL::Exception &e) {
     print_exception(e);
     ASSERT_TRUE(false);
   }
 }
 
+/**
+ * Create a Video object using an AVI file and write to the data store.
+ * Imitates the VDMS read then store capability.
+ * Should have the same frames as an OpenCV video object.
+ */
 TEST_F(VideoTest, WriteAVI_XVID) {
   try {
+    std::string temp_video_input("/tmp/video_test_WriteAVI_XVID_input.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_input,
+                       cv::VideoWriter::fourcc('X', 'V', 'I', 'D'));
+    std::string temp_video_test("/tmp/video_test_WriteAVI_XVID_test.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_test,
+                       cv::VideoWriter::fourcc('X', 'V', 'I', 'D'));
+
     std::string write_output_vcl("videos_tests/write_test_vcl.avi");
     {
-      VCL::Video video_data(_video_path_avi_xvid);
+      VCL::Video video_data(temp_video_input);
       video_data.store(write_output_vcl, VCL::Video::Codec::XVID);
     }
 
     // OpenCV writing the video H264
     std::string write_output_ocv("videos_tests/write_test_ocv.avi");
     {
-      cv::VideoCapture testWriteVideo(_video_path_avi_xvid);
-
-      cv::VideoWriter testResultVideo(
-          write_output_ocv, cv::VideoWriter::fourcc('X', 'V', 'I', 'D'),
-          testWriteVideo.get(cv::CAP_PROP_FPS),
-          cv::Size(testWriteVideo.get(cv::CAP_PROP_FRAME_WIDTH),
-                   testWriteVideo.get(cv::CAP_PROP_FRAME_HEIGHT)));
-
-      for (auto &frame : _frames_xvid) {
-        testResultVideo << frame;
-      }
+      copy_video_to_temp(temp_video_test, write_output_ocv,
+                         cv::VideoWriter::fourcc('X', 'V', 'I', 'D'));
     }
 
     VCL::Video video_data(write_output_vcl);
@@ -355,6 +395,8 @@ TEST_F(VideoTest, WriteAVI_XVID) {
 
       compare_mat_mat(input_frame, test_frame);
     }
+    std::remove(temp_video_input.data());
+    std::remove(temp_video_test.data());
 
   } catch (VCL::Exception &e) {
     print_exception(e);
@@ -362,15 +404,25 @@ TEST_F(VideoTest, WriteAVI_XVID) {
   }
 }
 
+/**
+ * Imitates the resize and store operation of VDMS.
+ * Should have the same frames as an OpenCV video object
+ * that undergoes a resize operation.
+ */
 TEST_F(VideoTest, ResizeWrite) {
   int new_w = 160;
   int new_h = 90;
 
   try {
 
+    std::string temp_video_input("/tmp/video_test_ResizeWrite_input.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
+    std::string temp_video_test("/tmp/video_test_ResizeWrite_test.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
+
     std::string resize_name_vcl("videos_tests/resize_vcl.mp4");
     {
-      VCL::Video video_data(_video_path_avi_xvid); //
+      VCL::Video video_data(temp_video_input); //
       video_data.resize(new_w, new_h);
       video_data.store(resize_name_vcl, VCL::Video::Codec::H264);
     }
@@ -378,19 +430,25 @@ TEST_F(VideoTest, ResizeWrite) {
     // OpenCV writing the video H264
     std::string resize_name_ocv("videos_tests/resize_ocv.mp4");
     {
-      cv::VideoCapture testWriteVideo(_video_path_avi_xvid);
+      cv::VideoCapture testWriteVideo(temp_video_test);
 
       cv::VideoWriter testResultVideo(resize_name_ocv, get_fourcc(),
                                       testWriteVideo.get(cv::CAP_PROP_FPS),
                                       cv::Size(new_w, new_h));
 
-      for (auto &ff : _frames_xvid) {
-        cv::Mat cv_resized;
-        cv::resize(ff, cv_resized, cv::Size(new_w, new_h));
-        testResultVideo << cv_resized;
-      }
+      while (true) {
+        cv::Mat mat_frame;
+        testWriteVideo >> mat_frame;
 
-      testWriteVideo.release();
+        if (mat_frame.empty()) {
+          break;
+        }
+        cv::Mat cv_resized;
+        cv::resize(mat_frame, cv_resized, cv::Size(new_w, new_h));
+
+        testResultVideo << cv_resized;
+        mat_frame.release();
+      }
     }
 
     VCL::Video video_data(resize_name_vcl);
@@ -411,6 +469,8 @@ TEST_F(VideoTest, ResizeWrite) {
 
       compare_mat_mat(input_frame, test_frame);
     }
+    std::remove(temp_video_input.data());
+    std::remove(temp_video_test.data());
 
   } catch (VCL::Exception &e) {
     print_exception(e);
@@ -418,6 +478,11 @@ TEST_F(VideoTest, ResizeWrite) {
   }
 }
 
+/**
+ * Imitates the trim and store operation of VDMS.
+ * Should have the same frames as an OpenCV video object
+ * that undergoes a trim operation.
+ */
 TEST_F(VideoTest, IntervalWrite) {
   int init = 10;
   int end = 100;
@@ -425,9 +490,14 @@ TEST_F(VideoTest, IntervalWrite) {
 
   try {
 
+    std::string temp_video_input("/tmp/video_test_IntervalWrite_input.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
+    std::string temp_video_test("/tmp/video_test_IntervalWrite_test.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
+
     std::string interval_name_vcl("videos_tests/interval_vcl.mp4");
     {
-      VCL::Video video_data(_video_path_avi_xvid); //
+      VCL::Video video_data(temp_video_input); //
       video_data.interval(VCL::Video::FRAMES, init, end, step);
       video_data.store(interval_name_vcl, VCL::Video::Codec::H264);
     }
@@ -446,8 +516,31 @@ TEST_F(VideoTest, IntervalWrite) {
       if (end >= _frames_xvid.size())
         ASSERT_TRUE(false);
 
-      for (int i = init; i < end; i += step) {
-        testResultVideo << _frames_xvid.at(i);
+      int frame_number = 0;
+      int last_frame_written = 0;
+      while (true) {
+        cv::Mat mat_frame;
+        testWriteVideo >> mat_frame; // Read frame
+        frame_number++;
+
+        if (mat_frame.empty())
+          break;
+
+        if (frame_number >= init && frame_number < end) {
+          if (last_frame_written == 0) {
+            testResultVideo << mat_frame;
+            last_frame_written = frame_number;
+          } else {
+            if ((frame_number - last_frame_written) == step) {
+              testResultVideo << mat_frame;
+              last_frame_written = frame_number;
+            }
+          }
+        }
+
+        if (frame_number > end) {
+          break;
+        }
       }
 
       testWriteVideo.release();
@@ -469,8 +562,10 @@ TEST_F(VideoTest, IntervalWrite) {
       if (test_frame.empty())
         break; // should not happen
 
-      compare_mat_mat(input_frame, test_frame);
+      compare_image_image(input_frame, test_frame);
     }
+    std::remove(temp_video_input.data());
+    std::remove(temp_video_test.data());
 
   } catch (VCL::Exception &e) {
     print_exception(e);
@@ -478,6 +573,10 @@ TEST_F(VideoTest, IntervalWrite) {
   }
 }
 
+/**
+ * Try to trim a video with out of bounds parameters.
+ * Should throw an exception.
+ */
 TEST_F(VideoTest, IntervalOutOfBounds) {
   // Video has 270 frames, we test out of bounds here.
 
@@ -488,7 +587,9 @@ TEST_F(VideoTest, IntervalOutOfBounds) {
     VCL::Video video_data(_video_path_avi_xvid); //
     video_data.interval(VCL::Video::FRAMES, init, end, step);
     // It will only throw when the operations are performed
-    ASSERT_THROW(video_data.get_frame_count(), VCL::Exception);
+    video_data.get_frame_count();
+    ASSERT_STREQ(video_data.get_query_error_response().data(),
+                 "End Frame cannot be greater than number of frames");
   } catch (VCL::Exception &e) {
     print_exception(e);
     ASSERT_TRUE(false);
@@ -500,21 +601,33 @@ TEST_F(VideoTest, IntervalOutOfBounds) {
     VCL::Video video_data(_video_path_avi_xvid); //
     video_data.interval(VCL::Video::FRAMES, init, end, step);
     // It will only throw when the operations are performed
-    ASSERT_THROW(video_data.get_frame_count(), VCL::Exception);
+    video_data.get_frame_count();
+    ASSERT_STREQ(video_data.get_query_error_response().data(),
+                 "Start Frame cannot be greater than number of frames");
   } catch (VCL::Exception &e) {
     print_exception(e);
     ASSERT_TRUE(false);
   }
 }
 
+/**
+ * Imitates the threshold and store operation of VDMS.
+ * Should have the same frames as an OpenCV video object
+ * that undergoes a threshold operation.
+ */
 TEST_F(VideoTest, ThresholdWrite) {
   int ths = 100;
 
   try {
 
+    std::string temp_video_input("/tmp/video_test_ThresholdWrite_input.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
+    std::string temp_video_test("/tmp/video_test_ThresholdWrite_test.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
+
     std::string threshold_name_vcl("videos_tests/threshold_vcl.mp4");
     {
-      VCL::Video video_data(_video_path_avi_xvid); //
+      VCL::Video video_data(temp_video_input); //
       video_data.threshold(ths);
       video_data.store(threshold_name_vcl, VCL::Video::Codec::H264);
     }
@@ -522,7 +635,7 @@ TEST_F(VideoTest, ThresholdWrite) {
     // OpenCV writing the video H264
     std::string threshold_name_ocv("videos_tests/threshold_ocv.mp4");
     {
-      cv::VideoCapture testWriteVideo(_video_path_avi_xvid);
+      cv::VideoCapture testWriteVideo(temp_video_test);
 
       cv::VideoWriter testResultVideo(
           threshold_name_ocv, get_fourcc(),
@@ -530,10 +643,18 @@ TEST_F(VideoTest, ThresholdWrite) {
           cv::Size(testWriteVideo.get(cv::CAP_PROP_FRAME_WIDTH),
                    testWriteVideo.get(cv::CAP_PROP_FRAME_HEIGHT)));
 
-      for (auto &ff : _frames_xvid) {
+      while (true) {
+        cv::Mat mat_frame;
+        testWriteVideo >> mat_frame;
+
+        if (mat_frame.empty()) {
+          break;
+        }
         cv::Mat cv_ths;
-        cv::threshold(ff, cv_ths, ths, ths, cv::THRESH_TOZERO);
+        cv::threshold(mat_frame, cv_ths, ths, ths, cv::THRESH_TOZERO);
+
         testResultVideo << cv_ths;
+        mat_frame.release();
       }
 
       testWriteVideo.release();
@@ -557,6 +678,8 @@ TEST_F(VideoTest, ThresholdWrite) {
 
       compare_mat_mat(input_frame, test_frame);
     }
+    std::remove(temp_video_input.data());
+    std::remove(temp_video_test.data());
 
   } catch (VCL::Exception &e) {
     print_exception(e);
@@ -564,6 +687,11 @@ TEST_F(VideoTest, ThresholdWrite) {
   }
 }
 
+/**
+ * Imitates the crop and store operation of VDMS.
+ * Should have the same frames as an OpenCV video object
+ * that undergoes a crop operation.
+ */
 TEST_F(VideoTest, CropWrite) {
   int new_w = 160;
   int new_h = 90;
@@ -573,9 +701,14 @@ TEST_F(VideoTest, CropWrite) {
 
   try {
 
+    std::string temp_video_input("/tmp/video_test_CropWrite_input.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
+    std::string temp_video_test("/tmp/video_test_CropWrite_test.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
+
     std::string crop_name_vcl("videos_tests/crop_vcl.mp4");
     {
-      VCL::Video video_data(_video_path_avi_xvid); //
+      VCL::Video video_data(temp_video_input); //
       video_data.crop(rect);
       video_data.store(crop_name_vcl, VCL::Video::Codec::H264);
     }
@@ -583,15 +716,24 @@ TEST_F(VideoTest, CropWrite) {
     // OpenCV writing the video H264
     std::string crop_name_ocv("videos_tests/crop_ocv.mp4");
     {
-      cv::VideoCapture testWriteVideo(_video_path_avi_xvid);
+      cv::VideoCapture testWriteVideo(temp_video_test);
 
       cv::VideoWriter testResultVideo(crop_name_ocv, get_fourcc(),
                                       testWriteVideo.get(cv::CAP_PROP_FPS),
                                       cv::Size(new_w, new_h));
 
-      for (auto &ff : _frames_xvid) {
-        cv::Mat roi_frame(ff, ocv_rect);
+      while (true) {
+        cv::Mat mat_frame;
+        testWriteVideo >> mat_frame;
+
+        if (mat_frame.empty()) {
+          break;
+        }
+
+        cv::Mat roi_frame(mat_frame, ocv_rect);
+
         testResultVideo << roi_frame;
+        mat_frame.release();
       }
 
       testWriteVideo.release();
@@ -615,11 +757,359 @@ TEST_F(VideoTest, CropWrite) {
 
       compare_mat_mat(input_frame, test_frame);
     }
+    std::remove(temp_video_input.data());
+    std::remove(temp_video_test.data());
 
   } catch (VCL::Exception &e) {
     print_exception(e);
     ASSERT_TRUE(false);
   }
+}
+
+/**
+ * Imitates performing a remote operation (Adding a caption here)
+ * and then storing the video in VDMS.
+ * Should have the same frames as an OpenCV video object
+ * that undergoes a captioning operation.
+ */
+TEST_F(VideoTest, SyncRemoteWrite) {
+  std::string _url = "http://localhost:5010/video";
+  Json::Value _options;
+  _options["format"] = "mp4";
+  _options["text"] = "Video";
+  _options["id"] = "caption";
+
+  try {
+
+    std::string temp_video_input("/tmp/video_test_SyncRemoteWrite_input.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
+    std::string temp_video_test("/tmp/video_test_SyncRemoteWrite_test.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
+
+    std::string syncremote_name_vcl("videos_tests/syncremote_vcl.mp4");
+    {
+      VCL::Video video_data(temp_video_input); //
+      video_data.syncremoteOperation(_url, _options);
+      video_data.store(syncremote_name_vcl, VCL::Video::Codec::H264);
+    }
+
+    // OpenCV writing the video H264
+    std::string syncremote_name_ocv("videos_tests/syncremote_ocv.mp4");
+    {
+      cv::VideoCapture testWriteVideo(temp_video_test);
+
+      cv::VideoWriter testResultVideo(
+          syncremote_name_ocv, get_fourcc(),
+          testWriteVideo.get(cv::CAP_PROP_FPS),
+          cv::Size(testWriteVideo.get(cv::CAP_PROP_FRAME_WIDTH),
+                   testWriteVideo.get(cv::CAP_PROP_FRAME_HEIGHT)));
+
+      while (true) {
+        cv::Mat mat_frame;
+        testWriteVideo >> mat_frame;
+
+        if (mat_frame.empty()) {
+          break;
+        }
+        cv::putText(mat_frame, _options["text"].asCString(), cv::Point(10, 25),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.8, CV_RGB(255, 255, 255), 2);
+
+        testResultVideo << mat_frame;
+        mat_frame.release();
+      }
+    }
+
+    VCL::Video video_data(syncremote_name_vcl);
+    long input_frame_count = video_data.get_frame_count();
+
+    cv::VideoCapture testVideo(syncremote_name_ocv);
+    long test_frame_count = testVideo.get(cv::CAP_PROP_FRAME_COUNT);
+
+    ASSERT_EQ(input_frame_count, test_frame_count);
+
+    for (int i = 0; i < input_frame_count; ++i) {
+      cv::Mat input_frame = video_data.get_frame(i);
+      cv::Mat test_frame;
+      testVideo >> test_frame;
+
+      if (test_frame.empty())
+        break; // should not happen
+
+      compare_image_image(input_frame, test_frame);
+    }
+    std::remove(temp_video_input.data());
+    std::remove(temp_video_test.data());
+
+  } catch (VCL::Exception &e) {
+    print_exception(e);
+    ASSERT_TRUE(false);
+  }
+}
+
+/**
+ * Imitates performing a user defined operation (Adding a caption here)
+ * and then storing the video in VDMS.
+ * Should have the same frames as an OpenCV video object
+ * that undergoes a captioning operation.
+ */
+TEST_F(VideoTest, UDFWrite) {
+  Json::Value _options;
+  _options["port"] = 5555;
+  _options["text"] = "Video";
+  _options["id"] = "caption";
+
+  try {
+
+    std::string temp_video_input("/tmp/video_test_UDFWrite_input.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
+    std::string temp_video_test("/tmp/video_test_UDFemoteWrite_test.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
+
+    std::string udf_name_vcl("videos_tests/udf_vcl.mp4");
+    {
+      VCL::Video video_data(temp_video_input); //
+      video_data.userOperation(_options);
+      video_data.store(udf_name_vcl, VCL::Video::Codec::H264);
+    }
+
+    // OpenCV writing the video H264
+    std::string udf_name_ocv("videos_tests/udf_ocv.mp4");
+    {
+      cv::VideoCapture testWriteVideo(temp_video_test);
+
+      cv::VideoWriter testResultVideo(
+          udf_name_ocv, get_fourcc(), testWriteVideo.get(cv::CAP_PROP_FPS),
+          cv::Size(testWriteVideo.get(cv::CAP_PROP_FRAME_WIDTH),
+                   testWriteVideo.get(cv::CAP_PROP_FRAME_HEIGHT)));
+
+      while (true) {
+        cv::Mat mat_frame;
+        testWriteVideo >> mat_frame;
+
+        if (mat_frame.empty()) {
+          break;
+        }
+        cv::putText(mat_frame, _options["text"].asCString(), cv::Point(10, 25),
+                    cv::FONT_HERSHEY_SIMPLEX, 0.8, CV_RGB(255, 255, 255), 2);
+
+        testResultVideo << mat_frame;
+        mat_frame.release();
+      }
+    }
+
+    VCL::Video video_data(udf_name_vcl);
+    long input_frame_count = video_data.get_frame_count();
+
+    cv::VideoCapture testVideo(udf_name_ocv);
+    long test_frame_count = testVideo.get(cv::CAP_PROP_FRAME_COUNT);
+
+    ASSERT_EQ(input_frame_count, test_frame_count);
+
+    for (int i = 0; i < input_frame_count; ++i) {
+      cv::Mat input_frame = video_data.get_frame(i);
+      cv::Mat test_frame;
+      testVideo >> test_frame;
+
+      if (test_frame.empty())
+        break; // should not happen
+
+      compare_image_image(input_frame, test_frame);
+    }
+    std::remove(temp_video_input.data());
+    std::remove(temp_video_test.data());
+
+  } catch (VCL::Exception &e) {
+    print_exception(e);
+    ASSERT_TRUE(false);
+  }
+}
+
+/**
+ * Tests the working of the VideoLoop class
+ * when a single remote operation is executed.
+ * The resulting video being encoded should not be null.
+ */
+TEST_F(VideoTest, VideoLoopTest) {
+  std::string _url = "http://localhost:5010/video";
+  Json::Value _options;
+  _options["format"] = "mp4";
+  _options["text"] = "Video";
+  _options["id"] = "caption";
+
+  std::string temp_video_input("/tmp/video_test_VideoLoopTest_input.avi");
+  copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
+
+  std::string vloop_name_vcl("videos_tests/vloop_vcl.mp4");
+  {
+    VCL::Video video_data(temp_video_input);
+    video_data.store(vloop_name_vcl, VCL::Video::Codec::H264);
+  }
+
+  VideoLoop videoLoop;
+  VCL::Video video_data(vloop_name_vcl);
+
+  video_data.remoteOperation(_url, _options);
+
+  videoLoop.set_nrof_entities(1);
+
+  videoLoop.enqueue(video_data);
+
+  while (videoLoop.is_loop_running()) {
+    continue;
+  }
+
+  std::map<std::string, VCL::Video> videoMap = videoLoop.get_video_map();
+  std::map<std::string, VCL::Video>::iterator iter = videoMap.begin();
+
+  VCL::Video::Codec vcl_codec = VCL::Video::Codec::H264;
+  const std::string vcl_container = "mp4";
+
+  while (iter != videoMap.end()) {
+    auto video_enc = iter->second.get_encoded(vcl_container, vcl_codec);
+    int size = video_enc.size();
+
+    ASSERT_TRUE(!video_enc.empty());
+    iter++;
+  }
+}
+
+/**
+ * Tests the working of the VideoLoop class
+ * when a an operation pipeline is executed.
+ * The resulting video being encoded should not be null.
+ */
+TEST_F(VideoTest, VideoLoopPipelineTest) {
+  std::string _url = "http://localhost:5010/video";
+  Json::Value _options;
+  _options["format"] = "mp4";
+  _options["text"] = "Video";
+  _options["id"] = "caption";
+
+  int ths = 100;
+
+  int init = 10;
+  int end = 100;
+  int step = 5;
+
+  std::string temp_video_input(
+      "/tmp/video_test_VideoLoopPipelineTest_input.avi");
+  copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
+
+  std::string vloop_name_vcl("videos_tests/vloop_vcl.mp4");
+  {
+    VCL::Video video_data(temp_video_input);
+    video_data.store(vloop_name_vcl, VCL::Video::Codec::H264);
+  }
+
+  VideoLoop videoLoop;
+  VCL::Video video_data(vloop_name_vcl);
+
+  video_data.threshold(ths);
+  video_data.interval(VCL::Video::FRAMES, init, end, step);
+  video_data.remoteOperation(_url, _options);
+
+  videoLoop.set_nrof_entities(1);
+
+  videoLoop.enqueue(video_data);
+
+  while (videoLoop.is_loop_running()) {
+    continue;
+  }
+
+  std::map<std::string, VCL::Video> videoMap = videoLoop.get_video_map();
+  std::map<std::string, VCL::Video>::iterator iter = videoMap.begin();
+
+  VCL::Video::Codec vcl_codec = VCL::Video::Codec::H264;
+  const std::string vcl_container = "mp4";
+
+  while (iter != videoMap.end()) {
+    auto video_enc = iter->second.get_encoded(vcl_container, vcl_codec);
+    int size = video_enc.size();
+
+    ASSERT_TRUE(!video_enc.empty());
+    iter++;
+  }
+}
+
+/**
+ * Tests the working of the VideoLoop class
+ * when a wrong url is provided for a remote operation.
+ * The resulting video object should have an error message.
+ */
+TEST_F(VideoTest, VideoLoopTestError) {
+  std::string _url = "http://localhost:5010/vide";
+  Json::Value _options;
+  _options["format"] = "mp4";
+  _options["text"] = "Video";
+  _options["id"] = "caption";
+
+  std::string temp_video_input("/tmp/video_test_VideoLoopTestError_input.avi");
+  copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
+
+  std::string vloop_name_vcl("videos_tests/vloop_vcl.mp4");
+  {
+    VCL::Video video_data(temp_video_input);
+    video_data.store(vloop_name_vcl, VCL::Video::Codec::H264);
+  }
+
+  VideoLoop videoLoop;
+  VCL::Video video_data(vloop_name_vcl);
+
+  video_data.remoteOperation(_url, _options);
+
+  videoLoop.set_nrof_entities(1);
+
+  videoLoop.enqueue(video_data);
+
+  while (videoLoop.is_loop_running()) {
+    continue;
+  }
+
+  std::map<std::string, VCL::Video> videoMap = videoLoop.get_video_map();
+  std::map<std::string, VCL::Video>::iterator iter = videoMap.begin();
+
+  ASSERT_TRUE(iter->second.get_query_error_response() != "");
+}
+
+/**
+ * Tests the working of the VideoLoop class
+ * when a wrong url is provided for a synchronous remote operation.
+ * The resulting video object should have an error message.
+ */
+TEST_F(VideoTest, VideoLoopSyncRemoteTestError) {
+  std::string _url = "http://localhost:5010/vide";
+  Json::Value _options;
+  _options["format"] = "mp4";
+  _options["text"] = "Video";
+  _options["id"] = "caption";
+
+  std::string temp_video_input(
+      "/tmp/video_test_VideoLoopSyncRemoteTestError_input.avi");
+  copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
+
+  std::string vloop_name_vcl("videos_tests/vloop_vcl.mp4");
+  {
+    VCL::Video video_data(temp_video_input);
+    video_data.store(vloop_name_vcl, VCL::Video::Codec::H264);
+  }
+
+  VideoLoop videoLoop;
+  VCL::Video video_data(vloop_name_vcl);
+
+  video_data.syncremoteOperation(_url, _options);
+
+  videoLoop.set_nrof_entities(1);
+
+  videoLoop.enqueue(video_data);
+
+  while (videoLoop.is_loop_running()) {
+    continue;
+  }
+
+  std::map<std::string, VCL::Video> videoMap = videoLoop.get_video_map();
+  std::map<std::string, VCL::Video>::iterator iter = videoMap.begin();
+
+  ASSERT_TRUE(iter->second.get_query_error_response() != "");
 }
 
 TEST_F(VideoTest, KeyFrameExtractionSuccess) {

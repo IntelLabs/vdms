@@ -98,22 +98,38 @@ int main(int argc, char **argv) {
     }
   }
 
-  printf("Server will start processing requests... \n");
   VDMS::Server server(config_file);
+
+  // Note: current default is PMGD
+  std::string qhandler_type;
+  qhandler_type = server.cfg->get_string_value("query_handler", "pmgd");
 
   // create a thread for processing request and a thread for the autodelete
   // timer
   request_thread_flag = pthread_create(&request_thread, NULL,
                                        start_request_thread, (void *)(&server));
-  autodelete_thread_flag = pthread_create(
-      &autodelete_thread, NULL, start_autodelete_thread, (void *)(&server));
-  auto_replcation_flag =
-      pthread_create(&auto_replicate_thread, NULL, start_replication_thread,
-                     (void *)(&server));
 
+  printf(
+      "Server instantiation complete,  will start processing requests... \n");
+
+  // Kick off threads only if PMGD handler is used as its the only one with
+  // PMGD this functionality at the moment. May need refactor as more handlers
+  // are added.
+  if (qhandler_type == "pmgd") {
+    autodelete_thread_flag = pthread_create(
+        &autodelete_thread, NULL, start_autodelete_thread, (void *)(&server));
+    auto_replcation_flag =
+        pthread_create(&auto_replicate_thread, NULL, start_replication_thread,
+                       (void *)(&server));
+  }
+
+  // Only start threads if this is a PMGD handler as its logic is specific to it
+  // In the future we probably want a cleaner solution here
   pthread_join(request_thread, NULL);
-  pthread_join(autodelete_thread, NULL);
-  pthread_join(auto_replicate_thread, NULL);
+  if (qhandler_type == "pmgd") {
+    pthread_join(autodelete_thread, NULL);
+    pthread_join(auto_replicate_thread, NULL);
+  }
 
   printf("Server shutting down... \n");
 

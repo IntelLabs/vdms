@@ -110,9 +110,9 @@ bool DescriptorsCommand::check_blob_size(const std::string &blob,
 AddDescriptorSet::AddDescriptorSet() : DescriptorsCommand("AddDescriptorSet") {
   _storage_sets = VDMSConfig::instance()->get_path_descriptors();
   _flinng_num_rows = 3; // set based on the default values of Flinng
-  _flinng_cells_per_row = 4096;
-  _flinng_num_hash_tables = 512;
-  _flinng_hashes_per_table = 14;
+  _flinng_cells_per_row = 1000;
+  _flinng_num_hash_tables = 10;
+  _flinng_hashes_per_table = 12;
   _flinng_sub_hash_bits = 2;
   _flinng_cut_off = 6;
 
@@ -135,18 +135,21 @@ int AddDescriptorSet::construct_protobuf(PMGDQuery &query,
   props[VDMS_DESC_SET_NAME_PROP] = cmd["name"].asString();
   props[VDMS_DESC_SET_DIM_PROP] = cmd["dimensions"].asInt();
   props[VDMS_DESC_SET_PATH_PROP] = desc_set_path;
-  if (cmd.isMember("flinng_num_rows"))
-    _flinng_num_rows = cmd["flinng_num_rows"].asInt();
-  if (cmd.isMember("flinng_cells_per_row"))
-    _flinng_cells_per_row = cmd["flinng_cells_per_row"].asInt();
-  if (cmd.isMember("flinng_num_hash_tables"))
-    _flinng_num_hash_tables = cmd["flinng_num_hash_tables"].asInt();
-  if (cmd.isMember("flinng_hashes_per_table"))
-    _flinng_hashes_per_table = cmd["flinng_hashes_per_table"].asInt();
-  if (cmd.isMember("flinng_sub_hash_bits"))
-    _flinng_sub_hash_bits = cmd["flinng_sub_hash_bits"].asInt();
-  if (cmd.isMember("flinng_cut_off"))
-    _flinng_cut_off = cmd["flinng_cut_off"].asInt();
+  props[VDMS_DESC_SET_ENGIN_PROP] = cmd["engine"].asString();
+  if (props[VDMS_DESC_SET_ENGIN_PROP] == "Flinng") {
+    if (cmd.isMember("flinng_num_rows"))
+      _flinng_num_rows = cmd["flinng_num_rows"].asInt();
+    if (cmd.isMember("flinng_cells_per_row"))
+      _flinng_cells_per_row = cmd["flinng_cells_per_row"].asInt();
+    if (cmd.isMember("flinng_num_hash_tables"))
+      _flinng_num_hash_tables = cmd["flinng_num_hash_tables"].asInt();
+    if (cmd.isMember("flinng_hashes_per_table"))
+      _flinng_hashes_per_table = cmd["flinng_hashes_per_table"].asInt();
+    if (cmd.isMember("flinng_sub_hash_bits"))
+      _flinng_sub_hash_bits = cmd["flinng_sub_hash_bits"].asInt();
+    if (cmd.isMember("flinng_cut_off"))
+      _flinng_cut_off = cmd["flinng_cut_off"].asInt();
+  }
 
   Json::Value constraints;
   constraints[VDMS_DESC_SET_NAME_PROP].append("==");

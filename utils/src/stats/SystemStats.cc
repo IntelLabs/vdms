@@ -304,3 +304,29 @@ void SystemStats::log_stats(std::string pname) {
 
   statsFile.close();
 }
+
+bool SystemStats::query_sufficient_memory(int size_requested) {
+  get_system_virtual_memory();
+
+  long conversion_B_MB = 1024 * 1024;
+  long ttlVirtMemMB = memoryStats.total_virtual_memory / conversion_B_MB;
+  long usedVirtMemMB = memoryStats.virtual_memory_used / conversion_B_MB;
+  long availVirtMemMB = ttlVirtMemMB - usedVirtMemMB;
+
+  float memPercent =
+      (static_cast<float>(usedVirtMemMB) / static_cast<float>(ttlVirtMemMB)) *
+      100;
+
+  // cout << "TTL: " << ttlVirtMemMB << ", used: " << usedVirtMemMB << ", avail:
+  // " << availVirtMemMB << ", requested: " << size_requested << endl; cout <<
+  // "Used: " << memPercent << "%" << endl;
+
+  printf("MEMORY: %0.1f%% used, %ldMB of %ldMB\n", memPercent, usedVirtMemMB,
+         ttlVirtMemMB);
+
+  if (size_requested < availVirtMemMB) {
+    return true;
+  }
+
+  return false;
+}

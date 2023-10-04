@@ -36,7 +36,6 @@
 #include "defines.h"
 
 #include "ImageLoop.h"
-#include "stats/SystemStats.h"
 
 using namespace VDMS;
 
@@ -62,45 +61,18 @@ int ImageCommand::enqueue_operations(VCL::Image &img, const Json::Value &ops,
     } else if (type == "rotate") {
       img.rotate(get_value<double>(op, "angle"), get_value<bool>(op, "resize"));
     } else if (type == "syncremoteOp") {
-      VCL::Image *tmp_image = new VCL::Image(img, true);
-
-      try {
+      img.syncremoteOperation(get_value<std::string>(op, "url"),
+                              get_value<Json::Value>(op, "options"));
+    } else if (type == "remoteOp") {
+      if (is_addition) {
         img.syncremoteOperation(get_value<std::string>(op, "url"),
                                 get_value<Json::Value>(op, "options"));
-      } catch (const std::exception &e) {
-        img.deep_copy_cv(tmp_image->get_cvmat(true));
-        std::cerr << e.what() << '\n';
-        return -1;
+      } else {
+        img.remoteOperation(get_value<std::string>(op, "url"),
+                            get_value<Json::Value>(op, "options"));
       }
-      delete tmp_image;
-    } else if (type == "remoteOp") {
-      VCL::Image *tmp_image = new VCL::Image(img, true);
-
-      try {
-        if (is_addition) {
-          img.syncremoteOperation(get_value<std::string>(op, "url"),
-                                  get_value<Json::Value>(op, "options"));
-        } else {
-          img.remoteOperation(get_value<std::string>(op, "url"),
-                              get_value<Json::Value>(op, "options"));
-        }
-      } catch (const std::exception &e) {
-        img.deep_copy_cv(tmp_image->get_cvmat(true));
-        std::cerr << e.what() << '\n';
-        return -1;
-      }
-      delete tmp_image;
     } else if (type == "userOp") {
-      VCL::Image *tmp_image = new VCL::Image(img, true);
-
-      try {
-        img.userOperation(get_value<Json::Value>(op, "options"));
-      } catch (const std::exception &e) {
-        img.deep_copy_cv(tmp_image->get_cvmat(true));
-        std::cerr << e.what() << '\n';
-        return -1;
-      }
-      delete tmp_image;
+      img.userOperation(get_value<Json::Value>(op, "options"));
     } else if (type == "custom") {
       VCL::Image *tmp_image = new VCL::Image(img, true);
       try {
@@ -285,7 +257,6 @@ Json::Value FindImage::construct_responses(Json::Value &responses,
   int operation_flags = 0;
   bool has_operations = false;
   std::string no_op_def_image;
-  SystemStats systemStats;
 
   Json::Value ret;
 
@@ -420,6 +391,13 @@ Json::Value FindImage::construct_responses(Json::Value &responses,
       }
       std::map<std::string, VCL::Image *> imageMap = eventloop.get_image_map();
       std::map<std::string, VCL::Image *>::iterator iter = imageMap.begin();
+
+      if (iter->second->get_query_error_response() != "") {
+        Json::Value return_error;
+        return_error["status"] = RSCommand::Error;
+        return_error["info"] = iter->second->get_query_error_response();
+        return error(return_error);
+      }
 
       while (iter != imageMap.end()) {
         std::vector<unsigned char> img_enc =

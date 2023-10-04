@@ -162,20 +162,27 @@ void Image::Write::operator()(Image *img) {
 /*  *********************** */
 
 void Image::Resize::operator()(Image *img) {
-  if (_format == Image::Format::TDB) {
-    img->_tdb->resize(_rect);
-    img->_height = img->_tdb->get_image_height();
-    img->_width = img->_tdb->get_image_width();
-    img->_channels = img->_tdb->get_image_channels();
-  } else {
-    if (!img->_cv_img.empty()) {
-      cv::Mat cv_resized;
-      cv::resize(img->_cv_img, cv_resized, cv::Size(_rect.width, _rect.height));
-      img->shallow_copy_cv(cv_resized);
-    } else
-      throw VCLException(ObjectEmpty, "Image object is empty");
+  try {
+    if (_format == Image::Format::TDB) {
+      img->_tdb->resize(_rect);
+      img->_height = img->_tdb->get_image_height();
+      img->_width = img->_tdb->get_image_width();
+      img->_channels = img->_tdb->get_image_channels();
+    } else {
+      if (!img->_cv_img.empty()) {
+        cv::Mat cv_resized;
+        cv::resize(img->_cv_img, cv_resized,
+                   cv::Size(_rect.width, _rect.height));
+        img->shallow_copy_cv(cv_resized);
+      } else
+        throw VCLException(ObjectEmpty, "Image object is empty");
+    }
+    img->_op_completed++;
+  } catch (VCL::Exception e) {
+    img->set_query_error_response(e.msg);
+    print_exception(e);
+    return;
   }
-  img->_op_completed++;
 }
 
 /*  *********************** */
@@ -183,23 +190,29 @@ void Image::Resize::operator()(Image *img) {
 /*  *********************** */
 
 void Image::Crop::operator()(Image *img) {
-  if (_format == Image::Format::TDB) {
-    img->_tdb->read(_rect);
-    img->_height = img->_tdb->get_image_height();
-    img->_width = img->_tdb->get_image_width();
-    img->_channels = img->_tdb->get_image_channels();
-  } else {
-    if (!img->_cv_img.empty()) {
-      if (img->_cv_img.rows < _rect.height + _rect.y ||
-          img->_cv_img.cols < _rect.width + _rect.x)
-        throw VCLException(SizeMismatch,
-                           "Requested area is not within the image");
-      cv::Mat roi_img(img->_cv_img, _rect);
-      img->shallow_copy_cv(roi_img);
-    } else
-      throw VCLException(ObjectEmpty, "Image object is empty");
+  try {
+    if (_format == Image::Format::TDB) {
+      img->_tdb->read(_rect);
+      img->_height = img->_tdb->get_image_height();
+      img->_width = img->_tdb->get_image_width();
+      img->_channels = img->_tdb->get_image_channels();
+    } else {
+      if (!img->_cv_img.empty()) {
+        if (img->_cv_img.rows < _rect.height + _rect.y ||
+            img->_cv_img.cols < _rect.width + _rect.x)
+          throw VCLException(SizeMismatch,
+                             "Requested area is not within the image");
+        cv::Mat roi_img(img->_cv_img, _rect);
+        img->shallow_copy_cv(roi_img);
+      } else
+        throw VCLException(ObjectEmpty, "Image object is empty");
+    }
+    img->_op_completed++;
+  } catch (VCL::Exception e) {
+    img->set_query_error_response(e.msg);
+    print_exception(e);
+    return;
   }
-  img->_op_completed++;
 }
 
 /*  *********************** */
@@ -207,16 +220,22 @@ void Image::Crop::operator()(Image *img) {
 /*  *********************** */
 
 void Image::Threshold::operator()(Image *img) {
-  if (_format == Image::Format::TDB)
-    img->_tdb->threshold(_threshold);
-  else {
-    if (!img->_cv_img.empty())
-      cv::threshold(img->_cv_img, img->_cv_img, _threshold, _threshold,
-                    cv::THRESH_TOZERO);
-    else
-      throw VCLException(ObjectEmpty, "Image object is empty");
+  try {
+    if (_format == Image::Format::TDB)
+      img->_tdb->threshold(_threshold);
+    else {
+      if (!img->_cv_img.empty())
+        cv::threshold(img->_cv_img, img->_cv_img, _threshold, _threshold,
+                      cv::THRESH_TOZERO);
+      else
+        throw VCLException(ObjectEmpty, "Image object is empty");
+    }
+    img->_op_completed++;
+  } catch (VCL::Exception e) {
+    img->set_query_error_response(e.msg);
+    print_exception(e);
+    return;
   }
-  img->_op_completed++;
 }
 
 /*  *********************** */
@@ -224,20 +243,26 @@ void Image::Threshold::operator()(Image *img) {
 /*  *********************** */
 
 void Image::Flip::operator()(Image *img) {
-  if (_format == Image::Format::TDB) {
-    // Not implemented
-    throw VCLException(NotImplemented,
-                       "Operation not supported for this format");
-  } else {
-    if (!img->_cv_img.empty()) {
-      cv::Mat dst =
-          cv::Mat(img->_cv_img.rows, img->_cv_img.cols, img->_cv_img.type());
-      cv::flip(img->_cv_img, dst, _code);
-      img->shallow_copy_cv(dst);
-    } else
-      throw VCLException(ObjectEmpty, "Image object is empty");
+  try {
+    if (_format == Image::Format::TDB) {
+      // Not implemented
+      throw VCLException(NotImplemented,
+                         "Operation not supported for this format");
+    } else {
+      if (!img->_cv_img.empty()) {
+        cv::Mat dst =
+            cv::Mat(img->_cv_img.rows, img->_cv_img.cols, img->_cv_img.type());
+        cv::flip(img->_cv_img, dst, _code);
+        img->shallow_copy_cv(dst);
+      } else
+        throw VCLException(ObjectEmpty, "Image object is empty");
+    }
+    img->_op_completed++;
+  } catch (VCL::Exception e) {
+    img->set_query_error_response(e.msg);
+    print_exception(e);
+    return;
   }
-  img->_op_completed++;
 }
 
 /*  *********************** */
@@ -245,43 +270,49 @@ void Image::Flip::operator()(Image *img) {
 /*  *********************** */
 
 void Image::Rotate::operator()(Image *img) {
-  if (_format == Image::Format::TDB) {
-    // Not implemented
-    throw VCLException(NotImplemented,
-                       "Operation not supported for this format");
-  } else {
-    if (!img->_cv_img.empty()) {
+  try {
+    if (_format == Image::Format::TDB) {
+      // Not implemented
+      throw VCLException(NotImplemented,
+                         "Operation not supported for this format");
+    } else {
+      if (!img->_cv_img.empty()) {
 
-      if (_keep_size) {
-        cv::Mat dst =
-            cv::Mat(img->_cv_img.rows, img->_cv_img.cols, img->_cv_img.type());
+        if (_keep_size) {
+          cv::Mat dst = cv::Mat(img->_cv_img.rows, img->_cv_img.cols,
+                                img->_cv_img.type());
 
-        cv::Point2f im_c(img->_cv_img.cols / 2., img->_cv_img.rows / 2.);
-        cv::Mat r = cv::getRotationMatrix2D(im_c, _angle, 1.0);
+          cv::Point2f im_c(img->_cv_img.cols / 2., img->_cv_img.rows / 2.);
+          cv::Mat r = cv::getRotationMatrix2D(im_c, _angle, 1.0);
 
-        cv::warpAffine(img->_cv_img, dst, r, img->_cv_img.size());
-        img->_cv_img = dst.clone();
-      } else {
+          cv::warpAffine(img->_cv_img, dst, r, img->_cv_img.size());
+          img->_cv_img = dst.clone();
+        } else {
 
-        cv::Point2f im_c((img->_cv_img.cols - 1) / 2.0,
-                         (img->_cv_img.rows - 1) / 2.0);
-        cv::Mat r = cv::getRotationMatrix2D(im_c, _angle, 1.0);
-        // Bbox rectangle
-        cv::Rect2f bbox =
-            cv::RotatedRect(cv::Point2f(), img->_cv_img.size(), _angle)
-                .boundingRect2f();
-        // Transformation Matrix
-        r.at<double>(0, 2) += bbox.width / 2.0 - img->_cv_img.cols / 2.0;
-        r.at<double>(1, 2) += bbox.height / 2.0 - img->_cv_img.rows / 2.0;
+          cv::Point2f im_c((img->_cv_img.cols - 1) / 2.0,
+                           (img->_cv_img.rows - 1) / 2.0);
+          cv::Mat r = cv::getRotationMatrix2D(im_c, _angle, 1.0);
+          // Bbox rectangle
+          cv::Rect2f bbox =
+              cv::RotatedRect(cv::Point2f(), img->_cv_img.size(), _angle)
+                  .boundingRect2f();
+          // Transformation Matrix
+          r.at<double>(0, 2) += bbox.width / 2.0 - img->_cv_img.cols / 2.0;
+          r.at<double>(1, 2) += bbox.height / 2.0 - img->_cv_img.rows / 2.0;
 
-        cv::Mat dst;
-        cv::warpAffine(img->_cv_img, dst, r, bbox.size());
-        img->shallow_copy_cv(dst);
-      }
-    } else
-      throw VCLException(ObjectEmpty, "Image object is empty");
+          cv::Mat dst;
+          cv::warpAffine(img->_cv_img, dst, r, bbox.size());
+          img->shallow_copy_cv(dst);
+        }
+      } else
+        throw VCLException(ObjectEmpty, "Image object is empty");
+    }
+    img->_op_completed++;
+  } catch (VCL::Exception e) {
+    img->set_query_error_response(e.msg);
+    print_exception(e);
+    return;
   }
-  img->_op_completed++;
 }
 
 /*  *********************** */
@@ -289,15 +320,21 @@ void Image::Rotate::operator()(Image *img) {
 /*  *********************** */
 
 void Image::RemoteOperation::operator()(Image *img) {
-  if (_format == Image::Format::TDB) {
-    // Not implemented
-    throw VCLException(NotImplemented,
-                       "Operation not supported for this format");
-  } else {
-    if (!img->_cv_img.empty()) {
-      img->set_remoteOp_params(_options, _url);
-    } else
-      throw VCLException(ObjectEmpty, "Image object is empty");
+  try {
+    if (_format == Image::Format::TDB) {
+      // Not implemented
+      throw VCLException(NotImplemented,
+                         "Operation not supported for this format");
+    } else {
+      if (!img->_cv_img.empty()) {
+        img->set_remoteOp_params(_options, _url);
+      } else
+        throw VCLException(ObjectEmpty, "Image object is empty");
+    }
+  } catch (VCL::Exception e) {
+    img->set_query_error_response(e.msg);
+    print_exception(e);
+    return;
   }
 }
 
@@ -311,25 +348,169 @@ size_t writeCallback(char *ip, size_t size, size_t nmemb, void *op) {
 }
 
 void Image::SyncRemoteOperation::operator()(Image *img) {
-  if (_format == Image::Format::TDB) {
-    // Not implemented
-    throw VCLException(NotImplemented,
-                       "Operation not supported for this format");
-  } else {
-    if (!img->_cv_img.empty()) {
+  try {
+    if (_format == Image::Format::TDB) {
+      // Not implemented
+      throw VCLException(NotImplemented,
+                         "Operation not supported for this format");
+    } else {
+      if (!img->_cv_img.empty()) {
 
-      std::string readBuffer;
+        std::string readBuffer;
 
-      CURL *curl = NULL;
+        CURL *curl = NULL;
 
-      CURLcode res;
-      struct curl_slist *headers = NULL;
-      curl_mime *form = NULL;
-      curl_mimepart *field = NULL;
+        CURLcode res;
+        struct curl_slist *headers = NULL;
+        curl_mime *form = NULL;
+        curl_mimepart *field = NULL;
 
-      curl = curl_easy_init();
+        curl = curl_easy_init();
 
-      if (curl) {
+        if (curl) {
+          auto time_now = std::chrono::system_clock::now();
+          std::chrono::duration<double> utc_time = time_now.time_since_epoch();
+
+          VCL::Image::Format img_format = img->get_image_format();
+          std::string format = img->format_to_string(img_format);
+
+          if (format == "" && _options.isMember("format")) {
+            format = _options["format"].toStyledString().data();
+            format.erase(std::remove(format.begin(), format.end(), '\n'),
+                         format.end());
+            format = format.substr(1, format.size() - 2);
+          } else {
+            format = "jpg";
+          }
+
+          std::string filePath =
+              "/tmp/tempfile" + std::to_string(utc_time.count()) + "." + format;
+          cv::imwrite(filePath, img->_cv_img);
+
+          std::ofstream tsfile;
+
+          auto opstart = std::chrono::system_clock::now();
+
+          form = curl_mime_init(curl);
+
+          field = curl_mime_addpart(form);
+          curl_mime_name(field, "imageData");
+          if (curl_mime_filedata(field, filePath.data()) != CURLE_OK) {
+            if (std::remove(filePath.data()) != 0) {
+            }
+            throw VCLException(ObjectEmpty,
+                               "Unable to create file for remoting");
+          }
+
+          field = curl_mime_addpart(form);
+          curl_mime_name(field, "jsonData");
+          if (curl_mime_data(field, _options.toStyledString().data(),
+                             _options.toStyledString().length()) != CURLE_OK) {
+            if (std::remove(filePath.data()) != 0) {
+            }
+            throw VCLException(ObjectEmpty, "Unable to create curl mime data");
+          }
+
+          // Post data
+          if (curl_easy_setopt(curl, CURLOPT_URL, _url.data()) != CURLE_OK) {
+            throw VCLException(UndefinedException, "CURL setup error with URL");
+          }
+          if (curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback) !=
+              CURLE_OK) {
+            throw VCLException(UndefinedException,
+                               "CURL setup error with callback");
+          }
+          if (curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer) !=
+              CURLE_OK) {
+            throw VCLException(UndefinedException,
+                               "CURL setup error with read buffer");
+          }
+          if (curl_easy_setopt(curl, CURLOPT_MIMEPOST, form) != CURLE_OK) {
+            throw VCLException(UndefinedException,
+                               "CURL setup error with form");
+          }
+
+          res = curl_easy_perform(curl);
+
+          int http_status_code;
+          curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_status_code);
+
+          curl_easy_cleanup(curl);
+          curl_mime_free(form);
+
+          if (http_status_code != 200) {
+            if (http_status_code == 0) {
+              throw VCLException(ObjectEmpty, "Remote server is not running.");
+            }
+            if (http_status_code == 400) {
+              throw VCLException(ObjectEmpty,
+                                 "Invalid Request to the Remote Server.");
+            } else if (http_status_code == 404) {
+              throw VCLException(ObjectEmpty,
+                                 "Invalid URL Request. Please check the URL.");
+            } else if (http_status_code == 500) {
+              throw VCLException(ObjectEmpty,
+                                 "Exception occurred at the remote server. "
+                                 "Please check your query.");
+            } else if (http_status_code == 503) {
+              throw VCLException(ObjectEmpty, "Unable to reach remote server");
+            } else {
+              throw VCLException(ObjectEmpty, "Remote Server error.");
+            }
+          }
+
+          // Decode the response
+          std::vector<unsigned char> vectordata(readBuffer.begin(),
+                                                readBuffer.end());
+          cv::Mat data_mat(vectordata, true);
+
+          if (data_mat.empty()) {
+            throw VCLException(ObjectEmpty,
+                               "Empty response from remote server");
+          }
+
+          cv::Mat decoded_mat(cv::imdecode(data_mat, 1));
+
+          img->shallow_copy_cv(decoded_mat);
+
+          if (std::remove(filePath.data()) != 0) {
+          }
+        }
+
+      } else
+        throw VCLException(ObjectEmpty, "Image object is empty");
+    }
+    img->_op_completed++;
+  } catch (VCL::Exception e) {
+    img->set_query_error_response(e.msg);
+    print_exception(e);
+    return;
+  }
+}
+
+/*  *********************** */
+/*    USER OPERATION        */
+/*  *********************** */
+
+void Image::UserOperation::operator()(Image *img) {
+  try {
+    if (_format == Image::Format::TDB) {
+      // Not implemented
+      throw VCLException(NotImplemented,
+                         "Operation not supported for this format");
+    } else {
+      if (!img->_cv_img.empty()) {
+
+        std::string opfile;
+
+        zmq::context_t context(1);
+        zmq::socket_t socket(context, zmq::socket_type::req);
+
+        std::string port = _options["port"].asString();
+        std::string address = "tcp://127.0.0.1:" + port;
+
+        socket.connect(address.data());
+
         auto time_now = std::chrono::system_clock::now();
         std::chrono::duration<double> utc_time = time_now.time_since_epoch();
 
@@ -349,161 +530,54 @@ void Image::SyncRemoteOperation::operator()(Image *img) {
             "/tmp/tempfile" + std::to_string(utc_time.count()) + "." + format;
         cv::imwrite(filePath, img->_cv_img);
 
-        std::ofstream tsfile;
+        _options["ipfile"] = filePath;
 
-        auto opstart = std::chrono::system_clock::now();
+        std::string message_to_send = _options.toStyledString();
 
-        form = curl_mime_init(curl);
+        int message_len = message_to_send.length();
+        zmq::message_t ipfile(message_len);
+        memcpy(ipfile.data(), message_to_send.data(), message_len);
 
-        field = curl_mime_addpart(form);
-        curl_mime_name(field, "imageData");
-        if (curl_mime_filedata(field, filePath.data()) != CURLE_OK) {
+        socket.send(ipfile, 0);
+
+        while (true) {
+          char buffer[256];
+          int size = socket.recv(buffer, 255, 0);
+
+          buffer[size] = '\0';
+          opfile = buffer;
+
+          break;
+        }
+
+        std::ifstream rfile;
+        rfile.open(opfile);
+
+        if (rfile) {
+          rfile.close();
+        } else {
           if (std::remove(filePath.data()) != 0) {
           }
-          throw VCLException(ObjectEmpty, "Unable to create file for remoting");
+          throw VCLException(OpenFailed, "UDF Error");
         }
 
-        field = curl_mime_addpart(form);
-        curl_mime_name(field, "jsonData");
-        if (curl_mime_data(field, _options.toStyledString().data(),
-                           _options.toStyledString().length()) != CURLE_OK) {
-          if (std::remove(filePath.data()) != 0) {
-          }
-          throw VCLException(ObjectEmpty, "Unable to create curl mime data");
-        }
-
-        // Post data
-        if (curl_easy_setopt(curl, CURLOPT_URL, _url.data()) != CURLE_OK) {
-          throw VCLException(UndefinedException, "CURL setup error with URL");
-        }
-        if (curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback) !=
-            CURLE_OK) {
-          throw VCLException(UndefinedException,
-                             "CURL setup error with callback");
-        }
-        if (curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer) !=
-            CURLE_OK) {
-          throw VCLException(UndefinedException,
-                             "CURL setup error with read buffer");
-        }
-        if (curl_easy_setopt(curl, CURLOPT_MIMEPOST, form) != CURLE_OK) {
-          throw VCLException(UndefinedException, "CURL setup error with form");
-        }
-
-        res = curl_easy_perform(curl);
-
-        curl_easy_cleanup(curl);
-        curl_mime_free(form);
-
-        // Decode the response
-
-        std::vector<unsigned char> vectordata(readBuffer.begin(),
-                                              readBuffer.end());
-        cv::Mat data_mat(vectordata, true);
-        cv::Mat decoded_mat(cv::imdecode(data_mat, 1));
-
-        img->shallow_copy_cv(decoded_mat);
+        VCL::Image res_image(opfile);
+        img->shallow_copy_cv(res_image.get_cvmat(true));
 
         if (std::remove(filePath.data()) != 0) {
         }
-      }
 
-    } else
-      throw VCLException(ObjectEmpty, "Image object is empty");
-  }
-  img->_op_completed++;
-}
-
-/*  *********************** */
-/*    USER OPERATION        */
-/*  *********************** */
-
-void Image::UserOperation::operator()(Image *img) {
-  if (_format == Image::Format::TDB) {
-    // Not implemented
-    throw VCLException(NotImplemented,
-                       "Operation not supported for this format");
-  } else {
-    if (!img->_cv_img.empty()) {
-
-      std::string opfile;
-
-      zmq::context_t context(1);
-      zmq::socket_t socket(context, zmq::socket_type::req);
-
-      std::string port = _options["port"].asString();
-      std::string address = "tcp://127.0.0.1:" + port;
-
-      socket.connect(address.data());
-
-      auto time_now = std::chrono::system_clock::now();
-      std::chrono::duration<double> utc_time = time_now.time_since_epoch();
-
-      VCL::Image::Format img_format = img->get_image_format();
-      std::string format = img->format_to_string(img_format);
-
-      if (format == "" && _options.isMember("format")) {
-        format = _options["format"].toStyledString().data();
-        format.erase(std::remove(format.begin(), format.end(), '\n'),
-                     format.end());
-        format = format.substr(1, format.size() - 2);
-      } else {
-        format = "jpg";
-      }
-
-      std::string filePath =
-          "/tmp/tempfile" + std::to_string(utc_time.count()) + "." + format;
-      cv::imwrite(filePath, img->_cv_img);
-
-      // std::string operation_id = _options["id"].toStyledString().data();
-      // operation_id.erase(std::remove(operation_id.begin(),
-      // operation_id.end(), '\n'), operation_id.end()); operation_id =
-      // operation_id.substr(1, operation_id.size() - 2);
-
-      _options["ipfile"] = filePath;
-
-      // std::string message_to_send = filePath + "::" + operation_id;
-      std::string message_to_send = _options.toStyledString();
-
-      int message_len = message_to_send.length();
-      zmq::message_t ipfile(message_len);
-      memcpy(ipfile.data(), message_to_send.data(), message_len);
-
-      socket.send(ipfile, 0);
-
-      while (true) {
-        char buffer[256];
-        int size = socket.recv(buffer, 255, 0);
-
-        buffer[size] = '\0';
-        opfile = buffer;
-
-        break;
-      }
-
-      std::ifstream rfile;
-      rfile.open(opfile);
-
-      if (rfile) {
-        rfile.close();
-      } else {
-        if (std::remove(filePath.data()) != 0) {
+        if (std::remove(opfile.data()) != 0) {
         }
-        throw VCLException(OpenFailed, "UDF Error");
-      }
-
-      VCL::Image res_image(opfile);
-      img->shallow_copy_cv(res_image.get_cvmat(true));
-
-      if (std::remove(filePath.data()) != 0) {
-      }
-
-      if (std::remove(opfile.data()) != 0) {
-      }
-    } else
-      throw VCLException(ObjectEmpty, "Image object is empty");
+      } else
+        throw VCLException(ObjectEmpty, "Image object is empty");
+    }
+    img->_op_completed++;
+  } catch (VCL::Exception e) {
+    img->set_query_error_response(e.msg);
+    print_exception(e);
+    return;
   }
-  img->_op_completed++;
 }
 
 /*  *********************** */
@@ -871,6 +945,8 @@ int Image::get_op_completed() { return _op_completed; }
 
 Json::Value Image::get_remoteOp_params() { return remoteOp_params; }
 
+std::string Image::get_query_error_response() { return _query_error_response; }
+
 std::vector<unsigned char>
 Image::get_encoded_image(Image::Format format, const std::vector<int> &params) {
 
@@ -1049,6 +1125,10 @@ void Image::set_remoteOp_params(Json::Value options, std::string url) {
   remoteOp_params["url"] = url;
 }
 
+void Image::set_query_error_response(std::string response_error) {
+  _query_error_response = response_error;
+}
+
 void Image::update_op_completed() { _op_completed++; }
 
 void Image::set_connection(RemoteConnection *remote) {
@@ -1093,10 +1173,18 @@ int Image::execute_operation() {
 
   if ((*op).get_type() != VCL::Image::OperationType::REMOTEOPERATION) {
     (*op)(this);
-    return 0;
+    if (this->get_query_error_response() == "") {
+      return 0;
+    } else {
+      return -2;
+    }
   } else {
     (*op)(this);
-    return -1;
+    if (this->get_query_error_response() == "") {
+      return -1;
+    } else {
+      return -2;
+    }
   }
 }
 

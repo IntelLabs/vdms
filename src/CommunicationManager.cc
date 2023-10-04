@@ -30,7 +30,8 @@
  */
 
 #include "CommunicationManager.h"
-#include "QueryHandler.h"
+#include "QueryHandlerExample.h"
+#include "QueryHandlerPMGD.h"
 
 #include "VDMSConfig.h"
 
@@ -40,6 +41,9 @@ using namespace PMGD;
 CommunicationManager::CommunicationManager() {
   _num_threads = VDMSConfig::instance()->get_int_value(
       "max_simultaneous_clients", MAX_CONNECTED_CLIENTS);
+
+  _q_handler = VDMSConfig::instance()->get_string_value("query_handler",
+                                                        DEFAULT_QUERY_HANDLER);
 
   if (_num_threads > MAX_CONNECTED_CLIENTS)
     _num_threads = MAX_CONNECTED_CLIENTS;
@@ -65,9 +69,15 @@ void CommunicationManager::process_queue() {
       auto c_it = _conn_list.insert(_conn_list.begin(), c);
       _conn_list_lock.unlock();
 
-      QueryHandler qh;
+      if (_q_handler == "pmgd") {
+        QueryHandlerPMGD qh;
+        qh.process_connection(c);
+      } else if (_q_handler == "example") {
+        QueryHandlerExample qh;
+        qh.process_connection(c);
+      }
+
       printf("Connection received...\n");
-      qh.process_connection(c);
 
       std::unique_lock<std::mutex> conn_list_lock(_conn_list_lock);
       _conn_list.erase(c_it);

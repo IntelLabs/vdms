@@ -8,6 +8,7 @@ import sys
 from collections import defaultdict, deque
 import skvideo.io
 import imutils
+import uuid
 
 for entry in os.scandir("functions"):
     if entry.is_file():
@@ -40,7 +41,7 @@ def image_api():
 
     format = json_data["format"] if "format" in json_data else "jpg"
 
-    tmpfile = "tmpfile" + str(datetime.now()) + "." + str(format)
+    tmpfile = "tmpfile" + uuid.uuid1().hex + "." + str(format)
 
     image_data.save(tmpfile)
 
@@ -56,29 +57,26 @@ def image_api():
 def video_api():
     json_data = json.loads(request.form["jsonData"])
     video_data = request.files["videoData"]
+    format = json_data["format"]
 
-    format = json_data["format"] if "format" in json_data else "mp4"
-
-    tmpfile = "tmpfile" + str(datetime.now()) + "." + str(format)
+    tmpfile = "tmpfile" + uuid.uuid1().hex + "." + str(format)
     video_data.save(tmpfile)
 
-    udf = globals()[json_data["format"]]
-    activity_tagged_file = udf.run(tmpfile, format, json_data)
+    udf = globals()[json_data["id"]]
+    response_file = udf.run(tmpfile, format, json_data)
 
     os.remove(tmpfile)
 
     @after_this_request
     def remove_tempfile(response):
         try:
-            os.remove(activity_tagged_file)
+            os.remove(response_file)
         except Exception as e:
             print("File cannot be deleted or not present")
         return response
 
     try:
-        return send_file(
-            activity_tagged_file, as_attachment=True, download_name=activity_tagged_file
-        )
+        return send_file(response_file, as_attachment=True, download_name=response_file)
     except Exception as e:
         print(str(e))
         return "Error in file read"

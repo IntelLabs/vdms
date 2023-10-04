@@ -1,5 +1,5 @@
 # Remote Operations in VDMS
-This submodule is required to execute VDMS operation on a remote server using Flask APIs (Support only available for images). Although shipped with VDMS, this submodule can be run independently and interacts with VDMS using http APIs.
+This submodule is required to execute VDMS operation on a remote server using Flask APIs. Although shipped with VDMS, this submodule can be run independently and interacts with VDMS using http APIs.
 
 ## Requirements
 - Python 3 or higher

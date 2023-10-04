@@ -5,7 +5,7 @@
  *
  * The MIT License
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2023 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"),
@@ -35,10 +35,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "PMGDQueryHandler.h" // to provide the database connection
-#include "RSCommand.h"
-#include "Server.h"
+#include "QueryHandlerBase.h"
 #include "chrono/Chrono.h"
+#include "comm/Connection.h"
 
 // Json parsing files
 #include <jsoncpp/json/value.h>
@@ -49,47 +48,12 @@ namespace VDMS {
 
 typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
 
-// Instance created per worker thread to handle all transactions on a given
-// connection.
-class QueryHandler {
-  friend class QueryHandlerTester;
-
-  static std::unordered_map<std::string, RSCommand *> _rs_cmds;
-  PMGDQueryHandler _pmgd_qh;
-  bool _autodelete_init;
-  bool _autoreplicate_init;
-
-  bool syntax_checker(const Json::Value &root, Json::Value &error);
-  int parse_commands(const protobufs::queryMessage &proto_query,
-                     Json::Value &root);
-  void cleanup_query(const std::vector<std::string> &images,
-                     const std::vector<std::string> &videos);
-
-  void process_query(protobufs::queryMessage &proto_query,
-                     protobufs::queryMessage &response);
-
-  // valijson
-  valijson::Validator _validator;
-  static valijson::Schema *_schema;
-
-#ifdef CHRONO_TIMING
-  ChronoCpu ch_tx_total;
-  ChronoCpu ch_tx_query;
-  ChronoCpu ch_tx_send;
-#endif
-
+class QueryHandlerExample : public QueryHandlerBase {
 public:
   static void init();
-
-  QueryHandler();
-
+  QueryHandlerExample();
   void process_connection(comm::Connection *c);
-  void reset_autodelete_init_flag();
-  void set_autodelete_init_flag();
-  void regular_run_autodelete();
-  void build_autodelete_queue();
-  void set_autoreplicate_init_flag();
-  void reset_autoreplicate_init_flag();
-  void regular_run_autoreplicate(ReplicationConfig &);
+  void process_query(protobufs::queryMessage &proto_query,
+                     protobufs::queryMessage &response);
 };
 } // namespace VDMS
