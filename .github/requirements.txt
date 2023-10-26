@@ -13,6 +13,6 @@ protobuf==4.24.2
 pyzmq==25.1.1
 scipy==1.11.3
 sk-video==1.1.10
-werkzeug==3.0.0
+werkzeug==3.0.1
 zipp==3.17.0
 zmq==0.0.0
