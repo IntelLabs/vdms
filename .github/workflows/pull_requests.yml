@@ -246,8 +246,8 @@ jobs:
           docker stop source_coverage_${{ github.event.pull_request.number }} || true && docker rm source_coverage_${{ github.event.pull_request.number }} || true
           docker stop source_coverage_${{ github.event.pull_request.number }}_tmp || true && docker rm source_coverage_${{ github.event.pull_request.number }}_tmp || true
           docker stop target_coverage_${{ github.event.pull_request.number }} || true && docker rm target_coverage_${{ github.event.pull_request.number }} || true
-          docker rmi source_coverage_${{ github.event.pull_request.number }} || true
-          docker rmi target_coverage_${{ github.event.pull_request.number }} || true
+          docker rmi vdms:source_coverage_${{ github.event.pull_request.number }} || true
+          docker rmi vdms:target_coverage_${{ github.event.pull_request.number }} || true
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
           docker ps -a --filter status=exited --format {{.ID}} | xargs docker rm || true
       - run: |
