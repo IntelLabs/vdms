@@ -307,9 +307,10 @@ jobs:
             -v $PWD:/local_repo aquasec/trivy:latest image \
             --list-all-pkgs --ignore-unfixed --format template \
             --template @/local_repo/.github/workflows/trivy_csv.tmpl \
-            --output /local_repo/CT247_CT248_trivy-report-imagescan.csv ${{ env.VDMS_IMAGE_TAG}}
+            --output /local_repo/CT247_trivy-report-imagescan.csv ${{ env.VDMS_IMAGE_TAG}}
 
-          mv $PWD/CT247_CT248_trivy-report-imagescan.csv ${{ env.ARTIFACT_DIR }}/CT247_CT248_trivy-report-imagescan.csv
+          mv $PWD/CT247_trivy-report-imagescan.csv ${{ env.ARTIFACT_DIR }}/CT247_trivy-report-imagescan.csv
+          cp ${{ env.ARTIFACT_DIR }}/CT247_trivy-report-imagescan.csv ${{ env.ARTIFACT_DIR }}/CT248_trivy-report-imagescan.csv
 
           # Obtain Summary Result
           output_checks=$(docker run --rm ${{ env.DOCKER_PROXY_RUN_ARGS }} \
@@ -325,13 +326,13 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: CT247_trivy-report-imagescan.csv
-          path: ${{ env.ARTIFACT_DIR }}/CT247_CT248_trivy-report-imagescan.csv
+          path: ${{ env.ARTIFACT_DIR }}/CT247_trivy-report-imagescan.csv
           if-no-files-found: error
       - name: Upload Trivy Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: CT248_trivy-report-imagescan.csv
-          path: ${{ env.ARTIFACT_DIR }}/CT247_CT248_trivy-report-imagescan.csv
+          path: ${{ env.ARTIFACT_DIR }}/CT248_trivy-report-imagescan.csv
           if-no-files-found: error
       - name: Print Results in Job Summary
         run: |
