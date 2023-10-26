@@ -15,24 +15,39 @@ on:
 #       - develop
 #       - master
 
+# Ensures that only a single workflow in the same concurrency group will run at the same time
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+
+  # If this is enabled it will cancel current running and start latest
   cancel-in-progress: true
 
 # Environment variables
 env:
   ARTIFACT_DIR: SDL_artifacts
   DOCKER_ARTIFACT_DIR: Docker_artifacts
+  DOCKER_PROXY_RUN_ARGS: "--env HTTPS_PROXY=$HTTPS_PROXY \
+          --env https_proxy=$https_proxy \
+          --env HTTP_PROXY=$HTTP_PROXY \
+          --env http_proxy=$http_proxy \
+          --env NO_PROXY=${{ secrets.NO_PROXY }} \
+          --env no_proxy=${{ secrets.NO_PROXY }}"
+  BASE_DOCKERFILE: docker/base/Dockerfile
   CHECKIN_DOCKERFILE: docker/check-in/Dockerfile
-  # CHECKOUT_REF: ${{ github.event.pull_request.head.sha }}
+  VDMS_IMAGE_TAG: vdms:latest
+  VDMS_IMAGE_TARFILE: vdms_latest.tar
   FACELESS_USERNAME: ${{ secrets.FACELESS_NAME}}
   FACELESS_AUTHKEY: ${{ secrets.FACELESS_AUTHKEY}}
   COVERITYSTREAM: ${{ secrets.COVERITYSTREAM}}
   COVERITYSERVER: ${{ secrets.COVERITYSERVER }}
+  COVERITY_IMAGE_TAG: vdms:coverity
+  COVERITY_CONTAINER: vdms_coverity_${{ github.head_ref || github.ref }}
+  CIS_CONTAINER: vdms_CIS_${{ github.head_ref || github.ref }}
 
 jobs:
+  # REMOVE OLD ARTIFACTS
   delete:
-      name: Remove old artifacts
+      name: Remove Old Artifacts
       runs-on:
         group: intellabs-vdms-runners
         labels: vdms-check-in
@@ -56,10 +71,10 @@ jobs:
                   })
                 })
 
-  # RUN HADOLINT & BANDIT; NO DOCKER BUILD NEEDED
-  Hadolint:
-    # Check format of Dockerfile we will release (docker/base/Dockerfile)
-    name: Haskell Dockerfile Linter
+  # BUILD LATEST CODE AS DOCKER IMAGE
+  BuildLatest:
+    # This job builds docker container for later use
+    name: Build Latest Docker Image
     needs: delete
     runs-on:
       group: intellabs-vdms-runners
@@ -67,15 +82,173 @@ jobs:
     steps:
       - name: Checkout Branch
         uses: actions/checkout@v3
-        # with:
-        #   ref: ${{ env.CHECKOUT_REF }}
+        with:
+          submodules: true
+      - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }}
+      - name: Build Docker Container
+        run: |
+          docker build --rm --build-arg="BUILD_COVERAGE=off" --build-arg="BUILD_COVERITY=off" \
+            -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ env.VDMS_IMAGE_TAG}} .
+          docker save -o ${{ env.DOCKER_ARTIFACT_DIR }}/${{ env.VDMS_IMAGE_TARFILE}} ${{ env.VDMS_IMAGE_TAG}}
+      - name: Upload Docker Image Artifact
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.VDMS_IMAGE_TARFILE}}
+          path: ${{ env.DOCKER_ARTIFACT_DIR }}/${{ env.VDMS_IMAGE_TARFILE}}
+          retention-days: 1
+
+  # RUN BDBA; DOCKER IMAGE NEEDED
+  CT7_BDBA:
+    runs-on:
+      group: intellabs-vdms-runners
+      labels: vdms-check-in
+    name: CT7 - Run BDBA
+    needs: BuildLatest
+    steps:
+      - name: Download Docker Image
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.VDMS_IMAGE_TARFILE}}
+          path: ${{ env.DOCKER_ARTIFACT_DIR }}
+      - name: Run BDBA
+        id: bdba
+        continue-on-error: true
+        shell: bash
+        env:
+          BDBA_TOKEN: "${{ secrets.BDBA_TOKEN }}"
+          bdba_group: '90'
+          bdba_product_id: ${{ secrets.BDBA_PRODUCT_ID }}
+        run: |
+          apt-get update && apt-get install -y curl
+          curl -k -H "Authorization: Bearer $BDBA_TOKEN" -H "Group: $bdba_group" -H "Replace: $bdba_product_id" \
+            -T ${{ env.DOCKER_ARTIFACT_DIR }}/${{ env.VDMS_IMAGE_TARFILE}} "https://bdba001.icloud.intel.com/api/upload/"
+      - name: BDBA Failure Check
+        if: failure()
+        run: echo "Check BDBA Server(https://bdba001.icloud.intel.com/) for binary ${{ env.VDMS_IMAGE_TARFILE}}"
+      - run: |
+          rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
+          rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/* || true
+
+  # RUN DOCKER SBOM; DOCKER IMAGE NEEDED
+  CT36_SBOM:
+    name: CT36 - Run Docker SBOM
+    needs: BuildLatest
+    runs-on:
+      group: intellabs-vdms-runners
+      labels: vdms-check-in
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+      - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }} ${{ env.ARTIFACT_DIR }}
+      - name: Download Docker Image
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ env.VDMS_IMAGE_TARFILE}}
+          path: ${{ env.DOCKER_ARTIFACT_DIR }}
+      - name: Load Docker Image
+        run: docker load -i ${{ env.DOCKER_ARTIFACT_DIR }}/${{ env.VDMS_IMAGE_TARFILE}}
+      - name: Obtain SBOM
+        run: |
+          docker sbom --format spdx-tag-value --output ${{ env.ARTIFACT_DIR }}/CT36_dockersbom-components.txt ${{ env.VDMS_IMAGE_TAG}}
+
+          python3 ${PWD}/docker/check-in/spdx2csv.py -i ${{ env.ARTIFACT_DIR }}/CT36_dockersbom-components.txt \
+            -o ${{ env.ARTIFACT_DIR }}/CT36_dockersbom-components.csv
+
+          output_checks=$(echo "SBOM Total packages: $(($(cat ${{ env.ARTIFACT_DIR }}/CT36_dockersbom-components.csv | wc -l)-1))")
+          echo "sbom_image_results<<EOF" >> $GITHUB_ENV
+          echo "$output_checks" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+      - name: Upload SBOM Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: CT36_dockersbom-components.csv
+          path: ${{ env.ARTIFACT_DIR }}/CT36_dockersbom-components.csv
+          if-no-files-found: error
+      - name: Print Results in Job Summary
+        run: |
+          echo "### Results" > $GITHUB_STEP_SUMMARY
+          echo "SBOM :point_right:${{ env.sbom_image_results }}" >> $GITHUB_STEP_SUMMARY
+
+  # BUILD LATEST CODE WITH COVERITY AS DOCKER IMAGE
+  CT39_Coverity:
+    # Static Code Analysis
+    name: CT39 - Run Coverity
+    runs-on:
+      group: intellabs-vdms-runners
+      labels: vdms-check-in
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+      - name: Build Docker Container with Coverity
+        run: |
+          docker build --rm --build-arg="BUILD_COVERAGE=off" --build-arg="BUILD_COVERITY=on" \
+            -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ env.COVERITY_IMAGE_TAG}} .
+
+      - name: Run Coverity with GCC
+        run: |
+          docker run --rm ${{ env.DOCKER_PROXY_RUN_ARGS }} -d --name ${{ env.COVERITY_CONTAINER }} \
+            --env FACELESS_USERNAME=${{ env.FACELESS_USERNAME}} \
+            --env FACELESS_AUTHKEY="${{ env.FACELESS_AUTHKEY}}" \
+            --env COVERITYSERVER=${{ env.COVERITYSERVER}} \
+            --env COVERITYSTREAM=${{ env.COVERITYSTREAM }} ${{ env.COVERITY_IMAGE_TAG}}
+
+          # Configure
+          docker exec -w /vdms/build ${{ env.COVERITY_CONTAINER }} bash -c "mkdir -p /coverity-results && cov-configure -gcc && cov-configure --compiler c++ --comptype g++ --template"
+
+          # Build
+          docker exec -w /vdms/build ${{ env.COVERITY_CONTAINER }} bash -c "rm -rf * && cmake .. && cov-build --dir /coverity-results make"
+
+          # Analyze
+          docker exec ${{ env.COVERITY_CONTAINER }} bash -c "cov-analyze --dir /coverity-results --concurrency --security --rule --enable-constraint-fpp --enable-fnptr --enable-virtual"
+
+          # Commit
+          docker exec ${{ env.COVERITY_CONTAINER }} bash -c "cov-commit-defects --dir /coverity-results --stream ${COVERITYSTREAM} --url ${COVERITYSERVER} --user ${FACELESS_USERNAME} --password ${FACELESS_AUTHKEY} --debug"
+
+  # RUN BANDIT; NO DOCKER BUILD NEEDED
+  CT161_Bandit:
+    name: CT161 - Run Bandit
+    needs: delete
+    runs-on:
+      group: intellabs-vdms-runners
+      labels: vdms-check-in
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v1
+      - name: Run Bandit
+        id: bandit
+        run: |
+          python3 -m pip install --user bandit
+          mkdir -p ${{ env.ARTIFACT_DIR }}
+          bandit ./ -r -c .github/workflows/ipas_default.config -f csv -o ${{ env.ARTIFACT_DIR }}/CT161_bandit-report.csv
+      - name: Upload Bandit Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: CT161_bandit-report.csv
+          path: ${{ env.ARTIFACT_DIR }}/CT161_bandit-report.csv
+
+  # RUN HADOLINT; NO DOCKER BUILD NEEDED
+  CT222_Hadolint:
+    # Check format of Dockerfile we will release (docker/base/Dockerfile)
+    name: CT222 - Haskell Dockerfile Linter
+    needs: delete
+    runs-on:
+      group: intellabs-vdms-runners
+      labels: vdms-check-in
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v3
       - run: mkdir -p ${{ env.ARTIFACT_DIR }}
       - name: Run Hadolint Docker Container
         id: get_hadolint
         run: |
           set -x
-          docker run --rm --env HADOLINT_FORMAT=gnu -i hadolint/hadolint:latest < docker/base/Dockerfile 2>&1 | tee ${{ env.ARTIFACT_DIR }}/CT222_hadolint_output.txt
-          output=$(cat ${{ env.ARTIFACT_DIR }}/CT222_hadolint_output.txt | grep hadolint | awk '{print $2}' | sort -u)
+          docker run --rm --env HADOLINT_FORMAT=gnu -i hadolint/hadolint:latest < ${{ env.BASE_DOCKERFILE}} 2>&1 | tee ${{ env.ARTIFACT_DIR }}/CT222_hadolint-results.txt
+          output=$(cat ${{ env.ARTIFACT_DIR }}/CT222_hadolint-results.txt | grep hadolint | awk '{print $2}' | sort -u)
 
           echo "hadolint_output<<EOF" >> $GITHUB_ENV
           echo "$output" >> $GITHUB_ENV
@@ -89,112 +262,12 @@ jobs:
       - name: Upload Hadolint Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: SDL Evidence
-          path: ${{ env.ARTIFACT_DIR }}/CT222_hadolint_output.txt
-      - name: Cleanup
-        if: always()
-        run: |
-          rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
-          rm -rf /tmp/tmp-* ${GITHUB_WORKSPACE}/*  || true
+          name: CT222_hadolint-results.txt
+          path: ${{ env.ARTIFACT_DIR }}/CT222_hadolint-results.txt
 
-  Bandit:
-    name: Run Bandit
-    needs: delete
-    runs-on:
-      group: intellabs-vdms-runners
-      labels: vdms-check-in
-    steps:
-      - name: Checkout Branch
-        uses: actions/checkout@v1
-        # with:
-        #   ref: ${{ env.CHECKOUT_REF }}
-      - name: Run Bandit
-        id: bandit
-        run: |
-          python3 -m pip install --user bandit
-          mkdir -p ${{ env.ARTIFACT_DIR }}
-          bandit ./ -r -c .github/workflows/ipas_default.config -f csv -o ${{ env.ARTIFACT_DIR }}/bandit_report.csv
-      - name: Upload Bandit Artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: SDL Evidence
-          path: ${{ env.ARTIFACT_DIR }}/bandit_report.csv
-      - name: Cleanup
-        # cf. https://github.com/actions/upload-artifact/issues/256
-        if: always()
-        run: |
-          rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
-          rm -rf /tmp/tmp-* ${GITHUB_WORKSPACE}/*  || true
-
-  # BUILD LATEST CODE AS DOCKER IMAGE
-  # USED WITH TRIVY, CIS, & BDBA JOBS
-  BuildLatest:
-    # This job builds docker container for later use
-    name: Build Latest Docker
-    needs: delete
-    runs-on:
-      group: intellabs-vdms-runners
-      labels: vdms-check-in
-    steps:
-      - name: Checkout Branch
-        uses: actions/checkout@v3
-        with:
-          submodules: true
-          # ref: ${{ env.CHECKOUT_REF }}
-      - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }}
-      - name: Build Docker Container
-        run: |
-          docker build --rm --build-arg="BUILD_COVERAGE=off" --build-arg="BUILD_COVERITY=off" \
-            -f ${{ env.CHECKIN_DOCKERFILE}} -t vdms:latest .
-          docker save -o ${{ env.DOCKER_ARTIFACT_DIR }}/vdms_latest.tar vdms:latest
-      - name: Upload Docker Image Artifact
-        if: success()
-        uses: actions/upload-artifact@v3
-        with:
-          name: vdms_latest.tar
-          path: ${{ env.DOCKER_ARTIFACT_DIR }}/vdms_latest.tar
-          retention-days: 1
-      - name: Cleanup
-        if: always()
-        run: |
-          rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
-          rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/*  || true
-          docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
-
-  BDBA:
-    # CT7
-    runs-on:
-      group: intellabs-vdms-runners
-      labels: vdms-check-in
-    name: BDBA
-    needs: BuildLatest
-    steps:
-      - name: Download Docker Image
-        uses: actions/download-artifact@v3
-        with:
-          name: vdms_latest.tar
-          path: ${{ env.DOCKER_ARTIFACT_DIR }}
-      - name: Run BDBA
-        id: bdba
-        continue-on-error: true
-        env:
-          BDBA_TOKEN: "${{ secrets.BDBA_TOKEN }}"
-          bdba_group: '90'
-          bdba_product_id: ${{ secrets.BDBA_PRODUCT_ID }}
-        shell: bash
-        run: |
-          apt-get update && apt-get install -y curl
-          curl -k -H "Authorization: Bearer $BDBA_TOKEN" -H "Group: $bdba_group" -H "Replace: $bdba_product_id" -T ${{ env.DOCKER_ARTIFACT_DIR }}/vdms_latest.tar "https://bdba001.icloud.intel.com/api/upload/"
-      - name: BDBA Failure Check
-        if: failure()
-        run: echo "Check BDBA Server(https://bdba001.icloud.intel.com/) for binary vdms_latest.tar"
-      - run: |
-          rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
-          rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/* || true
-
-  Trivy:
-    # This job runs Trivy for Vulnerabilities (Replaces Snyk) for CT247, CT248 and SBOM for CT37
-    name: Trivy Scan for Vulnerabilities
+  # RUN TRIVY; DOCKER IMAGE NEEDED
+  CT247_CT248_Trivy:
+    name: CT247_CT248 - Trivy Scan for Vulnerabilities
     needs: BuildLatest
     runs-on:
       group: intellabs-vdms-runners
@@ -204,34 +277,33 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: true
-          # ref: ${{ env.CHECKOUT_REF }}
       - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }} ${{ env.ARTIFACT_DIR }}
       - name: Download docker image
         uses: actions/download-artifact@v3
         with:
-          name: vdms_latest.tar
+          name: ${{ env.VDMS_IMAGE_TARFILE}}
           path: ${{ env.DOCKER_ARTIFACT_DIR }}
       - name: Load Docker Image
-        run: docker load -i ${{ env.DOCKER_ARTIFACT_DIR }}/vdms_latest.tar
+        run: docker load -i ${{ env.DOCKER_ARTIFACT_DIR }}/${{ env.VDMS_IMAGE_TARFILE}}
       - name: Run Trivy vulnerability scanner
         run: |
           # Exporting Fixable Results as CSV (For SDL)
-          docker run $DOCKER_PROXY_RUN_ARGS \
+          docker run --rm ${{ env.DOCKER_PROXY_RUN_ARGS }} \
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v $HOME/.cache:/root/.cache \
             -v $PWD:/local_repo aquasec/trivy:latest image \
             --list-all-pkgs --ignore-unfixed --format template \
             --template @/local_repo/.github/workflows/trivy_csv.tmpl \
-            --output /local_repo/trivy-report-imagescan_CT247_CT248.csv vdms:latest
+            --output /local_repo/CT247_CT248_trivy-report-imagescan.csv ${{ env.VDMS_IMAGE_TAG}}
 
-          mv $PWD/trivy-report-imagescan_CT247_CT248.csv ${{ env.ARTIFACT_DIR }}/trivy-report-imagescan_CT247_CT248.csv
+          mv $PWD/CT247_CT248_trivy-report-imagescan.csv ${{ env.ARTIFACT_DIR }}/CT247_CT248_trivy-report-imagescan.csv
 
           # Obtain Summary Result
-          output_checks=$(docker run $DOCKER_PROXY_RUN_ARGS \
+          output_checks=$(docker run --rm ${{ env.DOCKER_PROXY_RUN_ARGS }} \
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v $HOME/.cache:/root/.cache \
             -v $PWD:/local_repo aquasec/trivy:latest image \
-            --ignore-unfixed --scanners vuln vdms:latest | grep "Total:")
+            --ignore-unfixed --scanners vuln ${{ env.VDMS_IMAGE_TAG}} | grep "Total:")
 
           echo "trivy_image_results<<EOF" >> $GITHUB_ENV
           echo "$output_checks" >> $GITHUB_ENV
@@ -239,41 +311,18 @@ jobs:
       - name: Upload Trivy Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: SDL Evidence
-          path: ${{ env.ARTIFACT_DIR }}/trivy-report-imagescan_CT247_CT248.csv
-          if-no-files-found: error
-      - name: Get Docker Image SBOM
-        run: |
-          docker sbom --format spdx-tag-value --output ${{ env.ARTIFACT_DIR }}/sbom_docker_CT36.txt vdms:latest
-
-          python3 ${GITHUB_WORKSPACE}/docker/check-in/spdx2csv.py -i ${{ env.ARTIFACT_DIR }}/sbom_docker_CT36.txt \
-            -o ${{ env.ARTIFACT_DIR }}/vdms_sbom_docker_CT36.csv
-
-          output_checks=$(echo "SBOM Total packages: $(($(cat ${{ env.ARTIFACT_DIR }}/vdms_sbom_docker_CT36.csv | wc -l)-1))")
-          echo "sbom_image_results<<EOF" >> $GITHUB_ENV
-          echo "$output_checks" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-      - name: Upload SBOM Artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: SDL Evidence
-          path: ${{ env.ARTIFACT_DIR }}
+          name: CT247_CT248_trivy-report-imagescan.csv
+          path: ${{ env.ARTIFACT_DIR }}/CT247_CT248_trivy-report-imagescan.csv
           if-no-files-found: error
       - name: Print Results in Job Summary
         run: |
           echo "### Results" > $GITHUB_STEP_SUMMARY
           echo "Vulnerability Scan (fixable) :point_right:${{ env.trivy_image_results }}" >> $GITHUB_STEP_SUMMARY
-          echo "SBOM :point_right:${{ env.sbom_image_results }}" >> $GITHUB_STEP_SUMMARY
 
-      - name: Cleanup
-        if: always()
-        run: |
-          rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
-          rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/*  || true
-
-  CIS:
+  # RUN CIS; DOCKER IMAGE NEEDED
+  CT249_CIS:
     # This job runs CIS Docker Benchmark
-    name: CIS Docker Benchmark
+    name: CT249 - CIS Docker Benchmark
     needs: BuildLatest
     runs-on:
       group: intellabs-vdms-runners
@@ -282,11 +331,11 @@ jobs:
       - name: Download Docker Image
         uses: actions/download-artifact@v3
         with:
-          name: vdms_latest.tar
+          name: ${{ env.VDMS_IMAGE_TARFILE}}
           path: ${{ env.DOCKER_ARTIFACT_DIR }}
       - name: Load Docker Image
         run: |
-          docker load -i ${{ env.DOCKER_ARTIFACT_DIR }}/vdms_latest.tar
+          docker load -i ${{ env.DOCKER_ARTIFACT_DIR }}/${{ env.VDMS_IMAGE_TARFILE}}
       - name: Run Benchmark
         id: run_CIS
         run: |
@@ -295,17 +344,16 @@ jobs:
           git clone https://github.com/docker/docker-bench-security.git
           cd docker-bench-security
 
-          docker container run --net=host -d \
+          docker run --net=host -d \
             --security-opt=no-new-privileges \
-            --health-cmd='cd /vdms/build && ./vdms || exit 1' \
             --restart on-failure:5 \
-            --name vdms_test-CIS vdms:latest
+            --name ${{ env.CIS_CONTAINER}} ${{ env.VDMS_IMAGE_TAG}}
 
-          sh docker-bench-security.sh -c container_runtime -i vdms_test-CIS -l ../${{ env.ARTIFACT_DIR }}/CT249_CIS_report.txt
+          sh docker-bench-security.sh -c container_runtime -i ${{ env.CIS_CONTAINER}} -l ../${{ env.ARTIFACT_DIR }}/CT249_CIS-results.txt
           cd ..
 
-          output_checks=$(cat ${{ env.ARTIFACT_DIR }}/CT249_CIS_report.txt | grep "Checks:" | sed 's/^.*Checks/Checks/')
-          output_score=$(cat ${{ env.ARTIFACT_DIR }}/CT249_CIS_report.txt | grep "Score:" | sed 's/^.*Score/Score/')
+          output_checks=$(cat ${{ env.ARTIFACT_DIR }}/CT249_CIS-results.txt | grep "Checks:" | sed 's/^.*Checks/Checks/')
+          output_score=$(cat ${{ env.ARTIFACT_DIR }}/CT249_CIS-results.txt | grep "Score:" | sed 's/^.*Score/Score/')
 
           echo "cis_output_checks<<EOF" >> $GITHUB_ENV
           echo "$output_checks" >> $GITHUB_ENV
@@ -317,73 +365,31 @@ jobs:
       - name: Upload CIS Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: SDL Evidence
-          path: ${{ env.ARTIFACT_DIR }}/CT249_CIS_report.txt
+          name: CT249_CIS-results.txt
+          path: ${{ env.ARTIFACT_DIR }}/CT249_CIS-results.txt
       - name: Print CIS Results in Job Summary
         shell: bash
         run: |
           echo "### CIS Docker Results" > $GITHUB_STEP_SUMMARY
           echo "${{ env.cis_output_checks }}" >> $GITHUB_STEP_SUMMARY
           echo "${{ env.cis_output_score }}" >> $GITHUB_STEP_SUMMARY
-      - name: Cleanup
-        # cf. https://github.com/actions/upload-artifact/issues/256
-        if: always()
-        run: |
-          docker stop vdms_test-CIS && docker rm vdms_test-CIS || true
-          docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
-          rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
-          rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/*  || true
 
-  # BUILD LATEST CODE WITH COVERITY AS DOCKER IMAGE
-  Coverity:
-    name: Run Coverity
+  # CLEANUP AFTER TESTS
+  cleanup:
+    name: Workflow Cleanup
+    if: ${{ always() }}
+    needs: [CT7_BDBA, CT36_SBOM, CT39_Coverity, CT161_Bandit, CT222_Hadolint, CT247_CT248_Trivy, CT249_CIS]
     runs-on:
       group: intellabs-vdms-runners
       labels: vdms-check-in
     steps:
-      - name: Checkout Branch
-        uses: actions/checkout@v3
-        with:
-          submodules: true
-          # ref: ${{ env.CHECKOUT_REF }}
-      - name: Build Docker Container with Coverity
-        run: |
-          docker build --rm --build-arg="BUILD_COVERAGE=off" --build-arg="BUILD_COVERITY=on" \
-            -f ${{ env.CHECKIN_DOCKERFILE}} -t vdms:coverity .
-
-      - name: Run Coverity with GCC
-        env:
-            DOCKER_PROXY_RUN_ARGS: "--env HTTPS_PROXY=$HTTPS_PROXY \
-                    --env https_proxy=$https_proxy \
-                    --env HTTP_PROXY=$HTTP_PROXY \
-                    --env http_proxy=$http_proxy \
-                    --env NO_PROXY=${{ secrets.NO_PROXY }} \
-                    --env no_proxy=${{ secrets.NO_PROXY }}"
-        run: |
-          docker run ${{ env.DOCKER_PROXY_RUN_ARGS }} -d --rm --name vdms_test-Coverity \
-            --env FACELESS_USERNAME=${{ env.FACELESS_USERNAME}} \
-            --env FACELESS_AUTHKEY="${{ env.FACELESS_AUTHKEY}}" \
-            --env COVERITYSERVER=${{ env.COVERITYSERVER}} \
-            --env COVERITYSTREAM=${{ env.COVERITYSTREAM }} vdms:coverity
-
-          # Configure
-          docker exec -w /vdms/build vdms_test-Coverity bash -c "mkdir -p /coverity-results && cov-configure -gcc && cov-configure --compiler c++ --comptype g++ --template"
-
-          # Build
-          docker exec -w /vdms/build vdms_test-Coverity bash -c "rm -rf * && cmake .. && cov-build --dir /coverity-results make"
-
-          # Analyze
-          docker exec vdms_test-Coverity bash -c "cov-analyze --dir /coverity-results --concurrency --security --rule --enable-constraint-fpp --enable-fnptr --enable-virtual"
-
-          # Commit
-          docker exec vdms_test-Coverity bash -c "cov-commit-defects --dir /coverity-results --stream ${COVERITYSTREAM} --url ${COVERITYSERVER} --user ${FACELESS_USERNAME} --password ${FACELESS_AUTHKEY} --debug"
-
-      - name: Cleanup
-        # cf. https://github.com/actions/upload-artifact/issues/256
-        if: always()
-        run: |
-          docker stop vdms_test-Coverity && docker rm vdms_test-Coverity || true
+      - run: |
+          docker stop ${{ env.COVERITY_CONTAINER }} || true && docker rm ${{ env.COVERITY_CONTAINER }} || true
+          docker stop ${{ env.CIS_CONTAINER }} || true && docker rm ${{ env.CIS_CONTAINER }} || true
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
+          docker ps -a --filter status=exited --format {{.ID}} | xargs docker rm || true
+      - run: |
           rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
-          rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/*  || true
+          rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/* ${{ env.ARTIFACT_DIR }} || true
+
 

@@ -1,3 +1,4 @@
+# Uses docker/check-in/Dockerfile
 name: Checkin Workflow
 
 # Controls when the action will run. Triggers the workflow on push or pull request
@@ -11,6 +12,7 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  # OBTAIN COVERAGE
   coverage_job:
     name: Coverage Test
 
@@ -24,23 +26,25 @@ jobs:
       COVERITY_PASSPHRASE: ${{ secrets.FACELESS_AUTHKEY }}
       COVERITY_PROJECT: Vdms 2
       COVERITY_STREAM: ${{ secrets.COVERITYSTREAM}}
+      CHECKIN_DOCKERFILE: docker/check-in/Dockerfile
 
     strategy:
       fail-fast: true
       matrix:
         include:
           - coverage_type: Source
-            container_name: coverage_source_${{ github.event.pull_request.number }}
-            container_tag: "vdms:source_coverage"
+            container_name: source_coverage_${{ github.event.pull_request.number }}
+            container_tag: "vdms:source_coverage_${{ github.event.pull_request.number }}"
             output_cpp_name: source_coverage_cpp
             output_py_name: source_coverage_py
             branch_ref: ${{ github.event.pull_request.head.sha }}
           - coverage_type: Target
-            container_name: coverage_cpp_target_${{ github.event.pull_request.number }}
-            container_tag: "vdms:target_coverage"
+            container_name: target_coverage_${{ github.event.pull_request.number }}
+            container_tag: "vdms:target_coverage_${{ github.event.pull_request.number }}"
             output_cpp_name: target_coverage_cpp
             output_py_name: target_coverage_py
             branch_ref: ${{ github.event.pull_request.base.ref }}
+
     outputs:
       source_coverage_cpp: ${{ steps.report_coverage.outputs.source_coverage_cpp}}
       source_coverage_py: ${{ steps.report_coverage.outputs.source_coverage_py}}
@@ -48,9 +52,12 @@ jobs:
       target_coverage_cpp: ${{ steps.report_coverage.outputs.target_coverage_cpp}}
       target_coverage_py: ${{ steps.report_coverage.outputs.target_coverage_py}}
 
-    # Cancels previous workflows for same PR
+    # Ensures that only a single workflow in the same concurrency group will run at the same time
     concurrency:
-      group: ${{ matrix.coverage_type }}-${{ github.event.pull_request.number }}
+      # group: ${{ matrix.coverage_type }}-${{ github.event.pull_request.number }}
+      group: ${{ matrix.coverage_type }}-${{ github.head_ref || github.ref }}
+
+      # If this is enabled it will cancel current running and start latest
       cancel-in-progress: true
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -82,7 +89,8 @@ jobs:
 
           docker stop $(docker ps -aqf "name=${{ matrix.container_name }}") | xargs docker rm || true
 
-          docker build --rm --build-arg="BUILD_COVERAGE=on" --build-arg="BUILD_COVERITY=on" -f docker/check-in/Dockerfile -t ${{ matrix.container_tag }} .
+          docker build --rm --build-arg="BUILD_COVERAGE=on" --build-arg="BUILD_COVERITY=on" \
+            -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ matrix.container_tag }} .
 
       - if: matrix.coverage_type  == 'Source' &&  steps.git_check.outputs.added_modified
         uses: ./.github/actions/coverity-incremental-scan
@@ -140,12 +148,12 @@ jobs:
       - if: always()
         name: Cleanup
         run: |
+          docker stop $(docker ps -aqf "name=${{ matrix.container_name }}") | xargs docker rm || true
+          docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
           rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_REPOSITORY} || true
           rm -rf /tmp/tmp-* ${{ env.ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/*  || true
 
-          docker stop $(docker ps -aqf "name=${{ matrix.container_name }}") | xargs docker rm || true
-          docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
-
+  # COMPARE COVERAGE NUMBERS
   compare_coverage:
     name: Compare Reported Coverage
     runs-on:
@@ -185,6 +193,7 @@ jobs:
             exit 1
           fi
 
+  # FORMAT CODE
   commit_format:
     name: Commit Format
     runs-on:
@@ -223,3 +232,24 @@ jobs:
         run: |
           echo "Please provide sys-vdms write access to fork (if applicable)."
           exit 1
+
+  # CLEANUP AFTER TESTS
+  cleanup:
+    name: Workflow Cleanup
+    if: ${{ always() }}
+    needs: [compare_coverage, commit_format]
+    runs-on:
+      group: intellabs-vdms-runners
+      labels: vdms-check-in
+    steps:
+      - run: |
+          docker stop source_coverage_${{ github.event.pull_request.number }} || true && docker rm source_coverage_${{ github.event.pull_request.number }} || true
+          docker stop source_coverage_${{ github.event.pull_request.number }}_tmp || true && docker rm source_coverage_${{ github.event.pull_request.number }}_tmp || true
+          docker stop target_coverage_${{ github.event.pull_request.number }} || true && docker rm target_coverage_${{ github.event.pull_request.number }} || true
+          docker rmi source_coverage_${{ github.event.pull_request.number }} || true
+          docker rmi target_coverage_${{ github.event.pull_request.number }} || true
+          docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
+          docker ps -a --filter status=exited --format {{.ID}} | xargs docker rm || true
+      - run: |
+          rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
+          rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/* ${{ env.ARTIFACT_DIR }} || true
