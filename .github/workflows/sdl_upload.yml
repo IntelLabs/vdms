@@ -1,0 +1,32 @@
+# Modified file from https://github.com/intel-innersource/frameworks.actions.sdle
+name: Upload SDL Evidence
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'GitHub Workflow Run ID'
+        required: true
+      project_id:
+        description: 'SD Elements project ID (3-5 digits)'
+        required: true
+    #   sdle_user:
+    #     description: 'User account for authenticating with SDLE'
+    #     required: true
+
+
+jobs:
+  sdl_upload:
+    runs-on:
+      group: intellabs-vdms-runners
+      labels: vdms-check-in
+    name: Upload SDL Evidence
+    container:
+      image: cache-registry.caas.intel.com/cache/library/python:slim
+    steps:
+      - name: Upload SDL Evidence
+        uses: intel-innersource/frameworks.actions.sdle@main
+        with:
+          workflow_run_id: ${{ github.event.inputs.run_id }}
+          sdle_user: ${{ secrets.FACELESS_NAME}}
+          sdle_api_key: ${{ secrets.SDLE_API_KEY }}
+          sdl_project_id: ${{ github.event.inputs.project_id }}
