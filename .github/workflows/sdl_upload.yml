@@ -6,12 +6,6 @@ on:
       run_id:
         description: 'GitHub Workflow Run ID'
         required: true
-      project_id:
-        description: 'SD Elements project ID (3-5 digits)'
-        required: true
-    #   sdle_user:
-    #     description: 'User account for authenticating with SDLE'
-    #     required: true
 
 
 jobs:
@@ -29,4 +23,4 @@ jobs:
           workflow_run_id: ${{ github.event.inputs.run_id }}
           sdle_user: ${{ secrets.FACELESS_NAME}}
           sdle_api_key: ${{ secrets.SDLE_API_KEY }}
-          sdl_project_id: ${{ github.event.inputs.project_id }}
+          sdl_project_id: ${{ secrets.SDLE_PROJECT_ID }}
