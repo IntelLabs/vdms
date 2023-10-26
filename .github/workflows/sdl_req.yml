@@ -121,11 +121,24 @@ jobs:
           bdba_product_id: ${{ secrets.BDBA_PRODUCT_ID }}
         run: |
           apt-get update && apt-get install -y curl
+
+          # Upload Binary
           curl -k -H "Authorization: Bearer $BDBA_TOKEN" -H "Group: $bdba_group" -H "Replace: $bdba_product_id" \
             -T ${{ env.DOCKER_ARTIFACT_DIR }}/${{ env.VDMS_IMAGE_TARFILE}} "https://bdba001.icloud.intel.com/api/upload/"
+
+          # Download Vulnerabilities
+          curl -o ${{ env.ARTIFACT_DIR }}/CT7_bdba-results.csv -H "Authorization: Bearer $BDBA_TOKEN" -H "Group: $bdba_group" \
+            "https://bdba001.icloud.intel.com/api/product/$bdba_product_id/csv-vulns"
+
       - name: BDBA Failure Check
         if: failure()
         run: echo "Check BDBA Server(https://bdba001.icloud.intel.com/) for binary ${{ env.VDMS_IMAGE_TARFILE}}"
+      - name: Upload BDBA Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: CT7_bdba-results.csv
+          path: ${{ env.ARTIFACT_DIR }}/CT7_bdba-results.csv
+          if-no-files-found: error
       - run: |
           rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
           rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/* || true
@@ -311,7 +324,13 @@ jobs:
       - name: Upload Trivy Artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: CT247_CT248_trivy-report-imagescan.csv
+          name: CT247_trivy-report-imagescan.csv
+          path: ${{ env.ARTIFACT_DIR }}/CT247_CT248_trivy-report-imagescan.csv
+          if-no-files-found: error
+      - name: Upload Trivy Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: CT248_trivy-report-imagescan.csv
           path: ${{ env.ARTIFACT_DIR }}/CT247_CT248_trivy-report-imagescan.csv
           if-no-files-found: error
       - name: Print Results in Job Summary
