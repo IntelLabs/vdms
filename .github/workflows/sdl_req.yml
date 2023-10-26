@@ -41,8 +41,8 @@ env:
   COVERITYSTREAM: ${{ secrets.COVERITYSTREAM}}
   COVERITYSERVER: ${{ secrets.COVERITYSERVER }}
   COVERITY_IMAGE_TAG: vdms:coverity
-  COVERITY_CONTAINER: vdms_coverity_${{ github.head_ref || github.ref }}
-  CIS_CONTAINER: vdms_CIS_${{ github.head_ref || github.ref }}
+  COVERITY_CONTAINER: vdms_coverity_${{ github.run_number }}
+  CIS_CONTAINER: vdms_CIS_${{ github.run_number }}
 
 jobs:
   # REMOVE OLD ARTIFACTS
