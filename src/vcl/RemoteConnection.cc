@@ -32,6 +32,8 @@
  */
 
 #include "../../include/vcl/RemoteConnection.h"
+#include "../../include/VDMSConfigHelper.h"
+#include "../../src/VDMSConfig.h"
 
 using namespace VCL;
 
@@ -64,24 +66,46 @@ void RemoteConnection::ConfigureAws() {
 
   Aws::Client::ClientConfiguration clientConfig;
 
-  // TODO: proxy / override settings should be user configurable
-  // use this block for AWS
-  // clientConfig.proxyHost = "proxy-dmz.intel.com";
-  // clientConfig.proxyPort = 912;
-  // clientConfig.proxyScheme = Aws::Http::Scheme::HTTP;
+  std::optional<std::string> value = std::nullopt;
+  if (value = VDMS::VDMSConfig::instance()->get_proxy_host()) {
+    clientConfig.proxyHost = *value;
+  }
 
-  // use this override for MinIO
-  clientConfig.endpointOverride = "http://127.0.0.1:9000";
+  std::optional<int> port_value = std::nullopt;
+  if (port_value = VDMS::VDMSConfig::instance()->get_proxy_port()) {
+    clientConfig.proxyPort = *port_value;
+  }
+
+  if (value = VDMS::VDMSConfig::instance()->get_proxy_scheme()) {
+    if (*value == "http") {
+      clientConfig.proxyScheme = Aws::Http::Scheme::HTTP;
+    } else if (*value == "https") {
+      clientConfig.proxyScheme = Aws::Http::Scheme::HTTPS;
+    } else {
+      std::cerr << "Error: Invalid scheme in the config file" << std::endl;
+    }
+  }
+
+  // Use this property to set the endpoint for MinIO when the use_endpoint value
+  // in the config file is equals to true and the storage type is equals to AWS
+  // Format: "http://127.0.0.1:9000";
+  if ((VDMS::VDMSConfig::instance()->get_storage_type() ==
+       VDMS::StorageType::AWS) &&
+      (VDMS::VDMSConfig::instance()->get_use_endpoint()) &&
+      (VDMS::VDMSConfig::instance()->get_endpoint_override())) {
+    value = VDMS::VDMSConfig::instance()->get_endpoint_override();
+    clientConfig.endpointOverride = *value;
+  }
+
+  // Set AWS Logging level
+  if (_aws_sdk_options) {
+    _aws_sdk_options->loggingOptions.logLevel =
+        VDMS::VDMSConfig::instance()->get_aws_log_level();
+  }
 
   _aws_client = new Aws::S3::S3Client(clientConfig);
   _remote_connected = true;
 }
-
-// TODO make the log level configurable
-// void RemoteConnection::SetLogLevelDebug() {
-//   //_aws_sdk_options.loggingOptions.logLevel =
-//   // Aws::Utils::Logging::LogLevel::Debug;
-// }
 
 void RemoteConnection::ShutdownAws() {
   // LogEntry(__FUNCTION__);
@@ -159,7 +183,7 @@ void RemoteConnection::Remove_Object(const std::string &path) {
   }
 }
 
-//########Private S3 Functions########
+// ########Private S3 Functions########
 
 void RemoteConnection::write_s3(const std::string &filename) {
   Aws::S3::Model::PutObjectRequest put_request;

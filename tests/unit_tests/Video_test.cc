@@ -47,6 +47,8 @@
 
 #include "helpers.h"
 
+#include "VDMSConfig.h"
+
 using namespace std;
 
 class VideoTest : public ::testing::Test {
@@ -58,6 +60,8 @@ protected:
   std::vector<cv::Mat> _frames_h264;
 
   virtual void SetUp() {
+
+    VDMS::VDMSConfig::init("unit_tests/config-tests.json");
     _video_path_avi_xvid = "videos/Megamind.avi";
     _video_path_mp4_h264 = "videos/Megamind.mp4";
 
@@ -87,6 +91,8 @@ protected:
       _frames_h264.push_back(frame);
     }
   }
+
+  virtual void TearDown() { VDMS::VDMSConfig::destroy(); }
 
   int get_fourcc() { return cv::VideoWriter::fourcc('H', '2', '6', '4'); }
 };
