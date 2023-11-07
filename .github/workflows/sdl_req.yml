@@ -86,8 +86,16 @@ jobs:
           submodules: true
       - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }}
       - name: Build Docker Container
+        id: build_docker
+        continue-on-error: true
         run: |
           docker build --rm --build-arg="BUILD_COVERAGE=off" --build-arg="BUILD_COVERITY=off" \
+            -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ env.VDMS_IMAGE_TAG}} .
+          docker save -o ${{ env.DOCKER_ARTIFACT_DIR }}/${{ env.VDMS_IMAGE_TARFILE}} ${{ env.VDMS_IMAGE_TAG}}
+      - name: Build Docker Container w/o cache
+        if: always() && steps.build_docker.outcome == 'failure'
+        run: |
+          docker build --no-cache --rm --build-arg="BUILD_COVERAGE=off" --build-arg="BUILD_COVERITY=off" \
             -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ env.VDMS_IMAGE_TAG}} .
           docker save -o ${{ env.DOCKER_ARTIFACT_DIR }}/${{ env.VDMS_IMAGE_TARFILE}} ${{ env.VDMS_IMAGE_TAG}}
       - name: Upload Docker Image Artifact
@@ -106,6 +114,7 @@ jobs:
     name: CT7 - Run BDBA
     needs: BuildLatest
     steps:
+      - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }} ${{ env.ARTIFACT_DIR }}
       - name: Download Docker Image
         uses: actions/download-artifact@v3
         with:
@@ -207,6 +216,7 @@ jobs:
           docker run --rm ${{ env.DOCKER_PROXY_RUN_ARGS }} -d --name ${{ env.COVERITY_CONTAINER }} \
             --env FACELESS_USERNAME=${{ env.FACELESS_USERNAME}} \
             --env FACELESS_AUTHKEY="${{ env.FACELESS_AUTHKEY}}" \
+            --env COVERITY_NO_LOG_ENVIRONMENT_VARIABLES=TRUE \
             --env COVERITYSERVER=${{ env.COVERITYSERVER}} \
             --env COVERITYSTREAM=${{ env.COVERITYSTREAM }} ${{ env.COVERITY_IMAGE_TAG}}
 
@@ -220,7 +230,7 @@ jobs:
           docker exec ${{ env.COVERITY_CONTAINER }} bash -c "cov-analyze --dir /coverity-results --concurrency --security --rule --enable-constraint-fpp --enable-fnptr --enable-virtual"
 
           # Commit
-          docker exec ${{ env.COVERITY_CONTAINER }} bash -c "cov-commit-defects --dir /coverity-results --stream ${COVERITYSTREAM} --url ${COVERITYSERVER} --user ${FACELESS_USERNAME} --password ${FACELESS_AUTHKEY} --debug"
+          docker exec ${{ env.COVERITY_CONTAINER }} bash -c "cov-commit-defects --dir /coverity-results --stream ${COVERITYSTREAM} --url ${COVERITYSERVER} --user ${FACELESS_USERNAME} --password ${FACELESS_AUTHKEY} --debug --noxrefs"
 
   # RUN BANDIT; NO DOCKER BUILD NEEDED
   CT161_Bandit:
@@ -408,6 +418,7 @@ jobs:
           docker stop ${{ env.CIS_CONTAINER }} || true && docker rm ${{ env.CIS_CONTAINER }} || true
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
           docker ps -a --filter status=exited --format {{.ID}} | xargs docker rm || true
+          docker builder prune -f
       - run: |
           rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
           rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/* ${{ env.ARTIFACT_DIR }} || true

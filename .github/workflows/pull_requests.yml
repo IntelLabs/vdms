@@ -84,12 +84,24 @@ jobs:
           echo "added_modified=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} HEAD -- . ':!.github' ':!docker'| xargs)" >> $GITHUB_OUTPUT
 
       - name: Build Docker Container
+        id: build_docker
+        continue-on-error: true
         run: |
           set -x
 
           docker stop $(docker ps -aqf "name=${{ matrix.container_name }}") | xargs docker rm || true
 
           docker build --rm --build-arg="BUILD_COVERAGE=on" --build-arg="BUILD_COVERITY=on" \
+            -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ matrix.container_tag }} .
+
+      - name: Build Docker Container w/o cache
+        if: always() && steps.build_docker.outcome == 'failure'
+        run: |
+          set -x
+
+          docker stop $(docker ps -aqf "name=${{ matrix.container_name }}") | xargs docker rm || true
+
+          docker build --no-cache --rm --build-arg="BUILD_COVERAGE=on" --build-arg="BUILD_COVERITY=on" \
             -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ matrix.container_tag }} .
 
       - if: matrix.coverage_type  == 'Source' &&  steps.git_check.outputs.added_modified
@@ -250,6 +262,7 @@ jobs:
           docker rmi vdms:target_coverage_${{ github.event.pull_request.number }} || true
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
           docker ps -a --filter status=exited --format {{.ID}} | xargs docker rm || true
+          docker builder prune -f
       - run: |
           rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
           rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/* ${{ env.ARTIFACT_DIR }} || true
