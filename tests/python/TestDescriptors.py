@@ -49,6 +49,7 @@ class TestDescriptors(TestCommand.TestCommand):
 
         # Check success
         self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
+        self.disconnect(db)
 
     def test_addSet(self):
         db = self.create_connection()
@@ -68,6 +69,7 @@ class TestDescriptors(TestCommand.TestCommand):
 
         # Check success
         self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
+        self.disconnect(db)
 
     def test_addSetAndDescriptors(self):
         db = self.create_connection()
@@ -111,6 +113,8 @@ class TestDescriptors(TestCommand.TestCommand):
 
         # Check success
         self.assertEqual(response[0]["AddDescriptor"]["status"], 0)
+
+        self.disconnect(db)
 
     def test_addSetAndDescriptorsDimMismatch(self):
         db = self.create_connection()
@@ -180,6 +184,8 @@ class TestDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["status"], -1)
         self.assertEqual(response[0]["info"], "Blob Dimensions Mismatch")
 
+        self.disconnect(db)
+
     def test_addDescriptorsx1000(self):
         db = self.create_connection()
 
@@ -225,6 +231,7 @@ class TestDescriptors(TestCommand.TestCommand):
         # Check success
         for x in range(0, total - 1):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
+        self.disconnect(db)
 
     def test_classifyDescriptor(self):
         db = self.create_connection()
@@ -300,3 +307,4 @@ class TestDescriptors(TestCommand.TestCommand):
             self.assertEqual(
                 response[0]["ClassifyDescriptor"]["label"], "class" + str(int(i / 4))
             )
+        self.disconnect(db)

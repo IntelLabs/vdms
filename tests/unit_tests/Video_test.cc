@@ -313,9 +313,11 @@ TEST_F(VideoTest, ReadMP4_H264) {
  */
 TEST_F(VideoTest, WriteMP4_H264) {
   try {
-    std::string temp_video_input("/tmp/video_test_WriteMP4_H264_input.avi");
+    std::string temp_video_input(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                 "/video_test_WriteMP4_H264_input.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
-    std::string temp_video_test("/tmp/video_test_WriteMP4_H264_test.avi");
+    std::string temp_video_test(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                "/video_test_WriteMP4_H264_test.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
 
     std::string write_output_vcl("videos_tests/write_test_vcl.mp4");
@@ -363,10 +365,12 @@ TEST_F(VideoTest, WriteMP4_H264) {
  */
 TEST_F(VideoTest, WriteAVI_XVID) {
   try {
-    std::string temp_video_input("/tmp/video_test_WriteAVI_XVID_input.avi");
+    std::string temp_video_input(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                 "/video_test_WriteAVI_XVID_input.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_input,
                        cv::VideoWriter::fourcc('X', 'V', 'I', 'D'));
-    std::string temp_video_test("/tmp/video_test_WriteAVI_XVID_test.avi");
+    std::string temp_video_test(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                "/video_test_WriteAVI_XVID_test.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_test,
                        cv::VideoWriter::fourcc('X', 'V', 'I', 'D'));
 
@@ -421,9 +425,11 @@ TEST_F(VideoTest, ResizeWrite) {
 
   try {
 
-    std::string temp_video_input("/tmp/video_test_ResizeWrite_input.avi");
+    std::string temp_video_input(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                 "/video_test_ResizeWrite_input.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
-    std::string temp_video_test("/tmp/video_test_ResizeWrite_test.avi");
+    std::string temp_video_test(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                "/video_test_ResizeWrite_test.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
 
     std::string resize_name_vcl("videos_tests/resize_vcl.mp4");
@@ -496,9 +502,11 @@ TEST_F(VideoTest, IntervalWrite) {
 
   try {
 
-    std::string temp_video_input("/tmp/video_test_IntervalWrite_input.avi");
+    std::string temp_video_input(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                 "/video_test_IntervalWrite_input.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
-    std::string temp_video_test("/tmp/video_test_IntervalWrite_test.avi");
+    std::string temp_video_test(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                "/video_test_IntervalWrite_test.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
 
     std::string interval_name_vcl("videos_tests/interval_vcl.mp4");
@@ -626,9 +634,11 @@ TEST_F(VideoTest, ThresholdWrite) {
 
   try {
 
-    std::string temp_video_input("/tmp/video_test_ThresholdWrite_input.avi");
+    std::string temp_video_input(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                 "/video_test_ThresholdWrite_input.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
-    std::string temp_video_test("/tmp/video_test_ThresholdWrite_test.avi");
+    std::string temp_video_test(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                "/video_test_ThresholdWrite_test.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
 
     std::string threshold_name_vcl("videos_tests/threshold_vcl.mp4");
@@ -707,9 +717,11 @@ TEST_F(VideoTest, CropWrite) {
 
   try {
 
-    std::string temp_video_input("/tmp/video_test_CropWrite_input.avi");
+    std::string temp_video_input(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                 "/video_test_CropWrite_input.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
-    std::string temp_video_test("/tmp/video_test_CropWrite_test.avi");
+    std::string temp_video_test(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                "/video_test_CropWrite_test.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
 
     std::string crop_name_vcl("videos_tests/crop_vcl.mp4");
@@ -787,9 +799,11 @@ TEST_F(VideoTest, SyncRemoteWrite) {
 
   try {
 
-    std::string temp_video_input("/tmp/video_test_SyncRemoteWrite_input.avi");
+    std::string temp_video_input(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                 "/video_test_SyncRemoteWrite_input.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
-    std::string temp_video_test("/tmp/video_test_SyncRemoteWrite_test.avi");
+    std::string temp_video_test(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                "/video_test_SyncRemoteWrite_test.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
 
     std::string syncremote_name_vcl("videos_tests/syncremote_vcl.mp4");
@@ -866,9 +880,11 @@ TEST_F(VideoTest, UDFWrite) {
 
   try {
 
-    std::string temp_video_input("/tmp/video_test_UDFWrite_input.avi");
+    std::string temp_video_input(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                 "/video_test_UDFWrite_input.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
-    std::string temp_video_test("/tmp/video_test_UDFemoteWrite_test.avi");
+    std::string temp_video_test(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                "/video_test_UDFemoteWrite_test.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
 
     std::string udf_name_vcl("videos_tests/udf_vcl.mp4");
@@ -942,7 +958,8 @@ TEST_F(VideoTest, VideoLoopTest) {
   _options["text"] = "Video";
   _options["id"] = "caption";
 
-  std::string temp_video_input("/tmp/video_test_VideoLoopTest_input.avi");
+  std::string temp_video_input(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                               "/video_test_VideoLoopTest_input.avi");
   copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
 
   std::string vloop_name_vcl("videos_tests/vloop_vcl.mp4");
@@ -997,8 +1014,8 @@ TEST_F(VideoTest, VideoLoopPipelineTest) {
   int end = 100;
   int step = 5;
 
-  std::string temp_video_input(
-      "/tmp/video_test_VideoLoopPipelineTest_input.avi");
+  std::string temp_video_input(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                               "/video_test_VideoLoopPipelineTest_input.avi");
   copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
 
   std::string vloop_name_vcl("videos_tests/vloop_vcl.mp4");
@@ -1049,7 +1066,8 @@ TEST_F(VideoTest, VideoLoopTestError) {
   _options["text"] = "Video";
   _options["id"] = "caption";
 
-  std::string temp_video_input("/tmp/video_test_VideoLoopTestError_input.avi");
+  std::string temp_video_input(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                               "/video_test_VideoLoopTestError_input.avi");
   copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
 
   std::string vloop_name_vcl("videos_tests/vloop_vcl.mp4");
@@ -1090,7 +1108,8 @@ TEST_F(VideoTest, VideoLoopSyncRemoteTestError) {
   _options["id"] = "caption";
 
   std::string temp_video_input(
-      "/tmp/video_test_VideoLoopSyncRemoteTestError_input.avi");
+      VDMS::VDMSConfig::instance()->get_path_tmp() +
+      "/video_test_VideoLoopSyncRemoteTestError_input.avi");
   copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
 
   std::string vloop_name_vcl("videos_tests/vloop_vcl.mp4");

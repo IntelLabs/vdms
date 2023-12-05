@@ -162,6 +162,9 @@ RUN if [ "${BUILD_COVERAGE}" = "on" ]; then \
         mkdir -p /vdms/minio_files/minio-bucket ; \
         mkdir -p /vdms/tests/coverage_report ; \
         chmod +x /run_coverage_*.sh ; \
+        # Install the MinIO Client mc command line tool used by scripts for creating buckets
+        curl -o /usr/local/bin/mc https://dl.min.io/client/mc/release/linux-amd64/mc ; \
+        chmod +x /usr/local/bin/mc ; \
     else \
         rm -rf /run_coverage_*.sh ; \
     fi

@@ -258,7 +258,7 @@ void VDMSConfig::build_dirs() {
   check_or_create(path_descriptors);
 
   // TMP
-  path_tmp = "/tmp/" + std::string(DEFAULT_PATH_TMP);
+  path_tmp = std::string(DEFAULT_PATH_TMP);
   path_tmp = get_string_value(PARAM_DB_TMP, path_tmp);
   check_or_create(path_tmp);
   create_directory_layer(&directory_list, path_tmp);

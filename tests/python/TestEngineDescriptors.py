@@ -49,6 +49,7 @@ class TestDescriptors(TestCommand.TestCommand):
 
         # Check success
         self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
+        self.disconnect(db)
 
     def test_addDifferentSets(self):
         self.addSet("128-L2-FaissFlat", 128, "L2", "FaissFlat")
@@ -115,6 +116,7 @@ class TestDescriptors(TestCommand.TestCommand):
         # Check success
         for x in range(0, total - 1):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
+        self.disconnect(db)
 
     def test_addDescriptorsx1000TileDBSparse(self):
         db = self.create_connection()
@@ -163,6 +165,7 @@ class TestDescriptors(TestCommand.TestCommand):
         # Check success
         for x in range(0, total - 1):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
+        self.disconnect(db)
 
     def test_addDescriptorsx1000TileDBDense(self):
         db = self.create_connection()
@@ -212,3 +215,4 @@ class TestDescriptors(TestCommand.TestCommand):
         # Check success
         for x in range(0, total - 1):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
+        self.disconnect(db)
