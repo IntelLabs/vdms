@@ -39,7 +39,7 @@
 #include <jsoncpp/json/value.h>
 
 #include "DescriptorsManager.h"
-#include "QueryHandler.h" // to provide the database connection
+#include "QueryHandlerPMGD.h" // to provide the database connection
 #include "tbb/concurrent_unordered_map.h"
 
 namespace VDMS {

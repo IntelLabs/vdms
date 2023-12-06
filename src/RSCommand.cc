@@ -36,7 +36,7 @@
 #include <string>
 
 #include "ExceptionsCommand.h"
-#include "QueryHandler.h"
+#include "QueryHandlerPMGD.h"
 #include "VDMSConfig.h"
 #include "defines.h"
 #include "vcl/VCL.h"
