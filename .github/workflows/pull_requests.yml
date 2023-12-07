@@ -54,8 +54,8 @@ jobs:
 
     # Ensures that only a single workflow in the same concurrency group will run at the same time
     concurrency:
-      # group: ${{ matrix.coverage_type }}-${{ github.event.pull_request.number }}
-      group: ${{ matrix.coverage_type }}-${{ github.head_ref || github.ref }}
+      group: ${{ matrix.coverage_type }}-${{ github.event.pull_request.number }}
+      # group: ${{ matrix.coverage_type }}-${{ github.head_ref || github.ref }}
 
       # If this is enabled it will cancel current running and start latest
       cancel-in-progress: true

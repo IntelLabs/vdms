@@ -43,6 +43,9 @@ env:
   COVERITY_IMAGE_TAG: vdms:coverity
   COVERITY_CONTAINER: vdms_coverity_${{ github.run_number }}
   CIS_CONTAINER: vdms_CIS_${{ github.run_number }}
+  BDBA_TOKEN: "${{ secrets.BDBA_TOKEN }}"
+  bdba_group: '90'
+  bdba_product_id: ${{ secrets.BDBA_PRODUCT_ID }}
 
 jobs:
   # REMOVE OLD ARTIFACTS
@@ -120,28 +123,29 @@ jobs:
         with:
           name: ${{ env.VDMS_IMAGE_TARFILE}}
           path: ${{ env.DOCKER_ARTIFACT_DIR }}
-      - name: Run BDBA
-        id: bdba
+      - name: Upload VDMS Image to BDBA
+        id: bdba_upload
         continue-on-error: true
         shell: bash
-        env:
-          BDBA_TOKEN: "${{ secrets.BDBA_TOKEN }}"
-          bdba_group: '90'
-          bdba_product_id: ${{ secrets.BDBA_PRODUCT_ID }}
         run: |
-          apt-get update && apt-get install -y curl
+          apt-get install -y curl || true
 
           # Upload Binary
-          curl -k -H "Authorization: Bearer $BDBA_TOKEN" -H "Group: $bdba_group" -H "Replace: $bdba_product_id" \
+          curl -k -H "Authorization: Bearer ${{ env.BDBA_TOKEN }}" -H "Group: ${{ env.bdba_group }}" -H "Replace: ${{ env.bdba_product_id }}" \
             -T ${{ env.DOCKER_ARTIFACT_DIR }}/${{ env.VDMS_IMAGE_TARFILE}} "https://bdba001.icloud.intel.com/api/upload/"
-
-          # Download Vulnerabilities
-          curl -o ${{ env.ARTIFACT_DIR }}/CT7_bdba-results.csv -H "Authorization: Bearer $BDBA_TOKEN" -H "Group: $bdba_group" \
-            "https://bdba001.icloud.intel.com/api/product/$bdba_product_id/csv-vulns"
 
       - name: BDBA Failure Check
         if: failure()
         run: echo "Check BDBA Server(https://bdba001.icloud.intel.com/) for binary ${{ env.VDMS_IMAGE_TARFILE}}"
+
+      - name: Download BDBA Vulnerabilities
+        id: bdba_download
+        # continue-on-error: true
+        shell: bash
+        run: |
+          curl -o ${{ env.ARTIFACT_DIR }}/CT7_bdba-results.csv -H "Authorization: Bearer ${{ env.BDBA_TOKEN }}" -H "Group: ${{ env.bdba_group }}" \
+            "https://bdba001.icloud.intel.com/api/product/${{ env.bdba_product_id }}/csv-vulns"
+
       - name: Upload BDBA Artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -211,7 +215,7 @@ jobs:
           docker build --rm --build-arg="BUILD_COVERAGE=off" --build-arg="BUILD_COVERITY=on" \
             -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ env.COVERITY_IMAGE_TAG}} .
 
-      - name: Run Coverity with GCC
+      - name: Run Coverity Docker and Configure with GCC
         run: |
           docker run --rm ${{ env.DOCKER_PROXY_RUN_ARGS }} -d --name ${{ env.COVERITY_CONTAINER }} \
             --env FACELESS_USERNAME=${{ env.FACELESS_USERNAME}} \
@@ -223,14 +227,14 @@ jobs:
           # Configure
           docker exec -w /vdms/build ${{ env.COVERITY_CONTAINER }} bash -c "mkdir -p /coverity-results && cov-configure -gcc && cov-configure --compiler c++ --comptype g++ --template"
 
-          # Build
-          docker exec -w /vdms/build ${{ env.COVERITY_CONTAINER }} bash -c "rm -rf * && cmake .. && cov-build --dir /coverity-results make"
+      - name: Build with Coverity
+        run: docker exec -w /vdms/build ${{ env.COVERITY_CONTAINER }} bash -c "rm -rf /vdms/build/* || true && cmake .. && cov-build --dir /coverity-results make"
 
-          # Analyze
-          docker exec ${{ env.COVERITY_CONTAINER }} bash -c "cov-analyze --dir /coverity-results --concurrency --security --rule --enable-constraint-fpp --enable-fnptr --enable-virtual"
+      - name: Analyze Coverity
+        run: docker exec ${{ env.COVERITY_CONTAINER }} bash -c "cov-analyze --dir /coverity-results --concurrency --security --rule --enable-constraint-fpp --enable-fnptr --enable-virtual"
 
-          # Commit
-          docker exec ${{ env.COVERITY_CONTAINER }} bash -c "cov-commit-defects --dir /coverity-results --stream ${COVERITYSTREAM} --url ${COVERITYSERVER} --user ${FACELESS_USERNAME} --password ${FACELESS_AUTHKEY} --debug --noxrefs"
+      - name: Commit Coverity Defects
+        run: docker exec ${{ env.COVERITY_CONTAINER }} bash -c "cov-commit-defects --dir /coverity-results --stream ${COVERITYSTREAM} --url ${COVERITYSERVER} --user ${FACELESS_USERNAME} --password ${FACELESS_AUTHKEY} --debug --noxrefs"
 
   # RUN BANDIT; NO DOCKER BUILD NEEDED
   CT161_Bandit:
