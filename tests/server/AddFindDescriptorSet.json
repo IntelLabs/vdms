@@ -1,0 +1,18 @@
+[
+
+    {
+        "AddDescriptorSet": {
+            "engine": "FaissFlat",
+            "metric": "L2",
+            "name": "pretty_faces",
+            "dimensions": 128
+        }
+    },
+    {
+        "FindDescriptorSet": {
+          "set": "pretty_faces",
+          "storeIndex": true
+        }
+    }
+
+]

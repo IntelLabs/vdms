@@ -50,6 +50,7 @@ typedef std::pair<std::vector<long>, std::vector<float>> IDDistancePair;
 class DescriptorsCommand : public RSCommand {
 protected:
   DescriptorsManager *_dm;
+  VCL::DescriptorSetEngine _eng;
 
   // IDDistancePair is a pointer so that we can free its content
   // without having to use erase methods, which are not lock free
@@ -76,6 +77,21 @@ public:
                                           const Json::Value &json,
                                           protobufs::queryMessage &response,
                                           const std::string &blob) = 0;
+};
+
+class FindDescriptorSet : public DescriptorsCommand {
+  std::string _storage_sets;
+
+public:
+  FindDescriptorSet();
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
+
+  Json::Value construct_responses(Json::Value &json_responses,
+                                  const Json::Value &json,
+                                  protobufs::queryMessage &response,
+                                  const std::string &blob);
 };
 
 class AddDescriptorSet : public DescriptorsCommand {
