@@ -97,6 +97,7 @@ class TestImages(TestCommand.TestCommand):
         self.assertEqual(len(response), number_of_inserts)
         for i in range(0, number_of_inserts):
             self.assertEqual(response[i]["AddImage"]["status"], 0)
+        self.disconnect(db)
 
     def test_findEntityImage(self):
         db = self.create_connection()
@@ -137,6 +138,7 @@ class TestImages(TestCommand.TestCommand):
         self.assertEqual(
             response[1]["FindEntity"]["entities"][0]["name"], prefix_name + "1"
         )
+        self.disconnect(db)
 
     def test_findImage(self):
         db = self.create_connection()
@@ -167,6 +169,7 @@ class TestImages(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindImage"]["status"], 0)
         self.assertEqual(response[1]["FindImage"]["status"], 0)
         self.assertEqual(len(img_array), 2)
+        self.disconnect(db)
 
     def test_findImageResults(self):
         db = self.create_connection()
@@ -207,6 +210,7 @@ class TestImages(TestCommand.TestCommand):
             response[1]["FindImage"]["entities"][0]["name"], prefix_name + "1"
         )
         self.assertEqual(len(img_array), 2)
+        self.disconnect(db)
 
     def test_addImageWithLink(self):
         db = self.create_connection()
@@ -260,6 +264,7 @@ class TestImages(TestCommand.TestCommand):
 
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
         self.assertEqual(response[1]["AddImage"]["status"], 0)
+        self.disconnect(db)
 
     def test_findImage_multiple_results(self):
         db = self.create_connection()
@@ -292,6 +297,7 @@ class TestImages(TestCommand.TestCommand):
         self.assertEqual(len(img_array), number_of_inserts)
         self.assertEqual(response[0]["FindImage"]["status"], 0)
         self.assertEqual(response[0]["FindImage"]["returned"], number_of_inserts)
+        self.disconnect(db)
 
     def test_findImageNoBlob(self):
         db = self.create_connection()
@@ -327,6 +333,7 @@ class TestImages(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindImage"]["status"], 0)
         self.assertEqual(response[1]["FindImage"]["status"], 0)
         self.assertEqual(len(img_array), 0)
+        self.disconnect(db)
 
     def test_findImageRefNoBlobNoPropsResults(self):
         db = self.create_connection()
@@ -364,6 +371,7 @@ class TestImages(TestCommand.TestCommand):
 
         self.assertEqual(response[0]["FindImage"]["status"], 0)
         self.assertEqual(len(img_array), 0)
+        self.disconnect(db)
 
     def test_updateImage(self):
         db = self.create_connection()
@@ -396,6 +404,7 @@ class TestImages(TestCommand.TestCommand):
 
         self.assertEqual(response[0]["UpdateImage"]["count"], 1)
         self.assertEqual(len(img_array), 0)
+        self.disconnect(db)
 
     def ztest_zFindImageWithCollection(self):
         db = self.create_connection()
@@ -431,3 +440,4 @@ class TestImages(TestCommand.TestCommand):
 
         self.assertEqual(response[0]["FindImage"]["status"], 0)
         self.assertEqual(len(img_array), number_of_inserts)
+        self.disconnect(db)

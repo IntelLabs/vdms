@@ -45,6 +45,7 @@
 
 #include "../utils/include/stats/SystemStats.h"
 #include "Exception.h"
+#include "VDMSConfigHelper.h"
 #include "utils.h"
 
 namespace VCL {
@@ -446,7 +447,7 @@ private:
 
   std::list<std::shared_ptr<Operation>> _operations;
 
-  Storage _storage = Storage::LOCAL;
+  VDMS::StorageType _storage = VDMS::StorageType::LOCAL;
 
   // Remote operation parameters sent by the client
   Json::Value remoteOp_params;

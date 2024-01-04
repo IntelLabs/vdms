@@ -127,6 +127,8 @@ class TestBoundingBox(TestCommand.TestCommand):
 
         response, img_array = db.query(all_queries)
 
+        self.disconnect(db)
+
         self.assertEqual(len(response), self.number_of_inserts)
         for i in range(0, self.number_of_inserts):
             self.assertEqual(response[i]["AddBoundingBox"]["status"], 0)
@@ -160,6 +162,8 @@ class TestBoundingBox(TestCommand.TestCommand):
             all_queries.append(query)
 
         response, img_array = db.query(all_queries)
+
+        self.disconnect(db)
 
         self.assertEqual(response[0]["FindBoundingBox"]["status"], 0)
         self.assertEqual(response[1]["FindBoundingBox"]["status"], 0)
@@ -199,6 +203,8 @@ class TestBoundingBox(TestCommand.TestCommand):
             all_queries.append(query)
 
         response, img_array = db.query(all_queries)
+
+        self.disconnect(db)
 
         for i in range(0, self.number_of_inserts):
             self.assertEqual(response[i]["FindBoundingBox"]["status"], 0)
@@ -258,6 +264,8 @@ class TestBoundingBox(TestCommand.TestCommand):
 
         response, res_arr = db.query(all_queries, [imgs_arr])
 
+        self.disconnect(db)
+
         self.assertEqual(response[0]["AddImage"]["status"], 0)
         self.assertEqual(response[1]["AddBoundingBox"]["status"], 0)
 
@@ -293,6 +301,8 @@ class TestBoundingBox(TestCommand.TestCommand):
         all_queries.append(query)
 
         response, img_array = db.query(all_queries)
+
+        self.disconnect(db)
 
         self.assertEqual(response[0]["FindImage"]["status"], 0)
         self.assertEqual(response[1]["FindBoundingBox"]["status"], 0)
@@ -346,6 +356,8 @@ class TestBoundingBox(TestCommand.TestCommand):
 
         response, img_array = db.query(all_queries)
 
+        self.disconnect(db)
+
         self.assertEqual(response[0]["FindBoundingBox"]["status"], 0)
 
     def test_findBoundingBoxBlob(self):
@@ -380,6 +392,8 @@ class TestBoundingBox(TestCommand.TestCommand):
             all_queries.append(query)
 
         response, img_array = db.query(all_queries)
+
+        self.disconnect(db)
 
         self.assertEqual(len(img_array), self.number_of_inserts)
         for i in range(0, self.number_of_inserts):
@@ -424,6 +438,8 @@ class TestBoundingBox(TestCommand.TestCommand):
         all_queries.append(query)
 
         response, img_array = db.query(all_queries)
+
+        self.disconnect(db)
 
         self.assertEqual(response[0]["FindBoundingBox"]["status"], 0)
         self.assertTrue(len(img_array) >= self.number_of_inserts)
@@ -482,6 +498,8 @@ class TestBoundingBox(TestCommand.TestCommand):
 
         response, img_array = db.query(all_queries)
 
+        self.disconnect(db)
+
         self.assertEqual(response[0]["FindBoundingBox"]["status"], 0)
         self.assertEqual(
             response[0]["FindBoundingBox"]["entities"][0]["name"], "updated_bb_0"
@@ -519,7 +537,13 @@ class TestBoundingBox(TestCommand.TestCommand):
 
         response, img_array = db.query(all_queries)
 
+        if response[0]["UpdateBoundingBox"]["status"] != 0:
+            self.disconnect(db)
+
         self.assertEqual(response[0]["UpdateBoundingBox"]["status"], 0)
+
+        if response[0]["UpdateBoundingBox"]["count"] != 1:
+            self.disconnect(db)
         self.assertEqual(response[0]["UpdateBoundingBox"]["count"], 1)
 
         all_queries = []
@@ -539,6 +563,8 @@ class TestBoundingBox(TestCommand.TestCommand):
         all_queries.append(query)
 
         response, img_array = db.query(all_queries)
+
+        self.disconnect(db)
 
         self.assertEqual(response[0]["FindBoundingBox"]["status"], 0)
         self.assertEqual(

@@ -54,6 +54,7 @@ class TestEntities(TestCommand.TestCommand):
 
         # Check success
         self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
+        self.disconnect(db)
 
     def build_store(self):
         db = self.create_connection()
@@ -159,6 +160,7 @@ class TestEntities(TestCommand.TestCommand):
             self.assertEqual(response[(i - 1) * 4 + 2]["AddEntity"]["status"], 0)
             self.assertEqual(response[(i - 1) * 4 + 3]["AddConnection"]["status"], 0)
             self.assertEqual(response[(i - 1) * 4 + 4]["AddConnection"]["status"], 0)
+        self.disconnect(db)
 
     def single(self, thID, db, results):
         # id = "19149ec8-fa0d-4ed0-9cfb-3e0811b75391"
@@ -225,3 +227,4 @@ class TestEntities(TestCommand.TestCommand):
                 idx += 1
 
         self.assertEqual(error_counter, 0)
+        self.disconnect(db)

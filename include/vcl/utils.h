@@ -57,8 +57,6 @@ enum class CompressionType {
   RLE = 10
 };
 
-enum class Storage { LOCAL = 0, AWS = 1 };
-
 static const struct init_rand_t {
   init_rand_t() { srand(time(NULL)); }
 } init_rand;

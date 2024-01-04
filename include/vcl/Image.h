@@ -51,6 +51,8 @@
 #include <jsoncpp/json/value.h>
 #include <zmq.hpp>
 
+#include "VDMSConfigHelper.h"
+
 namespace VCL {
 
 /**
@@ -488,7 +490,7 @@ private:
   // Image format and compression type
   Format _format;
   CompressionType _compress;
-  Storage _storage = Storage::LOCAL;
+  VDMS::StorageType _storage = VDMS::StorageType::LOCAL;
 
   // Full path to image
   std::string _image_id;
