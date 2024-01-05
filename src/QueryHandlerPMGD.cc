@@ -74,6 +74,7 @@ void QueryHandlerPMGD::init() {
   _rs_cmds["DeleteExpired"] = new DeleteExpired();
 
   _rs_cmds["AddDescriptorSet"] = new AddDescriptorSet();
+  _rs_cmds["FindDescriptorSet"] = new FindDescriptorSet();
   _rs_cmds["AddDescriptor"] = new AddDescriptor();
   _rs_cmds["FindDescriptor"] = new FindDescriptor();
   _rs_cmds["ClassifyDescriptor"] = new ClassifyDescriptor();
@@ -410,6 +411,9 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
 
 void QueryHandlerPMGD::regular_run_autoreplicate(
     ReplicationConfig &replicate_settings) {
+
+  DescriptorsManager::instance()
+      ->flush(); // store all descriptor sets bfore each backup operation
   std::string command = "bsdtar cvfz ";
   std::string name;
   std::ostringstream oss;

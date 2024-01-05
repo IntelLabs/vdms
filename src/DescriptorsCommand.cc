@@ -68,6 +68,8 @@ std::string DescriptorsCommand::get_set_path(PMGDQuery &query_tx,
   Json::Value list_arr;
   list_arr.append(VDMS_DESC_SET_PATH_PROP);
   list_arr.append(VDMS_DESC_SET_DIM_PROP);
+  list_arr.append(VDMS_DESC_SET_ENGIN_PROP);
+
   results["list"] = list_arr;
 
   bool unique = true;
@@ -104,6 +106,82 @@ bool DescriptorsCommand::check_blob_size(const std::string &blob,
                                          const long n_desc) {
   return (blob.size() / sizeof(float) / dimensions == n_desc);
 }
+// FindDescriptorSet Method
+FindDescriptorSet::FindDescriptorSet()
+    : DescriptorsCommand("FindDescriptorSet") {
+  _storage_sets = VDMSConfig::instance()->get_path_descriptors();
+  _dm->flush(); // store the descriptor set
+}
+int FindDescriptorSet::construct_protobuf(PMGDQuery &query,
+                                          const Json::Value &jsoncmd,
+                                          const std::string &blob, int grp_id,
+                                          Json::Value &error) {
+
+  const Json::Value &cmd = jsoncmd[_cmd_name];
+  Json::Value results = get_value<Json::Value>(cmd, "results");
+
+  const std::string set_name = cmd["set"].asString();
+  const std::string set_path = _storage_sets + "/" + set_name;
+
+  Json::Value constraints, link;
+  Json::Value name_arr;
+  name_arr.append("==");
+  name_arr.append(set_name);
+  constraints[VDMS_DESC_SET_NAME_PROP] = name_arr;
+
+  Json::Value list_arr;
+  list_arr.append(VDMS_DESC_SET_NAME_PROP);
+  list_arr.append(VDMS_DESC_SET_PATH_PROP);
+  list_arr.append(VDMS_DESC_SET_DIM_PROP);
+  list_arr.append(VDMS_DESC_SET_ENGIN_PROP);
+  results["list"] = list_arr;
+  bool unique = true;
+
+  query.QueryNode(-1, VDMS_DESC_SET_TAG, Json::nullValue, constraints, results,
+                  unique, true);
+
+  return 0;
+}
+
+Json::Value FindDescriptorSet::construct_responses(
+    Json::Value &json_responses, const Json::Value &json,
+    protobufs::queryMessage &query_res, const std::string &blob) {
+
+  const Json::Value &cmd = json[_cmd_name];
+  Json::Value resp = check_responses(json_responses);
+  Json::Value ret;
+
+  auto error = [&](Json::Value &res) {
+    ret[_cmd_name] = res;
+    return ret;
+  };
+
+  if (resp["status"] != RSCommand::Success) {
+    return error(resp);
+  }
+
+  /* Get Set information using set name */
+  const std::string set_name = cmd["set"].asString();
+  const std::string set_path = _storage_sets + "/" + set_name;
+  try {
+    VCL::DescriptorSet *desc_set = _dm->get_descriptors_handler(set_path);
+    resp["status"] = RSCommand::Success;
+    ret[_cmd_name] = resp;
+
+    if (cmd.isMember("storeIndex") && cmd["storeIndex"].asBool()) {
+      desc_set->store();
+    }
+  } catch (VCL::Exception e) {
+    print_exception(e);
+    resp["status"] = RSCommand::Error;
+    resp["info"] = "DescriptorSet details not available";
+    return -1;
+  }
+
+  return ret;
+}
+
+//---------------------------------------------------------------
 
 // AddDescriptorSet Methods
 
@@ -190,18 +268,17 @@ Json::Value AddDescriptorSet::construct_responses(
 
   // For now, we use the default faiss index.
   std::string eng_str = get_value<std::string>(cmd, "engine", "FaissFlat");
-  VCL::DescriptorSetEngine eng;
 
   if (eng_str == "FaissFlat")
-    eng = VCL::FaissFlat;
+    _eng = VCL::FaissFlat;
   else if (eng_str == "FaissIVFFlat")
-    eng = VCL::FaissIVFFlat;
+    _eng = VCL::FaissIVFFlat;
   else if (eng_str == "TileDBDense")
-    eng = VCL::TileDBDense;
+    _eng = VCL::TileDBDense;
   else if (eng_str == "TileDBSparse")
-    eng = VCL::TileDBSparse;
+    _eng = VCL::TileDBSparse;
   else if (eng_str == "Flinng")
-    eng = VCL::Flinng;
+    _eng = VCL::Flinng;
   else
     throw ExceptionCommand(DescriptorSetError, "Engine not supported");
 
@@ -212,7 +289,7 @@ Json::Value AddDescriptorSet::construct_responses(
     param = new VCL::DescriptorParams(_flinng_num_rows, _flinng_cells_per_row,
                                       _flinng_num_hash_tables,
                                       _flinng_hashes_per_table);
-    VCL::DescriptorSet desc_set(desc_set_path, dimensions, eng, metric, param);
+    VCL::DescriptorSet desc_set(desc_set_path, dimensions, _eng, metric, param);
 
     if (_use_aws_storage) {
       VCL::RemoteConnection *connection = new VCL::RemoteConnection();
@@ -266,6 +343,7 @@ long AddDescriptor::insert_descriptor(const std::string &blob,
       long label_id = desc_set->get_label_id(label);
       long *label_ptr = &label_id;
       id_first = desc_set->add((float *)blob.data(), 1, label_ptr);
+
     } else {
       id_first = desc_set->add((float *)blob.data(), 1);
     }
@@ -319,7 +397,7 @@ int AddDescriptor::construct_protobuf(PMGDQuery &query,
   props[VDMS_DESC_LABEL_PROP] = label;
 
   int dimensions;
-  std::string set_path = get_set_path(query, set_name, dimensions);
+  const std::string set_path = get_set_path(query, set_name, dimensions);
 
   if (set_path.empty()) {
     error["info"] = "Set " + set_name + " not found";
@@ -423,7 +501,7 @@ int ClassifyDescriptor::construct_protobuf(PMGDQuery &query,
 
   if (set_path.empty()) {
     error["status"] = RSCommand::Error;
-    error["info"] = "DescritorSet Not Found!";
+    error["info"] = "DescriptorSet Not Found!";
     return -1;
   }
 
@@ -445,6 +523,7 @@ int ClassifyDescriptor::construct_protobuf(PMGDQuery &query,
   // Query set node
   query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_DESC_SET_TAG, link,
                   constraints, results, unique);
+  _dm->flush();
 
   return 0;
 }
@@ -536,7 +615,7 @@ int FindDescriptor::construct_protobuf(PMGDQuery &query,
 
   if (set_path.empty()) {
     cp_result["status"] = RSCommand::Error;
-    cp_result["info"] = "DescritorSet Not Found!";
+    cp_result["info"] = "DescriptorSet Not Found!";
     return -1;
   }
 

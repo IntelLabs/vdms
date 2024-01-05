@@ -7,5 +7,7 @@
     "db_root_path": "test_db_aws",
     "storage_type": "aws", //local, aws, etc
     "bucket_name": "minio-bucket",
-    "more-info": "github.com/IntelLabs/vdms"
+    "more-info": "github.com/IntelLabs/vdms",
+    "aws_log_level": "debug",
+    "use_endpoint": true
 }

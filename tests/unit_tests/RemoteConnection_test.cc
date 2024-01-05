@@ -27,21 +27,23 @@
  *
  */
 
-#include "Image.h"
-#include "TDBImage.h"
+#include <string>
+
 #include "gtest/gtest.h"
-
-#include "RemoteConnection.h"
-
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include <string>
+#include "Image.h"
+#include "TDBImage.h"
+
+#include "RemoteConnection.h"
+#include "VDMSConfig.h"
 
 class RemoteConnectionTest : public ::testing::Test {
 protected:
   virtual void SetUp() {
+    VDMS::VDMSConfig::init("unit_tests/config-aws-tests.json");
     img_ = "test_images/large1.jpg";
     tdb_img_ = "tdb/test_image.tdb";
     video_ = "test_videos/Megamind.avi";
@@ -54,6 +56,7 @@ protected:
   }
 
   virtual void TearDown() {
+    VDMS::VDMSConfig::destroy();
     connection_->end();
     delete connection_;
   }

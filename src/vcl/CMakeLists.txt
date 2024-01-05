@@ -8,6 +8,7 @@ find_package( OpenCV REQUIRED )
 include_directories(../../include . /usr/local/include/opencv4 /usr/include/jsoncpp)
 
 add_library(vcl SHARED
+    ../VDMSConfig.cc
     DescriptorSet.cc
     DescriptorSetData.cc
     Exception.cc

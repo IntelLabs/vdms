@@ -94,6 +94,7 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(len(response), number_of_inserts)
         for i in range(0, number_of_inserts):
             self.assertEqual(response[i]["AddVideo"]["status"], 0)
+        self.disconnect(db)
 
     def test_addVideoFromLocalFile_invalid_command(self):
         # The test is meant to fail if both blob and a local file are specified
@@ -111,6 +112,7 @@ class TestVideos(TestCommand.TestCommand):
 
         response, obj_array = db.query([query], [[video_blob]])
         self.assertEqual(response[0]["status"], -1)
+        self.disconnect(db)
 
     def test_addVideoFromLocalFile_file_not_found(self):
         db = self.create_connection()
@@ -124,6 +126,7 @@ class TestVideos(TestCommand.TestCommand):
 
         response, obj_array = db.query([query], [[]])
         self.assertEqual(response[0]["status"], -1)
+        self.disconnect(db)
 
     @unittest.skip("Skipping class until fixed")
     def test_addVideoFromLocalFile_success(self):
@@ -138,6 +141,7 @@ class TestVideos(TestCommand.TestCommand):
 
         response, obj_array = db.query([query], [[]])
         self.assertEqual(response[0]["AddVideo"]["status"], 0)
+        self.disconnect(db)
 
     def test_extractKeyFrames(self):
         db = self.create_connection()
@@ -176,6 +180,7 @@ class TestVideos(TestCommand.TestCommand):
 
         # we know that this video has exactly four key frames
         self.assertEqual(response[0]["FindEntity"]["count"], 4)
+        self.disconnect(db)
 
     def test_findVideo(self):
         db = self.create_connection()
@@ -209,6 +214,7 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(len(vid_array), number_of_inserts)
         for i in range(0, number_of_inserts):
             self.assertEqual(response[i]["FindVideo"]["status"], 0)
+        self.disconnect(db)
 
     def test_FindFramesByFrames(self):
         db = self.create_connection()
@@ -242,6 +248,7 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindFrames"]["status"], 0)
         self.assertEqual(response[1]["FindFrames"]["status"], 0)
         self.assertEqual(len(img_array), 2 * len(video_params["frames"]))
+        self.disconnect(db)
 
     def test_FindFramesByInterval(self):
         db = self.create_connection()
@@ -284,6 +291,7 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindFrames"]["status"], 0)
         self.assertEqual(response[1]["FindFrames"]["status"], 0)
         self.assertEqual(len(img_array), 2 * number_of_frames)
+        self.disconnect(db)
 
     def test_FindFramesMissingParameters(self):
         db = self.create_connection()
@@ -304,6 +312,7 @@ class TestVideos(TestCommand.TestCommand):
 
         self.assertEqual(response[0]["status"], -1)
         self.assertEqual(img, [])
+        self.disconnect(db)
 
     def test_FindFramesInvalidParameters(self):
         db = self.create_connection()
@@ -334,6 +343,7 @@ class TestVideos(TestCommand.TestCommand):
 
         self.assertEqual(response[0]["status"], -1)
         self.assertEqual(img, [])
+        self.disconnect(db)
 
     def test_findVideoResults(self):
         db = self.create_connection()
@@ -371,6 +381,7 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(len(vid_array), number_of_inserts)
         for i in range(0, number_of_inserts):
             self.assertEqual(response[i]["FindVideo"]["status"], 0)
+        self.disconnect(db)
 
     def test_addVideoWithLink(self):
         db = self.create_connection()
@@ -423,6 +434,7 @@ class TestVideos(TestCommand.TestCommand):
 
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
         self.assertEqual(response[1]["AddVideo"]["status"], 0)
+        self.disconnect(db)
 
     def test_findVid_multiple_results(self):
         db = self.create_connection()
@@ -455,6 +467,7 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(len(vid_arr), number_of_inserts)
         self.assertEqual(response[0]["FindVideo"]["status"], 0)
         self.assertEqual(response[0]["FindVideo"]["returned"], number_of_inserts)
+        self.disconnect(db)
 
     def test_findVideoNoBlob(self):
         db = self.create_connection()
@@ -490,6 +503,7 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindVideo"]["status"], 0)
         self.assertEqual(response[1]["FindVideo"]["status"], 0)
         self.assertEqual(len(img_array), 0)
+        self.disconnect(db)
 
     def test_updateVideo(self):
         db = self.create_connection()
@@ -522,3 +536,4 @@ class TestVideos(TestCommand.TestCommand):
 
         self.assertEqual(response[0]["UpdateVideo"]["count"], 1)
         self.assertEqual(len(img_array), 0)
+        self.disconnect(db)
