@@ -30,6 +30,8 @@
 #include <algorithm>
 #include <fstream>
 
+#include "../VDMSConfig.h"
+#include "VDMSConfigHelper.h"
 #include "vcl/Video.h"
 
 using namespace VCL;
@@ -50,7 +52,8 @@ Video::Video(const std::string &video_id) : Video() {
 }
 
 Video::Video(void *buffer, long size) : Video() {
-  std::string uname = create_unique("/tmp/tmp/", "vclvideoblob");
+  std::string uname = create_unique(
+      VDMS::VDMSConfig::instance()->get_path_tmp(), "vclvideoblob");
   std::ofstream outfile(uname, std::ofstream::binary);
   _remote = nullptr;
 
@@ -719,7 +722,7 @@ void Video::set_connection(RemoteConnection *remote) {
   }
 
   _remote = remote;
-  _storage = Storage::AWS;
+  _storage = VDMS::StorageType::AWS;
 }
 
 /*  *********************** */

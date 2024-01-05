@@ -25,25 +25,49 @@
 # THE SOFTWARE.
 #
 
-TEST_DIR=${PWD}
-base_dir=$(dirname $(dirname $PWD))
-client_path=${base_dir}/client/python
-export PYTHONPATH=$client_path:${PYTHONPATH}
+# Variable used for storing the process id for the vdms server
+py_unittest_pid='UNKNOWN_PROCESS_ID'
 
-# Uncomment to re-generate queryMessage_pb2.py
-# protoc -I=${base_dir}/utils/src/protobuf --python_out=${client_path}/vdms ${base_dir}/utils/src/protobuf/queryMessage.proto
+function execute_commands() {
+    TEST_DIR=${PWD}
+    base_dir=$(dirname $(dirname $PWD))
+    client_path=${base_dir}/client/python
+    export PYTHONPATH=$client_path:${PYTHONPATH}
 
-cd ${TEST_DIR}
-rm  -rf test_db log.log screen.log
-mkdir -p test_db
+    # Uncomment to re-generate queryMessage_pb2.py
+    # protoc -I=${base_dir}/utils/src/protobuf --python_out=${client_path}/vdms ${base_dir}/utils/src/protobuf/queryMessage.proto
 
-./../../build/vdms -cfg config-tests.json > screen.log 2> log.log &
-py_unittest_pid=$!
+    cd ${TEST_DIR}
+    rm  -rf test_db log.log screen.log
+    mkdir -p test_db
 
-sleep 1
+    ./../../build/vdms -cfg config-tests.json > screen.log 2> log.log &
+    py_unittest_pid=$!
 
-echo 'Running Python tests...'
-python3 -m coverage run --include="../../*" --omit="${base_dir}/client/python/vdms/queryMessage_pb2.py,../*" -m unittest discover --pattern=Test*.py -v
+    sleep 1
 
-rm  -rf test_db log.log screen.log
-kill -9 $py_unittest_pid || true
+    echo 'Running Python tests...'
+    python3 -m coverage run --include="../../*" --omit="${base_dir}/client/python/vdms/queryMessage_pb2.py,../*" -m unittest discover --pattern=Test*.py -v
+
+    echo 'Finished'
+    exit 0
+}
+
+# Cleanup function to kill those processes which were started by the script
+# Also it deletes those directories created by the script (or its tests)
+function cleanup() {
+    rm  -rf test_db log.log screen.log
+    kill -9 $py_unittest_pid || true
+    exit 0
+}
+
+# Get the arguments sent to the script command
+args=$@
+
+# These traps call to cleanup() function when one those signals happen
+trap cleanup EXIT
+trap cleanup ERR
+trap cleanup SIGINT
+
+# Call to execute the script commands
+execute_commands ${args}

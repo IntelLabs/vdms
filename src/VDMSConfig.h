@@ -33,11 +33,16 @@
 
 #include <iomanip>
 #include <iostream>
+#include <optional>
 #include <sstream>
 #include <string>
 #include <vector>
 
+#include <aws/core/utils/logging/AWSLogging.h>
+#include <aws/core/utils/logging/DefaultLogSystem.h>
 #include <jsoncpp/json/value.h>
+
+#include "VDMSConfigHelper.h"
 
 // Parameters in the JSON config file
 #define PARAM_DB_ROOT "db_root_path"
@@ -74,6 +79,14 @@
 #define PARAM_PMGD_NUM_ALLOCATORS "pmgd_num_allocators"
 #define DEFAULT_PMGD_NUM_ALLOCATORS 1
 
+// C O N S T A N T S
+const std::string PARAM_ENDPOINT_OVERRIDE = "endpoint_override";
+const std::string PARAM_PROXY_HOST = "proxy_host";
+const std::string PARAM_PROXY_PORT = "proxy_port";
+const std::string PARAM_PROXY_SCHEME = "proxy_scheme";
+const std::string PARAM_USE_ENDPOINT = "use_endpoint";
+const std::string PARAM_AWS_LOG_LEVEL = "aws_log_level";
+
 namespace VDMS {
 
 class VDMSConfig {
@@ -99,10 +112,17 @@ private:
   std::string path_videos;
   std::string path_descriptors;
   std::string path_tmp;
-  std::string storage_type;
+  StorageType storage_type;
 
   bool aws_flag;               // use aws flag
   std::string aws_bucket_name; // aws bucket name
+  bool use_endpoint;           // Use Mocked S3 server or real AWS S3
+
+  std::optional<std::string> endpoint_override;
+  std::optional<std::string> proxy_host;
+  std::optional<int> proxy_port;
+  std::optional<std::string> proxy_scheme;
+  Aws::Utils::Logging::LogLevel aws_log_level;
 
   VDMSConfig(std::string config_file);
 
@@ -119,6 +139,8 @@ private:
 public:
   int get_int_value(std::string val, int def);
   std::string get_string_value(std::string val, std::string def);
+  bool get_bool_value(std::string val, bool def);
+  bool exists_key(const std::string &key);
   const std::string &get_path_root() { return path_root; }
   const std::string &get_path_pmgd() { return path_pmgd; }
   const std::string &get_path_jpg() { return path_jpg; }
@@ -129,9 +151,20 @@ public:
   const std::string &get_path_videos() { return path_videos; }
   const std::string &get_path_descriptors() { return path_descriptors; }
   const std::string &get_path_tmp() { return path_tmp; }
-  const std::string &get_storage_type() { return storage_type; }
+  const StorageType &get_storage_type() { return storage_type; }
   const std::string &get_bucket_name() { return aws_bucket_name; }
-  const bool get_aws_flag() { return aws_flag; }
+  const bool &get_aws_flag() { return aws_flag; }
+
+  std::optional<std::string> get_endpoint_override() {
+    return endpoint_override;
+  }
+  const std::optional<std::string> &get_proxy_host() { return proxy_host; }
+  const std::optional<int> &get_proxy_port() { return proxy_port; }
+  const std::optional<std::string> &get_proxy_scheme() { return proxy_scheme; }
+  const bool &get_use_endpoint() { return use_endpoint; }
+  const Aws::Utils::Logging::LogLevel get_aws_log_level() & {
+    return aws_log_level;
+  }
 };
 
 }; // namespace VDMS

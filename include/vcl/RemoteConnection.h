@@ -72,7 +72,6 @@ private:
   Aws::S3::S3Client *_aws_client;
 
   void ConfigureAws();
-  // void SetLogLevelDebug();
   void ShutdownAws();
   void write_s3(const std::string &path, std::vector<unsigned char> data);
   void write_s3(const std::string &filename);

@@ -180,7 +180,7 @@ void DescriptorSet::store() {
   // grab the descriptor files from local storage, upload them, delete the local
   // copies not deleting the local copies currently to resolve concurrency
   // issues
-  if (_storage == Storage::AWS) {
+  if (_storage == VDMS::StorageType::AWS) {
     std::string dir_path = _set->get_path();
     std::vector<std::string> filenames;
 
@@ -310,6 +310,6 @@ void DescriptorSet::set_connection(RemoteConnection *remote) {
   }
 
   _remote = remote;
-  _storage = Storage::AWS;
+  _storage = VDMS::StorageType::AWS;
 }
 } // namespace VCL

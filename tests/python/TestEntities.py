@@ -29,7 +29,7 @@ import TestCommand
 
 
 class TestEntities(TestCommand.TestCommand):
-    def addSingleEntity(self, thID, results):
+    def addSingleEntity(self, thID, results, db):
         props = {}
         props["name"] = "Luis"
         props["lastname"] = "Ferro"
@@ -37,7 +37,7 @@ class TestEntities(TestCommand.TestCommand):
         props["threadid"] = thID
 
         response, arr = self.addEntity(
-            "AwesomePeople", properties=props, check_status=False
+            "AwesomePeople", db=db, properties=props, check_status=False
         )
 
         try:
@@ -47,9 +47,7 @@ class TestEntities(TestCommand.TestCommand):
 
         results[thID] = 0
 
-    def findEntity(self, thID, results):
-        db = self.create_connection()
-
+    def findEntity(self, thID, results, db):
         constraints = {}
         constraints["threadid"] = ["==", thID]
 
@@ -85,10 +83,14 @@ class TestEntities(TestCommand.TestCommand):
         concurrency = 32
         thread_arr = []
         results = [None] * concurrency
+        connections_arr = []
+
         for i in range(0, concurrency):
-            thread_add = Thread(target=self.addSingleEntity, args=(i, results))
+            db = self.create_connection()
+            thread_add = Thread(target=self.addSingleEntity, args=(i, results, db))
             thread_add.start()
             thread_arr.append(thread_add)
+            connections_arr.append(db)
 
         idx = 0
         error_counter = 0
@@ -100,19 +102,29 @@ class TestEntities(TestCommand.TestCommand):
 
         self.assertEqual(error_counter, 0)
 
+        for i in range(0, len(connections_arr)):
+            self.disconnect(connections_arr[i])
+
         thread_arr = []
+        connections_arr = []
 
         # Tests concurrent AddEntities and FindEntities (that should exists)
         results = [None] * concurrency * 2
         for i in range(0, concurrency):
+            db1 = self.create_connection()
             addidx = concurrency + i
-            thread_add = Thread(target=self.addSingleEntity, args=(addidx, results))
+            thread_add = Thread(
+                target=self.addSingleEntity, args=(addidx, results, db1)
+            )
             thread_add.start()
             thread_arr.append(thread_add)
+            connections_arr.append(db1)
 
-            thread_find = Thread(target=self.findEntity, args=(i, results))
+            db2 = self.create_connection()
+            thread_find = Thread(target=self.findEntity, args=(i, results, db2))
             thread_find.start()
             thread_arr.append(thread_find)
+            connections_arr.append(db2)
 
         idx = 0
         error_counter = 0
@@ -125,10 +137,15 @@ class TestEntities(TestCommand.TestCommand):
 
         self.assertEqual(error_counter, 0)
 
+        for i in range(0, len(connections_arr)):
+            self.disconnect(connections_arr[i])
+
     def test_addFindEntity(self):
         results = [None] * 1
-        self.addSingleEntity(0, results)
-        self.findEntity(0, results)
+        db = self.create_connection()
+        self.addSingleEntity(0, results, db)
+        self.findEntity(0, results, db)
+        db.disconnect()
 
     def test_addEntityWithLink(self):
         db = self.create_connection()
@@ -176,6 +193,7 @@ class TestEntities(TestCommand.TestCommand):
 
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
         self.assertEqual(response[1]["AddEntity"]["status"], 0)
+        db.disconnect()
 
     def test_addfindEntityWrongConstraints(self):
         db = self.create_connection()
@@ -232,6 +250,7 @@ class TestEntities(TestCommand.TestCommand):
             response[0]["info"],
             "Constraint for property 'name' must be an array of size 2 or 4",
         )
+        db.disconnect()
 
     def test_FindWithSortKey(self):
         db = self.create_connection()
@@ -280,6 +299,7 @@ class TestEntities(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindEntity"]["status"], 0)
         for i in range(0, number_of_inserts):
             self.assertEqual(response[0]["FindEntity"]["entities"][i]["id"], i)
+        db.disconnect()
 
     def test_FindWithSortBlock(self):
         db = self.create_connection()
@@ -360,3 +380,4 @@ class TestEntities(TestCommand.TestCommand):
                 response[0]["FindEntity"]["entities"][i]["id"],
                 number_of_inserts - 1 - i,
             )
+        db.disconnect()

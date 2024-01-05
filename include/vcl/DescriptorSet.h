@@ -42,6 +42,8 @@
 #include <string>
 #include <vector>
 
+#include <VDMSConfigHelper.h>
+
 namespace VCL {
 
 enum DescriptorSetEngine {
@@ -72,7 +74,7 @@ private:
   DescriptorSetEngine _eng;
 
   RemoteConnection *_remote;
-  Storage _storage = Storage::LOCAL;
+  VDMS::StorageType _storage = VDMS::StorageType::LOCAL;
 
   void write_set_info();
   void read_set_info(const std::string &set_path);
