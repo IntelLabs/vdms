@@ -42,6 +42,17 @@ from . import queryMessage_pb2
 class vdms(object):
     def __init__(self):
         self.dataNotUsed = []
+        self.init_connection()
+        self.last_response = ""
+
+    def __del__(self):
+        self.conn.close()
+        self.connected = False
+
+    def init_connection(self):
+        if hasattr(self, "conn") and self.conn is not None:
+            self.conn.close()
+
         self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.conn.setsockopt(socket.SOL_TCP, socket.TCP_NODELAY, 1)
 
@@ -51,20 +62,29 @@ class vdms(object):
         # https://docs.python.org/dev/library/sys.html#sys.platform
         if sys.platform.startswith("linux"):
             self.conn.setsockopt(socket.SOL_TCP, socket.TCP_QUICKACK, 1)
-
         self.connected = False
-        self.last_response = ""
-
-    def __del__(self):
-        self.conn.close()
 
     def connect(self, host="localhost", port=55555):
-        self.conn.connect((host, port))
-        self.connected = True
+        if self.connected is False:
+            self.init_connection()
+            self.conn.connect((host, port))
+            self.connected = True
+            return True
+        else:
+            print("Connection is already active")
+            return False
 
     def disconnect(self):
-        self.conn.close()
-        self.connected = False
+        if self.connected is True:
+            self.conn.close()
+            self.connected = False
+            return True
+        else:
+            print("There is not an active connection")
+            return False
+
+    def is_connected(self):
+        return self.connected
 
     # Recieves a json struct as a string
     def query(self, query, blob_array=[]):

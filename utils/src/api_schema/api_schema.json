@@ -47,6 +47,7 @@
       { "$ref": "#/definitions/FindImageTop" },
 
       { "$ref": "#/definitions/AddDescriptorSetTop" },
+      { "$ref": "#/definitions/FindDescriptorSetTop" },
       { "$ref": "#/definitions/AddDescriptorTop" },
       { "$ref": "#/definitions/ClassifyDescriptorTop" },
       { "$ref": "#/definitions/FindDescriptorTop" },
@@ -450,6 +451,13 @@
       },
       "additionalProperties": false
     },
+    "FindDescriptorSetTop": {
+      "properties": {
+        "FindDescriptorSet" : { "type": "object",
+                               "$ref": "#/definitions/FindDescriptorSet" }
+      },
+      "additionalProperties": false
+    },
     "DeleteExpiredTop": {
       "properties": {
         "DeleteExpired" : { "type": "object", "$ref": "#/definitions/DeleteExpired" }
@@ -670,6 +678,20 @@
         "flinng_cut_off":{ "$ref": "#/definitions/refInt" }
       },
       "required": ["name", "dimensions"],
+      "additionalProperties": false
+    },
+    "FindDescriptorSet": {
+      "properties": {
+        "_ref":        { "$ref": "#/definitions/refInt" },
+        "results":     { "$ref": "#/definitions/blockResults" },
+        "set":       { "type": "string" },
+        "storeIndex" : { "type": "boolean" },
+        "constraints": { "type": "object" },
+        "link":       { "$ref": "#/definitions/blockLink" }
+        
+        },
+        "required": ["set"],
+      
       "additionalProperties": false
     },
 

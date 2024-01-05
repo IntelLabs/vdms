@@ -52,7 +52,6 @@ Image::Read::Read(const std::string &filename, Image::Format format)
     : Operation(format), _fullpath(filename) {}
 
 void Image::Read::operator()(Image *img) {
-  std::string typestr = img->_storage == Storage::LOCAL ? "LOCAL" : "AWS";
 
   if (_format == Image::Format::TDB) {
     if (img->_tdb == NULL)
@@ -63,7 +62,7 @@ void Image::Read::operator()(Image *img) {
     img->_height = img->_tdb->get_image_height();
     img->_width = img->_tdb->get_image_width();
     img->_channels = img->_tdb->get_image_channels();
-  } else if (img->_storage == Storage::LOCAL) {
+  } else if (img->_storage == VDMS::StorageType::LOCAL) {
     if (_format == Image::Format::BIN) {
       FILE *bin_file;
       bin_file = fopen(_fullpath.c_str(), "rb");
@@ -82,7 +81,7 @@ void Image::Read::operator()(Image *img) {
         throw VCLException(ObjectEmpty,
                            _fullpath + " could not be read, object is empty");
     }
-  } else //_type == S3
+  } else //_type == AWS|MINIO
   {
     std::vector<unsigned char> data = img->_remote->Read(_fullpath);
     if (!data.empty())
@@ -105,10 +104,10 @@ Image::Write::Write(const std::string &filename, Image::Format format,
 void Image::Write::operator()(Image *img) {
   if (_format == Image::Format::TDB) {
     if (img->_tdb == NULL) {
-      if (img->_storage == Storage::LOCAL) {
+      if (img->_storage == VDMS::StorageType::LOCAL) {
         img->_tdb = new TDBImage(_fullpath);
         img->_tdb->set_compression(img->_compress);
-      } else if (img->_storage == Storage::AWS) {
+      } else if (img->_storage == VDMS::StorageType::AWS) {
         img->_tdb = new TDBImage(_fullpath, *(img->_remote));
       } else {
         throw VCLException(
@@ -118,7 +117,7 @@ void Image::Write::operator()(Image *img) {
     }
 
     if (img->_tdb->has_data()) {
-      if (img->_storage == Storage::LOCAL) {
+      if (img->_storage == VDMS::StorageType::LOCAL) {
         img->_tdb->set_configuration(img->_remote);
       }
       img->_tdb->write(_fullpath, _metadata);
@@ -143,7 +142,7 @@ void Image::Write::operator()(Image *img) {
       cv_img = img->_cv_img;
 
     if (!cv_img.empty()) {
-      if (img->_storage == Storage::LOCAL) {
+      if (img->_storage == VDMS::StorageType::LOCAL) {
         cv::imwrite(_fullpath, cv_img);
       } else {
         std::vector<unsigned char> data;
@@ -1140,7 +1139,7 @@ void Image::set_connection(RemoteConnection *remote) {
   }
 
   _remote = remote;
-  _storage = Storage::AWS;
+  _storage = VDMS::StorageType::AWS;
 
   if (_tdb != NULL) {
     _tdb->set_configuration(remote);

@@ -82,6 +82,8 @@ class TestFindDescriptors(TestCommand.TestCommand):
         for x in range(0, total):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
 
+        self.disconnect(db)
+
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByConstraints(self):
         # Add Set
@@ -119,6 +121,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
         self.assertEqual(response[0]["FindDescriptor"]["returned"], 1)
         self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["myid"], 202)
+        self.disconnect(db)
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescUnusedRef(self):
@@ -155,6 +158,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
         self.assertEqual(response[0]["FindDescriptor"]["returned"], 1)
         self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["myid"], 202)
+        self.disconnect(db)
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByConst_get_id(self):
@@ -191,6 +195,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
         self.assertEqual(response[0]["FindDescriptor"]["returned"], 1)
         self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["myid"], 202)
+        self.disconnect(db)
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByConst_blobTrue(self):
@@ -230,6 +235,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["myid"], 202)
         self.assertEqual(len(fv_array), 1)
         self.assertEqual(len(fv_array[0]), dims * 4)
+        self.disconnect(db)
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByConst_multiple_blobTrue(self):
@@ -270,6 +276,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindDescriptor"]["entities"][1]["myid"], 201)
         self.assertEqual(len(fv_array), 3)
         self.assertEqual(len(fv_array[0]), dims * 4)
+        self.disconnect(db)
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByBlob(self):
@@ -317,6 +324,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["_distance"], 0)
         self.assertEqual(response[0]["FindDescriptor"]["entities"][1]["_distance"], 400)
         self.assertEqual(response[0]["FindDescriptor"]["entities"][2]["_distance"], 400)
+        self.disconnect(db)
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByBlobNoLabels(self):
@@ -361,6 +369,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         # Check success
         self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
         self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
+        self.disconnect(db)
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByBlobNoResults(self):
@@ -403,6 +412,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindDescriptor"]["returned"], 0)
         # self.assertEqual(len(blob_array), kn)
         # self.assertEqual(descriptor_blob[0], blob_array[0])
+        self.disconnect(db)
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByBlobUnusedRef(self):
@@ -446,6 +456,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
         self.assertEqual(len(blob_array), kn)
         self.assertEqual(descriptor_blob[0], blob_array[0])
+        self.disconnect(db)
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByBlobAndConstraints(self):
@@ -496,6 +507,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindDescriptor"]["returned"], 1)
 
         self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["_distance"], 0)
+        self.disconnect(db)
 
     # @unittest.skip("Skipping class until fixed")
     def test_findDescByBlobWithLink(self):
@@ -636,3 +648,4 @@ class TestFindDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[1]["FindEntity"]["entities"][0]["entity_prop"], 200)
         self.assertEqual(response[1]["FindEntity"]["entities"][1]["entity_prop"], 201)
         self.assertEqual(response[1]["FindEntity"]["entities"][2]["entity_prop"], 202)
+        self.disconnect(db)

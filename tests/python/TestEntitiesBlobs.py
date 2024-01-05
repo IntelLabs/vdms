@@ -56,6 +56,7 @@ class TestEntitiesBlob(TestCommand.TestCommand):
         response, res_arr = db.query(all_queries, [blob_arr])
 
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
+        self.disconnect(db)
 
     def test_addEntityWithBlobNoBlob(self, thID=0):
         db = self.create_connection()
@@ -81,6 +82,7 @@ class TestEntitiesBlob(TestCommand.TestCommand):
 
         self.assertEqual(response[0]["status"], -1)
         self.assertEqual(response[0]["info"], "Expected blobs: 1. Received blobs: 0")
+        self.disconnect(db)
 
     def test_addEntityWithBlobAndFind(self, thID=0):
         db = self.create_connection()
@@ -136,3 +138,4 @@ class TestEntitiesBlob(TestCommand.TestCommand):
         self.assertEqual(len(res_arr), len(blob_arr))
         self.assertEqual(len(res_arr[0]), len(blob_arr[0]))
         self.assertEqual((res_arr[0]), (blob_arr[0]))
+        self.disconnect(db)

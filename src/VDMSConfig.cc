@@ -34,6 +34,7 @@
 #include <map>
 #include <sstream>
 
+#include <algorithm>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -55,6 +56,12 @@
 #define DEFAULT_PATH_TMP "tmp"
 #define DEFAULT_STORAGE_TYPE "local"
 #define DEFAULT_BUCKET_NAME "vdms_bucket"
+
+// C O N S T A N T S
+const std::string KEY_NOT_FOUND = "KEY_NOT_FOUND";
+const std::string DEFAULT_ENDPOINT = "http://127.0.0.1:9000";
+const std::string DEFAULT_AWS_LOG_LEVEL = "off";
+const bool DEFAULT_USE_ENDPOINT = false;
 
 using namespace VDMS;
 
@@ -104,6 +111,10 @@ int VDMSConfig::get_int_value(std::string val, int def) {
 
 std::string VDMSConfig::get_string_value(std::string val, std::string def) {
   return json_config.get(val, def).asString();
+}
+
+bool VDMSConfig::get_bool_value(std::string val, bool def) {
+  return json_config.get(val, def).asBool();
 }
 
 // This is a function that createa a directory structure with DIRECTORY_LAYERS
@@ -247,17 +258,96 @@ void VDMSConfig::build_dirs() {
   check_or_create(path_descriptors);
 
   // TMP
-  path_tmp = "/tmp/" + std::string(DEFAULT_PATH_TMP);
+  path_tmp = std::string(DEFAULT_PATH_TMP);
   path_tmp = get_string_value(PARAM_DB_TMP, path_tmp);
   check_or_create(path_tmp);
   create_directory_layer(&directory_list, path_tmp);
 
+  // use_endpoint
+  use_endpoint = get_bool_value(PARAM_USE_ENDPOINT, DEFAULT_USE_ENDPOINT);
+
   // get storage type, set use_aws flag
-  storage_type = get_string_value(PARAM_STORAGE_TYPE, DEFAULT_STORAGE_TYPE);
-  if (storage_type == DEFAULT_STORAGE_TYPE) {
-    aws_flag = false;
-  } else {
-    aws_flag = true;
-    aws_bucket_name = get_string_value(PARAM_BUCKET_NAME, DEFAULT_BUCKET_NAME);
+  std::string storage_type_value =
+      get_string_value(PARAM_STORAGE_TYPE, DEFAULT_STORAGE_TYPE);
+  transform(storage_type_value.begin(), storage_type_value.end(),
+            storage_type_value.begin(), ::tolower);
+
+  storage_type = StorageType::INVALID_TYPE;
+  if (storage_types_map.find(storage_type_value) != storage_types_map.end()) {
+    storage_type = storage_types_map.at(storage_type_value);
   }
+
+  std::string value = "";
+  aws_flag = false;
+  if (storage_type != StorageType::INVALID_TYPE) {
+    switch (storage_type) {
+    case StorageType::AWS: {
+      aws_flag = true;
+      aws_bucket_name =
+          get_string_value(PARAM_BUCKET_NAME, DEFAULT_BUCKET_NAME);
+      // if use_endpoint value is true then check for the endpoint value
+      if (use_endpoint) {
+        // minio endpoint format: "http://127.0.0.1:9000"
+        if (exists_key(PARAM_ENDPOINT_OVERRIDE)) {
+          value = get_string_value(PARAM_ENDPOINT_OVERRIDE, KEY_NOT_FOUND);
+          endpoint_override = std::optional<std::string>{value};
+        } else {
+          // If use_endpoint value is true but the "endpoint_override" is not
+          // specified in the config file then it uses DEFAULT_ENDPOINT
+          // as default endpoint value
+          endpoint_override = std::optional<std::string>{DEFAULT_ENDPOINT};
+        }
+      }
+      break;
+    }
+    case StorageType::LOCAL: {
+      aws_flag = false;
+      break;
+    }
+    default:
+      aws_flag = false;
+    }
+  }
+
+  // proxy_host
+  if (exists_key(PARAM_PROXY_HOST)) {
+    value = get_string_value(PARAM_PROXY_HOST, KEY_NOT_FOUND);
+    proxy_host = std::optional<std::string>{value};
+  } else {
+    proxy_host = std::nullopt;
+  }
+
+  // proxy_port
+  if (exists_key(PARAM_PROXY_PORT)) {
+    value = get_string_value(PARAM_PROXY_PORT, KEY_NOT_FOUND);
+    proxy_port = std::optional<int>{stoi(value)};
+  } else {
+    proxy_port = std::nullopt;
+  }
+
+  // proxy_scheme [http|https]
+  if (exists_key(PARAM_PROXY_SCHEME)) {
+    value = get_string_value(PARAM_PROXY_SCHEME, KEY_NOT_FOUND);
+    transform(value.begin(), value.end(), value.begin(), ::tolower);
+
+    proxy_scheme = std::optional<std::string>{value};
+  } else {
+    proxy_scheme = std::nullopt;
+  }
+
+  // AWS Log Level
+  std::string aws_log_level_value =
+      get_string_value(PARAM_AWS_LOG_LEVEL, DEFAULT_AWS_LOG_LEVEL);
+
+  transform(aws_log_level_value.begin(), aws_log_level_value.end(),
+            aws_log_level_value.begin(), ::tolower);
+
+  aws_log_level = Aws::Utils::Logging::LogLevel::Off;
+  if (aws_log_level_map.find(aws_log_level_value) != aws_log_level_map.end()) {
+    aws_log_level = aws_log_level_map.at(aws_log_level_value);
+  }
+}
+
+bool VDMSConfig::exists_key(const std::string &key) {
+  return (json_config[key] != Json::nullValue);
 }

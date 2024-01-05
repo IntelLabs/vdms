@@ -6,7 +6,9 @@
     // "backup_path":"backups_test", // set this if you want different path to store the back up file
     "db_root_path": "db",
     "backup_flag" : "false",
-    "storage_type": "local", //local, aws, etc
+    "storage_type": "local", //local, aws
+    // use_endpoint: [true|false] in case of "storage_type" is equals to "aws", this key is used to specify whether it is going to use a "mocked" AWS connection
+    "use_endpoint": false,
     "bucket_name": "minio-bucket",
     "more-info": "github.com/IntelLabs/vdms"
 }

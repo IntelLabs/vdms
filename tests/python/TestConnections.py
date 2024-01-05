@@ -38,7 +38,7 @@ class TestConnections(TestCommand.TestCommand):
         props["age"] = 29
 
         response, arr = self.addEntity(
-            "felcflo_People", properties=props, check_status=True
+            "felcflo_People", db=db, properties=props, check_status=True
         )
 
         props = {}
@@ -46,7 +46,7 @@ class TestConnections(TestCommand.TestCommand):
         props["name"] = "alligator"
 
         response, arr = self.addEntity(
-            "felcflo_foo", properties=props, check_status=True
+            "felcflo_foo", db=db, properties=props, check_status=True
         )
 
         props = {}
@@ -54,7 +54,7 @@ class TestConnections(TestCommand.TestCommand):
         props["name"] = "cat"
 
         response, arr = self.addEntity(
-            "felcflo_foo", properties=props, check_status=True
+            "felcflo_foo", db=db, properties=props, check_status=True
         )
 
         all_queries = []
@@ -206,6 +206,8 @@ class TestConnections(TestCommand.TestCommand):
         response, res_arr = db.query(all_queries)
         self.assertEqual(len(response[1]["FindEntity"]["entities"]), 0)
 
+        self.disconnect(db)
+
     def test_FindEntity_link_constraints_string(self):
         db = self.create_connection()
 
@@ -215,7 +217,7 @@ class TestConnections(TestCommand.TestCommand):
         props["age"] = 29
 
         response, arr = self.addEntity(
-            "felcstr_People", properties=props, check_status=True
+            "felcstr_People", db=db, properties=props, check_status=True
         )
 
         props = {}
@@ -223,7 +225,7 @@ class TestConnections(TestCommand.TestCommand):
         props["name"] = "alligator"
 
         response, arr = self.addEntity(
-            "felcstr_foo", properties=props, check_status=True
+            "felcstr_foo", db=db, properties=props, check_status=True
         )
 
         props = {}
@@ -231,7 +233,7 @@ class TestConnections(TestCommand.TestCommand):
         props["name"] = "cat"
 
         response, arr = self.addEntity(
-            "felcstr_foo", properties=props, check_status=True
+            "felcstr_foo", db=db, properties=props, check_status=True
         )
 
         all_queries = []
@@ -400,3 +402,5 @@ class TestConnections(TestCommand.TestCommand):
         response, res_arr = db.query(all_queries)
         self.assertEqual(len(response[1]["FindEntity"]["entities"]), 1)
         self.assertEqual(response[1]["FindEntity"]["entities"][0]["name"], "cat")
+
+        self.disconnect(db)

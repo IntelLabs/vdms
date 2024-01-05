@@ -32,6 +32,8 @@ import vdms
 class TestCommand(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestCommand, self).__init__(*args, **kwargs)
+        # Flag for displaying debug messages
+        self.verbose = False
 
         # VDMS Server Info
         self.hostname = "localhost"
@@ -40,9 +42,9 @@ class TestCommand(unittest.TestCase):
 
         db_up = False
         attempts = 0
+        db = vdms.vdms()
         while not db_up:
             try:
-                db = vdms.vdms()
                 db.connect(self.hostname, self.port)
                 db.disconnect()
                 db_up = True
@@ -75,13 +77,50 @@ class TestCommand(unittest.TestCase):
 
     def create_connection(self):
         db = vdms.vdms()
-        db.connect(self.hostname, self.port)
 
+        if db.is_connected() is False:
+            db.connect(self.hostname, self.port)
+            if self.verbose is True:
+                print(
+                    "Connection created for hostname:",
+                    self.hostname,
+                    "and port:",
+                    str(self.port),
+                )
+        else:
+            if self.verbose is True:
+                print(
+                    "Connection is already active for hostname:",
+                    self.hostname,
+                    "and port:",
+                    str(self.port),
+                )
         return db
+
+    def disconnect(self, db):
+        if db is not None:
+            if db.is_connected() is True:
+                db.disconnect()
+                if self.verbose is True:
+                    print(
+                        "Disconnection done for hostname:",
+                        self.hostname,
+                        "and port:",
+                        str(self.port),
+                    )
+            else:
+                if self.verbose is True:
+                    print(
+                        "disconnect() was not executed for hostname:",
+                        self.hostname,
+                        "and port:",
+                        str(self.port),
+                    )
 
     def addEntity(
         self,
         class_name,
+        db,
         properties=None,
         constraints=None,
         blob=False,  # Generic blob
@@ -100,8 +139,6 @@ class TestCommand(unittest.TestCase):
 
         all_queries = []
         all_queries.append(query)
-
-        db = self.create_connection()
 
         if not blob:
             response, res_arr = db.query(all_queries)
