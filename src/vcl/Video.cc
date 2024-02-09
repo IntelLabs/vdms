@@ -119,21 +119,18 @@ cv::Mat Video::get_frame(unsigned frame_number, bool performOp) {
       throw VCLException(OutOfBounds, "Frame requested is out of bounds");
 
     cv::VideoCapture inputVideo(_video_id);
-    int i = 0;
-    // Loop until the required frame is read
-    while (true) {
-      cv::Mat mat_frame;
-      inputVideo >> mat_frame;
 
-      if (mat_frame.empty()) {
-        break;
-      }
-      if (i == frame_number) {
-        frame = mat_frame;
-        break;
-      }
-      i++;
+    // Set the index of the frame to be read
+    if (!inputVideo.set(cv::CAP_PROP_POS_FRAMES, frame_number)) {
+      throw VCLException(UnsupportedOperation, "Set the frame index failed");
     }
+
+    // Read the frame
+    if (!inputVideo.read(frame)) {
+      throw VCLException(UnsupportedOperation,
+                         "Frame requested cannot be read");
+    }
+
     inputVideo.release();
   } else {
 
@@ -564,8 +561,9 @@ void Video::perform_operations(bool is_store, std::string store_id) {
     // Setup temporary files
     auto time_now = std::chrono::system_clock::now();
     std::chrono::duration<double> utc_time = time_now.time_since_epoch();
-    std::string fname =
-        "/tmp/tempfile" + std::to_string(utc_time.count()) + "." + format;
+    std::string fname = VDMS::VDMSConfig::instance()->get_path_tmp() +
+                        "/tempfile" + std::to_string(utc_time.count()) + "." +
+                        format;
     std::string id =
         (_operated_video_id == "") ? _video_id : _operated_video_id;
 
@@ -595,8 +593,8 @@ void Video::perform_operations(bool is_store, std::string store_id) {
       while (op_count < _operations.size()) {
         time_now = std::chrono::system_clock::now();
         utc_time = time_now.time_since_epoch();
-        fname =
-            "/tmp/tempfile" + std::to_string(utc_time.count()) + "." + format;
+        fname = VDMS::VDMSConfig::instance()->get_path_tmp() + "/tempfile" +
+                std::to_string(utc_time.count()) + "." + format;
 
         op_count = perform_single_frame_operations(id, op_count, fname);
 
@@ -863,7 +861,8 @@ void Video::Interval::operator()(Video *video, cv::Mat &frame,
     }
     auto time_now = std::chrono::system_clock::now();
     std::chrono::duration<double> utc_time = time_now.time_since_epoch();
-    std::string tmp_fname = "/tmp/tempfile_interval" +
+    std::string tmp_fname = VDMS::VDMSConfig::instance()->get_path_tmp() +
+                            "/tempfile_interval" +
                             std::to_string(utc_time.count()) + "." + format;
 
     cv::VideoCapture inputVideo(fname);
@@ -997,7 +996,8 @@ void Video::SyncRemoteOperation::operator()(Video *video, cv::Mat &frame,
         auto time_now = std::chrono::system_clock::now();
         std::chrono::duration<double> utc_time = time_now.time_since_epoch();
         std::string response_filepath =
-            "/tmp/rtempfile" + std::to_string(utc_time.count()) + "." + format;
+            VDMS::VDMSConfig::instance()->get_path_tmp() + "/rtempfile" +
+            std::to_string(utc_time.count()) + "." + format;
         FILE *response_file = fopen(response_filepath.data(), "wb");
 
         if (curl_easy_setopt(curl, CURLOPT_URL, _url.data()) != CURLE_OK) {
