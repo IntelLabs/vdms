@@ -55,7 +55,7 @@ jobs:
         group: intellabs-vdms-runners
         labels: vdms-check-in
       steps:
-        - uses: actions/github-script@v6
+        - uses: actions/github-script@v7
           id: artifact
           with:
             # Delete all artifacts
@@ -84,7 +84,7 @@ jobs:
       labels: vdms-check-in
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
       - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }}
@@ -103,7 +103,7 @@ jobs:
           docker save -o ${{ env.DOCKER_ARTIFACT_DIR }}/${{ env.VDMS_IMAGE_TARFILE}} ${{ env.VDMS_IMAGE_TAG}}
       - name: Upload Docker Image Artifact
         if: success()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.VDMS_IMAGE_TARFILE}}
           path: ${{ env.DOCKER_ARTIFACT_DIR }}/${{ env.VDMS_IMAGE_TARFILE}}
@@ -119,7 +119,7 @@ jobs:
     steps:
       - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }} ${{ env.ARTIFACT_DIR }}
       - name: Download Docker Image
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ env.VDMS_IMAGE_TARFILE}}
           path: ${{ env.DOCKER_ARTIFACT_DIR }}
@@ -147,7 +147,7 @@ jobs:
             "https://bdba001.icloud.intel.com/api/product/${{ env.bdba_product_id }}/csv-vulns"
 
       - name: Upload BDBA Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: CT7_bdba-results.csv
           path: ${{ env.ARTIFACT_DIR }}/CT7_bdba-results.csv
@@ -165,12 +165,12 @@ jobs:
       labels: vdms-check-in
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
       - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }} ${{ env.ARTIFACT_DIR }}
       - name: Download Docker Image
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ env.VDMS_IMAGE_TARFILE}}
           path: ${{ env.DOCKER_ARTIFACT_DIR }}
@@ -188,7 +188,7 @@ jobs:
           echo "$output_checks" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
       - name: Upload SBOM Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: CT36_dockersbom-components.csv
           path: ${{ env.ARTIFACT_DIR }}/CT36_dockersbom-components.csv
@@ -207,7 +207,7 @@ jobs:
       labels: vdms-check-in
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
       - name: Build Docker Container with Coverity
@@ -253,7 +253,7 @@ jobs:
           mkdir -p ${{ env.ARTIFACT_DIR }}
           bandit ./ -r -c .github/workflows/ipas_default.config -f csv -o ${{ env.ARTIFACT_DIR }}/CT161_bandit-report.csv
       - name: Upload Bandit Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: CT161_bandit-report.csv
           path: ${{ env.ARTIFACT_DIR }}/CT161_bandit-report.csv
@@ -268,7 +268,7 @@ jobs:
       labels: vdms-check-in
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - run: mkdir -p ${{ env.ARTIFACT_DIR }}
       - name: Run Hadolint Docker Container
         id: get_hadolint
@@ -287,7 +287,7 @@ jobs:
           echo "### Hadolint Returned Rule Codes" > $GITHUB_STEP_SUMMARY
           echo "${{ env.hadolint_output }}" >> $GITHUB_STEP_SUMMARY
       - name: Upload Hadolint Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: CT222_hadolint-results.txt
           path: ${{ env.ARTIFACT_DIR }}/CT222_hadolint-results.txt
@@ -301,12 +301,12 @@ jobs:
       labels: vdms-check-in
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
       - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }} ${{ env.ARTIFACT_DIR }}
       - name: Download docker image
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ env.VDMS_IMAGE_TARFILE}}
           path: ${{ env.DOCKER_ARTIFACT_DIR }}
@@ -337,13 +337,13 @@ jobs:
           echo "$output_checks" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
       - name: Upload Trivy Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: CT247_trivy-report-imagescan.csv
           path: ${{ env.ARTIFACT_DIR }}/CT247_trivy-report-imagescan.csv
           if-no-files-found: error
       - name: Upload Trivy Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: CT248_trivy-report-imagescan.csv
           path: ${{ env.ARTIFACT_DIR }}/CT248_trivy-report-imagescan.csv
@@ -363,7 +363,7 @@ jobs:
       labels: vdms-check-in
     steps:
       - name: Download Docker Image
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ env.VDMS_IMAGE_TARFILE}}
           path: ${{ env.DOCKER_ARTIFACT_DIR }}
@@ -397,7 +397,7 @@ jobs:
           echo "$output_score" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
       - name: Upload CIS Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: CT249_CIS-results.txt
           path: ${{ env.ARTIFACT_DIR }}/CT249_CIS-results.txt

@@ -64,7 +64,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout ${{ matrix.coverage_type }} Branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: true
           ref: ${{ matrix.branch_ref }}
@@ -174,7 +174,7 @@ jobs:
     needs: coverage_job
     steps:
       - name: Comment Coverage
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             github.rest.issues.createComment({
@@ -217,7 +217,7 @@ jobs:
       # If formatting needed, checkout and format again
       - if: needs.coverage_job.outputs.modify_source == 'true'
         name: Checkout Source Branch
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.ref }}
