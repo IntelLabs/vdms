@@ -56,7 +56,6 @@ else()
   add_subdirectory(tests)
   add_subdirectory(src/vcl)
   add_subdirectory(client/cpp)
-  add_subdirectory(ext/custom_vcl)
   add_subdirectory(distributed)
 
   link_directories(/usr/local/lib /usr/lib/x86_64-linux-gnu/)

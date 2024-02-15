@@ -173,7 +173,6 @@ RUN if [ "${BUILD_COVERAGE}" = "on" ]; then \
 COPY ./.git /vdms/.git
 COPY ./client /vdms/client
 COPY ./distributed /vdms/distributed
-COPY ./ext /vdms/ext
 COPY ./include /vdms/include
 COPY ./src /vdms/src
 COPY ./tests /vdms/tests
