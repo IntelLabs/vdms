@@ -8,12 +8,14 @@ on:
   push:
     branches:
       - develop
-# on:
-#   pull_request:
-#     types: [ opened, edited, synchronize, reopened ]
-#     branches:
-#       - develop
-#       - master
+  # pull_request:
+  #   types: [ opened, edited, synchronize, reopened ]
+  #   branches:
+  #     - develop
+  #     - master
+
+# Declare default permissions as read only.
+permissions: read-all
 
 # Ensures that only a single workflow in the same concurrency group will run at the same time
 concurrency:
@@ -38,6 +40,7 @@ env:
   VDMS_IMAGE_TARFILE: vdms_latest.tar
   FACELESS_USERNAME: ${{ secrets.FACELESS_NAME}}
   FACELESS_AUTHKEY: ${{ secrets.FACELESS_AUTHKEY}}
+  FACELESS_TOKEN: ${{ secrets.FACELESS_TOKEN}}
   COVERITYSTREAM: ${{ secrets.COVERITYSTREAM}}
   COVERITYSERVER: ${{ secrets.COVERITYSERVER }}
   COVERITY_IMAGE_TAG: vdms:coverity
@@ -50,29 +53,65 @@ env:
 jobs:
   # REMOVE OLD ARTIFACTS
   delete:
-      name: Remove Old Artifacts
-      runs-on:
-        group: intellabs-vdms-runners
-        labels: vdms-check-in
-      steps:
-        - uses: actions/github-script@v7
-          id: artifact
-          with:
-            # Delete all artifacts
-            script: |
-              const res = await github.rest.actions.listArtifactsForRepo({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
+    permissions: write-all
+    name: Remove Old Artifacts
+    runs-on:
+      group: intellabs-vdms-runners
+      labels: vdms-check-in
+    steps:
+      - uses: actions/github-script@v7
+        id: artifact
+        with:
+          # Delete all artifacts
+          script: |
+            const res = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            })
+
+            res.data.artifacts
+              .forEach(({ id }) => {
+                github.rest.actions.deleteArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: id,
+                })
               })
 
-              res.data.artifacts
-                .forEach(({ id }) => {
-                  github.rest.actions.deleteArtifact({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    artifact_id: id,
-                  })
-                })
+  # RUN OSSF SCORECARD
+  OSSF_Scorecard:
+    name: OSSF Scorecard analysis
+    runs-on:
+        group: intellabs-vdms-runners
+        labels: vdms-check-in
+    steps:
+      - name: Checkout Branch
+        uses: actions/checkout@v4
+      - run: mkdir -p ${{ env.ARTIFACT_DIR }}
+      - name: Run analysis
+        run: |
+          docker run --rm ${{ env.DOCKER_PROXY_RUN_ARGS }} \
+            -e GITHUB_AUTH_TOKEN=${{ env.FACELESS_TOKEN }} \
+            gcr.io/openssf/scorecard:stable --show-details \
+            --repo=https://github.com/intel-innersource/libraries.databases.visual.vdms \
+            --commit=${{ github.sha }} \
+            | tee ${{ env.ARTIFACT_DIR }}/openssf_scorecard_vdms.txt
+
+          output=$(cat ${{ env.ARTIFACT_DIR }}/openssf_scorecard_vdms.txt | grep "Aggregate score: ")
+          echo "scorecard_score<<EOF" >> $GITHUB_ENV
+          echo "$output" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+      - name: Print Scorecard Results in Job Summary
+        shell: bash
+        run: |
+          set -x
+          echo "### OpenSSF Score" > $GITHUB_STEP_SUMMARY
+          echo "${{ env.scorecard_score }}" >> $GITHUB_STEP_SUMMARY
+      - name: Upload Scorecard Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openssf_scorecard_vdms.txt
+          path: ${{ env.ARTIFACT_DIR }}/openssf_scorecard_vdms.txt
 
   # BUILD LATEST CODE AS DOCKER IMAGE
   BuildLatest:
@@ -412,7 +451,7 @@ jobs:
   cleanup:
     name: Workflow Cleanup
     if: ${{ always() }}
-    needs: [CT7_BDBA, CT36_SBOM, CT39_Coverity, CT161_Bandit, CT222_Hadolint, CT247_CT248_Trivy, CT249_CIS]
+    needs: [OSSF_Scorecard, CT7_BDBA, CT36_SBOM, CT39_Coverity, CT161_Bandit, CT222_Hadolint, CT247_CT248_Trivy, CT249_CIS]
     runs-on:
       group: intellabs-vdms-runners
       labels: vdms-check-in

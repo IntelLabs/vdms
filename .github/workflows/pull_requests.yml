@@ -10,6 +10,9 @@ on:
       - develop
       - master
 
+# Declare default permissions as read only.
+permissions: read-all
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # OBTAIN COVERAGE
@@ -167,6 +170,7 @@ jobs:
 
   # COMPARE COVERAGE NUMBERS
   compare_coverage:
+    permissions: write-all
     name: Compare Reported Coverage
     runs-on:
       group: intellabs-vdms-runners
@@ -207,6 +211,8 @@ jobs:
 
   # FORMAT CODE
   commit_format:
+    permissions:
+      contents: write  # for Git to git push
     name: Commit Format
     runs-on:
       group: intellabs-vdms-runners

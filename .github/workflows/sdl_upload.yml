@@ -7,6 +7,8 @@ on:
         description: 'GitHub Workflow Run ID'
         required: true
 
+# Declare default permissions as read only.
+permissions: read-all
 
 jobs:
   sdl_upload:
