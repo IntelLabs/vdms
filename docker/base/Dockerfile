@@ -21,7 +21,7 @@ FROM base as build
 # Install Packages
 # hadolint ignore=DL3008
 RUN apt-get update -y && apt-get upgrade -y && \
-    apt-get install -y --no-install-suggests --no-install-recommends --fix-missing \
+    apt-get install -o 'Acquire::Retries=3' -y --no-install-suggests --no-install-recommends --fix-broken --fix-missing \
         apt-transport-https autoconf automake bison build-essential bzip2 ca-certificates \
         curl ed flex g++-9 gcc-9 git gnupg-agent javacc libarchive-tools libatlas-base-dev \
         libavcodec-dev libavformat-dev libboost-all-dev libbz2-dev libc-ares-dev libcurl4-openssl-dev \
@@ -40,10 +40,12 @@ RUN apt-get update -y && apt-get upgrade -y && \
 WORKDIR /dependencies
 ENV CMAKE_VERSION="v3.27.2"  \
     VALIJSON_VERSION="v0.6" \
-    FAISS_VERSION="v1.7.3" \
+    FAISS_VERSION="v1.7.4" \
     OPENCV_VERSION="4.5.5" \
     TILEDB_VERSION="2.14.1" \
-    AWS_SDK_VERSION="1.11.0"
+    AWS_SDK_VERSION="1.11.0" \
+    AUTOCONF_VERSION="2.71" \
+    PEG_VERSION="0.1.19"
 
 # hadolint ignore=DL3003
 RUN python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION}" && \
@@ -100,10 +102,27 @@ RUN git clone --branch ${OPENCV_VERSION} https://github.com/opencv/opencv.git /d
         cd /dependencies/opencv && mkdir build && cd build && cmake -D BUILD_PERF_TESTS=OFF -D BUILD_TESTS=OFF .. && \
             make ${BUILD_THREADS} && make install DESTDIR=/opt/dist && make install
 
+# LIB-OMNI FOR NEO4J QUERY HANDLER
+# hadolint ignore=DL3003,SC2086
+RUN curl -O  https://ftp.gnu.org/gnu/autoconf/autoconf-${AUTOCONF_VERSION}.tar.xz && \
+        tar -xf autoconf-${AUTOCONF_VERSION}.tar.xz && cd autoconf-${AUTOCONF_VERSION} && \
+        ./configure && make ${BUILD_THREADS} && make install DESTDIR=/opt/dist && make install && \
+    curl -L -o /dependencies/peg-${PEG_VERSION}.tar.gz \
+        https://github.com/gpakosz/peg/releases/download/${PEG_VERSION}/peg-${PEG_VERSION}.tar.gz && \
+        cd /dependencies/ && tar -xf peg-${PEG_VERSION}.tar.gz && cd peg-${PEG_VERSION} && \
+        make ${BUILD_THREADS} && make install DESTDIR=/opt/dist && make install && \
+    git clone https://github.com/cleishm/libcypher-parser.git /dependencies/libcypher && \
+        cd /dependencies/libcypher && ./autogen.sh && ./configure && \
+        make install DESTDIR=/opt/dist && make install && \
+    git clone https://github.com/majensen/libneo4j-omni.git /dependencies/libomni && \
+        cd /dependencies/libomni && ./autogen.sh && ./configure --disable-tools && \
+        make install DESTDIR=/opt/dist -no-werror && make install -no-werror
+
 # CLEANUP
 RUN rm -rf /dependencies /usr/local/share/doc /usr/local/share/man && \
     mkdir -p /opt/dist/usr/include/x86_64-linux-gnu && \
         cp -rp /usr/include/x86_64-linux-gnu /opt/dist/usr/include/x86_64-linux-gnu
+
 
 ############################################################
 # FINAL IMAGE
@@ -111,7 +130,7 @@ FROM base
 
 # hadolint ignore=DL3008
 RUN apt-get update -y && apt-get upgrade -y && \
-    apt-get install -y --no-install-suggests --no-install-recommends --fix-missing \
+    apt-get install -o 'Acquire::Retries=3' -y --no-install-suggests --no-install-recommends --fix-broken --fix-missing \
         build-essential bzip2 curl g++-9 gcc-9 git javacc libarchive-tools libavcodec-dev libavformat-dev libcurl4-openssl-dev \
         libdc1394-22-dev libgoogle-glog-dev libgtk-3-dev libgtk2.0-dev libhdf5-dev libjpeg-dev libjpeg62-turbo-dev libjsoncpp-dev libopenblas-dev \
         libpng-dev librdkafka-dev libssl-dev libswscale-dev libtbb-dev libtbb2 libtiff-dev libtiff5-dev libzmq3-dev  openjdk-11-jdk-headless procps python3-dev python3-pip && \
