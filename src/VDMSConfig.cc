@@ -53,7 +53,7 @@
 #define DEFAULT_PATH_BLOBS "blobs"
 #define DEFAULT_PATH_VIDEOS "videos"
 #define DEFAULT_PATH_DESCRIPTORS "descriptors"
-#define DEFAULT_PATH_TMP "tmp"
+#define DEFAULT_PATH_TMP "/tmp"
 #define DEFAULT_STORAGE_TYPE "local"
 #define DEFAULT_BUCKET_NAME "vdms_bucket"
 

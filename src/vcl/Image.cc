@@ -136,6 +136,9 @@ void Image::Write::operator()(Image *img) {
     }
   } else {
     cv::Mat cv_img;
+    if (img->_no_blob && img->_op_completed == 0) {
+      return;
+    }
     if (_old_format == Image::Format::TDB)
       cv_img = img->_tdb->get_cvmat();
     else
@@ -634,6 +637,30 @@ Image::Image(const std::string &image_id, std::string bucket_name) {
   _op_completed = 0;
 }
 
+Image::Image(const std::string &image_id, bool no_blob) {
+  _remote = nullptr;
+
+  _channels = 0;
+  _height = 0;
+  _width = 0;
+  _cv_type = CV_8UC3;
+  _bin = 0;
+  _bin_size = 0;
+
+  std::string extension = get_extension(image_id);
+  set_format(extension);
+
+  _compress = CompressionType::LZ4;
+
+  _image_id = create_fullpath(image_id, _format);
+  _no_blob = no_blob;
+
+  _tdb = nullptr;
+  read(image_id);
+
+  _op_completed = 0;
+}
+
 Image::Image(const cv::Mat &cv_img, bool copy) {
   if (cv_img.empty()) {
     throw VCLException(ObjectEmpty, "Image object is empty");
@@ -705,6 +732,7 @@ Image::Image(const Image &img, bool copy) {
   _format = img._format;
   _compress = img._compress;
   _image_id = img._image_id;
+  _no_blob = img._no_blob;
 
   if (!(img._cv_img).empty()) {
     if (copy) {
@@ -741,6 +769,7 @@ Image::Image(Image &&img) noexcept {
   _bin = 0;
   _bin_size = 0;
   _remote = nullptr;
+  _no_blob = img._no_blob;
 
   _format = img._format;
   _compress = img._compress;
@@ -774,6 +803,7 @@ Image &Image::operator=(const Image &img) {
   _format = img._format;
   _compress = img._compress;
   _image_id = img._image_id;
+  _no_blob = img._no_blob;
 
   if (img._tdb != NULL) {
     _tdb = new TDBImage(*img._tdb);
@@ -819,6 +849,8 @@ Image::~Image() {
 /*  *********************** */
 
 std::string Image::get_image_id() const { return _image_id; }
+
+bool Image::is_blob_not_stored() const { return _no_blob; }
 
 cv::Size Image::get_dimensions(bool performOp) {
   //  TODO: iterate over operations themsevles to determine

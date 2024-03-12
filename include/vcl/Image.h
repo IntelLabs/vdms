@@ -72,6 +72,12 @@ public:
   /*  *********************** */
 
   /**
+   *  Default constructor, creates an empty Image object.
+   *    Used when reading from the file system
+   */
+  Image();
+
+  /**
    *  Creates an Image object from the image id (where the
    *    image data can be found in the system).
    *
@@ -80,6 +86,15 @@ public:
    *  storage
    */
   Image(const std::string &image_id, std::string bucket_name = "");
+
+  /**
+   *  Creates an Image object from the image id (where the
+   *    image data can be found in the system).
+   *
+   *  @param image_id  The full path to the image
+   *  @param no_blob If no blob is to be stored
+   */
+  Image(const std::string &image_id, bool no_blob);
 
   /**
    *  Creates an Image object from the OpenCV Mat
@@ -275,6 +290,13 @@ public:
    */
   std::string get_query_error_response();
 
+  /**
+   *  Checks if a blob is stored for the image or not
+   *
+   *  @return True if blob is stored
+   */
+  bool is_blob_not_stored() const;
+
   /*  *********************** */
   /*        SET FUNCTIONS     */
   /*  *********************** */
@@ -452,12 +474,6 @@ public:
   std::string format_to_string(Image::Format format);
 
 private:
-  /**
-   *  Default constructor, creates an empty Image object.
-   *    Used when reading from the file system
-   */
-  Image();
-
   // Forward declaration of Operation class, to be used of _operations
   // list
   class Operation;
@@ -494,6 +510,10 @@ private:
 
   // Full path to image
   std::string _image_id;
+
+  // No blob stored. The file path is stored instead
+  // and is accessed locally or over the network.
+  bool _no_blob = false;
 
   // Query Error response
   std::string _query_error_response = "";

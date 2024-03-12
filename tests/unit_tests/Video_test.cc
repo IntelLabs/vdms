@@ -1291,3 +1291,74 @@ TEST_F(VideoTest, CheckDecodedRandomFrames) {
     ASSERT_TRUE(false);
   }
 }
+
+/**
+ * Create a Video object of MP4 format and point to an existing file.
+ * Imitates the VDMS read then store capability. Should have the same
+ * frames as an OpenCV video object.
+ */
+TEST_F(VideoTest, WriteFromFilePath) {
+  try {
+    std::string uname = VCL::create_unique(OUTPUT_VIDEO_DIR + "/videos", "mp4");
+    {
+      VCL::Video video_data(_video_path_mp4_h264, true);
+      video_data.store(uname, VCL::Video::Codec::H264);
+    }
+
+    // OpenCV writing the video H264
+    std::string write_output_ocv("videos_tests/write_test_ocv.mp4");
+    {
+      copy_video_to_temp(_video_path_mp4_h264, write_output_ocv, get_fourcc());
+    }
+
+    VCL::Video video_data(_video_path_mp4_h264);
+    long input_frame_count = video_data.get_frame_count();
+
+    cv::VideoCapture testVideo(write_output_ocv);
+    long test_frame_count = testVideo.get(cv::CAP_PROP_FRAME_COUNT);
+
+    ASSERT_EQ(input_frame_count, test_frame_count);
+
+    for (int i = 0; i < input_frame_count; ++i) {
+      cv::Mat input_frame = video_data.get_frame(i);
+      cv::Mat test_frame;
+      testVideo >> test_frame;
+
+      if (test_frame.empty())
+        break; // should not happen
+
+      EXPECT_TRUE(compare_mat_mat(input_frame, test_frame));
+    }
+
+  } catch (VCL::Exception &e) {
+    print_exception(e);
+    ASSERT_TRUE(false);
+  }
+}
+
+/**
+ * Error scenario when added file path is not accessible.
+ */
+TEST_F(VideoTest, FilePathAccessError) {
+  try {
+    std::string write_output_vcl("videos_tests/write_test_vcl.mp4");
+    copy_video_to_temp(_video_path_mp4_h264, write_output_vcl, get_fourcc());
+    std::string uname = VCL::create_unique(OUTPUT_VIDEO_DIR + "/videos", "mp4");
+    {
+      VCL::Video video_data(write_output_vcl, true);
+      video_data.store(uname, VCL::Video::Codec::H264);
+    }
+
+    if (std::remove(write_output_vcl.data()) != 0) {
+      throw VCLException(ObjectEmpty,
+                         "Error encountered while removing the file.");
+    }
+
+    VCL::Video video_data(write_output_vcl);
+    ASSERT_THROW(video_data.get_frame_count(), VCL::Exception);
+
+  } catch (VCL::Exception &e) {
+    print_exception(e);
+    ASSERT_TRUE(false);
+  }
+}

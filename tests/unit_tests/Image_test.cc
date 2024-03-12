@@ -28,10 +28,12 @@
  */
 
 #include "ImageLoop.h"
+#include "VDMSConfig.h"
 #include "stats/SystemStats.h"
 #include "vcl/Image.h"
 #include "gtest/gtest.h"
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -46,6 +48,7 @@
 class ImageTest : public ::testing::Test {
 protected:
   virtual void SetUp() {
+    VDMS::VDMSConfig::init("unit_tests/config-tests.json");
     img_ = "test_images/large1.jpg";
     tdb_img_ = "tdb/test_image.tdb";
     cv_img_ = cv::imread(img_, -1);
@@ -953,4 +956,26 @@ TEST_F(ImageTest, PipelineException) {
   img.get_cvmat();
   ASSERT_STREQ(img.get_query_error_response().data(),
                "Requested area is not within the image");
+}
+
+TEST_F(ImageTest, AddImageByPath) {
+  VCL::Image img;
+  img = VCL::Image(img_, true);
+
+  EXPECT_EQ(VCL::Image::Format::JPG, img.get_image_format());
+  EXPECT_EQ(img_, img.get_image_id());
+}
+
+TEST_F(ImageTest, ImagePathError) {
+  VCL::Image img;
+  std::string temp_image_path(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                              "/pathimage.jpg");
+  std::filesystem::copy_file(img_, temp_image_path);
+  img = VCL::Image(temp_image_path, true);
+
+  std::remove(temp_image_path.data());
+
+  VCL::Image read_img(temp_image_path);
+  ASSERT_THROW(read_img.get_encoded_image_async(read_img.get_image_format()),
+               VCL::Exception);
 }

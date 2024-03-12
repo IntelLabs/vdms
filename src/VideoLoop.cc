@@ -117,6 +117,8 @@ void VideoLoop::operationThread() noexcept {
               std::pair<std::string, VCL::Video>(video.get_video_id(), video));
           if (not result.second) {
             result.first->second = video;
+            result.first->second.set_operated_video_id(
+                video.get_operated_video_id());
           }
         }
       }

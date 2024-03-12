@@ -166,7 +166,7 @@ class TestVideos(TestCommand.TestCommand):
             video_blob = fd.read()
 
         video_params = {}
-        video_params["from_server_file"] = "BigFile.mp4"
+        video_params["from_file_path"] = "BigFile.mp4"
         video_params["codec"] = "h264"
 
         query = {}
@@ -181,7 +181,7 @@ class TestVideos(TestCommand.TestCommand):
         db = self.create_connection()
 
         video_params = {}
-        video_params["from_server_file"] = "BigFile.mp4"
+        video_params["from_file_path"] = "BigFile.mp4"
         video_params["codec"] = "h264"
 
         query = {}
@@ -201,7 +201,7 @@ class TestVideos(TestCommand.TestCommand):
         shutil.copy2(source_file, tmp_filepath)
 
         video_params = {}
-        video_params["from_server_file"] = tmp_filepath
+        video_params["from_file_path"] = tmp_filepath
         video_params["codec"] = "h264"
 
         query = {}

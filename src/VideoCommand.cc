@@ -141,8 +141,9 @@ int AddVideo::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
 
   int node_ref = get_value<int>(cmd, "_ref", query.get_available_reference());
 
-  const std::string from_server_file =
-      get_value<std::string>(cmd, "from_server_file", "");
+  const std::string from_file_path =
+      get_value<std::string>(cmd, "from_file_path", "");
+  const bool is_local_file = get_value<bool>(cmd, "is_local_file", false);
   VCL::Video video;
 
   if (_use_aws_storage) {
@@ -152,10 +153,15 @@ int AddVideo::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
     video.set_connection(connection);
   }
 
-  if (from_server_file.empty())
+  if (from_file_path.empty())
     video = VCL::Video((void *)blob.data(), blob.size());
-  else
-    video = VCL::Video(from_server_file);
+  else {
+    if (is_local_file) {
+      video = VCL::Video(from_file_path, false);
+    } else {
+      video = VCL::Video(from_file_path, true);
+    }
+  }
 
   // Key frame extraction works on binary stream data, without encoding. We
   // check whether key-frame extraction is to be applied, and if so, we
@@ -182,6 +188,10 @@ int AddVideo::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
   // input, but for now it is an acceptable solution.
   Json::Value props = get_value<Json::Value>(cmd, "properties");
   props[VDMS_VID_PATH_PROP] = file_name;
+
+  if (video.is_blob_not_stored()) {
+    props[VDMS_VID_PATH_PROP] = video.get_video_id();
+  }
 
   // Add Video node
   query.AddNode(node_ref, VDMS_VID_TAG, props, Json::Value());
@@ -233,7 +243,7 @@ Json::Value AddVideo::construct_responses(Json::Value &response,
 
 bool AddVideo::need_blob(const Json::Value &cmd) {
   const Json::Value &add_video_cmd = cmd[_cmd_name];
-  return !(add_video_cmd.isMember("from_server_file"));
+  return !(add_video_cmd.isMember("from_file_path"));
 }
 
 //========= UpdateVideo definitions =========

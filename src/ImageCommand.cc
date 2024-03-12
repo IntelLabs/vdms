@@ -135,6 +135,9 @@ int AddImage::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
   int operation_flags = 0;
 
   int node_ref = get_value<int>(cmd, "_ref", query.get_available_reference());
+  const std::string from_file_path =
+      get_value<std::string>(cmd, "from_file_path", "");
+  const bool is_local_file = get_value<bool>(cmd, "is_local_file", false);
 
   std::string format = get_value<std::string>(cmd, "format", "");
   char binary_img_flag = 0;
@@ -142,7 +145,18 @@ int AddImage::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
     binary_img_flag = 1;
   }
 
-  VCL::Image img((void *)blob.data(), blob.size(), binary_img_flag);
+  VCL::Image img;
+
+  if (from_file_path.empty()) {
+    img = VCL::Image((void *)blob.data(), blob.size(), binary_img_flag);
+  } else {
+    if (is_local_file) {
+      img = VCL::Image(from_file_path, false);
+    } else {
+      img = VCL::Image(from_file_path, true);
+    }
+  }
+
   if (_use_aws_storage) {
     VCL::RemoteConnection *connection = new VCL::RemoteConnection();
     std::string bucket = VDMSConfig::instance()->get_bucket_name();
@@ -191,6 +205,10 @@ int AddImage::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
   Json::Value props = get_value<Json::Value>(cmd, "properties");
   props[VDMS_IM_PATH_PROP] = file_name;
 
+  if (img.is_blob_not_stored()) {
+    props[VDMS_IM_PATH_PROP] = from_file_path;
+    file_name = from_file_path;
+  }
   // Add Image node
   query.AddNode(node_ref, VDMS_IM_TAG, props, Json::Value());
 
@@ -204,6 +222,14 @@ int AddImage::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
   }
 
   return 0;
+}
+
+bool AddImage::need_blob(const Json::Value &cmd) {
+  if (cmd.isMember(_cmd_name)) {
+    const Json::Value &add_image_cmd = cmd[_cmd_name];
+    return !(add_image_cmd.isMember("from_file_path"));
+  }
+  throw VCLException(UndefinedException, "Query Error");
 }
 
 //========= UpdateImage definitions =========

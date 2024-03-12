@@ -40,6 +40,8 @@ public:
   std::string *read_blob(std::string &);
   Json::Value constuct_image(bool = false, Json::Value operations = {});
   Json::Value constuct_video(bool = false);
+  Json::Value constuct_video_by_path(int id, std::string filepath,
+                                     Json::Value operations);
   Json::Value construct_find_image();
   Json::Value construct_find_image_no_entity();
   Json::Value construct_find_image_withop(Json::Value operations);

@@ -79,7 +79,7 @@ public:
                          const std::string &blob, int grp_id,
                          Json::Value &error);
 
-  bool need_blob(const Json::Value &cmd) { return true; }
+  bool need_blob(const Json::Value &cmd);
 };
 
 class UpdateImage : public ImageCommand {

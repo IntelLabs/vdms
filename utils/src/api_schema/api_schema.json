@@ -629,11 +629,13 @@
 
     "AddImage": {
       "properties": {
-        "_ref":       { "$ref": "#/definitions/refInt" },
-        "format":     { "$ref": "#/definitions/imgFormatString" },
-        "link":       { "$ref": "#/definitions/blockLink" },
-        "operations": { "$ref": "#/definitions/blockImageOperations" },
-        "properties": { "type": "object" }
+        "_ref":             { "$ref": "#/definitions/refInt" },
+        "from_file_path":   { "type": "string"},
+        "is_local_file":    { "type": "boolean"},
+        "format":           { "$ref": "#/definitions/imgFormatString" },
+        "link":             { "$ref": "#/definitions/blockLink" },
+        "operations":       { "$ref": "#/definitions/blockImageOperations" },
+        "properties":       { "type": "object" }
       },
       "additionalProperties": false
     },
@@ -776,6 +778,7 @@
       "properties": {
         "_ref":             { "$ref": "#/definitions/refInt" },
         "from_server_file": { "type": "string"},
+        "from_file_path":   { "type": "string"},
          "link":             { "$ref": "#/definitions/blockLink" },
          "properties":       { "type": "object" }
         
@@ -812,6 +815,8 @@
         "_ref":             { "$ref": "#/definitions/refInt" },
         "index_frames":     { "type": "boolean" },
         "from_server_file": { "type": "string"},
+        "from_file_path":   { "type": "string"},
+        "is_local_file":    { "type": "boolean"},
         "codec":            { "$ref": "#/definitions/vidCodecString" },
         "container":        { "$ref": "#/definitions/vidContainerString" },
         "link":             { "$ref": "#/definitions/blockLink" },
