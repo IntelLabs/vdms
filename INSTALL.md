@@ -10,10 +10,10 @@ Here we will install the Debian/Ubuntu packages.
 sudo apt-get update -y  --fix-missing
 sudo apt-get upgrade -y
 sudo apt-get install -y --no-install-suggests --no-install-recommends \
-    apt-transport-https autoconf automake bison build-essential bzip2 ca-certificates \
+    apt-transport-https automake bison build-essential bzip2 ca-certificates \
     curl ed flex g++-9 gcc-9 git gnupg-agent javacc libarchive-tools libatlas-base-dev \
     libavcodec-dev libavformat-dev libboost-all-dev libbz2-dev libc-ares-dev libcurl4-openssl-dev \
-    libdc1394-22-dev libgflags-dev libgoogle-glog-dev libgtk-3-dev libgtk2.0-dev \
+    libncurses5-dev libdc1394-22-dev libgflags-dev libgoogle-glog-dev libgtk-3-dev libgtk2.0-dev \
     libhdf5-dev libjpeg-dev libjsoncpp-dev libleveldb-dev liblmdb-dev \
     liblz4-dev libopenblas-dev libopenmpi-dev libpng-dev librdkafka-dev libsnappy-dev libssl-dev \
     libswscale-dev libtbb-dev libtbb2 libtiff-dev libtiff5-dev libtool libzmq3-dev linux-libc-dev mpich \
@@ -82,6 +82,18 @@ sudo make install
 ```
 
 
+#### **Autoconf v2.71**
+```bash
+AUTOCONF_VERSION="2.71"
+curl -O  https://ftp.gnu.org/gnu/autoconf/autoconf-${AUTOCONF_VERSION}.tar.xz
+tar -xf autoconf-${AUTOCONF_VERSION}.tar.xz
+cd autoconf-${AUTOCONF_VERSION}
+./configure
+make ${BUILD_THREADS}
+sudo make install
+```
+
+
 #### **Protobuf v24.2 (4.24.2)**
 Install Protobuf (C++ and Python) which requires GoogleTest and Abseil C++ as dependencies.
 ```bash
@@ -114,10 +126,10 @@ python3 -m pip install --no-cache-dir "protobuf==4.${PROTOBUF_VERSION}"
 ```
 
 
-#### **Faiss v1.7.3**
+#### **Faiss v1.7.4**
 Install the Faiss library for similarity search.
 ```bash
-FAISS_VERSION="v1.7.3"
+FAISS_VERSION="v1.7.4"
 git clone --branch ${FAISS_VERSION} https://github.com/facebookresearch/faiss.git $VDMS_DEP_DIR/faiss
 cd $VDMS_DEP_DIR/faiss
 mkdir build && cd build
@@ -191,6 +203,40 @@ cmake -D BUILD_PERF_TESTS=OFF -D BUILD_TESTS=OFF -D CMAKE_BUILD_TYPE=RELEASE -D 
     -DWITH_QT=OFF -DCUDA_NVCC_FLAGS="-D_FORCE_INLINES" ..
 make ${BUILD_THREADS}
 sudo make install
+```
+
+
+#### **Neo4j Client**
+Below are instructions for installing ***libneo4j-omni*** which requires Peg, libcypher-parser and libedit as dependencies.
+```bash
+PEG_VERSION="0.1.19"
+curl -L -o $VDMS_DEP_DIR/peg-${PEG_VERSION}.tar.gz https://github.com/gpakosz/peg/releases/download/${PEG_VERSION}/peg-${PEG_VERSION}.tar.gz
+cd $VDMS_DEP_DIR/
+tar -xf peg-${PEG_VERSION}.tar.gz
+cd peg-${PEG_VERSION}
+make ${BUILD_THREADS}
+sudo make install
+
+git clone https://github.com/cleishm/libcypher-parser.git $VDMS_DEP_DIR/libcypher
+cd $VDMS_DEP_DIR/libcypher
+./autogen.sh
+./configure
+sudo make install
+
+LIBEDIT_VERSION="20230828-3.1"
+curl -L -o $VDMS_DEP_DIR/libedit-${LIBEDIT_VERSION}.tar.gz https://thrysoee.dk/editline/libedit-${LIBEDIT_VERSION}.tar.gz
+cd $VDMS_DEP_DIR/
+tar -xzf libedit-${LIBEDIT_VERSION}.tar.gz
+cd libedit-${LIBEDIT_VERSION}
+./configure
+make ${BUILD_THREADS}
+sudo make install
+
+git clone https://github.com/majensen/libneo4j-omni.git $VDMS_DEP_DIR/libomni
+cd $VDMS_DEP_DIR/libomni
+./autogen.sh
+./configure --disable-werror --prefix=/usr
+sudo make install -w --debug
 ```
 <br>
 
