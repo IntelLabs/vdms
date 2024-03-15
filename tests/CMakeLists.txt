@@ -54,6 +54,7 @@ add_executable(unit_tests
     unit_tests/client_descriptors.cc
     unit_tests/client_videos.cc
     unit_tests/client_blob.cc
+    unit_tests/BackendNeo4jTest.cc
 )
 
 target_link_libraries(unit_tests
@@ -75,4 +76,5 @@ target_link_libraries(unit_tests
     ${CMAKE_THREAD_LIBS_INIT}
     ${OpenCV_LIBS}
     ${AWSSDK_LINK_LIBRARIES}
+    neo4j-client
 )

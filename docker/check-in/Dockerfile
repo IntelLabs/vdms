@@ -22,10 +22,10 @@ FROM base as build
 # hadolint ignore=DL3008
 RUN apt-get update -y && apt-get upgrade -y && \
     apt-get install -o 'Acquire::Retries=3' -y --no-install-suggests --no-install-recommends --fix-broken --fix-missing \
-        apt-transport-https autoconf automake bison build-essential bzip2 ca-certificates \
+        apt-transport-https automake bison build-essential bzip2 ca-certificates \
         curl ed flex g++-9 gcc-9 git gnupg-agent javacc libarchive-tools libatlas-base-dev \
         libavcodec-dev libavformat-dev libboost-all-dev libbz2-dev libc-ares-dev libcurl4-openssl-dev \
-        libdc1394-22-dev libgflags-dev libgoogle-glog-dev libgtk-3-dev libgtk2.0-dev \
+        libncurses5-dev libdc1394-22-dev libgflags-dev libgoogle-glog-dev libgtk-3-dev libgtk2.0-dev \
         libhdf5-dev libjpeg-dev libjpeg62-turbo-dev libjsoncpp-dev libleveldb-dev liblmdb-dev \
         liblz4-dev libopenblas-dev libopenmpi-dev libpng-dev librdkafka-dev libsnappy-dev libssl-dev \
         libswscale-dev libtbb-dev libtbb2 libtiff-dev libtiff5-dev libtool libzmq3-dev linux-libc-dev mpich \
@@ -45,7 +45,8 @@ ENV CMAKE_VERSION="v3.27.2"  \
     TILEDB_VERSION="2.14.1" \
     AWS_SDK_VERSION="1.11.0" \
     AUTOCONF_VERSION="2.71" \
-    PEG_VERSION="0.1.19"
+    PEG_VERSION="0.1.19" \
+    LIBEDIT_VERSION="20230828-3.1"
 
 # hadolint ignore=DL3003
 RUN python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION}" && \
@@ -57,6 +58,12 @@ RUN python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION}" && \
 RUN git clone --branch ${CMAKE_VERSION} https://github.com/Kitware/CMake.git /dependencies/CMake && \
         cd /dependencies/CMake && ./bootstrap && make ${BUILD_THREADS} && \
             make install DESTDIR=/opt/dist && make install
+
+# AUTOCONF VERSION FOR NEO4J
+# hadolint ignore=DL3003,SC2086
+RUN curl -O  https://ftp.gnu.org/gnu/autoconf/autoconf-${AUTOCONF_VERSION}.tar.xz && \
+        tar -xf autoconf-${AUTOCONF_VERSION}.tar.xz && cd autoconf-${AUTOCONF_VERSION} && \
+        ./configure && make ${BUILD_THREADS} && make install DESTDIR=/opt/dist && make install
 
 # PROTOBUF & ITS DEPENDENCIES
 # hadolint ignore=DL3003,SC2086
@@ -104,24 +111,25 @@ RUN git clone --branch ${OPENCV_VERSION} https://github.com/opencv/opencv.git /d
 
 # LIB-OMNI FOR NEO4J QUERY HANDLER
 # hadolint ignore=DL3003,SC2086
-RUN curl -O  https://ftp.gnu.org/gnu/autoconf/autoconf-${AUTOCONF_VERSION}.tar.xz && \
-        tar -xf autoconf-${AUTOCONF_VERSION}.tar.xz && cd autoconf-${AUTOCONF_VERSION} && \
-        ./configure && make ${BUILD_THREADS} && make install DESTDIR=/opt/dist && make install && \
-    curl -L -o /dependencies/peg-${PEG_VERSION}.tar.gz \
+RUN curl -L -o /dependencies/peg-${PEG_VERSION}.tar.gz \
         https://github.com/gpakosz/peg/releases/download/${PEG_VERSION}/peg-${PEG_VERSION}.tar.gz && \
         cd /dependencies/ && tar -xf peg-${PEG_VERSION}.tar.gz && cd peg-${PEG_VERSION} && \
         make ${BUILD_THREADS} && make install DESTDIR=/opt/dist && make install && \
     git clone https://github.com/cleishm/libcypher-parser.git /dependencies/libcypher && \
         cd /dependencies/libcypher && ./autogen.sh && ./configure && \
         make install DESTDIR=/opt/dist && make install && \
+    curl -O https://thrysoee.dk/editline/libedit-${LIBEDIT_VERSION}.tar.gz && \
+        tar -xzf libedit-${LIBEDIT_VERSION}.tar.gz && cd libedit-${LIBEDIT_VERSION} && \
+        ./configure && make ${BUILD_THREADS} && make install DESTDIR=/opt/dist && make install && \
     git clone https://github.com/majensen/libneo4j-omni.git /dependencies/libomni && \
-        cd /dependencies/libomni && ./autogen.sh && ./configure --disable-tools && \
-        make install DESTDIR=/opt/dist -no-werror && make install -no-werror
+        cd /dependencies/libomni && ./autogen.sh && \
+        ./configure --disable-werror --prefix=/opt/dist/usr && \
+        make install -w --debug
 
 # CLEANUP
 RUN rm -rf /dependencies /usr/local/share/doc /usr/local/share/man && \
     mkdir -p /opt/dist/usr/include/x86_64-linux-gnu && \
-        cp -rp /usr/include/x86_64-linux-gnu /opt/dist/usr/include/x86_64-linux-gnu
+    cp -rp /usr/include/x86_64-linux-gnu /opt/dist/usr/include/x86_64-linux-gnu
 
 
 ############################################################

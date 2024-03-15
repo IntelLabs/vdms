@@ -61,6 +61,7 @@ else()
   link_directories(/usr/local/lib /usr/lib/x86_64-linux-gnu/)
   include_directories(/usr/include/jsoncpp utils/include/ src/pmgd/include src/pmgd/util include/ src/vcl /usr/include ${CMAKE_CURRENT_BINARY_DIR}/utils/src/protobuf)
   add_library(dms SHARED
+    src/BackendNeo4j.cc
     src/BoundingBoxCommand.cc
     src/BlobCommand.cc
     src/CommunicationManager.cc
@@ -84,7 +85,7 @@ else()
     src/ImageLoop.cc
     src/VideoLoop.cc
   )
-  target_link_libraries(dms vcl pmgd pmgd-util protobuf tbb tiledb vdms-utils pthread -lcurl -lzmq ${AWSSDK_LINK_LIBRARIES})
+  target_link_libraries(dms vcl pmgd pmgd-util protobuf tbb tiledb vdms-utils pthread -lcurl -lzmq ${AWSSDK_LINK_LIBRARIES} neo4j-client)
   add_executable(vdms src/vdms.cc)
   target_link_libraries(vdms dms vdms_protobuf vcl tiledb faiss flinng jsoncpp ${OpenCV_LIBS} ${AWSSDK_LINK_LIBRARIES})
 endif ()

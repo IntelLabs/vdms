@@ -38,12 +38,16 @@ jobs:
           - coverage_type: Source
             container_name: source_coverage_${{ github.event.pull_request.number }}
             container_tag: "vdms:source_coverage_${{ github.event.pull_request.number }}"
+            neo4j_container_name: source_neo4j_${{ github.event.pull_request.number }}
+            neo4j_test_port: 7687
             output_cpp_name: source_coverage_cpp
             output_py_name: source_coverage_py
             branch_ref: ${{ github.event.pull_request.head.sha }}
           - coverage_type: Target
             container_name: target_coverage_${{ github.event.pull_request.number }}
             container_tag: "vdms:target_coverage_${{ github.event.pull_request.number }}"
+            neo4j_container_name: target_neo4j_${{ github.event.pull_request.number }}
+            neo4j_test_port: 7688
             output_cpp_name: target_coverage_cpp
             output_py_name: target_coverage_py
             branch_ref: ${{ github.event.pull_request.base.ref }}
@@ -124,6 +128,12 @@ jobs:
           set -x
           mkdir -p coverage
 
+          # Start NEO4J Container for testing
+          docker run --rm -d --name=${{ matrix.neo4j_container_name }} \
+            --publish=${{ matrix.neo4j_test_port }}:7687 \
+            --env NEO_TEST_PORT=${{ matrix.neo4j_test_port }} \
+            --env NEO4J_AUTH=neo4j/neo4jpass neo4j:5.17.0
+
           docker run --rm -d -v ${PWD}:/local_repo --name ${{ matrix.container_name }} \
             --env AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
             --env AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} ${{ matrix.container_tag }}
@@ -163,6 +173,7 @@ jobs:
       - if: always()
         name: Cleanup
         run: |
+          docker stop $(docker ps -aqf "name=${{ matrix.neo4j_container_name }}") | xargs docker rm || true
           docker stop $(docker ps -aqf "name=${{ matrix.container_name }}") | xargs docker rm || true
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
           rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_REPOSITORY} || true
