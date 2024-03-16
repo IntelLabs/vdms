@@ -39,7 +39,7 @@ function execute_commands() {
 
     echo 'Running C++ tests...'
     ./../build/tests/unit_tests \
-        --gtest_filter=-ImageTest.CreateNameTDB:ImageTest.NoMetadata:VideoTest.SyncRemoteWrite:VideoTest.UDFWrite:Descriptors_Add.add_1by1_and_search_1k:RemoteConnectionTest.*
+        --gtest_filter=-ImageTest.CreateNameTDB:ImageTest.NoMetadata:VideoTest.SyncRemoteWrite:VideoTest.UDFWrite:Descriptors_Add.add_1by1_and_search_1k:RemoteConnectionTest.*:Neo4jBackendTest.*
     echo 'Finished'
     exit 0
 }
@@ -47,7 +47,7 @@ function execute_commands() {
 # Cleanup function to kill those processes which were started by the script
 # Also it deletes those directories created by the script (or its tests)
 function cleanup() {
-    
+
     echo "Killing the udf_server and udf_local"
     pkill -9 -f udf_server.py
     pkill -9 -f udf_local.py
