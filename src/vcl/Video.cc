@@ -239,8 +239,9 @@ std::vector<unsigned char> Video::get_encoded(std::string container,
 
       auto time_now = std::chrono::system_clock::now();
       std::chrono::duration<double> utc_time = time_now.time_since_epoch();
-      std::string fname =
-          "tmp/tempfile" + std::to_string(utc_time.count()) + container;
+      std::string fname = VDMS::VDMSConfig::instance()->get_path_tmp() +
+                          "/tempfile" + std::to_string(utc_time.count()) +
+                          container;
 
       // check sufficient memory
       bool memory_avail = check_sufficient_memory(_size);
@@ -736,6 +737,10 @@ void Video::set_query_error_response(std::string response_error) {
 }
 
 void Video::set_connection(RemoteConnection *remote) {
+  if (!remote) {
+    throw VCLException(SystemNotFound, "Invalid remote connection");
+  }
+
   if (!remote->connected())
     remote->start();
 

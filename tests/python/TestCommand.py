@@ -27,6 +27,7 @@
 import time
 import unittest
 import vdms
+import os
 
 
 class TestCommand(unittest.TestCase):
@@ -156,3 +157,10 @@ class TestCommand(unittest.TestCase):
             self.assertEqual(response[0]["AddEntity"]["status"], 0)
 
         return response, res_arr
+
+    def shouldSkipRemotePythonTest():
+        return unittest.skipIf(
+            os.environ.get("VDMS_SKIP_REMOTE_PYTHON_TESTS") is not None
+            and os.environ.get("VDMS_SKIP_REMOTE_PYTHON_TESTS").upper() == "TRUE",
+            "VDMS_SKIP_REMOTE_PYTHON_TESTS env var is set to True",
+        )

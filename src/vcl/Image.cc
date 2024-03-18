@@ -38,6 +38,8 @@
 #include "vcl/Exception.h"
 #include "vcl/Image.h"
 
+#include "../VDMSConfig.h"
+
 using namespace VCL;
 
 /*  *********************** */
@@ -53,6 +55,10 @@ Image::Read::Read(const std::string &filename, Image::Format format)
 
 void Image::Read::operator()(Image *img) {
 
+  if (nullptr == img) {
+    throw VCLException(TileDBError, "Image::Read() error: invalid parameter");
+  }
+
   if (_format == Image::Format::TDB) {
     if (img->_tdb == NULL)
       throw VCLException(TileDBNotFound, "Image::Format indicates image \
@@ -67,8 +73,14 @@ void Image::Read::operator()(Image *img) {
       FILE *bin_file;
       bin_file = fopen(_fullpath.c_str(), "rb");
       if (bin_file != NULL) {
+        // Prevent a possible memory leak
+        if (nullptr != img->_bin) {
+          free(img->_bin);
+          img->_bin = nullptr;
+        }
+
         img->_bin = (char *)malloc(sizeof(char) * img->_bin_size);
-        if (img->_bin != NULL)
+        if (nullptr != img->_bin)
           fread(img->_bin, 1, img->_bin_size, bin_file);
         fclose(bin_file);
       } else {
@@ -151,7 +163,11 @@ void Image::Write::operator()(Image *img) {
         std::vector<unsigned char> data;
         std::string ext = "." + img->format_to_string(_format);
         cv::imencode(ext, cv_img, data);
-        img->_remote->Write(_fullpath, data);
+        bool result = img->_remote->Write(_fullpath, data);
+        if (!result) {
+          throw VCLException(ObjectNotFound,
+                             "Image: Path to the file was not found");
+        }
       }
     } else
       throw VCLException(ObjectEmpty,
@@ -386,7 +402,8 @@ void Image::SyncRemoteOperation::operator()(Image *img) {
           }
 
           std::string filePath =
-              "/tmp/tempfile" + std::to_string(utc_time.count()) + "." + format;
+              VDMS::VDMSConfig::instance()->get_path_tmp() + "/tempfile" +
+              std::to_string(utc_time.count()) + "." + format;
           cv::imwrite(filePath, img->_cv_img);
 
           std::ofstream tsfile;
@@ -528,8 +545,9 @@ void Image::UserOperation::operator()(Image *img) {
           format = "jpg";
         }
 
-        std::string filePath =
-            "/tmp/tempfile" + std::to_string(utc_time.count()) + "." + format;
+        std::string filePath = VDMS::VDMSConfig::instance()->get_path_tmp() +
+                               "/tempfile" + std::to_string(utc_time.count()) +
+                               "." + format;
         cv::imwrite(filePath, img->_cv_img);
 
         _options["ipfile"] = filePath;
@@ -616,7 +634,7 @@ Image::Image(const std::string &image_id, std::string bucket_name) {
   _height = 0;
   _width = 0;
   _cv_type = CV_8UC3;
-  _bin = 0;
+  _bin = nullptr;
   _bin_size = 0;
 
   std::string extension = get_extension(image_id);
@@ -685,12 +703,12 @@ Image::Image(const cv::Mat &cv_img, bool copy) {
 }
 
 Image::Image(void *buffer, long size, char binary_image_flag, int flags) {
-  _bin = 0;
+  _bin = nullptr;
   _bin_size = 0;
   _remote = nullptr;
 
   _tdb = nullptr;
-  _bin = nullptr;
+  // _bin = nullptr; Duplicated?
   set_data_from_encoded(buffer, size, binary_image_flag, flags);
 
   _format = Image::Format::NONE_IMAGE;
@@ -700,7 +718,7 @@ Image::Image(void *buffer, long size, char binary_image_flag, int flags) {
 }
 
 Image::Image(void *buffer, cv::Size dimensions, int cv_type) {
-  _bin = 0;
+  _bin = nullptr;
   _bin_size = 0;
   _remote = nullptr;
 
@@ -720,7 +738,7 @@ Image::Image(void *buffer, cv::Size dimensions, int cv_type) {
 }
 
 Image::Image(const Image &img, bool copy) {
-  _bin = 0;
+  _bin = nullptr;
   _bin_size = 0;
   _remote = nullptr;
 
@@ -766,7 +784,7 @@ Image::Image(const Image &img, bool copy) {
 }
 
 Image::Image(Image &&img) noexcept {
-  _bin = 0;
+  _bin = nullptr;
   _bin_size = 0;
   _remote = nullptr;
   _no_blob = img._no_blob;
@@ -787,7 +805,7 @@ Image::Image(Image &&img) noexcept {
 Image &Image::operator=(const Image &img) {
 
   TDBImage *temp = _tdb;
-  _bin = 0;
+  _bin = nullptr;
   _bin_size = 0;
   if (!(img._cv_img).empty())
     deep_copy_cv(img._cv_img);
@@ -839,9 +857,15 @@ Image &Image::operator=(const Image &img) {
 Image::~Image() {
   _operations.clear();
   _operations.shrink_to_fit();
-  delete _tdb;
-  if (_bin)
+  if (_tdb) {
+    delete _tdb;
+    _tdb = nullptr;
+  }
+
+  if (_bin) {
     free(_bin);
+    _bin = nullptr;
+  }
 }
 
 /*  *********************** */
@@ -1090,6 +1114,10 @@ void Image::set_data_from_encoded(void *buffer, long size,
   // with raw binary files, we simply copy the data and do not encode
   if (binary_image_flag) {
     _bin_size = size;
+    if (_bin) {
+      free(_bin);
+      _bin = nullptr;
+    }
     _bin = (char *)malloc(sizeof(char) * size);
     memcpy(_bin, buffer, size);
   } else {
@@ -1163,6 +1191,10 @@ void Image::set_query_error_response(std::string response_error) {
 void Image::update_op_completed() { _op_completed++; }
 
 void Image::set_connection(RemoteConnection *remote) {
+  if (!remote) {
+    throw VCLException(SystemNotFound, "Invalid remote connection");
+  }
+
   if (!remote->connected())
     remote->start();
 
@@ -1232,15 +1264,18 @@ void Image::store(const std::string &image_id, Image::Format image_format,
   perform_operations();
 }
 
-void Image::delete_image() {
+bool Image::delete_image() {
   if (_tdb != NULL)
     _tdb->delete_image();
 
   if (exists(_image_id)) {
     std::remove(_image_id.c_str());
   } else if (_remote != NULL) {
-    _remote->Remove_Object(_image_id);
+    bool result = _remote->Remove_Object(_image_id);
+    return result;
   }
+
+  return true;
 }
 
 void Image::resize(int new_height, int new_width) {

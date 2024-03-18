@@ -192,6 +192,7 @@ class TestVideos(TestCommand.TestCommand):
 
         self.assertEqual(response[0]["status"], -1)
 
+    @TestCommand.TestCommand.shouldSkipRemotePythonTest()
     def test_addVideoFromLocalFile_success(self):
         db = self.create_connection()
 

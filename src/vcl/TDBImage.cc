@@ -277,6 +277,10 @@ void TDBImage::set_image_properties(int height, int width, int channels) {
 }
 
 void TDBImage::set_configuration(RemoteConnection *remote) {
+  if (!remote) {
+    throw VCLException(SystemNotFound, "Remote Connection is invalid");
+  }
+
   if (!remote->connected())
     throw VCLException(SystemNotFound, "Remote Connection not initialized");
 

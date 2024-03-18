@@ -206,8 +206,12 @@ int AddVideo::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
   }
 
   if (_use_aws_storage) {
-    video._remote->Write(file_name);
+    bool result = video._remote->Write(file_name);
     std::remove(file_name.c_str()); // remove the local copy of the file
+    if (!result) {
+      throw VCLException(ObjectNotFound,
+                         "Add video: Path to the file was not found");
+    }
   }
 
   // Add key-frames (if extracted) as nodes connected to the video
@@ -367,9 +371,15 @@ Json::Value FindVideo::construct_responses(Json::Value &responses,
           connection->_bucket_name = bucket;
           VCL::Video video(video_path);
           video.set_connection(connection);
-          video._remote->Read_Video(
+          bool result = video._remote->Read_Video(
               video_path); // this takes the file from aws and puts it back in
                            // the local database location
+          if (!result) {
+            Json::Value return_error;
+            return_error["status"] = RSCommand::Error;
+            return_error["info"] = "Path to the video was not found";
+            return error(return_error);
+          }
         }
 
         // Return video as is.
@@ -610,9 +620,16 @@ Json::Value FindFrames::construct_responses(Json::Value &responses,
         connection->_bucket_name = bucket;
         VCL::Video video(video_path);
         video.set_connection(connection);
-        video._remote->Read_Video(
+        bool result = video._remote->Read_Video(
             video_path); // this takes the file from aws and puts it back in the
                          // local database location
+
+        if (!result) {
+          Json::Value return_error;
+          return_error["status"] = RSCommand::Error;
+          return_error["info"] = "Path to the video was not found";
+          return error(return_error);
+        }
       }
 
       VCL::Video video(video_path);

@@ -103,6 +103,11 @@ function execute_commands() {
 
     # Starting the testing
     echo 'Starting the testing'
+    echo 'Setting to True the VDMS_SKIP_REMOTE_PYTHON_TESTS env var'
+    # There are some Python tests which have to be skipped as they are specific
+    # for NON Remote tests, in order to do that the 
+    # 'VDMS_SKIP_REMOTE_PYTHON_TESTS' environment variable must be set to True
+    export VDMS_SKIP_REMOTE_PYTHON_TESTS=True
     echo 'Running Python AWS S3 tests...'
     python3 -m coverage run --include="../../*" --omit="${base_dir}/client/python/vdms/queryMessage_pb2.py,../*" -m unittest discover --pattern=Test*.py -v
     echo 'Finished'
@@ -114,7 +119,9 @@ function execute_commands() {
 function cleanup() {
     # Removing log files
     echo 'Removing log files'
-    rm  -rf test_db log.log screen.log
+    rm  -rf log.log screen.log
+
+    unset VDMS_SKIP_REMOTE_PYTHON_TESTS
 
     echo 'Removing temporary files'
     rm -rf ../../minio_files/ || true

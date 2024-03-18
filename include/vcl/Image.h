@@ -445,7 +445,7 @@ public:
    *  Deletes the Image as well as removes file from system if
    *    it exists
    */
-  void delete_image();
+  bool delete_image();
   /*  *********************** */
   /*      COPY FUNCTIONS      */
   /*  *********************** */

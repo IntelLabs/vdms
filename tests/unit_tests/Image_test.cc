@@ -45,6 +45,8 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <string>
 
+#include "VDMSConfig.h"
+
 class ImageTest : public ::testing::Test {
 protected:
   virtual void SetUp() {
@@ -599,7 +601,7 @@ TEST_F(ImageTest, Threshold) {
 TEST_F(ImageTest, DeleteTDB) {
   VCL::ImageTest img_data("tdb/no_metadata.tdb");
 
-  img_data.delete_image();
+  EXPECT_TRUE(img_data.delete_image());
 
   img_data.read("tdb/no_metadata.tdb");
   ASSERT_THROW(img_data.perform_operations(), VCL::Exception);
@@ -973,7 +975,7 @@ TEST_F(ImageTest, ImagePathError) {
   std::filesystem::copy_file(img_, temp_image_path);
   img = VCL::Image(temp_image_path, true);
 
-  std::remove(temp_image_path.data());
+  EXPECT_TRUE(std::remove(temp_image_path.data()) == 0);
 
   VCL::Image read_img(temp_image_path);
   ASSERT_THROW(read_img.get_encoded_image_async(read_img.get_image_format()),

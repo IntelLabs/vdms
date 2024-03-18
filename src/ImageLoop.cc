@@ -32,6 +32,8 @@
 #include "ImageLoop.h"
 #include <curl/curl.h>
 
+#include "VDMSConfig.h"
+
 ImageLoop::~ImageLoop() noexcept {
   VCL::Image img(imageMap.begin()->first);
   m_running = false;
@@ -185,8 +187,9 @@ CURL *ImageLoop::get_easy_handle(VCL::Image *img, std::string &readBuffer) {
       format = "jpg";
     }
 
-    std::string filePath =
-        "/tmp/tempfile" + std::to_string(utc_time.count()) + "." + format;
+    std::string filePath = VDMS::VDMSConfig::instance()->get_path_tmp() +
+                           "/tempfile" + std::to_string(utc_time.count()) +
+                           "." + format;
     cv::imwrite(filePath, img->get_cvmat(false, false));
     _tempfiles.push_back(filePath);
 

@@ -2,6 +2,8 @@
 #include "vcl/Exception.h"
 #include <curl/curl.h>
 
+#include "VDMSConfig.h"
+
 VideoLoop::~VideoLoop() noexcept {
   VCL::Video video(videoMap.begin()->first);
   m_running = false;
@@ -267,7 +269,8 @@ void VideoLoop::execute_remote_operations(std::vector<VCL::Video> &readBuffer) {
         auto time_now = std::chrono::system_clock::now();
         std::chrono::duration<double> utc_time = time_now.time_since_epoch();
         std::string response_filepath =
-            "/tmp/rtempfile" + std::to_string(utc_time.count()) + "." + format;
+            VDMS::VDMSConfig::instance()->get_path_tmp() + "/rtempfile" +
+            std::to_string(utc_time.count()) + "." + format;
 
         responseBuffer.push_back(response_filepath);
         CURL *curl = get_easy_handle(video, responseBuffer[rindex]);

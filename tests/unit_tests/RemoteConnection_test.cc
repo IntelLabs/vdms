@@ -30,6 +30,7 @@
 #include <string>
 
 #include "gtest/gtest.h"
+#include <exception>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
@@ -57,8 +58,11 @@ protected:
 
   virtual void TearDown() {
     VDMS::VDMSConfig::destroy();
-    connection_->end();
-    delete connection_;
+    if (connection_) {
+      connection_->end();
+      delete connection_;
+      connection_ = nullptr;
+    }
   }
 
   void compare_mat_mat(cv::Mat &cv_img, cv::Mat &img) {
@@ -175,126 +179,222 @@ public:
 };
 }; // namespace VCL
 
+// U T I L I T A R Y   F U N C T I O N S
+void printErrorMessage(const std::string &functionName) {
+  FAIL() << "Error: Unhandled exception in " << functionName << "()"
+         << std::endl;
+}
+
 // Basic Remote Connection Tests
 
-TEST_F(RemoteConnectionTest, RemoteWriteFilename) { connection_->Write(img_); }
+TEST_F(RemoteConnectionTest, RemoteWriteFilename) {
+  try {
+    ASSERT_TRUE(connection_);
+    EXPECT_TRUE(connection_->Write(img_));
+  } catch (...) {
+    printErrorMessage("RemoteWriteFilename");
+  }
+}
 
 TEST_F(RemoteConnectionTest, RemoteReadWriteBuffer) {
-  std::vector<unsigned char> img_data = connection_->Read(img_);
-  connection_->Write(img_, img_data);
+  try {
+    ASSERT_TRUE(connection_);
+    std::vector<unsigned char> img_data = connection_->Read(img_);
+    EXPECT_TRUE(connection_->Write(img_, img_data));
+  } catch (...) {
+    printErrorMessage("RemoteReadWriteBuffer");
+  }
 }
 
 TEST_F(RemoteConnectionTest, RemoteListRetrieveFile) {
-  std::vector<std::string> file_list =
-      connection_->ListFilesInFolder("test_images");
-  connection_->RetrieveFile(file_list[0]);
+  try {
+    ASSERT_TRUE(connection_);
+    std::vector<std::string> file_list =
+        connection_->ListFilesInFolder("test_images");
+    EXPECT_TRUE(connection_->RetrieveFile(file_list[0]));
+  } catch (...) {
+    printErrorMessage("RemoteListRetrieveFile");
+  }
 }
 
 TEST_F(RemoteConnectionTest, RemoteWriteVideoFilename) {
-  connection_->Write(video_);
+  try {
+    ASSERT_TRUE(connection_);
+    EXPECT_TRUE(connection_->Write(video_));
+  } catch (...) {
+    printErrorMessage("RemoteWriteVideoFilename");
+  }
 }
 
 TEST_F(RemoteConnectionTest, RemoteReadVideoFilename) {
-  connection_->Read_Video(video_);
+  try {
+    ASSERT_TRUE(connection_);
+    EXPECT_TRUE(connection_->Read_Video(video_));
+  } catch (...) {
+    printErrorMessage("RemoteReadVideoFilename");
+  }
 }
 
 //#### Regular Image tests ####
 
 TEST_F(RemoteConnectionTest, ImageRemoteWritePNG) {
-  VCL::ImageTest img(cv_img_);
+  try {
+    ASSERT_TRUE(connection_);
+    VCL::ImageTest img(cv_img_);
 
-  img.set_connection(connection_);
-  std::string path = "pngs/test_image.png";
+    img.set_connection(connection_);
+    std::string path = "pngs/test_image.png";
 
-  img.store(path, VCL::Image::Format::PNG);
-  img.perform_operations();
+    img.store(path, VCL::Image::Format::PNG);
+    img.perform_operations();
+  } catch (...) {
+    printErrorMessage("ImageRemoteWritePNG");
+  }
 }
 
 TEST_F(RemoteConnectionTest, ImageRemoteReadPNG) {
-  VCL::ImageTest img;
+  try {
+    ASSERT_TRUE(connection_);
+    VCL::ImageTest img;
 
-  img.set_connection(connection_);
-  std::string path = "pngs/test_image.png";
+    img.set_connection(connection_);
+    std::string path = "pngs/test_image.png";
 
-  img.read(path);
+    img.read(path);
 
-  cv::Mat data = img.get_cvmat();
-  compare_mat_mat(data, cv_img_);
+    cv::Mat data = img.get_cvmat();
+    compare_mat_mat(data, cv_img_);
+  } catch (...) {
+    printErrorMessage("ImageRemoteReadPNG");
+  }
 }
 
 TEST_F(RemoteConnectionTest, ImageRemoteRemovePNG) {
-  VCL::Image img("pngs/test_image.png");
-  img.set_connection(connection_);
-  img.delete_image();
+  try {
+    ASSERT_TRUE(connection_);
+    VCL::Image img("pngs/test_image.png");
+    img.set_connection(connection_);
+    EXPECT_TRUE(img.delete_image());
+  } catch (...) {
+    printErrorMessage("ImageRemoteRemovePNG");
+  }
 }
 
 TEST_F(RemoteConnectionTest, ImageRemoteWriteJPG) {
-  VCL::Image img(cv_img_);
+  try {
+    ASSERT_TRUE(connection_);
+    VCL::Image img(cv_img_);
 
-  img.set_connection(connection_);
-  std::string path = "jpgs/large1.jpg";
+    img.set_connection(connection_);
+    std::string path = "jpgs/large1.jpg";
 
-  img.store(path, VCL::Image::Format::JPG);
+    img.store(path, VCL::Image::Format::JPG);
+  } catch (...) {
+    printErrorMessage("ImageRemoteWriteJPG");
+  }
 }
 
 TEST_F(RemoteConnectionTest, ImageRemoteReadJPG) {
-  VCL::Image img("jpgs/large1.jpg");
-  img.set_connection(connection_);
+  try {
+    ASSERT_TRUE(connection_);
+    VCL::Image img("jpgs/large1.jpg");
+    img.set_connection(connection_);
 
-  cv::Mat mat = img.get_cvmat();
-  compare_mat_mat_jpg(mat, cv_img_);
+    cv::Mat mat = img.get_cvmat();
+    compare_mat_mat_jpg(mat, cv_img_);
+  } catch (...) {
+    printErrorMessage("ImageRemoteReadJPG");
+  }
 }
 
 TEST_F(RemoteConnectionTest, ImageRemoteRemoveJPG) {
-  VCL::Image img("jpgs/large1.jpg");
-  img.set_connection(connection_);
-  img.delete_image();
+  try {
+    ASSERT_TRUE(connection_);
+    VCL::Image img("jpgs/large1.jpg");
+    img.set_connection(connection_);
+    EXPECT_TRUE(img.delete_image());
+  } catch (...) {
+    printErrorMessage("ImageRemoteRemoveJPG");
+  }
 }
 
 //#### TileDB Image tests ####
 TEST_F(RemoteConnectionTest, TDBImageWriteS3) {
-  VCL::TDBImage tdb("tdb/test_image.tdb", *connection_);
-  tdb.write(cv_img_);
+  try {
+    ASSERT_TRUE(connection_);
+    VCL::TDBImage tdb("tdb/test_image.tdb", *connection_);
+    tdb.write(cv_img_);
+  } catch (...) {
+    printErrorMessage("TDBImageWriteS3");
+  }
 }
 
 // Basic Remote Connection Tests (no remote connected, expected failures)
 
 TEST_F(RemoteConnectionTest, RemoteDisconnectedWriteFilename) {
-  VCL::RemoteConnection not_a_connection;
-  not_a_connection.Write(img_);
+  try {
+    VCL::RemoteConnection not_a_connection;
+    EXPECT_FALSE(not_a_connection.Write(img_));
+  } catch (...) {
+    printErrorMessage("RemoteDisconnectedWriteFilename");
+  }
 }
 
 TEST_F(RemoteConnectionTest, RemoteDisconnectedReadBuffer) {
-  VCL::RemoteConnection not_a_connection;
-  std::vector<unsigned char> img_data = not_a_connection.Read(img_);
-  connection_->Write(img_, img_data);
+  try {
+    VCL::RemoteConnection not_a_connection;
+    std::vector<unsigned char> img_data = not_a_connection.Read(img_);
+    EXPECT_FALSE(not_a_connection.Write(img_, img_data));
+  } catch (...) {
+    printErrorMessage("RemoteDisconnectedReadBuffer");
+  }
 }
 
 TEST_F(RemoteConnectionTest, RemoteDisconnectedWriteBuffer) {
-  VCL::RemoteConnection not_a_connection;
-  std::vector<unsigned char> img_data = connection_->Read(img_);
-  not_a_connection.Write(img_, img_data);
+  try {
+    VCL::RemoteConnection not_a_connection;
+    std::vector<unsigned char> img_data = connection_->Read(img_);
+    EXPECT_FALSE(not_a_connection.Write(img_, img_data));
+  } catch (...) {
+    printErrorMessage("RemoteDisconnectedWriteBuffer");
+  }
 }
 
 TEST_F(RemoteConnectionTest, RemoteDisconnectedListFiles) {
-  VCL::RemoteConnection not_a_connection;
-  std::vector<std::string> file_list =
-      not_a_connection.ListFilesInFolder("test_images");
+  try {
+    VCL::RemoteConnection not_a_connection;
+    std::vector<std::string> file_list =
+        not_a_connection.ListFilesInFolder("test_images");
+  } catch (...) {
+    printErrorMessage("RemoteDisconnectedListFiles");
+  }
 }
 
 TEST_F(RemoteConnectionTest, RemoteDisconnectedRetrieveFile) {
-  VCL::RemoteConnection not_a_connection;
-  std::vector<std::string> file_list =
-      connection_->ListFilesInFolder("test_images");
-  not_a_connection.RetrieveFile(file_list[0]);
+  try {
+    VCL::RemoteConnection not_a_connection;
+    std::vector<std::string> file_list =
+        connection_->ListFilesInFolder("test_images");
+    EXPECT_FALSE(not_a_connection.RetrieveFile(file_list[0]));
+  } catch (...) {
+    printErrorMessage("RemoteDisconnectedRetrieveFile");
+  }
 }
 
 TEST_F(RemoteConnectionTest, RemoteDisconnectedWriteVideoFilename) {
-  VCL::RemoteConnection not_a_connection;
-  not_a_connection.Write(video_);
+  try {
+    VCL::RemoteConnection not_a_connection;
+    EXPECT_FALSE(not_a_connection.Write(video_));
+  } catch (...) {
+    printErrorMessage("RemoteDisconnectedWriteVideoFilename");
+  }
 }
 
 TEST_F(RemoteConnectionTest, RemoteDisconnectedReadVideoFilename) {
-  VCL::RemoteConnection not_a_connection;
-  not_a_connection.Read_Video(video_);
+  try {
+    VCL::RemoteConnection not_a_connection;
+    EXPECT_FALSE(not_a_connection.Read_Video(video_));
+  } catch (...) {
+    printErrorMessage("RemoteDisconnectedReadVideoFilename");
+  }
 }
