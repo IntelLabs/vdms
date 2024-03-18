@@ -1,7 +1,6 @@
 DescriptorType,dimensions,distancemetric,searchengine
-Test1024,1024,L2,FaissFlat
-Test_14096,1024,L2,FaissFlat
-Test1000,1000,L2,FaissFlat
-Test100,100,L2,FaissFlat
-Test128,128,IP,FaissIVFFlat
-Test512,512,L2,TileDBDense
+Test1024_faiss,1024,L2,FaissFlat
+Test100_faiss,100,L2,FaissIVFFlat
+Test128_ivf,128,IP,FaissIVFFlat
+Test512_dense,512,L2,TileDBDense
+Test512_sparse,512,L2,TileDBSparse

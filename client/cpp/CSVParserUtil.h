@@ -97,10 +97,6 @@ public:
   std::string vdms_server;
   int vdms_port;
   std::vector<std::string> _columnNames;
-  std::mutex querytype_mutex;
-  std::mutex aquery_mutex;
-  std::mutex cons_mutex;
-  std::mutex ops_mutex;
   int id;
   std::unique_ptr<VDMS::VDMSClient> vdms_client;
 };

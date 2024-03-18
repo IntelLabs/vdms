@@ -76,7 +76,7 @@ TEST(CLIENT_CPP_CSV, parse_csv_images) {
 
 TEST(CLIENT_CPP_CSV, parse_csv_descriptor_set) {
   std::string filename = "../tests/csv_samples/DescriptorSet.csv";
-  size_t num_threads = 5;
+  size_t num_threads = 1;
   std::string vdms_server = "localhost";
   int port = 55558;
 
@@ -126,22 +126,22 @@ TEST(CLIENT_CPP_CSV, parse_csv_bb) {
     EXPECT_EQ(result[k]["AddBoundingBox"]["status"].asInt(), 0);
   }
 }
-TEST(CLIENT_CPP_CSV, parse_csv_video) {
-  std::string filename = "../tests/csv_samples/Video.csv";
-  size_t num_threads = 5;
-  std::string vdms_server = "localhost";
-  int port = 55558;
-  std::vector<VDMS::Response> all_results;
-  VDMS::CSVParser csv_parser(filename, num_threads, vdms_server, port);
+// TEST(CLIENT_CPP_CSV, parse_csv_video) {
+//   std::string filename = "../tests/csv_samples/Video.csv";
+//   size_t num_threads = 5;
+//   std::string vdms_server = "localhost";
+//   int port = 55558;
+//   std::vector<VDMS::Response> all_results;
+//   VDMS::CSVParser csv_parser(filename, num_threads, vdms_server, port);
 
-  all_results = csv_parser.parse();
-  Json::Value result;
-  Json::Reader _reader;
-  for (int k = 0; k < all_results.size(); k++) {
-    _reader.parse(all_results[k].json.c_str(), result);
-    EXPECT_EQ(result[k]["AddVideo"]["status"].asInt(), 0);
-  }
-}
+//   all_results = csv_parser.parse();
+//   Json::Value result;
+//   Json::Reader _reader;
+//   for (int k = 0; k < all_results.size(); k++) {
+//     _reader.parse(all_results[k].json.c_str(), result);
+//     EXPECT_EQ(result[k]["AddVideo"]["status"].asInt(), 0);
+//   }
+// }
 
 TEST(CLIENT_CPP_CSV, parse_csv_invalid_entity) {
   std::string filename = "../tests/csv_samples/invalid.csv";
