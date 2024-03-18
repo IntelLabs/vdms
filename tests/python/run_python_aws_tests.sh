@@ -117,6 +117,8 @@ function execute_commands() {
 # Cleanup function to kill those processes which were started by the script
 # Also it deletes those directories created by the script (or its tests)
 function cleanup() {
+    exit_value=$?
+
     # Removing log files
     echo 'Removing log files'
     rm  -rf log.log screen.log
@@ -131,7 +133,7 @@ function cleanup() {
     # Killing vdms and minio processes after finishing the testing
     echo 'Killing vdms and minio processes after finishing the testing'
     kill -9 $py_unittest_pid $py_minio_pid || true
-    exit 0
+    exit $exit_value
 }
 
 # Get the arguments sent to the script command

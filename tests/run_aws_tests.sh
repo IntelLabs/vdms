@@ -65,6 +65,8 @@ function execute_commands() {
 # Cleanup function to kill those processes which were started by the script
 # Also it deletes those directories created by the script (or its tests)
 function cleanup() {
+    exit_value=$?
+
     echo "Killing the minio server"
     kill -9 $py_minio_pid || true
 
@@ -73,7 +75,7 @@ function cleanup() {
     rm -rf test_db/ || true
     rm -rf test_db_aws/ || true
     rm -rf tdb/ || true
-    exit 0
+    exit $exit_value
 }
 
 # Get the arguments sent to the script command

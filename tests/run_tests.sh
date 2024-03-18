@@ -48,6 +48,8 @@ function execute_commands() {
 # Also it deletes those directories created by the script (or its tests)
 function cleanup() {
 
+    exit_value=$?
+    
     echo "Killing the udf_server and udf_local"
     pkill -9 -f udf_server.py || true
     pkill -9 -f udf_local.py || true
@@ -58,7 +60,8 @@ function cleanup() {
     # Clean up
     echo 'Removing the temporary files created'
     sh ./cleandbs.sh || true
-    exit 0
+    
+    exit $exit_value
 }
 
 # Get the arguments sent to the script command
