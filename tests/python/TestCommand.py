@@ -63,12 +63,18 @@ class TestCommand(unittest.TestCase):
                         self.port = aws_port
                     except Exception as e:
                         print(
-                            "Attempt", attempts, "to connect to VDMS failed, retying..."
+                            "Attempt number",
+                            attempts,
+                            "to connect to VDMS failed, retrying...",
                         )
                         attempts += 1
                         time.sleep(1)  # sleeps 1 second
                 else:
-                    print("Attempt", attempts, "to connect to VDMS failed, retying...")
+                    print(
+                        "Attempt number",
+                        attempts,
+                        "to connect to VDMS failed, retrying...",
+                    )
                     attempts += 1
                     time.sleep(1)  # sleeps 1 second
 

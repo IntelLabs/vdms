@@ -245,7 +245,7 @@ TEST_F(RemoteConnectionTest, ImageRemoteWritePNG) {
     img.set_connection(connection_);
     std::string path = "pngs/test_image.png";
 
-    img.store(path, VCL::Image::Format::PNG);
+    img.store(path, VCL::Format::PNG);
     img.perform_operations();
   } catch (...) {
     printErrorMessage("ImageRemoteWritePNG");
@@ -287,8 +287,7 @@ TEST_F(RemoteConnectionTest, ImageRemoteWriteJPG) {
 
     img.set_connection(connection_);
     std::string path = "jpgs/large1.jpg";
-
-    img.store(path, VCL::Image::Format::JPG);
+    img.store(path, VCL::Format::JPG);
   } catch (...) {
     printErrorMessage("ImageRemoteWriteJPG");
   }

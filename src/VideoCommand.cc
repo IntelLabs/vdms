@@ -635,7 +635,7 @@ Json::Value FindFrames::construct_responses(Json::Value &responses,
       VCL::Video video(video_path);
 
       // By default, return frames as PNGs
-      VCL::Image::Format format = VCL::Image::Format::PNG;
+      VCL::Format format = VCL::Format::PNG;
 
       FindImage img_cmd;
 
@@ -643,8 +643,7 @@ Json::Value FindFrames::construct_responses(Json::Value &responses,
 
         format = img_cmd.get_requested_format(cmd);
 
-        if (format == VCL::Image::Format::NONE_IMAGE ||
-            format == VCL::Image::Format::TDB) {
+        if (format == VCL::Format::NONE_IMAGE || format == VCL::Format::TDB) {
           Json::Value return_error;
           return_error["status"] = RSCommand::Error;
           return_error["info"] = "Invalid Return Format for FindFrames";

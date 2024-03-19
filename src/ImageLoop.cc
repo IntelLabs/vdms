@@ -175,8 +175,8 @@ CURL *ImageLoop::get_easy_handle(VCL::Image *img, std::string &readBuffer) {
     auto time_now = std::chrono::system_clock::now();
     std::chrono::duration<double> utc_time = time_now.time_since_epoch();
 
-    VCL::Image::Format img_format = img->get_image_format();
-    std::string format = img->format_to_string(img_format);
+    VCL::Format img_format = img->get_image_format();
+    std::string format = VCL::format_to_string(img_format);
 
     if (format == "" && options.isMember("format")) {
       format = options["format"].toStyledString().data();

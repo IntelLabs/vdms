@@ -1214,7 +1214,7 @@ TEST_F(VideoTest, KeyFrameDecodingSuccess) {
       std::string filename = "videos_tests/kf_frame_" + s;
 
       VCL::Image img(mat_list[i], false);
-      img.store(filename, VCL::Image::Format::PNG, false);
+      img.store(filename, VCL::Format::PNG, false);
     }
 
   } catch (VCL::Exception e) {

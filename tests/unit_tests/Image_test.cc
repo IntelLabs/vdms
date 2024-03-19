@@ -164,7 +164,7 @@ TEST_F(ImageTest, DefaultConstructor) {
 TEST_F(ImageTest, StringConstructor) {
   VCL::Image img(img_);
 
-  EXPECT_EQ(VCL::Image::Format::JPG, img.get_image_format());
+  EXPECT_EQ(VCL::Format::JPG, img.get_image_format());
   EXPECT_EQ(img_, img.get_image_id());
 }
 
@@ -175,7 +175,7 @@ TEST_F(ImageTest, StringConstructorIMG) {
   EXPECT_EQ(cv_img_.rows, dims.height);
   EXPECT_EQ(cv_img_.cols, dims.width);
 
-  EXPECT_EQ(img_data.get_image_format(), VCL::Image::Format::JPG);
+  EXPECT_EQ(img_data.get_image_format(), VCL::Format::JPG);
 }
 
 TEST_F(ImageTest, StringConstructorTDB) {
@@ -186,7 +186,7 @@ TEST_F(ImageTest, StringConstructorTDB) {
   EXPECT_EQ(cv_img_.rows, dims.height);
   EXPECT_EQ(cv_img_.cols, dims.width);
 
-  EXPECT_EQ(img_data.get_image_format(), VCL::Image::Format::TDB);
+  EXPECT_EQ(img_data.get_image_format(), VCL::Format::TDB);
 }
 
 // When setting from a cv::mat, we set the type of the image and copy the image
@@ -366,7 +366,7 @@ TEST_F(ImageTest, GetMatFromTDB) {
   VCL::Image img(tdb_img_);
 
   EXPECT_EQ(tdb_img_, img.get_image_id());
-  EXPECT_EQ(VCL::Image::Format::TDB, img.get_image_format());
+  EXPECT_EQ(VCL::Format::TDB, img.get_image_format());
 
   cv::Mat cv_img = img.get_cvmat();
 
@@ -520,7 +520,7 @@ TEST_F(ImageTest, Read) {
 
 TEST_F(ImageTest, WriteMatToJPG) {
   VCL::Image img(cv_img_);
-  img.store("test_images/test_image", VCL::Image::Format::JPG);
+  img.store("test_images/test_image", VCL::Format::JPG);
 
   cv::Mat test = cv::imread("test_images/test_image.jpg");
 
@@ -529,12 +529,12 @@ TEST_F(ImageTest, WriteMatToJPG) {
 
 TEST_F(ImageTest, WriteMatToTDB) {
   VCL::Image img(cv_img_);
-  img.store("tdb/mat_to_tdb", VCL::Image::Format::TDB);
+  img.store("tdb/mat_to_tdb", VCL::Format::TDB);
 }
 
 TEST_F(ImageTest, WriteStringToTDB) {
   VCL::Image img(img_);
-  img.store("tdb/png_to_tdb.png", VCL::Image::Format::TDB);
+  img.store("tdb/png_to_tdb.png", VCL::Format::TDB);
 }
 
 TEST_F(ImageTest, ResizeMat) {
@@ -614,7 +614,7 @@ TEST_F(ImageTest, DeleteTDB) {
 
 //     auto unique_name = VCL::create_unique("image_results/", "png");
 
-//     img_data.store(unique_name, VCL::Image::Format::PNG);
+//     img_data.store(unique_name, VCL::Format::PNG);
 //     img_data.perform_operations();
 
 //     img_data.delete_object();
@@ -742,20 +742,19 @@ TEST_F(ImageTest, CompareMatAndBuffer) {
 TEST_F(ImageTest, TDBToPNG) {
   VCL::Image img(tdb_img_);
 
-  img.store("test_images/tdb_to_png", VCL::Image::Format::PNG);
+  img.store("test_images/tdb_to_png", VCL::Format::PNG);
 }
 
 TEST_F(ImageTest, TDBToJPG) {
   VCL::Image img(tdb_img_);
 
-  img.store("test_images/tdb_to_jpg", VCL::Image::Format::JPG);
+  img.store("test_images/tdb_to_jpg", VCL::Format::JPG);
 }
 
 TEST_F(ImageTest, EncodedImage) {
   VCL::Image img(tdb_img_);
 
-  std::vector<unsigned char> buffer =
-      img.get_encoded_image(VCL::Image::Format::PNG);
+  std::vector<unsigned char> buffer = img.get_encoded_image(VCL::Format::PNG);
 
   cv::Mat mat = cv::imdecode(buffer, cv::IMREAD_ANYCOLOR);
   compare_mat_mat(cv_img_, mat);
@@ -766,7 +765,7 @@ TEST_F(ImageTest, CreateNamePNG) {
 
   auto unique_name = VCL::create_unique("image_results/", "png");
 
-  img_data.store(unique_name, VCL::Image::Format::PNG);
+  img_data.store(unique_name, VCL::Format::PNG);
   img_data.perform_operations();
 }
 
@@ -775,7 +774,7 @@ TEST_F(ImageTest, CreateNameTDB) {
 
   for (int i = 0; i < 10; ++i) {
     std::string name = VCL::create_unique("tdb/", "tdb");
-    img.store(name, VCL::Image::Format::TDB);
+    img.store(name, VCL::Format::TDB);
   }
 }
 
@@ -783,7 +782,7 @@ TEST_F(ImageTest, NoMetadata) {
   VCL::Image img(cv_img_);
 
   std::string name = VCL::create_unique("tdb/", "tdb");
-  img.store(name, VCL::Image::Format::TDB, false);
+  img.store(name, VCL::Format::TDB, false);
 
   cv::Size dims = img.get_dimensions();
   int cv_type = img.get_image_type();
@@ -964,7 +963,7 @@ TEST_F(ImageTest, AddImageByPath) {
   VCL::Image img;
   img = VCL::Image(img_, true);
 
-  EXPECT_EQ(VCL::Image::Format::JPG, img.get_image_format());
+  EXPECT_EQ(VCL::Format::JPG, img.get_image_format());
   EXPECT_EQ(img_, img.get_image_id());
 }
 

@@ -61,6 +61,12 @@ class TestImages(TestCommand.TestCommand):
             props["test_case"] = "test_case_prop"
             img_params["properties"] = props
 
+        op_params_resize = {}
+        op_params_resize["height"] = 512
+        op_params_resize["width"] = 512
+        op_params_resize["type"] = "resize"
+        img_params["operations"] = [op_params_resize]
+
         if not collections is None:
             img_params["collections"] = collections
 
@@ -75,6 +81,72 @@ class TestImages(TestCommand.TestCommand):
 
         # Check success
         self.assertEqual(response[0]["AddImage"]["status"], 0)
+
+    def test_JPG_addImage_Without_operations(self):
+        db = self.create_connection()
+        all_queries = []
+        imgs_arr = []
+
+        number_of_inserts = 2
+
+        for i in range(0, number_of_inserts):
+            # Read Brain Image
+            fd = open("../test_images/large1.jpg", "rb")
+            imgs_arr.append(fd.read())
+            fd.close()
+
+            props = {}
+            props["name"] = "brain_" + str(i)
+            props["doctor"] = "Dr. Strange Love"
+
+            img_params = {}
+            img_params["properties"] = props
+            img_params["format"] = "jpg"
+
+            query = {}
+            query["AddImage"] = img_params
+
+            all_queries.append(query)
+
+        response, img_array = db.query(all_queries, [imgs_arr])
+
+        self.assertEqual(len(response), number_of_inserts)
+        for i in range(0, number_of_inserts):
+            self.assertEqual(response[i]["AddImage"]["status"], 0)
+
+    def test_PNG_addImage_Without_operations(self):
+        db = self.create_connection()
+
+        all_queries = []
+        imgs_arr = []
+
+        number_of_inserts = 2
+
+        for i in range(0, number_of_inserts):
+            # Read Brain Image
+            fd = open("../test_images/brain.png", "rb")
+            imgs_arr.append(fd.read())
+            fd.close()
+
+            props = {}
+            props["name"] = "brain_" + str(i)
+            props["doctor"] = "Dr. Strange Love"
+
+            img_params = {}
+            img_params["properties"] = props
+            img_params["format"] = "png"
+
+            query = {}
+            query["AddImage"] = img_params
+
+            all_queries.append(query)
+
+        response, img_array = db.query(all_queries, [imgs_arr])
+        self.assertEqual(len(response), number_of_inserts)
+        for i in range(0, number_of_inserts):
+            self.assertEqual(response[i]["AddImage"]["status"], 0)
+        for img in img_array:
+            self.verify_png_signature(img)
 
     def test_addImage(self):
         # Setup
@@ -98,7 +170,7 @@ class TestImages(TestCommand.TestCommand):
             op_params_resize["type"] = "resize"
 
             props = {}
-            props["name"] = "brain_" + str(i)
+            props["name"] = "test_brain_" + str(i)
             props["doctor"] = "Dr. Strange Love"
 
             img_params = {}
@@ -117,7 +189,7 @@ class TestImages(TestCommand.TestCommand):
         # Call to function in charge of checking the images were found
         for i in range(0, number_of_inserts):
             constraints = {}
-            constraints["name"] = ["==", "brain_" + str(i)]
+            constraints["name"] = ["==", "test_brain_" + str(i)]
 
             img_params = {}
             img_params["constraints"] = constraints
@@ -457,7 +529,6 @@ class TestImages(TestCommand.TestCommand):
         # Execute the tests
         response, img_array = db.query(all_queries)
         self.disconnect(db)
-        # print(db.get_last_response_str())
 
         # Verify the results
         for index in range(0, number_of_images):

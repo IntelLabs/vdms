@@ -42,7 +42,6 @@ typedef std::vector<unsigned char> cv_buffer;
 /**
  *  Determines what kind of compression to use
  */
-
 enum class CompressionType {
   NOCOMPRESSION = 0,
   GZIP = 1,
@@ -56,6 +55,13 @@ enum class CompressionType {
   BZSTD = 9,
   RLE = 10
 };
+/*  *********************** */
+/*          ENUMS           */
+/*  *********************** */
+/**
+ *  Determines what kind of format to use
+ */
+enum class Format { NONE_IMAGE = 0, JPG = 1, PNG = 2, TDB = 3, BIN = 4 };
 
 static const struct init_rand_t {
   init_rand_t() { srand(time(NULL)); }
@@ -66,7 +72,14 @@ uint64_t rdrand();
 bool supports_rdrand();
 
 uint64_t get_uint64();
+/* a util function to covert the enum format value to string*/
+std::string format_to_string(VCL::Format format);
 
+/**
+ *  Save the image directly as a blob file without the need to re-encoding it
+ * with cv::imwrite
+ */
+void save_image(const std::string &_fullpath, const std::string &blob);
 /**
  *  Gets the extension of a filename
  *
@@ -86,4 +99,9 @@ bool exists(const std::string &name);
 
 std::string create_unique(const std::string &path,
                           const std::string &extension);
+/**
+ *  Determines what is the format of the input blob image using the signature
+ * value of PNG and JPG format
+ */
+Format read_image_format(void *buffer, long size);
 }; // namespace VCL
