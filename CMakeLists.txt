@@ -69,6 +69,7 @@ else()
     src/DescriptorsManager.cc
     src/ExceptionsCommand.cc
     src/ImageCommand.cc
+    src/OpsIOCoordinator.cc
     src/PMGDIterators.cc
     src/PMGDQuery.cc
     src/PMGDQueryHandler.cc

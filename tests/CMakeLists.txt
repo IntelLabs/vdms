@@ -55,6 +55,7 @@ add_executable(unit_tests
     unit_tests/client_videos.cc
     unit_tests/client_blob.cc
     unit_tests/BackendNeo4jTest.cc
+    unit_tests/OpsIoTest.cc
 )
 
 target_link_libraries(unit_tests

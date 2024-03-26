@@ -56,7 +56,7 @@ function execute_commands() {
     mc mb myminio/minio-bucket
 
     echo 'Running C++ tests...'
-    ./../build/tests/unit_tests --gtest_filter=RemoteConnectionTest.*
+    ./../build/tests/unit_tests --gtest_filter=RemoteConnectionTest.*:OpsIOCoordinatorTest.*
 
     echo 'Finished'
     exit 0
