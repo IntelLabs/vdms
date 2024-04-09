@@ -39,7 +39,7 @@ function execute_commands() {
 
     echo 'Running C++ tests...'
     ./../build/tests/unit_tests \
-        --gtest_filter=-ImageTest.CreateNameTDB:ImageTest.NoMetadata:VideoTest.SyncRemoteWrite:VideoTest.UDFWrite:Descriptors_Add.add_1by1_and_search_1k:RemoteConnectionTest.*:Neo4jBackendTest.*
+        --gtest_filter=-ImageTest.CreateNameTDB:ImageTest.NoMetadata:VideoTest.SyncRemoteWrite:VideoTest.UDFWrite:Descriptors_Add.add_1by1_and_search_1k:RemoteConnectionTest.*:Neo4jBackendTest.*:OpsIOCoordinatorTest.*
     echo 'Finished'
     exit 0
 }

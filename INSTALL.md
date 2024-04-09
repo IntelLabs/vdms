@@ -102,23 +102,28 @@ git clone -b v${PROTOBUF_VERSION} --recurse-submodules https://github.com/protoc
 
 cd $VDMS_DEP_DIR/protobuf/third_party/googletest
 mkdir build && cd build
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local \
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
+    -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 ..
 make ${BUILD_THREADS}
 sudo make install
-sudo ldconfig
 
 cd $VDMS_DEP_DIR/protobuf/third_party/abseil-cpp
 mkdir build && cd build
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_PREFIX_PATH=/usr/local/ -DCMAKE_INSTALL_PREFIX=/usr/local/ \
-    -DABSL_BUILD_TESTING=ON -DABSL_ENABLE_INSTALL=ON -DABSL_USE_EXTERNAL_GOOGLETEST=ON \
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
+    -DCMAKE_INSTALL_PREFIX=/usr/local -DABSL_BUILD_TESTING=ON \
+    -DABSL_USE_EXTERNAL_GOOGLETEST=ON \
     -DABSL_FIND_GOOGLETEST=ON -DCMAKE_CXX_STANDARD=17 ..
 make ${BUILD_THREADS}
 sudo make install
+sudo ldconfig /usr/local/lib
 
 cd $VDMS_DEP_DIR/protobuf
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_CXX_STANDARD=17 \
-    -Dprotobuf_ABSL_PROVIDER=package -DCMAKE_PREFIX_PATH=/usr/local .
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DCMAKE_CXX_STANDARD=17 -Dprotobuf_BUILD_SHARED_LIBS=ON \
+    -Dprotobuf_ABSL_PROVIDER=package \
+    -Dprotobuf_BUILD_TESTS=ON \
+    -Dabsl_DIR=/usr/local/lib/cmake/absl .
 make ${BUILD_THREADS}
 sudo make install
 
@@ -133,7 +138,8 @@ FAISS_VERSION="v1.7.4"
 git clone --branch ${FAISS_VERSION} https://github.com/facebookresearch/faiss.git $VDMS_DEP_DIR/faiss
 cd $VDMS_DEP_DIR/faiss
 mkdir build && cd build
-cmake -DFAISS_ENABLE_GPU=OFF -DPython_EXECUTABLE=/usr/bin/python3 ..
+cmake -DFAISS_ENABLE_GPU=OFF -DPython_EXECUTABLE=/usr/bin/python3 \
+    -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release ..
 make ${BUILD_THREADS}
 sudo make install
 ```
@@ -260,5 +266,12 @@ When compiling on a target with Optane persistent memory, use the command set:
 mkdir build && cd build
 cmake -DCMAKE_CXX_FLAGS='-DPM' ..
 make ${BUILD_THREADS}
+```
+
+***NOTE:*** If error similar to `cannot open shared object file: No such file or directory` obtained during loading shared libraries, such as `libpmgd.so` or `libvcl.so`, add the correct directories to `LD_LIBRARY_PATH`. This may occur for non-root users. To find the correct directory, run `find` command for missing object file. An example solution for missing `libpmgd.so` and `libvcl.so` is:
+```bash
+find / -name "libpmgd*so*" # <Path_to_VDMS_directory>/build/src/pmgd/src
+find / -name "libvcl*so*"  # <Path_to_VDMS_directory>/build/src/vcl
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:<Path_to_VDMS_directory>/build/src/pmgd/src:<Path_to_VDMS_directory>/build/src/vcl
 ```
 
