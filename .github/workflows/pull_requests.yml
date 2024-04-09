@@ -96,7 +96,7 @@ jobs:
 
           docker stop $(docker ps -aqf "name=${{ matrix.container_name }}") | xargs docker rm || true
 
-          docker build --rm --build-arg="BUILD_COVERAGE=on" --build-arg="BUILD_COVERITY=on" \
+          docker build --rm --build-arg="BUILD_COVERAGE=ON" --build-arg="BUILD_COVERITY=ON" --build-arg="BUILD_TIMING=ON" \
             -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ matrix.container_tag }} .
 
       - name: Build Docker Container w/o cache
@@ -106,8 +106,8 @@ jobs:
 
           docker stop $(docker ps -aqf "name=${{ matrix.container_name }}") | xargs docker rm || true
 
-          docker build --no-cache --rm --build-arg="BUILD_COVERAGE=on" --build-arg="BUILD_COVERITY=on" \
-            -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ matrix.container_tag }} .
+          docker build --no-cache --rm --build-arg="BUILD_COVERAGE=ON" --build-arg="BUILD_COVERITY=ON" \
+            --build-arg="BUILD_TIMING=ON" -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ matrix.container_tag }} .
 
       - if: matrix.coverage_type  == 'Source' &&  steps.git_check.outputs.added_modified
         uses: ./.github/actions/coverity-incremental-scan

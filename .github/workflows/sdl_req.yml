@@ -131,14 +131,14 @@ jobs:
         id: build_docker
         continue-on-error: true
         run: |
-          docker build --rm --build-arg="BUILD_COVERAGE=off" --build-arg="BUILD_COVERITY=off" \
-            -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ env.VDMS_IMAGE_TAG}} .
+          docker build --rm --build-arg="BUILD_COVERAGE=OFF" --build-arg="BUILD_COVERITY=OFF" \
+            --build-arg="BUILD_TIMING=ON" -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ env.VDMS_IMAGE_TAG}} .
           docker save -o ${{ env.DOCKER_ARTIFACT_DIR }}/${{ env.VDMS_IMAGE_TARFILE}} ${{ env.VDMS_IMAGE_TAG}}
       - name: Build Docker Container w/o cache
         if: always() && steps.build_docker.outcome == 'failure'
         run: |
-          docker build --no-cache --rm --build-arg="BUILD_COVERAGE=off" --build-arg="BUILD_COVERITY=off" \
-            -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ env.VDMS_IMAGE_TAG}} .
+          docker build --no-cache --rm --build-arg="BUILD_COVERAGE=OFF" --build-arg="BUILD_COVERITY=OFF" \
+            --build-arg="BUILD_TIMING=ON" -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ env.VDMS_IMAGE_TAG}} .
           docker save -o ${{ env.DOCKER_ARTIFACT_DIR }}/${{ env.VDMS_IMAGE_TARFILE}} ${{ env.VDMS_IMAGE_TAG}}
       - name: Upload Docker Image Artifact
         if: success()
@@ -251,8 +251,8 @@ jobs:
           submodules: true
       - name: Build Docker Container with Coverity
         run: |
-          docker build --rm --build-arg="BUILD_COVERAGE=off" --build-arg="BUILD_COVERITY=on" \
-            -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ env.COVERITY_IMAGE_TAG}} .
+          docker build --rm --build-arg="BUILD_COVERAGE=OFF" --build-arg="BUILD_COVERITY=ON" \
+            --build-arg="BUILD_TIMING=ON" -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ env.COVERITY_IMAGE_TAG}} .
 
       - name: Run Coverity Docker and Configure with GCC
         run: |
