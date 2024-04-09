@@ -166,7 +166,8 @@ WORKDIR /vdms
 # hadolint ignore=DL3003,SC2086
 RUN git clone -b develop --recurse-submodules https://github.com/IntelLabs/vdms.git /vdms && \
         mkdir -p /vdms/build && cd /vdms/build && \
-        cmake .. && make ${BUILD_THREADS} && \
+        cmake -DCODE_COVERAGE="${BUILD_COVERAGE}" -DCHRONO_TIMING="${BUILD_TIMING}" .. && \
+        make ${BUILD_THREADS} && \
     cp /vdms/config-vdms.json /vdms/build/ && \
     echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
     echo './vdms' >> /start.sh && chmod 755 /start.sh
