@@ -254,6 +254,14 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
   std::vector<std::string> images_log;
   std::vector<std::string> videos_log;
 
+	std::chrono::steady_clock::time_point proto_start, proto_end;
+	std::chrono::steady_clock::time_point pmgd_start, pmgd_end;
+	std::chrono::steady_clock::time_point resp_start, resp_end;
+	std::chrono::steady_clock::time_point total_start, total_end;
+	double total_runtime, protobuf_time, pmgd_time, cons_resp_time;
+	Json::Value stat_res;
+  Json::Value timing_res;
+
   auto exception_handler = [&]() {
     // When exception is catched, we return the message.
     std::cerr << "Failed Query: " << std::endl;
@@ -266,6 +274,9 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
     response.append(exception_error);
     proto_res.set_json(fastWriter.write(response));
   };
+
+  //for tracking aggregate time in process query
+  total_start = std::chrono::steady_clock::now();
 
   try {
     Json::Value json_responses;
@@ -296,6 +307,7 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
     int blob_count = 0;
 
     // iterate over the list of the queries
+		proto_start = std::chrono::steady_clock::now();
     for (int j = 0; j < root.size(); j++) {
       const Json::Value &query = root[j];
       std::string cmd = query.getMemberNames()[0];
@@ -324,9 +336,15 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
 
       construct_results.push_back(cmd_result);
     }
+		proto_end = std::chrono::steady_clock::now();
 
+		// wrap PMGD transaction for simple timing
+		pmgd_start = std::chrono::steady_clock::now();
     Json::Value &tx_responses = pmgd_query.run(_autodelete_init);
+		pmgd_end = std::chrono::steady_clock::now();
 
+		//Wrap response construction.
+		resp_start = std::chrono::steady_clock::now();
     if (!tx_responses.isArray() || tx_responses.size() != root.size()) {
       Json::StyledWriter writer;
       std::cerr << "PMGD Response:" << std::endl;
@@ -370,6 +388,21 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
         json_responses.append(cmd_result);
       }
     }
+		resp_end = std::chrono::steady_clock::now(); //note we can reuse resp_end for total runtime
+
+		//calculate various section runtimes, doing this at the end to minimize internal
+		//timing jitters (probably irrelevant)
+		total_runtime = std::chrono::duration_cast<std::chrono::microseconds>(resp_end - total_start).count();
+		protobuf_time = std::chrono::duration_cast<std::chrono::microseconds>(proto_end - proto_start).count();
+		pmgd_time = std::chrono::duration_cast<std::chrono::microseconds>(pmgd_end - pmgd_start).count();
+		cons_resp_time = std::chrono::duration_cast<std::chrono::microseconds>(resp_end - resp_start).count();
+
+		timing_res["total_runtime_microseconds"] = total_runtime;
+		timing_res["protobuf_time_microseconds"] = protobuf_time;
+		timing_res["pmgd_time_microseconds"] = pmgd_time;
+		timing_res["construct_response_time_microseconds"] = cons_resp_time;
+		json_responses.append(timing_res);
+
     proto_res.set_json(fastWriter.write(json_responses));
     _pmgd_qh.cleanup_files();
 

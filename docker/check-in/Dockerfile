@@ -137,6 +137,7 @@ RUN rm -rf /dependencies /usr/local/share/doc /usr/local/share/man && \
 FROM base
 ARG BUILD_COVERAGE="on"
 ARG BUILD_COVERITY="off"
+ARG BUILD_TIMING="on"
 
 # hadolint ignore=DL3008
 RUN apt-get update -y && apt-get upgrade -y && \
@@ -209,7 +210,8 @@ COPY ./config-vdms.json /vdms/
 # hadolint ignore=DL3003,SC2086
 RUN git submodule update --init --recursive && \
         mkdir -p /vdms/build && cd /vdms/build && \
-        cmake -DCODE_COVERAGE="${BUILD_COVERAGE}" .. && make ${BUILD_THREADS} && \
+        cmake -DCODE_COVERAGE="${BUILD_COVERAGE}" -DCHRONO_TIMING="${BUILD_TIMING}" .. && \
+        make ${BUILD_THREADS} && \
     cp /vdms/config-vdms.json /vdms/build/ && \
     echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
     echo './vdms' >> /start.sh && chmod 755 /start.sh

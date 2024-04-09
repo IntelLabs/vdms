@@ -3,6 +3,13 @@ cmake_minimum_required (VERSION 3.17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_CXX_STANDARD 17)
 
+option(CHRONO_TIMING "Use chrono timing." OFF)
+option(CLIENT "Built client library." OFF)
+option(CODE_COVERAGE "Collect coverage" OFF)
+
+message("CHRONO_TIMING: " ${CHRONO_TIMING})
+message("CLIENT: " ${CLIENT})
+message("CODE_COVERAGE: " ${CODE_COVERAGE})
 
 IF(CODE_COVERAGE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -coverage -fprofile-arcs -ftest-coverage")
@@ -41,10 +48,7 @@ protobuf_generate(
   PROTOC_OUT_DIR "${PROTO_BINARY_DIR}"
 )
 
-option(CLIENT "Built client library." OFF)
 if (CLIENT)
-  add_definitions("-D CLIENT")
-
   include_directories(client/cpp)
   include_directories(utils)
   add_subdirectory(utils)
