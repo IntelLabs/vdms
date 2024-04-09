@@ -143,6 +143,8 @@ RUN rm -rf /dependencies /usr/local/share/doc /usr/local/share/man && \
 ############################################################
 # FINAL IMAGE
 FROM base
+ARG BUILD_COVERAGE="OFF"
+ARG BUILD_TIMING="OFF"
 
 # hadolint ignore=DL3008
 RUN apt-get update -y && apt-get upgrade -y && \

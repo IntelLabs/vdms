@@ -143,9 +143,9 @@ RUN rm -rf /dependencies /usr/local/share/doc /usr/local/share/man && \
 ############################################################
 # FINAL IMAGE
 FROM base
-ARG BUILD_COVERAGE="on"
-ARG BUILD_COVERITY="off"
-ARG BUILD_TIMING="on"
+ARG BUILD_COVERAGE="ON"
+ARG BUILD_COVERITY="OFF"
+ARG BUILD_TIMING="ON"
 
 # hadolint ignore=DL3008
 RUN apt-get update -y && apt-get upgrade -y && \
@@ -166,7 +166,7 @@ RUN echo "/usr/local/lib" >> /etc/ld.so.conf.d/all-libs.conf && ldconfig
 ENV COVERITY_VERSION="2023.3.4" \
     PATH=/opt/coverity/analysis/bin:$PATH
 WORKDIR /coverity
-RUN if [ "${BUILD_COVERITY}" = "on" ]; then \
+RUN if [ "${BUILD_COVERITY}" = "ON" ]; then \
         mkdir -p /coverity /opt/coverity ; \
         curl -L -o /coverity/cov-analysis-linux64-${COVERITY_VERSION}.sh  https://ubit-artifactory-or.intel.com/artifactory/coverity-or-local/Enterprise/cov-analysis-linux64-${COVERITY_VERSION}.sh ; \
         curl -L -o /coverity/license.dat https://ubit-artifactory-or.intel.com/artifactory/coverity-or-local/Enterprise/license.dat ; \
@@ -187,7 +187,7 @@ COPY ./docker/check-in/run_coverage_cpp.sh /
 COPY ./docker/check-in/run_coverage_py.sh /
 WORKDIR /vdms
 # hadolint ignore=DL3008
-RUN if [ "${BUILD_COVERAGE}" = "on" ]; then \
+RUN if [ "${BUILD_COVERAGE}" = "ON" ]; then \
         apt-get update -y ; \
         apt-get install -y --no-install-suggests --no-install-recommends gdb ; \
         apt-get clean ; \
