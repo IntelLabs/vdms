@@ -2,6 +2,12 @@ name: 'External Branch Sync'
 
 on:
   workflow_dispatch:
+    inputs:
+      sync:
+        description: 'Sync external_* branches'
+        required: true
+        type: boolean
+        default: true
   schedule:
     - cron: '0 0 * * *' # 00:00 each day
 
