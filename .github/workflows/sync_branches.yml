@@ -45,7 +45,8 @@ jobs:
                 is_remote_set='true'
               fi
 
-              echo "remote_set=$is_remote_set" >> $GITHUB_OUTPUT
+              echo "is_remote_set: ${is_remote_set}"
+              echo "remote_set=${is_remote_set}" >> $GITHUB_OUTPUT
 
           - name: Add Remote
             if: contains(steps.check_remote.outputs.remote_set , 'false')
@@ -58,15 +59,16 @@ jobs:
               git fetch external_vdms
 
               returnValue="$(git merge ${{ matrix.merge_branch }})"
+              echo "Merge response: ${returnValue}"
 
-              merge_flag='merge'
+              merge_flag="merge"
               if [[ ${returnValue} == *"CONFLICT"* ]]; then
-                merge_flag='conflict'
+                merge_flag="conflict"
               elif [[ ${returnValue} == *"Already up to date"* ]]; then
-                merge_flag='up_to_date'
+                merge_flag="up_to_date"
               fi
 
-              echo "merge_external=$merge_flag" >> $GITHUB_OUTPUT
+              echo "merge_external=${merge_flag}" >> $GITHUB_OUTPUT
 
           - if: ${{ steps.git_check.outputs.merge_external == 'conflict' }}
             run: |
