@@ -69,22 +69,30 @@ RUN curl -O  https://ftp.gnu.org/gnu/autoconf/autoconf-${AUTOCONF_VERSION}.tar.x
 # hadolint ignore=DL3003,SC2086
 RUN git clone -b "v${PROTOBUF_VERSION}" --recurse-submodules https://github.com/protocolbuffers/protobuf.git /dependencies/protobuf && \
         cd /dependencies/protobuf/third_party/googletest && mkdir build && cd build/ && \
-            cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 .. && \
-            make ${BUILD_THREADS} && make install DESTDIR=/opt/dist && make install && ldconfig && \
-        cd /dependencies/protobuf/third_party/abseil-cpp &&  mkdir build && cd build && \
-            cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_PREFIX_PATH=/usr/local/ -DCMAKE_INSTALL_PREFIX=/usr/local/ -DABSL_BUILD_TESTING=ON \
-                -DABSL_ENABLE_INSTALL=ON -DABSL_USE_EXTERNAL_GOOGLETEST=ON -DABSL_FIND_GOOGLETEST=ON -DCMAKE_CXX_STANDARD=17 .. && \
-            make ${BUILD_THREADS} && make install DESTDIR=/opt/dist && make install && \
+            cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
+                -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
+                -DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 .. && \
+            make ${BUILD_THREADS} && make install && \
+        cd /dependencies/protobuf/third_party/abseil-cpp && mkdir build && cd build && \
+            cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
+                -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local -DABSL_BUILD_TESTING=ON \
+                -DABSL_USE_EXTERNAL_GOOGLETEST=ON \
+                -DABSL_FIND_GOOGLETEST=ON -DCMAKE_CXX_STANDARD=17 .. && \
+            make ${BUILD_THREADS} && make install && ldconfig /opt/dist/usr/local/lib && \
         cd /dependencies/protobuf && \
-            cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_CXX_STANDARD=17 \
-                -Dprotobuf_ABSL_PROVIDER=package -DCMAKE_PREFIX_PATH=/usr/local . && \
-            make ${BUILD_THREADS} && make install DESTDIR=/opt/dist && make install
+            cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
+                -DCMAKE_CXX_STANDARD=17 -Dprotobuf_BUILD_SHARED_LIBS=ON \
+                -Dprotobuf_ABSL_PROVIDER=package \
+                -Dprotobuf_BUILD_TESTS=ON \
+                -Dabsl_DIR=/opt/dist/usr/local/lib/cmake/absl . && \
+            make ${BUILD_THREADS} && make install
 
 # DESCRIPTOR LIBRARIES
 # hadolint ignore=DL3003,SC2086
 RUN git clone --branch ${FAISS_VERSION} https://github.com/facebookresearch/faiss.git /dependencies/faiss && \
         cd /dependencies/faiss && mkdir build && cd build && \
-            cmake -DFAISS_ENABLE_GPU=OFF -DPython_EXECUTABLE=/usr/bin/python3 .. && \
+            cmake -DFAISS_ENABLE_GPU=OFF -DPython_EXECUTABLE=/usr/bin/python3 \
+            -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release .. && \
             make ${BUILD_THREADS} && make install DESTDIR=/opt/dist && make install && \
     git clone https://github.com/tonyzhang617/FLINNG.git /dependencies/FLINNG && \
         cd /dependencies/FLINNG && mkdir build && cd build && cmake .. && \
