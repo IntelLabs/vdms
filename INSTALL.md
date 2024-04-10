@@ -85,7 +85,8 @@ sudo make install
 #### **Autoconf v2.71**
 ```bash
 AUTOCONF_VERSION="2.71"
-curl -O  https://ftp.gnu.org/gnu/autoconf/autoconf-${AUTOCONF_VERSION}.tar.xz
+curl -L -o $VDMS_DEP_DIR/autoconf-${AUTOCONF_VERSION}.tar.xz https://ftp.gnu.org/gnu/autoconf/autoconf-${AUTOCONF_VERSION}.tar.xz
+cd $VDMS_DEP_DIR
 tar -xf autoconf-${AUTOCONF_VERSION}.tar.xz
 cd autoconf-${AUTOCONF_VERSION}
 ./configure
