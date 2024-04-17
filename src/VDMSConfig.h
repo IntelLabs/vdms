@@ -93,11 +93,56 @@ class VDMSConfig {
 
 public:
   static bool init(std::string config_file);
-  static void destroy();
+  static bool destroy();
+
+  /******************************************
+   * VDMSConfig should not be cloneable
+   *******************************************/
+  VDMSConfig(VDMSConfig &other) = delete;
+
+  /*******************************************
+   * VDMSConfig should not be assignable.
+   ********************************************/
+  void operator=(const VDMSConfig &) = delete;
+
   static VDMSConfig *instance();
 
-private:
+  int get_int_value(std::string val, int def);
+  std::string get_string_value(std::string val, std::string def);
+  bool get_bool_value(std::string val, bool def);
+  bool exists_key(const std::string &key);
+  const std::string &get_path_root() { return path_root; }
+  const std::string &get_path_pmgd() { return path_pmgd; }
+  const std::string &get_path_jpg() { return path_jpg; }
+  const std::string &get_path_png() { return path_png; }
+  const std::string &get_path_bin() { return path_bin; }
+  const std::string &get_path_tdb() { return path_tdb; }
+  const std::string &get_path_blobs() { return path_blobs; }
+  const std::string &get_path_videos() { return path_videos; }
+  const std::string &get_path_descriptors() { return path_descriptors; }
+  const std::string &get_path_tmp() { return path_tmp; }
+  const StorageType &get_storage_type() { return storage_type; }
+  const std::string &get_bucket_name() { return aws_bucket_name; }
+  const bool &get_aws_flag() { return aws_flag; }
+
+  std::optional<std::string> get_endpoint_override() {
+    return endpoint_override;
+  }
+  const std::optional<std::string> &get_proxy_host() { return proxy_host; }
+  const std::optional<int> &get_proxy_port() { return proxy_port; }
+  const std::optional<std::string> &get_proxy_scheme() { return proxy_scheme; }
+  const bool &get_use_endpoint() { return use_endpoint; }
+  const Aws::Utils::Logging::LogLevel get_aws_log_level() {
+    return aws_log_level;
+  }
+
+protected:
   static VDMSConfig *cfg;
+  static std::mutex _mutex;
+  VDMSConfig(std::string config_file);
+  ~VDMSConfig() {}
+
+private:
   Json::Value json_config;
 
   // Dirs
@@ -124,8 +169,6 @@ private:
   std::optional<std::string> proxy_scheme;
   Aws::Utils::Logging::LogLevel aws_log_level;
 
-  VDMSConfig(std::string config_file);
-
   void expand_directory_layer(
       std::vector<std::vector<std::string> *> *p_directory_list,
       int current_layer);
@@ -136,34 +179,17 @@ private:
   void check_or_create(std::string path);
   int create_dir(std::string path);
 
-public:
-  int get_int_value(std::string val, int def);
-  std::string get_string_value(std::string val, std::string def);
-  bool get_bool_value(std::string val, bool def);
-  bool exists_key(const std::string &key);
-  const std::string &get_path_root() { return path_root; }
-  const std::string &get_path_pmgd() { return path_pmgd; }
-  const std::string &get_path_jpg() { return path_jpg; }
-  const std::string &get_path_png() { return path_png; }
-  const std::string &get_path_bin() { return path_bin; }
-  const std::string &get_path_tdb() { return path_tdb; }
-  const std::string &get_path_blobs() { return path_blobs; }
-  const std::string &get_path_videos() { return path_videos; }
-  const std::string &get_path_descriptors() { return path_descriptors; }
-  const std::string &get_path_tmp() { return path_tmp; }
-  const StorageType &get_storage_type() { return storage_type; }
-  const std::string &get_bucket_name() { return aws_bucket_name; }
-  const bool &get_aws_flag() { return aws_flag; }
-
-  std::optional<std::string> get_endpoint_override() {
-    return endpoint_override;
-  }
-  const std::optional<std::string> &get_proxy_host() { return proxy_host; }
-  const std::optional<int> &get_proxy_port() { return proxy_port; }
-  const std::optional<std::string> &get_proxy_scheme() { return proxy_scheme; }
-  const bool &get_use_endpoint() { return use_endpoint; }
-  const Aws::Utils::Logging::LogLevel get_aws_log_level() & {
-    return aws_log_level;
+  VDMSConfig *getCfg() { return cfg; }
+  VDMSConfig() {
+    cfg = nullptr;
+    storage_type = StorageType::LOCAL;
+    aws_flag = false;
+    use_endpoint = false;
+    aws_log_level = Aws::Utils::Logging::LogLevel::Off;
+    endpoint_override = std::nullopt;
+    proxy_host = std::nullopt;
+    proxy_port = std::nullopt;
+    proxy_scheme = std::nullopt;
   }
 };
 

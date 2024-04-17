@@ -26,7 +26,11 @@
 #
 
 # Command format:
-# sh ./run_python_aws_tests.sh -u YOUR_MINIO_USERNAME -p YOUR_MINIO_PASSWORD
+# sh ./run_python_aws_tests.sh -u YOUR_MINIO_USERNAME -p YOUR_MINIO_PASSWORD [-n TEST_PATTERN_NAME]
+# You may specify a filter for running specific tests
+# ex. sh ./run_python_aws_tests.sh -u YOUR_MINIO_USERNAME -p YOUR_MINIO_PASSWORD -n test_module.TestClass.test_method
+# ex. sh ./run_python_aws_tests.sh -u YOUR_MINIO_USERNAME -p YOUR_MINIO_PASSWORD -n "TestBoundingBox.TestBoundingBox.test_addBoundingBox"
+# ex. sh ./run_python_aws_tests.sh -u YOUR_MINIO_USERNAME -p YOUR_MINIO_PASSWORD -n "TestBoundingBox.py"
 
 # Variable used for storing the process id for the vdms server
 py_unittest_pid='UNKNOWN_PROCESS_ID'
@@ -36,8 +40,10 @@ py_minio_pid='UNKNOWN_PROCESS_ID'
 function execute_commands() {
     username_was_set=false
     password_was_set=false
+    testname_was_set=false
+
     # Parse the arguments of the command
-    while getopts u:p: flag
+    while getopts u:p:n: flag
     do
         case "${flag}" in
             u)
@@ -48,13 +54,26 @@ function execute_commands() {
                 password=${OPTARG}
                 password_was_set=true
                 ;;
+            n)
+                testname=${OPTARG}
+                testname_was_set=true
+                ;;
         esac
     done
 
     if [ $username_was_set = false ] || [ $password_was_set = false ]; then
         echo 'Missing arguments for "run_python_aws_tests.sh" script'
-        echo 'Usage: sh ./run_python_aws_tests.sh -u YOUR_MINIO_USERNAME -p YOUR_MINIO_PASSWORD'
+        echo 'Usage: sh ./run_python_aws_tests.sh -u YOUR_MINIO_USERNAME -p YOUR_MINIO_PASSWORD [-n TEST_PATTERN_NAME]'
         exit 1;
+    fi
+
+     # Using the flag "-n YOUR_TEST_NAME"
+    # for specifying the unittest test filter. In case that this flag is not specified
+    # then it will use the default filter pattern
+    test_filter="discover --pattern=Test*.py"
+    if [ "$testname_was_set" = true ]; then
+        test_filter=$testname
+        echo 'Using test filter: '$test_filter
     fi
 
     TEST_DIR=${PWD}
@@ -77,8 +96,10 @@ function execute_commands() {
     rm -rf test_db/ || true
     rm -rf test_db_aws/ || true
 
-    rm  -rf test_db log.log screen.log
-    mkdir -p test_db
+    rm -rf test_db || true
+    rm log.log || true
+    rm screen.log || true
+    mkdir -p test_db || true
 
     echo 'Starting vdms server'
     ./../../build/vdms -cfg config-aws-tests.json > screen.log 2> log.log &
@@ -109,7 +130,7 @@ function execute_commands() {
     # 'VDMS_SKIP_REMOTE_PYTHON_TESTS' environment variable must be set to True
     export VDMS_SKIP_REMOTE_PYTHON_TESTS=True
     echo 'Running Python AWS S3 tests...'
-    python3 -m coverage run --include="../../*" --omit="${base_dir}/client/python/vdms/queryMessage_pb2.py,../*" -m unittest discover --pattern=Test*.py -v
+    python3 -m coverage run --include="../../*" --omit="${base_dir}/client/python/vdms/queryMessage_pb2.py,../*" -m unittest $test_filter -v
     echo 'Finished'
     exit 0
 }
@@ -121,9 +142,12 @@ function cleanup() {
 
     # Removing log files
     echo 'Removing log files'
-    rm  -rf log.log screen.log
+    rm  -rf test_db || true
+    rm log.log || true
+    rm screen.log || true
 
     unset VDMS_SKIP_REMOTE_PYTHON_TESTS
+
 
     echo 'Removing temporary files'
     rm -rf ../../minio_files/ || true

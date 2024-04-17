@@ -336,11 +336,33 @@ class TestBoundingBox(TestCommand.TestCommand):
 
         all_queries = []
 
+        bb_coords = {}
+        bb_coords["x"] = 0
+        bb_coords["y"] = 0
+        bb_coords["h"] = 512
+        bb_coords["w"] = 512
+
+        props = {}
+        props["name"] = "my_bb_0"
+
+        bb = {}
+        bb["properties"] = props
+        bb["rectangle"] = bb_coords
+
+        query = {}
+        query["AddBoundingBox"] = bb
+
+        all_queries.append(query)
+
+        response, img_array = db.query(all_queries)
+
+        all_queries = []
+
         rect_coords = {}
         rect_coords["x"] = 0
         rect_coords["y"] = 0
-        rect_coords["w"] = 500
-        rect_coords["h"] = 500
+        rect_coords["w"] = 512
+        rect_coords["h"] = 512
 
         results = {}
         results["list"] = ["name"]

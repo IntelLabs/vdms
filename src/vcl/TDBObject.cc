@@ -120,6 +120,46 @@ TDBObject &TDBObject::operator=(const TDBObject &tdb) {
   return *this;
 }
 
+bool TDBObject::operator==(const TDBObject &right) {
+  // Path variables
+  bool result = true;
+  result &= this->_group == right._group;
+  result &= this->_name == right._name;
+
+  result &= this->_num_dimensions == right._num_dimensions;
+  result &= this->_dimension_names == right._dimension_names;
+  result &= this->_lower_dimensions == right._lower_dimensions;
+  result &= this->_upper_dimensions == right._upper_dimensions;
+  // TileDB doesn't implement the overload of the operator ==
+  // result &= this->_full_dimensions == right._full_dimensions;
+
+  // TileDB doesn't implement the overload of the operator ==
+  // result &= this->_full_attributes == right._full_attributes;
+
+  // Attributes (number of values in a cell)
+  result &= this->_num_attributes == right._num_attributes;
+  result &= this->_attributes == right._attributes;
+
+  // Compression type
+  result &= this->_compressed == right._compressed;
+  result &= this->_min_tile_dimension == right._min_tile_dimension;
+
+  result &= this->_extent == right._extent;
+  result &= this->_tile_capacity == right._tile_capacity;
+
+  // TileDB variables
+  result &= this->_array_dimension == right._array_dimension;
+  result &= this->_tile_dimension == right._tile_dimension;
+  // TileDB::Context doesn't implement the overload of the operator ==
+  // result &= this->_ctx == right._ctx;
+
+  // TileDB::Config throws an exception inside of the overloaded
+  // function for operator ==
+  // result &= this->_config == right._config;
+
+  return result;
+}
+
 void TDBObject::set_equal(const TDBObject &tdb) {
   _group = tdb._group;
 
@@ -535,6 +575,7 @@ void TDBObject::read_metadata(const std::string &array_name,
       ++j;
     }
   } catch (tiledb::TileDBError &e) {
+    std::cerr << "TileDB error: " << e.what() << std::endl;
     throw VCLException(TileDBNotFound, "No data in TileDB object yet");
   }
 }

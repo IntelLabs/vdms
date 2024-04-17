@@ -25,10 +25,40 @@
 # THE SOFTWARE.
 #
 
+# Command format:
+# sh ./run_python_tests.sh [-n TEST_PATTERN_NAME]
+# You may specify a filter for running specific tests
+# ex. sh ./run_python_tests.sh -n test_module.TestClass.test_method
+# ex. sh ./run_python_tests.sh -n "TestBoundingBox.TestBoundingBox.test_addBoundingBox"
+# ex. sh ./run_python_tests.sh -n "TestBoundingBox.py"
+
 # Variable used for storing the process id for the vdms server
 py_unittest_pid='UNKNOWN_PROCESS_ID'
 
 function execute_commands() {
+
+    testname_was_set=false
+
+    # Parse the arguments of the command
+    while getopts n: flag
+    do
+        case "${flag}" in
+            n)
+                testname=${OPTARG}
+                testname_was_set=true
+                ;;
+        esac
+    done
+
+    # Using the flag "-n YOUR_TEST_NAME"
+    # for specifying the unittest filter. In case that this flag is not specified
+    # then it will use the default filter pattern
+    test_filter="discover --pattern=Test*.py"
+    if [ "$testname_was_set" = true ]; then
+        test_filter=$testname
+        echo 'Using test filter: '$test_filter
+    fi
+
     TEST_DIR=${PWD}
     base_dir=$(dirname $(dirname $PWD))
     client_path=${base_dir}/client/python
@@ -38,8 +68,10 @@ function execute_commands() {
     # protoc -I=${base_dir}/utils/src/protobuf --python_out=${client_path}/vdms ${base_dir}/utils/src/protobuf/queryMessage.proto
 
     cd ${TEST_DIR}
-    rm  -rf test_db log.log screen.log
-    mkdir -p test_db
+    rm -rf test_db || true
+    rm -rf log.log || true
+    rm -rf screen.log || true
+    mkdir -p test_db || true
 
     ./../../build/vdms -cfg config-tests.json > screen.log 2> log.log &
     py_unittest_pid=$!
@@ -47,7 +79,7 @@ function execute_commands() {
     sleep 1
 
     echo 'Running Python tests...'
-    python3 -m coverage run --include="../../*" --omit="${base_dir}/client/python/vdms/queryMessage_pb2.py,../*" -m unittest discover --pattern=Test*.py -v
+    python3 -m coverage run --include="../../*" --omit="${base_dir}/client/python/vdms/queryMessage_pb2.py,../*" -m unittest $test_filter -v
 
     echo 'Finished'
     exit 0
@@ -58,7 +90,9 @@ function execute_commands() {
 function cleanup() {
     exit_value=$?
 
-    rm  -rf test_db log.log screen.log
+    rm  -rf test_db || true
+    rm -rf log.log || true
+    rm -rf screen.log || true
     kill -9 $py_unittest_pid || true
     exit $exit_value
 }
