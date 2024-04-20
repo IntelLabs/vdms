@@ -40,10 +40,13 @@ py_minio_pid='UNKNOWN_PROCESS_ID'
 function execute_commands() {
     username_was_set=false
     password_was_set=false
+    api_port=${AWS_API_PORT}
+    api_port_was_set=false
+
     testname_was_set=false
 
     # Parse the arguments of the command
-    while getopts u:p:n: flag
+    while getopts u:p:a:n: flag
     do
         case "${flag}" in
             u)
@@ -54,12 +57,22 @@ function execute_commands() {
                 password=${OPTARG}
                 password_was_set=true
                 ;;
+            a)
+                api_port=${OPTARG}
+                api_port_was_set=true
+		;;
             n)
                 testname=${OPTARG}
                 testname_was_set=true
                 ;;
         esac
     done
+
+    # Print variables
+    echo "AWS Parameters used:"
+    echo -e "\tapi_port:\t$api_port"
+    echo -e "\tpassword:\t$password"
+    echo -e "\tusername:\t$username"
 
     if [ $username_was_set = false ] || [ $password_was_set = false ]; then
         echo 'Missing arguments for "run_python_aws_tests.sh" script'
@@ -114,10 +127,10 @@ function execute_commands() {
 
     sleep 2
     echo 'Creating buckets for the tests'
-    # Create the minio-bucket for MinIO 
+    # Create the minio-bucket for MinIO
     # by using the corresponding MinIO client which connects to the MinIO server
     # by using its username and password
-    mc alias set myminio/ http://localhost:9000 $username $password
+    mc alias set myminio/ http://localhost:${api_port} $username $password
     mc mb myminio/minio-bucket
 
     sleep 2
@@ -126,7 +139,7 @@ function execute_commands() {
     echo 'Starting the testing'
     echo 'Setting to True the VDMS_SKIP_REMOTE_PYTHON_TESTS env var'
     # There are some Python tests which have to be skipped as they are specific
-    # for NON Remote tests, in order to do that the 
+    # for NON Remote tests, in order to do that the
     # 'VDMS_SKIP_REMOTE_PYTHON_TESTS' environment variable must be set to True
     export VDMS_SKIP_REMOTE_PYTHON_TESTS=True
     echo 'Running Python AWS S3 tests...'

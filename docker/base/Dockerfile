@@ -132,7 +132,7 @@ RUN curl -L -o /dependencies/peg-${PEG_VERSION}.tar.gz \
     git clone https://github.com/majensen/libneo4j-omni.git /dependencies/libomni && \
         cd /dependencies/libomni && ./autogen.sh && \
         ./configure --disable-werror --prefix=/opt/dist/usr && \
-        make install -w --debug
+        make clean check && make install -w --debug
 
 # CLEANUP
 RUN rm -rf /dependencies /usr/local/share/doc /usr/local/share/man && \
@@ -143,6 +143,21 @@ RUN rm -rf /dependencies /usr/local/share/doc /usr/local/share/man && \
 ############################################################
 # FINAL IMAGE
 FROM base
+ARG AWS_ACCESS_KEY_ID=""
+ARG AWS_SECRET_ACCESS_KEY=""
+ARG NEO4J_USER=""
+ARG NEO4J_PASS=""
+ARG NEO_TEST_PORT=7687
+ARG AWS_API_PORT=9000
+ARG AWS_CONSOLE_PORT=9001
+
+ENV AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
+ENV AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
+ENV NEO4J_USER="${NEO4J_USER}"
+ENV NEO4J_PASS="${NEO4J_PASS}"
+ENV NEO_TEST_PORT="${NEO_TEST_PORT}"
+ENV AWS_API_PORT="${AWS_API_PORT}"
+ENV AWS_CONSOLE_PORT="${AWS_CONSOLE_PORT}"
 
 # hadolint ignore=DL3008
 RUN apt-get update -y && apt-get upgrade -y && \

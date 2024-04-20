@@ -1,4 +1,5 @@
 #include "BackendNeo4j.h"
+#include <errno.h>
 
 int val_check(neo4j_value_t val) {
 
@@ -45,6 +46,8 @@ void print_val(neo4j_value_t val, int val_type) {
 BackendNeo4j::BackendNeo4j(unsigned int nr_conns, char *tgt_url, char *user,
                            char *pass, uint_fast32_t flags) {
 
+  const char *conn_error;
+
   // Client initialization
   neo4j_client_init();
 
@@ -57,7 +60,15 @@ BackendNeo4j::BackendNeo4j(unsigned int nr_conns, char *tgt_url, char *user,
   // initialize connection pool
   for (int i = 0; i < nr_conns; i++) {
     neo4j_connection_t *connection = neo4j_connect(tgt_url, config, flags);
-    // TODO need to have error checks for connection failures
+
+    if (connection == NULL) {
+      printf("Warning: Connection failed to instantiate!\n");
+      printf("Errno: %d\n", errno);
+      conn_error = neo4j_strerror(errno, NULL, 0);
+      printf("%s\n", conn_error);
+      exit(1);
+    }
+
     conn_pool.push(connection);
   }
 }

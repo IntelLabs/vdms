@@ -18,11 +18,13 @@ py_minio_pid='UNKNOWN_PROCESS_ID'
 function execute_commands() {
     username_was_set=false
     password_was_set=false
+    api_port=${AWS_API_PORT}
+    api_port_was_set=false
     testname_was_set=false
     stop_on_failure_was_set=false
 
     # Parse the arguments of the command
-    while getopts u:p:n:s flag
+    while getopts u:p:a:n:s flag
     do
         case "${flag}" in
             u)
@@ -32,6 +34,10 @@ function execute_commands() {
             p)
                 password=${OPTARG}
                 password_was_set=true
+                ;;
+            a)
+                api_port=${OPTARG}
+                api_port_was_set=true
                 ;;
             n)
                 testname=${OPTARG}
@@ -43,6 +49,13 @@ function execute_commands() {
         esac
     done
 
+    # Print variables
+    echo "AWS Parameters used:"
+    echo -e "\tapi_port:\t$api_port"
+    echo -e "\tpassword:\t$password"
+    echo -e "\tusername:\t$username"
+    echo -e "\ttestname:\t$testname"
+
     if [ $username_was_set = false ] || [ $password_was_set = false ]; then
         echo 'Missing arguments for "run_aws_tests.sh" script'
         echo 'Usage: sh ./run_aws_tests.sh -u YOUR_MINIO_USERNAME -p YOUR_MINIO_PASSWORD [-n "RemoteConnectionTest.*"] [-s]'
@@ -51,7 +64,7 @@ function execute_commands() {
 
     # Using the flag "-s"
     # for specifying if google test has to stop the execution when
-    # there is a failure in one of the tests 
+    # there is a failure in one of the tests
     stop_on_failure_value=""
     if [ "$stop_on_failure_was_set" = true ]; then
         stop_on_failure_value="--gtest_fail_fast"
@@ -61,7 +74,7 @@ function execute_commands() {
     # Using the flag "-n YOUR_TEST_NAME"
     # for specifying the GTest filter. In case that this flag is not specified
     # then it will use the default filter pattern
-    test_filter="RemoteConnectionTest.*:OpsIOCoordinatorTest.*"
+    test_filter="RemoteConnectionTest.*"
     if [ "$testname_was_set" = true ]; then
         test_filter=$testname
         echo 'Using test filter: '$test_filter
@@ -85,10 +98,10 @@ function execute_commands() {
 
     sleep 2
     echo 'Creating buckets for the tests'
-    # Create the minio-bucket for MinIO 
+    # Create the minio-bucket for MinIO
     # by using the corresponding MinIO client which connects to the MinIO server
     # by using its username and password
-    mc alias set myminio/ http://localhost:9000 $username $password
+    mc alias set myminio/ http://localhost:${api_port} $username $password
     mc mb myminio/minio-bucket
 
     echo 'Running C++ tests...'

@@ -37,7 +37,7 @@ function execute_commands() {
     # Using the flag "-n YOUR_TEST_NAME"
     # for specifying the GTest filter. In case that this flag is not specified
     # then it will use the default filter pattern
-    test_filter="-RemoteConnectionTest.*:Neo4jBackendTest.*:OpsIOCoordinatorTest.*"
+    test_filter="-RemoteConnectionTest.*:Neo4jBackendTest.*:OpsIOCoordinatorTest.*:Neo4JE2ETest.*"
     if [ "$testname_was_set" = true ]; then
         test_filter=$testname
         echo 'Using test filter: '$test_filter
@@ -45,7 +45,7 @@ function execute_commands() {
 
     # Using the flag "-s"
     # for specifying if google test has to stop the execution when
-    # there is a failure in one of the tests 
+    # there is a failure in one of the tests
     stop_on_failure_value=""
     if [ "$stop_on_failure_was_set" = true ]; then
         stop_on_failure_value="--gtest_fail_fast"
@@ -98,7 +98,7 @@ function execute_commands() {
 function cleanup() {
 
     exit_value=$?
-    
+
     echo "Killing the udf_server and udf_local"
     pkill -9 -f udf_server.py || true
     pkill -9 -f udf_local.py || true
@@ -110,7 +110,7 @@ function cleanup() {
     # Clean up
     echo 'Removing the temporary files created'
     sh ./cleandbs.sh || true
-    
+
     exit $exit_value
 }
 

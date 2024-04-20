@@ -69,12 +69,15 @@ else()
     src/DescriptorsManager.cc
     src/ExceptionsCommand.cc
     src/ImageCommand.cc
+    src/Neo4jBaseCommands.cc
+    src/Neo4JHandlerCommands.cc
     src/OpsIOCoordinator.cc
     src/PMGDIterators.cc
     src/PMGDQuery.cc
     src/PMGDQueryHandler.cc
     src/QueryHandlerExample.cc
     src/QueryHandlerBase.cc
+    src/QueryHandlerNeo4j.cc
     src/QueryHandlerPMGD.cc
     src/QueryMessage.cc
     src/RSCommand.cc

@@ -1,11 +1,11 @@
 # Uses docker/check-in/Dockerfile
 name: Checkin Workflow
 
-# Controls when the action will run. Triggers the workflow on push or pull request
+# Controls when the action will run. Triggers the workflow on pull request
 # events but only for the master and develop branch
 on:
   pull_request:
-    types: [opened, edited, synchronize, reopened]
+    types: [opened, edited, synchronize, reopened, closed]
     branches:
       - develop
       - master
@@ -25,30 +25,18 @@ jobs:
 
     env:
       COV_URL: ${{ secrets.COVERITYSERVER }}
-      COV_USER: ${{ secrets.FACELESS_NAME }}
       COVERITY_PASSPHRASE: ${{ secrets.FACELESS_AUTHKEY }}
       COVERITY_PROJECT: Vdms 2
       COVERITY_STREAM: ${{ secrets.COVERITYSTREAM}}
       CHECKIN_DOCKERFILE: docker/check-in/Dockerfile
-
-    strategy:
-      fail-fast: true
-      matrix:
-        include:
-          - coverage_type: Source
-            container_name: source_coverage_${{ github.event.pull_request.number }}
-            container_tag: "vdms:source_coverage_${{ github.event.pull_request.number }}"
-            neo4j_container_name: source_neo4j_${{ github.event.pull_request.number }}
-            output_cpp_name: source_coverage_cpp
-            output_py_name: source_coverage_py
-            branch_ref: ${{ github.event.pull_request.head.sha }}
-          - coverage_type: Target
-            container_name: target_coverage_${{ github.event.pull_request.number }}
-            container_tag: "vdms:target_coverage_${{ github.event.pull_request.number }}"
-            neo4j_container_name: target_neo4j_${{ github.event.pull_request.number }}
-            output_cpp_name: target_coverage_cpp
-            output_py_name: target_coverage_py
-            branch_ref: ${{ github.event.pull_request.base.ref }}
+      MINIO_USER: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      MINIO_PASSWORD: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      NEO4J_USER: ${{ secrets.NEO4J_USER }}
+      NEO4J_PASSWORD: ${{ secrets.NEO4J_PASS }}
+      NEO4J_CONTAINER_NAME: source_neo4j_${{ github.event.pull_request.number }}
+      CONTAINER_NAME: source_coverage_${{ github.event.pull_request.number }}
+      CONTAINER_TAG: "vdms:source_coverage_${{ github.event.pull_request.number }}"
+      BRANCH_REF: ${{ github.event.pull_request.head.sha }}
 
     outputs:
       source_coverage_cpp: ${{ steps.report_coverage.outputs.source_coverage_cpp}}
@@ -59,8 +47,8 @@ jobs:
 
     # Ensures that only a single workflow in the same concurrency group will run at the same time
     concurrency:
-      group: ${{ matrix.coverage_type }}-${{ github.event.pull_request.number }}
-      # group: ${{ matrix.coverage_type }}-${{ github.head_ref || github.ref }}
+      group: Source-${{ github.event.pull_request.number }}
+      # group: Source-${{ github.head_ref || github.ref }}
 
       # If this is enabled it will cancel current running and start latest
       cancel-in-progress: true
@@ -68,19 +56,17 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - name: Checkout ${{ matrix.coverage_type }} Branch
+      - name: Checkout Source Branch
         uses: actions/checkout@v4
         with:
           submodules: true
-          ref: ${{ matrix.branch_ref }}
+          ref: ${{ env.BRANCH_REF }}
           fetch-depth: 0
 
-      - if: matrix.coverage_type  == 'Source'
-        name: Format C++ Code (clang-format), Python (black code), and apply dos2unix
+      - name: Format C++ Code (clang-format), Python (black code), and apply dos2unix
         run: ./.github/scripts/auto-formatter.sh
 
-      - if: matrix.coverage_type  == 'Source'
-        name: Check for modified files
+      - name: Check for modified files
         id: git_check
         run: |
           echo "commit_id=$(git log -1 --format='%H')" >> $GITHUB_OUTPUT
@@ -94,63 +80,153 @@ jobs:
         run: |
           set -x
 
-          docker stop $(docker ps -aqf "name=${{ matrix.container_name }}") | xargs docker rm || true
+          docker stop $(docker ps -aqf "name=${{ env.CONTAINER_NAME }}") | xargs docker rm || true
 
           docker build --rm --build-arg="BUILD_COVERAGE=on" --build-arg="BUILD_COVERITY=on" \
-            -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ matrix.container_tag }} .
+            -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ env.CONTAINER_TAG }} .
 
       - name: Build Docker Container w/o cache
         if: always() && steps.build_docker.outcome == 'failure'
         run: |
           set -x
 
-          docker stop $(docker ps -aqf "name=${{ matrix.container_name }}") | xargs docker rm || true
+          docker stop $(docker ps -aqf "name=${{ env.CONTAINER_NAME }}") | xargs docker rm || true
 
           docker build --no-cache --rm --build-arg="BUILD_COVERAGE=on" --build-arg="BUILD_COVERITY=on" \
-            -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ matrix.container_tag }} .
+            -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ env.CONTAINER_TAG }} .
 
-      - if: matrix.coverage_type  == 'Source' &&  steps.git_check.outputs.added_modified
+      - if: steps.git_check.outputs.added_modified
         uses: ./.github/actions/coverity-incremental-scan
         with:
           repo_dir: ${PWD}
           github_repo_dir: /vdms
           github_ref: ${{ steps.git_check.outputs.commit_id }}
           prNumber: ${{ github.event.pull_request.number }}
-          docker_container_name: ${{ matrix.container_name }}_tmp
-          docker_container_tag: ${{ matrix.container_tag }}
+          docker_container_name: ${{ env.CONTAINER_NAME }}_tmp
+          docker_container_tag: ${{ env.CONTAINER_TAG }}
           modified_files: ${{ steps.git_check.outputs.added_modified }}
 
-      - name: Get ${{ matrix.coverage_type }} Coverage
+      - name: Prepare for Testing
         shell: bash
+        id: neo_params
         run: |
           set -x
-          mkdir -p coverage
+          mkdir -p ${GITHUB_WORKSPACE}/.github/coverage
 
-          # Get an open port btwn 65000 and 65535
+          # Make sure VDMS container Neo4j test script
+          file_exist_flag='false'
+          if [ -f ${GITHUB_WORKSPACE}/tests/run_neo4j_tests.sh ]; then
+            file_exist_flag='true'
+          fi
+          echo "neo4j_exists=${file_exist_flag}" >> $GITHUB_OUTPUT
+
+          # Get an open port btwn 65000 and 65535 for neo4j
           neo4j_test_port=$(comm -23 <(seq 65000 65535 | sort) <(ss -Htan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 1)
+          echo "NEO_TEST_PORT=${neo4j_test_port}" >> $GITHUB_OUTPUT
 
-          # Start NEO4J Container for testing
-          docker run --rm -d --name=${{ matrix.neo4j_container_name }} \
-            --publish=${neo4j_test_port}:7687 \
-            --env NEO_TEST_PORT=${neo4j_test_port} \
-            --env NEO4J_AUTH=neo4j/neo4jpass neo4j:5.17.0
+          # Set port for minio api and console
+          minio_api_port=9000
+          echo "AWS_API_PORT=${minio_api_port}" >> $GITHUB_OUTPUT
+          minio_console_port=9001
+          echo "AWS_CONSOLE_PORT=${minio_console_port}" >> $GITHUB_OUTPUT
 
-          docker run --rm -d -v ${PWD}:/local_repo --name ${{ matrix.container_name }} \
-            --env AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
-            --env AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} ${{ matrix.container_tag }}
+          # Commands for neo4j tests
+          CMD_STR_OpsIO_str="./run_neo4j_tests.sh -t OpsIOCoordinatorTest -a ${minio_api_port} -c ${minio_console_port} -u ${{ env.MINIO_USER }} -p ${{ env.MINIO_PASSWORD }} -e neo4j://localhost:${neo4j_test_port} -n ${{ env.NEO4J_USER }} -w ${{ env.NEO4J_PASSWORD }} -v ${neo4j_test_port}"
+          CMD_STR_e2e_str="./run_neo4j_tests.sh -t Neo4JE2ETest -a ${minio_api_port} -c ${minio_console_port} -u ${{ env.MINIO_USER }} -p ${{ env.MINIO_PASSWORD }} -e neo4j://localhost:${neo4j_test_port} -n ${{ env.NEO4J_USER }} -w ${{ env.NEO4J_PASSWORD }} -v ${neo4j_test_port}"
+          CMD_STR_bkend_str="./run_neo4j_tests.sh -t Neo4jBackendTest -e neo4j://localhost:${neo4j_test_port} -n ${{ env.NEO4J_USER }} -w ${{ env.NEO4J_PASSWORD }} -v ${neo4j_test_port}"
+          echo "CMD_STR_OpsIO=${CMD_STR_OpsIO_str}" >> $GITHUB_OUTPUT
+          echo "CMD_STR_e2e=${CMD_STR_e2e_str}" >> $GITHUB_OUTPUT
+          echo "CMD_STR_bkend=${CMD_STR_bkend_str}" >> $GITHUB_OUTPUT
 
-          docker exec ${{ matrix.container_name }} bash -c "cd / && ./run_coverage_cpp.sh && cd / && ./run_coverage_py.sh"
+          # Make sure Neo4j Containers are not running
+          docker kill ${{ env.NEO4J_CONTAINER_NAME }}_1 || true && docker rm ${{ env.NEO4J_CONTAINER_NAME }}_1 || true
+          docker kill ${{ env.NEO4J_CONTAINER_NAME }}_2 || true && docker rm ${{ env.NEO4J_CONTAINER_NAME }}_2 || true
+          docker kill ${{ env.NEO4J_CONTAINER_NAME }}_3 || true && docker rm ${{ env.NEO4J_CONTAINER_NAME }}_3 || true
 
-          docker cp ${{ matrix.container_name }}:/vdms/tests/coverage_report/c_coverage_report.txt coverage/c_coverage_report_target.txt
-          docker cp ${{ matrix.container_name }}:/vdms/tests/coverage_report/c_coverage_report.xml coverage/c_coverage_report_target.xml
-          echo "coverage_value_cpp=$(cat coverage/c_coverage_report_target.xml | grep -oP 'coverage line-rate="([-+]?\d*\.\d+|\d+)"' | grep -oP "[-+]?\d*\.\d+|\d+" | awk '{print $1*100}')" >> $GITHUB_ENV
+      - name: Start Check-in Container
+        shell: bash
+        env:
+          NEO_TEST_PORT: ${{ steps.neo_params.outputs.NEO_TEST_PORT }}
+          CMD_STR_OpsIO: ${{ steps.neo_params.outputs.CMD_STR_OpsIO }}
+          CMD_STR_e2e: ${{ steps.neo_params.outputs.CMD_STR_e2e }}
+          CMD_STR_bkend: ${{ steps.neo_params.outputs.CMD_STR_bkend }}
+          AWS_API_PORT: ${{ steps.neo_params.outputs.AWS_API_PORT }}
+          AWS_CONSOLE_PORT: ${{ steps.neo_params.outputs.AWS_CONSOLE_PORT }}
+        run: |
+          docker run --rm -d -v ${PWD}:/local_repo --name ${{ env.CONTAINER_NAME }} \
+            --net=host \
+            --env AWS_ACCESS_KEY_ID=${{ env.MINIO_USER }} \
+            --env AWS_SECRET_ACCESS_KEY=${{ env.MINIO_PASSWORD }} \
+            --env NEO4J_USER=${{ env.NEO4J_USER }} \
+            --env NEO4J_PASS=${{ env.NEO4J_PASSWORD }} \
+            --env NEO_TEST_PORT=${{ env.NEO_TEST_PORT }} \
+            --env AWS_API_PORT=${{ env.AWS_API_PORT }} \
+            --env AWS_CONSOLE_PORT=${{ env.AWS_CONSOLE_PORT }} \
+            ${{ env.CONTAINER_TAG }}
 
-          docker cp ${{ matrix.container_name }}:/vdms/tests/coverage_report/py_coverage_report.txt coverage/py_coverage_report_target.txt || true
-          docker cp ${{ matrix.container_name }}:/vdms/tests/coverage_report/py_coverage_report.xml coverage/py_coverage_report_target.xml || true
+      - name: Run Neo4J Tests
+        if: steps.neo_params.outputs.neo4j_exists == 'true'
+        shell: bash
+        env:
+          NEO_TEST_PORT: ${{ steps.neo_params.outputs.NEO_TEST_PORT }}
+          CMD_STR_OpsIO: ${{ steps.neo_params.outputs.CMD_STR_OpsIO }}
+          CMD_STR_e2e: ${{ steps.neo_params.outputs.CMD_STR_e2e }}
+          CMD_STR_bkend: ${{ steps.neo_params.outputs.CMD_STR_bkend }}
+        run: |
+          # Start Neo4j Container for OpsIOCoordinatorTest test
+          docker run --rm -d --name=${{ env.NEO4J_CONTAINER_NAME }}_1 \
+          --env NEO4J_AUTH=${{ env.NEO4J_USER }}/${{ env.NEO4J_PASSWORD }} \
+          --publish=${{ env.NEO_TEST_PORT}}:7687 neo4j:5.17.0
 
-          echo "coverage_value_py=$(cat coverage/py_coverage_report_target.xml | grep "coverage version" | grep -oP 'line-rate="([-+]?\d*\.\d+|\d+)"' | grep -oP "[-+]?\d*\.\d+|\d+"| awk '{print $1*100}')" >> $GITHUB_ENV
+          echo "Sleeping for 30 seconds while neo4j initalizes"
+          sleep 30
 
-      - name: Report ${{ matrix.coverage_type }} Coverage
+          docker exec -w /vdms/tests ${{ env.CONTAINER_NAME }} bash -c "${{ env.CMD_STR_OpsIO }}"
+          docker kill ${{ env.NEO4J_CONTAINER_NAME }}_1 || true && docker rm ${{ env.NEO4J_CONTAINER_NAME }}_1 || true
+
+          # Start Neo4j Container for Neo4JE2ETest test
+          docker run --rm -d --name=${{ env.NEO4J_CONTAINER_NAME }}_3 \
+          --env NEO4J_AUTH=${{ env.NEO4J_USER }}/${{ env.NEO4J_PASSWORD }} \
+          --publish=${{ env.NEO_TEST_PORT}}:7687 neo4j:5.17.0
+
+          echo "Sleeping for 30 seconds while neo4j initalizes"
+          sleep 30
+
+          docker exec -w /vdms/tests ${{ env.CONTAINER_NAME }} bash -c "${{ env.CMD_STR_e2e }}"
+          docker kill ${{ env.NEO4J_CONTAINER_NAME }}_3 || true && docker rm ${{ env.NEO4J_CONTAINER_NAME }}_3 || true
+
+
+          # Start Neo4j Container for Neo4jBackendTest test
+          # docker run --rm -d --name=${{ env.NEO4J_CONTAINER_NAME }}_2 \
+          # --env NEO4J_AUTH=${{ env.NEO4J_USER }}/${{ env.NEO4J_PASSWORD }} \
+          # --publish=${{ env.NEO_TEST_PORT }}:7687 \
+          # --publish=7474:7474 neo4j:5.17.0
+
+          # echo "Sleeping for 15 seconds while neo4j initalizes"
+          # sleep 15
+
+          # docker exec -w /vdms/tests ${{ env.CONTAINER_NAME }} bash -c "${{ env.CMD_STR_bkend }}"
+          # docker kill ${{ env.NEO4J_CONTAINER_NAME }}_2 || true && docker rm ${{ env.NEO4J_CONTAINER_NAME }}_2 || true
+
+      - name: Get Coverage
+        shell: bash
+        run: |
+          docker exec -w / ${{ env.CONTAINER_NAME }} bash -c "./run_coverage_cpp.sh && ./run_coverage_py.sh"
+
+          docker cp ${{ env.CONTAINER_NAME }}:/vdms/tests/coverage_report/cpp.new.coverage_report.txt ${GITHUB_WORKSPACE}/.github/coverage/cpp.new.coverage_report.txt
+          docker cp ${{ env.CONTAINER_NAME }}:/vdms/tests/coverage_report/cpp.new.coverage_value.txt ${GITHUB_WORKSPACE}/.github/coverage/cpp.new.coverage_value.txt
+          echo "coverage_value_cpp=$(cat ${GITHUB_WORKSPACE}/.github/coverage/cpp.new.coverage_value.txt)" >> $GITHUB_ENV
+          echo "target_value_cpp=$(cat ${GITHUB_WORKSPACE}/.github/coverage/cpp.develop.coverage_value.txt)" >> $GITHUB_ENV
+
+          docker cp ${{ env.CONTAINER_NAME }}:/vdms/tests/coverage_report/python.new.coverage_report.txt ${GITHUB_WORKSPACE}/.github/coverage/python.new.coverage_report.txt || true
+          docker cp ${{ env.CONTAINER_NAME }}:/vdms/tests/coverage_report/python.new.coverage_value.txt ${GITHUB_WORKSPACE}/.github/coverage/python.new.coverage_value.txt || true
+
+          echo "coverage_value_py=$(cat ${GITHUB_WORKSPACE}/.github/coverage/python.new.coverage_value.txt)" >> $GITHUB_ENV
+          echo "target_value_py=$(cat ${GITHUB_WORKSPACE}/.github/coverage/python.develop.coverage_value.txt)" >> $GITHUB_ENV
+
+          docker kill ${{ env.NEO4J_CONTAINER_NAME }}_2 || true && docker rm ${{ env.NEO4J_CONTAINER_NAME }}_2 || true
+
+      - name: Report Source Coverage
         id: report_coverage
         run: |
           set -x
@@ -160,25 +236,36 @@ jobs:
           then
             exit 1
           fi
-          echo "${{ matrix.coverage_type }} CPP Coverage: ${coverage_value_cpp}"
-          echo "${{ matrix.output_cpp_name }}=${coverage_value_cpp}" >> $GITHUB_OUTPUT
+          echo "Source CPP Coverage: ${coverage_value_cpp}"
+          echo "source_coverage_cpp=${coverage_value_cpp}" >> $GITHUB_OUTPUT
+          echo "target_coverage_cpp=${target_value_cpp}" >> $GITHUB_OUTPUT
 
           # Python
           if [[ -z $coverage_value_py ]]
           then
             exit 1
           fi
-          echo "${{ matrix.coverage_type }} Python Coverage: ${coverage_value_py}"
-          echo "${{ matrix.output_py_name }}=${coverage_value_py}" >> $GITHUB_OUTPUT
+          echo "Source Python Coverage: ${coverage_value_py}"
+          echo "source_coverage_py=${coverage_value_py}" >> $GITHUB_OUTPUT
+          echo "target_coverage_py=${target_value_py}" >> $GITHUB_OUTPUT
+
+      - name: Upload coverage results
+        if: github.base_ref == 'develop' && github.event.action == 'closed' && github.event.pull_request.merged == true
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage_artifact
+          path: .github/coverage/*.new.*.txt
+          if-no-files-found: error
+          retention-days: 1
 
       - if: always()
         name: Cleanup
         run: |
-          docker stop $(docker ps -aqf "name=${{ matrix.neo4j_container_name }}") | xargs docker rm || true
-          docker stop $(docker ps -aqf "name=${{ matrix.container_name }}") | xargs docker rm || true
+          docker stop $(docker ps -aqf "name=${{ env.NEO4J_CONTAINER_NAME }}") | xargs docker rm || true
+          docker stop $(docker ps -aqf "name=${{ env.CONTAINER_NAME }}") | xargs docker rm || true
           docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
           rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_REPOSITORY} || true
-          rm -rf /tmp/tmp-* ${{ env.ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/*  || true
+          rm -rf /tmp/tmp-* ${GITHUB_WORKSPACE}/*  || true
 
   # COMPARE COVERAGE NUMBERS
   compare_coverage:
@@ -199,24 +286,22 @@ jobs:
               repo: context.repo.repo,
               body: 'Target CPP Coverage: ${{ needs.coverage_job.outputs.target_coverage_cpp }}%\nSource CPP Coverage: ${{ needs.coverage_job.outputs.source_coverage_cpp }}%\n\n\nTarget Python Coverage: ${{ needs.coverage_job.outputs.target_coverage_py }}%\nSource Python Coverage: ${{ needs.coverage_job.outputs.source_coverage_py }}%'
             })
-      - id: comp_diff
-        run: |
-          echo "CPP_DIFF=$(echo '${{ needs.coverage_job.outputs.target_coverage_cpp }}-${{ needs.coverage_job.outputs.source_coverage_cpp }}' | bc )" >> $GITHUB_ENV
-          echo "PY_DIFF=$(echo '${{ needs.coverage_job.outputs.target_coverage_py }}-${{ needs.coverage_job.outputs.source_coverage_py }}' | bc )" >> $GITHUB_ENV
       - name: Compare Coverage
         run: |
           echo "Source CPP Coverage: ${{ needs.coverage_job.outputs.source_coverage_cpp }}"
           echo "Target CPP Coverage: ${{ needs.coverage_job.outputs.target_coverage_cpp }}"
+          CPP_DIFF=$(echo '${{ needs.coverage_job.outputs.target_coverage_cpp }}-${{ needs.coverage_job.outputs.source_coverage_cpp }}' | bc )
 
-          if (( $(echo "${{ env.CPP_DIFF }} > 0.1" | bc -l) )); then
+          if (( $(echo "$CPP_DIFF > 0.1" | bc -l) )); then
             echo 'CPP Coverage below CPP Target'
             exit 1
           fi
 
           echo "Source Python Coverage: ${{ needs.coverage_job.outputs.source_coverage_py }}"
           echo "Target Python Coverage: ${{ needs.coverage_job.outputs.target_coverage_py }}"
+          PY_DIFF=$(echo '${{ needs.coverage_job.outputs.target_coverage_py }}-${{ needs.coverage_job.outputs.source_coverage_py }}' | bc )
 
-          if (( $(echo "${{ env.PY_DIFF }} > 0.1" | bc -l) )); then
+          if (( $(echo "$PY_DIFF > 0.1" | bc -l) )); then
             echo 'Python Coverage below Target'
             exit 1
           fi
@@ -225,7 +310,9 @@ jobs:
   commit_format:
     permissions:
       contents: write  # for Git to git push
-    name: Commit Format
+    name: Commit Code Updates
+    env:
+      COMMIT_MSG: "Automated updates:"
     runs-on:
       group: intellabs-vdms-runners
       labels: vdms-check-in
@@ -233,7 +320,7 @@ jobs:
     steps:
       # Checkout code doesn't persist across jobs
       # If formatting needed, checkout and format again
-      - if: needs.coverage_job.outputs.modify_source == 'true'
+      - if: needs.coverage_job.outputs.modify_source == 'true' || github.event.pull_request.merged == true
         name: Checkout Source Branch
         uses: actions/checkout@v4
         with:
@@ -242,19 +329,54 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           token: ${{ secrets.FACELESS_TOKEN || github.token }}
 
+      - name: Retrieve Coverage Files
+        if: github.base_ref == 'develop' && github.event.action == 'closed' && github.event.pull_request.merged == true
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage_artifact
+          path: .github/coverage/
+
       - if: needs.coverage_job.outputs.modify_source == 'true'
-        run: ./.github/scripts/auto-formatter.sh
+        run: |
+          ./.github/scripts/auto-formatter.sh
+          new_commit_msg="${{ env.COMMIT_MSG }} format"
+          echo "LATEST_COMMIT_MSG=${new_commit_msg}" >> $GITHUB_ENV
+
+
+      - if: needs.coverage_job.outputs.modify_source == 'false'
+        run: echo "LATEST_COMMIT_MSG=${{ env.COMMIT_MSG }}" >> $GITHUB_ENV
+
+      - name: Update target coverage
+        if: github.base_ref == 'develop' && github.event.action == 'closed' && github.event.pull_request.merged == true
+        run: |
+          cd ${GITHUB_WORKSPACE}/.github/coverage/
+          rm -rf *.develop.*.txt || true
+          ls
+          mv cpp.new.coverage_report.txt cpp.develop.coverage_report.txt
+          mv cpp.new.coverage_value.txt cpp.develop.coverage_value.txt
+          mv python.new.coverage_report.txt python.develop.coverage_report.txt
+          mv python.new.coverage_value.txt python.develop.coverage_value.txt
+
+          if [ "$LATEST_COMMIT_MSG" = "${{ env.COMMIT_MSG }}" ]; then
+            new_commit_msg="${{ env.COMMIT_MSG }} coverage files in .github/coverage"
+          else
+            new_commit_msg="${LATEST_COMMIT_MSG} and coverage files in .github/coverage"
+          fi
+
+          echo "LATEST_COMMIT_MSG=${new_commit_msg}" >> $GITHUB_ENV
 
       # Update Code and Push (Should be last steps of workflow since it changes commit)
-      - if: needs.coverage_job.outputs.modify_source == 'true'
-        name: Commit Lint Changes
-        id: format_commit
+      - if: needs.coverage_job.outputs.modify_source == 'true' || (github.base_ref == 'develop' && github.event.action == 'closed' && github.event.pull_request.merged == true)
+        name: Commit Changes
+        id: update_commit
         continue-on-error: true
         run: |
+          cd ${GITHUB_WORKSPACE}
           git config --global user.name ${{ secrets.FACELESS_NAME }}
           git config --global user.email ${{ secrets.FACELESS_NAME }}@intel.com
           git remote set-url origin https://x-access-token:${{ secrets.FACELESS_TOKEN }}@github.com/${{ github.event.pull_request.head.repo.full_name }}
-          git commit -am "Automated format changes"
+          git add .github/coverage/*
+          git commit -am "${LATEST_COMMIT_MSG}"
           git push
 
       - if: steps.format_commit.outcome != 'success' && needs.coverage_job.outputs.modify_source == 'true'
@@ -283,4 +405,4 @@ jobs:
           docker builder prune -f
       - run: |
           rm -rf ${GITHUB_WORKSPACE}/.git* ${GITHUB_ACTION_PATH} || true
-          rm -rf /tmp/tmp-* ${{ env.DOCKER_ARTIFACT_DIR }} ${GITHUB_WORKSPACE}/* ${{ env.ARTIFACT_DIR }} || true
+          rm -rf /tmp/tmp-* ${GITHUB_WORKSPACE}/* || true
