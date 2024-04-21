@@ -2,23 +2,56 @@
 name: Checkin Workflow
 
 # Controls when the action will run. Triggers the workflow on pull request
-# events but only for the master and develop branch
+# events but only for the develop branch
 on:
   pull_request:
-    types: [opened, edited, synchronize, reopened, closed]
+    types: [opened, edited, synchronize, reopened]
     branches:
       - develop
-      - master
 
 # Declare default permissions as read only.
 permissions: read-all
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # OBTAIN COVERAGE
+  # OBTAIN TARGET COVERAGE REPORTS
+  target_coverage_job:
+    name: Target Coverage
+
+    runs-on:
+      group: intellabs-vdms-runners
+      labels: vdms-check-in
+
+    env:
+      BRANCH_REF: ${{ github.event.pull_request.base.ref }}
+
+    # Ensures that only a single workflow in the same concurrency group will run at the same time
+    concurrency:
+      group: Target-${{ github.event.pull_request.number }}
+
+      # If this is enabled it will cancel current running and start latest
+      cancel-in-progress: true
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out target branch
+      - name: Checkout Source Branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.BRANCH_REF }}
+          fetch-depth: 0
+      - name: Upload coverage results
+        uses: actions/upload-artifact@v4
+        with:
+          name: target_coverage_artifact
+          path: .github/coverage/*.develop.*.txt
+          if-no-files-found: error
+          retention-days: 1
+
+  # OBTAIN CURRENT COVERAGE
   coverage_job:
     name: Coverage Test
-
+    needs: target_coverage_job
     runs-on:
       group: intellabs-vdms-runners
       labels: vdms-check-in
@@ -42,6 +75,7 @@ jobs:
       source_coverage_cpp: ${{ steps.report_coverage.outputs.source_coverage_cpp}}
       source_coverage_py: ${{ steps.report_coverage.outputs.source_coverage_py}}
       modify_source: ${{ steps.git_check.outputs.modify_source}}
+      cov_changed: ${{ steps.report_coverage.outputs.cov_changed}}
       target_coverage_cpp: ${{ steps.report_coverage.outputs.target_coverage_cpp}}
       target_coverage_py: ${{ steps.report_coverage.outputs.target_coverage_py}}
 
@@ -113,13 +147,6 @@ jobs:
           set -x
           mkdir -p ${GITHUB_WORKSPACE}/.github/coverage
 
-          # Make sure VDMS container Neo4j test script
-          file_exist_flag='false'
-          if [ -f ${GITHUB_WORKSPACE}/tests/run_neo4j_tests.sh ]; then
-            file_exist_flag='true'
-          fi
-          echo "neo4j_exists=${file_exist_flag}" >> $GITHUB_OUTPUT
-
           # Get an open port btwn 65000 and 65535 for neo4j
           neo4j_test_port=$(comm -23 <(seq 65000 65535 | sort) <(ss -Htan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 1)
           echo "NEO_TEST_PORT=${neo4j_test_port}" >> $GITHUB_OUTPUT
@@ -143,6 +170,12 @@ jobs:
           docker kill ${{ env.NEO4J_CONTAINER_NAME }}_2 || true && docker rm ${{ env.NEO4J_CONTAINER_NAME }}_2 || true
           docker kill ${{ env.NEO4J_CONTAINER_NAME }}_3 || true && docker rm ${{ env.NEO4J_CONTAINER_NAME }}_3 || true
 
+          # Copy old local develop coverage files
+          mv ${GITHUB_WORKSPACE}/.github/coverage/cpp.develop.coverage_report.txt ${GITHUB_WORKSPACE}/.github/coverage/cpp.old-develop.coverage_report.txt
+          mv ${GITHUB_WORKSPACE}/.github/coverage/cpp.develop.coverage_value.txt ${GITHUB_WORKSPACE}/.github/coverage/cpp.old-develop.coverage_value.txt
+          mv ${GITHUB_WORKSPACE}/.github/coverage/python.develop.coverage_report.txt ${GITHUB_WORKSPACE}/.github/coverage/python.old-develop.coverage_report.txt
+          mv ${GITHUB_WORKSPACE}/.github/coverage/python.develop.coverage_value.txt ${GITHUB_WORKSPACE}/.github/coverage/python.old-develop.coverage_value.txt
+
       - name: Start Check-in Container
         shell: bash
         env:
@@ -165,7 +198,6 @@ jobs:
             ${{ env.CONTAINER_TAG }}
 
       - name: Run Neo4J Tests
-        if: steps.neo_params.outputs.neo4j_exists == 'true'
         shell: bash
         env:
           NEO_TEST_PORT: ${{ steps.neo_params.outputs.NEO_TEST_PORT }}
@@ -185,7 +217,7 @@ jobs:
           docker kill ${{ env.NEO4J_CONTAINER_NAME }}_1 || true && docker rm ${{ env.NEO4J_CONTAINER_NAME }}_1 || true
 
           # Start Neo4j Container for Neo4JE2ETest test
-          docker run --rm -d --name=${{ env.NEO4J_CONTAINER_NAME }}_3 \
+          docker run --rm -d --name=${{ env.NEO4J_CONTAINER_NAME }}_2 \
           --env NEO4J_AUTH=${{ env.NEO4J_USER }}/${{ env.NEO4J_PASSWORD }} \
           --publish=${{ env.NEO_TEST_PORT}}:7687 neo4j:5.17.0
 
@@ -193,20 +225,26 @@ jobs:
           sleep 30
 
           docker exec -w /vdms/tests ${{ env.CONTAINER_NAME }} bash -c "${{ env.CMD_STR_e2e }}"
-          docker kill ${{ env.NEO4J_CONTAINER_NAME }}_3 || true && docker rm ${{ env.NEO4J_CONTAINER_NAME }}_3 || true
+          docker kill ${{ env.NEO4J_CONTAINER_NAME }}_2 || true && docker rm ${{ env.NEO4J_CONTAINER_NAME }}_2 || true
 
 
           # Start Neo4j Container for Neo4jBackendTest test
-          # docker run --rm -d --name=${{ env.NEO4J_CONTAINER_NAME }}_2 \
+          # docker run --rm -d --name=${{ env.NEO4J_CONTAINER_NAME }}_3 \
           # --env NEO4J_AUTH=${{ env.NEO4J_USER }}/${{ env.NEO4J_PASSWORD }} \
           # --publish=${{ env.NEO_TEST_PORT }}:7687 \
           # --publish=7474:7474 neo4j:5.17.0
 
-          # echo "Sleeping for 15 seconds while neo4j initalizes"
-          # sleep 15
+          # echo "Sleeping for 30 seconds while neo4j initalizes"
+          # sleep 30
 
           # docker exec -w /vdms/tests ${{ env.CONTAINER_NAME }} bash -c "${{ env.CMD_STR_bkend }}"
-          # docker kill ${{ env.NEO4J_CONTAINER_NAME }}_2 || true && docker rm ${{ env.NEO4J_CONTAINER_NAME }}_2 || true
+          # docker kill ${{ env.NEO4J_CONTAINER_NAME }}_3 || true && docker rm ${{ env.NEO4J_CONTAINER_NAME }}_3 || true
+
+      - name: Retrieve Target Coverage Files
+        uses: actions/download-artifact@v4
+        with:
+          name: target_coverage_artifact
+          path: .github/coverage/
 
       - name: Get Coverage
         shell: bash
@@ -215,21 +253,34 @@ jobs:
 
           docker cp ${{ env.CONTAINER_NAME }}:/vdms/tests/coverage_report/cpp.new.coverage_report.txt ${GITHUB_WORKSPACE}/.github/coverage/cpp.new.coverage_report.txt
           docker cp ${{ env.CONTAINER_NAME }}:/vdms/tests/coverage_report/cpp.new.coverage_value.txt ${GITHUB_WORKSPACE}/.github/coverage/cpp.new.coverage_value.txt
-          echo "coverage_value_cpp=$(cat ${GITHUB_WORKSPACE}/.github/coverage/cpp.new.coverage_value.txt)" >> $GITHUB_ENV
-          echo "target_value_cpp=$(cat ${GITHUB_WORKSPACE}/.github/coverage/cpp.develop.coverage_value.txt)" >> $GITHUB_ENV
 
           docker cp ${{ env.CONTAINER_NAME }}:/vdms/tests/coverage_report/python.new.coverage_report.txt ${GITHUB_WORKSPACE}/.github/coverage/python.new.coverage_report.txt || true
           docker cp ${{ env.CONTAINER_NAME }}:/vdms/tests/coverage_report/python.new.coverage_value.txt ${GITHUB_WORKSPACE}/.github/coverage/python.new.coverage_value.txt || true
 
-          echo "coverage_value_py=$(cat ${GITHUB_WORKSPACE}/.github/coverage/python.new.coverage_value.txt)" >> $GITHUB_ENV
-          echo "target_value_py=$(cat ${GITHUB_WORKSPACE}/.github/coverage/python.develop.coverage_value.txt)" >> $GITHUB_ENV
+          echo "coverage_value_cpp=$(cat ${GITHUB_WORKSPACE}/.github/coverage/cpp.new.coverage_value.txt)" >> $GITHUB_ENV
+          echo "pr_dev_value_cpp=$(cat ${GITHUB_WORKSPACE}/.github/coverage/cpp.old-develop.coverage_value.txt)" >> $GITHUB_ENV
+          echo "target_value_cpp=$(cat ${GITHUB_WORKSPACE}/.github/coverage/cpp.develop.coverage_value.txt)" >> $GITHUB_ENV
 
-          docker kill ${{ env.NEO4J_CONTAINER_NAME }}_2 || true && docker rm ${{ env.NEO4J_CONTAINER_NAME }}_2 || true
+          echo "coverage_value_py=$(cat ${GITHUB_WORKSPACE}/.github/coverage/python.new.coverage_value.txt)" >> $GITHUB_ENV
+          echo "pr_dev_value_py=$(cat ${GITHUB_WORKSPACE}/.github/coverage/python.old-develop.coverage_value.txt)" >> $GITHUB_ENV
+          echo "target_value_py=$(cat ${GITHUB_WORKSPACE}/.github/coverage/python.develop.coverage_value.txt)" >> $GITHUB_ENV
 
       - name: Report Source Coverage
         id: report_coverage
         run: |
           set -x
+
+          did_cov_change='false'
+          if [ "$pr_dev_value_cpp" != "$coverage_value_cpp" ]; then
+            did_cov_change='true'
+          fi
+
+          if [ "$pr_dev_value_py" != "$coverage_value_py" ]; then
+            did_cov_change='true'
+          fi
+
+          # If true, in future job, push latest coverage as develop (future target)
+          echo "cov_changed=${did_cov_change}" >> $GITHUB_OUTPUT
 
           # CPP
           if [[ -z $coverage_value_cpp ]]
@@ -249,8 +300,7 @@ jobs:
           echo "source_coverage_py=${coverage_value_py}" >> $GITHUB_OUTPUT
           echo "target_coverage_py=${target_value_py}" >> $GITHUB_OUTPUT
 
-      - name: Upload coverage results
-        if: github.base_ref == 'develop' && github.event.action == 'closed' && github.event.pull_request.merged == true
+      - name: Upload New coverage results
         uses: actions/upload-artifact@v4
         with:
           name: coverage_artifact
@@ -286,6 +336,7 @@ jobs:
               repo: context.repo.repo,
               body: 'Target CPP Coverage: ${{ needs.coverage_job.outputs.target_coverage_cpp }}%\nSource CPP Coverage: ${{ needs.coverage_job.outputs.source_coverage_cpp }}%\n\n\nTarget Python Coverage: ${{ needs.coverage_job.outputs.target_coverage_py }}%\nSource Python Coverage: ${{ needs.coverage_job.outputs.source_coverage_py }}%'
             })
+
       - name: Compare Coverage
         run: |
           echo "Source CPP Coverage: ${{ needs.coverage_job.outputs.source_coverage_cpp }}"
@@ -307,7 +358,7 @@ jobs:
           fi
 
   # FORMAT CODE
-  commit_format:
+  commit_job:
     permissions:
       contents: write  # for Git to git push
     name: Commit Code Updates
@@ -320,7 +371,7 @@ jobs:
     steps:
       # Checkout code doesn't persist across jobs
       # If formatting needed, checkout and format again
-      - if: needs.coverage_job.outputs.modify_source == 'true' || github.event.pull_request.merged == true
+      - if: needs.coverage_job.outputs.modify_source == 'true' || needs.coverage_job.outputs.cov_changed == 'true'
         name: Checkout Source Branch
         uses: actions/checkout@v4
         with:
@@ -329,28 +380,30 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           token: ${{ secrets.FACELESS_TOKEN || github.token }}
 
-      - name: Retrieve Coverage Files
-        if: github.base_ref == 'develop' && github.event.action == 'closed' && github.event.pull_request.merged == true
+      - name: Retrieve Current Coverage Files
+        if: needs.coverage_job.outputs.cov_changed == 'true'
         uses: actions/download-artifact@v4
         with:
           name: coverage_artifact
           path: .github/coverage/
 
       - if: needs.coverage_job.outputs.modify_source == 'true'
+        # Reformat and prepare commit message
         run: |
           ./.github/scripts/auto-formatter.sh
           new_commit_msg="${{ env.COMMIT_MSG }} format"
           echo "LATEST_COMMIT_MSG=${new_commit_msg}" >> $GITHUB_ENV
 
-
       - if: needs.coverage_job.outputs.modify_source == 'false'
         run: echo "LATEST_COMMIT_MSG=${{ env.COMMIT_MSG }}" >> $GITHUB_ENV
 
-      - name: Update target coverage
-        if: github.base_ref == 'develop' && github.event.action == 'closed' && github.event.pull_request.merged == true
+      - name: Update coverage reports with latest coverage
+        # Change latest coverage as develop (future target)
+        if: needs.coverage_job.outputs.cov_changed == 'true'
         run: |
           cd ${GITHUB_WORKSPACE}/.github/coverage/
           rm -rf *.develop.*.txt || true
+          rm -rf *.old-develop.*.txt || true
           ls
           mv cpp.new.coverage_report.txt cpp.develop.coverage_report.txt
           mv cpp.new.coverage_value.txt cpp.develop.coverage_value.txt
@@ -366,7 +419,7 @@ jobs:
           echo "LATEST_COMMIT_MSG=${new_commit_msg}" >> $GITHUB_ENV
 
       # Update Code and Push (Should be last steps of workflow since it changes commit)
-      - if: needs.coverage_job.outputs.modify_source == 'true' || (github.base_ref == 'develop' && github.event.action == 'closed' && github.event.pull_request.merged == true)
+      - if: needs.coverage_job.outputs.modify_source == 'true' || needs.coverage_job.outputs.cov_changed == 'true'
         name: Commit Changes
         id: update_commit
         continue-on-error: true
@@ -379,7 +432,7 @@ jobs:
           git commit -am "${LATEST_COMMIT_MSG}"
           git push
 
-      - if: steps.format_commit.outcome != 'success' && needs.coverage_job.outputs.modify_source == 'true'
+      - if: steps.update_commit.outcome != 'success' && (needs.coverage_job.outputs.modify_source == 'true' || needs.coverage_job.outputs.cov_changed == 'true')
         name: Check Push Failure
         run: |
           echo "Please provide sys-vdms write access to fork (if applicable)."
@@ -389,7 +442,7 @@ jobs:
   cleanup:
     name: Workflow Cleanup
     if: ${{ always() }}
-    needs: [compare_coverage, commit_format]
+    needs: [compare_coverage, commit_job]
     runs-on:
       group: intellabs-vdms-runners
       labels: vdms-check-in
