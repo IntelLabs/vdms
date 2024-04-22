@@ -58,6 +58,7 @@ jobs:
 
     env:
       COV_URL: ${{ secrets.COVERITYSERVER }}
+      COV_USER: ${{ secrets.FACELESS_NAME }}
       COVERITY_PASSPHRASE: ${{ secrets.FACELESS_AUTHKEY }}
       COVERITY_PROJECT: Vdms 2
       COVERITY_STREAM: ${{ secrets.COVERITYSTREAM}}
