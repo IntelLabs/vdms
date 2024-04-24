@@ -8,11 +8,26 @@ ARG BUILD_THREADS="-j16"
 FROM debian:${BASE_VERSION} as base
 # Dockerfile limitations force a repetition of global args
 ARG BUILD_THREADS
+ARG AWS_ACCESS_KEY_ID=""
+ARG AWS_SECRET_ACCESS_KEY=""
+ARG NEO4J_USER=""
+ARG NEO4J_PASS=""
+ARG NEO_TEST_PORT=7687
+ARG AWS_API_PORT=9000
+ARG AWS_CONSOLE_PORT=9001
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBCONF_NOWARNINGS="yes"
 ENV PROTOBUF_VERSION="24.2"
 ENV NUMPY_MIN_VERSION="1.26.0"
+
+ENV AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
+ENV AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
+ENV NEO4J_USER="${NEO4J_USER}"
+ENV NEO4J_PASS="${NEO4J_PASS}"
+ENV NEO_TEST_PORT="${NEO_TEST_PORT}"
+ENV AWS_API_PORT="${AWS_API_PORT}"
+ENV AWS_CONSOLE_PORT="${AWS_CONSOLE_PORT}"
 
 ############################################################
 # BUILD DEPENDENCIES
@@ -145,21 +160,6 @@ RUN rm -rf /dependencies /usr/local/share/doc /usr/local/share/man && \
 FROM base
 ARG BUILD_COVERAGE="on"
 ARG BUILD_COVERITY="off"
-ARG AWS_ACCESS_KEY_ID=""
-ARG AWS_SECRET_ACCESS_KEY=""
-ARG NEO4J_USER=""
-ARG NEO4J_PASS=""
-ARG NEO_TEST_PORT=7687
-ARG AWS_API_PORT=9000
-ARG AWS_CONSOLE_PORT=9001
-
-ENV AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
-ENV AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
-ENV NEO4J_USER="${NEO4J_USER}"
-ENV NEO4J_PASS="${NEO4J_PASS}"
-ENV NEO_TEST_PORT="${NEO_TEST_PORT}"
-ENV AWS_API_PORT="${AWS_API_PORT}"
-ENV AWS_CONSOLE_PORT="${AWS_CONSOLE_PORT}"
 
 # hadolint ignore=DL3008
 RUN apt-get update -y && apt-get upgrade -y && \
@@ -229,12 +229,14 @@ COPY ./tests /vdms/tests
 COPY ./utils /vdms/utils
 COPY ./CMakeLists.txt /vdms/
 COPY ./config-vdms.json /vdms/
+COPY ./docker/override_default_config.py /vdms/
+
 # hadolint ignore=DL3003,SC2086
 RUN git submodule update --init --recursive && \
         mkdir -p /vdms/build && cd /vdms/build && \
         cmake -DCODE_COVERAGE="${BUILD_COVERAGE}" .. && make ${BUILD_THREADS} && \
-    cp /vdms/config-vdms.json /vdms/build/ && \
     echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
+    echo 'python3 /vdms/override_default_config.py -i /vdms/config-vdms.json -o /vdms/build/config-vdms.json' >> /start.sh && \
     echo './vdms' >> /start.sh && chmod 755 /start.sh
 
 ENV PYTHONPATH=/vdms/client/python:${PYTHONPATH}
