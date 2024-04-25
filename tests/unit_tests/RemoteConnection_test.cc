@@ -40,6 +40,7 @@
 
 #include "RemoteConnection.h"
 #include "VDMSConfig.h"
+#include "vcl/Exception.h"
 
 class RemoteConnectionTest : public ::testing::Test {
 protected:
@@ -209,9 +210,19 @@ TEST_F(RemoteConnectionTest, RemoteReadWriteBuffer) {
 TEST_F(RemoteConnectionTest, RemoteListRetrieveFile) {
   try {
     ASSERT_TRUE(connection_);
+    // Add the file to S3
+    EXPECT_TRUE(connection_->Write(img_));
+
     std::vector<std::string> file_list =
         connection_->ListFilesInFolder("test_images");
+    EXPECT_FALSE(file_list.empty()); // It should have at least one element
+
+    // This is the test
     EXPECT_TRUE(connection_->RetrieveFile(file_list[0]));
+
+    // It removes the file so it doesn't affect the other tests
+    EXPECT_TRUE(connection_->Remove_Object(file_list[0]));
+
   } catch (...) {
     printErrorMessage("RemoteListRetrieveFile");
   }
@@ -228,8 +239,15 @@ TEST_F(RemoteConnectionTest, RemoteWriteVideoFilename) {
 
 TEST_F(RemoteConnectionTest, RemoteReadVideoFilename) {
   try {
+    // Prepare the test
     ASSERT_TRUE(connection_);
+    EXPECT_TRUE(connection_->Write(video_));
+
+    // Execute the test
     EXPECT_TRUE(connection_->Read_Video(video_));
+
+    // Cleanup
+    EXPECT_TRUE(connection_->Remove_Object(video_));
   } catch (...) {
     printErrorMessage("RemoteReadVideoFilename");
   }
@@ -255,15 +273,26 @@ TEST_F(RemoteConnectionTest, ImageRemoteWritePNG) {
 TEST_F(RemoteConnectionTest, ImageRemoteReadPNG) {
   try {
     ASSERT_TRUE(connection_);
-    VCL::ImageTest img;
+    VCL::ImageTest img(cv_img_);
 
     img.set_connection(connection_);
     std::string path = "pngs/test_image.png";
 
-    img.read(path);
+    // First, add the image
+    img.store(path, VCL::Format::PNG);
+    img.perform_operations();
 
+    // Then, execute the test
+    img.read(path);
     cv::Mat data = img.get_cvmat();
+
+    // Check the results
     compare_mat_mat(data, cv_img_);
+  } catch (VCL::Exception &ex) {
+    print_exception(ex);
+  } catch (std::exception &ex) {
+    std::cerr << "RemoteConnectionTest.ImageRemoteReadPNG() failed: "
+              << ex.what() << std::endl;
   } catch (...) {
     printErrorMessage("ImageRemoteReadPNG");
   }
@@ -295,12 +324,20 @@ TEST_F(RemoteConnectionTest, ImageRemoteWriteJPG) {
 
 TEST_F(RemoteConnectionTest, ImageRemoteReadJPG) {
   try {
-    ASSERT_TRUE(connection_);
-    VCL::Image img("jpgs/large1.jpg");
-    img.set_connection(connection_);
 
+    // Prepare the test
+    ASSERT_TRUE(connection_);
+    VCL::Image img(cv_img_);
+    std::string path = "jpgs/large1.jpg";
+    img.store(path, VCL::Format::JPG);
+
+    // Execute the test
     cv::Mat mat = img.get_cvmat();
+
+    // Compare the results
     compare_mat_mat_jpg(mat, cv_img_);
+    // Remove the image to avoid affecting the other tests
+    EXPECT_TRUE(img.delete_image());
   } catch (...) {
     printErrorMessage("ImageRemoteReadJPG");
   }

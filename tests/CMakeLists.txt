@@ -54,6 +54,10 @@ add_executable(unit_tests
     unit_tests/client_blob.cc
     unit_tests/BackendNeo4jTest.cc
     unit_tests/OpsIoTest.cc
+    unit_tests/EndToEndNeo4jTest.cc
+    unit_tests/TDBObject_test.cc
+    unit_tests/VDMSConfig_test.cc
+    unit_tests/SystemStats_test.cc
 )
 
 target_link_libraries(unit_tests
@@ -62,7 +66,7 @@ target_link_libraries(unit_tests
     dms
     faiss
     flinng
-    gtest
+    gmock
     jsoncpp
     pmgd
     pmgd-util

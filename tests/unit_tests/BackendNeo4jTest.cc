@@ -39,16 +39,13 @@ protected:
   virtual void SetUp() {
     // Test setup, lets instantiate a connection here
     // neo4j class instationation
-    char *env_4j_port;
-    env_4j_port = std::getenv("NEO_TEST_PORT");
-    std::string tgt_db_base = "neo4j://localhost:";
-    std::string tgt_db_port(env_4j_port);
-    std::string tgt_db_addr = tgt_db_base + tgt_db_port;
-    std::cout << tgt_db_addr;
-    // char tgtdb[] = "neo4j://localhost:7687";
-    const char *tgt_db = tgt_db_addr.c_str();
-    char user[] = "neo4j";
-    char pass[] = "neo4jpass";
+    char *tgt_db;
+    char *user;
+    char *pass;
+    tgt_db = std::getenv("NEO4J_ENDPOINT");
+    user = std::getenv("NEO4J_USER");
+    pass = std::getenv("NEO4J_PASS");
+
     uint_fast32_t flags = NEO4J_INSECURE;
     int nr_conns = 16;
     neoconn_pool =

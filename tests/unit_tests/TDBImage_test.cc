@@ -447,3 +447,21 @@ TEST_F(TDBImageTest, SetMinimum) {
   VCL::TDBImage tdb;
   tdb.set_minimum(3);
 }
+
+TEST_F(TDBImageTest, WriteWithNullRawData) {
+  VCL::TDBImage tdb;
+  std::string image_id = "";
+  bool metadata = false;
+
+  ASSERT_THROW(tdb.write(image_id, metadata), VCL::Exception);
+}
+
+TEST_F(TDBImageTest, EqualOperatorDeleteRawData) {
+  VCL::TDBImage sourceTDB(tdb_img_);
+  sourceTDB.write(cv_img_);
+  ASSERT_TRUE(sourceTDB.has_data());
+  VCL::TDBImage destTDB = sourceTDB;
+
+  bool areEqual = (sourceTDB == destTDB);
+  ASSERT_TRUE(areEqual);
+}

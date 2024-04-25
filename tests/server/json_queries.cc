@@ -104,7 +104,7 @@ TEST(ExampleHandler, simplePing) {
   std::string addImg;
   addImg += "[" + singleAddImage + "]";
 
-  VDMSConfig::init("server/example_handler_test.json");
+  VDMSConfig::init("server/config-tests.json");
   PMGDQueryHandler::init();
   QueryHandlerExample::init();
 
@@ -678,9 +678,8 @@ TEST(QueryHandler, AutoDeleteNode) {
   const Json::Value &query_3 = parsed[2];
   EXPECT_EQ(query_3["FindVideo"]["returned"], 1);
   EXPECT_EQ(query_3["FindVideo"]["status"], 0);
-
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  VDMSConfig::destroy();
 }
 
 TEST(QueryHandler, CustomFunctionNoProcess) {

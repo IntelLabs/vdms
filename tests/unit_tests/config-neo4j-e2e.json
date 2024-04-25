@@ -1,0 +1,10 @@
+{
+  "port": 55559,
+  "db_root_path": "neo4j_empty",
+  "storage_type": "aws",
+  "bucket_name": "minio-bucket",
+  "more-info": "github.com/IntelLabs/vdms",
+  "aws_log_level": "debug",
+  "use_endpoint": true,
+  "query_handler": "neo4j"
+}

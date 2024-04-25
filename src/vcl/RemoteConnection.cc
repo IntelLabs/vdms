@@ -450,8 +450,9 @@ RemoteConnection::get_file_list(const std::string &path) {
         _aws_client->ListObjects(request);
 
     if (!outcome.IsSuccess()) {
-      std::cerr << "Error: ListObjects: " << outcome.GetError().GetMessage()
-                << std::endl;
+      std::string error_message =
+          "Error in get_file_list(): " + outcome.GetError().GetMessage();
+      throw VCLException(ObjectNotFound, error_message);
     } else {
       Aws::Vector<Aws::S3::Model::Object> objects =
           outcome.GetResult().GetContents();

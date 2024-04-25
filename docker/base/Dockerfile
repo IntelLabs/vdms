@@ -8,11 +8,26 @@ ARG BUILD_THREADS="-j16"
 FROM debian:${BASE_VERSION} as base
 # Dockerfile limitations force a repetition of global args
 ARG BUILD_THREADS
+ARG AWS_ACCESS_KEY_ID=""
+ARG AWS_SECRET_ACCESS_KEY=""
+ARG NEO4J_USER=""
+ARG NEO4J_PASS=""
+ARG NEO4J_ENDPOINT=""
+ARG AWS_API_PORT=9000
+ARG AWS_CONSOLE_PORT=9001
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBCONF_NOWARNINGS="yes"
 ENV PROTOBUF_VERSION="24.2"
 ENV NUMPY_MIN_VERSION="1.26.0"
+
+ENV AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
+ENV AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}"
+ENV NEO4J_USER="${NEO4J_USER}"
+ENV NEO4J_PASS="${NEO4J_PASS}"
+ENV NEO4J_ENDPOINT="${NEO4J_ENDPOINT}"
+ENV AWS_API_PORT="${AWS_API_PORT}"
+ENV AWS_CONSOLE_PORT="${AWS_CONSOLE_PORT}"
 
 ############################################################
 # BUILD DEPENDENCIES
@@ -132,7 +147,7 @@ RUN curl -L -o /dependencies/peg-${PEG_VERSION}.tar.gz \
     git clone https://github.com/majensen/libneo4j-omni.git /dependencies/libomni && \
         cd /dependencies/libomni && ./autogen.sh && \
         ./configure --disable-werror --prefix=/opt/dist/usr && \
-        make install -w --debug
+        make clean check && make install -w --debug
 
 # CLEANUP
 RUN rm -rf /dependencies /usr/local/share/doc /usr/local/share/man && \
@@ -168,8 +183,9 @@ RUN git clone -b develop --recurse-submodules https://github.com/IntelLabs/vdms.
         mkdir -p /vdms/build && cd /vdms/build && \
         cmake -DCODE_COVERAGE="${BUILD_COVERAGE}" -DCHRONO_TIMING="${BUILD_TIMING}" .. && \
         make ${BUILD_THREADS} && \
-    cp /vdms/config-vdms.json /vdms/build/ && \
     echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
+    cp /vdms/docker/override_default_config.py /vdms/ && \
+    echo 'python3 /vdms/override_default_config.py -i /vdms/config-vdms.json -o /vdms/build/config-vdms.json' >> /start.sh && \
     echo './vdms' >> /start.sh && chmod 755 /start.sh
 
 ENV PYTHONPATH=/vdms/client/python:${PYTHONPATH}

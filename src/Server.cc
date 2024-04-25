@@ -42,14 +42,16 @@
 #include "comm/Connection.h"
 
 #include "DescriptorsManager.h"
+#include "OpsIOCoordinator.h"
 #include "QueryHandlerExample.h"
+#include "QueryHandlerNeo4j.h"
 #include "QueryHandlerPMGD.h"
 #include "VDMSConfig.h"
 
 #include "pmgdMessages.pb.h" // Protobuff implementation
 
 using namespace VDMS;
-
+VCL::RemoteConnection *global_s3_connection = NULL;
 bool Server::shutdown = false;
 
 Server::Server(std::string config_file) {
@@ -124,6 +126,12 @@ void Server::setup_query_handler() {
                                      // initialized
   } else if (qhandler_type == "example") {
     QueryHandlerExample::init();
+  } else if (qhandler_type == "neo4j") {
+    printf("Setting up Neo4j handler...\n");
+    _autoreplicate_settings.server_port =
+        cfg->get_int_value("port", DEFAULT_PORT);
+    global_s3_connection = instantiate_connection();
+    QueryHandlerNeo4j::init();
   } else {
     printf("Unrecognized handler: \"%s\", exiting!\n", qhandler_type.c_str());
     exit(1);

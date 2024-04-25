@@ -26,6 +26,7 @@
 
 import shutil
 import TestCommand
+import os
 
 
 class TestVideos(TestCommand.TestCommand):
@@ -211,6 +212,8 @@ class TestVideos(TestCommand.TestCommand):
         response, _ = db.query([query], [[]])
 
         self.disconnect(db)
+        if os.path.isfile(tmp_filepath) is True:
+            os.remove(tmp_filepath)
         self.assertEqual(response[0]["AddVideo"]["status"], 0)
 
     def test_extractKeyFrames(self):

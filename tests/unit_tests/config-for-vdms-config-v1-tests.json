@@ -1,0 +1,15 @@
+// VDMS Config File
+// This is the run-time config file
+// Sets database paths and other parameters
+{
+   
+    "port": 55557,
+    "db_root_path": "test_db_1",
+    "use_endpoint": true,
+    "storage_type": "aws",
+    "endpoint_override": "http://127.0.0.2:9000",
+    "proxy_host": "a.proxy.to.be.tested.intel.com",
+    "proxy_port": 8000,
+    "proxy_scheme": "http",
+    "more-info": "github.com/IntelLabs/vdms"
+}

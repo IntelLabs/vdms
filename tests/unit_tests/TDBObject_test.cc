@@ -1,11 +1,11 @@
 /**
- * @file   OpsIoCoordinator.h
+ * @file   TDBObject_test.cc
  *
  * @section LICENSE
  *
  * The MIT License
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2024 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,17 +26,36 @@
  * THE SOFTWARE.
  *
  */
-#pragma once
-#include "vcl/VCL.h"
 
-extern VCL::RemoteConnection *global_s3_connection;
+#include <string>
 
-std::vector<unsigned char>
-do_single_img_ops(const Json::Value &orig_query,
-                  std::vector<unsigned char> &raw_data, std::string cmd_name);
-std::vector<unsigned char> s3_retrieval(std::string obj_name,
-                                        VCL::RemoteConnection *connection);
-int s3_upload(std::string obj_name, std::vector<unsigned char> upload_data,
-              VCL::RemoteConnection *connection);
-VCL::RemoteConnection *instantiate_connection();
-VCL::RemoteConnection *get_existing_connection();
+#include <gtest/gtest.h>
+#include <opencv2/imgcodecs.hpp>
+
+#include "TDBImage.h"
+#include "TDBObject.h"
+
+class TDBObjectTest : public ::testing::Test {
+
+protected:
+  virtual void SetUp() {
+    tdb_img_ = "tdb/test_image.tdb";
+    cv_img_ = cv::imread("test_images/large1.jpg", cv::IMREAD_ANYCOLOR);
+  }
+
+  virtual void TearDown() {}
+
+  std::string tdb_img_;
+  cv::Mat cv_img_;
+};
+
+TEST_F(TDBObjectTest, EqualOperatorInTDBObject) {
+  VCL::TDBImage sourceTDB(tdb_img_);
+  sourceTDB.write(cv_img_);
+  ASSERT_TRUE(sourceTDB.has_data());
+  // Sliced the object to get the TDBObject
+  VCL::TDBObject destTDBObject = static_cast<VCL::TDBObject>(sourceTDB);
+
+  bool areEqual = (static_cast<VCL::TDBObject>(sourceTDB) == destTDBObject);
+  ASSERT_TRUE(areEqual);
+}

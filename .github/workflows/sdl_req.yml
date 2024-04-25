@@ -226,6 +226,8 @@ jobs:
           echo "sbom_image_results<<EOF" >> $GITHUB_ENV
           echo "$output_checks" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+          rm -rf /tmp/sbom-cli-plugin-*
+
       - name: Upload SBOM Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -284,7 +286,7 @@ jobs:
       labels: vdms-check-in
     steps:
       - name: Checkout Branch
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
       - name: Run Bandit
         id: bandit
         run: |

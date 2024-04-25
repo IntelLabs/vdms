@@ -169,6 +169,27 @@ void TDBImage::operator=(TDBImage &tdb) {
   }
 }
 
+bool TDBImage::operator==(const TDBImage &right) {
+  bool result = true;
+  result &= this->_img_height == right._img_height;
+  result &= this->_img_width == right._img_width;
+  result &= this->_img_channels == right._img_channels;
+  result &= this->_img_size == right._img_size;
+
+  // threshold value
+  result &= this->_threshold == right._threshold;
+
+  // raw data of the image
+  for (size_t index = 0; index < _img_size; index++) {
+    result &= (this->_raw_data[index] == right._raw_data[index]);
+    if (!result) {
+      break;
+    }
+  }
+  result &= this->_full_array == right._full_array;
+  return result;
+}
+
 void TDBImage::set_image_data_equal(const TDBImage &tdb) {
   _img_height = tdb._img_height;
   _img_width = tdb._img_width;
@@ -291,8 +312,9 @@ void TDBImage::set_configuration(RemoteConnection *remote) {
 /*    TDBIMAGE INTERACTION  */
 /*  *********************** */
 void TDBImage::write(const std::string &image_id, bool metadata) {
-  if (_raw_data == NULL)
+  if (_raw_data == NULL) {
     throw VCLException(ObjectEmpty, "No data to be written");
+  }
 
   std::string array_name = namespace_setup(image_id);
 

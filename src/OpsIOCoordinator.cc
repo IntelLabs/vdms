@@ -37,8 +37,6 @@
 
 using namespace VDMS;
 
-VCL::RemoteConnection *global_s3_connection = NULL;
-
 template <typename T>
 T get_json_val(const Json::Value &json, const std::string &key, T def = T());
 
@@ -106,7 +104,7 @@ int img_enqueue_operations(VCL::Image &img, const Json::Value &ops) {
       img.rotate(get_json_val<double>(op, "angle"),
                  get_json_val<bool>(op, "resize"));
     } else {
-      throw ExceptionCommand(ImageError, "Operation not defined");
+      throw ExceptionCommand(ImageError, "Operation is not defined");
       return -1;
     }
   }
@@ -141,7 +139,6 @@ do_single_img_ops(const Json::Value &orig_query,
 
   std::string format = get_json_val<std::string>(cmd, "target_format", "");
   if (format == "bin" || format == "") {
-    printf("Setting Raw Binary Format...\n");
     binary_img_flag = 1;
   }
 
@@ -225,7 +222,7 @@ int s3_upload(std::string obj_name, std::vector<unsigned char> upload_data,
 }
 
 VCL::RemoteConnection *instantiate_connection() {
-
+  printf("Instantiating global S3 Connection...\n");
   std::chrono::steady_clock::time_point total_start, total_end;
   total_start = std::chrono::steady_clock::now();
   double total_runtime;
@@ -241,6 +238,7 @@ VCL::RemoteConnection *instantiate_connection() {
                       total_end - total_start)
                       .count();
 
+  printf("Global S3 Connection Started!\n");
   return connection;
 }
 
