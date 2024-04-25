@@ -118,7 +118,7 @@ jobs:
           docker stop $(docker ps -aqf "name=${{ env.CONTAINER_NAME }}") | xargs docker rm || true
 
           docker build --rm --build-arg="BUILD_COVERAGE=ON" --build-arg="BUILD_COVERITY=ON" --build-arg="BUILD_TIMING=ON" \
-            -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ matrix.container_tag }} .
+            -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ env.CONTAINER_TAG }} .
 
       - name: Build Docker Container w/o cache
         if: always() && steps.build_docker.outcome == 'failure'
@@ -128,7 +128,7 @@ jobs:
           docker stop $(docker ps -aqf "name=${{ env.CONTAINER_NAME }}") | xargs docker rm || true
 
           docker build --no-cache --rm --build-arg="BUILD_COVERAGE=ON" --build-arg="BUILD_COVERITY=ON" \
-            --build-arg="BUILD_TIMING=ON" -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ matrix.container_tag }} .
+            --build-arg="BUILD_TIMING=ON" -f ${{ env.CHECKIN_DOCKERFILE}} -t ${{ env.CONTAINER_TAG }} .
 
       - if: steps.git_check.outputs.added_modified
         uses: ./.github/actions/coverity-incremental-scan
