@@ -193,7 +193,7 @@ jobs:
             --env AWS_SECRET_ACCESS_KEY=${{ env.MINIO_PASSWORD }} \
             --env NEO4J_USER=${{ env.NEO4J_USER }} \
             --env NEO4J_PASS=${{ env.NEO4J_PASSWORD }} \
-            --env NEO_TEST_PORT=${{ env.NEO_TEST_PORT }} \
+            --env NEO4J_ENDPOINT=neo4j://localhost:${{ env.NEO_TEST_PORT }} \
             --env AWS_API_PORT=${{ env.AWS_API_PORT }} \
             --env AWS_CONSOLE_PORT=${{ env.AWS_CONSOLE_PORT }} \
             ${{ env.CONTAINER_TAG }}

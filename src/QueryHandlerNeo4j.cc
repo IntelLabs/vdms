@@ -55,14 +55,9 @@ void QueryHandlerNeo4j::init() {
   _rs_cmds["NeoAdd"] = new Neo4jNeoAdd();
   _rs_cmds["NeoFind"] = new Neo4jNeoFind();
 
-  char *env_4j_port = getenv("NEO_TEST_PORT");
+  char *tgtdb = getenv("NEO4J_ENDPOINT");
   char *user = getenv("NEO4J_USER");
   char *pass = getenv("NEO4J_PASS");
-
-  std::string tgtdb_base = "neo4j://localhost:";
-  std::string tgtdb_port(env_4j_port);
-  std::string tgtdb_addr = tgtdb_base + tgtdb_port;
-  const char *tgtdb = tgtdb_addr.c_str();
 
   uint_fast32_t flags = NEO4J_INSECURE;
   int nr_conns = 16;
