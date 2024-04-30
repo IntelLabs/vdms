@@ -206,7 +206,7 @@ RUN if [ "${BUILD_COVERAGE}" = "on" ]; then \
         apt-get install -y --no-install-suggests --no-install-recommends gdb ; \
         apt-get clean ; \
         rm -rf /var/lib/apt/lists/* ; \
-        pip3 install --no-cache-dir "gcovr>=6.0" ; \
+        pip3 install --no-cache-dir "gcovr>=6.0" cryptography ; \
         curl -L -o /vdms/minio https://dl.min.io/server/minio/release/linux-amd64/minio ; \
         chmod +x /vdms/minio ; \
         mkdir -p /vdms/minio_files/minio-bucket ; \
@@ -238,6 +238,7 @@ RUN git submodule update --init --recursive && \
     echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
     echo 'python3 /vdms/override_default_config.py -i /vdms/config-vdms.json -o /vdms/build/config-vdms.json' >> /start.sh && \
     echo './vdms' >> /start.sh && chmod 755 /start.sh
+
 
 ENV PYTHONPATH=/vdms/client/python:${PYTHONPATH}
 HEALTHCHECK CMD echo "This is a healthcheck test." || exit 1

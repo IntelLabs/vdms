@@ -58,6 +58,9 @@
 #define PARAM_DB_TMP "tmp_path"
 #define PARAM_STORAGE_TYPE "storage_type"
 #define PARAM_BUCKET_NAME "bucket_name"
+#define PARAM_CERT_FILE "cert_file"
+#define PARAM_KEY_FILE "key_file"
+#define PARAM_CA_FILE "ca_file"
 
 #define PARAM_NODE_EXPIRATION "expiration_time"
 #define DEFAULT_NODE_EXPIRATION 0

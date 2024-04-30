@@ -10,3 +10,6 @@ tmp
 .devcontainer
 .vscode
 .coverage
+
+# Jetbrains Specific
+.idea

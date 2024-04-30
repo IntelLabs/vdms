@@ -34,6 +34,8 @@
 
 # Variable used for storing the process id for the vdms server
 py_unittest_pid='UNKNOWN_PROCESS_ID'
+# Variable used for storing the process id for mTLS
+py_tls_unittest_pid='UNKNOWN_PROCESS_ID'
 # Variable used for storing the process id for the minio server
 py_minio_pid='UNKNOWN_PROCESS_ID'
 
@@ -80,7 +82,7 @@ function execute_commands() {
         exit 1;
     fi
 
-     # Using the flag "-n YOUR_TEST_NAME"
+    # Using the flag "-n YOUR_TEST_NAME"
     # for specifying the unittest test filter. In case that this flag is not specified
     # then it will use the default filter pattern
     test_filter="discover --pattern=Test*.py"
@@ -108,15 +110,21 @@ function execute_commands() {
     rm -rf ../../minio_files/ || true
     rm -rf test_db/ || true
     rm -rf test_db_aws/ || true
+    rm -rf test_db_tls/ || true
 
-    rm -rf test_db || true
     rm log.log || true
     rm screen.log || true
     mkdir -p test_db || true
+    rm log-tls.log || true
+    rm screen-tls.log || true
 
     echo 'Starting vdms server'
     ./../../build/vdms -cfg config-aws-tests.json > screen.log 2> log.log &
     py_unittest_pid=$!
+
+    python3 prep.py
+    ./../../build/vdms -cfg config-tls-aws-tests.json > screen-tls.log 2> log-tls.log &
+    py_tls_unittest_pid=$!
 
     sleep 1
 
@@ -144,6 +152,7 @@ function execute_commands() {
     export VDMS_SKIP_REMOTE_PYTHON_TESTS=True
     echo 'Running Python AWS S3 tests...'
     python3 -m coverage run --include="../../*" --omit="${base_dir}/client/python/vdms/queryMessage_pb2.py,../*" -m unittest $test_filter -v
+
     echo 'Finished'
     exit 0
 }
@@ -155,21 +164,24 @@ function cleanup() {
 
     # Removing log files
     echo 'Removing log files'
-    rm  -rf test_db || true
     rm log.log || true
     rm screen.log || true
+    rm log-tls.log || true
+    rm screen-tls.log || true
 
     unset VDMS_SKIP_REMOTE_PYTHON_TESTS
-
 
     echo 'Removing temporary files'
     rm -rf ../../minio_files/ || true
     rm -rf test_db/ || true
     rm -rf test_db_aws/ || true
+    rm -rf test_db_tls/ || true
 
     # Killing vdms and minio processes after finishing the testing
-    echo 'Killing vdms and minio processes after finishing the testing'
-    kill -9 $py_unittest_pid $py_minio_pid || true
+    echo 'Killing vdms, tls, and minio processes after finishing the testing'
+    kill -9 $py_unittest_pid || true
+    kill -9 $py_tls_unittest_pid || true
+    kill -9 $py_minio_pid || true
     exit $exit_value
 }
 

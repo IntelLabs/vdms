@@ -1,6 +1,6 @@
 Name                                   Stmts   Miss  Cover   Missing
 --------------------------------------------------------------------
 /vdms/client/python/vdms/__init__.py       2      0   100%
-/vdms/client/python/vdms/vdms.py          79      2    97%   117, 132
+/vdms/client/python/vdms/vdms.py          98      2    98%   151, 166
 --------------------------------------------------------------------
-TOTAL                                     81      2    98%
+TOTAL                                    100      2    98%

@@ -30,3 +30,14 @@ rm -rf backups || true
 rm -rf ../minio_files || true
 rm -rf ../test_db || true
 rm -rf ../test_db_aws || true
+rm -rf test_db_tls || true
+rm -rf python/test_db_tls || true
+rm -rf screen-tls.log || true
+rm -rf log-tls.log || true
+rm -rf /tmp/trusted_ca_cert.pem || true
+rm -rf /tmp/trusted_server_cert.pem || true
+rm -rf /tmp/trusted_server_key.pem || true
+rm -rf /tmp/trusted_client_cert.pem || true
+rm -rf /tmp/trusted_client_key.pem || true
+rm -rf /tmp/untrusted_client_cert.pem || true
+rm -rf /tmp/untrusted_client_key.pem || true

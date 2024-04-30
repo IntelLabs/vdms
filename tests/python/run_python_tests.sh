@@ -34,6 +34,7 @@
 
 # Variable used for storing the process id for the vdms server
 py_unittest_pid='UNKNOWN_PROCESS_ID'
+py_tls_unittest_pid='UNKNOWN_PROCESS_ID'
 
 function execute_commands() {
 
@@ -76,6 +77,10 @@ function execute_commands() {
     ./../../build/vdms -cfg config-tests.json > screen.log 2> log.log &
     py_unittest_pid=$!
 
+    python3 prep.py
+    ./../../build/vdms -cfg config-tls-tests.json > screen-tls.log 2> log-tls.log &
+    py_tls_unittest_pid=$!
+
     sleep 1
 
     echo 'Running Python tests...'
@@ -93,7 +98,11 @@ function cleanup() {
     rm  -rf test_db || true
     rm -rf log.log || true
     rm -rf screen.log || true
+    rm  -rf test_db_tls || true
+    rm -rf log-tls.log || true
+    rm -rf screen-tls.log || true
     kill -9 $py_unittest_pid || true
+    kill -9 $py_tls_unittest_pid || true
     exit $exit_value
 }
 
