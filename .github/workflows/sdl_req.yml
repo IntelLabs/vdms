@@ -185,6 +185,9 @@ jobs:
           curl -o ${{ env.ARTIFACT_DIR }}/CT7_bdba-results.csv -H "Authorization: Bearer ${{ env.BDBA_TOKEN }}" -H "Group: ${{ env.bdba_group }}" \
             "https://bdba001.icloud.intel.com/api/product/${{ env.bdba_product_id }}/csv-vulns"
 
+          curl -k -H "apikey: ${{ secrets.SDLE_API_KEY }}" -F file=@"${{ env.ARTIFACT_DIR }}/CT7_bdba-results.csv" \
+            "https://sdl-e.app.intel.com/uploader/v1/evidence/uploads/documents/creators/${{ secrets.FACELESS_NAME}}?projectId=${{ secrets.SDLE_PROJECT_ID }}&taskId=CT7" -v
+
       - name: Upload BDBA Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -227,6 +230,8 @@ jobs:
           echo "$output_checks" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
           rm -rf /tmp/sbom-cli-plugin-*
+          curl -k -H "apikey: ${{ secrets.SDLE_API_KEY }}" -F file=@"${{ env.ARTIFACT_DIR }}/CT36_dockersbom-components.csv" \
+            "https://sdl-e.app.intel.com/uploader/v1/evidence/uploads/documents/creators/${{ secrets.FACELESS_NAME}}?projectId=${{ secrets.SDLE_PROJECT_ID }}&taskId=CT36" -v
 
       - name: Upload SBOM Artifacts
         uses: actions/upload-artifact@v4
@@ -293,6 +298,11 @@ jobs:
           python3 -m pip install --user bandit
           mkdir -p ${{ env.ARTIFACT_DIR }}
           bandit ./ -r -c .github/workflows/ipas_default.config -f csv -o ${{ env.ARTIFACT_DIR }}/CT161_bandit-report.csv
+
+
+          curl -k -H "apikey: ${{ secrets.SDLE_API_KEY }}" -F file=@"${{ env.ARTIFACT_DIR }}/CT161_bandit-report.csv" \
+            "https://sdl-e.app.intel.com/uploader/v1/evidence/uploads/documents/creators/${{ secrets.FACELESS_NAME}}?projectId=${{ secrets.SDLE_PROJECT_ID }}&taskId=CT161" -v
+
       - name: Upload Bandit Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -317,6 +327,10 @@ jobs:
           set -x
           docker run --rm --env HADOLINT_FORMAT=gnu -i hadolint/hadolint:latest < ${{ env.BASE_DOCKERFILE}} 2>&1 | tee ${{ env.ARTIFACT_DIR }}/CT222_hadolint-results.txt
           output=$(cat ${{ env.ARTIFACT_DIR }}/CT222_hadolint-results.txt | grep hadolint | awk '{print $2}' | sort -u)
+
+
+          curl -k -H "apikey: ${{ secrets.SDLE_API_KEY }}" -F file=@"${{ env.ARTIFACT_DIR }}/CT222_hadolint-results.txt" \
+            "https://sdl-e.app.intel.com/uploader/v1/evidence/uploads/documents/creators/${{ secrets.FACELESS_NAME}}?projectId=${{ secrets.SDLE_PROJECT_ID }}&taskId=CT222" -v
 
           echo "hadolint_output<<EOF" >> $GITHUB_ENV
           echo "$output" >> $GITHUB_ENV
@@ -366,6 +380,13 @@ jobs:
 
           mv $PWD/CT247_trivy-report-imagescan.csv ${{ env.ARTIFACT_DIR }}/CT247_trivy-report-imagescan.csv
           cp ${{ env.ARTIFACT_DIR }}/CT247_trivy-report-imagescan.csv ${{ env.ARTIFACT_DIR }}/CT248_trivy-report-imagescan.csv
+
+          curl -k -H "apikey: ${{ secrets.SDLE_API_KEY }}" -F file=@"${{ env.ARTIFACT_DIR }}/CT247_trivy-report-imagescan.csv" \
+            "https://sdl-e.app.intel.com/uploader/v1/evidence/uploads/documents/creators/${{ secrets.FACELESS_NAME}}?projectId=${{ secrets.SDLE_PROJECT_ID }}&taskId=CT247" -v
+
+          curl -k -H "apikey: ${{ secrets.SDLE_API_KEY }}" -F file=@"${{ env.ARTIFACT_DIR }}/CT248_trivy-report-imagescan.csv" \
+            "https://sdl-e.app.intel.com/uploader/v1/evidence/uploads/documents/creators/${{ secrets.FACELESS_NAME}}?projectId=${{ secrets.SDLE_PROJECT_ID }}&taskId=CT248" -v
+
 
           # Obtain Summary Result
           output_checks=$(docker run --rm ${{ env.DOCKER_PROXY_RUN_ARGS }} \
@@ -426,6 +447,10 @@ jobs:
 
           sh docker-bench-security.sh -c container_runtime -i ${{ env.CIS_CONTAINER}} -l ../${{ env.ARTIFACT_DIR }}/CT249_CIS-results.txt
           cd ..
+
+          curl -k -H "apikey: ${{ secrets.SDLE_API_KEY }}" -F file=@"${{ env.ARTIFACT_DIR }}/CT249_CIS-results.txt" \
+            "https://sdl-e.app.intel.com/uploader/v1/evidence/uploads/documents/creators/${{ secrets.FACELESS_NAME}}?projectId=${{ secrets.SDLE_PROJECT_ID }}&taskId=CT249" -v
+
 
           output_checks=$(cat ${{ env.ARTIFACT_DIR }}/CT249_CIS-results.txt | grep "Checks:" | sed 's/^.*Checks/Checks/')
           output_score=$(cat ${{ env.ARTIFACT_DIR }}/CT249_CIS-results.txt | grep "Score:" | sed 's/^.*Score/Score/')

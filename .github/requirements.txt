@@ -1,8 +1,8 @@
-blinker==1.7.0
+blinker==1.8.1
 cffi==1.16.0
 click==8.1.7
 colorlog==6.8.2
-coverage==7.4.4
+coverage==7.5.0
 cryptography==42.0.5
 flask==3.0.2
 gcovr==7.2
