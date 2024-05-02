@@ -88,9 +88,6 @@ int Neo4jNeoAdd::data_processing(std::string &cypher,
                                  const std::string &blob, int grp_id,
                                  Json::Value &error) {
 
-  // seed random time
-  srand((unsigned)time(NULL));
-
   std::chrono::steady_clock::time_point ops_start, ops_end;
   VCL::RemoteConnection *connection;
   std::vector<unsigned char> enc_img;
