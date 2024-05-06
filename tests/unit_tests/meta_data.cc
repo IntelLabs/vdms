@@ -143,6 +143,28 @@ Json::Value Meta_Data::constuct_video(bool add_operation) {
   return tuple;
 }
 
+Json::Value Meta_Data::constuct_video_by_path(int id, std::string filepath,
+                                              Json::Value operations) {
+
+  Json::Value video;
+  Json::Value add_video;
+  Json::Value tuple;
+  video["properties"]["Name"] = "sample-video";
+  video["properties"]["ID"] = id;
+  video["container"] = "avi";
+  video["codec"] = "xvid";
+  video["from_file_path"] = filepath;
+  video["operations"] = operations;
+  // video["_ref"]=1209;
+  // if( add_operation)
+  // {
+  //     video["operations"]=operations;
+  // }
+  add_video["AddVideo"] = video;
+  tuple.append(add_video);
+  return tuple;
+}
+
 Json::Value Meta_Data::construct_find_image() {
   Json::Value tuple;
 

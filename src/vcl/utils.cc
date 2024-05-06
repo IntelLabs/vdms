@@ -34,9 +34,50 @@
 
 #include "../VDMSConfig.h"
 #include "vcl/Exception.h"
+#include "vcl/Image.h"
 #include "vcl/utils.h"
 
 namespace VCL {
+
+std::string format_to_string(VCL::Format format) {
+  switch (format) {
+  case VCL::Format::NONE_IMAGE:
+    return "";
+  case VCL::Format::JPG:
+    return "jpg";
+  case VCL::Format::PNG:
+    return "png";
+  case VCL::Format::TDB:
+    return "tdb";
+  case VCL::Format::BIN:
+    return "bin";
+  default:
+    throw VCLException(UnsupportedFormat, (int)format + " is not a \
+                valid format");
+  }
+}
+
+VCL::Format read_image_format(void *buffer, long size) {
+  static const unsigned char pngSignature[] = {0x89, 0x50, 0x4E, 0x47,
+                                               0x0D, 0x0A, 0x1A, 0x0A};
+  static const unsigned char jpgSignature[] = {0xFF, 0xD8};
+  if (size < 4) {
+    return VCL::Format::NONE_IMAGE; // The buffer is too small to identify the
+                                    // format.
+  }
+  unsigned char *data = static_cast<unsigned char *>(buffer);
+  // Check for JPEG format.
+  if (std::equal(data, data + 2, jpgSignature)) {
+    return VCL::Format::JPG; // JPEG magic number (SOI marker).
+  }
+  // else if ( (data[0] == 0x89) && (data[1]==0x50 )&& (data[2]==0x4E) && (
+  // data[3] == 0x47 ) && (data[4] == 0x0D) &&  (data[5] == 0x0A) && (data[6] ==
+  // 0x1A )&& (data[7]==0x0A)){
+  else if (std::equal(data, data + 8, pngSignature)) {
+    return VCL::Format::PNG;
+  } else
+    return VCL::Format::NONE_IMAGE;
+}
 
 uint64_t rdrand() {
   static const unsigned retry_limit = 10;

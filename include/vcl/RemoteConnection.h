@@ -52,13 +52,13 @@ public:
   RemoteConnection();
   ~RemoteConnection();
 
-  void Write(const std::string &path, std::vector<unsigned char> data);
-  void Write(const std::string &filename);
+  bool Write(const std::string &path, std::vector<unsigned char> data);
+  bool Write(const std::string &filename);
   std::vector<unsigned char> Read(const std::string &path);
-  void RetrieveFile(const std::string &filename);
+  bool RetrieveFile(const std::string &filename);
   std::vector<std::string> ListFilesInFolder(const std::string &folder_name);
-  void Read_Video(const std::string &path);
-  void Remove_Object(const std::string &path);
+  bool Read_Video(const std::string &path);
+  bool Remove_Object(const std::string &path);
   void start();
   void end();
   bool connected() { return _remote_connected; };
@@ -73,13 +73,15 @@ private:
 
   void ConfigureAws();
   void ShutdownAws();
-  void write_s3(const std::string &path, std::vector<unsigned char> data);
-  void write_s3(const std::string &filename);
+  bool write_s3(const std::string &path, std::vector<unsigned char> data);
+  bool write_s3(const std::string &filename);
   std::vector<unsigned char> read_s3(const std::string &path);
-  void retrieve_file(const std::string &filename);
+  bool retrieve_file(const std::string &filename);
   std::vector<std::string> get_file_list(const std::string &path);
-  void read_s3_video(const std::string &file_path);
-  void remove_s3_object(const std::string &file_path);
+  bool read_s3_video(const std::string &file_path);
+  bool remove_s3_object(const std::string &file_path);
+  void printErrorMessage(const std::string &functionName,
+                         const std::string &errorMessage = "");
   // void LogEntry(std::string functionName);
 };
 } // namespace VCL

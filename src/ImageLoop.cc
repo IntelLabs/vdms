@@ -32,6 +32,8 @@
 #include "ImageLoop.h"
 #include <curl/curl.h>
 
+#include "VDMSConfig.h"
+
 ImageLoop::~ImageLoop() noexcept {
   VCL::Image img(imageMap.begin()->first);
   m_running = false;
@@ -173,8 +175,8 @@ CURL *ImageLoop::get_easy_handle(VCL::Image *img, std::string &readBuffer) {
     auto time_now = std::chrono::system_clock::now();
     std::chrono::duration<double> utc_time = time_now.time_since_epoch();
 
-    VCL::Image::Format img_format = img->get_image_format();
-    std::string format = img->format_to_string(img_format);
+    VCL::Format img_format = img->get_image_format();
+    std::string format = VCL::format_to_string(img_format);
 
     if (format == "" && options.isMember("format")) {
       format = options["format"].toStyledString().data();
@@ -185,8 +187,9 @@ CURL *ImageLoop::get_easy_handle(VCL::Image *img, std::string &readBuffer) {
       format = "jpg";
     }
 
-    std::string filePath =
-        "/tmp/tempfile" + std::to_string(utc_time.count()) + "." + format;
+    std::string filePath = VDMS::VDMSConfig::instance()->get_path_tmp() +
+                           "/tempfile" + std::to_string(utc_time.count()) +
+                           "." + format;
     cv::imwrite(filePath, img->get_cvmat(false, false));
     _tempfiles.push_back(filePath);
 

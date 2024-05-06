@@ -29,6 +29,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
 #include <string>
 #include <unistd.h>
 
@@ -38,12 +39,43 @@
 
 using namespace comm;
 
-ConnServer::ConnServer(int port) : _port(port) {
+ConnServer::ConnServer(int port, const std::string &cert_file = "",
+                       const std::string &key_file = "",
+                       const std::string &ca_file = "")
+    : _port(port), _cert_file(cert_file), _key_file(key_file),
+      _ca_file(ca_file) {
   if (_port > MAX_PORT_NUMBER || _port <= 0) {
     throw ExceptionComm(PortError);
   }
 
   int ret;
+
+  // Setup TLS Context if a cert and key were passed
+  _ssl_ctx = nullptr;
+  if (!_cert_file.empty() && !_key_file.empty()) {
+    const SSL_METHOD *method;
+    method = TLS_server_method();
+    _ssl_ctx = SSL_CTX_new(method);
+    if (!_ssl_ctx) {
+      throw ExceptionComm(SSL_CONTEXT_FAIL);
+    }
+    if (SSL_CTX_use_certificate_file(_ssl_ctx, _cert_file.c_str(),
+                                     SSL_FILETYPE_PEM) <= 0) {
+      throw ExceptionComm(SSL_CERT_FAIL);
+    }
+    if (SSL_CTX_use_PrivateKey_file(_ssl_ctx, _key_file.c_str(),
+                                    SSL_FILETYPE_PEM) <= 0) {
+      throw ExceptionComm(SSL_KEY_FAIL);
+    }
+    if (!_ca_file.empty()) {
+      SSL_CTX_set_verify(
+          _ssl_ctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, nullptr);
+      if (SSL_CTX_load_verify_locations(_ssl_ctx, _ca_file.c_str(), nullptr) !=
+          1) {
+        throw ExceptionComm(SSL_CA_FAIL);
+      }
+    }
+  }
 
   // create TCP/IP socket
   _socket_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -71,13 +103,18 @@ ConnServer::ConnServer(int port) : _port(port) {
     throw ExceptionComm(BindFail);
   }
 
-  // mark socket as pasive
+  // mark socket as passive
   if (::listen(_socket_fd, MAX_CONN_QUEUE) == -1) {
     throw ExceptionComm(ListentFail);
   }
 }
 
-ConnServer::~ConnServer() { ::close(_socket_fd); }
+ConnServer::~ConnServer() {
+  ::close(_socket_fd);
+  if (_ssl_ctx != nullptr) {
+    SSL_CTX_free(_ssl_ctx);
+  }
+}
 
 Connection ConnServer::accept() {
   struct sockaddr_in clnt_addr;
@@ -87,10 +124,26 @@ Connection ConnServer::accept() {
   // Server will stall here until incoming connection
   // unless the socket is marked and nonblocking
   int connfd = ::accept(_socket_fd, (struct sockaddr *)&clnt_addr, &len);
-
   if (connfd < 0) {
     throw ExceptionComm(ConnectionError);
   }
 
-  return Connection(connfd);
+  SSL *ssl = nullptr;
+  if (_ssl_ctx != nullptr) {
+    ssl = SSL_new(_ssl_ctx);
+    if (ssl == nullptr || SSL_up_ref(ssl) == 0) {
+      throw ExceptionComm(SSL_CREATION_FAIL);
+    }
+
+    int ret = SSL_set_fd(ssl, connfd);
+    if (ret != 1) {
+      throw ExceptionComm(SSL_SET_FD_FAIL);
+    };
+
+    ret = SSL_accept(ssl);
+    if (ret != 1)
+      throw ExceptionComm(SSL_ACCEPT_FAIL);
+  }
+
+  return Connection(connfd, ssl);
 }

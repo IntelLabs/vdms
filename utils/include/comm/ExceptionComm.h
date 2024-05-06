@@ -48,6 +48,15 @@ enum ExceptionCommType {
   ConnectionShutDown,
 
   InvalidMessageSize,
+
+  SSL_CREATION_FAIL,
+  SSL_SET_FD_FAIL,
+  SSL_CONTEXT_FAIL,
+  SSL_CERT_FAIL,
+  SSL_KEY_FAIL,
+  SSL_ACCEPT_FAIL,
+  SSL_CA_FAIL,
+
   Undefined = 100, // Any undefined error
 };
 
