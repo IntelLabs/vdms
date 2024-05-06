@@ -1039,7 +1039,11 @@ void delete_by_value(std::list<AutoDeleteNode *> *queue, void *p_delete_node) {
 void cleanup_pmgd_files(std::vector<std::string> *p_cleanup_list) {
   std::vector<std::string>::iterator it = p_cleanup_list->begin();
   while (it != p_cleanup_list->end()) {
-    remove((*it).c_str());
+    std::string filename = (*it).c_str();
+    if (filename.find(VDMSConfig::instance()->get_path_videos()) !=
+        std::string::npos) {
+      remove((*it).c_str());
+    }
     it++;
   }
 }

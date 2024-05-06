@@ -11,7 +11,7 @@
 #include <jsoncpp/json/json.h>
 #include <mutex>
 #include <sstream>
-static std::mutex barrier;
+
 std::mutex mtx;
 using namespace std;
 using namespace std::chrono;
@@ -46,7 +46,6 @@ void VDMS::CSVParserUtil::initCommandsMap() {
               {"RectangleUpdate", RectangleUpdate}};
 }
 string VDMS::CSVParserUtil::function_accessing_columnNames(int i) {
-  std::lock_guard<std::mutex> lock(mtx);
 
   return _columnNames[i];
 }
@@ -146,7 +145,6 @@ VDMS::CSVParserUtil::commandType
 VDMS::CSVParserUtil::get_query_type(const string &str) {
   CSVParserUtil::commandType querytype = commandType::UNKNOWN;
 
-  std::lock_guard<std::mutex> lock(CSVParserUtil::querytype_mutex);
   std::map<std::string, QueryType>::iterator iter;
   iter = commands.find(str);
   if (iter != commands.end()) {
@@ -173,8 +171,6 @@ VDMS::CSVParserUtil::get_query_type(const string &str) {
       querytype = commandType::AddBoundingBox;
       break;
     }
-    //   std::cout << " I executed queryType "<< querytype << std::endl;
-    // return querytype;
   }
 
   return querytype;
@@ -200,9 +196,7 @@ void VDMS::CSVParserUtil::parseProperty(const string &columnNames,
                                         const string &row,
                                         const string &queryType,
                                         Json::Value &aquery) {
-  std::lock_guard<std::mutex> lock(CSVParserUtil::aquery_mutex);
   string propname = columnNames.substr(5, string::npos);
-  // std::cout << "Inside parseProp " << propname <<std::endl;
   CSVParserUtil::DATATYPE dtype = getDataType(row, propname);
   if (dtype == DATATYPE::DATE) {
     Json::Value date;
@@ -224,7 +218,6 @@ void VDMS::CSVParserUtil::parseProperty(const string &columnNames,
 void VDMS::CSVParserUtil::parseConstraints(const string &columnNames,
                                            const string &row, string &queryType,
                                            Json::Value &aquery) {
-  std::lock_guard<std::mutex> lock(CSVParserUtil::cons_mutex);
   vector<string> consvals = spiltrow(row);
   string consname = consvals[0];
   if (consname.substr(0, 5) == "date:") {
@@ -284,7 +277,6 @@ void VDMS::CSVParserUtil::parseOperations(string columnNames, string row,
                                           string queryType,
                                           Json::Value &aquery) {
 
-  std::lock_guard<std::mutex> lock(CSVParserUtil::ops_mutex);
   string type = columnNames.substr(4, string::npos);
   Json::Value opsjson;
   vector<string> opsKeys;
@@ -424,13 +416,6 @@ VDMS::CSVParserUtil::DATATYPE VDMS::CSVParserUtil ::isValidDataType(string data,
                                                                     int type) {
   CSVParserUtil::DATATYPE actualtype = getDataType(data, "");
   return actualtype;
-
-  // if(type==2 && (actualt=3 || acype=tualtype==4))//2 is for num
-  //     return actualtype;
-  // else if(type==1 && (actualtype==1 || actualtype==2))//1 is for bool
-  //     return actualtype;
-  // else
-  //     return -1;
 }
 
 bool VDMS::CSVParserUtil::isValidOpsType(string &type) {
@@ -542,6 +527,5 @@ VDMS::Response
 VDMS::CSVParserUtil::send_to_vdms(const Json::Value &query,
                                   const std::vector<std::string *> blobs) {
   Json::StyledWriter _fastwriter;
-
   return vdms_client->query(_fastwriter.write(query), blobs);
 }

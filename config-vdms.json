@@ -1,5 +1,8 @@
 {
     "port": 55555,
+//    "cert_file": "cert.pem",
+//    "key_file": "key.pem",
+//    "ca_file": "ca.pem",
     "autoreplicate_interval":-1, // it should be > 0
     "unit":"s", 
     "max_simultaneous_clients": 100,

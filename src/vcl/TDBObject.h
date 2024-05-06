@@ -121,6 +121,13 @@ public:
   TDBObject &operator=(const TDBObject &tdb);
 
   /**
+   *  Overloads the "equals to/comparison" operator
+   *
+   *  @param rhs The object located at the right of the operator ==
+   */
+  bool operator==(const TDBObject &rhs);
+
+  /**
    *  TDBObject destructor
    */
   ~TDBObject();

@@ -59,7 +59,7 @@ int AddBlob::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
   VCL::Image img((void *)blob.data(), blob.size(), binary_img_flag);
 
   std::string blob_root = _storage_bin;
-  VCL::Image::Format blob_format = VCL::Image::Format::BIN;
+  VCL::Format blob_format = VCL::Format::BIN;
   std::string file_name = VCL::create_unique(blob_root, format);
   // std::cout << "Blob was added in " <<_storage_bin << "\t"<< file_name <<
   // std::endl;
@@ -171,7 +171,7 @@ Json::Value FindBlob::construct_responses(Json::Value &responses,
         // We will return the image in the format the user
         // request, or on its format in disk, except for the case
         // of .tdb, where we will encode as png.
-        VCL::Image::Format format = VCL::Image::Format::BIN;
+        VCL::Format format = VCL::Format::BIN;
 
         std::vector<unsigned char> blob_buffer;
         blob_buffer = blob_im.get_encoded_image(format);

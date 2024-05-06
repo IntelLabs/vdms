@@ -63,13 +63,17 @@ typedef cv::Rect Rectangle;
 
 class Image {
 public:
-  enum class Format { NONE_IMAGE = 0, JPG = 1, PNG = 2, TDB = 3, BIN = 4 };
-
   // enum class Storage { LOCAL = 0, AWS = 1 };
 
   /*  *********************** */
   /*        CONSTRUCTORS      */
   /*  *********************** */
+
+  /**
+   *  Default constructor, creates an empty Image object.
+   *    Used when reading from the file system
+   */
+  Image();
 
   /**
    *  Creates an Image object from the image id (where the
@@ -80,6 +84,15 @@ public:
    *  storage
    */
   Image(const std::string &image_id, std::string bucket_name = "");
+
+  /**
+   *  Creates an Image object from the image id (where the
+   *    image data can be found in the system).
+   *
+   *  @param image_id  The full path to the image
+   *  @param no_blob If no blob is to be stored
+   */
+  Image(const std::string &image_id, bool no_blob);
 
   /**
    *  Creates an Image object from the OpenCV Mat
@@ -100,6 +113,17 @@ public:
    */
   Image(void *buffer, long size, char raw_binary_file = 0,
         int flags = cv::IMREAD_ANYCOLOR);
+
+  /**
+   *  Creates an Image object from the image id (where the
+   *    image data can be found in the system).
+   *
+   *  @param fullpath  The full path to the image
+   *  @param blob  A buffer that contains the image data
+   *  @param input_forman is the format of the input image
+   */
+  Image(const std::string &fullpath, const std::string &blob,
+        VCL::Format input_format);
 
   /**
    *  Creates a TDB Image object from a buffer of raw pixel data
@@ -163,7 +187,7 @@ public:
    *
    *  @return The Format of the Image object
    */
-  VCL::Image::Format get_image_format() const;
+  VCL::Format get_image_format() const;
 
   /**
    *  Gets the size of the image in pixels (height * width * channels)
@@ -216,12 +240,12 @@ public:
   void get_raw_data(void *buffer, long buffer_size, bool performOp = true);
 
   /**
-   *  Gets encoded image data in a buffer
-   *
-   *  @param format  The Format the Image should be encoded as
-   *  @param params  Optional parameters
-   *  @return  A vector containing the encoded image
-   *  @see OpenCV documentation for imencode for more details
+ *  Gets encoded image data in a buffer
+ *
+ *  @param format  The Format the Image should be encoded as
+ *  @param params  Optional parameters
+ *  @return  A vector containing the encoded image
+ *  @see OpenCV documentation for imencode for more details
 
 /**
 *  Gets encoded image data in a buffer
@@ -232,7 +256,7 @@ public:
 *  @see OpenCV documentation for imencode for more details
 */
   std::vector<unsigned char>
-  get_encoded_image(VCL::Image::Format format,
+  get_encoded_image(VCL::Format format,
                     const std::vector<int> &params = std::vector<int>());
 
   /**
@@ -245,7 +269,7 @@ public:
    *  @see OpenCV documentation for imencode for more details
    */
   std::vector<unsigned char>
-  get_encoded_image_async(VCL::Image::Format format,
+  get_encoded_image_async(VCL::Format format,
                           const std::vector<int> &params = std::vector<int>());
 
   /**
@@ -274,6 +298,13 @@ public:
    *  @return The error message if the query fails. Null if query is a success.
    */
   std::string get_query_error_response();
+
+  /**
+   *  Checks if a blob is stored for the image or not
+   *
+   *  @return True if blob is stored
+   */
+  bool is_blob_not_stored() const;
 
   /*  *********************** */
   /*        SET FUNCTIONS     */
@@ -323,7 +354,15 @@ public:
   /*  *********************** */
   /*    IMAGE INTERACTIONS    */
   /*  *********************** */
+  /**
+   *  Writes the Image to the system at the given location from blob data
+   *
+   *  @param _fullpath  Full path to where the image should be written
+   *  @param blob  buffuer that conatinas the actual image
+   *
+   */
 
+  void save_image(const std::string &_fullpath, const std::string &blob);
   /**
    *  Writes the Image to the system at the given location and in
    *    the given format
@@ -334,7 +373,8 @@ public:
    *    image metadata. Defaults to true (assuming no other metadata
    *    storage)
    */
-  void store(const std::string &image_id, VCL::Image::Format image_format,
+
+  void store(const std::string &image_id, VCL::Format image_format,
              bool store_metadata = true);
 
   /**
@@ -423,7 +463,7 @@ public:
    *  Deletes the Image as well as removes file from system if
    *    it exists
    */
-  void delete_image();
+  bool delete_image();
   /*  *********************** */
   /*      COPY FUNCTIONS      */
   /*  *********************** */
@@ -449,15 +489,7 @@ public:
    */
   template <class T> void copy_to_buffer(T *buffer);
 
-  std::string format_to_string(Image::Format format);
-
 private:
-  /**
-   *  Default constructor, creates an empty Image object.
-   *    Used when reading from the file system
-   */
-  Image();
-
   // Forward declaration of Operation class, to be used of _operations
   // list
   class Operation;
@@ -495,6 +527,10 @@ private:
   // Full path to image
   std::string _image_id;
 
+  // No blob stored. The file path is stored instead
+  // and is accessed locally or over the network.
+  bool _no_blob = false;
+
   // Query Error response
   std::string _query_error_response = "";
 
@@ -512,18 +548,18 @@ private:
    *  Performs the set of operations that have been requested
    *    on the Image
    */
+
   void perform_operations();
 
   /**
    *  Creates full path to Image with appropriate extension based
-   *    on the Image::Format
+   *    on the VCL::Format
    *
    *  @param filename The path to the Image object
-   *  @param format  The Image::Format of the Image object
+   *  @param format  The VCL::Format of the Image object
    *  @return Full path to the object including extension
    */
-  std::string create_fullpath(const std::string &filename,
-                              Image::Format format);
+  std::string create_fullpath(const std::string &filename, VCL::Format format);
 
   /*  *********************** */
   /*        OPERATION         */
@@ -562,7 +598,7 @@ private:
      *  @param format  The format for the operation
      *  @see Image.h for more details on Format
      */
-    Operation(Format format) : _format(format){};
+    Operation(VCL::Format format) : _format(format){};
 
   public:
     /**
@@ -595,7 +631,7 @@ private:
      *  @param format  The format to read the image from
      *  @see Image.h for more details on ::Format
      */
-    Read(const std::string &filename, Format format);
+    Read(const std::string &filename, VCL::Format format);
 
     /**
      *  Reads an image from the file system (based on the format
@@ -665,7 +701,7 @@ private:
      *  @param format  The current format of the image data
      *  @see Image.h for more details on ::Format and Rectangle
      */
-    Resize(const Rectangle &rect, Format format)
+    Resize(const Rectangle &rect, VCL::Format format)
         : Operation(format), _rect(rect){};
 
     /**
@@ -698,7 +734,7 @@ private:
      *  @param format  The current format of the image data
      *  @see Image.h for more details on ::Format and Rectangle
      */
-    Crop(const Rectangle &rect, Format format)
+    Crop(const Rectangle &rect, VCL::Format format)
         : Operation(format), _rect(rect){};
 
     /**
@@ -731,7 +767,7 @@ private:
      *  @param format  The current format of the image data
      *  @see Image.h for more details on ::Format
      */
-    Threshold(const int value, Format format)
+    Threshold(const int value, VCL::Format format)
         : Operation(format), _threshold(value){};
 
     /**
@@ -762,7 +798,7 @@ private:
      *  @param format  The current format of the image data
      *  @see Image.h for more details on ::Format
      */
-    Flip(const int code, Format format) : Operation(format), _code(code){};
+    Flip(const int code, VCL::Format format) : Operation(format), _code(code){};
 
     /**
      *  Performs the flip operation
@@ -792,7 +828,7 @@ private:
      *  @param format  The current format of the image data
      *  @see Image.h for more details on Format
      */
-    Rotate(float angle, bool keep_size, Format format)
+    Rotate(float angle, bool keep_size, VCL::Format format)
         : Operation(format), _angle(angle), _keep_size(keep_size){};
 
     /**
@@ -824,7 +860,8 @@ private:
      *  @param options
      *  @see Image.h for more details on Format
      */
-    SyncRemoteOperation(std::string url, Json::Value options, Format format)
+    SyncRemoteOperation(std::string url, Json::Value options,
+                        VCL::Format format)
         : Operation(format), _url(url), _options(options){};
 
     /**
@@ -858,7 +895,7 @@ private:
      *  @param options
      *  @see Image.h for more details on Format
      */
-    RemoteOperation(std::string url, Json::Value options, Format format)
+    RemoteOperation(std::string url, Json::Value options, VCL::Format format)
         : Operation(format), _url(url), _options(options){};
 
     /**
@@ -888,7 +925,7 @@ private:
      *  @param options
      *  @see Image.h for more details on Format
      */
-    UserOperation(Json::Value options, Format format)
+    UserOperation(Json::Value options, VCL::Format format)
         : Operation(format), _options(options){};
 
     /**
@@ -939,8 +976,8 @@ private:
    *  Sets the format of the Image object
    *
    *  @param extension  A string containing the file system
-   *    extension corresponding to the desired Image::Format
-   *  @see Image.h for more details on Image::Format
+   *    extension corresponding to the desired VCL::Format
+   *  @see Image.h for more details on VCL::Format
    */
   void set_format(const std::string &extension);
 };

@@ -242,6 +242,13 @@ public:
    */
   void delete_image();
 
+  /**
+   *  Overloads the "equals to/comparison" operator
+   *
+   *  @param rhs The object located at the right of the operator ==
+   */
+  bool operator==(const TDBImage &rhs);
+
 private:
   /*  *********************** */
   /*        GET FUNCTIONS     */

@@ -42,6 +42,7 @@ ConnClient::ConnClient() {
   _server.port = 0;
   // create TCP/IP socket
   _socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+  _ssl = nullptr;
 
   if (_socket_fd < 0) {
     throw ExceptionComm(SocketFail);
@@ -57,6 +58,8 @@ ConnClient::ConnClient() {
 ConnClient::ConnClient(ServerAddress srv) : ConnClient(srv.addr, srv.port) {}
 
 ConnClient::ConnClient(std::string addr, int port) : ConnClient() {
+  _ssl = nullptr;
+
   if (port > MAX_PORT_NUMBER || port <= 0) {
     throw ExceptionComm(PortError);
   }
