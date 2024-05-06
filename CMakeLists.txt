@@ -56,12 +56,12 @@ else()
   add_subdirectory(tests)
   add_subdirectory(src/vcl)
   add_subdirectory(client/cpp)
-  add_subdirectory(ext/custom_vcl)
   add_subdirectory(distributed)
 
   link_directories(/usr/local/lib /usr/lib/x86_64-linux-gnu/)
   include_directories(/usr/include/jsoncpp utils/include/ src/pmgd/include src/pmgd/util include/ src/vcl /usr/include ${CMAKE_CURRENT_BINARY_DIR}/utils/src/protobuf)
   add_library(dms SHARED
+    src/BackendNeo4j.cc
     src/BoundingBoxCommand.cc
     src/BlobCommand.cc
     src/CommunicationManager.cc
@@ -69,11 +69,15 @@ else()
     src/DescriptorsManager.cc
     src/ExceptionsCommand.cc
     src/ImageCommand.cc
+    src/Neo4jBaseCommands.cc
+    src/Neo4JHandlerCommands.cc
+    src/OpsIOCoordinator.cc
     src/PMGDIterators.cc
     src/PMGDQuery.cc
     src/PMGDQueryHandler.cc
     src/QueryHandlerExample.cc
     src/QueryHandlerBase.cc
+    src/QueryHandlerNeo4j.cc
     src/QueryHandlerPMGD.cc
     src/QueryMessage.cc
     src/RSCommand.cc
@@ -85,7 +89,7 @@ else()
     src/ImageLoop.cc
     src/VideoLoop.cc
   )
-  target_link_libraries(dms vcl pmgd pmgd-util protobuf tbb tiledb vdms-utils pthread -lcurl -lzmq ${AWSSDK_LINK_LIBRARIES})
+  target_link_libraries(dms vcl pmgd pmgd-util protobuf tbb tiledb vdms-utils pthread -lcurl -lzmq ${AWSSDK_LINK_LIBRARIES} neo4j-client)
   add_executable(vdms src/vdms.cc)
   target_link_libraries(vdms dms vdms_protobuf vcl tiledb faiss flinng jsoncpp ${OpenCV_LIBS} ${AWSSDK_LINK_LIBRARIES})
 endif ()

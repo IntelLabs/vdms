@@ -63,6 +63,17 @@ std::string singleAddImage(" \
             } \
         } \
     ");
+std::string singleAddImage_SameFormat(" \
+        { \
+            \"AddImage\": { \
+               \"properties\": { \
+                    \"name\": \"brain_0\", \
+                    \"doctor\": \"Dr. Strange Love\" \
+                }, \
+                \"format\": \"png\" \
+            } \
+        } \
+    ");
 
 TEST(AutoReplicate, default_replicate) {
 
@@ -93,7 +104,7 @@ TEST(ExampleHandler, simplePing) {
   std::string addImg;
   addImg += "[" + singleAddImage + "]";
 
-  VDMSConfig::init("server/example_handler_test.json");
+  VDMSConfig::init("server/config-tests.json");
   PMGDQueryHandler::init();
   QueryHandlerExample::init();
 
@@ -255,6 +266,58 @@ TEST(AddImage, simpleAddx10) {
   Json::Value json_response;
 
   // std::cout << response.json() << std::endl;
+  json_reader.parse(response.json(), json_response);
+
+  for (int i = 0; i < total_images; ++i) {
+    EXPECT_EQ(json_response[i]["AddImage"]["status"].asString(), "0");
+  }
+  VDMSConfig::destroy();
+  PMGDQueryHandler::destroy();
+}
+
+TEST(AddImage, simpleAddSameFormat) {
+  int total_images = 2;
+  std::string string_query("[");
+
+  for (int i = 0; i < total_images; ++i) {
+    string_query += singleAddImage_SameFormat;
+    if (i != total_images - 1)
+      string_query += ",";
+  }
+  string_query += "]";
+
+  VDMSConfig::init("server/config-add10-tests.json");
+  PMGDQueryHandler::init();
+  QueryHandlerPMGD::init();
+
+  QueryHandlerPMGD qh_base;
+  qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has
+                                        // been initialized
+  QueryHandlerPMGDTester query_handler(qh_base);
+
+  VDMS::protobufs::queryMessage proto_query;
+  proto_query.set_json(string_query);
+
+  std::string image;
+  std::ifstream file("test_images/brain.png",
+                     std::ios::in | std::ios::binary | std::ios::ate);
+
+  image.resize(file.tellg());
+
+  file.seekg(0, std::ios::beg);
+  if (!file.read(&image[0], image.size()))
+    std::cout << "error" << std::endl;
+
+  for (int i = 0; i < total_images; ++i) {
+    proto_query.add_blobs(image);
+  }
+
+  VDMS::protobufs::queryMessage response;
+  query_handler.pq(proto_query, response);
+
+  Json::Reader json_reader;
+  Json::Value json_response;
+
   json_reader.parse(response.json(), json_response);
 
   for (int i = 0; i < total_images; ++i) {
@@ -615,9 +678,8 @@ TEST(QueryHandler, AutoDeleteNode) {
   const Json::Value &query_3 = parsed[2];
   EXPECT_EQ(query_3["FindVideo"]["returned"], 1);
   EXPECT_EQ(query_3["FindVideo"]["status"], 0);
-
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  VDMSConfig::destroy();
 }
 
 TEST(QueryHandler, CustomFunctionNoProcess) {

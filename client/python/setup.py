@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="vdms",
-    version="0.0.20",
+    version="0.0.21",
     author="Chaunté W. Lacewell",
     author_email="chaunte.w.lacewell@intel.com",
     description="VDMS Client Module",

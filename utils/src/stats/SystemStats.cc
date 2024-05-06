@@ -3,7 +3,7 @@
  *
  * The MIT License
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2024 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"),
@@ -27,59 +27,43 @@
  *
  */
 
-#include "sys/sysinfo.h"
-#include "sys/times.h"
-#include "sys/types.h"
-
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-
 #include <chrono>
 #include <ctime>
 #include <fstream>
+
+#include "sys/times.h"
+#include "sys/types.h"
 
 #include "SystemStats.h"
 
 using namespace std;
 
-static unsigned long long lastTotalUser, lastTotalUserLow, lastTotalSys,
-    lastTotalIdle;
-static clock_t lastCPU, lastSysCPU, lastUserCPU;
-static int numProcessors;
+const std::string LOG_FILENAME_PREFIX = "vdms_system_stats_";
 
 // *****************************************************************************
 // Public methods definitions
 // *****************************************************************************
 
 SystemStats::SystemStats() {
-  memoryStats = {
-      0, 0, 0, 0, 0, 0,
-  };
-
-  cpuStats = {
-      0.0,
-      0.0,
-  };
-
-  auto time_now = std::chrono::system_clock::now();
-  std::chrono::duration<double> utc_time = time_now.time_since_epoch();
-
-  logFileName = "/tmp/vdms_system_stats_" + std::to_string(utc_time.count());
-
+  m_numProcessors = 0;
+  std::string tmp_dir = "/tmp/"; // Could VDMS config file be called from utils?
+  std::string filename =
+      tmp_dir + get_filename_prefix() + std::to_string(get_epoch());
+  set_log_filename(filename);
   process_cpu_utilization_init();
   cpu_utilization_init();
 }
 
-SystemStats::~SystemStats(void) {}
+SystemStats::~SystemStats() {}
 
 // *****************************************************************************
 // Memory Statistics
 // *****************************************************************************
-
 void SystemStats::get_system_virtual_memory() {
-  struct sysinfo memoryInfo;
-  sysinfo(&memoryInfo);
+  struct sysinfo memoryInfo = get_sys_info();
 
   long long totalVirtualMemory = memoryInfo.totalram;
 
@@ -91,41 +75,40 @@ void SystemStats::get_system_virtual_memory() {
   virtualMemoryUsed += memoryInfo.totalswap - memoryInfo.freeswap;
   virtualMemoryUsed *= memoryInfo.mem_unit;
 
-  memoryStats.total_virtual_memory = totalVirtualMemory;
-  memoryStats.virtual_memory_used = virtualMemoryUsed;
-}
-
-int parseLine(char *line) {
-  int i = strlen(line);
-  const char *p = line;
-  while (*p < '0' || *p > '9')
-    p++;
-  line[i - 3] = '\0';
-  i = atoi(p);
-  return i;
+  m_memoryStats.total_virtual_memory = totalVirtualMemory;
+  m_memoryStats.virtual_memory_used = virtualMemoryUsed;
 }
 
 void SystemStats::get_process_virtual_memory() {
-  FILE *file = fopen("/proc/self/status", "r");
+  FILE *file = get_proc_status();
   int virtualMemoryProcess = -1;
   char line[128];
 
   if (file != NULL) {
     while (fgets(line, 128, file) != NULL) {
       if (strncmp(line, "VmSize:", 7) == 0) {
-        virtualMemoryProcess = parseLine(line);
+        virtualMemoryProcess = parse_line(line);
+        if (-1 == virtualMemoryProcess) {
+          if (file) {
+            fclose(file);
+          }
+          throw std::runtime_error("Error: parse_line() failed");
+        }
         break;
       }
     }
-    fclose(file);
+    if (file) {
+      fclose(file);
+    }
+  } else {
+    throw std::runtime_error("Error: get_proc_status() failed");
   }
 
-  memoryStats.virtual_memory_process = virtualMemoryProcess;
+  m_memoryStats.virtual_memory_process = virtualMemoryProcess;
 }
 
 void SystemStats::get_system_physical_memory() {
-  struct sysinfo memoryInfo;
-  sysinfo(&memoryInfo);
+  struct sysinfo memoryInfo = get_sys_info();
 
   long long totalPhysicalMemory = memoryInfo.totalram;
   totalPhysicalMemory *= memoryInfo.mem_unit;
@@ -133,86 +116,87 @@ void SystemStats::get_system_physical_memory() {
   long long physicalMemoryUsed = memoryInfo.totalram - memoryInfo.freeram;
   physicalMemoryUsed *= memoryInfo.mem_unit;
 
-  memoryStats.total_physical_memory = totalPhysicalMemory;
-  memoryStats.physical_memory_used = physicalMemoryUsed;
+  m_memoryStats.total_physical_memory = totalPhysicalMemory;
+  m_memoryStats.physical_memory_used = physicalMemoryUsed;
 }
 
 void SystemStats::get_process_physical_memory() {
-  FILE *file = fopen("/proc/self/status", "r");
+  FILE *file = get_proc_status();
+
   int physicalMemoryProcess = -1;
   char line[128];
 
   if (file != NULL) {
     while (fgets(line, 128, file) != NULL) {
       if (strncmp(line, "VmRSS:", 6) == 0) {
-        physicalMemoryProcess = parseLine(line);
+        physicalMemoryProcess = parse_line(line);
+        if (-1 == physicalMemoryProcess) {
+          if (file) {
+            fclose(file);
+          }
+          throw std::runtime_error("Error: parse_line() failed");
+        }
         break;
       }
     }
-    fclose(file);
+
+    if (file) {
+      fclose(file);
+    }
+  } else {
+    throw std::runtime_error(
+        "Error: get_proc_status() failed in get_process_physical_memory()");
   }
 
-  memoryStats.physical_memory_process = physicalMemoryProcess;
+  m_memoryStats.physical_memory_process = physicalMemoryProcess;
 }
 
 // *****************************************************************************
 // CPU Statistics
 // *****************************************************************************
+TotalsInfo SystemStats::cpu_utilization_init() {
+  std::pair<TotalsInfo, bool> info = get_totals_info();
 
-void SystemStats::cpu_utilization_init() {
-  FILE *file = fopen("/proc/stat", "r");
-  if (file != NULL) {
-    if (fscanf(file, "cpu %llu %llu %llu %llu", &lastTotalUser,
-               &lastTotalUserLow, &lastTotalSys, &lastTotalIdle) != 4) {
-      printf("Error reading /proc/stats\n");
-    }
-    fclose(file);
+  // If there was an error when calling to get_totals_info()
+  if (!info.second) {
+    throw std::runtime_error("Error calling to get_totals_info()");
   }
+  m_last_totals_info = info.first;
+  return m_last_totals_info;
 }
 
-void SystemStats::process_cpu_utilization_init() {
-  FILE *file;
-  struct tms timeSample;
-  char line[128];
+ClocksInfo SystemStats::process_cpu_utilization_init() {
 
-  lastCPU = times(&timeSample);
-  lastSysCPU = timeSample.tms_stime;
-  lastUserCPU = timeSample.tms_utime;
+  std::pair<struct tms, clock_t> time_info = get_time_info();
+  m_last_clocks_info.cpu = time_info.second;
+  m_last_clocks_info.sysCPU = time_info.first.tms_stime;
+  m_last_clocks_info.userCPU = time_info.first.tms_utime;
 
-  file = fopen("/proc/cpuinfo", "r");
-  numProcessors = 0;
-  if (file != NULL) {
-    while (fgets(line, 128, file) != NULL) {
-      if (strncmp(line, "processor", 9) == 0)
-        numProcessors++;
-    }
-    fclose(file);
-  }
+  int num = read_num_processors();
+  set_num_processors(num);
+
+  return m_last_clocks_info;
 }
 
 void SystemStats::get_system_cpu_utilization() {
-  double cpuUtilization;
-  FILE *file;
-  unsigned long long totalUser, totalUserLow, totalSys, totalIdle, total;
+  double cpuUtilization = -1.0;
 
-  file = fopen("/proc/stat", "r");
-
-  if (file != NULL) {
-    if (fscanf(file, "cpu %llu %llu %llu %llu", &totalUser, &totalUserLow,
-               &totalSys, &totalIdle) != 4) {
-      printf("Error reading /proc/stats\n");
-    }
-    fclose(file);
-
-    if (totalUser < lastTotalUser || totalUserLow < lastTotalUserLow ||
-        totalSys < lastTotalSys || totalIdle < lastTotalIdle) {
+  std::pair<TotalsInfo, bool> info = get_totals_info();
+  // If the TotalsInfo value returned by get_totals_info() is valid
+  if (info.second) {
+    TotalsInfo current_total_info = info.first;
+    if (is_overflow_in_totals_detected(current_total_info,
+                                       m_last_totals_info)) {
       // Overflow detection. Just skip this value.
       cpuUtilization = -1.0;
     } else {
-      total = (totalUser - lastTotalUser) + (totalUserLow - lastTotalUserLow) +
-              (totalSys - lastTotalSys);
+      unsigned long long total =
+          (current_total_info.totalUser - m_last_totals_info.totalUser) +
+          (current_total_info.totalUserLow - m_last_totals_info.totalUserLow) +
+          (current_total_info.totalSys - m_last_totals_info.totalSys);
       cpuUtilization = total;
-      total += (totalIdle - lastTotalIdle);
+      total += (current_total_info.totalIdle - m_last_totals_info.totalIdle);
+
       if (total != 0) {
         cpuUtilization /= total;
         cpuUtilization *= 100;
@@ -221,48 +205,50 @@ void SystemStats::get_system_cpu_utilization() {
       }
     }
 
-    lastTotalUser = totalUser;
-    lastTotalUserLow = totalUserLow;
-    lastTotalSys = totalSys;
-    lastTotalIdle = totalIdle;
+    m_last_totals_info.totalUser = current_total_info.totalUser;
+    m_last_totals_info.totalUserLow = current_total_info.totalUserLow;
+    m_last_totals_info.totalSys = current_total_info.totalSys;
+    m_last_totals_info.totalIdle = current_total_info.totalIdle;
   } else {
     cpuUtilization = -1.0;
   }
 
-  cpuStats.cpu_utilized = cpuUtilization;
+  m_cpuStats.cpu_utilized = cpuUtilization;
 }
 
 void SystemStats::get_process_cpu_utilization() {
-  struct tms timeSample;
-  clock_t now;
-  double cpuUtilization;
 
-  now = times(&timeSample);
-  if (now <= lastCPU || timeSample.tms_stime < lastSysCPU ||
-      timeSample.tms_utime < lastUserCPU) {
+  std::pair<struct tms, clock_t> time_info = get_time_info();
+  struct tms timeSample = time_info.first;
+  clock_t now = time_info.second;
+
+  double cpuUtilization = -1.0;
+
+  if (is_overflow_in_time_detected(now, timeSample)) {
     // Overflow detection. Just skip this value.
     cpuUtilization = -1.0;
   } else {
-    cpuUtilization = (timeSample.tms_stime - lastSysCPU) +
-                     (timeSample.tms_utime - lastUserCPU);
+    cpuUtilization = (timeSample.tms_stime - m_last_clocks_info.sysCPU) +
+                     (timeSample.tms_utime - m_last_clocks_info.userCPU);
     // std::cout<< "Utilization Debug: " << cpuUtilization << " " <<
-    // timeSample.tms_stime << " " << lastSysCPU << " " << timeSample.tms_utime
-    // << " " << lastUserCPU << " " << now << " " << lastCPU << std::endl;
-    cpuUtilization /= (now - lastCPU);
-    cpuUtilization /= numProcessors;
+    // timeSample.tms_stime << " " << m_last_clocks_info.sysCPU << " " <<
+    // timeSample.tms_utime
+    // << " " << m_last_clocks_info.userCPU << " " << now << " " <<
+    // m_last_clocks_info.cpu << std::endl;
+    cpuUtilization /= (now - m_last_clocks_info.cpu);
+    cpuUtilization /= m_numProcessors;
     cpuUtilization *= 100;
   }
-  lastCPU = now;
-  lastSysCPU = timeSample.tms_stime;
-  lastUserCPU = timeSample.tms_utime;
+  m_last_clocks_info.cpu = now;
+  m_last_clocks_info.sysCPU = timeSample.tms_stime;
+  m_last_clocks_info.userCPU = timeSample.tms_utime;
 
-  cpuStats.cpu_utilized_process = cpuUtilization;
+  m_cpuStats.cpu_utilized_process = cpuUtilization;
 }
 
 // *****************************************************************************
 // Logging Functions
 // *****************************************************************************
-
 void SystemStats::log_stats(std::string pname) {
   get_system_virtual_memory();
   get_process_virtual_memory();
@@ -272,33 +258,31 @@ void SystemStats::log_stats(std::string pname) {
   get_process_cpu_utilization();
 
   std::ofstream statsFile;
+  std::string filename = get_log_filename();
+  statsFile.open(filename.data(), std::ios_base::app);
 
-  statsFile.open(logFileName.data(), std::ios_base::app);
-
-  auto time_now = std::chrono::system_clock::now();
-  std::chrono::duration<double> utc_time = time_now.time_since_epoch();
-  std::string currentTime = std::to_string(utc_time.count());
+  std::string currentTime = std::to_string(get_epoch());
 
   statsFile << "Systems Statistics at " + currentTime + " for module " + pname +
                    "\n";
   statsFile << "Memory Statistics: \n";
   statsFile << "Total Virtual Memory: " +
-                   std::to_string(memoryStats.total_virtual_memory) + "\n";
+                   std::to_string(m_memoryStats.total_virtual_memory) + "\n";
   statsFile << "Virtual Memory Used: " +
-                   std::to_string(memoryStats.virtual_memory_used) + "\n";
+                   std::to_string(m_memoryStats.virtual_memory_used) + "\n";
   statsFile << "Virtual Memory Process: " +
-                   std::to_string(memoryStats.virtual_memory_process) + "\n";
+                   std::to_string(m_memoryStats.virtual_memory_process) + "\n";
   statsFile << "Total Physical Memory: " +
-                   std::to_string(memoryStats.total_physical_memory) + "\n";
+                   std::to_string(m_memoryStats.total_physical_memory) + "\n";
   statsFile << "Physical Memory Used: " +
-                   std::to_string(memoryStats.physical_memory_used) + "\n";
+                   std::to_string(m_memoryStats.physical_memory_used) + "\n";
   statsFile << "Physical Memory Process: " +
-                   std::to_string(memoryStats.physical_memory_process) + "\n";
+                   std::to_string(m_memoryStats.physical_memory_process) + "\n";
   statsFile << "CPU Statistics: \n";
   statsFile << "Total CPU Utilization: " +
-                   std::to_string(cpuStats.cpu_utilized) + "\n";
+                   std::to_string(m_cpuStats.cpu_utilized) + "\n";
   statsFile << "Process CPU Utilization: " +
-                   std::to_string(cpuStats.cpu_utilized_process) + "\n";
+                   std::to_string(m_cpuStats.cpu_utilized_process) + "\n";
   statsFile << "\n";
 
   statsFile.close();
@@ -308,9 +292,13 @@ bool SystemStats::query_sufficient_memory(int size_requested) {
   get_system_virtual_memory();
 
   long conversion_B_MB = 1024 * 1024;
-  long ttlVirtMemMB = memoryStats.total_virtual_memory / conversion_B_MB;
-  long usedVirtMemMB = memoryStats.virtual_memory_used / conversion_B_MB;
+  long ttlVirtMemMB = m_memoryStats.total_virtual_memory / conversion_B_MB;
+  long usedVirtMemMB = m_memoryStats.virtual_memory_used / conversion_B_MB;
   long availVirtMemMB = ttlVirtMemMB - usedVirtMemMB;
+
+  if (0 == ttlVirtMemMB) {
+    throw std::runtime_error("Error: ttlVirtMemMB value is zero");
+  }
 
   float memPercent =
       (static_cast<float>(usedVirtMemMB) / static_cast<float>(ttlVirtMemMB)) *
@@ -328,4 +316,148 @@ bool SystemStats::query_sufficient_memory(int size_requested) {
   }
 
   return false;
+}
+
+// *****************************************************************************
+// Protected methods definitions
+// *****************************************************************************
+std::string SystemStats::get_filename_prefix() { return LOG_FILENAME_PREFIX; }
+
+double SystemStats::get_epoch() {
+  auto time_now = std::chrono::system_clock::now();
+  std::chrono::duration<double> utc_time = time_now.time_since_epoch();
+  return utc_time.count();
+}
+
+struct sysinfo SystemStats::get_sys_info() {
+  struct sysinfo memoryInfo;
+  sysinfo(&memoryInfo);
+  return memoryInfo;
+}
+
+FILE *SystemStats::get_proc_status() {
+  FILE *file = fopen("/proc/self/status", "r");
+  return file;
+}
+
+FILE *SystemStats::get_stats_fd() { return fopen("/proc/stat", "r"); }
+
+FILE *SystemStats::get_cpu_info_fd() { return fopen("/proc/cpuinfo", "r"); }
+
+void SystemStats::set_cpu_stats(const CPUStats &cpuStats) {
+  m_cpuStats = cpuStats;
+}
+
+CPUStats SystemStats::get_cpu_stats() { return m_cpuStats; }
+
+MemoryStats SystemStats::get_memory_stats() { return m_memoryStats; }
+
+void SystemStats::set_memory_stats(const MemoryStats &memoryStats) {
+  m_memoryStats = memoryStats;
+}
+
+ClocksInfo SystemStats::get_last_clocks_info() { return m_last_clocks_info; }
+
+void SystemStats::set_last_clocks_info(const ClocksInfo &last_clocks_info) {
+  m_last_clocks_info = last_clocks_info;
+}
+
+TotalsInfo SystemStats::get_last_totals_info() { return m_last_totals_info; }
+
+void SystemStats::set_last_totals_info(const TotalsInfo &last_totals_info) {
+  m_last_totals_info = last_totals_info;
+}
+
+void SystemStats::set_log_filename(const std::string &filename) {
+  m_logFileName = filename;
+}
+
+std::string SystemStats::get_log_filename() { return m_logFileName; }
+
+// Return a tuple where the boolean is true if the TotalsInfo value is valid
+std::pair<TotalsInfo, bool> SystemStats::get_totals_info() {
+  TotalsInfo info;
+  FILE *file = get_stats_fd();
+  if (file != NULL) {
+    if (fscanf(file, "cpu %llu %llu %llu %llu", &info.totalUser,
+               &info.totalUserLow, &info.totalSys, &info.totalIdle) != 4) {
+      printf("Error reading /proc/stats\n");
+      if (file) {
+        fclose(file);
+      }
+      return std::make_pair(info, false);
+    }
+
+    if (file) {
+      fclose(file);
+    }
+  } else {
+    return std::make_pair(info, false);
+  }
+
+  return std::make_pair(info, true);
+}
+
+std::pair<struct tms, clock_t> SystemStats::get_time_info() {
+  struct tms time_sample;
+  clock_t cpu_time = times(&time_sample);
+
+  return std::make_pair(time_sample, cpu_time);
+}
+
+int SystemStats::read_num_processors() {
+  int num = 0;
+  FILE *file = get_cpu_info_fd();
+
+  char line[128];
+  if (file != NULL) {
+    while (fgets(line, 128, file) != NULL) {
+      if (strncmp(line, "processor", 9) == 0)
+        num++;
+    }
+
+    if (file) {
+      fclose(file);
+    }
+  } else {
+    throw std::runtime_error("Error: get_cpu_info_fd() failed");
+  }
+
+  return num;
+}
+
+void SystemStats::set_num_processors(int num) { m_numProcessors = num; }
+
+int SystemStats::get_num_processors() { return m_numProcessors; }
+
+bool SystemStats::is_overflow_in_time_detected(clock_t now,
+                                               struct tms time_sample) {
+  return (now <= m_last_clocks_info.cpu ||
+          time_sample.tms_stime < m_last_clocks_info.sysCPU ||
+          time_sample.tms_utime < m_last_clocks_info.userCPU);
+}
+
+bool SystemStats::is_overflow_in_totals_detected(
+    const TotalsInfo &current_total_info, const TotalsInfo &last_totals_info) {
+  return (current_total_info.totalUser < last_totals_info.totalUser ||
+          current_total_info.totalUserLow < last_totals_info.totalUserLow ||
+          current_total_info.totalSys < last_totals_info.totalSys ||
+          current_total_info.totalIdle < last_totals_info.totalIdle);
+}
+
+// *****************************************************************************
+// Private methods definitions
+// *****************************************************************************
+int SystemStats::parse_line(char *line) {
+  if (!line) {
+    return -1;
+  }
+
+  int i = strlen(line);
+  const char *p = line;
+  while (*p < '0' || *p > '9')
+    p++;
+  line[i - 3] = '\0';
+  i = atoi(p);
+  return i;
 }

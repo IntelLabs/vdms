@@ -1,0 +1,14 @@
+// VDMS Config File
+// This is the run-time config file
+// Sets database paths and other parameters
+{
+    // Network
+    "port": 55566,
+    "cert_file": "/tmp/trusted_server_cert.pem",
+    "key_file": "/tmp/trusted_server_key.pem",
+    "ca_file": "/tmp/trusted_ca_cert.pem",
+    "db_root_path": "test_db_tls",
+    "storage_type": "local", //local, aws, etc
+    "bucket_name": "minio-bucket",
+    "more-info": "github.com/IntelLabs/vdms"
+}

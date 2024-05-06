@@ -195,7 +195,6 @@ class TestEntities(TestCommand.TestCommand):
 
         results[thID] = 0
 
-    @unittest.skip("Skipping class until fixed")
     def test_concurrent(self):
         self.build_store()
         self.add_descriptor_set(name, dim)

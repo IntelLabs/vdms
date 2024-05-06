@@ -27,6 +27,7 @@
 import time
 import unittest
 import vdms
+import os
 
 
 class TestCommand(unittest.TestCase):
@@ -62,12 +63,18 @@ class TestCommand(unittest.TestCase):
                         self.port = aws_port
                     except Exception as e:
                         print(
-                            "Attempt", attempts, "to connect to VDMS failed, retying..."
+                            "Attempt number",
+                            attempts,
+                            "to connect to VDMS failed, retrying...",
                         )
                         attempts += 1
                         time.sleep(1)  # sleeps 1 second
                 else:
-                    print("Attempt", attempts, "to connect to VDMS failed, retying...")
+                    print(
+                        "Attempt number",
+                        attempts,
+                        "to connect to VDMS failed, retrying...",
+                    )
                     attempts += 1
                     time.sleep(1)  # sleeps 1 second
 
@@ -156,3 +163,10 @@ class TestCommand(unittest.TestCase):
             self.assertEqual(response[0]["AddEntity"]["status"], 0)
 
         return response, res_arr
+
+    def shouldSkipRemotePythonTest():
+        return unittest.skipIf(
+            os.environ.get("VDMS_SKIP_REMOTE_PYTHON_TESTS") is not None
+            and os.environ.get("VDMS_SKIP_REMOTE_PYTHON_TESTS").upper() == "TRUE",
+            "VDMS_SKIP_REMOTE_PYTHON_TESTS env var is set to True",
+        )

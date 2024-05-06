@@ -39,25 +39,34 @@
 using namespace comm;
 
 Connection::Connection()
-    : _socket_fd(-1), _buffer_size_limit(DEFAULT_BUFFER_SIZE) {}
+    : _socket_fd(-1), _buffer_size_limit(DEFAULT_BUFFER_SIZE), _ssl(nullptr) {}
 
-Connection::Connection(int socket_fd)
-    : _socket_fd(socket_fd), _buffer_size_limit(DEFAULT_BUFFER_SIZE) {}
+Connection::Connection(int socket_fd, SSL *ssl)
+    : _socket_fd(socket_fd), _ssl(ssl),
+      _buffer_size_limit(DEFAULT_BUFFER_SIZE) {}
 
 Connection::Connection(Connection &&c)
     : _buffer_size_limit(DEFAULT_BUFFER_SIZE) {
   _socket_fd = c._socket_fd;
   c._socket_fd = -1;
+  _ssl = c._ssl;
+  c._ssl = nullptr;
 }
 
 Connection &Connection::operator=(Connection &&c) {
   _socket_fd = c._socket_fd;
   c._socket_fd = -1;
+  _ssl = c._ssl;
+  c._ssl = nullptr;
   return *this;
 }
 
 Connection::~Connection() {
   if (_socket_fd != -1) {
+    if (_ssl != nullptr) {
+      SSL_shutdown(_ssl);
+      SSL_free(_ssl);
+    }
     ::close(_socket_fd);
     _socket_fd = -1;
   }
@@ -77,18 +86,27 @@ void Connection::send_message(const uint8_t *data, uint32_t size) {
     set_buffer_size_limit(size);
   }
 
-  // We need MSG_NOSIGNAL so we don't get SIGPIPE, and we can throw.
-  int ret = ::send(_socket_fd, (const char *)&size, sizeof(size), MSG_NOSIGNAL);
-
+  int ret = 0;
+  if (_ssl != nullptr) {
+    ret = SSL_write(_ssl, (const char *)&size, sizeof(size));
+  } else {
+    // We need MSG_NOSIGNAL so we don't get SIGPIPE, and we can throw.
+    ret = ::send(_socket_fd, (const char *)&size, sizeof(size), MSG_NOSIGNAL);
+  }
   if (ret != sizeof(size)) {
     throw ExceptionComm(WriteFail);
   }
 
   int bytes_sent = 0;
   while (bytes_sent < size) {
-    // We need MSG_NOSIGNAL so we don't get SIGPIPE, and we can throw.
-    int ret = ::send(_socket_fd, (const char *)data + bytes_sent,
-                     size - bytes_sent, MSG_NOSIGNAL);
+    if (_ssl != nullptr) {
+      ret = SSL_write(_ssl, (const char *)data + bytes_sent, size - bytes_sent);
+    } else {
+      // We need MSG_NOSIGNAL so we don't get SIGPIPE, and we can throw.
+      ret = ::send(_socket_fd, (const char *)data + bytes_sent,
+                   size - bytes_sent, MSG_NOSIGNAL);
+    }
+
     if (ret < 0) {
       throw ExceptionComm(WriteFail);
     }
@@ -105,9 +123,14 @@ const std::basic_string<uint8_t> &Connection::recv_message() {
 
     while (bytes_recv < size) {
 
-      int ret = ::recv(_socket_fd, (void *)((char *)buffer + bytes_recv),
-                       size - bytes_recv, flags);
-
+      int ret = 0;
+      if (_ssl != nullptr) {
+        ret = SSL_read(_ssl, (void *)(char *)buffer + bytes_recv,
+                       size - bytes_recv);
+      } else {
+        ret = ::recv(_socket_fd, (void *)((char *)buffer + bytes_recv),
+                     size - bytes_recv, flags);
+      }
       if (ret < 0) {
         throw ExceptionComm(ReadFail);
       }

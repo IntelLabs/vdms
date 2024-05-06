@@ -376,7 +376,7 @@ class TestFindDescriptors(TestCommand.TestCommand):
         # Add Set
         set_name = "findwith_blobNoResults"
         dims = 128
-        total = 0
+        total = 1
         self.create_set_and_insert(set_name, dims, total)
 
         db = self.create_connection()
@@ -401,17 +401,16 @@ class TestFindDescriptors(TestCommand.TestCommand):
 
         descriptor_blob = []
         x = np.ones(dims)
-        x[2] = 2.34 + 30 * 20
+        x[2] = 2.34
         x = x.astype("float32")
         descriptor_blob.append(x.tobytes())
 
         response, blob_array = db.query(all_queries, [descriptor_blob])
-
         # Check success
         self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
-        self.assertEqual(response[0]["FindDescriptor"]["returned"], 0)
-        # self.assertEqual(len(blob_array), kn)
-        # self.assertEqual(descriptor_blob[0], blob_array[0])
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], 1)
+        self.assertEqual(len(blob_array), kn)
+        self.assertEqual(descriptor_blob[0], blob_array[0])
         self.disconnect(db)
 
     # @unittest.skip("Skipping class until fixed")

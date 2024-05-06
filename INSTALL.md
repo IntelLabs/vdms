@@ -10,10 +10,10 @@ Here we will install the Debian/Ubuntu packages.
 sudo apt-get update -y  --fix-missing
 sudo apt-get upgrade -y
 sudo apt-get install -y --no-install-suggests --no-install-recommends \
-    apt-transport-https autoconf automake bison build-essential bzip2 ca-certificates \
+    apt-transport-https automake bison build-essential bzip2 ca-certificates \
     curl ed flex g++-9 gcc-9 git gnupg-agent javacc libarchive-tools libatlas-base-dev \
     libavcodec-dev libavformat-dev libboost-all-dev libbz2-dev libc-ares-dev libcurl4-openssl-dev \
-    libdc1394-22-dev libgflags-dev libgoogle-glog-dev libgtk-3-dev libgtk2.0-dev \
+    libncurses5-dev libdc1394-22-dev libgflags-dev libgoogle-glog-dev libgtk-3-dev libgtk2.0-dev \
     libhdf5-dev libjpeg-dev libjsoncpp-dev libleveldb-dev liblmdb-dev \
     liblz4-dev libopenblas-dev libopenmpi-dev libpng-dev librdkafka-dev libsnappy-dev libssl-dev \
     libswscale-dev libtbb-dev libtbb2 libtiff-dev libtiff5-dev libtool libzmq3-dev linux-libc-dev mpich \
@@ -80,6 +80,20 @@ cd $VDMS_DEP_DIR/CMake
 make ${BUILD_THREADS}
 sudo make install
 ```
+***NOTE:*** If multiple versions of Python 3 are present on your system, verify you are using Python3.9 or higher. You can specify the specific verison in above command and also set the following with your specific version: `alias python3=/usr/bin/python3.x`.
+
+
+#### **Autoconf v2.71**
+```bash
+AUTOCONF_VERSION="2.71"
+curl -L -o $VDMS_DEP_DIR/autoconf-${AUTOCONF_VERSION}.tar.xz https://ftp.gnu.org/gnu/autoconf/autoconf-${AUTOCONF_VERSION}.tar.xz
+cd $VDMS_DEP_DIR
+tar -xf autoconf-${AUTOCONF_VERSION}.tar.xz
+cd autoconf-${AUTOCONF_VERSION}
+./configure
+make ${BUILD_THREADS}
+sudo make install
+```
 
 
 #### **Protobuf v24.2 (4.24.2)**
@@ -90,23 +104,28 @@ git clone -b v${PROTOBUF_VERSION} --recurse-submodules https://github.com/protoc
 
 cd $VDMS_DEP_DIR/protobuf/third_party/googletest
 mkdir build && cd build
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local \
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
+    -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 ..
 make ${BUILD_THREADS}
 sudo make install
-sudo ldconfig
 
 cd $VDMS_DEP_DIR/protobuf/third_party/abseil-cpp
 mkdir build && cd build
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_PREFIX_PATH=/usr/local/ -DCMAKE_INSTALL_PREFIX=/usr/local/ \
-    -DABSL_BUILD_TESTING=ON -DABSL_ENABLE_INSTALL=ON -DABSL_USE_EXTERNAL_GOOGLETEST=ON \
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
+    -DCMAKE_INSTALL_PREFIX=/usr/local -DABSL_BUILD_TESTING=ON \
+    -DABSL_USE_EXTERNAL_GOOGLETEST=ON \
     -DABSL_FIND_GOOGLETEST=ON -DCMAKE_CXX_STANDARD=17 ..
 make ${BUILD_THREADS}
 sudo make install
+sudo ldconfig /usr/local/lib
 
 cd $VDMS_DEP_DIR/protobuf
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_CXX_STANDARD=17 \
-    -Dprotobuf_ABSL_PROVIDER=package -DCMAKE_PREFIX_PATH=/usr/local .
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DCMAKE_CXX_STANDARD=17 -Dprotobuf_BUILD_SHARED_LIBS=ON \
+    -Dprotobuf_ABSL_PROVIDER=package \
+    -Dprotobuf_BUILD_TESTS=ON \
+    -Dabsl_DIR=/usr/local/lib/cmake/absl .
 make ${BUILD_THREADS}
 sudo make install
 
@@ -114,14 +133,15 @@ python3 -m pip install --no-cache-dir "protobuf==4.${PROTOBUF_VERSION}"
 ```
 
 
-#### **Faiss v1.7.3**
+#### **Faiss v1.7.4**
 Install the Faiss library for similarity search.
 ```bash
-FAISS_VERSION="v1.7.3"
+FAISS_VERSION="v1.7.4"
 git clone --branch ${FAISS_VERSION} https://github.com/facebookresearch/faiss.git $VDMS_DEP_DIR/faiss
 cd $VDMS_DEP_DIR/faiss
 mkdir build && cd build
-cmake -DFAISS_ENABLE_GPU=OFF -DPython_EXECUTABLE=/usr/bin/python3 ..
+cmake -DFAISS_ENABLE_GPU=OFF -DPython_EXECUTABLE=/usr/bin/python3 \
+    -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release ..
 make ${BUILD_THREADS}
 sudo make install
 ```
@@ -192,6 +212,40 @@ cmake -D BUILD_PERF_TESTS=OFF -D BUILD_TESTS=OFF -D CMAKE_BUILD_TYPE=RELEASE -D 
 make ${BUILD_THREADS}
 sudo make install
 ```
+
+
+#### **Neo4j Client**
+Below are instructions for installing ***libneo4j-omni*** which requires Peg, libcypher-parser and libedit as dependencies.
+```bash
+PEG_VERSION="0.1.19"
+curl -L -o $VDMS_DEP_DIR/peg-${PEG_VERSION}.tar.gz https://github.com/gpakosz/peg/releases/download/${PEG_VERSION}/peg-${PEG_VERSION}.tar.gz
+cd $VDMS_DEP_DIR/
+tar -xf peg-${PEG_VERSION}.tar.gz
+cd peg-${PEG_VERSION}
+make ${BUILD_THREADS}
+sudo make install
+
+git clone https://github.com/cleishm/libcypher-parser.git $VDMS_DEP_DIR/libcypher
+cd $VDMS_DEP_DIR/libcypher
+./autogen.sh
+./configure
+sudo make install
+
+LIBEDIT_VERSION="20230828-3.1"
+curl -L -o $VDMS_DEP_DIR/libedit-${LIBEDIT_VERSION}.tar.gz https://thrysoee.dk/editline/libedit-${LIBEDIT_VERSION}.tar.gz
+cd $VDMS_DEP_DIR/
+tar -xzf libedit-${LIBEDIT_VERSION}.tar.gz
+cd libedit-${LIBEDIT_VERSION}
+./configure
+make ${BUILD_THREADS}
+sudo make install
+
+git clone https://github.com/majensen/libneo4j-omni.git $VDMS_DEP_DIR/libomni
+cd $VDMS_DEP_DIR/libomni
+./autogen.sh
+./configure --disable-werror --prefix=/usr
+sudo make install -w --debug
+```
 <br>
 
 ## Install VDMS
@@ -214,5 +268,12 @@ When compiling on a target with Optane persistent memory, use the command set:
 mkdir build && cd build
 cmake -DCMAKE_CXX_FLAGS='-DPM' ..
 make ${BUILD_THREADS}
+```
+
+***NOTE:*** If error similar to `cannot open shared object file: No such file or directory` obtained during loading shared libraries, such as `libpmgd.so` or `libvcl.so`, add the correct directories to `LD_LIBRARY_PATH`. This may occur for non-root users. To find the correct directory, run `find` command for missing object file. An example solution for missing `libpmgd.so` and `libvcl.so` is:
+```bash
+find / -name "libpmgd*so*" # <Path_to_VDMS_directory>/build/src/pmgd/src
+find / -name "libvcl*so*"  # <Path_to_VDMS_directory>/build/src/vcl
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:<Path_to_VDMS_directory>/build/src/pmgd/src:<Path_to_VDMS_directory>/build/src/vcl
 ```
 

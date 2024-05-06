@@ -96,7 +96,7 @@ public:
    *
    *  @param video_id  A string indicating where the Video is on disk
    */
-  Video(const std::string &video_id);
+  Video(const std::string &video_id, bool no_blob = false);
 
   /**
    *  Creates an Video object from an existing Video object
@@ -244,6 +244,13 @@ public:
    * been perfromed
    */
   std::string get_operated_video_id();
+
+  /**
+   *  Checks if a blob is stored for the video or not
+   *
+   *  @return True if blob is stored
+   */
+  bool is_blob_not_stored() const;
 
   /*  *********************** */
   /*        SET FUNCTIONS     */
@@ -425,6 +432,10 @@ private:
 
   // Full path to the temporary video file on which operations are performed.
   std::string _operated_video_id;
+
+  // No blob stored. The file path is stored instead
+  // and is accessed locally or over the network.
+  bool _no_blob = false;
 
   // Query Error response
   std::string _query_error_response = "";

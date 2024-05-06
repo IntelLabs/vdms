@@ -51,6 +51,7 @@ class TestDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
         self.disconnect(db)
 
+    @TestCommand.TestCommand.shouldSkipRemotePythonTest()
     def test_addDifferentSets(self):
         self.addSet("128-L2-FaissFlat", 128, "L2", "FaissFlat")
         self.addSet("128-IP-FaissFlat", 128, "IP", "FaissFlat")
@@ -118,6 +119,7 @@ class TestDescriptors(TestCommand.TestCommand):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
         self.disconnect(db)
 
+    @TestCommand.TestCommand.shouldSkipRemotePythonTest()
     def test_addDescriptorsx1000TileDBSparse(self):
         db = self.create_connection()
 
@@ -167,6 +169,7 @@ class TestDescriptors(TestCommand.TestCommand):
             self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
         self.disconnect(db)
 
+    @TestCommand.TestCommand.shouldSkipRemotePythonTest()
     def test_addDescriptorsx1000TileDBDense(self):
         db = self.create_connection()
 

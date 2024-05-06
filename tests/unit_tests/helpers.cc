@@ -65,59 +65,85 @@ void compare_image_image(cv::Mat &A, cv::Mat &B, float error) {
   }
 }
 
-void compare_mat_mat(cv::Mat &cv_img, cv::Mat &img, float error) {
-  bool exact_comparison = (error == 0.0);
+bool compare_mat_mat(cv::Mat &cv_img, cv::Mat &img, float error) {
+  try {
+    bool exact_comparison = (error == 0.0);
 
-  ASSERT_EQ(cv_img.rows, img.rows);
-  ASSERT_EQ(cv_img.cols, img.cols);
-  ASSERT_EQ(cv_img.channels(), img.channels());
+    if (cv_img.rows != img.rows) {
+      throw std::runtime_error("Mismatch in number of rows");
+    }
 
-  int rows = img.rows;
-  int columns = img.cols;
-  int channels = img.channels();
-  if (channels > 3) {
-    throw VCLException(OpenFailed, "Greater than 3 channels in image");
-  }
+    if (cv_img.cols != img.cols) {
+      throw std::runtime_error("Mismatch in number of cols");
+    }
+    if (cv_img.channels() != img.channels()) {
+      throw std::runtime_error("Mismatch in number of channels");
+    }
 
-  // We make then continuous for faster comparison, if exact.
-  if (exact_comparison && !img.isContinuous()) {
-    cv::Mat aux = cv_img.clone();
-    cv_img = aux.clone();
-    aux = img.clone();
-    img = aux.clone();
-  }
+    int rows = img.rows;
+    int columns = img.cols;
+    int channels = img.channels();
+    if (channels > 3) {
+      throw std::runtime_error("Greater than 3 channels in image");
+    }
 
-  // For exact comparison, we use memcmp.
-  if (exact_comparison) {
-    size_t data_size = rows * columns * channels;
-    int ret = ::memcmp(cv_img.data, img.data, data_size);
-    ASSERT_EQ(ret, 0);
-    return;
-  }
+    // We make then continuous for faster comparison, if exact.
+    if (exact_comparison && !img.isContinuous()) {
+      cv::Mat aux = cv_img.clone();
+      cv_img = aux.clone();
+      aux = img.clone();
+      img = aux.clone();
+    }
 
-  // For debugging, or near comparison, we check value by value.
+    // For exact comparison, we use memcmp.
+    if (exact_comparison) {
+      size_t data_size = rows * columns * channels;
+      int ret = ::memcmp(cv_img.data, img.data, data_size);
+      if (ret != 0) {
+        throw std::runtime_error(
+            "Comparison between source and dest frames failed");
+      }
+      return true;
+    }
 
-  for (int i = 0; i < rows; ++i) {
-    for (int j = 0; j < columns; ++j) {
-      if (channels == 1) {
-        unsigned char pixel = img.at<unsigned char>(i, j);
-        unsigned char test_pixel = cv_img.at<unsigned char>(i, j);
-        if (exact_comparison)
-          ASSERT_EQ(pixel, test_pixel);
-        else
-          ASSERT_NEAR(pixel, test_pixel, error);
-      } else {
-        cv::Vec3b colors = img.at<cv::Vec3b>(i, j);
-        cv::Vec3b test_colors = cv_img.at<cv::Vec3b>(i, j);
-        for (int x = 0; x < channels; ++x) {
+    // For debugging, or near comparison, we check value by value.
+
+    for (int i = 0; i < rows; ++i) {
+      for (int j = 0; j < columns; ++j) {
+        if (channels == 1) {
+          unsigned char pixel = img.at<unsigned char>(i, j);
+          unsigned char test_pixel = cv_img.at<unsigned char>(i, j);
           if (exact_comparison)
-            ASSERT_EQ(colors.val[x], test_colors.val[x]);
-          else
-            ASSERT_NEAR(colors.val[x], test_colors.val[x], error);
+            if (pixel != test_pixel) {
+              throw std::runtime_error("Comparison among pixels failed");
+            } else if (abs(pixel - test_pixel) > error) {
+              throw std::runtime_error(
+                  "Comparison among pixels exceeded the margin of error");
+            }
+        } else {
+          cv::Vec3b colors = img.at<cv::Vec3b>(i, j);
+          cv::Vec3b test_colors = cv_img.at<cv::Vec3b>(i, j);
+          for (int x = 0; x < channels; ++x) {
+            if (exact_comparison)
+              if (colors.val[x] != test_colors.val[x]) {
+                throw std::runtime_error(
+                    "Comparison among pixels failed for channel: " +
+                    std::to_string(x));
+              } else if (abs(colors.val[x] - test_colors.val[x]) > error) {
+                throw std::runtime_error("Comparison among pixels exceeded the "
+                                         "margin of error for channel:" +
+                                         std::to_string(x));
+              }
+          }
         }
       }
     }
+  } catch (std::exception &ex) {
+    std::cerr << ex.what();
+    return false;
   }
+
+  return true;
 }
 
 void compare_cvcapture_cvcapture(cv::VideoCapture v1, cv::VideoCapture v2) {
@@ -126,7 +152,9 @@ void compare_cvcapture_cvcapture(cv::VideoCapture v1, cv::VideoCapture v2) {
     cv::Mat frame2;
     if (v1.read(frame1) && v2.read(frame2)) {
       if (!frame1.empty() && !frame2.empty()) {
-        compare_mat_mat(frame1, frame2);
+        if (!compare_mat_mat(frame1, frame2)) {
+          throw VCLException(SizeMismatch, "Frames are different");
+        }
       } else if (frame1.empty() && frame2.empty()) {
         return;
       } else

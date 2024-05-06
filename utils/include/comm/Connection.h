@@ -30,6 +30,8 @@
 #pragma once
 
 #include "ExceptionComm.h"
+#include <openssl/err.h>
+#include <openssl/ssl.h>
 #include <string>
 
 namespace comm {
@@ -38,7 +40,7 @@ class Connection {
 
 public:
   Connection();
-  Connection(int socket_fd);
+  Connection(int socket_fd, SSL *_ssl);
   ~Connection();
 
   Connection(Connection &&);
@@ -65,13 +67,16 @@ protected:
 
   int _socket_fd;
   uint32_t _buffer_size_limit{};
+
+  SSL *_ssl;
 };
 
 // Implements a TCP/IP server
 class ConnServer {
 
 public:
-  ConnServer(int port);
+  ConnServer(int port, const std::string &cert_file,
+             const std::string &key_file, const std::string &ca_file);
   ~ConnServer();
   ConnServer &operator=(const ConnServer &) = delete;
   ConnServer(const ConnServer &) = delete;
@@ -82,7 +87,11 @@ private:
   const unsigned MAX_PORT_NUMBER = 65535;
 
   int _port; // Server port
+  std::string _cert_file;
+  std::string _key_file;
+  std::string _ca_file;
   int _socket_fd;
+  SSL_CTX *_ssl_ctx;
 };
 
 // Implements a TCP/IP client
@@ -98,6 +107,7 @@ public:
   ConnClient(std::string addr, int port);
   ConnClient &operator=(const ConnClient &) = delete;
   ConnClient(const ConnClient &) = delete;
+  ~ConnClient() {}
 
 private:
   ConnClient();
