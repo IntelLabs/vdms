@@ -177,6 +177,7 @@ class TestVideos(TestCommand.TestCommand):
         self.disconnect(db)
 
         self.assertEqual(response[0]["status"], -1)
+        self.disconnect(db)
 
     def test_addVideoFromLocalFile_file_not_found(self):
         db = self.create_connection()
@@ -192,6 +193,7 @@ class TestVideos(TestCommand.TestCommand):
         self.disconnect(db)
 
         self.assertEqual(response[0]["status"], -1)
+        self.disconnect(db)
 
     @TestCommand.TestCommand.shouldSkipRemotePythonTest()
     def test_addVideoFromLocalFile_success(self):
@@ -288,6 +290,7 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(len(vid_array), number_of_inserts)
         for i in range(0, number_of_inserts):
             self.assertEqual(response[i]["FindVideo"]["status"], 0)
+        self.disconnect(db)
 
         for vid in vid_array:
             self.verify_mp4_signature(vid)
@@ -369,6 +372,7 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindFrames"]["status"], 0)
         self.assertEqual(response[1]["FindFrames"]["status"], 0)
         self.assertEqual(len(img_array), 2 * number_of_frames)
+        self.disconnect(db)
 
         for img in img_array:
             self.verify_png_signature(img)
@@ -469,6 +473,7 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(len(vid_array), number_of_inserts)
         for i in range(0, number_of_inserts):
             self.assertEqual(response[i]["FindVideo"]["status"], 0)
+        self.disconnect(db)
 
         for vid in vid_array:
             self.verify_mp4_signature(vid)
@@ -550,7 +555,6 @@ class TestVideos(TestCommand.TestCommand):
 
         prefix_name = "vid_multiple"
         number_of_inserts = 4
-
         for i in range(0, number_of_inserts):
             props = {}
             props["name"] = prefix_name
@@ -617,6 +621,7 @@ class TestVideos(TestCommand.TestCommand):
         for index in range(0, number_of_inserts):
             self.assertEqual(response[index]["FindVideo"]["status"], 0)
         self.assertEqual(len(img_array), 0)
+        self.disconnect(db)
 
     def test_updateVideo(self):
         db = self.create_connection()

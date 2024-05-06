@@ -558,6 +558,7 @@ TEST_F(VideoTest, IntervalWrite) {
             }
           }
         }
+      }
 
         if (frame_number > end) {
           break;

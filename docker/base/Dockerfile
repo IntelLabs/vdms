@@ -154,7 +154,6 @@ RUN rm -rf /dependencies /usr/local/share/doc /usr/local/share/man && \
     mkdir -p /opt/dist/usr/include/x86_64-linux-gnu && \
         cp -rp /usr/include/x86_64-linux-gnu /opt/dist/usr/include/x86_64-linux-gnu
 
-
 ############################################################
 # FINAL IMAGE
 FROM base
