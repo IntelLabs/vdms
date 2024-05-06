@@ -407,7 +407,6 @@ class TestImages(TestCommand.TestCommand):
         # Verify the results
         self.assertEqual(response[0]["AddEntity"]["status"], 0)
         self.assertEqual(response[1]["AddImage"]["status"], 0)
-        self.disconnect(db)
 
     def test_findImage_multiple_results(self):
         # Setup
@@ -444,7 +443,6 @@ class TestImages(TestCommand.TestCommand):
         self.assertEqual(len(img_array), number_of_inserts)
         self.assertEqual(response[0]["FindImage"]["status"], 0)
         self.assertEqual(response[0]["FindImage"]["returned"], number_of_inserts)
-        self.disconnect(db)
 
         # Verify the blob data returned is an array of PNG data
         for img in img_array:
@@ -494,7 +492,6 @@ class TestImages(TestCommand.TestCommand):
             )
 
         self.assertEqual(len(img_array), 0)
-        self.disconnect(db)
 
     def test_findImageRefNoBlobNoPropsResults(self):
         # Setup
@@ -538,7 +535,6 @@ class TestImages(TestCommand.TestCommand):
             self.assertEqual(response[index]["FindImage"]["status"], 0)
             self.assertEqual(response[index]["FindImage"]["info"], expected_info)
         self.assertEqual(len(img_array), 0)
-        self.disconnect(db)
 
     def test_updateImage(self):
         # Setup
@@ -577,7 +573,6 @@ class TestImages(TestCommand.TestCommand):
         self.assertEqual(response[0]["UpdateImage"]["count"], 1)
         self.assertEqual(response[0]["UpdateImage"]["status"], 0)
         self.assertEqual(len(img_array), 0)
-        self.disconnect(db)
 
     # The following test fails:
     # Error: "Object contains a property that could not be validated using
@@ -621,4 +616,3 @@ class TestImages(TestCommand.TestCommand):
         # Verify the results
         self.assertEqual(response[0]["FindImage"]["status"], 0)
         self.assertEqual(len(img_array), number_of_inserts)
-        self.disconnect(db)

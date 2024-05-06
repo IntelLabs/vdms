@@ -548,6 +548,7 @@ private:
    *  Performs the set of operations that have been requested
    *    on the Image
    */
+
   void perform_operations();
 
   /**

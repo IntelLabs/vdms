@@ -118,7 +118,7 @@ VCL::Format ImageCommand::get_requested_format(const Json::Value &cmd) {
   return VCL::Format::NONE_IMAGE;
 }
 
-//========= UpdateImage definitions =========
+//========= AddImage definitions =========
 
 AddImage::AddImage() : ImageCommand("AddImage") {
   _storage_tdb = VDMSConfig::instance()->get_path_tdb();
@@ -231,7 +231,12 @@ int AddImage::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
 
     file_name = VCL::create_unique(img_root, format);
 
-  Json::Value ret;
+    // Modifiyng the existing properties that the user gives
+    // is a good option to make the AddNode more simple.
+    // This is not ideal since we are manupulating with user's
+    // input, but for now it is an acceptable solution.
+    Json::Value props = get_value<Json::Value>(cmd, "properties");
+    props[VDMS_IM_PATH_PROP] = file_name;
 
     if (img.is_blob_not_stored()) {
       props[VDMS_IM_PATH_PROP] = from_file_path;
@@ -261,11 +266,7 @@ bool AddImage::need_blob(const Json::Value &cmd) {
   throw VCLException(UndefinedException, "Query Error");
 }
 
-  if (findImage["status"] != 0) {
-    findImage["status"] = RSCommand::Error;
-    // Uses PMGD info error.
-    return error(findImage);
-  }
+//========= UpdateImage definitions =========
 
 UpdateImage::UpdateImage() : ImageCommand("UpdateImage") {}
 
@@ -283,12 +284,7 @@ int UpdateImage::construct_protobuf(PMGDQuery &query,
   return 0;
 }
 
-  if (findImage["entities"].size() == 0) {
-    Json::Value return_empty;
-    return_empty["status"] = RSCommand::Success;
-    return_empty["info"] = "No entities found";
-    return empty(return_empty);
-  }
+//========= FindImage definitions =========
 
 FindImage::FindImage() : ImageCommand("FindImage") {
   _use_aws_storage = VDMSConfig::instance()->get_aws_flag();

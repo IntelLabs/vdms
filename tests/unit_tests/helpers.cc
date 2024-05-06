@@ -43,8 +43,7 @@
 #include <random>
 #include <vector>
 
-void compare_mat_mat(cv::Mat &cv_img, cv::Mat &img, float error) {
-  bool exact_comparison = (error == 0.0);
+// Image / Video Helpers
 
 // source:
 // https://github.com/MasteringOpenCV/code/blob/master/Chapter8_FaceRecognition/recognition.cpp

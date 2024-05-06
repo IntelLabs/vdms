@@ -274,21 +274,6 @@ void TDBObject::set_attributes(const std::vector<std::string> &attributes) {
     _attributes.push_back(charArrays[x]);
   }
 }
-template void TDBObject::set_single_attribute(std::string &attribute,
-                                              CompressionType compressor,
-                                              int cell_val_num);
-template void TDBObject::set_single_attribute(std::string &attribute,
-                                              CompressionType compressor,
-                                              uint64_t cell_val_num);
-template void TDBObject::set_single_attribute(std::string &attribute,
-                                              CompressionType compressor,
-                                              long cell_val_num);
-template void TDBObject::set_single_attribute(std::string &attribute,
-                                              CompressionType compressor,
-                                              float cell_val_num);
-template void TDBObject::set_single_attribute(std::string &attribute,
-                                              CompressionType compressor,
-                                              unsigned char cell_val_num);
 
 template <class T>
 void TDBObject::set_single_attribute(std::string &attribute,
