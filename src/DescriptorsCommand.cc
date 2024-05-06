@@ -378,7 +378,9 @@ void AddDescriptor::retrieve_aws_descriptorSet(const std::string &set_path) {
   for (auto file : files) {
     // if file isn't already on disk, retrieve it from AWS
     if (!fs::exists(file)) {
-      connection->RetrieveFile(file);
+      if (!connection->RetrieveFile(file)) {
+        throw VCLException(ObjectNotFound, "File was not found");
+      }
     }
   }
 }

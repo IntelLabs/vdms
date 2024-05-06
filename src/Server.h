@@ -37,6 +37,7 @@
 #include "VDMSConfig.h"
 #include "pmgd.h"
 #include <chrono>
+#include <csignal>
 
 namespace VDMS {
 struct ReplicationConfig {
@@ -83,7 +84,9 @@ class Server {
   CommunicationManager *_cm;
   ReplicationConfig _autoreplicate_settings;
 
-  bool _untar;
+  std::string _cert_file;
+  std::string _key_file;
+  std::string _ca_file;
 
   // signal handling for crtl-c,
   static bool shutdown;
@@ -98,7 +101,8 @@ class Server {
 
 public:
   VDMSConfig *cfg;
-  Server(std::string config_file);
+  Server(std::string config_file, std::string cert_file, std::string key_file,
+         std::string ca_file);
   void process_requests();
   void autodelete_expired_data();
   void auto_replicate_interval();

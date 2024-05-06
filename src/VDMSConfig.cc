@@ -53,7 +53,7 @@
 #define DEFAULT_PATH_BLOBS "blobs"
 #define DEFAULT_PATH_VIDEOS "videos"
 #define DEFAULT_PATH_DESCRIPTORS "descriptors"
-#define DEFAULT_PATH_TMP "tmp"
+#define DEFAULT_PATH_TMP "/tmp"
 #define DEFAULT_STORAGE_TYPE "local"
 #define DEFAULT_BUCKET_NAME "vdms_bucket"
 
@@ -65,9 +65,11 @@ const bool DEFAULT_USE_ENDPOINT = false;
 
 using namespace VDMS;
 
-VDMSConfig *VDMSConfig::cfg;
+VDMSConfig *VDMSConfig::cfg{nullptr};
+std::mutex VDMSConfig::_mutex;
 
 bool VDMSConfig::init(std::string config_file) {
+  std::lock_guard<std::mutex> lock(_mutex);
   if (cfg)
     return false;
 
@@ -75,18 +77,24 @@ bool VDMSConfig::init(std::string config_file) {
   return true;
 }
 
-void VDMSConfig::destroy() {
+bool VDMSConfig::destroy() {
   if (cfg) {
     delete cfg;
     cfg = NULL;
+    return true;
   }
+
+  std::cerr << "ERROR: destroy() was ignored due config was not initialized"
+            << std::endl;
+
+  return false;
 }
 
 VDMSConfig *VDMSConfig::instance() {
   if (cfg)
     return cfg;
 
-  std::cout << "ERROR: Config not init" << std::endl;
+  std::cerr << "ERROR: config is not initialized" << std::endl;
   return NULL;
 }
 
@@ -94,12 +102,23 @@ VDMSConfig::VDMSConfig(std::string config_file) {
   Json::Reader reader;
   std::ifstream file(config_file);
 
+  cfg = nullptr;
+  storage_type = StorageType::LOCAL;
+  aws_flag = false;
+  use_endpoint = false;
+  aws_log_level = Aws::Utils::Logging::LogLevel::Off;
+  endpoint_override = std::nullopt;
+  proxy_host = std::nullopt;
+  proxy_port = std::nullopt;
+  proxy_scheme = std::nullopt;
+
   bool parsingSuccessful = reader.parse(file, json_config);
 
   if (!parsingSuccessful) {
-    std::cout << "Error parsing config file." << std::endl;
-    std::cout << "Exiting..." << std::endl;
-    exit(0);
+    std::string error_message =
+        "VDMSConfig() Error: parsing the config file: " + config_file + ".\n" +
+        reader.getFormatedErrorMessages();
+    throw std::runtime_error(error_message);
   }
 
   build_dirs();
@@ -134,7 +153,6 @@ void VDMSConfig::expand_directory_layer(
       tmp_stream << std::internal << std::setfill('0')
                  << std::setw(CHARS_PER_LAYER_NAME) << i;
       tmp_directory_list->push_back(tmp_stream.str() + "/");
-      // std::cout << (*tmp_directory_list)[i] << std::endl;
     }
     p_directory_list->push_back(tmp_directory_list);
   } else {
@@ -147,8 +165,6 @@ void VDMSConfig::expand_directory_layer(
         tmp_directory_list->push_back(
             (*(*p_directory_list)[p_directory_list->size() - 1])[j] +
             tmp_stream.str() + "/");
-        // std::cout << (*tmp_directory_list)[tmp_directory_list->size() - 1] <<
-        // std::endl;
       }
     }
     p_directory_list->push_back(tmp_directory_list);
@@ -187,14 +203,15 @@ int VDMSConfig::create_dir(std::string path) {
 }
 
 void VDMSConfig::check_or_create(std::string path) {
-  if (create_dir(path) == 0) {
-    return;
-  } else {
-    std::cout << "Cannot open/create directories structure." << std::endl;
-    std::cout << "Failed dir: " << path << std::endl;
-    std::cout << "Check paths and permissions." << std::endl;
-    std::cout << "Exiting..." << std::endl;
-    exit(0);
+  if (create_dir(path) != 0) {
+    std::string error_message = "Cannot open/create directories structure.\n"
+                                "Failed dir: " +
+                                path +
+                                ".\n"
+                                "Check paths and permissions." +
+                                ".\n"
+                                "Exiting...\n";
+    throw std::runtime_error(error_message);
   }
 }
 
@@ -296,6 +313,7 @@ void VDMSConfig::build_dirs() {
           // specified in the config file then it uses DEFAULT_ENDPOINT
           // as default endpoint value
           endpoint_override = std::optional<std::string>{DEFAULT_ENDPOINT};
+          std::cerr << "Warning: Using default endpoint_override" << std::endl;
         }
       }
       break;

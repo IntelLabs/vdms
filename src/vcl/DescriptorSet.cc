@@ -189,7 +189,11 @@ void DescriptorSet::store() {
     }
 
     for (int i = 0; i < filenames.size(); i++) {
-      _remote->Write(filenames[i]);
+      bool result = _remote->Write(filenames[i]);
+      if (!result) {
+        throw VCLException(ObjectNotFound,
+                           "Descriptor: File was not added: " + filenames[i]);
+      }
       // std::remove(filename.c_str());
     }
   }

@@ -47,7 +47,7 @@
 
 void compare_image_image(cv::Mat &A, cv::Mat &B, float error = 0.02);
 
-void compare_mat_mat(cv::Mat &cv_img, cv::Mat &img, float error = 0.0);
+bool compare_mat_mat(cv::Mat &cv_img, cv::Mat &img, float error = 0.0);
 
 void compare_cvcapture_cvcapture(cv::VideoCapture v1, cv::VideoCapture v2);
 

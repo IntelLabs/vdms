@@ -141,8 +141,9 @@ int AddVideo::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
 
   int node_ref = get_value<int>(cmd, "_ref", query.get_available_reference());
 
-  const std::string from_server_file =
-      get_value<std::string>(cmd, "from_server_file", "");
+  const std::string from_file_path =
+      get_value<std::string>(cmd, "from_file_path", "");
+  const bool is_local_file = get_value<bool>(cmd, "is_local_file", false);
   VCL::Video video;
 
   if (_use_aws_storage) {
@@ -152,10 +153,15 @@ int AddVideo::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
     video.set_connection(connection);
   }
 
-  if (from_server_file.empty())
+  if (from_file_path.empty())
     video = VCL::Video((void *)blob.data(), blob.size());
-  else
-    video = VCL::Video(from_server_file);
+  else {
+    if (is_local_file) {
+      video = VCL::Video(from_file_path, false);
+    } else {
+      video = VCL::Video(from_file_path, true);
+    }
+  }
 
   // Key frame extraction works on binary stream data, without encoding. We
   // check whether key-frame extraction is to be applied, and if so, we
@@ -183,6 +189,10 @@ int AddVideo::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
   Json::Value props = get_value<Json::Value>(cmd, "properties");
   props[VDMS_VID_PATH_PROP] = file_name;
 
+  if (video.is_blob_not_stored()) {
+    props[VDMS_VID_PATH_PROP] = video.get_video_id();
+  }
+
   // Add Video node
   query.AddNode(node_ref, VDMS_VID_TAG, props, Json::Value());
 
@@ -196,8 +206,12 @@ int AddVideo::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
   }
 
   if (_use_aws_storage) {
-    video._remote->Write(file_name);
+    bool result = video._remote->Write(file_name);
     std::remove(file_name.c_str()); // remove the local copy of the file
+    if (!result) {
+      throw VCLException(ObjectNotFound,
+                         "Add video: Path to the file was not found");
+    }
   }
 
   // Add key-frames (if extracted) as nodes connected to the video
@@ -233,7 +247,7 @@ Json::Value AddVideo::construct_responses(Json::Value &response,
 
 bool AddVideo::need_blob(const Json::Value &cmd) {
   const Json::Value &add_video_cmd = cmd[_cmd_name];
-  return !(add_video_cmd.isMember("from_server_file"));
+  return !(add_video_cmd.isMember("from_file_path"));
 }
 
 //========= UpdateVideo definitions =========
@@ -357,9 +371,15 @@ Json::Value FindVideo::construct_responses(Json::Value &responses,
           connection->_bucket_name = bucket;
           VCL::Video video(video_path);
           video.set_connection(connection);
-          video._remote->Read_Video(
+          bool result = video._remote->Read_Video(
               video_path); // this takes the file from aws and puts it back in
                            // the local database location
+          if (!result) {
+            Json::Value return_error;
+            return_error["status"] = RSCommand::Error;
+            return_error["info"] = "Path to the video was not found";
+            return error(return_error);
+          }
         }
 
         // Return video as is.
@@ -600,15 +620,22 @@ Json::Value FindFrames::construct_responses(Json::Value &responses,
         connection->_bucket_name = bucket;
         VCL::Video video(video_path);
         video.set_connection(connection);
-        video._remote->Read_Video(
+        bool result = video._remote->Read_Video(
             video_path); // this takes the file from aws and puts it back in the
                          // local database location
+
+        if (!result) {
+          Json::Value return_error;
+          return_error["status"] = RSCommand::Error;
+          return_error["info"] = "Path to the video was not found";
+          return error(return_error);
+        }
       }
 
       VCL::Video video(video_path);
 
       // By default, return frames as PNGs
-      VCL::Image::Format format = VCL::Image::Format::PNG;
+      VCL::Format format = VCL::Format::PNG;
 
       FindImage img_cmd;
 
@@ -616,8 +643,7 @@ Json::Value FindFrames::construct_responses(Json::Value &responses,
 
         format = img_cmd.get_requested_format(cmd);
 
-        if (format == VCL::Image::Format::NONE_IMAGE ||
-            format == VCL::Image::Format::TDB) {
+        if (format == VCL::Format::NONE_IMAGE || format == VCL::Format::TDB) {
           Json::Value return_error;
           return_error["status"] = RSCommand::Error;
           return_error["info"] = "Invalid Return Format for FindFrames";

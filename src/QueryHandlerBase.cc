@@ -25,14 +25,21 @@ QueryHandlerBase::QueryHandlerBase()
 // For now, we do it for videos/images as a starting point.
 void QueryHandlerBase::cleanup_query(const std::vector<std::string> &images,
                                      const std::vector<std::string> &videos) {
-  for (auto &img_path : images) {
-    VCL::Image img(img_path);
-    img.delete_image();
-  }
+  try {
+    for (auto &img_path : images) {
+      VCL::Image img(img_path);
+      bool result = img.delete_image();
+      if (!result) {
+        throw VCLException(UndefinedException,
+                           "delete_image() failed: " + img_path);
+      }
+    }
 
-  for (auto &vid_path : videos) {
-    VCL::Video vid(vid_path);
-    vid.delete_video();
+    for (auto &vid_path : videos) {
+      VCL::Video vid(vid_path);
+      vid.delete_video();
+    }
+  } catch (VCL::Exception &e) {
   }
 }
 

@@ -31,6 +31,7 @@
 
 #include "CommunicationManager.h"
 #include "QueryHandlerExample.h"
+#include "QueryHandlerNeo4j.h"
 #include "QueryHandlerPMGD.h"
 
 #include "VDMSConfig.h"
@@ -74,6 +75,9 @@ void CommunicationManager::process_queue() {
         qh.process_connection(c);
       } else if (_q_handler == "example") {
         QueryHandlerExample qh;
+        qh.process_connection(c);
+      } else if (_q_handler == "neo4j") {
+        QueryHandlerNeo4j qh;
         qh.process_connection(c);
       }
 

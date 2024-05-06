@@ -62,7 +62,7 @@ public:
 
   // Checks if 'format' parameter is specified, and if so, returns the
   // corresponding VCL::Image::Format type.
-  VCL::Image::Format get_requested_format(const Json::Value &cmd);
+  VCL::Format get_requested_format(const Json::Value &cmd);
 };
 
 class AddImage : public ImageCommand {
@@ -79,7 +79,7 @@ public:
                          const std::string &blob, int grp_id,
                          Json::Value &error);
 
-  bool need_blob(const Json::Value &cmd) { return true; }
+  bool need_blob(const Json::Value &cmd);
 };
 
 class UpdateImage : public ImageCommand {

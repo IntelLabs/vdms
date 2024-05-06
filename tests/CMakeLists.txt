@@ -29,10 +29,13 @@ include_directories(
     ../src/pmgd/util
     ../client/cpp
     ../utils/
+    ../utils/include/comm/
 )
 
 add_executable(unit_tests
     main.cc
+    unit_tests/TLSTest.cc
+    unit_tests/Comm_tests.cc
     server/json_queries.cc
     unit_tests/pmgd_queries.cc
     unit_tests/helpers.cc
@@ -54,6 +57,12 @@ add_executable(unit_tests
     unit_tests/client_descriptors.cc
     unit_tests/client_videos.cc
     unit_tests/client_blob.cc
+    unit_tests/BackendNeo4jTest.cc
+    unit_tests/OpsIoTest.cc
+    unit_tests/EndToEndNeo4jTest.cc
+    unit_tests/TDBObject_test.cc
+    unit_tests/VDMSConfig_test.cc
+    unit_tests/SystemStats_test.cc
 )
 
 target_link_libraries(unit_tests
@@ -62,7 +71,7 @@ target_link_libraries(unit_tests
     dms
     faiss
     flinng
-    gtest
+    gmock
     jsoncpp
     pmgd
     pmgd-util
@@ -75,4 +84,5 @@ target_link_libraries(unit_tests
     ${CMAKE_THREAD_LIBS_INIT}
     ${OpenCV_LIBS}
     ${AWSSDK_LINK_LIBRARIES}
+    neo4j-client
 )

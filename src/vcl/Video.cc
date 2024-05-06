@@ -45,9 +45,12 @@ Video::Video()
       _video_id(""), _flag_stored(true), _codec(Video::Codec::NOCODEC),
       _remote(nullptr) {}
 
-Video::Video(const std::string &video_id) : Video() {
+Video::Video(const std::string &video_id, bool no_blob) : Video() {
   _video_id = video_id;
   _remote = nullptr;
+
+  _no_blob = no_blob;
+
   initialize_video_attributes(_video_id);
 }
 
@@ -71,6 +74,8 @@ Video::Video(void *buffer, long size) : Video() {
 Video::Video(const Video &video) {
   _video_id = video._video_id;
   _remote = nullptr;
+
+  _no_blob = video._no_blob;
 
   _size = video._size;
 
@@ -105,6 +110,8 @@ Video::~Video() {
 /*        GET FUNCTIONS     */
 /*  *********************** */
 
+bool Video::is_blob_not_stored() const { return _no_blob; }
+
 std::string Video::get_video_id() const { return _video_id; }
 
 Video::Codec Video::get_codec() const { return _codec; }
@@ -119,21 +126,18 @@ cv::Mat Video::get_frame(unsigned frame_number, bool performOp) {
       throw VCLException(OutOfBounds, "Frame requested is out of bounds");
 
     cv::VideoCapture inputVideo(_video_id);
-    int i = 0;
-    // Loop until the required frame is read
-    while (true) {
-      cv::Mat mat_frame;
-      inputVideo >> mat_frame;
 
-      if (mat_frame.empty()) {
-        break;
-      }
-      if (i == frame_number) {
-        frame = mat_frame;
-        break;
-      }
-      i++;
+    // Set the index of the frame to be read
+    if (!inputVideo.set(cv::CAP_PROP_POS_FRAMES, frame_number)) {
+      throw VCLException(UnsupportedOperation, "Set the frame index failed");
     }
+
+    // Read the frame
+    if (!inputVideo.read(frame)) {
+      throw VCLException(UnsupportedOperation,
+                         "Frame requested cannot be read");
+    }
+
     inputVideo.release();
   } else {
 
@@ -235,8 +239,9 @@ std::vector<unsigned char> Video::get_encoded(std::string container,
 
       auto time_now = std::chrono::system_clock::now();
       std::chrono::duration<double> utc_time = time_now.time_since_epoch();
-      std::string fname =
-          "tmp/tempfile" + std::to_string(utc_time.count()) + container;
+      std::string fname = VDMS::VDMSConfig::instance()->get_path_tmp() +
+                          "/tempfile" + std::to_string(utc_time.count()) +
+                          container;
 
       // check sufficient memory
       bool memory_avail = check_sufficient_memory(_size);
@@ -472,9 +477,12 @@ void Video::store_video_no_operation(std::string id, std::string store_id,
   inputVideo.release();
   outputVideo.release();
 
-  if (std::remove(_video_id.data()) != 0) {
-    throw VCLException(ObjectEmpty,
-                       "Error encountered while removing the file.");
+  if (_video_id.find(VDMS::VDMSConfig::instance()->get_path_tmp()) !=
+      std::string::npos) {
+    if (std::remove(_video_id.data()) != 0) {
+      throw VCLException(ObjectEmpty,
+                         "Error encountered while removing the file.");
+    }
   }
   _video_id = store_id;
   if (std::rename(fname.data(), _video_id.data()) != 0) {
@@ -564,8 +572,9 @@ void Video::perform_operations(bool is_store, std::string store_id) {
     // Setup temporary files
     auto time_now = std::chrono::system_clock::now();
     std::chrono::duration<double> utc_time = time_now.time_since_epoch();
-    std::string fname =
-        "/tmp/tempfile" + std::to_string(utc_time.count()) + "." + format;
+    std::string fname = VDMS::VDMSConfig::instance()->get_path_tmp() +
+                        "/tempfile" + std::to_string(utc_time.count()) + "." +
+                        format;
     std::string id =
         (_operated_video_id == "") ? _video_id : _operated_video_id;
 
@@ -576,17 +585,20 @@ void Video::perform_operations(bool is_store, std::string store_id) {
       if (file) {
         file.close();
       } else {
-        throw VCLException(OpenFailed, "video_id could not be opened");
+        throw VCLException(OpenFailed,
+                           "video_id " + id + " could not be opened");
       }
     } catch (Exception e) {
-      throw VCLException(OpenFailed, "video_id could not be opened");
+      throw VCLException(OpenFailed, "video_id " + id + " could not be opened");
     }
 
     if (_operations.size() == 0) {
-      // If the call is made with not operations.
+      // If the call is made with no operations.
       if (is_store) {
-        // If called to store a video into the data store
-        store_video_no_operation(id, store_id, fname);
+        // If called to store a video into the data store as blob
+        if (!_no_blob) {
+          store_video_no_operation(id, store_id, fname);
+        }
       } else {
         _operated_video_id = _video_id;
       }
@@ -595,8 +607,8 @@ void Video::perform_operations(bool is_store, std::string store_id) {
       while (op_count < _operations.size()) {
         time_now = std::chrono::system_clock::now();
         utc_time = time_now.time_since_epoch();
-        fname =
-            "/tmp/tempfile" + std::to_string(utc_time.count()) + "." + format;
+        fname = VDMS::VDMSConfig::instance()->get_path_tmp() + "/tempfile" +
+                std::to_string(utc_time.count()) + "." + format;
 
         op_count = perform_single_frame_operations(id, op_count, fname);
 
@@ -621,13 +633,23 @@ void Video::perform_operations(bool is_store, std::string store_id) {
         }
       }
       if (is_store) {
-        if (std::remove(_video_id.data()) != 0) {
-          throw VCLException(ObjectEmpty,
-                             "Error encountered while removing the file.");
+        if (_video_id.find(VDMS::VDMSConfig::instance()->get_path_tmp()) !=
+            std::string::npos) {
+          if (std::remove(_video_id.data()) != 0) {
+            throw VCLException(ObjectEmpty,
+                               "Error encountered while removing the file.");
+          }
         }
-        if (std::rename(fname.data(), store_id.data()) != 0) {
-          throw VCLException(ObjectEmpty,
-                             "Error encountered while renaming the file.");
+        if (!_no_blob) {
+          if (std::rename(fname.data(), store_id.data()) != 0) {
+            throw VCLException(ObjectEmpty,
+                               "Error encountered while renaming the file.");
+          }
+        } else {
+          if (std::rename(fname.data(), _video_id.data()) != 0) {
+            throw VCLException(ObjectEmpty,
+                               "Error encountered while renaming the file.");
+          }
         }
       } else {
         _operated_video_id = fname;
@@ -702,6 +724,7 @@ void Video::swap(Video &rhs) noexcept {
   using std::swap;
 
   swap(_video_id, rhs._video_id);
+  swap(_no_blob, rhs._no_blob);
   swap(_flag_stored, rhs._flag_stored);
   swap(_size, rhs._size);
   swap(_fps, rhs._fps);
@@ -714,6 +737,10 @@ void Video::set_query_error_response(std::string response_error) {
 }
 
 void Video::set_connection(RemoteConnection *remote) {
+  if (!remote) {
+    throw VCLException(SystemNotFound, "Invalid remote connection");
+  }
+
   if (!remote->connected())
     remote->start();
 
@@ -863,7 +890,8 @@ void Video::Interval::operator()(Video *video, cv::Mat &frame,
     }
     auto time_now = std::chrono::system_clock::now();
     std::chrono::duration<double> utc_time = time_now.time_since_epoch();
-    std::string tmp_fname = "/tmp/tempfile_interval" +
+    std::string tmp_fname = VDMS::VDMSConfig::instance()->get_path_tmp() +
+                            "/tempfile_interval" +
                             std::to_string(utc_time.count()) + "." + format;
 
     cv::VideoCapture inputVideo(fname);
@@ -997,7 +1025,8 @@ void Video::SyncRemoteOperation::operator()(Video *video, cv::Mat &frame,
         auto time_now = std::chrono::system_clock::now();
         std::chrono::duration<double> utc_time = time_now.time_since_epoch();
         std::string response_filepath =
-            "/tmp/rtempfile" + std::to_string(utc_time.count()) + "." + format;
+            VDMS::VDMSConfig::instance()->get_path_tmp() + "/rtempfile" +
+            std::to_string(utc_time.count()) + "." + format;
         FILE *response_file = fopen(response_filepath.data(), "wb");
 
         if (curl_easy_setopt(curl, CURLOPT_URL, _url.data()) != CURLE_OK) {

@@ -64,7 +64,10 @@
 
       { "$ref": "#/definitions/AddBlobTop" },
       { "$ref": "#/definitions/UpdateBlobTop" },
-      { "$ref": "#/definitions/FindBlobTop" }
+      { "$ref": "#/definitions/FindBlobTop" },
+
+      { "$ref": "#/definitions/NeoAddTop" },
+      { "$ref": "#/definitions/NeoFindTop" }
     ]
   },
   "uniqueItems": false,
@@ -552,7 +555,44 @@
       "additionalProperties": false
     },
 
+    "NeoAddTop": {
+      "properties": {
+        "NeoAdd" : { "type": "object", "$ref": "#/definitions/NeoAdd" }
+      },
+      "additionalProperties": false
+    },
+
+    "NeoFindTop": {
+      "properties": {
+        "NeoFind" : { "type": "object", "$ref": "#/definitions/NeoFind" }
+      },
+      "additionalProperties": false
+    },
+
     // Commands
+
+    "NeoAdd": {
+      "properties": {
+        "cypher": { "type": "string"},
+        "target_data_type" : {"type" : "string"},
+        "target_format" : {"type": "string"},
+        "operations": { "$ref": "#/definitions/blockImageOperations" }
+      },
+      "required": ["cypher"],
+      "additionalProperties": false
+    },
+
+    "NeoFind": {
+      "properties": {
+        "cypher": { "type": "string" },
+        "target_data_type" : {"type" : "string"},
+        "target_format" : {"type": "string"},
+        "operations": { "$ref": "#/definitions/blockImageOperations" },
+        "results":     { "$ref": "#/definitions/blockResults" }
+      },
+      "required": ["cypher"],
+      "additionalProperties": false
+    },
 
     "AddEntity": {
       "properties": {
@@ -630,6 +670,8 @@
     "AddImage": {
       "properties": {
         "_ref":       { "$ref": "#/definitions/refInt" },
+        "from_file_path":   { "type": "string"},
+        "is_local_file":    { "type": "boolean"},
         "format":     { "$ref": "#/definitions/imgFormatString" },
         "link":       { "$ref": "#/definitions/blockLink" },
         "operations": { "$ref": "#/definitions/blockImageOperations" },
@@ -776,6 +818,7 @@
       "properties": {
         "_ref":             { "$ref": "#/definitions/refInt" },
         "from_server_file": { "type": "string"},
+        "from_file_path": { "type": "string"},
          "link":             { "$ref": "#/definitions/blockLink" },
          "properties":       { "type": "object" }
         
@@ -812,6 +855,8 @@
         "_ref":             { "$ref": "#/definitions/refInt" },
         "index_frames":     { "type": "boolean" },
         "from_server_file": { "type": "string"},
+        "from_file_path":   { "type": "string"},
+        "is_local_file":    { "type": "boolean"},
         "codec":            { "$ref": "#/definitions/vidCodecString" },
         "container":        { "$ref": "#/definitions/vidContainerString" },
         "link":             { "$ref": "#/definitions/blockLink" },
