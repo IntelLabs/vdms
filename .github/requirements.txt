@@ -21,6 +21,6 @@ pyzmq==26.0.2
 scipy==1.13.0
 sk-video==1.1.10
 tomli==2.0.1
-werkzeug==3.0.2
+werkzeug==3.0.3
 zipp==3.18.1
 zmq==0.0.0
