@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [test_ci]
+    branches: [pre-2.9]
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [develop]
