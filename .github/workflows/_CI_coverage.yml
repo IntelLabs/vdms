@@ -80,8 +80,8 @@ jobs:
       - name: Get Target Coverage Values
         id: target_values
         run: |
-          echo "cpp=$(cat .github/coverage/cpp.develop.coverage_value.txt)" >> $GITHUB_OUTPUT
-          echo "py=$(cat .github/coverage/python.develop.coverage_value.txt)" >> $GITHUB_OUTPUT
+          echo "cpp=$(cat .github/coverage/cpp.develop.coverage_value.txt || echo 0.00)" >> $GITHUB_OUTPUT
+          echo "py=$(cat .github/coverage/python.develop.coverage_value.txt || echo 0.00)" >> $GITHUB_OUTPUT
 
   coverage_job:
     name: Run Coverage
