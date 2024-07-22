@@ -38,13 +38,18 @@ public:
   Json::Value construct_updateBlob();
   Json::Value construct_findBlob();
   std::string *read_blob(std::string &);
-  Json::Value constuct_image(bool = false, Json::Value operations = {});
+  Json::Value constuct_image(bool = false, Json::Value operations = {},
+                             std::string category = "");
   Json::Value constuct_video(bool = false);
   Json::Value constuct_video_by_path(int id, std::string filepath,
-                                     Json::Value operations);
+                                     Json::Value operations,
+                                     std::string category = "");
   Json::Value construct_find_image();
   Json::Value construct_find_image_no_entity();
   Json::Value construct_find_image_withop(Json::Value operations);
+  Json::Value construct_find_video_withop(Json::Value operations);
+  Json::Value construct_find_image_with_dynamic_metadata();
+  Json::Value construct_find_video_with_dynamic_metadata();
   Json::Value construct_descriptor();
   Json::Value construct_find_descriptor();
   Json::Value construct_flinng_descriptor();

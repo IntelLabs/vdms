@@ -1027,7 +1027,7 @@ TEST_F(ImageTest, AddImageByPath) {
 TEST_F(ImageTest, ImagePathError) {
   VCL::Image img;
   std::string temp_image_path(VDMS::VDMSConfig::instance()->get_path_tmp() +
-                              "/pathimage.jpg");
+                              "/pathimagepatherror.jpg");
   std::filesystem::copy_file(img_, temp_image_path);
   img = VCL::Image(temp_image_path, true);
 
@@ -1036,4 +1036,73 @@ TEST_F(ImageTest, ImagePathError) {
   VCL::Image read_img(temp_image_path);
   ASSERT_THROW(read_img.get_encoded_image_async(read_img.get_image_format()),
                VCL::Exception);
+}
+
+TEST_F(ImageTest, UDFMetadata) {
+  std::string inputFile = "udf_test/metadata_image.jpg";
+  ASSERT_TRUE(fs::exists(fs::path(inputFile)));
+  std::string temp_image_path(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                              "/pathimageudfmetadata.jpg");
+  std::filesystem::copy_file(inputFile, temp_image_path);
+  VCL::Image img = VCL::Image(temp_image_path, true);
+
+  Json::Value _options;
+  _options["format"] = "jpg";
+  _options["id"] = "metadata";
+  _options["media_type"] = "image";
+  _options["otype"] = "face";
+  _options["port"] = 5555;
+
+  img.userOperation(_options);
+  cv::Mat vcl_img = img.get_cvmat();
+  for (auto metadata : img.get_ingest_metadata()) {
+    ASSERT_STREQ(metadata["object"].asString().data(), "face");
+  }
+
+  EXPECT_TRUE(std::remove(temp_image_path.data()) == 0);
+}
+
+TEST_F(ImageTest, RemoteMetadata) {
+  std::string inputFile = "remote_function_test/metadata_image.jpg";
+  ASSERT_TRUE(fs::exists(fs::path(inputFile)));
+  std::string temp_image_path(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                              "/rpathimage.jpg");
+  std::filesystem::copy_file(inputFile, temp_image_path);
+  VCL::Image img = VCL::Image(temp_image_path, true);
+
+  std::string _url = "http://localhost:5010/image";
+  Json::Value _options;
+  _options["format"] = "jpg";
+  _options["id"] = "metadata";
+  _options["media_type"] = "image";
+  _options["otype"] = "face";
+  _options["ingestion"] = 1;
+
+  img.syncremoteOperation(_url, _options);
+  cv::Mat vcl_img = img.get_cvmat();
+  for (auto metadata : img.get_ingest_metadata()) {
+    ASSERT_STREQ(metadata["object"].asString().data(), "face");
+  }
+
+  EXPECT_TRUE(std::remove(temp_image_path.data()) == 0);
+}
+
+TEST_F(ImageTest, UDFNoMetadata) {
+  std::string inputFile = "udf_test/metadata_image.jpg";
+  ASSERT_TRUE(fs::exists(fs::path(inputFile)));
+  std::string temp_image_path(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                              "/pathimagenometadata.jpg");
+  std::filesystem::copy_file(inputFile, temp_image_path);
+  VCL::Image img = VCL::Image(temp_image_path, true);
+
+  Json::Value _options;
+  _options["format"] = "jpg";
+  _options["id"] = "flip";
+  _options["port"] = 5555;
+
+  img.userOperation(_options);
+  cv::Mat vcl_img = img.get_cvmat();
+  ASSERT_EQ(img.get_ingest_metadata().size(), 0);
+
+  EXPECT_TRUE(std::remove(temp_image_path.data()) == 0);
 }

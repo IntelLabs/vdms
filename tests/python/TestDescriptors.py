@@ -29,237 +29,60 @@ import numpy as np
 
 
 class TestDescriptors(TestCommand.TestCommand):
-    def addSet(self, name, dim, metric, engine):
+    def add_descriptor(
+        self,
+        command_str: str,
+        setname: str,
+        label: str = None,
+        ref: int = None,
+        props: dict = None,
+        link: dict = None,
+        k_neighbors: int = None,
+        constraints: dict = None,
+        results: dict = None,
+    ):
+
+        descriptor: dict = {"set": setname}
+
+        if "Add" in command_str and label is not None:
+            descriptor["label"] = label
+
+        if ref is not None:
+            descriptor["_ref"] = ref
+
+        if props is not None:
+            descriptor["properties"] = props
+
+        if "Add" in command_str and link is not None:
+            descriptor["link"] = link
+
+        if "Find" in command_str and k_neighbors is not None:
+            descriptor["k_neighbors"] = int(k_neighbors)
+
+        if "Find" in command_str and constraints is not None:
+            descriptor["constraints"] = constraints
+
+        if "Find" in command_str and results is not None:
+            descriptor["results"] = results
+
+        query = {command_str: descriptor}
+        return query
+
+    def addSet(self, name, dim, metric="L2", engine="FaissFlat"):
         db = self.create_connection()
-
-        all_queries = []
-
-        descriptor_set = {}
-        descriptor_set["name"] = name
-        descriptor_set["dimensions"] = dim
-        descriptor_set["metric"] = metric
-        descriptor_set["engine"] = engine
-
-        query = {}
-        query["AddDescriptorSet"] = descriptor_set
-
-        all_queries.append(query)
-
+        all_queries = self.create_descriptor_set(name, dim, metric, engine)
         response, img_array = db.query(all_queries)
 
         # Check success
         self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
         self.disconnect(db)
 
-    def test_addSet(self):
-        db = self.create_connection()
-
-        all_queries = []
-
-        descriptor_set = {}
-        descriptor_set["name"] = "features_xd"
-        descriptor_set["dimensions"] = 1024 * 4
-
-        query = {}
-        query["AddDescriptorSet"] = descriptor_set
-
-        all_queries.append(query)
-
-        response, img_array = db.query(all_queries)
-
-        # Check success
-        self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
-        self.disconnect(db)
-
-    def test_addSetAndDescriptors(self):
-        db = self.create_connection()
-
-        all_queries = []
-
-        # Add Set
-        set_name = "features_128d"
-        dims = 1024
-        descriptor_set = {}
-        descriptor_set["name"] = set_name
-        descriptor_set["dimensions"] = dims
-
-        query = {}
-        query["AddDescriptorSet"] = descriptor_set
-
-        all_queries.append(query)
-
-        response, img_array = db.query(all_queries)
-        self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
-
-        # Add Descriptors
+    def create_descriptors(self, set_name, dims, total, labels=True):
         all_queries = []
         descriptor_blob = []
-
-        x = np.zeros(dims)
-        x = x.astype("float32")
-        # print type(x[0])
-        # print "size: ", len(x.tobytes())/4
-        descriptor_blob.append(x.tobytes())
-
-        descriptor = {}
-        descriptor["set"] = set_name
-
-        query = {}
-        query["AddDescriptor"] = descriptor
-
-        all_queries.append(query)
-
-        response, img_array = db.query(all_queries, [descriptor_blob])
-
-        # Check success
-        self.assertEqual(response[0]["AddDescriptor"]["status"], 0)
-
-        self.disconnect(db)
-
-    def test_addSetAndDescriptorsDimMismatch(self):
-        db = self.create_connection()
-
-        all_queries = []
-
-        # Add Set
-        set_name = "features_64d_dim_mismatched"
-        dims = 64
-        descriptor_set = {}
-        descriptor_set["name"] = set_name
-        descriptor_set["dimensions"] = dims
-
-        query = {}
-        query["AddDescriptorSet"] = descriptor_set
-
-        all_queries.append(query)
-
-        response, img_array = db.query(all_queries)
-        self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
-
-        # Add Descriptors
-        all_queries = []
-        descriptor_blob = []
-
-        x = np.zeros(dims // 2)
-        x = x.astype("float32")
-        # print type(x[0])
-        # print "size: ", len(x.tobytes())/4
-        descriptor_blob.append(x.tobytes())
-
-        descriptor = {}
-        descriptor["set"] = set_name
-
-        query = {}
-        query["AddDescriptor"] = descriptor
-
-        all_queries.append(query)
-
-        response, img_array = db.query(all_queries, [descriptor_blob])
-
-        # Check success
-        self.assertEqual(response[0]["status"], -1)
-        self.assertEqual(response[0]["info"], "Blob Dimensions Mismatch")
-
-        # Add Descriptors
-        all_queries = []
-        descriptor_blob = []
-
-        x = np.zeros(dims)[:-1]
-        x = x.astype("float32")
-        # print type(x[0])
-        # print "size: ", len(x.tobytes())/4
-        descriptor_blob.append(x.tobytes())
-
-        descriptor = {}
-        descriptor["set"] = set_name
-
-        query = {}
-        query["AddDescriptor"] = descriptor
-
-        all_queries.append(query)
-
-        response, img_array = db.query(all_queries, [descriptor_blob])
-
-        # Check success
-        self.assertEqual(response[0]["status"], -1)
-        self.assertEqual(response[0]["info"], "Blob Dimensions Mismatch")
-
-        self.disconnect(db)
-
-    def test_addDescriptorsx1000(self):
-        db = self.create_connection()
-
-        all_queries = []
-
-        # Add Set
-        set_name = "features_128dx1000"
-        dims = 128
-        descriptor_set = {}
-        descriptor_set["name"] = set_name
-        descriptor_set["dimensions"] = dims
-
-        query = {}
-        query["AddDescriptorSet"] = descriptor_set
-
-        all_queries.append(query)
-
-        response, img_array = db.query(all_queries)
-        self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
-
-        all_queries = []
-        descriptor_blob = []
-
-        total = 2
-
-        for i in range(1, total):
-            x = np.ones(dims)
-            x[2] = 2.34 + i * 20
-            x = x.astype("float32")
-            descriptor_blob.append(x.tobytes())
-
-            descriptor = {}
-            descriptor["set"] = set_name
-            descriptor["label"] = "classX"
-
-            query = {}
-            query["AddDescriptor"] = descriptor
-
-            all_queries.append(query)
-
-        response, img_array = db.query(all_queries, [descriptor_blob])
-
-        # Check success
-        for x in range(0, total - 1):
-            self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
-        self.disconnect(db)
-
-    def test_classifyDescriptor(self):
-        db = self.create_connection()
-
-        all_queries = []
-
-        # Add Set
-        set_name = "features_128d_4_classify"
-        dims = 128
-        descriptor_set = {}
-        descriptor_set["name"] = set_name
-        descriptor_set["dimensions"] = dims
-
-        query = {}
-        query["AddDescriptorSet"] = descriptor_set
-
-        all_queries.append(query)
-
-        response, img_array = db.query(all_queries)
-        self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
-
-        all_queries = []
-        descriptor_blob = []
-
-        total = 2
 
         class_counter = -1
-        for i in range(0, total - 1):
+        for i in range(0, total):
             if (i % 4) == 0:
                 class_counter += 1
 
@@ -268,15 +91,133 @@ class TestDescriptors(TestCommand.TestCommand):
             x = x.astype("float32")
             descriptor_blob.append(x.tobytes())
 
-            descriptor = {}
-            descriptor["set"] = set_name
-            descriptor["label"] = "class" + str(class_counter)
+            props = {}
+            props["myid"] = i + 200
 
-            query = {}
-            query["AddDescriptor"] = descriptor
+            if labels:
+                label = "class" + str(class_counter)
+            else:
+                label = None
+
+            query = self.add_descriptor("AddDescriptor", set_name, label, props=props)
 
             all_queries.append(query)
 
+        return all_queries, descriptor_blob
+
+    def addSet_and_Insert(
+        self, set_name, dims, total, metric="L2", engine="FaissFlat", labels=True
+    ):
+        db = self.create_connection()
+        all_queries = self.create_descriptor_set(set_name, dims, metric, engine)
+        response, img_array = db.query(all_queries)
+
+        # Check AddDescriptorSet success
+        self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
+
+        all_queries, descriptor_blob = self.create_descriptors(
+            set_name, dims, total, labels
+        )
+        response, img_array = db.query(all_queries, [descriptor_blob])
+
+        # Check success
+        for x in range(0, total):
+            self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
+
+        self.disconnect(db)
+
+    def test_findDescriptorSet(self):
+        db = self.create_connection()
+        name = "testFindDescriptorSet"
+        dim = 128
+        engine = "FaissFlat"
+        metric = "L2"
+
+        self.addSet(name, dim, metric, engine)
+
+        all_queries = []
+        storeIndex = True
+        descriptor_set = {}
+        descriptor_set["set"] = name
+        descriptor_set["storeIndex"] = storeIndex
+        query = {}
+        query["FindDescriptorSet"] = descriptor_set
+        all_queries.append(query)
+
+        # Execute the query
+        response, img_array = db.query(all_queries)
+
+        self.assertEqual(response[0]["FindDescriptorSet"]["status"], 0)
+        self.assertEqual(response[0]["FindDescriptorSet"]["returned"], 1)
+        self.assertEqual(
+            response[0]["FindDescriptorSet"]["entities"][0]["VD:engine"], engine
+        )
+        self.assertEqual(
+            response[0]["FindDescriptorSet"]["entities"][0]["VD:dimensions"], dim
+        )
+        self.assertEqual(
+            response[0]["FindDescriptorSet"]["entities"][0]["VD:name"], name
+        )
+
+    @TestCommand.TestCommand.shouldSkipRemotePythonTest()
+    def test_addSetAndDescriptors(self):
+        engines = ["FaissFlat", "FaissIVFFlat", "Flinng", "TileDBDense", "TileDBSparse"]
+        metrics = ["L2"]
+        dimensions = [128]
+        total = 2
+        for eng in engines:
+            for metric in metrics:
+                for dim in dimensions:
+                    self.addSet_and_Insert(
+                        f"features_{dim}d-{metric}-{eng}",
+                        dim,
+                        total,
+                        metric,
+                        eng,
+                        labels=True,
+                    )
+
+    def test_addSetAndDescriptorsDimMismatch(self):
+        db = self.create_connection()
+
+        # Add Set
+        set_name = "features_64d_dim_mismatched"
+        dims = 64
+        all_queries = self.create_descriptor_set(set_name, dims)
+
+        response, img_array = db.query(all_queries)
+        self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
+
+        # Add Descriptors
+        descriptor_blob = []
+        x = np.zeros(dims // 2)
+        x = x.astype("float32")
+        descriptor_blob.append(x.tobytes())
+
+        all_queries = []
+        query = self.add_descriptor("AddDescriptor", set_name)
+        all_queries.append(query)
+
+        response, img_array = db.query(all_queries, [descriptor_blob])
+
+        # Check success
+        self.assertEqual(response[0]["status"], -1)
+        self.assertEqual(response[0]["info"], "Blob Dimensions Mismatch")
+
+        self.disconnect(db)
+
+    def test_classifyDescriptor(self):
+        db = self.create_connection()
+        set_name = "features_128d_4_classify"
+        dims = 128
+        all_queries = self.create_descriptor_set(set_name, dims)
+        response, img_array = db.query(all_queries)
+        self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
+
+        total = 30
+        all_queries, descriptor_blob = self.create_descriptors(
+            set_name, dims, total, labels=True
+        )
         response, img_array = db.query(all_queries, [descriptor_blob])
 
         # Check success
@@ -285,7 +226,6 @@ class TestDescriptors(TestCommand.TestCommand):
 
         descriptor = {}
         descriptor["set"] = set_name
-
         query = {}
         query["ClassifyDescriptor"] = descriptor
 
@@ -294,7 +234,7 @@ class TestDescriptors(TestCommand.TestCommand):
             descriptor_blob = []
 
             x = np.ones(dims)
-            x[2] = 2.34 + i * 20  # Calculated to be of class1
+            x[2] = 2.34 + i * 20  # Calculated to be of class0
             x = x.astype("float32")
             descriptor_blob.append(x.tobytes())
 
@@ -307,4 +247,366 @@ class TestDescriptors(TestCommand.TestCommand):
             self.assertEqual(
                 response[0]["ClassifyDescriptor"]["label"], "class" + str(int(i / 4))
             )
+        self.disconnect(db)
+
+    @TestCommand.TestCommand.shouldSkipRemotePythonTest()
+    def test_addDifferentSets(self):
+        engines = ["FaissFlat", "FaissIVFFlat", "Flinng", "TileDBDense", "TileDBSparse"]
+        metrics = ["L2", "IP"]
+        dimensions = [128, 4075]
+        for eng in engines:
+            for metric in metrics:
+                for dim in dimensions:
+                    self.addSet(f"{dim}-{metric}-{eng}", dim, metric, eng)
+
+    # @unittest.skip("Skipping class until fixed")
+    def test_findDescByConstraints(self):
+        # Add Set
+        set_name = "features_128d_4_findbyConst"
+        dims = 128
+        total = 5
+        self.addSet_and_Insert(set_name, dims, total)
+
+        db = self.create_connection()
+
+        all_queries = []
+        constraints = {}
+        constraints["myid"] = ["==", 202]
+        results = {}
+        results["list"] = [
+            "myid",
+        ]
+        query = self.add_descriptor(
+            "FindDescriptor", set_name, constraints=constraints, results=results
+        )
+        all_queries.append(query)
+        response, img_array = db.query(all_queries)
+
+        # Check success
+        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], 1)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["myid"], 202)
+        self.disconnect(db)
+
+    # @unittest.skip("Skipping class until fixed")
+    def test_findDescUnusedRef(self):
+        # Add Set
+        set_name = "features_128d_4_findunusedRef"
+        dims = 128
+        total = 5
+        self.addSet_and_Insert(set_name, dims, total)
+
+        db = self.create_connection()
+
+        all_queries = []
+        constraints = {}
+        constraints["myid"] = ["==", 202]
+        results = {}
+        results["list"] = ["myid"]
+        query = self.add_descriptor(
+            "FindDescriptor", set_name, ref=1, constraints=constraints, results=results
+        )
+        all_queries.append(query)
+
+        response, blob_array = db.query(all_queries)
+
+        # Check success
+        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], 1)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["myid"], 202)
+        self.disconnect(db)
+
+    # @unittest.skip("Skipping class until fixed")
+    def test_findDescByConst_multiple_blobTrue(self):
+        # Add Set
+        set_name = "features_128d_4_findDescriptors_m_blob"
+        dims = 128
+        total = 5
+        self.addSet_and_Insert(set_name, dims, total)
+
+        db = self.create_connection()
+
+        all_queries = []
+        constraints = {}
+        constraints["myid"] = ["<=", 202]
+        results = {}
+        results["list"] = ["myid"]
+        results["sort"] = "myid"
+        results["blob"] = True
+        query = self.add_descriptor(
+            "FindDescriptor", set_name, constraints=constraints, results=results
+        )
+        all_queries.append(query)
+
+        response, fv_array = db.query(all_queries)
+
+        # Check success
+        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], 3)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["myid"], 200)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][1]["myid"], 201)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][2]["myid"], 202)
+        self.assertEqual(len(fv_array), 3)
+        self.assertEqual(len(fv_array[0]), dims * 4)
+        self.disconnect(db)
+
+    # @unittest.skip("Skipping class until fixed")
+    def test_findDescByBlob(self):
+        # Add Set
+        set_name = "findwith_blob"
+        dims = 128
+        total = 5
+        self.addSet_and_Insert(set_name, dims, total)
+
+        db = self.create_connection()
+
+        kn = 3
+        all_queries = []
+        results = {}
+        results["list"] = ["myid", "_id", "_distance"]
+        results["blob"] = True
+        query = self.add_descriptor(
+            "FindDescriptor", set_name, k_neighbors=kn, results=results
+        )
+        all_queries.append(query)
+
+        descriptor_blob = []
+        x = np.ones(dims)
+        x[2] = x[2] = 2.34 + 1 * 20  # 2.34 + 1*20
+        x = x.astype("float32")
+        descriptor_blob.append(x.tobytes())
+
+        response, blob_array = db.query(all_queries, [descriptor_blob])
+
+        self.assertEqual(len(blob_array), kn)
+        self.assertEqual(descriptor_blob[0], blob_array[0])
+
+        # Check success
+        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["_distance"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][1]["_distance"], 400)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][2]["_distance"], 400)
+        self.disconnect(db)
+
+    # @unittest.skip("Skipping class until fixed")
+    def test_findDescByBlobNoResults(self):
+        # Add Set
+        set_name = "findwith_blobNoResults"
+        dims = 128
+        total = 1
+        self.addSet_and_Insert(set_name, dims, total)
+
+        db = self.create_connection()
+
+        kn = 1
+
+        all_queries = []
+        results = {}
+        results["blob"] = True
+        query = self.add_descriptor(
+            "FindDescriptor", set_name, k_neighbors=kn, results=results
+        )
+        all_queries.append(query)
+
+        descriptor_blob = []
+        x = np.ones(dims)
+        x[2] = 2.34
+        x = x.astype("float32")
+        descriptor_blob.append(x.tobytes())
+
+        response, blob_array = db.query(all_queries, [descriptor_blob])
+
+        # Check success
+        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], 1)
+        self.assertEqual(len(blob_array), kn)
+        self.assertEqual(descriptor_blob[0], blob_array[0])
+        self.disconnect(db)
+
+    # @unittest.skip("Skipping class until fixed")
+    def test_findDescByBlobUnusedRef(self):
+        # Add Set
+        set_name = "findwith_blobUnusedRef"
+        dims = 50
+        total = 3
+        self.addSet_and_Insert(set_name, dims, total)
+
+        db = self.create_connection()
+
+        kn = 3
+
+        all_queries = []
+        results = {}
+        results["blob"] = True
+        query = self.add_descriptor(
+            "FindDescriptor", set_name, ref=1, k_neighbors=kn, results=results
+        )
+        all_queries.append(query)
+
+        descriptor_blob = []
+        x = np.ones(dims)
+        x[2] = 2.34 + 1 * 20
+        x = x.astype("float32")
+        descriptor_blob.append(x.tobytes())
+
+        response, blob_array = db.query(all_queries, [descriptor_blob])
+
+        # Check success
+        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
+        self.assertEqual(len(blob_array), kn)
+        self.assertEqual(descriptor_blob[0], blob_array[0])
+        self.disconnect(db)
+
+    # @unittest.skip("Skipping class until fixed")
+    def test_findDescByBlobAndConstraints(self):
+        # Add Set
+        set_name = "findwith_blob_const"
+        dims = 128
+        total = 5
+        self.addSet_and_Insert(set_name, dims, total)
+
+        db = self.create_connection()
+
+        kn = 3
+
+        all_queries = []
+        results = {}
+        results["list"] = ["myid", "_id", "_distance"]
+        results["blob"] = True
+        constraints = {}
+        constraints["myid"] = ["==", 202]
+        query = self.add_descriptor(
+            "FindDescriptor",
+            set_name,
+            k_neighbors=kn,
+            constraints=constraints,
+            results=results,
+        )
+        all_queries.append(query)
+
+        descriptor_blob = []
+        x = np.ones(dims)
+        x[2] = 2.34 + 2 * 20
+        x = x.astype("float32")
+        descriptor_blob.append(x.tobytes())
+
+        response, blob_array = db.query(all_queries, [descriptor_blob])
+
+        self.assertEqual(len(blob_array), 1)
+        self.assertEqual(descriptor_blob[0], blob_array[0])
+
+        # Check success
+        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], 1)
+
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["_distance"], 0)
+        self.disconnect(db)
+
+    # @unittest.skip("Skipping class until fixed")
+    def test_findDescByBlobWithLink(self):
+        # Add Set
+        set_name = "findwith_blob_link"
+        dims = 128
+        total = 3
+
+        db = self.create_connection()
+        all_queries = self.create_descriptor_set(set_name, dims)
+
+        response, img_array = db.query(all_queries)
+        self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
+
+        all_queries = []
+        descriptor_blob = []
+
+        class_counter = -1
+        for i in range(0, total):
+            if (i % 4) == 0:
+                class_counter += 1
+
+            reference = i + 2
+
+            x = np.ones(dims)
+            x[2] = 2.34 + i * 20
+            x = x.astype("float32")
+            descriptor_blob.append(x.tobytes())
+
+            props = {}
+            props["myid"] = i + 200
+            query = self.add_descriptor(
+                "AddDescriptor",
+                set_name,
+                label="class" + str(class_counter),
+                ref=reference,
+                props=props,
+            )
+
+            all_queries.append(query)
+
+            props = {}
+            props["entity_prop"] = i + 200
+            link = {}
+            link["ref"] = reference
+            query = self.create_entity(
+                "AddEntity", class_str="RandomEntity", props=props, link=link
+            )
+            all_queries.append(query)
+
+        response, img_array = db.query(all_queries, [descriptor_blob])
+
+        # Check success
+        for x in range(0, total - 1, 2):
+            self.assertEqual(response[x]["AddDescriptor"]["status"], 0)
+            self.assertEqual(response[x + 1]["AddEntity"]["status"], 0)
+
+        kn = 3
+        reference = 102  # because I can
+
+        all_queries = []
+        results = {}
+        results["list"] = ["myid", "_id", "_distance"]
+        results["blob"] = True
+        query = self.add_descriptor(
+            "FindDescriptor", set_name, ref=reference, k_neighbors=kn, results=results
+        )
+        all_queries.append(query)
+
+        descriptor_blob = []
+        x = np.ones(dims)
+        x[2] = 2.34 + 1 * 20
+        x = x.astype("float32")
+        descriptor_blob.append(x.tobytes())
+
+        results = {}
+        results["list"] = ["entity_prop"]
+        results["sort"] = "entity_prop"
+        link = {}
+        link["ref"] = reference
+        query = self.create_entity(
+            "FindEntity", class_str="RandomEntity", results=results, link=link
+        )
+
+        all_queries.append(query)
+
+        response, blob_array = db.query(all_queries, [descriptor_blob])
+
+        self.assertEqual(len(blob_array), kn)
+        # This checks that the received blobs is the same as the inserted.
+        self.assertEqual(descriptor_blob[0], blob_array[0])
+
+        # Check success
+        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
+
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["_distance"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][1]["_distance"], 400)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][2]["_distance"], 400)
+
+        self.assertEqual(response[1]["FindEntity"]["status"], 0)
+        self.assertEqual(response[1]["FindEntity"]["returned"], kn)
+
+        self.assertEqual(response[1]["FindEntity"]["entities"][0]["entity_prop"], 200)
+        self.assertEqual(response[1]["FindEntity"]["entities"][1]["entity_prop"], 201)
+        self.assertEqual(response[1]["FindEntity"]["entities"][2]["entity_prop"], 202)
         self.disconnect(db)

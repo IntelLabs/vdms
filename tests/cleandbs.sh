@@ -26,6 +26,7 @@ rm -rf test_images/tdb_to_jpg.jpg || true
 rm -rf test_images/tdb_to_png.png || true
 rm -rf test_images/test_image.jpg || true
 rm -rf remote_function_test/tmpfile* || true
+rm -rf remote_function_test/jsonfile* || true
 rm -rf backups || true
 rm -rf ../minio_files || true
 rm -rf ../test_db || true
