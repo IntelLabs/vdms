@@ -1,8 +1,6 @@
 name: CI
 
 on:
-  push:
-    branches: [pre-2.9]
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [develop]
@@ -26,9 +24,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       CHECKIN_DOCKERFILE: .github/scripts/docker-compose.yml
-      CONTAINER_NAME: source_coverage_${{ github.event.pull_request.number || github.ref_name }}
-      SOURCE_REF: ${{ github.event.pull_request.head.sha || github.sha }}
-      TARGET_REF: 632eaed58b16046347a8d249aa198ad31af44dac  #${{ github.event.pull_request.base.ref || github.event.before }}
+      CONTAINER_NAME: source_coverage_${{ github.event.pull_request.number }}
+      SOURCE_REF: ${{ github.event.pull_request.head.sha }}
+      TARGET_REF: ${{ github.event.pull_request.base.ref }}
     steps:
       - run: echo "null"
 
