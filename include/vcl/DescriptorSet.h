@@ -44,6 +44,8 @@
 
 #include <VDMSConfigHelper.h>
 
+#include "timers/TimerMap.h"
+
 namespace VCL {
 
 enum DescriptorSetEngine {
@@ -68,6 +70,8 @@ public:
 
   class DescriptorSetData;
   class DescriptorParams;
+
+  TimerMap timers;
 
 private:
   DescriptorSetData *_set;

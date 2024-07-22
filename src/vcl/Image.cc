@@ -475,6 +475,22 @@ void Image::SyncRemoteOperation::operator()(Image *img) {
             }
           }
 
+          std::string delimiter = ":metadata:";
+
+          size_t pos = 0;
+          std::string token;
+          std::string tmpBuffer = readBuffer;
+          if ((pos = tmpBuffer.find(delimiter)) != std::string::npos) {
+            readBuffer = tmpBuffer.substr(0, pos);
+            tmpBuffer.erase(0, pos + delimiter.length());
+            Json::Value message;
+            Json::Reader reader;
+            bool parsingSuccessful = reader.parse(tmpBuffer, message);
+            if (!parsingSuccessful) {
+              throw VCLException(ObjectEmpty, "Error parsing string.");
+            }
+            img->set_ingest_metadata(message["metadata"]);
+          }
           // Decode the response
           std::vector<unsigned char> vectordata(readBuffer.begin(),
                                                 readBuffer.end());
@@ -548,6 +564,7 @@ void Image::UserOperation::operator()(Image *img) {
         cv::imwrite(filePath, img->_cv_img);
 
         _options["ipfile"] = filePath;
+        _options["media_type"] = "image";
 
         std::string message_to_send = _options.toStyledString();
 
@@ -556,36 +573,53 @@ void Image::UserOperation::operator()(Image *img) {
         memcpy(ipfile.data(), message_to_send.data(), message_len);
 
         socket.send(ipfile, 0);
-
+        std::string response;
         while (true) {
-          char buffer[256];
-          int size = socket.recv(buffer, 255, 0);
+          zmq::message_t reply;
+          socket.recv(&reply);
 
-          buffer[size] = '\0';
-          opfile = buffer;
+          response =
+              std::string(static_cast<char *>(reply.data()), reply.size());
 
           break;
         }
 
-        std::ifstream rfile;
-        rfile.open(opfile);
-
-        if (rfile) {
-          rfile.close();
-        } else {
-          if (std::remove(filePath.data()) != 0) {
+        std::string delimiter = "metadata";
+        size_t pos;
+        if ((pos = response.find(delimiter)) != std::string::npos) {
+          Json::Value message;
+          Json::Reader reader;
+          bool parsingSuccessful = reader.parse(response, message);
+          if (!parsingSuccessful) {
+            throw VCLException(ObjectEmpty, "Error parsing string.");
           }
-          throw VCLException(OpenFailed, "UDF Error");
+          img->set_ingest_metadata(message["metadata"]);
+        } else {
+          opfile = response;
+          std::ifstream rfile;
+          rfile.open(opfile);
+
+          if (rfile) {
+            rfile.close();
+          } else {
+            if (std::remove(filePath.data()) != 0) {
+              throw VCLException(ObjectNotFound, "Unable to remove file");
+            }
+            throw VCLException(OpenFailed, "UDF Error");
+          }
+
+          VCL::Image res_image(opfile);
+          img->shallow_copy_cv(res_image.get_cvmat(true));
+
+          if (std::remove(filePath.data()) != 0) {
+            throw VCLException(ObjectNotFound, "Unable to remove file");
+          }
+
+          if (std::remove(opfile.data()) != 0) {
+            throw VCLException(ObjectNotFound, "Unable to remove file");
+          }
         }
 
-        VCL::Image res_image(opfile);
-        img->shallow_copy_cv(res_image.get_cvmat(true));
-
-        if (std::remove(filePath.data()) != 0) {
-        }
-
-        if (std::remove(opfile.data()) != 0) {
-        }
       } else
         throw VCLException(ObjectEmpty, "Image object is empty");
     }
@@ -791,8 +825,10 @@ Image::Image(const Image &img, bool copy) {
     } else
       start = 0;
 
-    for (int i = start; i < img._operations.size(); ++i)
+    for (int i = start; i < img._operations.size(); ++i) {
+      op_labels.push_back(img.op_labels[i]);
       _operations.push_back(img._operations[i]);
+    }
   }
 
   _op_completed = img._op_completed;
@@ -811,6 +847,7 @@ Image::Image(Image &&img) noexcept {
   _tdb = img._tdb;
   _operations = std::move(img._operations);
   shallow_copy_cv(img._cv_img);
+  op_labels = img.op_labels;
 
   img._tdb = NULL;
 
@@ -858,8 +895,10 @@ Image &Image::operator=(const Image &img) {
     } else
       start = 0;
 
-    for (int i = start; i < img._operations.size(); ++i)
+    for (int i = start; i < img._operations.size(); ++i) {
+      op_labels.push_back(img.op_labels[i]);
       _operations.push_back(img._operations[i]);
+    }
   }
 
   _op_completed = img._op_completed;
@@ -951,6 +990,7 @@ Image Image::get_area(const Rectangle &roi, bool performOp) const {
 
   std::shared_ptr<Operation> op = std::make_shared<Crop>(roi, area._format);
 
+  area.op_labels.push_back("get_area");
   area._operations.push_back(op);
 
   if (performOp)
@@ -1035,6 +1075,10 @@ int Image::get_op_completed() { return _op_completed; }
 Json::Value Image::get_remoteOp_params() { return remoteOp_params; }
 
 std::string Image::get_query_error_response() { return _query_error_response; }
+
+std::vector<Json::Value> Image::get_ingest_metadata() {
+  return _ingest_metadata;
+}
 
 std::vector<unsigned char>
 Image::get_encoded_image(VCL::Format format, const std::vector<int> &params) {
@@ -1223,6 +1267,10 @@ void Image::set_query_error_response(std::string response_error) {
   _query_error_response = response_error;
 }
 
+void Image::set_ingest_metadata(Json::Value metadata) {
+  _ingest_metadata.push_back(metadata);
+}
+
 void Image::update_op_completed() { _op_completed++; }
 
 void Image::set_connection(RemoteConnection *remote) {
@@ -1252,11 +1300,15 @@ void Image::set_connection(RemoteConnection *remote) {
 void Image::perform_operations() {
   try {
     for (int x = 0; x < _operations.size(); ++x) {
+      std::string op_name = op_labels[x];
+      timers.add_timestamp(op_name);
       std::shared_ptr<Operation> op = _operations[x];
       if (op == NULL)
         throw VCLException(ObjectEmpty, "Nothing to be done");
       (*op)(this);
+      timers.add_timestamp(op_name);
     }
+
   } catch (cv::Exception &e) {
     throw VCLException(OpenCVError, e.what());
   }
@@ -1288,11 +1340,13 @@ int Image::execute_operation() {
 
 void Image::read(const std::string &image_id) {
   _image_id = create_fullpath(image_id, _format);
+  op_labels.push_back("read");
   _operations.push_back(std::make_shared<Read>(_image_id, _format));
 }
 
 void Image::store(const std::string &image_id, VCL::Format image_format,
                   bool store_metadata) {
+  op_labels.push_back("store");
   _operations.push_back(
       std::make_shared<Write>(create_fullpath(image_id, image_format),
                               image_format, _format, store_metadata));
@@ -1316,6 +1370,7 @@ bool Image::delete_image() {
 void Image::resize(int new_height, int new_width) {
   _operations.push_back(std::make_shared<Resize>(
       Rectangle(0, 0, new_width, new_height), _format));
+  op_labels.push_back("resize");
 }
 
 void Image::crop(const Rectangle &rect) {
@@ -1327,32 +1382,39 @@ void Image::crop(const Rectangle &rect) {
   }
 
   _operations.push_back(std::make_shared<Crop>(rect, _format));
+  op_labels.push_back("crop");
 }
 
 void Image::threshold(int value) {
   _operations.push_back(std::make_shared<Threshold>(value, _format));
+  op_labels.push_back("threshold");
 }
 
 void Image::flip(int code) {
   _operations.push_back(std::make_shared<Flip>(code, _format));
+  op_labels.push_back("flip");
 }
 
 void Image::rotate(float angle, bool keep_size) {
   _operations.push_back(std::make_shared<Rotate>(angle, keep_size, _format));
+  op_labels.push_back("rotate");
 }
 
 void Image::syncremoteOperation(std::string url, Json::Value options) {
   _operations.push_back(
       std::make_shared<SyncRemoteOperation>(url, options, _format));
+  op_labels.push_back("sync_remote");
 }
 
 void Image::remoteOperation(std::string url, Json::Value options) {
   _operations.push_back(
       std::make_shared<RemoteOperation>(url, options, _format));
+  op_labels.push_back("remote_op");
 }
 
 void Image::userOperation(Json::Value options) {
   _operations.push_back(std::make_shared<UserOperation>(options, _format));
+  op_labels.push_back("user_op");
 }
 
 /*  *********************** */

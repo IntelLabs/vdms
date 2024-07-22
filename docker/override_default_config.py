@@ -92,7 +92,10 @@ def main(args):
             try:
                 updated_config_value = int(env_value)
             except:
-                updated_config_value = env_value
+                if any(b in env_value.lower() for b in ["true", "false"]):
+                    updated_config_value = bool(env_value)
+                else:
+                    updated_config_value = env_value
 
             config[updated_config_key] = updated_config_value
             updated_params.append(updated_config_key)

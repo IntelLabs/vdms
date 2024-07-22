@@ -50,6 +50,7 @@ protected:
   VCL::Video::Codec string_to_codec(const std::string &codec);
 
   virtual Json::Value check_responses(Json::Value &responses);
+  bool output_vcl_timing;
 
 public:
   VideoCommand(const std::string &cmd_name);
@@ -97,6 +98,7 @@ public:
 
 class FindVideo : public VideoCommand {
   // bool _use_aws_storage;
+  std::vector<std::string> shortlisted_videos;
 
 public:
   FindVideo();

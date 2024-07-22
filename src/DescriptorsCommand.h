@@ -51,6 +51,7 @@ class DescriptorsCommand : public RSCommand {
 protected:
   DescriptorsManager *_dm;
   VCL::DescriptorSetEngine _eng;
+  bool output_vcl_timing;
 
   // IDDistancePair is a pointer so that we can free its content
   // without having to use erase methods, which are not lock free

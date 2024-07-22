@@ -16,4 +16,4 @@ def run(settings, message, input_params):
 
     cv2.imwrite(opfilename, img)
 
-    return (time.time() - t1), opfilename
+    return opfilename

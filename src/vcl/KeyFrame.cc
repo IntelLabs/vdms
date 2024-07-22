@@ -460,7 +460,7 @@ int KeyFrameDecoder::encode_frames(void) {
 
   if (!_ctx.frame_codec_context) {
     // Initialize frame encoder (PNG for now, may change in the future)
-    AVCodec *image_codec = avcodec_find_encoder(AV_CODEC_ID_PNG);
+    const AVCodec *image_codec = avcodec_find_encoder(AV_CODEC_ID_PNG);
     if (!image_codec)
       return AVERROR_ENCODER_NOT_FOUND;
 

@@ -53,6 +53,8 @@
 #include <valijson/schema_parser.hpp>
 #include <valijson/utils/jsoncpp_utils.hpp>
 
+#include "timers/TimerMap.h"
+
 using namespace VDMS;
 
 std::unordered_map<std::string, RSCommand *> QueryHandlerPMGD::_rs_cmds;
@@ -115,13 +117,9 @@ void QueryHandlerPMGD::init() {
 }
 
 QueryHandlerPMGD::QueryHandlerPMGD()
-    : _pmgd_qh(), _autodelete_init(false), _autoreplicate_init(false)
-#ifdef CHRONO_TIMING
-      ,
-      ch_tx_total("ch_tx_total"), ch_tx_query("ch_tx_query"),
-      ch_tx_send("ch_tx_send")
-#endif
-{
+    : _pmgd_qh(), _autodelete_init(false), _autoreplicate_init(false) {
+  output_query_level_timing =
+      VDMSConfig::instance()->get_bool_value("print_query_timing", false);
 }
 
 bool QueryHandlerPMGD::syntax_checker(const Json::Value &root,
@@ -275,6 +273,13 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
 
     std::vector<Json::Value> construct_results;
 
+    int time_input_ctr = 0;
+    int time_output_ctr = 0;
+    std::string timer_id;
+    TimerMap timers;
+    Json::Value timing_res;
+    std::vector<std::string> timer_id_list;
+
     auto error = [&](Json::Value &res, Json::Value &failed_command) {
       cleanup_query(images_log, videos_log);
       res["FailedCommand"] = failed_command;
@@ -307,8 +312,13 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
       const std::string &blob =
           rscmd->need_blob(query) ? proto_query.blobs(blob_count++) : "";
 
+      timer_id =
+          "input_operation_" + cmd + "_" + std::to_string(time_input_ctr);
+      time_input_ctr++;
+      timers.add_timestamp(timer_id);
       int ret_code = rscmd->construct_protobuf(pmgd_query, query, blob,
                                                group_count, cmd_result);
+      timers.add_timestamp(timer_id);
 
       if (cmd_result.isMember("image_added")) {
         images_log.push_back(cmd_result["image_added"].asString());
@@ -325,7 +335,9 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
       construct_results.push_back(cmd_result);
     }
 
+    timers.add_timestamp("pmgd_query_time");
     Json::Value &tx_responses = pmgd_query.run(_autodelete_init);
+    timers.add_timestamp("pmgd_query_time");
 
     if (!tx_responses.isArray() || tx_responses.size() != root.size()) {
       Json::StyledWriter writer;
@@ -355,8 +367,14 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
             rscmd->need_blob(query) ? proto_query.blobs(blob_count++) : "";
 
         query["cp_result"] = construct_results[j];
+
+        timer_id =
+            "response_operation_" + cmd + "_" + std::to_string(time_output_ctr);
+        time_output_ctr++;
+        timers.add_timestamp(timer_id);
         cmd_result =
             rscmd->construct_responses(tx_responses[j], query, proto_res, blob);
+        timers.add_timestamp(timer_id);
 
         // This is for error handling
         if (cmd_result.isMember("status")) {
@@ -367,8 +385,13 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
             return;
           }
         }
+
         json_responses.append(cmd_result);
       }
+    }
+
+    if (output_query_level_timing) {
+      timers.print_map_runtimes();
     }
     proto_res.set_json(fastWriter.write(json_responses));
     _pmgd_qh.cleanup_files();

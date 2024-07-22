@@ -4,8 +4,8 @@ This submodule is required to execute user defined operations (UDF) in VDMS usin
 ## Requirements
 - Python 3 or higher
 - Following python libraries
-    - opencv-python
-    - zmq
+    - opencv-python-headless
+    - pyzmq
 
 ## UDF Definition
 Any operation can be added to the module by creating a python file and adding it to the `functions` folder. All related files for the UDF should be stored in the folder `functions/files`. The operaion file should follow the following setup to define a `run` function that the interface file for VDMS will use;
@@ -40,7 +40,7 @@ Update the `settings.json` file with the following parameters;
 ```
 
 ## Setup
-1. Either run from the location where you have the VDMS repo or just copy the `user_defined_operations` directory to wherever you want to run the UDFs, but ensure that it is on the same system as VDMS. 
+1. Either run from the location where you have the VDMS repo or just copy the `user_defined_operations` directory to wherever you want to run the UDFs, but ensure that it is on the same system as VDMS.
 2. Create your UDFs as python scripts and place them in the `user_defined_operations/functions` directory.
 3. Update the `settings.json` file to include your UDF file and other necessary information.
 4. Follow the following steps to run the `user_defined_operations` submodule on port <port_number>.
@@ -123,7 +123,7 @@ def run(settings, message, input_params):
     opfilename = settings["opfile"] + str(t1) + '.' + format
 
     img = cv2.imread(ipfilename)
-    
+
     # These lines
     # represent the
     # code logic

@@ -162,25 +162,11 @@ bool QueryHandlerNeo4j::syntax_checker(const Json::Value &root,
 void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
                                       protobufs::queryMessage &proto_res) {
 
-  std::chrono::steady_clock::time_point dbconn_start, dbconn_end;
-  std::chrono::steady_clock::time_point pre_proc_start, pre_proc_end;
-  std::chrono::steady_clock::time_point resp_start, resp_end;
-  std::chrono::steady_clock::time_point total_start, total_end;
-  std::chrono::steady_clock::time_point db_trans_time_start, db_trans_time_end;
-  std::chrono::steady_clock::time_point db_cmt_time_start, db_cmt_time_end;
-  double total_runtime, db_conn_time, pre_proc_time, cons_resp_time,
-      db_trans_time, db_cmt_time;
-
   neo4j_transaction *tx;
   neo4j_connection_t *conn;
   neo4j_result_stream_t *res_stream;
 
-  total_start = std::chrono::steady_clock::now();
-  dbconn_start = std::chrono::steady_clock::now();
   conn = neoconn_pool->get_conn();
-  ///// connection retrieved
-  dbconn_end = std::chrono::steady_clock::now();
-
   int rc;
 
   Json::FastWriter fastWriter;
@@ -190,6 +176,7 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
 
   Json::Value root;
   int blob_count = 0;
+  bool error = false;
 
   rc = parse_commands(proto_query, root);
 
@@ -209,22 +196,20 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
     const std::string &blob =
         rscmd->need_blob(query) ? proto_query.blobs(blob_count++) : "";
 
-    pre_proc_start = std::chrono::steady_clock::now();
-    rscmd->data_processing(cypher, query, blob, 0, cmd_result);
-    pre_proc_end = std::chrono::steady_clock::now();
+    rc = rscmd->data_processing(cypher, query, blob, 0, cmd_result);
 
-    db_trans_time_start = std::chrono::steady_clock::now();
+    if (rc != 0) {
+      printf("Data Processing failed, aborting transaction...\n");
+      error = true;
+      break;
+    }
+
     res_stream = neoconn_pool->run_in_tx((char *)cypher.c_str(), tx);
-    db_trans_time_end = std::chrono::steady_clock::now();
-
     neo4j_resp = neoconn_pool->results_to_json(res_stream);
 
-    resp_start = std::chrono::steady_clock::now();
     rscmd->construct_responses(neo4j_resp, query, proto_res, blob);
-    resp_end = std::chrono::steady_clock::now();
 
     if (neo4j_resp.isMember("metadata_res")) {
-
       hello_res["metadata_res"] = neo4j_resp["metadata_res"];
     }
 
@@ -232,32 +217,13 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
 
     proto_res.set_json(fastWriter.write(json_responses));
   }
-  // commit neo4j transaction
-
-  db_cmt_time_start = std::chrono::steady_clock::now();
-  neoconn_pool->commit_tx(tx);
-  db_cmt_time_end = std::chrono::steady_clock::now();
-  neoconn_pool->put_conn(conn);
-  total_end = std::chrono::steady_clock::now();
-
-  db_conn_time = std::chrono::duration_cast<std::chrono::microseconds>(
-                     dbconn_end - dbconn_start)
-                     .count();
-  pre_proc_time = std::chrono::duration_cast<std::chrono::microseconds>(
-                      pre_proc_end - pre_proc_start)
-                      .count();
-  cons_resp_time = std::chrono::duration_cast<std::chrono::microseconds>(
-                       resp_end - resp_start)
-                       .count();
-  total_runtime = std::chrono::duration_cast<std::chrono::microseconds>(
-                      total_end - total_start)
-                      .count();
-  db_trans_time = std::chrono::duration_cast<std::chrono::microseconds>(
-                      db_trans_time_end - db_trans_time_start)
-                      .count();
-  db_cmt_time = std::chrono::duration_cast<std::chrono::microseconds>(
-                    db_cmt_time_end - db_cmt_time_start)
-                    .count();
+  // commit neo4j transaction, needs to be updated in future to account for
+  // errors on response construction
+  if (error == false) {
+    neoconn_pool->commit_tx(tx);
+  } else {
+    neoconn_pool->put_conn(conn);
+  }
 }
 
 int QueryHandlerNeo4j::parse_commands(
