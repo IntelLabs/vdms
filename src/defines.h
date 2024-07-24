@@ -97,3 +97,18 @@
 #define VDMS_KF_EDGE "VD:KFLINK"
 #define VDMS_KF_IDX_PROP "VD:frameIndex"
 #define VDMS_KF_BASE_PROP "VD:frameBase"
+
+// Dynamic Metadata Video
+#define VDMS_DM_VID_TAG "Frame"
+#define VDMS_DM_VID_EDGE "Vid2Frame"
+#define VDMS_DM_VID_BB_EDGE "Frame2BB"
+#define VDMS_DM_VID_IDX_PROP "frameID"
+#define VDMS_DM_VID_NAME_PROP "video_name"
+#define VDMS_DM_VID_OBJECT_PROP "objectID"
+#define VDMS_DM_VID_OBJECT_DET "object_det"
+
+// Dynamic Metadata Image
+#define VDMS_DM_IMG_BB_EDGE "Image2BB"
+#define VDMS_DM_IMG_NAME_PROP "image_name"
+#define VDMS_DM_IMG_OBJECT_PROP "objectID"
+#define VDMS_DM_IMG_OBJECT_DET "object_det"

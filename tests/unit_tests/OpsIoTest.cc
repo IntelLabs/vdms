@@ -61,6 +61,44 @@ std::string raw_neoadd_json(
     "\n}"
     "}");
 
+std::string raw_neoadd_json_incorrect_op(
+    "{"
+    "\n\"NeoAdd\" :"
+    "\n{"
+    "\n\"cypher\" : \"CREATE (VDMSNODE:USERLABEL {user_prop1:\\\"foo\\\"})\","
+    "\n\"operations\" : ["
+    "\n{"
+    "\n\"height\" : 150,"
+    "\n\"type\" : \"NOTREAL\","
+    "\n\"width\" : 150,"
+    "\n\"x\" : 0,"
+    "\n\"y\" : 0"
+    "\n}"
+    "\n],"
+    "\n\"target_data_type\" : \"img\","
+    "\n\"target_format\" : \"jpg\""
+    "\n}"
+    "}");
+
+std::string raw_neoadd_json_bad_format(
+    "{"
+    "\n\"NeoAdd\" :"
+    "\n{"
+    "\n\"cypher\" : \"CREATE (VDMSNODE:USERLABEL {user_prop1:\\\"foo\\\"})\","
+    "\n\"operations\" : ["
+    "\n{"
+    "\n\"height\" : 150,"
+    "\n\"type\" : \"crop\","
+    "\n\"width\" : 150,"
+    "\n\"x\" : 0,"
+    "\n\"y\" : 0"
+    "\n}"
+    "\n],"
+    "\n\"target_data_type\" : \"img\","
+    "\n\"target_format\" : \"NOTREAL\""
+    "\n}"
+    "}");
+
 class OpsIOCoordinatorTest : public ::testing::Test {
 
 protected:
@@ -70,18 +108,12 @@ protected:
   }
 
   virtual void TearDown() {
-    global_s3_connection->end();
+    if (global_s3_connection->connected()) {
+      printf("Shutting down Global S3 Conn...\n");
+      global_s3_connection->end();
+    }
     delete global_s3_connection;
-  }
-
-  void create_conn_test() {
-    VCL::RemoteConnection *local_conn;
-    bool is_conn = false;
-    local_conn = instantiate_connection();
-    is_conn = local_conn->connected();
-    local_conn->end();
-    delete local_conn;
-    ASSERT_EQ(is_conn, true);
+    printf("Global Connection Object Deleted...\n");
   }
 
   void put_obj_test() {
@@ -96,6 +128,11 @@ protected:
     connection = get_existing_connection();
     rc = s3_upload("test_obj", buffer, connection);
     ASSERT_EQ(rc, 0);
+
+    if (connection->connected())
+      connection->end();
+    rc = s3_upload("test_obj", buffer, connection);
+    ASSERT_EQ(rc, -1);
   }
 
   void get_obj_test() {
@@ -115,6 +152,11 @@ protected:
     for (int i = 0; i < downloaded.size(); ++i) {
       EXPECT_EQ(downloaded[i], uploaded[i]);
     }
+
+    if (connection->connected())
+      connection->end();
+    downloaded = s3_retrieval("test_obj", connection);
+    ASSERT_EQ(downloaded.size(), 0);
   }
 
   void do_ops_test() {
@@ -144,9 +186,46 @@ protected:
     local_connection = get_existing_connection();
     ASSERT_EQ(global_s3_connection->connected(), true);
   }
+
+  void test_bad_operations() {
+
+    std::ifstream input("test_images/large1.jpg", std::ios::binary);
+    std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input),
+                                      {});
+    std::vector<unsigned char> trans_img;
+
+    Json::Value root;
+    Json::Reader reader;
+    std::string incorrect_ops_json_query(raw_neoadd_json_incorrect_op);
+    std::string bad_format_query(raw_neoadd_json_bad_format);
+    bool success;
+
+    // Non-existent Operations (typos)
+    printf("Checking for incorrect operation type\n");
+    success = reader.parse(incorrect_ops_json_query, root);
+    printf("Parse Success\n");
+    if (!success) {
+      FAIL() << "Failed to parse" << reader.getFormattedErrorMessages();
+    }
+    ASSERT_EQ(success, true);
+    trans_img = do_single_img_ops(root, buffer, "NeoAdd");
+    ASSERT_EQ(trans_img.size(), 0);
+
+    // bad format target
+    printf("Checking for bad format target\n");
+    success = reader.parse(bad_format_query, root);
+    printf("Parse Success\n");
+    if (!success) {
+      FAIL() << "Failed to parse" << reader.getFormattedErrorMessages();
+    }
+    ASSERT_EQ(success, true);
+    trans_img = do_single_img_ops(root, buffer, "NeoAdd");
+    ASSERT_EQ(trans_img.size(), 0);
+  }
+
 }; // end test class
-// TEST_F(OpsIOCoordinatorTest, InstantiateConnTest) {create_conn_test();}
 TEST_F(OpsIOCoordinatorTest, PutObjTest) { put_obj_test(); }
 TEST_F(OpsIOCoordinatorTest, GetObjTest) { get_obj_test(); }
 TEST_F(OpsIOCoordinatorTest, GetConnTest) { get_conn_test(); }
 TEST_F(OpsIOCoordinatorTest, DoOpsTest) { do_ops_test(); }
+TEST_F(OpsIOCoordinatorTest, DoBorkedOpsTest) { test_bad_operations(); }

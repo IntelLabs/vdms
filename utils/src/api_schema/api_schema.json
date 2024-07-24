@@ -698,6 +698,7 @@
         "operations":  { "$ref": "#/definitions/blockImageOperations" },
         "format":      { "$ref": "#/definitions/imgFormatString" },
         "constraints": { "type": "object" },
+        "metaconstraints":    { "type": "object" },
         "results":     { "$ref": "#/definitions/blockResults" },
         "unique":      { "type": "boolean" }
       },
@@ -878,14 +879,16 @@
 
     "FindVideo": {
       "properties": {
-        "_ref":        { "$ref": "#/definitions/refInt" },
-        "link":        { "$ref": "#/definitions/blockLink" },
-        "operations":  { "$ref": "#/definitions/blockVideoOperations" },
-        "codec":       { "$ref": "#/definitions/vidCodecString" },
-        "container":   { "$ref": "#/definitions/vidContainerString" },
-        "constraints": { "type": "object" },
-        "results":     { "$ref": "#/definitions/blockResults" },
-        "unique":      { "type": "boolean" }
+        "_ref":               { "$ref": "#/definitions/refInt" },
+        "link":               { "$ref": "#/definitions/blockLink" },
+        "operations":         { "$ref": "#/definitions/blockVideoOperations" },
+        "codec":              { "$ref": "#/definitions/vidCodecString" },
+        "container":          { "$ref": "#/definitions/vidContainerString" },
+        "constraints":        { "type": "object" },
+        "metaconstraints":    { "type": "object" },
+        "frameconstraints":   { "type": "boolean" },
+        "results":            { "$ref": "#/definitions/blockResults" },
+        "unique":             { "type": "boolean" }
       },
 
       "additionalProperties": false

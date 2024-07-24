@@ -111,3 +111,66 @@ TEST(CLIENT_CPP_Video, add_single_video_multi_client) {
   delete meta_obj;
   delete meta_obj2;
 }
+
+TEST(CLIENT_CPP_Video, add_dynamic_metadata) {
+
+  std::stringstream video;
+  std::vector<std::string *> blobs;
+
+  VDMS::VDMSConfig::init("unit_tests/config-client-tests.json");
+
+  std::string filename = "../tests/videos/Megamind.mp4";
+
+  std::string temp_video_path(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                              "/pathvideo.mp4");
+
+  copy_video_to_temp(filename, temp_video_path, get_fourcc());
+
+  Meta_Data *meta_obj = new Meta_Data();
+  meta_obj->_aclient.reset(
+      new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
+
+  Json::Value op;
+  op["type"] = "syncremoteOp";
+  op["url"] = "http://localhost:5010/video";
+  op["options"]["id"] = "metadata";
+  op["options"]["media_type"] = "video";
+  op["options"]["otype"] = "face";
+
+  Json::Value tuple;
+  tuple = meta_obj->constuct_video_by_path(1, temp_video_path, op,
+                                           "dynamic_metadata");
+  VDMS::Response response =
+      meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple), blobs);
+  Json::Value result;
+  meta_obj->_reader.parse(response.json.c_str(), result);
+  int status1 = result[0]["AddVideo"]["status"].asInt();
+
+  EXPECT_EQ(status1, 0);
+  delete meta_obj;
+}
+
+TEST(CLIENT_CPP_Video, find_dynamic_metadata) {
+
+  Meta_Data *meta_obj = new Meta_Data();
+  meta_obj->_aclient.reset(
+      new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
+  Json::Value tuple;
+  tuple = meta_obj->construct_find_video_with_dynamic_metadata();
+  VDMS::Response response =
+      meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple));
+  Json::Value result;
+  meta_obj->_reader.parse(response.json.c_str(), result);
+  int status_v, status_f, status_b;
+  std::string objectId;
+  status_v = result[0]["FindVideo"]["status"].asInt();
+  status_f = result[1]["FindVideo"]["status"].asInt();
+  status_b = result[2]["FindVideo"]["status"].asInt();
+  objectId =
+      result[2]["FindVideo"]["entities"][0]["bbox"][0]["objectID"].asString();
+  EXPECT_EQ(status_v, 0);
+  EXPECT_EQ(status_f, 0);
+  EXPECT_EQ(status_b, 0);
+  EXPECT_STREQ(objectId.data(), "face");
+  delete meta_obj;
+}

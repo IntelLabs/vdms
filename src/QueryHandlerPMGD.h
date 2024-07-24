@@ -34,7 +34,6 @@
 #include "QueryHandlerBase.h"
 #include "RSCommand.h"
 #include "Server.h"
-#include "chrono/Chrono.h"
 
 namespace VDMS {
 
@@ -65,6 +64,8 @@ public:
   void set_autoreplicate_init_flag();
   void reset_autoreplicate_init_flag();
   void regular_run_autoreplicate(ReplicationConfig &);
+
+  bool output_query_level_timing;
 };
 
 } // namespace VDMS

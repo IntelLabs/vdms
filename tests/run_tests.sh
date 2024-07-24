@@ -65,13 +65,17 @@ function execute_commands() {
 
     # Start remote server for test
     cd remote_function_test
-    python3 -m pip install -r requirements.txt
+    python3 -m pip install -r  ../../remote_function/requirements.txt
     python3 udf_server.py 5010 > ../tests_remote_screen.log 2> ../tests_remote_log.log &
 
     # Start UDF message queue for test
     cd ../udf_test
-    python3 -m pip install -r requirements.txt
+    python3 -m pip install -r ../../user_defined_operations/requirements.txt
     python3 udf_local.py > ../tests_udf_screen.log 2> ../tests_udf_log.log &
+
+    # Run the prep for the TLS tests to generate certificates
+    cd ../tls_test
+    python3 prep_certs.py > ../tests_tls_prep_screen.log 2> ../tests_tls_prep_log.log &
 
     cd ..
 
@@ -84,6 +88,7 @@ function execute_commands() {
 
     echo 'not the vdms application - this file is needed for shared key' > vdms
     sleep 3 # Wait for VMDS server to be initialized
+
 
     echo 'Running C++ tests...'
     ./../build/tests/unit_tests \

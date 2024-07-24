@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 find_package( OpenCV REQUIRED )
 
 include_directories(../../include . /usr/local/include/opencv4 /usr/include/jsoncpp)
-
+include_directories(../../utils/include)
 add_library(vcl SHARED
     ../VDMSConfig.cc
     DescriptorSet.cc
@@ -25,6 +25,7 @@ add_library(vcl SHARED
     Video.cc
     CustomVCL.cc
     RemoteConnection.cc
+        ../../utils/src/timers/TimerMap.cc
 )
 link_directories( /usr/local/lib )
 target_link_libraries(vcl lapack faiss tiledb flinng avformat avcodec swscale ${OpenCV_LIBS})

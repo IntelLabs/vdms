@@ -6,19 +6,15 @@
 #include "ImageCommand.h"
 #include "VideoCommand.h"
 
+#include "VDMSConfig.h"
+#include "timers/TimerMap.h"
+
 using namespace VDMS;
 
 valijson::Schema *QueryHandlerBase::_schema = new valijson::Schema;
 
 QueryHandlerBase::QueryHandlerBase()
-    : _validator(valijson::Validator::kWeakTypes)
-#ifdef CHRONO_TIMING
-      ,
-      ch_tx_total("ch_tx_total"), ch_tx_query("ch_tx_query"),
-      ch_tx_send("ch_tx_send")
-#endif
-{
-}
+    : _validator(valijson::Validator::kWeakTypes) {}
 
 // TODO create a better mechanism to cleanup queries that
 // includes feature vectors and user-defined blobs
@@ -46,24 +42,32 @@ void QueryHandlerBase::cleanup_query(const std::vector<std::string> &images,
 void QueryHandlerBase::process_connection(comm::Connection *c) {
   QueryMessage msgs(c);
 
+  std::string timer_id;
+
+  Json::Value timing_res;
+  std::vector<std::string> timer_id_list;
+  bool output_timing_info;
+
+  output_timing_info =
+      VDMSConfig::instance()->get_bool_value("print_high_level_timing", false);
+
   try {
     while (true) {
+      TimerMap timers;
       protobufs::queryMessage response;
       protobufs::queryMessage query = msgs.get_query();
-      CHRONO_TIC(ch_tx_total);
 
-      CHRONO_TIC(ch_tx_query);
+      timers.add_timestamp("e2e_query_processing");
       process_query(query, response);
-      CHRONO_TAC(ch_tx_query);
+      timers.add_timestamp("e2e_query_processing");
 
-      CHRONO_TIC(ch_tx_send);
+      timers.add_timestamp("msg_send");
       msgs.send_response(response);
-      CHRONO_TAC(ch_tx_send);
+      timers.add_timestamp("msg_send");
 
-      CHRONO_TAC(ch_tx_total);
-      CHRONO_PRINT_LAST_MS(ch_tx_total);
-      CHRONO_PRINT_LAST_MS(ch_tx_query);
-      CHRONO_PRINT_LAST_MS(ch_tx_send);
+      if (output_timing_info) {
+        timers.print_map_runtimes();
+      }
     }
   } catch (comm::ExceptionComm e) {
     print_exception(e);

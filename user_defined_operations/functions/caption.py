@@ -33,4 +33,4 @@ def run(settings, message, input_params):
 
         video.writeFrame(frame)
 
-    return (time.time() - t1), opfilename
+    return opfilename

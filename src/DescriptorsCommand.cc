@@ -45,6 +45,8 @@ namespace fs = std::filesystem;
 DescriptorsCommand::DescriptorsCommand(const std::string &cmd_name)
     : RSCommand(cmd_name) {
   _dm = DescriptorsManager::instance();
+  output_vcl_timing =
+      VDMSConfig::instance()->get_bool_value("print_vcl_timing", false);
 }
 
 // This function only throws when there is a transaction error,
@@ -299,6 +301,10 @@ Json::Value AddDescriptorSet::construct_responses(
     }
 
     desc_set.store();
+    if (output_vcl_timing) {
+      desc_set.timers.print_map_runtimes();
+    }
+    desc_set.timers.clear_all_timers();
     delete (param);
   } catch (VCL::Exception e) {
     print_exception(e);
@@ -348,6 +354,10 @@ long AddDescriptor::insert_descriptor(const std::string &blob,
       id_first = desc_set->add((float *)blob.data(), 1);
     }
 
+    if (output_vcl_timing) {
+      desc_set->timers.print_map_runtimes();
+    }
+    desc_set->timers.clear_all_timers();
   } catch (VCL::Exception e) {
     print_exception(e);
     error["info"] = "VCL Descriptors Exception";
@@ -802,6 +812,10 @@ void FindDescriptor::populate_blobs(const std::string &set_path,
       desc_blob->resize(sizeof(float) * dim);
 
       set->get_descriptors(&id, 1, (float *)(*desc_blob).data());
+      if (output_vcl_timing) {
+        set->timers.print_map_runtimes();
+      }
+      set->timers.clear_all_timers();
     }
   }
 }

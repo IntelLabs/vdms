@@ -56,6 +56,7 @@ enum ExceptionCommType {
   SSL_KEY_FAIL,
   SSL_ACCEPT_FAIL,
   SSL_CA_FAIL,
+  SSL_CONNECT_FAIL,
 
   Undefined = 100, // Any undefined error
 };

@@ -133,36 +133,102 @@ class TestCommand(unittest.TestCase):
         blob=False,  # Generic blob
         check_status=True,
     ):
-        addEntity = {}
-        addEntity["class"] = class_name
-
-        if properties != None:
-            addEntity["properties"] = properties
-        if constraints != None:
-            addEntity["constraints"] = constraints
-
-        query = {}
-        query["AddEntity"] = addEntity
-
         all_queries = []
+        all_blobs = []
+
+        query = self.create_entity(
+            "AddEntity",
+            class_str=class_name,
+            props=properties,
+            constraints=constraints,
+            blob=blob,
+        )
         all_queries.append(query)
 
-        if not blob:
-            response, res_arr = db.query(all_queries)
-        else:
+        if blob:
             blob_arr = []
             fd = open("../test_images/brain.png", "rb")
             blob_arr.append(fd.read())
             fd.close()
+            all_blobs.append(blob_arr)
 
-            addEntity["blob"] = True
-
-            response, res_arr = db.query(all_queries, [blob_arr])
+        response, res_arr = db.query(all_queries, all_blobs)
 
         if check_status:
             self.assertEqual(response[0]["AddEntity"]["status"], 0)
 
         return response, res_arr
+
+    def create_descriptor_set(self, name, dim, metric="L2", engine="FaissFlat"):
+        all_queries = []
+
+        descriptor_set = {}
+        descriptor_set["name"] = name
+        descriptor_set["dimensions"] = dim
+        descriptor_set["metric"] = metric
+        descriptor_set["engine"] = engine
+
+        query = {}
+        query["AddDescriptorSet"] = descriptor_set
+
+        all_queries.append(query)
+        return all_queries
+
+    def create_entity(
+        self,
+        command_str,
+        ref=None,
+        class_str=None,
+        props=None,
+        blob=False,
+        constraints=None,
+        unique=False,
+        results=None,
+        link=None,
+    ):
+        entity = {}
+        if unique:
+            entity["unique"] = unique
+
+        if results is not None:
+            entity["results"] = results
+
+        if link is not None:
+            entity["link"] = link
+
+        if ref is not None:
+            entity["_ref"] = ref
+
+        if props not in [None, {}]:
+            entity["properties"] = props
+
+        if class_str is not None:
+            entity["class"] = class_str
+
+        if constraints is not None:
+            entity["constraints"] = constraints
+
+        if blob and command_str == "AddEntity":
+            entity["blob"] = blob
+
+        query = {command_str: entity}
+        return query
+
+    # Check the signature of any PNG file
+    # by going through the first eight bytes of data
+    #    (decimal)              137  80  78  71  13  10  26  10
+    #    (hexadecimal)           89  50  4e  47  0d  0a  1a  0a
+    #    (ASCII C notation)    \211   P   N   G  \r  \n \032 \n
+    def verify_png_signature(self, img):
+        self.assertFalse(len(img) < 8)
+        self.assertEqual(img[0], 137)
+        self.assertEqual(img[1], 80)
+        self.assertEqual(img[2], 78)
+        self.assertEqual(img[3], 71)
+        self.assertEqual(img[4], 13)
+        self.assertEqual(img[5], 10)
+        self.assertEqual(img[6], 26)
+        self.assertEqual(img[7], 10)
 
     def shouldSkipRemotePythonTest():
         return unittest.skipIf(

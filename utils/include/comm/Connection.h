@@ -105,6 +105,8 @@ public:
 
   ConnClient(struct ServerAddress srv);
   ConnClient(std::string addr, int port);
+  ConnClient(std::string addr, int port, const std::string &cert_file,
+             const std::string &key_file, const std::string &ca_file);
   ConnClient &operator=(const ConnClient &) = delete;
   ConnClient(const ConnClient &) = delete;
   ~ConnClient() {}
@@ -112,8 +114,16 @@ public:
 private:
   ConnClient();
   void connect();
+  void setupTLS();
+  void initiateTLS();
 
   ServerAddress _server;
+
+  std::string _cert_file;
+  std::string _key_file;
+  std::string _ca_file;
+
+  SSL_CTX *_ssl_ctx;
 };
 
 }; // namespace comm

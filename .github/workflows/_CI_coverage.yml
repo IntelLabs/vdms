@@ -1,0 +1,287 @@
+name: Run Code Coverage
+
+on:
+  workflow_call:
+    inputs:
+      container-name:
+        required: true
+        type: string
+        description: "Unique name for docker container"
+
+      docker-compose-path:
+        required: true
+        type: string
+        description: "Path to check-in docker-compose.yml"
+
+      source-ref:
+        required: true
+        type: string
+        description: "Github reference for source code"
+
+      target-ref:
+        required: true
+        type: string
+        description: "Github reference for target code"
+
+    secrets:
+      AWS_ACCESS_KEY_ID:
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        required: true
+      NEO4J_USER:
+        required: true
+      NEO4J_PASS:
+        required: true
+      FACELESS_AUTHKEY:
+        required: true
+      FACELESS_NAME:
+        required: true
+
+    outputs:
+      target_cpp_coverage:
+        description: "The C++ Coverage for target"
+        value: ${{ jobs.target_coverage_job.outputs.target_cpp_value }}
+      target_py_coverage:
+        description: "The Python Coverage for target"
+        value: ${{ jobs.target_coverage_job.outputs.target_py_value }}
+      source_cpp_coverage:
+        description: "The C++ Coverage for source"
+        value: ${{ jobs.coverage_job.outputs.source_cpp_value }}
+      source_py_coverage:
+        description: "The Python Coverage for source"
+        value: ${{ jobs.coverage_job.outputs.source_py_value }}
+      source_prev_cpp_coverage:
+        description: "The C++ Coverage for source"
+        value: ${{ jobs.coverage_job.outputs.source_old_cpp_value }}
+      source_prev_py_coverage:
+        description: "The Python Coverage for source"
+        value: ${{ jobs.coverage_job.outputs.source_old_py_value }}
+      coverage_value_updated:
+        description: "Whether coverage for source has changed"
+        value: ${{ jobs.coverage_job.outputs.coverage_value_updated }}
+
+
+permissions: read-all
+
+jobs:
+  target_coverage_job:
+    name: Target Coverage
+    runs-on: ubuntu-latest
+    env:
+      TARGET_BRANCH_REF: ${{ inputs.target-ref }}
+    outputs:
+      target_cpp_value: ${{ steps.target_values.outputs.cpp }}
+      target_py_value: ${{ steps.target_values.outputs.py }}
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
+        with:
+          ref: ${{ env.TARGET_BRANCH_REF }}
+          fetch-depth: 0
+      - name: Get Target Coverage Values
+        id: target_values
+        run: |
+          echo "cpp=$(cat .github/coverage/cpp.develop.coverage_value.txt || echo 0.00)" >> $GITHUB_OUTPUT
+          echo "py=$(cat .github/coverage/python.develop.coverage_value.txt || echo 0.00)" >> $GITHUB_OUTPUT
+
+  coverage_job:
+    name: Run Coverage
+    needs: [target_coverage_job]
+    runs-on: ubuntu-latest
+    env:
+      AWS_API_PORT: 9000
+      AWS_CONSOLE_PORT: 9001
+      SOURCE_CONTAINER_NAME: ${{ inputs.container-name }}
+      SOURCE_CONTAINER_TAG: "vdms:${{ inputs.container-name }}"
+      NEO4J_CONTAINER_NAME: ${{ inputs.container-name }}_neo4j
+      NEO_TEST_PORT: 7687
+      CHECKIN_DOCKERFILE: ${{ inputs.docker-compose-path }}
+      DOCKER_ARTIFACT_DIR: "Docker_artifacts"
+      SOURCE_BRANCH_REF: ${{ inputs.source-ref }}
+    outputs:
+      source_cpp_value: ${{ steps.report_coverage.outputs.source_coverage_cpp }}
+      source_py_value: ${{ steps.report_coverage.outputs.source_coverage_py }}
+      source_old_cpp_value: ${{ steps.report_coverage.outputs.source_old_cpp_value }}
+      source_old_py_value: ${{ steps.report_coverage.outputs.source_old_py_value }}
+      coverage_value_updated: ${{ steps.report_coverage.outputs.cov_changed }}
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
+        with:
+          submodules: true
+
+      - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }}
+
+      - name: Variables for Testing
+        shell: bash
+        id: test_params
+        run: |
+          set -x
+
+          # Get an open port btwn 50000 and 59999 for vdms local port
+          vdms_local_test_port=$(comm -23 <(seq 50000 59999 | sort) <(ss -Htan | awk '{print $4}' | cut -d':' -f2 | sort -u))
+          echo "VDMS_LOCAL_TEST_PORT=$(echo "$vdms_local_test_port" | shuf | head -n 1)" >> $GITHUB_OUTPUT
+
+          # Get an open port btwn 65000 and 65535 for neo4j
+          neo4j_test_port=$(comm -23 <(seq 65000 65535 | sort) <(ss -Htan | awk '{print $4}' | cut -d':' -f2 | sort -u) | shuf | head -n 1)
+          # echo "NEO_TEST_PORT=${neo4j_test_port}" >> $GITHUB_OUTPUT
+
+          # Copy old local develop coverage files
+          mv ${GITHUB_WORKSPACE}/.github/coverage/cpp.develop.coverage_report.txt ${GITHUB_WORKSPACE}/.github/coverage/cpp.old-develop.coverage_report.txt
+          mv ${GITHUB_WORKSPACE}/.github/coverage/cpp.develop.coverage_value.txt ${GITHUB_WORKSPACE}/.github/coverage/cpp.old-develop.coverage_value.txt
+          mv ${GITHUB_WORKSPACE}/.github/coverage/python.develop.coverage_report.txt ${GITHUB_WORKSPACE}/.github/coverage/python.old-develop.coverage_report.txt
+          mv ${GITHUB_WORKSPACE}/.github/coverage/python.develop.coverage_value.txt ${GITHUB_WORKSPACE}/.github/coverage/python.old-develop.coverage_value.txt
+
+      - name: Start Check-in Container
+        shell: bash
+        id: checkin_start
+        env:
+          VDMS_TEST_PORT: ${{ steps.test_params.outputs.VDMS_LOCAL_TEST_PORT }}
+        run: |
+          cd ${GITHUB_WORKSPACE}/.github/scripts
+
+          AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+            AWS_API_PORT=${{ env.AWS_API_PORT }} \
+            AWS_CONSOLE_PORT=${{ env.AWS_CONSOLE_PORT }} \
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            NEO4J_CONTAINER_NAME=${{ env.NEO4J_CONTAINER_NAME }} \
+            NEO4J_ENDPOINT=neo4j://neo4j:${{ env.NEO_TEST_PORT }} \
+            NEO4J_PASS=${{ secrets.NEO4J_PASS }} \
+            NEO4J_USER=${{ secrets.NEO4J_USER }} \
+            NEO_TEST_PORT=${{ env.NEO_TEST_PORT }} \
+            SOURCE_CONTAINER_NAME=${{ env.SOURCE_CONTAINER_NAME }} \
+            VDMS_TEST_PORT=${{ env.VDMS_TEST_PORT }} \
+            docker compose up -d --build
+          sleep 15
+
+          # Save Image tag
+          VDMS_TAG_STR="vdms:${{ env.SOURCE_CONTAINER_NAME }}"
+          echo "$VDMS_TAG_STR"
+          echo "VDMS_TAG=${VDMS_TAG_STR}" >> $GITHUB_OUTPUT
+
+          # Commands for neo4j tests
+          COMMON_ARGS="-n ${{ secrets.NEO4J_USER }} -w ${{ secrets.NEO4J_PASS }} -v ${{ env.NEO_TEST_PORT}}"
+          S3_ARGS="-a ${{ env.AWS_API_PORT }} -c ${{ env.AWS_CONSOLE_PORT}} -u ${{ secrets.AWS_ACCESS_KEY_ID }} -p ${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+
+          CMD_STR_e2e_str="./run_neo4j_tests.sh -t Neo4JE2ETest ${S3_ARGS} ${COMMON_ARGS} -e neo4j://neo4j:${{ env.NEO_TEST_PORT}}"
+          echo "CMD_STR_e2e=${CMD_STR_e2e_str}" >> $GITHUB_OUTPUT
+
+          CMD_STR_OpsIO_str="./run_neo4j_tests.sh -t OpsIOCoordinatorTest ${S3_ARGS} ${COMMON_ARGS} -e neo4j://neo4j:${{ env.NEO_TEST_PORT}}"
+          echo "CMD_STR_OpsIO=${CMD_STR_OpsIO_str}" >> $GITHUB_OUTPUT
+
+          CMD_STR_bkend_str="./run_neo4j_tests.sh -t Neo4jBackendTest ${COMMON_ARGS} -e neo4j://neo4j:${{ env.NEO_TEST_PORT}}"
+          echo "CMD_STR_bkend=${CMD_STR_bkend_str}" >> $GITHUB_OUTPUT
+
+      - name: Run Neo4J Tests
+        shell: bash
+        env:
+          CMD_STR_bkend: ${{ steps.checkin_start.outputs.CMD_STR_bkend }}
+          CMD_STR_e2e: ${{ steps.checkin_start.outputs.CMD_STR_e2e }}
+          CMD_STR_OpsIO: ${{ steps.checkin_start.outputs.CMD_STR_OpsIO }}
+          VDMS_TEST_PORT: ${{ steps.test_params.outputs.VDMS_LOCAL_TEST_PORT }}
+        run: |
+          cd ${GITHUB_WORKSPACE}/.github/scripts
+
+          # E2E Test
+          echo "${{ env.CMD_STR_e2e }}"
+          docker exec -w /vdms/tests ${{ env.SOURCE_CONTAINER_NAME }} bash -c "${{ env.CMD_STR_e2e }}"
+          docker kill ${{ env.NEO4J_CONTAINER_NAME }} || true
+          sleep 15
+
+          AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
+            AWS_API_PORT=${{ env.AWS_API_PORT }} \
+            AWS_CONSOLE_PORT=${{ env.AWS_CONSOLE_PORT }} \
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
+            NEO4J_CONTAINER_NAME=${{ env.NEO4J_CONTAINER_NAME }} \
+            NEO4J_ENDPOINT=neo4j://neo4j:${{ env.NEO_TEST_PORT }} \
+            NEO4J_PASS=${{ secrets.NEO4J_PASS }} \
+            NEO4J_USER=${{ secrets.NEO4J_USER }} \
+            NEO_TEST_PORT=${{ env.NEO_TEST_PORT }} \
+            SOURCE_CONTAINER_NAME=${{ env.SOURCE_CONTAINER_NAME }} \
+            VDMS_TEST_PORT=${{ env.VDMS_TEST_PORT }} \
+            docker compose up -d neo4j
+          sleep 30
+
+          # Ops IO Test
+          echo "${{ env.CMD_STR_OpsIO }}"
+          docker exec -w /vdms/tests ${{ env.SOURCE_CONTAINER_NAME }} bash -c "${{ env.CMD_STR_OpsIO }}"
+          docker kill ${{ env.NEO4J_CONTAINER_NAME }} || true
+          sleep 15
+
+
+      - name: Run Remaining Tests
+        shell: bash
+        id: cov_value
+        run: |
+          # Run tests
+          docker exec -w / ${{ env.SOURCE_CONTAINER_NAME }} bash -c "./run_coverage_cpp.sh && ./run_coverage_py.sh"
+
+          # C++ results as variables
+          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/coverage_report/cpp.new.coverage_report.txt ${GITHUB_WORKSPACE}/.github/coverage/cpp.new.coverage_report.txt
+          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/coverage_report/cpp.new.coverage_value.txt ${GITHUB_WORKSPACE}/.github/coverage/cpp.new.coverage_value.txt
+          echo "coverage_value_cpp=$(cat ${GITHUB_WORKSPACE}/.github/coverage/cpp.new.coverage_value.txt)" >> $GITHUB_ENV
+          echo "pr_dev_value_cpp=$(cat ${GITHUB_WORKSPACE}/.github/coverage/cpp.old-develop.coverage_value.txt)" >> $GITHUB_ENV
+
+          # Python results as variables
+          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/coverage_report/python.new.coverage_report.txt ${GITHUB_WORKSPACE}/.github/coverage/python.new.coverage_report.txt || true
+          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/coverage_report/python.new.coverage_value.txt ${GITHUB_WORKSPACE}/.github/coverage/python.new.coverage_value.txt || true
+          echo "coverage_value_py=$(cat ${GITHUB_WORKSPACE}/.github/coverage/python.new.coverage_value.txt)" >> $GITHUB_ENV
+          echo "pr_dev_value_py=$(cat ${GITHUB_WORKSPACE}/.github/coverage/python.old-develop.coverage_value.txt)" >> $GITHUB_ENV
+
+          # Stops containers and removes containers, networks, volumes, and images
+          cd ${GITHUB_WORKSPACE}/.github/scripts
+          docker compose down
+
+      - name: Report Source Coverage
+        id: report_coverage
+        run: |
+          set -x
+
+          did_cov_change='false'
+          if [ "$pr_dev_value_cpp" != "$coverage_value_cpp" ]; then
+            did_cov_change='true'
+          fi
+
+          if [ "$pr_dev_value_py" != "$coverage_value_py" ]; then
+            did_cov_change='true'
+          fi
+
+          # If true, in future job, push latest coverage as develop (future target)
+          echo "cov_changed=${did_cov_change}" >> $GITHUB_OUTPUT
+
+          # CPP
+          if [[ -z $coverage_value_cpp ]]
+          then
+            exit 1
+          fi
+          echo "Source CPP Coverage: ${coverage_value_cpp}"
+          echo "source_coverage_cpp=${coverage_value_cpp}" >> $GITHUB_OUTPUT
+          echo "source_old_cpp_value=${pr_dev_value_cpp}" >> $GITHUB_OUTPUT
+          # echo "target_coverage_cpp=${target_value_cpp}" >> $GITHUB_OUTPUT
+
+          # Python
+          if [[ -z $coverage_value_py ]]
+          then
+            exit 1
+          fi
+          echo "Source Python Coverage: ${coverage_value_py}"
+          echo "source_coverage_py=${coverage_value_py}" >> $GITHUB_OUTPUT
+          echo "source_old_py_value=${pr_dev_value_py}" >> $GITHUB_OUTPUT
+          # echo "target_coverage_py=${target_value_py}" >> $GITHUB_OUTPUT
+
+      - name: Upload New coverage results
+        uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b  # v4.3.4
+        with:
+          name: coverage_artifact
+          path: .github/coverage/*.new.*.txt
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Cleanup Docker Containers
+        if: ${{ always() }}
+        run: |
+          docker kill ${{ env.SOURCE_CONTAINER_NAME }} || true
+          docker kill ${{ env.SOURCE_CONTAINER_NAME }}_tmp || true
+          docker kill ${{ env.NEO4J_CONTAINER_NAME }} || true
+
+          docker ps -a --filter status=exited --format {{.ID}} | xargs docker rm || true
+          docker rmi $(docker images | grep '<none>' | awk '{print $3}') || true
+          docker builder prune -f
