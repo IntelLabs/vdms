@@ -1,5 +1,15 @@
 # VDMS: Your Favourite Visual Data Management System
 
+[![GitHub License](https://img.shields.io/github/license/IntelLabs/vdms)](https://github.com/IntelLabs/vdms/blob/master/LICENSE)
+[![Dependency Status](https://img.shields.io/librariesio/github/IntelLabs/vdms?style=flat-square)](https://libraries.io/github/IntelLabs/vdms)
+[![Coverity Scan](https://img.shields.io/coverity/scan/30010)](https://scan.coverity.com/projects/intellabs-vdms)
+
+[![Release Notes](https://img.shields.io/github/release/IntelLabs/vdms?style=flat-square)](https://github.com/IntelLabs/vdms/releases)
+[![GitHub Repo stars](https://img.shields.io/github/stars/IntelLabs/vdms?style=flat-square)](https://star-history.com/#IntelLabs/vdms)
+[![Open Issues](https://img.shields.io/github/issues-raw/IntelLabs/vdms?style=flat-square)](https://github.com/IntelLabs/vdms/issues)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/vdms?style=flat-square)](https://pypistats.org/packages/vdms)
+[![Docker Pulls](https://img.shields.io/docker/pulls/intellabs/vdms)](https://hub.docker.com/r/intellabs/vdms)
+
 VDMS is a storage solution for efficient access of big-”visual”-data that aims
 to achieve cloud scale by searching for relevant visual data via visual
 metadata stored as a graph and enabling machine friendly enhancements to
@@ -44,5 +54,6 @@ the examples/tutorials.
 Conference | Links, Cite | Description
 ------------ | ------------- | -------------
 Industrial and Applications @ VLDB 2021 | [Paper](http://vldb.org/pvldb/vol14/p3240-remis.pdf) | Demonstrate VDMS capabilities in image search application
+2nd USENIX Workshop @ HotEdge 2019 | [Paper](https://www.usenix.org/system/files/hotedge19-paper-altarawneh.pdf), [Presentation](https://www.usenix.org/sites/default/files/conference/protected-files/hotedge19_slides_altarawneh.pdf) | VDMS in Edge-to-cloud architecture for video streaming application
 Learning Systems @ NIPS 2018 | [Paper](https://export.arxiv.org/abs/1810.11832), [Cite](https://dblp.uni-trier.de/rec/bibtex/journals/corr/abs-1810-11832) | Systems for Machine Learning [Workshop](http://learningsys.org/nips18/cfp.html) @ NIPS
 HotStorage @ ATC 2017 | [Paper](https://www.usenix.org/conference/hotstorage17/program/presentation/gupta-cledat), [Presentation](https://www.usenix.org/conference/hotstorage17/program/presentation/gupta-cledat), [Cite](https://www.usenix.org/biblio/export/bibtex/203374)| Positioning Paper at USENIX ATC 2017 Workshop
