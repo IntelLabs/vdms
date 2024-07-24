@@ -3,6 +3,7 @@
 [![GitHub License](https://img.shields.io/github/license/IntelLabs/vdms)](https://github.com/IntelLabs/vdms/blob/master/LICENSE)
 [![Dependency Status](https://img.shields.io/librariesio/github/IntelLabs/vdms?style=flat-square)](https://libraries.io/github/IntelLabs/vdms)
 [![Coverity Scan](https://img.shields.io/coverity/scan/30010)](https://scan.coverity.com/projects/intellabs-vdms)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/IntelLabs/vdms/badge)](https://securityscorecards.dev/viewer/?uri=github.com/IntelLabs/vdms)
 
 [![Release Notes](https://img.shields.io/github/release/IntelLabs/vdms?style=flat-square)](https://github.com/IntelLabs/vdms/releases)
 [![GitHub Repo stars](https://img.shields.io/github/stars/IntelLabs/vdms?style=flat-square)](https://star-history.com/#IntelLabs/vdms)
