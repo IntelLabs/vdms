@@ -9,6 +9,7 @@ from collections import defaultdict, deque
 import skvideo.io
 import imutils
 import uuid
+from zipfile import ZipFile
 
 for entry in os.scandir("functions"):
     if entry.is_file():
@@ -45,10 +46,20 @@ def image_api():
 
     image_data.save(tmpfile)
 
+    r_img, r_meta = "", ""
+
     udf = globals()[json_data["id"]]
-    r_img = udf.run(tmpfile, format, json_data)
+    if "ingestion" in json_data:
+        r_img, r_meta = udf.run(tmpfile, format, json_data)
+    else:
+        r_img = udf.run(tmpfile, format, json_data)
 
     return_string = cv2.imencode("." + str(format), r_img)[1].tostring()
+
+    if r_meta != "":
+        return_string += ":metadata:".encode("utf-8")
+        return_string += r_meta.encode("utf-8")
+
     os.remove(tmpfile)
     return return_string
 
@@ -57,22 +68,37 @@ def image_api():
 def video_api():
     json_data = json.loads(request.form["jsonData"])
     video_data = request.files["videoData"]
-    format = json_data["format"]
+    format = json_data["format"] if "format" in json_data else "mp4"
 
     tmpfile = "tmpfile" + uuid.uuid1().hex + "." + str(format)
     video_data.save(tmpfile)
 
+    video_file, metadata_file = "", ""
+
     udf = globals()[json_data["id"]]
-    response_file = udf.run(tmpfile, format, json_data)
+    if "ingestion" in json_data:
+        video_file, metadata_file = udf.run(tmpfile, format, json_data)
+    else:
+        video_file = udf.run(tmpfile, format, json_data)
+
+    response_file = "tmpfile" + uuid.uuid1().hex + ".zip"
+
+    with ZipFile(response_file, "w") as zip_object:
+        zip_object.write(video_file)
+        if metadata_file != "":
+            zip_object.write(metadata_file)
 
     os.remove(tmpfile)
 
+    # Delete the temporary files after the response is sent
     @after_this_request
     def remove_tempfile(response):
         try:
             os.remove(response_file)
+            os.remove(video_file)
+            os.remove(metadata_file)
         except Exception as e:
-            print("File cannot be deleted or not present")
+            print("Some files cannot be deleted or are not present")
         return response
 
     try:

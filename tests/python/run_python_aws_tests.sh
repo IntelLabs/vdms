@@ -122,7 +122,7 @@ function execute_commands() {
     ./../../build/vdms -cfg config-aws-tests.json > screen.log 2> log.log &
     py_unittest_pid=$!
 
-    python3 prep.py
+    python3 ../tls_test/prep_certs.py
     ./../../build/vdms -cfg config-tls-aws-tests.json > screen-tls.log 2> log-tls.log &
     py_tls_unittest_pid=$!
 

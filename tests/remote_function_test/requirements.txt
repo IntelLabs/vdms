@@ -1,5 +1,0 @@
-opencv-python==4.5.5.64
-flask==3.0.2
-numpy==1.26.4
-sk-video==1.1.10
-imutils==0.5.4

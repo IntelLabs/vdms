@@ -1,0 +1,83 @@
+name: Update Code
+
+on:
+  workflow_call:
+    inputs:
+        coverage_value_updated:
+          required: true
+          description: "The C++ Coverage for target"
+          type: string
+
+permissions: write-all
+
+jobs:
+    commit_job:
+        name: Commit Code Updates 
+        env:
+          COMMIT_MSG: "Automated updates: Format and/or coverage"
+          DOCKER_ARTIFACT_DIR: "Docker_artifacts"
+        runs-on: ubuntu-latest
+        steps:
+          # Checkout code doesn't persist across jobs
+          # If formatting needed, checkout and format again
+          - name: Checkout Source Branch
+            uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
+            with:
+              fetch-depth: 0
+              ref: ${{ github.event.pull_request.head.ref }}
+              repository: ${{ github.event.pull_request.head.repo.full_name }}
+              token: ${{ secrets.FACELESS_TOKEN || github.token }}
+
+          - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }}
+
+          - name: Retrieve Current Coverage Files
+            if: ${{ inputs.coverage_value_updated }} == 'true'
+            uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e  # v4.1.7
+            with:
+              name: coverage_artifact
+              path: .github/coverage/
+
+          - name: Format C++ Code (clang-format), Python (black code), and apply dos2unix
+            run: |
+              ./.github/scripts/auto-formatter.sh
+
+          - name: Update coverage reports with latest coverage
+            # Change latest coverage as develop (future target)
+            if: ${{ inputs.coverage_value_updated }} == 'true'
+            run: |
+              cd ${GITHUB_WORKSPACE}/.github/coverage/
+              rm -rf *.develop.*.txt || true
+              rm -rf *.old-develop.*.txt || true
+              ls
+              mv cpp.new.coverage_report.txt cpp.develop.coverage_report.txt
+              mv cpp.new.coverage_value.txt cpp.develop.coverage_value.txt
+              mv python.new.coverage_report.txt python.develop.coverage_report.txt
+              mv python.new.coverage_value.txt python.develop.coverage_value.txt
+
+          # Update Code and Push (Should be last steps of workflow since it changes commit)
+          - name: Commit Changes
+            id: update_commit
+            continue-on-error: true
+            run: |
+              cd ${GITHUB_WORKSPACE}
+              changes=$([ -z "$(git diff)" ] && echo "Empty" || echo "Not empty")
+              echo "changes=$changes" >> $GITHUB_OUTPUT
+
+              if [ "$changes" != "Empty" ]; then
+                git config user.name ${{ secrets.FACELESS_NAME }}
+                git config user.email ${{ secrets.FACELESS_NAME }}@intel.com
+                git remote set-url origin https://x-access-token:${{ secrets.FACELESS_TOKEN }}@github.com/${{ github.event.pull_request.head.repo.full_name }}
+                git add .github/coverage/*
+                git commit -am "${{ env.COMMIT_MSG }}"
+                git push
+              fi
+
+          - if: steps.update_commit.outcome != 'success'
+            name: Check Push Failure
+            env:
+              FILE_CHANGES: ${{ steps.update_commit.outputs.changes }}
+            run: |
+              if [ "${{ env.FILE_CHANGES }}" != "Empty" ]; then
+                echo "Please provide sys-vdms write access to fork (if applicable)."
+                exit 1
+              fi

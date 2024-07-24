@@ -42,13 +42,17 @@
 using namespace VDMS;
 namespace fs = std::filesystem;
 
-VideoCommand::VideoCommand(const std::string &cmd_name) : RSCommand(cmd_name) {}
+VideoCommand::VideoCommand(const std::string &cmd_name) : RSCommand(cmd_name) {
+  output_vcl_timing =
+      VDMSConfig::instance()->get_bool_value("print_vcl_timing", false);
+}
 
 void VideoCommand::enqueue_operations(VCL::Video &video, const Json::Value &ops,
                                       bool is_addition) {
   // Correct operation type and parameters are guaranteed at this point
   for (auto &op : ops) {
     const std::string &type = get_value<std::string>(op, "type");
+    // video.op_labels.push_back(type);
     std::string unit;
     if (type == "threshold") {
       video.threshold(get_value<int>(op, "value"));
@@ -67,16 +71,20 @@ void VideoCommand::enqueue_operations(VCL::Video &video, const Json::Value &ops,
           get_value<int>(op, "width"), get_value<int>(op, "height")));
     } else if (type == "syncremoteOp") {
       try {
-        video.syncremoteOperation(get_value<std::string>(op, "url"),
-                                  get_value<Json::Value>(op, "options"));
+        Json::Value options = get_value<Json::Value>(op, "options");
+        if (is_addition) {
+          options["ingestion"] = 1;
+        }
+        video.syncremoteOperation(get_value<std::string>(op, "url"), options);
       } catch (const std::exception &e) {
         std::cerr << e.what() << '\n';
       }
     } else if (type == "remoteOp") {
       try {
+        Json::Value options = get_value<Json::Value>(op, "options");
         if (is_addition) {
-          video.syncremoteOperation(get_value<std::string>(op, "url"),
-                                    get_value<Json::Value>(op, "options"));
+          options["ingestion"] = 1;
+          video.syncremoteOperation(get_value<std::string>(op, "url"), options);
         } else {
           video.remoteOperation(get_value<std::string>(op, "url"),
                                 get_value<Json::Value>(op, "options"));
@@ -225,11 +233,71 @@ int AddVideo::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
     query.AddEdge(-1, node_ref, frame_ref, VDMS_KF_EDGE, Json::Value());
   }
 
+  std::vector<Json::Value> video_metadata = video.get_ingest_metadata();
+
+  if (video_metadata.size() > 0) {
+    std::map<int, int> frameMap;
+    int frame_ref;
+    for (Json::Value metadata : video_metadata) {
+      for (Json::Value vframe : metadata) {
+        bool frame_flag = false;
+        if (frameMap.find(vframe["frameId"].asInt()) == frameMap.end()) {
+          frame_ref = query.get_available_reference();
+          frameMap.insert(
+              std::pair<int, int>(vframe["frameId"].asInt(), frame_ref));
+        } else {
+          frame_ref = frameMap.at(vframe["frameId"].asInt());
+          frame_flag = true;
+        }
+
+        Json::Value frame_props;
+        frame_props[VDMS_DM_VID_IDX_PROP] = vframe["frameId"].asInt();
+        frame_props[VDMS_DM_VID_NAME_PROP] = props[VDMS_VID_PATH_PROP];
+
+        Json::Value edge_props;
+        edge_props[VDMS_DM_VID_IDX_PROP] = vframe["frameId"].asInt();
+        edge_props[VDMS_DM_VID_NAME_PROP] = props[VDMS_VID_PATH_PROP];
+
+        if (!frame_flag) {
+          query.AddNode(frame_ref, VDMS_DM_VID_TAG, frame_props, Json::Value());
+        }
+        query.AddEdge(-1, node_ref, frame_ref, VDMS_DM_VID_EDGE, edge_props);
+
+        if (vframe.isMember("bbox")) {
+          int bb_ref = query.get_available_reference();
+          Json::Value bbox_props;
+          bbox_props[VDMS_DM_VID_IDX_PROP] = vframe["frameId"].asInt();
+          bbox_props[VDMS_DM_VID_NAME_PROP] = props[VDMS_VID_PATH_PROP];
+          bbox_props[VDMS_DM_VID_OBJECT_PROP] =
+              vframe["bbox"]["object"].asCString();
+          bbox_props[VDMS_ROI_COORD_X_PROP] = vframe["bbox"]["x"].asFloat();
+          bbox_props[VDMS_ROI_COORD_Y_PROP] = vframe["bbox"]["y"].asFloat();
+          bbox_props[VDMS_ROI_WIDTH_PROP] = vframe["bbox"]["width"].asFloat();
+          bbox_props[VDMS_ROI_HEIGHT_PROP] = vframe["bbox"]["height"].asFloat();
+          bbox_props[VDMS_DM_VID_OBJECT_DET] =
+              vframe["bbox"]["object_det"].toStyledString();
+
+          Json::Value bb_edge_props;
+          bb_edge_props[VDMS_DM_VID_IDX_PROP] = vframe["frameId"].asInt();
+          bb_edge_props[VDMS_DM_VID_NAME_PROP] = props[VDMS_VID_PATH_PROP];
+
+          query.AddNode(bb_ref, VDMS_ROI_TAG, bbox_props, Json::Value());
+          query.AddEdge(-1, frame_ref, bb_ref, VDMS_DM_VID_BB_EDGE,
+                        bb_edge_props);
+        }
+      }
+    }
+  }
+
   // In case we need to cleanup the query
   error["video_added"] = file_name;
 
   if (cmd.isMember("link")) {
     add_link(query, cmd["link"], node_ref, VDMS_VID_EDGE);
+  }
+
+  if (output_vcl_timing) {
+    video.timers.print_map_runtimes();
   }
 
   return 0;
@@ -308,9 +376,40 @@ int FindVideo::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
     results["list"].append(VDMS_VID_PATH_PROP);
   }
 
-  query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_VID_TAG, cmd["link"],
-                  cmd["constraints"], results,
-                  get_value<bool>(cmd, "unique", false));
+  if (cmd.isMember("metaconstraints")) {
+    results["list"].append(VDMS_DM_VID_NAME_PROP);
+    results["list"].append(VDMS_DM_VID_IDX_PROP);
+
+    for (auto member : cmd["metaconstraints"].getMemberNames()) {
+      results["list"].append(member);
+    }
+
+    results["list"].append(VDMS_DM_VID_OBJECT_PROP);
+    results["list"].append(VDMS_DM_VID_OBJECT_DET);
+    results["list"].append(VDMS_ROI_COORD_X_PROP);
+    results["list"].append(VDMS_ROI_COORD_Y_PROP);
+    results["list"].append(VDMS_ROI_WIDTH_PROP);
+    results["list"].append(VDMS_ROI_HEIGHT_PROP);
+
+    query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_ROI_TAG, cmd["link"],
+                    cmd["metaconstraints"], results,
+                    get_value<bool>(cmd, "unique", false));
+  } else if (cmd.isMember("frameconstraints")) {
+    results["list"].append(VDMS_DM_VID_NAME_PROP);
+    results["list"].append(VDMS_DM_VID_IDX_PROP);
+
+    // for (auto member : cmd["frameconstraints"].getMemberNames()) {
+    //   results["list"].append(member);
+    // }
+
+    query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_DM_VID_TAG,
+                    cmd["link"], cmd["frameconstraints"], results,
+                    get_value<bool>(cmd, "unique", false));
+  } else {
+    query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_VID_TAG, cmd["link"],
+                    cmd["constraints"], results,
+                    get_value<bool>(cmd, "unique", false));
+  }
 
   return 0;
 }
@@ -346,17 +445,76 @@ Json::Value FindVideo::construct_responses(Json::Value &responses,
     return error(return_error);
   }
 
+  if (cmd.isMember("metaconstraints")) {
+    std::map<std::string, std::vector<Json::Value>> findVideoMap;
+    for (auto ent : FindVideo["entities"]) {
+      if (std::find(shortlisted_videos.begin(), shortlisted_videos.end(),
+                    ent[VDMS_DM_VID_NAME_PROP].asString()) ==
+          shortlisted_videos.end()) {
+        continue;
+      }
+      ent[VDMS_VID_PATH_PROP] = ent[VDMS_DM_VID_NAME_PROP].asString();
+      if (findVideoMap.find(ent[VDMS_VID_PATH_PROP].asString()) ==
+          findVideoMap.end()) {
+        std::vector<Json::Value> metadata;
+        metadata.push_back(ent);
+        findVideoMap[ent[VDMS_VID_PATH_PROP].asString()] = metadata;
+      } else {
+        findVideoMap[ent[VDMS_VID_PATH_PROP].asString()].push_back(ent);
+      }
+    }
+
+    std::vector<Json::Value> fventities;
+    FindVideo["entities"].clear();
+    for (auto const &k : findVideoMap) {
+      Json::Value entity;
+      entity[VDMS_VID_PATH_PROP] = k.first;
+      for (auto e : k.second) {
+        entity["bbox"].append(e);
+      }
+      FindVideo["entities"].append(entity);
+    }
+  }
+
+  else if (cmd.isMember("frameconstraints")) {
+    std::vector<Json::Value> fventities;
+    for (auto ent : FindVideo["entities"]) {
+      if (std::find(shortlisted_videos.begin(), shortlisted_videos.end(),
+                    ent[VDMS_DM_VID_NAME_PROP].asString()) !=
+          shortlisted_videos.end()) {
+        fventities.push_back(ent);
+      }
+    }
+    FindVideo["entities"].clear();
+
+    for (auto fent : fventities) {
+      FindVideo["entities"].append(fent);
+    }
+
+    FindVideo["returned"] = FindVideo["entities"].size();
+    ret[_cmd_name].swap(FindVideo);
+    return ret;
+  }
+
   bool flag_empty = true;
   VideoLoop videoLoop;
   for (auto &ent : FindVideo["entities"]) {
-
     videoLoop.set_nrof_entities(FindVideo["entities"].size());
     if (!ent.isMember(VDMS_VID_PATH_PROP)) {
       continue;
     }
 
-    std::string video_path = ent[VDMS_VID_PATH_PROP].asString();
-    ent.removeMember(VDMS_VID_PATH_PROP);
+    std::string video_path;
+    if (cmd.isMember("frameconstraints")) {
+      video_path = ent[VDMS_DM_VID_NAME_PROP].asString();
+    } else {
+      video_path = ent[VDMS_VID_PATH_PROP].asString();
+      ent.removeMember(VDMS_VID_PATH_PROP);
+    }
+
+    if (!cmd.isMember("metaconstraints") && !cmd.isMember("frameconstraints")) {
+      shortlisted_videos.push_back(video_path);
+    }
 
     if (ent.getMemberNames().size() > 0) {
       flag_empty = false;
@@ -478,6 +636,11 @@ Json::Value FindVideo::construct_responses(Json::Value &responses,
         return_error["info"] = "Video Data not found";
         error(return_error);
       }
+
+      if (output_vcl_timing) {
+        iter->second.timers.print_map_runtimes();
+      }
+
       iter++;
     }
   } else {

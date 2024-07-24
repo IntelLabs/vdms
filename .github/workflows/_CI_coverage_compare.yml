@@ -1,0 +1,59 @@
+name: Compare Code Coverage
+
+on:
+  workflow_call:
+    inputs:
+      target_cpp_coverage:
+        required: true
+        description: "The C++ Coverage for target"
+        type: string
+      target_py_coverage:
+        required: true
+        description: "The Python Coverage for target"
+        type: string
+      source_cpp_coverage:
+        required: true
+        description: "The C++ Coverage for source"
+        type: string
+      source_py_coverage:
+        required: true
+        description: "The Python Coverage for source"
+        type: string
+
+permissions: write-all
+
+jobs:
+    compare_coverage:
+      name: Compare Reported Coverage
+      runs-on: ubuntu-latest
+      steps:
+        - name: Comment Coverage
+          uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7.0.1
+          with:
+            script: |
+              github.rest.issues.createComment({
+                issue_number: ${{ github.event.number }},
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: 'Target CPP Coverage: ${{ inputs.target_cpp_coverage }}%\nSource CPP Coverage: ${{ inputs.source_cpp_coverage }}%\n\n\nTarget Python Coverage: ${{ inputs.target_py_coverage }}%\nSource Python Coverage: ${{ inputs.source_py_coverage }}%'
+              })
+
+        - name: Compare Coverage
+          run: |
+            echo "Source CPP Coverage: ${{ inputs.source_cpp_coverage }}"
+            echo "Target CPP Coverage: ${{ inputs.target_cpp_coverage }}"
+            CPP_DIFF=$(echo '${{ inputs.target_cpp_coverage }}-${{ inputs.source_cpp_coverage }}' | bc )
+
+            if (( $(echo "$CPP_DIFF > 0.1" | bc -l) )); then
+              echo 'CPP Coverage below CPP Target'
+              exit 1
+            fi
+
+            echo "Source Python Coverage: ${{ inputs.source_py_coverage }}"
+            echo "Target Python Coverage: ${{ inputs.target_py_coverage }}"
+            PY_DIFF=$(echo '${{ inputs.target_py_coverage }}-${{ inputs.source_py_coverage }}' | bc )
+
+            if (( $(echo "$PY_DIFF > 0.1" | bc -l) )); then
+              echo 'Python Coverage below Target'
+              exit 1
+            fi

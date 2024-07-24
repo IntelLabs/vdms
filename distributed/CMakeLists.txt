@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0.0)
 project(kaka_test VERSION 0.1.0 LANGUAGES "CXX")
 
 add_compile_options(-g -fPIC)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -Wall -coverage -fprofile-arcs -ftest-coverage")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -Wall -coverage -fprofile-abs-path")
 
 find_package(Protobuf CONFIG REQUIRED)
 

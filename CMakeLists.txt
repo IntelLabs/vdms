@@ -5,8 +5,8 @@ set(CMAKE_CXX_STANDARD 17)
 
 
 IF(CODE_COVERAGE)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -coverage -fprofile-arcs -ftest-coverage")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -Wall -coverage -fprofile-arcs -ftest-coverage")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -coverage -fprofile-abs-path")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -Wall -coverage -fprofile-abs-path")
     enable_testing()
 ENDIF()
 
@@ -89,7 +89,7 @@ else()
     src/ImageLoop.cc
     src/VideoLoop.cc
   )
-  target_link_libraries(dms vcl pmgd pmgd-util protobuf tbb tiledb vdms-utils pthread -lcurl -lzmq ${AWSSDK_LINK_LIBRARIES} neo4j-client)
+  target_link_libraries(dms vcl pmgd pmgd-util protobuf tbb tiledb vdms-utils pthread -lcurl -lzmq -lzip ${AWSSDK_LINK_LIBRARIES} neo4j-client)
   add_executable(vdms src/vdms.cc)
   target_link_libraries(vdms dms vdms_protobuf vcl tiledb faiss flinng jsoncpp ${OpenCV_LIBS} ${AWSSDK_LINK_LIBRARIES})
 endif ()

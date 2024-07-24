@@ -62,10 +62,11 @@ BackendNeo4j::BackendNeo4j(unsigned int nr_conns, char *tgt_url, char *user,
     neo4j_connection_t *connection = neo4j_connect(tgt_url, config, flags);
 
     if (connection == NULL) {
-      printf("Warning: Connection failed to instantiate!\n");
+      printf("Warning: Neo4J Connection(s) failed to instantiate!\n");
       printf("Errno: %d\n", errno);
       conn_error = neo4j_strerror(errno, NULL, 0);
       printf("%s\n", conn_error);
+      printf("Exiting...\n");
       exit(1);
     }
 

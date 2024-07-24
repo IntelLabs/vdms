@@ -50,17 +50,14 @@ class TestEntities(TestCommand.TestCommand):
     def findEntity(self, thID, results, db):
         constraints = {}
         constraints["threadid"] = ["==", thID]
-
-        findEntity = {}
-        findEntity["constraints"] = constraints
-        findEntity["class"] = "AwesomePeople"
-
         results = {}
         results["list"] = ["name", "lastname", "threadid"]
-        findEntity["results"] = results
-
-        query = {}
-        query["FindEntity"] = findEntity
+        query = self.create_entity(
+            "FindEntity",
+            class_str="AwesomePeople",
+            constraints=constraints,
+            results=results,
+        )
 
         all_queries = []
         all_queries.append(query)
@@ -156,14 +153,9 @@ class TestEntities(TestCommand.TestCommand):
         props["name"] = "Luis"
         props["lastname"] = "Ferro"
         props["age"] = 27
-
-        addEntity = {}
-        addEntity["_ref"] = 32
-        addEntity["properties"] = props
-        addEntity["class"] = "AwesomePeople"
-
-        query = {}
-        query["AddEntity"] = addEntity
+        query = self.create_entity(
+            "AddEntity", ref=32, class_str="AwesomePeople", props=props
+        )
 
         all_queries.append(query)
 
@@ -171,21 +163,13 @@ class TestEntities(TestCommand.TestCommand):
         props["name"] = "Luis"
         props["lastname"] = "Bueno"
         props["age"] = 27
-
         link = {}
         link["ref"] = 32
         link["direction"] = "in"
         link["class"] = "Friends"
-
-        addEntity = {}
-        addEntity["properties"] = props
-        addEntity["class"] = "AwesomePeople"
-        addEntity["link"] = link
-
-        img_params = {}
-
-        query = {}
-        query["AddEntity"] = addEntity
+        query = self.create_entity(
+            "AddEntity", class_str="AwesomePeople", props=props, link=link
+        )
 
         all_queries.append(query)
 
@@ -201,13 +185,9 @@ class TestEntities(TestCommand.TestCommand):
         all_queries = []
 
         props = {"name": "Luis", "lastname": "Ferro", "age": 25}
-        addEntity = {}
-        addEntity["_ref"] = 32
-        addEntity["properties"] = props
-        addEntity["class"] = "SomePeople"
-
-        query = {}
-        query["AddEntity"] = addEntity
+        query = self.create_entity(
+            "AddEntity", class_str="SomePeople", props=props, ref=32
+        )
 
         all_queries.append(query)
 
@@ -219,14 +199,12 @@ class TestEntities(TestCommand.TestCommand):
 
         # this format is invalid, as each constraint must be an array
         constraints = {"name": "Luis"}
-
-        entity = {}
-        entity["constraints"] = constraints
-        entity["class"] = "SomePeople"
-        entity["results"] = {"count": ""}
-
-        query = {}
-        query["FindEntity"] = entity
+        query = self.create_entity(
+            "FindEntity",
+            class_str="SomePeople",
+            constraints=constraints,
+            results={"count": ""},
+        )
 
         all_queries.append(query)
 
@@ -239,7 +217,12 @@ class TestEntities(TestCommand.TestCommand):
 
         # Another invalid format
         constraints = {"name": []}
-        entity["constraints"] = constraints
+        query = self.create_entity(
+            "FindEntity",
+            class_str="SomePeople",
+            constraints=constraints,
+            results={"count": ""},
+        )
         all_queries = []
         all_queries.append(query)
 
@@ -264,12 +247,11 @@ class TestEntities(TestCommand.TestCommand):
             props["name"] = "entity_" + str(i)
             props["id"] = i
 
-            entity = {}
-            entity["properties"] = props
-            entity["class"] = "Random"
-
-            query = {}
-            query["AddEntity"] = entity
+            query = self.create_entity(
+                "AddEntity",
+                class_str="Random",
+                props=props,
+            )
 
             all_queries.append(query)
 
@@ -285,13 +267,7 @@ class TestEntities(TestCommand.TestCommand):
         results["list"] = ["name", "id"]
         results["sort"] = "id"
 
-        entity = {}
-        entity["results"] = results
-        entity["class"] = "Random"
-
-        query = {}
-        query["FindEntity"] = entity
-
+        query = self.create_entity("FindEntity", class_str="Random", results=results)
         all_queries.append(query)
 
         response, blob_arr = db.query(all_queries)
@@ -313,13 +289,11 @@ class TestEntities(TestCommand.TestCommand):
             props["name"] = "entity_" + str(i)
             props["id"] = i
 
-            entity = {}
-            entity["properties"] = props
-            entity["class"] = "SortBlock"
-
-            query = {}
-            query["AddEntity"] = entity
-
+            query = self.create_entity(
+                "AddEntity",
+                class_str="SortBlock",
+                props=props,
+            )
             all_queries.append(query)
 
         response, blob_arr = db.query(all_queries)
@@ -338,13 +312,7 @@ class TestEntities(TestCommand.TestCommand):
         results["list"] = ["name", "id"]
         results["sort"] = sort
 
-        entity = {}
-        entity["results"] = results
-        entity["class"] = "SortBlock"
-
-        query = {}
-        query["FindEntity"] = entity
-
+        query = self.create_entity("FindEntity", class_str="SortBlock", results=results)
         all_queries.append(query)
 
         response, blob_arr = db.query(all_queries)
@@ -363,13 +331,7 @@ class TestEntities(TestCommand.TestCommand):
         results["list"] = ["name", "id"]
         results["sort"] = sort
 
-        entity = {}
-        entity["results"] = results
-        entity["class"] = "SortBlock"
-
-        query = {}
-        query["FindEntity"] = entity
-
+        query = self.create_entity("FindEntity", class_str="SortBlock", results=results)
         all_queries.append(query)
 
         response, blob_arr = db.query(all_queries)
@@ -381,3 +343,98 @@ class TestEntities(TestCommand.TestCommand):
                 number_of_inserts - 1 - i,
             )
         db.disconnect()
+
+    def test_addEntityWithBlob(self, thID=0):
+        db = self.create_connection()
+
+        props = {}
+        props["name"] = "Luis"
+        props["lastname"] = "Ferro"
+        props["age"] = 27
+        props["threadid"] = thID
+
+        query = self.create_entity(
+            "AddEntity", class_str="AwesomePeople", props=props, blob=True
+        )
+        all_queries = []
+        all_queries.append(query)
+
+        blob_arr = []
+        fd = open("../test_images/brain.png", "rb")
+        blob_arr.append(fd.read())
+        fd.close()
+
+        response, res_arr = db.query(all_queries, [blob_arr])
+
+        self.assertEqual(response[0]["AddEntity"]["status"], 0)
+        self.disconnect(db)
+
+    def test_addEntityWithBlobNoBlob(self, thID=0):
+        db = self.create_connection()
+
+        props = {}
+        props["name"] = "Luis"
+        props["lastname"] = "Ferro"
+        props["age"] = 27
+        props["threadid"] = thID
+        query = self.create_entity(
+            "AddEntity", class_str="AwesomePeople", props=props, blob=True
+        )
+
+        all_queries = []
+        all_queries.append(query)
+
+        response, res_arr = db.query(all_queries)
+
+        self.assertEqual(response[0]["status"], -1)
+        self.assertEqual(response[0]["info"], "Expected blobs: 1. Received blobs: 0")
+        self.disconnect(db)
+
+    def test_addEntityWithBlobAndFind(self, thID=0):
+        db = self.create_connection()
+
+        props = {}
+        props["name"] = "Tom"
+        props["lastname"] = "Slash"
+        props["age"] = 27
+        props["id"] = 45334
+
+        query = self.create_entity(
+            "AddEntity", class_str="NotSoAwesome", props=props, blob=True
+        )
+        all_queries = []
+        all_queries.append(query)
+
+        blob_arr = []
+        fd = open("../test_images/brain.png", "rb")
+        blob_arr.append(fd.read())
+        fd.close()
+
+        response, res_arr = db.query(all_queries, [blob_arr])
+
+        self.assertEqual(response[0]["AddEntity"]["status"], 0)
+
+        constraints = {}
+        constraints["id"] = ["==", 45334]
+
+        results = {}
+        results["blob"] = True
+        results["list"] = ["name"]
+
+        query = self.create_entity(
+            "FindEntity",
+            class_str="NotSoAwesome",
+            constraints=constraints,
+            results=results,
+        )
+        all_queries = []
+        all_queries.append(query)
+
+        response, res_arr = db.query(all_queries)
+
+        self.assertEqual(response[0]["FindEntity"]["entities"][0]["blob"], True)
+
+        self.assertEqual(len(res_arr), len(blob_arr))
+        self.assertEqual(len(res_arr[0]), len(blob_arr[0]))
+        self.assertEqual((res_arr[0]), (blob_arr[0]))
+        self.disconnect(db)

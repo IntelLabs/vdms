@@ -47,6 +47,11 @@
 #include "Exception.h"
 #include "VDMSConfigHelper.h"
 #include "utils.h"
+#include "zip.h"
+#include <fstream>
+#include <jsoncpp/json/reader.h>
+
+#include "timers/TimerMap.h"
 
 namespace VCL {
 
@@ -80,6 +85,8 @@ public:
   };
 
   RemoteConnection *_remote; // Remote connection (if one exists)
+  TimerMap timers;
+  std::vector<std::string> op_labels;
 
   /*  *********************** */
   /*        CONSTRUCTORS      */
@@ -246,6 +253,11 @@ public:
   std::string get_operated_video_id();
 
   /**
+   *  @return The metadata to be added based on UDF/Remote Operation response
+   */
+  std::vector<Json::Value> get_ingest_metadata();
+
+  /**
    *  Checks if a blob is stored for the video or not
    *
    *  @return True if blob is stored
@@ -316,6 +328,13 @@ public:
    *  @param filename location of the temporary video file
    */
   void set_operated_video_id(std::string filename);
+
+  /**
+   *  Sets the metadata to be ingested based on UDF/Remote operation
+   *
+   *  @param metadata metadata to be ingested
+   */
+  void set_ingest_metadata(Json::Value metadata);
 
   /*  *********************** */
   /*    Video INTERACTIONS    */
@@ -462,6 +481,8 @@ private:
 
   // Remote operation parameters sent by the client
   Json::Value remoteOp_params;
+
+  std::vector<Json::Value> _ingest_metadata;
 
   /*  *********************** */
   /*        OPERATION         */

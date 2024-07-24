@@ -36,7 +36,6 @@
 #include <vector>
 
 #include "QueryHandlerBase.h"
-#include "chrono/Chrono.h"
 #include "comm/Connection.h"
 
 // Json parsing files

@@ -46,21 +46,62 @@ class TestVideos(TestCommand.TestCommand):
         self.assertEqual(vid[10], 111)
         self.assertEqual(vid[11], 109)
 
-    # Check the signature of any PNG file
-    # by going through the first eight bytes of data
-    #    (decimal)              137  80  78  71  13  10  26  10
-    #    (hexadecimal)           89  50  4e  47  0d  0a  1a  0a
-    #    (ASCII C notation)    \211   P   N   G  \r  \n \032 \n
-    def verify_png_signature(self, img):
-        self.assertFalse(len(img) < 8)
-        self.assertEqual(img[0], 137)
-        self.assertEqual(img[1], 80)
-        self.assertEqual(img[2], 78)
-        self.assertEqual(img[3], 71)
-        self.assertEqual(img[4], 13)
-        self.assertEqual(img[5], 10)
-        self.assertEqual(img[6], 26)
-        self.assertEqual(img[7], 10)
+    def create_video(
+        self,
+        command_str,
+        ref=None,
+        codec=None,
+        container=None,
+        unique=False,
+        from_file_path=None,
+        is_local_file=False,
+        index_frames=False,
+        props=None,
+        constraints=None,
+        results=None,
+        ops=None,
+        link=None,
+    ):
+        entity = {}
+
+        if ref is not None:
+            entity["_ref"] = ref
+
+        if codec is not None:
+            entity["codec"] = codec
+
+        if container is not None:
+            entity["container"] = container
+
+        if from_file_path and command_str == "AddVideo":
+            entity["from_file_path"] = from_file_path
+
+        if is_local_file and command_str == "AddVideo":
+            entity["is_local_file"] = is_local_file
+
+        if index_frames and command_str == "AddVideo":
+            entity["index_frames"] = index_frames
+
+        if unique and command_str == "FindVideo":
+            entity["unique"] = unique
+
+        if results is not None and command_str == "FindVideo":
+            entity["results"] = results
+
+        if constraints is not None:
+            entity["constraints"] = constraints
+
+        if link is not None:
+            entity["link"] = link
+
+        if ops not in [None, {}, []]:
+            entity["operations"] = ops
+
+        if props not in [None, {}, []] and command_str in ["AddVideo", "UpdateVideo"]:
+            entity["properties"] = props
+
+        query = {command_str: entity}
+        return query
 
     # Method to insert one video
     def insertVideo(self, db, props=None):
@@ -71,19 +112,13 @@ class TestVideos(TestCommand.TestCommand):
         video_arr.append(fd.read())
         fd.close()
 
-        video_parms = {}
-
         # adds some prop
         if not props is None:
             props["test_case"] = "test_case_prop"
-            video_parms["properties"] = props
 
-        video_parms["codec"] = "h264"
-        video_parms["container"] = "mp4"
-
-        query = {}
-        query["AddVideo"] = video_parms
-
+        query = self.create_video(
+            "AddVideo", props=props, codec="h264", container="mp4"
+        )
         all_queries.append(query)
 
         response, _ = db.query(all_queries, [video_arr])
@@ -115,13 +150,9 @@ class TestVideos(TestCommand.TestCommand):
             props["name"] = prefix_name + str(i)
             props["doctor"] = "Dr. Strange Love"
 
-            video_parms = {}
-            video_parms["properties"] = props
-            video_parms["codec"] = "h264"
-
-            query = {}
-            query["AddVideo"] = video_parms
-
+            query = self.create_video(
+                "AddVideo", props=props, codec="h264", ops=[op_params_resize]
+            )
             all_queries_to_add.append(query)
 
         response_to_add, obj_to_add_array = db.query(all_queries_to_add, [video_arr])
@@ -133,12 +164,10 @@ class TestVideos(TestCommand.TestCommand):
             constraints = {}
             constraints["name"] = ["==", prefix_name + str(i)]
 
-            video_parms = {}
-            video_parms["constraints"] = constraints
-
-            query = {}
-            query["FindVideo"] = video_parms
-
+            query = self.create_video(
+                "FindVideo",
+                constraints=constraints,
+            )
             all_queries_to_find.append(query)
 
         response_to_find, vid_array_to_find = db.query(all_queries_to_find)
@@ -166,13 +195,9 @@ class TestVideos(TestCommand.TestCommand):
         with open("../test_videos/Megamind.avi", "rb") as fd:
             video_blob = fd.read()
 
-        video_params = {}
-        video_params["from_file_path"] = "BigFile.mp4"
-        video_params["codec"] = "h264"
-
-        query = {}
-        query["AddVideo"] = video_params
-
+        query = self.create_video(
+            "AddVideo", codec="h264", from_file_path="BigFile.mp4"
+        )
         response, _ = db.query([query], [[video_blob]])
         self.disconnect(db)
 
@@ -181,13 +206,9 @@ class TestVideos(TestCommand.TestCommand):
     def test_addVideoFromLocalFile_file_not_found(self):
         db = self.create_connection()
 
-        video_params = {}
-        video_params["from_file_path"] = "BigFile.mp4"
-        video_params["codec"] = "h264"
-
-        query = {}
-        query["AddVideo"] = video_params
-
+        query = self.create_video(
+            "AddVideo", codec="h264", from_file_path="BigFile.mp4"
+        )
         response, _ = db.query([query], [[]])
         self.disconnect(db)
 
@@ -202,13 +223,7 @@ class TestVideos(TestCommand.TestCommand):
         tmp_filepath = "Megamind.mp4"
         shutil.copy2(source_file, tmp_filepath)
 
-        video_params = {}
-        video_params["from_file_path"] = tmp_filepath
-        video_params["codec"] = "h264"
-
-        query = {}
-        query["AddVideo"] = video_params
-
+        query = self.create_video("AddVideo", codec="h264", from_file_path=tmp_filepath)
         response, _ = db.query([query], [[]])
 
         self.disconnect(db)
@@ -228,25 +243,21 @@ class TestVideos(TestCommand.TestCommand):
         props = {}
         props["name"] = video_name
 
-        video_params = {}
-        video_params["index_frames"] = True
-        video_params["properties"] = props
-        video_params["codec"] = "h264"
-
-        query = {}
-        query["AddVideo"] = video_params
-
+        query = self.create_video(
+            "AddVideo",
+            codec="h264",
+            props=props,
+            index_frames=True,
+        )
         response, _ = db.query([query], [[video_blob]])
 
         self.assertEqual(response[0]["AddVideo"]["status"], 0)
 
-        entity = {}
-        entity["class"] = "VD:KF"
-        entity["results"] = {"count": ""}
-
-        query = {}
-        query["FindEntity"] = entity
-
+        query = self.create_entity(
+            "FindEntity",
+            class_str="VD:KF",
+            results={"count": ""},
+        )
         response, _ = db.query([query])
         self.disconnect(db)
 
@@ -273,12 +284,10 @@ class TestVideos(TestCommand.TestCommand):
             constraints = {}
             constraints["name"] = ["==", prefix_name + str(i)]
 
-            video_parms = {}
-            video_parms["constraints"] = constraints
-
-            query = {}
-            query["FindVideo"] = video_parms
-
+            query = self.create_video(
+                "FindVideo",
+                constraints=constraints,
+            )
             all_queries.append(query)
 
         response, vid_array = db.query(all_queries)
@@ -453,13 +462,9 @@ class TestVideos(TestCommand.TestCommand):
             results = {}
             results["list"] = ["name"]
 
-            video_parms = {}
-            video_parms["constraints"] = constraints
-            video_parms["results"] = results
-
-            query = {}
-            query["FindVideo"] = video_parms
-
+            query = self.create_video(
+                "FindVideo", constraints=constraints, results=results
+            )
             all_queries.append(query)
 
         response, vid_array = db.query(all_queries)
@@ -483,14 +488,12 @@ class TestVideos(TestCommand.TestCommand):
         props["lastname"] = "Ferro"
         props["age"] = 27
 
-        addEntity = {}
-        addEntity["_ref"] = 32
-        addEntity["properties"] = props
-        addEntity["class"] = "AwPeopleVid"
-
-        query = {}
-        query["AddEntity"] = addEntity
-
+        query = self.create_entity(
+            "AddEntity",
+            ref=32,
+            class_str="AwPeopleVid",
+            props=props,
+        )
         all_queries.append(query)
 
         props = {}
@@ -503,19 +506,13 @@ class TestVideos(TestCommand.TestCommand):
         link["direction"] = "in"
         link["class"] = "Friends"
 
-        addVideo = {}
-        addVideo["properties"] = props
-        addVideo["link"] = link
-
         imgs_arr = []
 
         fd = open("../test_videos/Megamind.avi", "rb")
         imgs_arr.append(fd.read())
         fd.close()
 
-        query = {}
-        query["AddVideo"] = addVideo
-
+        query = self.create_video("AddVideo", props=props, link=link)
         all_queries.append(query)
 
         add_video_response, _ = db.query(all_queries, [imgs_arr])
@@ -526,12 +523,7 @@ class TestVideos(TestCommand.TestCommand):
         constraints["name"] = ["==", "Luis"]
         constraints["lastname"] = ["==", "Malo"]
 
-        video_parms = {}
-        video_parms["constraints"] = constraints
-
-        query = {}
-        query["FindVideo"] = video_parms
-
+        query = self.create_video("FindVideo", constraints=constraints)
         all_queries.append(query)
 
         find_video_response, find_video_array = db.query(all_queries)
@@ -562,12 +554,7 @@ class TestVideos(TestCommand.TestCommand):
         results = {}
         results["list"] = ["name"]
 
-        img_params = {}
-        img_params["constraints"] = constraints
-
-        query = {}
-        query["FindVideo"] = img_params
-
+        query = self.create_video("FindVideo", constraints=constraints)
         all_queries = []
         all_queries.append(query)
 
@@ -602,13 +589,9 @@ class TestVideos(TestCommand.TestCommand):
             results["blob"] = False
             results["list"] = ["name"]
 
-            img_params = {}
-            img_params["constraints"] = constraints
-            img_params["results"] = results
-
-            query = {}
-            query["FindVideo"] = img_params
-
+            query = self.create_video(
+                "FindVideo", constraints=constraints, results=results
+            )
             all_queries.append(query)
 
         response, img_array = db.query(all_queries)
@@ -637,13 +620,7 @@ class TestVideos(TestCommand.TestCommand):
         props = {}
         props["name"] = "simg_update_0"
 
-        img_params = {}
-        img_params["constraints"] = constraints
-        img_params["properties"] = props
-
-        query = {}
-        query["UpdateVideo"] = img_params
-
+        query = self.create_video("UpdateVideo", props=props, constraints=constraints)
         all_queries.append(query)
 
         response, img_array = db.query(all_queries)
@@ -654,12 +631,7 @@ class TestVideos(TestCommand.TestCommand):
         constraints = {}
         constraints["name"] = ["==", "simg_update_0"]
 
-        video_parms = {}
-        video_parms["constraints"] = constraints
-
-        query = {}
-        query["FindVideo"] = video_parms
-
+        query = self.create_video("FindVideo", constraints=constraints)
         all_queries.append(query)
 
         find_response, find_vid_array = db.query(all_queries)
