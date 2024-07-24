@@ -1,4 +1,4 @@
-# VDMS: Your Favourite Visual Data Management System
+# VDMS: Your Favorite Visual Data Management System
 
 [![GitHub License](https://img.shields.io/github/license/IntelLabs/vdms)](https://github.com/IntelLabs/vdms/blob/master/LICENSE)
 [![Dependency Status](https://img.shields.io/librariesio/github/IntelLabs/vdms?style=flat-square)](https://libraries.io/github/IntelLabs/vdms)
