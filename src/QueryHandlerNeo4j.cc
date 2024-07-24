@@ -54,6 +54,8 @@ void QueryHandlerNeo4j::init() {
 
   _rs_cmds["NeoAdd"] = new Neo4jNeoAdd();
   _rs_cmds["NeoFind"] = new Neo4jNeoFind();
+  // seed random time
+  srand((unsigned)time(NULL));
 
   char *tgtdb = getenv("NEO4J_ENDPOINT");
   char *user = getenv("NEO4J_USER");

@@ -102,6 +102,7 @@ function cleanup() {
     echo "Killing the udf_server and udf_local"
     pkill -9 -f udf_server.py || true
     pkill -9 -f udf_local.py || true
+    pkill -9 -f prep-tls-tests.py || true
 
     echo "Killing the vdms server and client"
     kill -9 $cpp_unittest_pid || true

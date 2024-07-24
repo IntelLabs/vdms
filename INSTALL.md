@@ -80,6 +80,7 @@ cd $VDMS_DEP_DIR/CMake
 make ${BUILD_THREADS}
 sudo make install
 ```
+***NOTE:*** If multiple versions of Python 3 are present on your system, verify you are using Python3.9 or higher. You can specify the specific verison in above command and also set the following with your specific version: `alias python3=/usr/bin/python3.x`.
 
 
 #### **Autoconf v2.71**

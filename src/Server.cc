@@ -54,13 +54,31 @@ using namespace VDMS;
 VCL::RemoteConnection *global_s3_connection = NULL;
 bool Server::shutdown = false;
 
-Server::Server(std::string config_file) {
+Server::Server(std::string config_file, std::string cert_file,
+               std::string key_file, std::string ca_file) {
 
   VDMSConfig::init(config_file);
 
   // pull out config into member variable for reference elsewhere + use in
   // debugging
   cfg = VDMSConfig::instance();
+
+  // If cert_file and key_file were passed then override the config file values
+  // for them
+  if (!cert_file.empty() && !key_file.empty()) {
+    _cert_file = cert_file;
+    _key_file = key_file;
+  } else {
+    _cert_file = cfg->get_string_value(PARAM_CERT_FILE, "");
+    _key_file = cfg->get_string_value(PARAM_KEY_FILE, "");
+  }
+
+  // if ca_file was passed then override the config file value for it.
+  if (!ca_file.empty()) {
+    _ca_file = ca_file;
+  } else {
+    _ca_file = cfg->get_string_value(PARAM_CA_FILE, "");
+  }
 
   // Verify that the version of the library that we linked against is
   // compatible with the version of the headers we compiled against.
@@ -141,7 +159,8 @@ void Server::setup_query_handler() {
 void Server::process_requests() {
   comm::ConnServer *server;
   try {
-    server = new comm::ConnServer(_autoreplicate_settings.server_port);
+    server = new comm::ConnServer(_autoreplicate_settings.server_port,
+                                  _cert_file, _key_file, _ca_file);
   } catch (comm::ExceptionComm e) {
     print_exception(e);
     delete server;
