@@ -6,7 +6,6 @@
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/IntelLabs/vdms/badge)](https://securityscorecards.dev/viewer/?uri=github.com/IntelLabs/vdms)
 
 [![Release Notes](https://img.shields.io/github/release/IntelLabs/vdms?style=flat-square)](https://github.com/IntelLabs/vdms/releases)
-![GitHub Repo stars](https://img.shields.io/github/stars/IntelLabs/vdms?style=flat-square)
 [![Open Issues](https://img.shields.io/github/issues-raw/IntelLabs/vdms?style=flat-square)](https://github.com/IntelLabs/vdms/issues)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/vdms?style=flat-square)](https://pypistats.org/packages/vdms)
 [![Docker Pulls](https://img.shields.io/docker/pulls/intellabs/vdms)](https://hub.docker.com/r/intellabs/vdms)
