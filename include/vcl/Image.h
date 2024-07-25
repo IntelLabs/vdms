@@ -48,10 +48,13 @@
 #include "TDBImage.h"
 #include "utils.h"
 #include <curl/curl.h>
+#include <jsoncpp/json/reader.h>
 #include <jsoncpp/json/value.h>
 #include <zmq.hpp>
 
 #include "VDMSConfigHelper.h"
+
+#include "timers/TimerMap.h"
 
 namespace VCL {
 
@@ -300,6 +303,11 @@ public:
   std::string get_query_error_response();
 
   /**
+   *  @return The metadata to be added based on UDF/Remote Operation response
+   */
+  std::vector<Json::Value> get_ingest_metadata();
+
+  /**
    *  Checks if a blob is stored for the image or not
    *
    *  @return True if blob is stored
@@ -350,6 +358,13 @@ public:
   void set_connection(RemoteConnection *remote);
 
   void set_query_error_response(std::string error_msg);
+
+  /**
+   *  Sets the metadata to be ingested based on UDF/Remote operation
+   *
+   *  @param metadata metadata to be ingested
+   */
+  void set_ingest_metadata(Json::Value metadata);
 
   /*  *********************** */
   /*    IMAGE INTERACTIONS    */
@@ -489,6 +504,9 @@ public:
    */
   template <class T> void copy_to_buffer(T *buffer);
 
+  TimerMap timers;
+  std::vector<std::string> op_labels;
+
 private:
   // Forward declaration of Operation class, to be used of _operations
   // list
@@ -533,6 +551,8 @@ private:
 
   // Query Error response
   std::string _query_error_response = "";
+
+  std::vector<Json::Value> _ingest_metadata;
 
   // Image data (OpenCV Mat or TDBImage)
   cv::Mat _cv_img;

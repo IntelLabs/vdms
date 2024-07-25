@@ -11,25 +11,38 @@ sudo apt-get update -y  --fix-missing
 sudo apt-get upgrade -y
 sudo apt-get install -y --no-install-suggests --no-install-recommends \
     apt-transport-https automake bison build-essential bzip2 ca-certificates \
-    curl ed flex g++-9 gcc-9 git gnupg-agent javacc libarchive-tools libatlas-base-dev \
-    libavcodec-dev libavformat-dev libboost-all-dev libbz2-dev libc-ares-dev libcurl4-openssl-dev \
-    libncurses5-dev libdc1394-22-dev libgflags-dev libgoogle-glog-dev libgtk-3-dev libgtk2.0-dev \
-    libhdf5-dev libjpeg-dev libjsoncpp-dev libleveldb-dev liblmdb-dev \
-    liblz4-dev libopenblas-dev libopenmpi-dev libpng-dev librdkafka-dev libsnappy-dev libssl-dev \
-    libswscale-dev libtbb-dev libtbb2 libtiff-dev libtiff5-dev libtool libzmq3-dev linux-libc-dev mpich \
-    openjdk-11-jdk-headless pkg-config procps python3-dev python3-pip software-properties-common \
-    swig unzip uuid-dev
-```
-Note: Your system may have g++ or gcc version 10+. If this is the case, please use version 9 to build VDMS. Optional method for setting version 9 as default:
-```bash
-update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 1
-update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 1
+    curl ed flex g++ gcc git gnupg-agent javacc libarchive-tools libatlas-base-dev \
+    libavcodec-dev libavformat-dev libavutil-dev libboost-all-dev libbz2-dev libc-ares-dev \
+    libcurl4-openssl-dev libdc1394-dev libgflags-dev libgoogle-glog-dev \
+    libgtk-3-dev libgtk2.0-dev libhdf5-dev libjpeg-dev libjsoncpp-dev \
+    libleveldb-dev liblmdb-dev liblz4-dev libncurses5-dev libopenblas-dev libopenmpi-dev \
+    libpng-dev librdkafka-dev libsnappy-dev libssl-dev libswscale-dev libtbb-dev \
+    libtiff-dev libtiff5-dev libtool libzip-dev linux-libc-dev mpich \
+    pkg-config procps software-properties-common swig unzip uuid-dev
 ```
 
 #### **Install JPEG package**
 Please install the JPEG package based on the OS platform being used:
 * ***Debian 10+:*** `sudo apt-get install -y libjpeg62-turbo-dev`
 * ***Ubuntu 20.04+:*** `sudo apt-get install -y libjpeg8-dev`
+
+
+#### **Install Package for C++ bindings**
+Please install the package for C++ bindings for libzmq (headers) based on the OS platform being used:
+* ***Debian 12+:*** `sudo apt-get install -y cppzmq-dev`
+* ***Debian 10-11, Ubuntu 20.04+:*** `sudo apt-get install -y libzmq3-dev`
+
+
+#### **Install OpenJDK Development Kit (JDK)**
+Please install the headless OpenJDK Development Kit (JDK) based on the OS platform being used:
+* ***Debian 12+, Ubuntu 22.04+:*** `sudo apt-get install -y openjdk-17-jdk-headless`
+* ***Debian 10-11, Ubuntu 20.04:*** `sudo apt-get install -y openjdk-11-jdk-headless`
+
+
+#### **Install Parallelism library for C++ - runtime files**
+Please install the package for parallelism library for C++ - runtime files based on the OS platform being used:
+* ***Debian 12+, Ubuntu 22.04+:*** `sudo apt-get install -y libtbbmalloc2`
+* ***Debian 10-11, Ubuntu 20.04:*** `sudo apt-get install -y libtbb2`
 <br>
 
 ### Install Remaining Dependencies
@@ -45,52 +58,43 @@ mkdir -p $VDMS_DEP_DIR
 
 
 #### Python3 Packages
-Here we will install the necessary Python 3.9+ packages Numpy and Protobuf v24.2.
 It is expected that you have Python3.9 or higher installed on your system.
 All python calls will use Python3.9+; therefore you may find it convenient to set alias for python.
+Here we will install Python 3.12.3 from the Python website.
 ```bash
-alias python=/usr/bin/python3
+PYTHON_VERSION=3.12.3
+curl -O https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
+tar -xzf Python-${PYTHON_VERSION}.tgz
+cd Python-${PYTHON_VERSION}
+./configure --enable-optimizations
+make altinstall
 ```
-***NOTE:*** If multiple versions of Python 3 are present on your system, verify you are using Python3.9 or higher. You can specify the specific verison in above command and also set the following with your specific version: `alias python3=/usr/bin/python3.x`.
 
-You can also install the coverage package if interested in running the Python unit tests.
+If you prefer, you can install the the Python 3 version available on the OS platform:
+```bash
+sudo apt-get install -y python3-dev python3-pip
+```
+
+***NOTE:*** If multiple versions of Python 3 are present on your system, verify you are using Python3.9 or higher. You can specify the specific verison and set an alias for `python` and/or `python3` to easily use the desired python version. This can be done using the following:
+```bash
+alias python=/usr/bin/python3.x
+alias python3=/usr/bin/python3.x
+```
+
+Now that python is setup, now install Numpy and also install the coverage and cryptography packages if interested in running the Python unit tests.
 ```bash
 python3 -m pip install --upgrade pip
-python3 -m pip install --no-cache-dir "numpy>=1.26.0" "coverage>=7.3.1"
+python3 -m pip install --no-cache-dir "numpy>=1.26.0" "coverage>=7.3.1" "cryptography>=42.0.7"
 ```
 
 
-#### **Valijson v0.6**
-This is a headers-only library, no compilation/installation necessary.
+#### **CMAKE v3.28.5**
+VDMS requires CMake v3.21+.  Here we install CMake v3.28.5.
 ```bash
-VALIJSON_VERSION="v0.6"
-git clone --branch ${VALIJSON_VERSION} https://github.com/tristanpenman/valijson.git $VDMS_DEP_DIR/valijson
-cd $VDMS_DEP_DIR/valijson
-sudo cp -r include/* /usr/local/include/
-```
-
-
-#### **CMAKE v3.27.2**
-VDMS requires CMake v3.21+.  Here we install CMake v3.27.2.
-```bash
-CMAKE_VERSION="v3.27.2"
+CMAKE_VERSION="v3.28.5"
 git clone --branch ${CMAKE_VERSION} https://github.com/Kitware/CMake.git $VDMS_DEP_DIR/CMake
 cd $VDMS_DEP_DIR/CMake
 ./bootstrap
-make ${BUILD_THREADS}
-sudo make install
-```
-***NOTE:*** If multiple versions of Python 3 are present on your system, verify you are using Python3.9 or higher. You can specify the specific verison in above command and also set the following with your specific version: `alias python3=/usr/bin/python3.x`.
-
-
-#### **Autoconf v2.71**
-```bash
-AUTOCONF_VERSION="2.71"
-curl -L -o $VDMS_DEP_DIR/autoconf-${AUTOCONF_VERSION}.tar.xz https://ftp.gnu.org/gnu/autoconf/autoconf-${AUTOCONF_VERSION}.tar.xz
-cd $VDMS_DEP_DIR
-tar -xf autoconf-${AUTOCONF_VERSION}.tar.xz
-cd autoconf-${AUTOCONF_VERSION}
-./configure
 make ${BUILD_THREADS}
 sudo make install
 ```
@@ -100,6 +104,8 @@ sudo make install
 Install Protobuf (C++ and Python) which requires GoogleTest and Abseil C++ as dependencies.
 ```bash
 PROTOBUF_VERSION="24.2"
+python3 -m pip install --no-cache-dir "protobuf==4.${PROTOBUF_VERSION}"
+
 git clone -b v${PROTOBUF_VERSION} --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
 
 cd $VDMS_DEP_DIR/protobuf/third_party/googletest
@@ -128,8 +134,43 @@ cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
     -Dabsl_DIR=/usr/local/lib/cmake/absl .
 make ${BUILD_THREADS}
 sudo make install
+```
 
-python3 -m pip install --no-cache-dir "protobuf==4.${PROTOBUF_VERSION}"
+
+#### **[OpenCV](https://opencv.org/) 4.9.0**
+Below are instructions for installing ***OpenCV v4.9.0***.
+```bash
+OPENCV_VERSION="4.9.0"
+git clone https://github.com/opencv/opencv.git $VDMS_DEP_DIR/opencv
+cd $VDMS_DEP_DIR/opencv
+git checkout tags/${OPENCV_VERSION}
+mkdir build && cd build
+cmake -D BUILD_PERF_TESTS=OFF -D BUILD_TESTS=OFF ..
+make ${BUILD_THREADS}
+sudo make install
+```
+
+**Note**: When using videos, and getting the following error: "Unable to stop the stream: Inappropriate ioctl for device", you may need to include more flags when compiling OpenCV. Follow these instructions ([source](https://stackoverflow.com/questions/41200201/opencv-unable-to-stop-the-stream-inappropriate-ioctl-for-device)):
+```bash
+sudo apt-get install -y ffmpeg
+sudo apt-get install -y libavdevice-dev
+
+cmake -D BUILD_PERF_TESTS=OFF -D BUILD_TESTS=OFF -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local \
+    -D WITH_FFMPEG=ON -D WITH_TBB=ON -D WITH_GTK=ON \
+    -D WITH_V4L=ON -D WITH_OPENGL=ON -D WITH_CUBLAS=ON \
+    -DWITH_QT=OFF -DCUDA_NVCC_FLAGS="-D_FORCE_INLINES" ..
+make ${BUILD_THREADS}
+sudo make install
+```
+
+
+#### **Valijson v0.6**
+This is a headers-only library, no compilation/installation necessary.
+```bash
+VALIJSON_VERSION="v0.6"
+git clone --branch ${VALIJSON_VERSION} https://github.com/tristanpenman/valijson.git $VDMS_DEP_DIR/valijson
+cd $VDMS_DEP_DIR/valijson
+sudo cp -r include/* /usr/local/include/
 ```
 
 
@@ -175,10 +216,10 @@ sudo make install-tiledb
 ```
 
 
-#### **AWS SDK CPP 1.11.0**
+#### **AWS SDK CPP 1.11.336**
 Use the following instructions to install AWS SDK for C++.
 ```bash
-AWS_SDK_VERSION="1.11.0"
+AWS_SDK_VERSION="1.11.336"
 git clone -b ${AWS_SDK_VERSION} --recurse-submodules https://github.com/aws/aws-sdk-cpp ${VDMS_DEP_DIR}/aws-sdk-cpp
 mkdir -p ${VDMS_DEP_DIR}/aws-sdk-cpp/build
 cd ${VDMS_DEP_DIR}/aws-sdk-cpp/build
@@ -188,27 +229,14 @@ sudo make install
 ```
 
 
-#### **[OpenCV](https://opencv.org/) 4.5.5**
-Below are instructions for installing ***OpenCV v4.5.5***.
+#### **Autoconf v2.71**
 ```bash
-OPENCV_VERSION="4.5.5"
-git clone --branch ${OPENCV_VERSION} https://github.com/opencv/opencv.git $VDMS_DEP_DIR/opencv
-cd $VDMS_DEP_DIR/opencv
-mkdir build && cd build
-cmake -D BUILD_PERF_TESTS=OFF -D BUILD_TESTS=OFF ..
-make ${BUILD_THREADS}
-sudo make install
-```
-
-**Note**: When using videos, and getting the following error: "Unable to stop the stream: Inappropriate ioctl for device", you may need to include more flags when compiling OpenCV. Follow these instructions ([source](https://stackoverflow.com/questions/41200201/opencv-unable-to-stop-the-stream-inappropriate-ioctl-for-device)):
-```bash
-sudo apt-get install -y ffmpeg
-sudo apt-get install -y libavdevice-dev
-
-cmake -D BUILD_PERF_TESTS=OFF -D BUILD_TESTS=OFF -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local \
-    -D WITH_FFMPEG=ON -D WITH_TBB=ON -D WITH_GTK=ON \
-    -D WITH_V4L=ON -D WITH_OPENGL=ON -D WITH_CUBLAS=ON \
-    -DWITH_QT=OFF -DCUDA_NVCC_FLAGS="-D_FORCE_INLINES" ..
+AUTOCONF_VERSION="2.71"
+curl -L -o $VDMS_DEP_DIR/autoconf-${AUTOCONF_VERSION}.tar.xz https://ftp.gnu.org/gnu/autoconf/autoconf-${AUTOCONF_VERSION}.tar.xz
+cd $VDMS_DEP_DIR
+tar -xf autoconf-${AUTOCONF_VERSION}.tar.xz
+cd autoconf-${AUTOCONF_VERSION}
+./configure
 make ${BUILD_THREADS}
 sudo make install
 ```
@@ -244,6 +272,7 @@ git clone https://github.com/majensen/libneo4j-omni.git $VDMS_DEP_DIR/libomni
 cd $VDMS_DEP_DIR/libomni
 ./autogen.sh
 ./configure --disable-werror --prefix=/usr
+make clean check
 sudo make install -w --debug
 ```
 <br>
@@ -255,6 +284,19 @@ git clone -b develop --recurse-submodules https://github.com/IntelLabs/vdms.git
 cd vdms
 ```
 
+If your OS Platform is Debian 12+ or Ubuntu 22.04+ and you installed `openjdk-17-jdk-headless`, please modify PMGD to use this package:
+```bash
+sed -i "s|java-11-openjdk|java-17-openjdk|g" src/pmgd/java/CMakeLists.txt
+sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" src/pmgd/test/neighbortest.cc
+sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" src/pmgd/tools/mkgraph.cc
+```
+
+If your OS Platform is Debian 11 or Ubuntu 20.04, please modify file to use older FFMPEG libraries:
+```bash
+sed -i "s|#include <libavcodec/avcodec.h>||" include/vcl/KeyFrame.h
+sed -i "s|#include <libavcodec/bsf.h>||" include/vcl/KeyFrame.h
+```
+
 When compiling on a target without Optane persistent memory, use the following:
 ```bash
 mkdir build && cd build
@@ -263,11 +305,12 @@ make ${BUILD_THREADS}
 cp ../config-vdms.json .
 ```
 
-When compiling on a target with Optane persistent memory, use the command set:
+When compiling on a target with Optane persistent memory, use the following:
 ```bash
 mkdir build && cd build
 cmake -DCMAKE_CXX_FLAGS='-DPM' ..
 make ${BUILD_THREADS}
+cp ../config-vdms.json .
 ```
 
 ***NOTE:*** If error similar to `cannot open shared object file: No such file or directory` obtained during loading shared libraries, such as `libpmgd.so` or `libvcl.so`, add the correct directories to `LD_LIBRARY_PATH`. This may occur for non-root users. To find the correct directory, run `find` command for missing object file. An example solution for missing `libpmgd.so` and `libvcl.so` is:

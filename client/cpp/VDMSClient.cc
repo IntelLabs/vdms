@@ -32,7 +32,9 @@
 
 using namespace VDMS;
 
-VDMSClient::VDMSClient(std::string addr, int port) : _conn(addr, port) {}
+VDMSClient::VDMSClient(std::string addr, int port, const std::string &cert_file,
+                       const std::string &key_file, const std::string &ca_file)
+    : _conn(addr, port, cert_file, key_file, ca_file) {}
 // void VDMSClient::parse_csv_file(std::string filename, std::string server, int
 // p){
 //     CSVParser _csv_parser(filename, server, p);

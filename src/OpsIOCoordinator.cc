@@ -83,9 +83,7 @@ Json::Value get_json_val(const Json::Value &json, const std::string &key,
 int img_enqueue_operations(VCL::Image &img, const Json::Value &ops) {
 
   std::chrono::steady_clock::time_point total_start, total_end;
-  double total_runtime;
 
-  total_start = std::chrono::steady_clock::now();
   // Correct operation type and parameters are guaranteed at this point
   for (auto &op : ops) {
     const std::string &type = get_json_val<std::string>(op, "type");
@@ -104,14 +102,10 @@ int img_enqueue_operations(VCL::Image &img, const Json::Value &ops) {
       img.rotate(get_json_val<double>(op, "angle"),
                  get_json_val<bool>(op, "resize"));
     } else {
-      throw ExceptionCommand(ImageError, "Operation is not defined");
+      printf("Operation is not defined: %s\n", type.c_str());
       return -1;
     }
   }
-  total_end = std::chrono::steady_clock::now();
-  total_runtime = std::chrono::duration_cast<std::chrono::microseconds>(
-                      total_end - total_start)
-                      .count();
 
   return 0;
 }
@@ -120,9 +114,6 @@ std::vector<unsigned char>
 do_single_img_ops(const Json::Value &orig_query,
                   std::vector<unsigned char> &raw_data, std::string cmd_name) {
 
-  std::chrono::steady_clock::time_point total_start, total_end;
-  total_start = std::chrono::steady_clock::now();
-  double total_runtime;
   Json::Value cmd;
   if (orig_query.isMember(cmd_name)) {
     cmd = orig_query[cmd_name];
@@ -147,6 +138,10 @@ do_single_img_ops(const Json::Value &orig_query,
 
   if (cmd.isMember("operations")) {
     operation_flags = img_enqueue_operations(img, cmd["operations"]);
+
+    if (operation_flags == -1) {
+      return std::vector<unsigned char>();
+    }
   }
 
   if (cmd.isMember("target_format")) {
@@ -157,7 +152,8 @@ do_single_img_ops(const Json::Value &orig_query,
     } else if (format == "bin") {
       vcl_format = VCL::Format::BIN;
     } else {
-      printf("Warning! %s not supported!\n", format.c_str());
+      printf("Warning! %s not supported as a target format!\n", format.c_str());
+      return std::vector<unsigned char>();
     } // FUTURE, add TDB support
   }
 
@@ -167,10 +163,6 @@ do_single_img_ops(const Json::Value &orig_query,
   // getting the image size performs operation as a side effect
   imgsize = img.get_raw_data_size();
   img_enc = img.get_encoded_image(vcl_format);
-  total_end = std::chrono::steady_clock::now();
-  total_runtime = std::chrono::duration_cast<std::chrono::microseconds>(
-                      total_end - total_start)
-                      .count();
 
   return img_enc;
 }
@@ -184,17 +176,11 @@ std::vector<unsigned char> s3_retrieval(std::string obj_name,
     return std::vector<unsigned char>();
   }
 
-  std::chrono::steady_clock::time_point total_start, total_end;
-  total_start = std::chrono::steady_clock::now();
   double total_runtime;
 
   std::vector<unsigned char> raw_data;
 
   raw_data = connection->Read(obj_name);
-  total_end = std::chrono::steady_clock::now();
-  total_runtime = std::chrono::duration_cast<std::chrono::microseconds>(
-                      total_end - total_start)
-                      .count();
 
   return raw_data;
 }
@@ -208,24 +194,19 @@ int s3_upload(std::string obj_name, std::vector<unsigned char> upload_data,
     return -1;
   }
 
-  std::chrono::steady_clock::time_point total_start, total_end;
-  total_start = std::chrono::steady_clock::now();
   double total_runtime;
+  bool write_succ;
 
-  connection->Write(obj_name, upload_data);
-  total_end = std::chrono::steady_clock::now();
-  total_runtime = std::chrono::duration_cast<std::chrono::microseconds>(
-                      total_end - total_start)
-                      .count();
+  write_succ = connection->Write(obj_name, upload_data);
+
+  if (!write_succ)
+    return -1;
 
   return 0;
 }
 
 VCL::RemoteConnection *instantiate_connection() {
-  printf("Instantiating global S3 Connection...\n");
-  std::chrono::steady_clock::time_point total_start, total_end;
-  total_start = std::chrono::steady_clock::now();
-  double total_runtime;
+  printf("Instantiating S3 Connection...\n");
 
   VCL::RemoteConnection *connection;
   connection = new VCL::RemoteConnection();
@@ -233,12 +214,7 @@ VCL::RemoteConnection *instantiate_connection() {
   connection->_bucket_name = bucket;
   connection->start();
 
-  total_end = std::chrono::steady_clock::now();
-  total_runtime = std::chrono::duration_cast<std::chrono::microseconds>(
-                      total_end - total_start)
-                      .count();
-
-  printf("Global S3 Connection Started!\n");
+  printf("S3 Connection Started!\n");
   return connection;
 }
 

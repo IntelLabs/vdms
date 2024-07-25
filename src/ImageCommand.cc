@@ -41,7 +41,10 @@ using namespace VDMS;
 
 //========= AddImage definitions =========
 
-ImageCommand::ImageCommand(const std::string &cmd_name) : RSCommand(cmd_name) {}
+ImageCommand::ImageCommand(const std::string &cmd_name) : RSCommand(cmd_name) {
+  output_vcl_timing =
+      VDMSConfig::instance()->get_bool_value("print_vcl_timing", false);
+}
 
 int ImageCommand::enqueue_operations(VCL::Image &img, const Json::Value &ops,
                                      bool is_addition) {
@@ -61,15 +64,18 @@ int ImageCommand::enqueue_operations(VCL::Image &img, const Json::Value &ops,
     } else if (type == "rotate") {
       img.rotate(get_value<double>(op, "angle"), get_value<bool>(op, "resize"));
     } else if (type == "syncremoteOp") {
-      img.syncremoteOperation(get_value<std::string>(op, "url"),
-                              get_value<Json::Value>(op, "options"));
-    } else if (type == "remoteOp") {
+      Json::Value options = get_value<Json::Value>(op, "options");
       if (is_addition) {
-        img.syncremoteOperation(get_value<std::string>(op, "url"),
-                                get_value<Json::Value>(op, "options"));
+        options["ingestion"] = 1;
+      }
+      img.syncremoteOperation(get_value<std::string>(op, "url"), options);
+    } else if (type == "remoteOp") {
+      Json::Value options = get_value<Json::Value>(op, "options");
+      if (is_addition) {
+        options["ingestion"] = 1;
+        img.syncremoteOperation(get_value<std::string>(op, "url"), options);
       } else {
-        img.remoteOperation(get_value<std::string>(op, "url"),
-                            get_value<Json::Value>(op, "options"));
+        img.remoteOperation(get_value<std::string>(op, "url"), options);
       }
     } else if (type == "userOp") {
       img.userOperation(get_value<Json::Value>(op, "options"));
@@ -139,7 +145,6 @@ int AddImage::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
   const std::string from_file_path =
       get_value<std::string>(cmd, "from_file_path", "");
   const bool is_local_file = get_value<bool>(cmd, "is_local_file", false);
-
   std::string format = get_value<std::string>(cmd, "format", "");
   char binary_img_flag = 0;
   if (format == "bin") {
@@ -200,7 +205,6 @@ int AddImage::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
       connection->_bucket_name = bucket;
       img.set_connection(connection);
     }
-
     if (cmd.isMember("operations")) {
       operation_flags = enqueue_operations(img, cmd["operations"], true);
     }
@@ -246,6 +250,33 @@ int AddImage::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
     query.AddNode(node_ref, VDMS_IM_TAG, props, Json::Value());
 
     img.store(file_name, input_format);
+
+    std::vector<Json::Value> image_metadata = img.get_ingest_metadata();
+
+    if (image_metadata.size() > 0) {
+      for (Json::Value metadata : image_metadata) {
+        int bb_ref = query.get_available_reference();
+        Json::Value bbox_props;
+        bbox_props[VDMS_DM_IMG_NAME_PROP] = props[VDMS_IM_PATH_PROP];
+        bbox_props[VDMS_DM_IMG_OBJECT_PROP] = metadata["object"].asString();
+        bbox_props[VDMS_ROI_COORD_X_PROP] = metadata["x"].asFloat();
+        bbox_props[VDMS_ROI_COORD_Y_PROP] = metadata["y"].asFloat();
+        bbox_props[VDMS_ROI_WIDTH_PROP] = metadata["width"].asFloat();
+        bbox_props[VDMS_ROI_HEIGHT_PROP] = metadata["height"].asFloat();
+        bbox_props[VDMS_DM_VID_OBJECT_DET] =
+            metadata["object_det"].toStyledString();
+
+        Json::Value bb_edge_props;
+        bb_edge_props[VDMS_DM_IMG_NAME_PROP] = props[VDMS_IM_PATH_PROP];
+
+        query.AddNode(bb_ref, VDMS_ROI_TAG, bbox_props, Json::Value());
+        query.AddEdge(-1, node_ref, bb_ref, VDMS_DM_IMG_BB_EDGE, bb_edge_props);
+      }
+    }
+
+    if (output_vcl_timing) {
+      img.timers.print_map_runtimes();
+    }
   }
 
   // In case we need to cleanup the query
@@ -302,9 +333,28 @@ int FindImage::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
     results["list"].append(VDMS_IM_PATH_PROP);
   }
 
-  query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_IM_TAG, cmd["link"],
-                  cmd["constraints"], results,
-                  get_value<bool>(cmd, "unique", false));
+  if (cmd.isMember("metaconstraints")) {
+    results["list"].append(VDMS_DM_IMG_NAME_PROP);
+
+    for (auto member : cmd["metaconstraints"].getMemberNames()) {
+      results["list"].append(member);
+    }
+
+    results["list"].append(VDMS_DM_IMG_OBJECT_PROP);
+    results["list"].append(VDMS_DM_IMG_OBJECT_DET);
+    results["list"].append(VDMS_ROI_COORD_X_PROP);
+    results["list"].append(VDMS_ROI_COORD_Y_PROP);
+    results["list"].append(VDMS_ROI_WIDTH_PROP);
+    results["list"].append(VDMS_ROI_HEIGHT_PROP);
+
+    query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_ROI_TAG, cmd["link"],
+                    cmd["metaconstraints"], results,
+                    get_value<bool>(cmd, "unique", false));
+  } else {
+    query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_IM_TAG, cmd["link"],
+                    cmd["constraints"], results,
+                    get_value<bool>(cmd, "unique", false));
+  }
 
   return 0;
 }
@@ -365,8 +415,13 @@ Json::Value FindImage::construct_responses(Json::Value &responses,
     for (auto &ent : findImage["entities"]) {
       assert(ent.isMember(VDMS_IM_PATH_PROP));
 
-      std::string im_path = ent[VDMS_IM_PATH_PROP].asString();
-      ent.removeMember(VDMS_IM_PATH_PROP);
+      std::string im_path;
+      if (cmd.isMember("metaconstraints")) {
+        im_path = ent[VDMS_DM_IMG_NAME_PROP].asString();
+      } else {
+        im_path = ent[VDMS_IM_PATH_PROP].asString();
+        ent.removeMember(VDMS_IM_PATH_PROP);
+      }
 
       if (ent.getMemberNames().size() == 0) {
         flag_empty = true;
@@ -467,6 +522,11 @@ Json::Value FindImage::construct_responses(Json::Value &responses,
           return_error["info"] = "Image Data not found";
           return error(return_error);
         }
+
+        if (output_vcl_timing) {
+          iter->second->timers.print_map_runtimes();
+        }
+
         iter++;
       }
     } else {

@@ -53,6 +53,8 @@
 #include <valijson/schema_parser.hpp>
 #include <valijson/utils/jsoncpp_utils.hpp>
 
+#include "timers/TimerMap.h"
+
 using namespace VDMS;
 
 std::unordered_map<std::string, RSCommand *> QueryHandlerPMGD::_rs_cmds;
@@ -115,13 +117,9 @@ void QueryHandlerPMGD::init() {
 }
 
 QueryHandlerPMGD::QueryHandlerPMGD()
-    : _pmgd_qh(), _autodelete_init(false), _autoreplicate_init(false)
-#ifdef CHRONO_TIMING
-      ,
-      ch_tx_total("ch_tx_total"), ch_tx_query("ch_tx_query"),
-      ch_tx_send("ch_tx_send")
-#endif
-{
+    : _pmgd_qh(), _autodelete_init(false), _autoreplicate_init(false) {
+  output_query_level_timing =
+      VDMSConfig::instance()->get_bool_value("print_query_timing", false);
 }
 
 bool QueryHandlerPMGD::syntax_checker(const Json::Value &root,
@@ -286,6 +284,13 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
 
     std::vector<Json::Value> construct_results;
 
+    int time_input_ctr = 0;
+    int time_output_ctr = 0;
+    std::string timer_id;
+    TimerMap timers;
+    Json::Value timing_res;
+    std::vector<std::string> timer_id_list;
+
     auto error = [&](Json::Value &res, Json::Value &failed_command) {
       cleanup_query(images_log, videos_log);
       res["FailedCommand"] = failed_command;
@@ -319,8 +324,13 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
       const std::string &blob =
           rscmd->need_blob(query) ? proto_query.blobs(blob_count++) : "";
 
+      timer_id =
+          "input_operation_" + cmd + "_" + std::to_string(time_input_ctr);
+      time_input_ctr++;
+      timers.add_timestamp(timer_id);
       int ret_code = rscmd->construct_protobuf(pmgd_query, query, blob,
                                                group_count, cmd_result);
+      timers.add_timestamp(timer_id);
 
       if (cmd_result.isMember("image_added")) {
         images_log.push_back(cmd_result["image_added"].asString());
@@ -338,10 +348,9 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
     }
 		proto_end = std::chrono::steady_clock::now();
 
-		// wrap PMGD transaction for simple timing
-		pmgd_start = std::chrono::steady_clock::now();
+    timers.add_timestamp("pmgd_query_time");
     Json::Value &tx_responses = pmgd_query.run(_autodelete_init);
-		pmgd_end = std::chrono::steady_clock::now();
+    timers.add_timestamp("pmgd_query_time");
 
 		//Wrap response construction.
 		resp_start = std::chrono::steady_clock::now();
@@ -373,8 +382,14 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
             rscmd->need_blob(query) ? proto_query.blobs(blob_count++) : "";
 
         query["cp_result"] = construct_results[j];
+
+        timer_id =
+            "response_operation_" + cmd + "_" + std::to_string(time_output_ctr);
+        time_output_ctr++;
+        timers.add_timestamp(timer_id);
         cmd_result =
             rscmd->construct_responses(tx_responses[j], query, proto_res, blob);
+        timers.add_timestamp(timer_id);
 
         // This is for error handling
         if (cmd_result.isMember("status")) {
@@ -385,24 +400,14 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
             return;
           }
         }
+
         json_responses.append(cmd_result);
       }
     }
-		resp_end = std::chrono::steady_clock::now(); //note we can reuse resp_end for total runtime
 
-		//calculate various section runtimes, doing this at the end to minimize internal
-		//timing jitters (probably irrelevant)
-		total_runtime = std::chrono::duration_cast<std::chrono::microseconds>(resp_end - total_start).count();
-		protobuf_time = std::chrono::duration_cast<std::chrono::microseconds>(proto_end - proto_start).count();
-		pmgd_time = std::chrono::duration_cast<std::chrono::microseconds>(pmgd_end - pmgd_start).count();
-		cons_resp_time = std::chrono::duration_cast<std::chrono::microseconds>(resp_end - resp_start).count();
-
-		timing_res["total_runtime_microseconds"] = total_runtime;
-		timing_res["protobuf_time_microseconds"] = protobuf_time;
-		timing_res["pmgd_time_microseconds"] = pmgd_time;
-		timing_res["construct_response_time_microseconds"] = cons_resp_time;
-		json_responses.append(timing_res);
-
+    if (output_query_level_timing) {
+      timers.print_map_runtimes();
+    }
     proto_res.set_json(fastWriter.write(json_responses));
     _pmgd_qh.cleanup_files();
 

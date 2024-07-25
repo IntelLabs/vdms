@@ -88,9 +88,9 @@ int Neo4jNeoAdd::data_processing(std::string &cypher,
                                  const std::string &blob, int grp_id,
                                  Json::Value &error) {
 
-  std::chrono::steady_clock::time_point ops_start, ops_end;
   VCL::RemoteConnection *connection;
   std::vector<unsigned char> enc_img;
+  int upload_rc;
 
   const Json::Value &cmd = orig_query[_cmd_name];
   int operation_flags = 0;
@@ -112,6 +112,8 @@ int Neo4jNeoAdd::data_processing(std::string &cypher,
 
   try {
     enc_img = do_single_img_ops(orig_query, raw_data, _cmd_name);
+    if (enc_img.size() == 0)
+      return -1;
   } catch (VCL::Exception &e) {
     print_exception(e, stdout);
     exit(1); // brutal exit, future iterations should throw exception for
@@ -121,7 +123,10 @@ int Neo4jNeoAdd::data_processing(std::string &cypher,
   std::string img_obj_id;
   img_obj_id = gen_random(32);
 
-  s3_upload(img_obj_id, enc_img, connection);
+  upload_rc = s3_upload(img_obj_id, enc_img, connection);
+
+  if (upload_rc != 0)
+    return -1;
 
   // In case we need to cleanup the query
   error["image_added"] = img_obj_id;
@@ -210,15 +215,27 @@ Json::Value Neo4jNeoFind::construct_responses(
       try {
         // NOTE CURRENTLY FIXED TO USE ONLY S3
         raw_data = s3_retrieval(im_path, global_s3_connection);
+        if (raw_data.size() != 0) {
+          std::vector<unsigned char> img_enc;
+          img_enc = do_single_img_ops(orig_query, raw_data, _cmd_name);
 
-        std::vector<unsigned char> img_enc;
-        img_enc = do_single_img_ops(orig_query, raw_data, _cmd_name);
-
-        std::string *img_str = query_res.add_blobs();
-        img_str->resize(img_enc.size());
-        std::memcpy((void *)img_str->data(), (void *)img_enc.data(),
-                    img_enc.size());
-
+          if (img_enc.size() != 0) {
+            std::string *img_str = query_res.add_blobs();
+            img_str->resize(img_enc.size());
+            std::memcpy((void *)img_str->data(), (void *)img_enc.data(),
+                        img_enc.size());
+          } else {
+            Json::Value return_error;
+            return_error["status"] = Neo4jCommand::Error;
+            return_error["info"] = "Image Operation Failure";
+            return error(return_error);
+          }
+        } else {
+          Json::Value return_error;
+          return_error["status"] = Neo4jCommand::Error;
+          return_error["info"] = "S3 Object Retrieval Failed";
+          return error(return_error);
+        }
       } catch (VCL::Exception e) {
         print_exception(e);
         Json::Value return_error;

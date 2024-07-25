@@ -1,2 +1,2 @@
-opencv-python==4.5.5.64
-zmq==0.0.0
+opencv-python-headless==4.9.0.80
+pyzmq==26.0.3

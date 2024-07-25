@@ -8,8 +8,6 @@
 #include "QueryMessage.h" // Protobuff implementation
 #include <string>
 #include <vector>
-//#include "Server.h"
-#include "chrono/Chrono.h"
 
 // Json parsing files
 #include <jsoncpp/json/value.h>

@@ -4,6 +4,7 @@
     "functions" : {
         "facedetect" : "facedetect",
         "flip": "flip",
-        "caption": "caption"
+        "caption": "caption",
+        "metadata": "metadata"
     }
 }

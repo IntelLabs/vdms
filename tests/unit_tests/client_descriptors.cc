@@ -45,7 +45,7 @@ TEST(CLIENT_CPP, add_flinng_descriptor) {
   meta_obj->_aclient.reset(
       new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
   Json::Value tuple;
-  tuple = meta_obj->construct_descriptor();
+  tuple = meta_obj->construct_flinng_descriptor();
 
   VDMS::Response response =
       meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple), blobs);

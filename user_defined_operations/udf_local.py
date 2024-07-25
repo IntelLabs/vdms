@@ -31,10 +31,10 @@ while True:
 
         udf = globals()[settings["functions"][input_params["id"]]]
 
-        t, opfile = udf.run(settings, input_params["ipfile"], input_params)
+        response = udf.run(settings, input_params["ipfile"], input_params)
 
-        print(t, i, opfile)
-        socket.send_string(opfile)
+        # print(i, response)
+        socket.send_string(response)
         i += 1
     except Exception as e:
         print(e.with_traceback(None))

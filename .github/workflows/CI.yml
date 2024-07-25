@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [develop]
+
+# Declare default permissions as write only.
+permissions: write-all
+
+# If another push to the same PR or branch happens while this workflow is still running,
+# cancel the earlier run in favor of the next run.
+#
+# There's no point in testing an outdated version of the code. GitHub only allows
+# a limited number of job runners to be active at the same time, so it's better to cancel
+# pointless jobs early so that more useful jobs can run sooner.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  Get-Envs:
+    name: Get Environment vars
+    runs-on: ubuntu-latest
+    outputs:
+      CHECKIN_DOCKERFILE: .github/scripts/docker-compose.yml
+      CONTAINER_NAME: source_coverage_${{ github.event.pull_request.number }}
+      SOURCE_REF: ${{ github.event.pull_request.head.sha }}
+      TARGET_REF: ${{ github.event.pull_request.base.ref }}
+    steps:
+      - run: echo "null"
+
+  Testing:
+    # name: Code coverage in Docker
+    needs: [Get-Envs]
+    uses: ./.github/workflows/_CI_coverage.yml
+    with:
+      container-name: ${{ needs.Get-Envs.outputs.CONTAINER_NAME }}
+      docker-compose-path: ${{ needs.Get-Envs.outputs.CHECKIN_DOCKERFILE }}
+      source-ref: ${{ needs.Get-Envs.outputs.SOURCE_REF}}
+      target-ref: ${{ needs.Get-Envs.outputs.TARGET_REF}}
+    secrets: inherit
+
+  Results:
+    # name: Compare code coverage
+    needs: [Testing]
+    uses: ./.github/workflows/_CI_coverage_compare.yml
+    with:
+        target_cpp_coverage: ${{ needs.Testing.outputs.target_cpp_coverage }}
+        target_py_coverage: ${{ needs.Testing.outputs.target_py_coverage }}
+        source_cpp_coverage: ${{ needs.Testing.outputs.source_cpp_coverage }}
+        source_py_coverage: ${{ needs.Testing.outputs.source_py_coverage }}
+    secrets: inherit
+
+  Update:
+    # name: Lint & Update Reports
+    needs: [Testing, Results]
+    if: ${{ always() && (needs.Results.result == 'success') }}
+    uses: ./.github/workflows/_CI_update.yml
+    with:
+        coverage_value_updated: ${{ needs.Testing.outputs.coverage_value_updated }}
+    secrets: inherit
+

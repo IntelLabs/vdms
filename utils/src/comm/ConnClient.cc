@@ -43,6 +43,7 @@ ConnClient::ConnClient() {
   // create TCP/IP socket
   _socket_fd = socket(AF_INET, SOCK_STREAM, 0);
   _ssl = nullptr;
+  _ssl_ctx = nullptr;
 
   if (_socket_fd < 0) {
     throw ExceptionComm(SocketFail);
@@ -55,10 +56,19 @@ ConnClient::ConnClient() {
   }
 }
 
-ConnClient::ConnClient(ServerAddress srv) : ConnClient(srv.addr, srv.port) {}
+ConnClient::ConnClient(ServerAddress srv)
+    : ConnClient(srv.addr, srv.port, "", "", "") {}
 
-ConnClient::ConnClient(std::string addr, int port) : ConnClient() {
+ConnClient::ConnClient(std::string addr, int port)
+    : ConnClient(addr, port, "", "", "") {}
+
+ConnClient::ConnClient(std::string addr, int port,
+                       const std::string &cert_file = "",
+                       const std::string &key_file = "",
+                       const std::string &ca_file = "")
+    : ConnClient() {
   _ssl = nullptr;
+  _ssl_ctx = nullptr;
 
   if (port > MAX_PORT_NUMBER || port <= 0) {
     throw ExceptionComm(PortError);
@@ -66,7 +76,59 @@ ConnClient::ConnClient(std::string addr, int port) : ConnClient() {
 
   _server.addr = addr;
   _server.port = port;
+
+  _cert_file = cert_file;
+  _key_file = key_file;
+  _ca_file = ca_file;
+
+  setupTLS();
   connect();
+  if (_ssl != nullptr) {
+    initiateTLS();
+  }
+}
+
+void ConnClient::setupTLS() {
+
+  if (!_cert_file.empty() && !_key_file.empty()) {
+    const SSL_METHOD *method;
+    method = TLS_client_method();
+    _ssl_ctx = SSL_CTX_new(method);
+    if (!_ssl_ctx) {
+      throw ExceptionComm(SSL_CONTEXT_FAIL);
+    }
+
+    if (SSL_CTX_use_certificate_file(_ssl_ctx, _cert_file.c_str(),
+                                     SSL_FILETYPE_PEM) <= 0) {
+      throw ExceptionComm(SSL_CERT_FAIL);
+    }
+
+    if (SSL_CTX_use_PrivateKey_file(_ssl_ctx, _key_file.c_str(),
+                                    SSL_FILETYPE_PEM) <= 0) {
+      throw ExceptionComm(SSL_KEY_FAIL);
+    }
+
+    if (!_ca_file.empty()) {
+      if (SSL_CTX_load_verify_locations(_ssl_ctx, _ca_file.c_str(), nullptr) <=
+          0) {
+        throw ExceptionComm(SSL_CA_FAIL);
+      }
+    }
+
+    _ssl = SSL_new(_ssl_ctx);
+    if (!_ssl) {
+      throw ExceptionComm(SSL_CONTEXT_FAIL);
+    }
+  }
+}
+
+void ConnClient::initiateTLS() {
+  if (SSL_set_fd(_ssl, _socket_fd) <= 0) {
+    throw ExceptionComm(SSL_SET_FD_FAIL);
+  }
+  if (SSL_connect(_ssl) <= 0) {
+    throw ExceptionComm(SSL_CONNECT_FAIL);
+  }
 }
 
 void ConnClient::connect() {

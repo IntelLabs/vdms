@@ -52,7 +52,9 @@ class VDMSClient {
   comm::ConnClient _conn;
 
 public:
-  VDMSClient(std::string addr = "localhost", int port = VDMS_PORT);
+  VDMSClient(std::string addr = "localhost", int port = VDMS_PORT,
+             const std::string &cert_file = "",
+             const std::string &key_file = "", const std::string &ca_file = "");
 
   // Blocking call
   VDMS::Response query(const std::string &json_query,

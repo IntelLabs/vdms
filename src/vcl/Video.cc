@@ -59,7 +59,6 @@ Video::Video(void *buffer, long size) : Video() {
       VDMS::VDMSConfig::instance()->get_path_tmp(), "vclvideoblob");
   std::ofstream outfile(uname, std::ofstream::binary);
   _remote = nullptr;
-
   if (outfile.is_open()) {
     outfile.write((char *)buffer, size);
     outfile.close();
@@ -94,6 +93,8 @@ Video::Video(const Video &video) {
   remoteOp_params = video.remoteOp_params;
 
   _query_error_response = video._query_error_response;
+
+  op_labels = video.op_labels;
 }
 
 Video &Video::operator=(Video vid) {
@@ -330,11 +331,11 @@ int Video::get_video_fourcc(VCL::Video::Codec _codec) {
 
 Json::Value Video::get_remoteOp_params() { return remoteOp_params; }
 
-/*  *********************** */
-/*        SET FUNCTIONS     */
-/*  *********************** */
-
 std::string Video::get_operated_video_id() { return _operated_video_id; }
+
+std::vector<Json::Value> Video::get_ingest_metadata() {
+  return _ingest_metadata;
+}
 
 /*  *********************** */
 /*        SET FUNCTIONS     */
@@ -365,6 +366,10 @@ void Video::set_remoteOp_params(Json::Value options, std::string url) {
 
 void Video::set_operated_video_id(std::string filename) {
   _operated_video_id = filename;
+}
+
+void Video::set_ingest_metadata(Json::Value metadata) {
+  _ingest_metadata.push_back(metadata);
 }
 
 /*  *********************** */
@@ -530,13 +535,15 @@ int Video::perform_single_frame_operations(std::string id, int op_count,
     for (i = op_count; i < _operations.size(); i++) {
       auto it = std::next(_operations.begin(), i);
       std::shared_ptr<Operation> op = *it;
-
+      std::string op_name = op_labels[i];
       if ((*op).get_type() != VCL::Video::OperationType::SYNCREMOTEOPERATION &&
           (*op).get_type() != VCL::Video::OperationType::INTERVAL &&
           (*op).get_type() != VCL::Video::OperationType::USEROPERATION &&
           (*op).get_type() != VCL::Video::OperationType::REMOTEOPERATION) {
 
+        timers.add_timestamp(fname + "_sframe_" + op_name);
         (*op)(this, mat_frame);
+        timers.add_timestamp(fname + "_sframe_" + op_name);
         if (i == _operations.size() - 1) {
           outputVideo << mat_frame;
         }
@@ -619,6 +626,9 @@ void Video::perform_operations(bool is_store, std::string store_id) {
           cv::Mat mat;
           auto it = std::next(_operations.begin(), op_count);
           std::shared_ptr<Operation> op = *it;
+          std::string opname = op_labels[op_count];
+          timers.add_timestamp(fname + "_" + opname);
+
           if ((*op).get_type() !=
               VCL::Video::OperationType::SYNCREMOTEOPERATION) {
             (*op)(this, mat, fname);
@@ -630,6 +640,7 @@ void Video::perform_operations(bool is_store, std::string store_id) {
           }
           op_count++;
           id = fname;
+          timers.add_timestamp(fname + "_" + opname);
         }
       }
       if (is_store) {
@@ -759,33 +770,40 @@ void Video::set_connection(RemoteConnection *remote) {
 void Video::resize(int width, int height) {
   _flag_stored = false;
   _operations.push_back(std::make_shared<Resize>(cv::Size(width, height)));
+  op_labels.push_back("vid_resize");
 }
 
 void Video::interval(Video::Unit u, int start, int stop, int step) {
   _flag_stored = false;
   _operations.push_back(std::make_shared<Interval>(u, start, stop, step));
+  op_labels.push_back("vid_interval");
 }
 
 void Video::crop(const Rectangle &rect) {
   _flag_stored = false;
   _operations.push_back(std::make_shared<Crop>(rect));
+  op_labels.push_back("vid_crop");
 }
 
 void Video::threshold(int value) {
   _flag_stored = false;
   _operations.push_back(std::make_shared<Threshold>(value));
+  op_labels.push_back("vid_threshold");
 }
 
 void Video::syncremoteOperation(std::string url, Json::Value options) {
   _operations.push_back(std::make_shared<SyncRemoteOperation>(url, options));
+  op_labels.push_back("vid_sync_remote");
 }
 
 void Video::remoteOperation(std::string url, Json::Value options) {
   _operations.push_back(std::make_shared<RemoteOperation>(url, options));
+  op_labels.push_back("vid_remote_op");
 }
 
 void Video::userOperation(Json::Value options) {
   _operations.push_back(std::make_shared<UserOperation>(options));
+  op_labels.push_back("vid_user_op");
 }
 
 void Video::store(const std::string &video_id, Video::Codec video_codec) {
@@ -971,6 +989,70 @@ static size_t videoCallback(void *ptr, size_t size, size_t nmemb,
   return written;
 }
 
+Json::Value process_response(std::string zip_file_name,
+                             std::string video_file_name, std::string format) {
+  const char *zipFileName = zip_file_name.c_str();
+  Json::Value metadata;
+
+  zip *archive = zip_open(zipFileName, 0, NULL);
+
+  if (!archive) {
+    std::cerr << "Failed to open the zip file." << std::endl;
+    return 1;
+  }
+
+  int numFiles = zip_get_num_files(archive);
+
+  for (int i = 0; i < numFiles; ++i) {
+    struct zip_stat fileInfo;
+    zip_stat_init(&fileInfo);
+
+    if (zip_stat_index(archive, i, 0, &fileInfo) == 0) {
+      std::string filename(fileInfo.name);
+      zip_file *file = zip_fopen_index(archive, i, 0);
+      if (file) {
+
+        if (filename.find(format) != std::string::npos) {
+
+          char *new_filename = video_file_name.data();
+          FILE *new_file = fopen(new_filename, "wb");
+          if (!new_file) {
+            delete[] new_filename;
+            continue;
+          }
+
+          char buffer[1024];
+          int bytes_read;
+          while ((bytes_read = zip_fread(file, buffer, sizeof(buffer))) > 0) {
+            fwrite(buffer, 1, bytes_read, new_file);
+          }
+
+          fclose(new_file);
+        } else {
+          char buffer[1024];
+          std::string jsonString;
+          int bytes_read;
+          while ((bytes_read = zip_fread(file, buffer, sizeof(buffer))) > 0) {
+            jsonString += buffer;
+          }
+
+          Json::Reader reader;
+          bool parsingSuccessful = reader.parse(jsonString, metadata);
+          if (!parsingSuccessful) {
+            return metadata;
+          }
+        }
+        zip_fclose(file);
+      }
+    }
+  }
+
+  // Close the zip archive
+  zip_close(archive);
+
+  return metadata;
+}
+
 void Video::SyncRemoteOperation::operator()(Video *video, cv::Mat &frame,
                                             std::string args) {
   try {
@@ -1027,7 +1109,11 @@ void Video::SyncRemoteOperation::operator()(Video *video, cv::Mat &frame,
         std::string response_filepath =
             VDMS::VDMSConfig::instance()->get_path_tmp() + "/rtempfile" +
             std::to_string(utc_time.count()) + "." + format;
-        FILE *response_file = fopen(response_filepath.data(), "wb");
+
+        std::string zip_response_filepath =
+            VDMS::VDMSConfig::instance()->get_path_tmp() + "/rtempzipfile" +
+            std::to_string(utc_time.count()) + ".zip";
+        FILE *zip_response_file = fopen(zip_response_filepath.data(), "wb");
 
         if (curl_easy_setopt(curl, CURLOPT_URL, _url.data()) != CURLE_OK) {
           throw VCLException(UndefinedException, "CURL setup error with URL");
@@ -1038,8 +1124,8 @@ void Video::SyncRemoteOperation::operator()(Video *video, cv::Mat &frame,
                              "CURL setup error with callback");
         }
 
-        if (response_file) {
-          if (curl_easy_setopt(curl, CURLOPT_WRITEDATA, response_file) !=
+        if (zip_response_file) {
+          if (curl_easy_setopt(curl, CURLOPT_WRITEDATA, zip_response_file) !=
               CURLE_OK) {
             throw VCLException(UndefinedException,
                                "CURL setup error callback response file");
@@ -1049,7 +1135,7 @@ void Video::SyncRemoteOperation::operator()(Video *video, cv::Mat &frame,
                                "CURL setup error with form");
           }
           curl_easy_perform(curl);
-          fclose(response_file);
+          fclose(zip_response_file);
         }
 
         int http_status_code;
@@ -1079,6 +1165,12 @@ void Video::SyncRemoteOperation::operator()(Video *video, cv::Mat &frame,
           } else {
             throw VCLException(ObjectEmpty, "Remote Server error.");
           }
+        }
+
+        Json::Value metadata_response =
+            process_response(zip_response_filepath, response_filepath, format);
+        if (!metadata_response.empty()) {
+          video->set_ingest_metadata(metadata_response["metadata"]);
         }
 
         if (std::remove(fname.data()) != 0) {
@@ -1137,6 +1229,7 @@ void Video::UserOperation::operator()(Video *video, cv::Mat &frame,
       socket.connect(address.data());
 
       _options["ipfile"] = fname;
+      _options["media_type"] = "video";
 
       std::string message_to_send = _options.toStyledString();
 
@@ -1146,35 +1239,49 @@ void Video::UserOperation::operator()(Video *video, cv::Mat &frame,
 
       socket.send(ipfile, 0);
 
+      std::string response;
       // Wait for a response from the UDF process
       while (true) {
-        char buffer[256];
-        int size = socket.recv(buffer, 255, 0);
+        zmq::message_t reply;
+        socket.recv(&reply);
 
-        buffer[size] = '\0';
-        opfile = buffer;
+        response = std::string(static_cast<char *>(reply.data()), reply.size());
 
         break;
       }
 
-      std::ifstream rfile;
-      rfile.open(opfile);
-
-      if (rfile) {
-        rfile.close();
-      } else {
-        if (std::remove(opfile.data()) != 0) {
+      std::string delimiter = "metadata";
+      size_t pos;
+      if ((pos = response.find(delimiter)) != std::string::npos) {
+        Json::Value message;
+        Json::Reader reader;
+        bool parsingSuccessful = reader.parse(response, message);
+        if (!parsingSuccessful) {
+          throw VCLException(ObjectEmpty, "Error parsing string.");
         }
-        throw VCLException(OpenFailed, "UDF Error");
-      }
+        video->set_ingest_metadata(message["metadata"]);
+      } else {
+        opfile = response;
 
-      if (std::remove(fname.data()) != 0) {
-        throw VCLException(ObjectEmpty,
-                           "Error encountered while removing the file.");
-      }
-      if (std::rename(opfile.data(), fname.data()) != 0) {
-        throw VCLException(ObjectEmpty,
-                           "Error encountered while renaming the file.");
+        std::ifstream rfile;
+        rfile.open(opfile);
+
+        if (rfile) {
+          rfile.close();
+        } else {
+          if (std::remove(opfile.data()) != 0) {
+          }
+          throw VCLException(OpenFailed, "UDF Error");
+        }
+
+        if (std::remove(fname.data()) != 0) {
+          throw VCLException(ObjectEmpty,
+                             "Error encountered while removing the file.");
+        }
+        if (std::rename(opfile.data(), fname.data()) != 0) {
+          throw VCLException(ObjectEmpty,
+                             "Error encountered while renaming the file.");
+        }
       }
 
     } else

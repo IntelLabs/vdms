@@ -1375,3 +1375,91 @@ TEST_F(VideoTest, FilePathAccessError) {
     ASSERT_TRUE(false);
   }
 }
+
+/**
+ * Imitates performing a remote operation
+ * and then storing the video in VDMS with metadata.
+ * Metadata check is performed by this test.
+ */
+TEST_F(VideoTest, SyncRemoteWriteWithMetadata) {
+  std::string _url = "http://localhost:5010/video";
+  Json::Value _options;
+  _options["format"] = "mp4";
+  _options["id"] = "metadata";
+  _options["media_type"] = "video";
+  _options["otype"] = "face";
+
+  try {
+
+    std::string temp_video_input(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                 "/video_test_SyncRemoteWriteMD_input.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
+    std::string temp_video_test(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                "/video_test_SyncRemoteWriteMD_test.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
+
+    std::string syncremote_name_vcl("videos_tests/syncremotemd_vcl.mp4");
+    {
+      VCL::Video video_data(temp_video_input); //
+      video_data.syncremoteOperation(_url, _options);
+      video_data.store(syncremote_name_vcl, VCL::Video::Codec::H264);
+      for (auto metadata : video_data.get_ingest_metadata()) {
+        ASSERT_STREQ(metadata["1"]["bbox"]["object"].asString().data(), "face");
+      }
+    }
+
+    // Cleanup temp files.
+    if (std::remove(temp_video_input.data()) != 0) {
+    }
+    if (std::remove(temp_video_test.data()) != 0) {
+    }
+
+  } catch (VCL::Exception &e) {
+    print_exception(e);
+    ASSERT_TRUE(false);
+  }
+}
+
+/**
+ * Imitates performing a user defined operation
+ * and then storing the video in VDMS with metadata.
+ * Metadata check is performed by this test.
+ */
+TEST_F(VideoTest, UDFWriteWithMetadata) {
+  Json::Value _options;
+  _options["port"] = 5555;
+  _options["id"] = "metadata";
+  _options["media_type"] = "video";
+  _options["otype"] = "face";
+  _options["format"] = "mp4";
+
+  try {
+
+    std::string temp_video_input(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                 "/video_test_UDFWrite_input.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
+    std::string temp_video_test(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                                "/video_test_UDFemoteWrite_test.avi");
+    copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
+
+    std::string udf_name_vcl("videos_tests/udf_vcl.mp4");
+    {
+      VCL::Video video_data(temp_video_input); //
+      video_data.userOperation(_options);
+      video_data.store(udf_name_vcl, VCL::Video::Codec::H264);
+      for (auto metadata : video_data.get_ingest_metadata()) {
+        ASSERT_STREQ(metadata["1"]["bbox"]["object"].asString().data(), "face");
+      }
+    }
+
+    // Cleanup temp files.
+    if (std::remove(temp_video_input.data()) != 0) {
+    }
+    if (std::remove(temp_video_test.data()) != 0) {
+    }
+
+  } catch (VCL::Exception &e) {
+    print_exception(e);
+    ASSERT_TRUE(false);
+  }
+}

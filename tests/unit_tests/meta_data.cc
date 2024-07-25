@@ -107,17 +107,21 @@ Json::Value Meta_Data::construct_find_flinng_descriptor() {
 }
 
 Json::Value Meta_Data::constuct_image(bool add_operation,
-                                      Json::Value operations) {
+                                      Json::Value operations,
+                                      std::string category) {
 
   Json::Value image;
   Json::Value add_image;
   Json::Value tuple;
   image["properties"]["Name"] = "sample-image";
   image["properties"]["ID"] = 1;
+  if (category != "") {
+    image["properties"]["category"] = category;
+  }
   image["format"] = "png";
   image["_ref"] = 12;
   if (add_operation) {
-    image["operations"] = operations;
+    image["operations"].append(operations);
   }
   add_image["AddImage"] = image;
   tuple.append(add_image);
@@ -144,22 +148,19 @@ Json::Value Meta_Data::constuct_video(bool add_operation) {
 }
 
 Json::Value Meta_Data::constuct_video_by_path(int id, std::string filepath,
-                                              Json::Value operations) {
+                                              Json::Value operations,
+                                              std::string category) {
 
   Json::Value video;
   Json::Value add_video;
   Json::Value tuple;
   video["properties"]["Name"] = "sample-video";
   video["properties"]["ID"] = id;
-  video["container"] = "avi";
-  video["codec"] = "xvid";
+  if (category != "") {
+    video["properties"]["category"] = category;
+  }
   video["from_file_path"] = filepath;
-  video["operations"] = operations;
-  // video["_ref"]=1209;
-  // if( add_operation)
-  // {
-  //     video["operations"]=operations;
-  // }
+  video["operations"].append(operations);
   add_video["AddVideo"] = video;
   tuple.append(add_video);
   return tuple;
@@ -214,12 +215,118 @@ Json::Value Meta_Data::construct_find_image_withop(Json::Value operations) {
 
   Json::Value image;
   image["results"] = results;
-  image["operations"] = operations;
+  image["operations"].append(operations);
 
   Json::Value find_image;
   find_image["FindImage"] = image;
 
   tuple.append(find_image);
+  return tuple;
+}
+
+Json::Value Meta_Data::construct_find_video_withop(Json::Value operations) {
+  Json::Value tuple;
+
+  Json::Value results;
+  results["blob"] = true;
+  results["limit"] = 1;
+
+  Json::Value video;
+  video["results"] = results;
+  video["operations"].append(operations);
+
+  Json::Value find_video;
+  find_video["FindVideo"] = video;
+
+  tuple.append(find_video);
+  return tuple;
+}
+
+Json::Value Meta_Data::construct_find_image_with_dynamic_metadata() {
+  Json::Value tuple;
+
+  Json::Value cons;
+  cons["category"][0] = "==";
+  cons["category"][1] = "image_dynamic_metadata";
+
+  Json::Value metacons;
+  metacons["objectID"][0] = "==";
+  metacons["objectID"][1] = "face";
+
+  Json::Value results;
+  results["blob"] = true;
+
+  Json::Value link_image;
+  link_image["ref"] = 1;
+
+  Json::Value image;
+  image["constraints"] = cons;
+  image["_ref"] = 1;
+
+  Json::Value find_image;
+  find_image["FindImage"] = image;
+
+  tuple.append(find_image);
+
+  Json::Value bimage;
+  bimage["metaconstraints"] = metacons;
+  bimage["link"] = link_image;
+
+  Json::Value find_image_bbox;
+  find_image_bbox["FindImage"] = bimage;
+
+  tuple.append(find_image_bbox);
+
+  return tuple;
+}
+
+Json::Value Meta_Data::construct_find_video_with_dynamic_metadata() {
+  Json::Value tuple;
+
+  Json::Value cons;
+  cons["category"][0] = "==";
+  cons["category"][1] = "dynamic_metadata";
+
+  Json::Value metacons;
+  metacons["objectID"][0] = "==";
+  metacons["objectID"][1] = "face";
+
+  Json::Value results;
+  results["blob"] = true;
+
+  Json::Value link_video;
+  link_video["ref"] = 1;
+  Json::Value link_frame;
+  link_frame["ref"] = 2;
+
+  Json::Value video;
+  video["constraints"] = cons;
+  video["_ref"] = 1;
+
+  Json::Value find_video;
+  find_video["FindVideo"] = video;
+
+  tuple.append(find_video);
+
+  Json::Value fvideo;
+  fvideo["frameconstraints"] = false;
+  fvideo["_ref"] = 2;
+  fvideo["link"] = link_video;
+
+  Json::Value find_video_frame;
+  find_video_frame["FindVideo"] = fvideo;
+
+  tuple.append(find_video_frame);
+
+  Json::Value bvideo;
+  bvideo["metaconstraints"] = metacons;
+  bvideo["link"] = link_frame;
+
+  Json::Value find_video_bbox;
+  find_video_bbox["FindVideo"] = bvideo;
+
+  tuple.append(find_video_bbox);
+
   return tuple;
 }
 

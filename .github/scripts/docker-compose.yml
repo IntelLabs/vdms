@@ -1,0 +1,41 @@
+services:
+  vdms:
+    build:
+      dockerfile: .github/scripts/Dockerfile.checkin
+      context: ../..
+      args:
+        - BUILD_COVERAGE=on
+    image: vdms:${SOURCE_CONTAINER_NAME}
+    container_name: ${SOURCE_CONTAINER_NAME}
+    networks: [backend, frontend]
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_API_PORT=${AWS_API_PORT}
+      - AWS_CONSOLE_PORT=${AWS_CONSOLE_PORT}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - NEO4J_ENDPOINT=neo4j://neo4j:${NEO_TEST_PORT}
+      - NEO4J_PASS=${NEO4J_PASS}
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO_TEST_PORT=${NEO_TEST_PORT}
+      - OVERRIDE_print_high_level_timing="true"
+      - OVERRIDE_print_query_timing="true"
+      - OVERRIDE_print_vcl_timing="true"
+      - VDMS_TEST_PORT=${VDMS_TEST_PORT}
+    links:
+      - neo4j
+
+  neo4j:
+    image: neo4j:5.17.0
+    restart: always
+    container_name: ${NEO4J_CONTAINER_NAME}
+    networks: [backend]
+    environment:
+      - NEO4J_AUTH=${NEO4J_USER}/${NEO4J_PASS}
+
+networks:
+  backend:
+    internal: true
+    name: ${SOURCE_CONTAINER_NAME}_backend
+  frontend:
+    internal: false
+    name: ${SOURCE_CONTAINER_NAME}_frontend

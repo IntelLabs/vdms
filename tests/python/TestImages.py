@@ -29,21 +29,50 @@ import TestCommand
 
 
 class TestImages(TestCommand.TestCommand):
-    # Check the signature of any PNG file
-    # by going through the first eight bytes of data
-    #    (decimal)              137  80  78  71  13  10  26  10
-    #    (hexadecimal)           89  50  4e  47  0d  0a  1a  0a
-    #    (ASCII C notation)    \211   P   N   G  \r  \n \032 \n
-    def verify_png_signature(self, img):
-        self.assertFalse(len(img) < 8)
-        self.assertEqual(img[0], 137)
-        self.assertEqual(img[1], 80)
-        self.assertEqual(img[2], 78)
-        self.assertEqual(img[3], 71)
-        self.assertEqual(img[4], 13)
-        self.assertEqual(img[5], 10)
-        self.assertEqual(img[6], 26)
-        self.assertEqual(img[7], 10)
+    def create_image(
+        self,
+        command_str,
+        ref=None,
+        format=None,
+        props=None,
+        ops=None,
+        constraints=None,
+        unique=False,
+        results=None,
+        link=None,
+        collections=None,
+    ):
+        entity = {}
+
+        if ref is not None:
+            entity["_ref"] = ref
+
+        if format is not None and command_str == "AddImage":
+            entity["format"] = format
+
+        if unique and command_str == "FindImage":
+            entity["unique"] = unique
+
+        if results is not None and command_str == "FindImage":
+            entity["results"] = results
+
+        if constraints is not None:
+            entity["constraints"] = constraints
+
+        if link is not None:
+            entity["link"] = link
+
+        if collections is not None:
+            entity["collections"] = collections
+
+        if ops not in [None, {}, []]:
+            entity["operations"] = ops
+
+        if props not in [None, {}, []] and command_str in ["AddImage", "UpdateImage"]:
+            entity["properties"] = props
+
+        query = {command_str: entity}
+        return query
 
     # Method to insert one image
     def insertImage(self, db, props=None, collections=None, format="png"):
@@ -54,26 +83,22 @@ class TestImages(TestCommand.TestCommand):
         imgs_arr.append(fd.read())
         fd.close()
 
-        img_params = {}
-
         # adds some prop
         if not props is None:
             props["test_case"] = "test_case_prop"
-            img_params["properties"] = props
 
         op_params_resize = {}
         op_params_resize["height"] = 512
         op_params_resize["width"] = 512
         op_params_resize["type"] = "resize"
-        img_params["operations"] = [op_params_resize]
-
-        if not collections is None:
-            img_params["collections"] = collections
-
-        img_params["format"] = format
-
-        query = {}
-        query["AddImage"] = img_params
+        query = self.create_image(
+            "AddImage",
+            ref=12,
+            format=format,
+            ops=[op_params_resize],
+            props=props,
+            collections=collections,
+        )
 
         all_queries.append(query)
 
@@ -98,13 +123,11 @@ class TestImages(TestCommand.TestCommand):
             props = {}
             props["name"] = "brain_" + str(i)
             props["doctor"] = "Dr. Strange Love"
-
-            img_params = {}
-            img_params["properties"] = props
-            img_params["format"] = "jpg"
-
-            query = {}
-            query["AddImage"] = img_params
+            query = self.create_image(
+                "AddImage",
+                format="jpg",
+                props=props,
+            )
 
             all_queries.append(query)
 
@@ -132,13 +155,11 @@ class TestImages(TestCommand.TestCommand):
             props["name"] = "brain_" + str(i)
             props["doctor"] = "Dr. Strange Love"
 
-            img_params = {}
-            img_params["properties"] = props
-            img_params["format"] = "png"
-
-            query = {}
-            query["AddImage"] = img_params
-
+            query = self.create_image(
+                "AddImage",
+                format="png",
+                props=props,
+            )
             all_queries.append(query)
 
         response, img_array = db.query(all_queries, [imgs_arr])
@@ -172,14 +193,12 @@ class TestImages(TestCommand.TestCommand):
             props = {}
             props["name"] = "test_brain_" + str(i)
             props["doctor"] = "Dr. Strange Love"
-
-            img_params = {}
-            img_params["properties"] = props
-            img_params["operations"] = [op_params_resize]
-            img_params["format"] = "png"
-
-            query = {}
-            query["AddImage"] = img_params
+            query = self.create_image(
+                "AddImage",
+                format="png",
+                props=props,
+                ops=[op_params_resize],
+            )
 
             all_insert_queries.append(query)
 
@@ -191,12 +210,10 @@ class TestImages(TestCommand.TestCommand):
             constraints = {}
             constraints["name"] = ["==", "test_brain_" + str(i)]
 
-            img_params = {}
-            img_params["constraints"] = constraints
-
-            query = {}
-            query["FindImage"] = img_params
-
+            query = self.create_image(
+                "FindImage",
+                constraints=constraints,
+            )
             all_find_queries.append(query)
 
         response_from_find, img_found_array = db.query(all_find_queries)
@@ -241,14 +258,12 @@ class TestImages(TestCommand.TestCommand):
             results = {}
             results["list"] = ["name"]
 
-            img_params = {}
-            img_params["constraints"] = constraints
-            img_params["results"] = results
-            img_params["class"] = "VD:IMG"
-
-            query = {}
-            query["FindEntity"] = img_params
-
+            query = self.create_entity(
+                "FindEntity",
+                class_str="VD:IMG",
+                results=results,
+                constraints=constraints,
+            )
             all_queries.append(query)
 
         response, _ = db.query(all_queries)
@@ -283,12 +298,10 @@ class TestImages(TestCommand.TestCommand):
             constraints = {}
             constraints["name"] = ["==", filenames[i]]
 
-            img_params = {}
-            img_params["constraints"] = constraints
-
-            query = {}
-            query["FindImage"] = img_params
-
+            query = self.create_image(
+                "FindImage",
+                constraints=constraints,
+            )
             all_queries.append(query)
 
         response, img_array = db.query(all_queries)
@@ -327,13 +340,9 @@ class TestImages(TestCommand.TestCommand):
             results = {}
             results["list"] = ["name"]
 
-            img_params = {}
-            img_params["constraints"] = constraints
-            img_params["results"] = results
-
-            query = {}
-            query["FindImage"] = img_params
-
+            query = self.create_image(
+                "FindImage", constraints=constraints, results=results
+            )
             all_queries.append(query)
 
         response, img_array = db.query(all_queries)
@@ -364,14 +373,9 @@ class TestImages(TestCommand.TestCommand):
         props["lastname"] = "Ferro"
         props["age"] = 27
 
-        addEntity = {}
-        addEntity["_ref"] = 32
-        addEntity["properties"] = props
-        addEntity["class"] = "AwesomePeople"
-
-        query = {}
-        query["AddEntity"] = addEntity
-
+        query = self.create_entity(
+            "AddEntity", class_str="AwesomePeople", ref=32, props=props
+        )
         all_queries.append(query)
 
         props = {}
@@ -384,20 +388,18 @@ class TestImages(TestCommand.TestCommand):
         link["direction"] = "in"
         link["class"] = "Friends"
 
-        addImage = {}
-        addImage["properties"] = props
-        addImage["link"] = link
-        addImage["format"] = "png"
-
         imgs_arr = []
 
         fd = open("../test_images/brain.png", "rb")
         imgs_arr.append(fd.read())
         fd.close()
 
-        query = {}
-        query["AddImage"] = addImage
-
+        query = self.create_image(
+            "AddImage",
+            format="png",
+            link=link,
+            props=props,
+        )
         all_queries.append(query)
 
         # Execute the test
@@ -426,12 +428,7 @@ class TestImages(TestCommand.TestCommand):
         results = {}
         results["list"] = ["name"]
 
-        img_params = {}
-        img_params["constraints"] = constraints
-
-        query = {}
-        query["FindImage"] = img_params
-
+        query = self.create_image("FindImage", constraints=constraints, results=results)
         all_queries = []
         all_queries.append(query)
 
@@ -470,13 +467,9 @@ class TestImages(TestCommand.TestCommand):
             results["blob"] = False
             results["list"] = ["name"]
 
-            img_params = {}
-            img_params["constraints"] = constraints
-            img_params["results"] = results
-
-            query = {}
-            query["FindImage"] = img_params
-
+            query = self.create_image(
+                "FindImage", constraints=constraints, results=results
+            )
             all_queries.append(query)
 
         # Execute the tests
@@ -517,14 +510,9 @@ class TestImages(TestCommand.TestCommand):
             results["blob"] = False
             # results["list"] = ["name", "id"]
 
-            img_params = {}
-            img_params["constraints"] = constraints
-            img_params["results"] = results
-            img_params["_ref"] = 22 + i
-
-            query = {}
-            query["FindImage"] = img_params
-
+            query = self.create_image(
+                "FindImage", ref=22 + i, constraints=constraints, results=results
+            )
             all_queries.append(query)
         # Execute the tests
         response, img_array = db.query(all_queries)
@@ -556,13 +544,7 @@ class TestImages(TestCommand.TestCommand):
         props = {}
         props["name"] = "simg_update_0"
 
-        img_params = {}
-        img_params["constraints"] = constraints
-        img_params["properties"] = props
-
-        query = {}
-        query["UpdateImage"] = img_params
-
+        query = self.create_image("UpdateImage", constraints=constraints, props=props)
         all_queries.append(query)
 
         # Execute the tests
@@ -600,13 +582,9 @@ class TestImages(TestCommand.TestCommand):
             results = {}
             results["list"] = ["name"]
 
-            img_params = {}
-            img_params["collections"] = ["brainScans"]
-            img_params["results"] = results
-
-            query = {}
-            query["FindImage"] = img_params
-
+            query = self.create_image(
+                "FindImage", collections=["brainScans"], results=results
+            )
             all_queries.append(query)
 
         # Execute the tests

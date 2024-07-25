@@ -63,6 +63,9 @@ public:
   // Checks if 'format' parameter is specified, and if so, returns the
   // corresponding VCL::Image::Format type.
   VCL::Format get_requested_format(const Json::Value &cmd);
+
+protected:
+  bool output_vcl_timing;
 };
 
 class AddImage : public ImageCommand {

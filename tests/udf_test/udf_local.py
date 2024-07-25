@@ -19,18 +19,22 @@ socket.bind("tcp://*:" + str(settings["port"]))
 
 # print(globals())
 i = 0
+print("Started Listening...")
 while True:
     message = socket.recv()
 
     try:
+        print("Received {}".format(message))
+
         message_received = message.decode("utf-8")
         input_params = json.loads(message_received)
 
         udf = globals()[settings["functions"][input_params["id"]]]
 
-        t, opfile = udf.run(settings, input_params["ipfile"], input_params)
+        response = udf.run(settings, input_params["ipfile"], input_params)
 
-        socket.send_string(opfile)
+        print(i, response)
+        socket.send_string(response)
         i += 1
     except Exception as e:
         print(e.with_traceback(None))
