@@ -5,7 +5,7 @@
  *
  * The MIT License
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2024 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"),
@@ -34,12 +34,15 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "tbb/concurrent_unordered_map.h"
 
 #include "PMGDQuery.h"
 #include "queryMessage.pb.h"
 
 // Json parsing files
 #include <jsoncpp/json/value.h>
+
+
 
 namespace VDMS {
 
@@ -48,6 +51,9 @@ class RSCommand {
 protected:
   const std::string _cmd_name;
   std::map<std::string, int> _valid_params_map;
+
+  static tbb::concurrent_unordered_map<std::string, std::string> _desc_set_locator;
+  static tbb::concurrent_unordered_map<std::string, int> _desc_set_dims;
 
   template <typename T>
   T get_value(const Json::Value &json, const std::string &key, T def = T());

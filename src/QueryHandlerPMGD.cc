@@ -59,6 +59,12 @@ using namespace VDMS;
 
 std::unordered_map<std::string, RSCommand *> QueryHandlerPMGD::_rs_cmds;
 
+//Static globals for use in looking up descriptor set locations, defined in RSCommand.h
+tbb::concurrent_unordered_map<std::string, std::string>
+        RSCommand::_desc_set_locator;
+tbb::concurrent_unordered_map<std::string, int>
+        RSCommand::_desc_set_dims;
+
 void QueryHandlerPMGD::init() {
   DescriptorsManager::init();
 
