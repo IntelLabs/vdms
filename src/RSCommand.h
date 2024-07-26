@@ -42,8 +42,6 @@
 // Json parsing files
 #include <jsoncpp/json/value.h>
 
-
-
 namespace VDMS {
 
 // Helper classes for handling various JSON commands.
