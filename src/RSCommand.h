@@ -30,11 +30,11 @@
  */
 
 #pragma once
+#include "tbb/concurrent_unordered_map.h"
 #include <atomic>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "tbb/concurrent_unordered_map.h"
 
 #include "PMGDQuery.h"
 #include "queryMessage.pb.h"
@@ -50,7 +50,8 @@ protected:
   const std::string _cmd_name;
   std::map<std::string, int> _valid_params_map;
 
-  static tbb::concurrent_unordered_map<std::string, std::string> _desc_set_locator;
+  static tbb::concurrent_unordered_map<std::string, std::string>
+      _desc_set_locator;
   static tbb::concurrent_unordered_map<std::string, int> _desc_set_dims;
 
   template <typename T>

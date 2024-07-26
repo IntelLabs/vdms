@@ -57,14 +57,15 @@ std::string DescriptorsCommand::get_set_path(PMGDQuery &query_tx,
                                              const std::string &set_name,
                                              int &dim) {
 
-  // Check cache for descriptor set, if its found set dimensions and return path,
-  //otherwise we go forward and query PMGD to locate the descriptor set
+  // Check cache for descriptor set, if its found set dimensions and return
+  // path,
+  // otherwise we go forward and query PMGD to locate the descriptor set
   auto element = _desc_set_locator.find(set_name);
   std::string mapped_path;
   if (element != _desc_set_locator.end()) {
-      mapped_path = element->second;
-      dim = _desc_set_dims[set_name];
-      return mapped_path;
+    mapped_path = element->second;
+    dim = _desc_set_dims[set_name];
+    return mapped_path;
   }
 
   // Will issue a read-only transaction to check
