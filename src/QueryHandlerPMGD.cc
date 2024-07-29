@@ -63,7 +63,8 @@ std::unordered_map<std::string, RSCommand *> QueryHandlerPMGD::_rs_cmds;
 // DescriptorCommand.h
 tbb::concurrent_unordered_map<std::string, std::string>
     DescriptorsCommand::_desc_set_locator;
-tbb::concurrent_unordered_map<std::string, int> DescriptorsCommand::_desc_set_dims;
+tbb::concurrent_unordered_map<std::string, int>
+    DescriptorsCommand::_desc_set_dims;
 
 void QueryHandlerPMGD::init() {
   DescriptorsManager::init();
