@@ -50,10 +50,6 @@ protected:
   const std::string _cmd_name;
   std::map<std::string, int> _valid_params_map;
 
-  static tbb::concurrent_unordered_map<std::string, std::string>
-      _desc_set_locator;
-  static tbb::concurrent_unordered_map<std::string, int> _desc_set_dims;
-
   template <typename T>
   T get_value(const Json::Value &json, const std::string &key, T def = T());
 
