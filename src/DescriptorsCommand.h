@@ -58,6 +58,10 @@ protected:
   // for this data structure in tbb
   tbb::concurrent_unordered_map<long, IDDistancePair *> _cache_map;
 
+  static tbb::concurrent_unordered_map<std::string, std::string>
+      _desc_set_locator;
+  static tbb::concurrent_unordered_map<std::string, int> _desc_set_dims;
+
   // Will return the path to the set and the dimensions
   std::string get_set_path(PMGDQuery &query_tx, const std::string &set,
                            int &dim);
