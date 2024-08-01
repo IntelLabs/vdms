@@ -59,7 +59,7 @@ protected:
   tbb::concurrent_unordered_map<long, IDDistancePair *> _cache_map;
 
   static tbb::concurrent_unordered_map<std::string, std::string>
-      _desc_set_locator;
+    _desc_set_locator;
   static tbb::concurrent_unordered_map<std::string, int> _desc_set_dims;
 
   // Will return the path to the set and the dimensions
@@ -131,6 +131,14 @@ class AddDescriptor : public DescriptorsCommand {
                          int dim, const std::string &label, Json::Value &error);
 
   void retrieve_aws_descriptorSet(const std::string &set_path);
+
+  int add_single_descriptor(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
+
+  int add_descriptor_batch(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
 
 public:
   AddDescriptor();

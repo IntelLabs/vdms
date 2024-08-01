@@ -84,7 +84,9 @@ std::string DescriptorsCommand::get_set_path(PMGDQuery &query_tx,
   list_arr.append(VDMS_DESC_SET_DIM_PROP);
   list_arr.append(VDMS_DESC_SET_ENGIN_PROP);
 
+
   results["list"] = list_arr;
+
 
   bool unique = true;
 
@@ -94,7 +96,6 @@ std::string DescriptorsCommand::get_set_path(PMGDQuery &query_tx,
                   true);
 
   Json::Value &query_responses = query.run();
-
   if (query_responses.size() != 1 && query_responses[0].size() != 1) {
     throw ExceptionCommand(DescriptorSetError, "PMGD Transaction Error");
   }
@@ -113,7 +114,6 @@ std::string DescriptorsCommand::get_set_path(PMGDQuery &query_tx,
     _desc_set_locator[set_name] = set_path;
     return set_path;
   }
-
   return "";
 }
 
@@ -409,94 +409,137 @@ void AddDescriptor::retrieve_aws_descriptorSet(const std::string &set_path) {
   }
 }
 
+int AddDescriptor::add_single_descriptor(PMGDQuery &query,
+                                          const Json::Value &jsoncmd,
+                                          const std::string &blob, int grp_id,
+                                          Json::Value &error){
+
+    const Json::Value &cmd = jsoncmd[_cmd_name];
+    const std::string set_name = cmd["set"].asString();
+
+    Json::Value props = get_value<Json::Value>(cmd, "properties");
+
+    std::string label = get_value<std::string>(cmd, "label", "None");
+    props[VDMS_DESC_LABEL_PROP] = label;
+
+    int dimensions;
+    const std::string set_path = get_set_path(query, set_name, dimensions);
+
+    if (set_path.empty()) {
+        error["info"] = "Set " + set_name + " not found";
+        error["status"] = RSCommand::Error;
+        return -1;
+    }
+
+    // retrieve the descriptor set from AWS here
+    // operations are currently done in memory with no subsequent write to disk
+    // so there's no need to re-upload to AWS
+    if (_use_aws_storage) {
+        retrieve_aws_descriptorSet(set_path);
+    }
+
+    //TODO modify descriptor
+    long id = insert_descriptor(blob, set_path, dimensions, label, error);
+
+    if (id < 0) {
+        error["status"] = RSCommand::Error;
+
+        if (_use_aws_storage) {
+            // delete files in set_path
+            std::uintmax_t n = fs::remove_all(set_path);
+            std::cout << "Deleted " << n << " files or directories\n";
+        }
+
+        return -1;
+    }
+
+    props[VDMS_DESC_ID_PROP] = Json::Int64(id);
+
+    int node_ref = get_value<int>(cmd, "_ref", query.get_available_reference());
+
+    query.AddNode(node_ref, VDMS_DESC_TAG, props, Json::nullValue);
+
+    // It passed the checker, so it exists.
+    int set_ref = query.get_available_reference();
+
+    Json::Value link;
+    Json::Value results;
+    Json::Value list_arr;
+    list_arr.append(VDMS_DESC_SET_PATH_PROP);
+    list_arr.append(VDMS_DESC_SET_DIM_PROP);
+    results["list"] = list_arr;
+
+    Json::Value constraints;
+    Json::Value name_arr;
+    name_arr.append("==");
+    name_arr.append(set_name);
+    constraints[VDMS_DESC_SET_NAME_PROP] = name_arr;
+
+    bool unique = true;
+
+    // Query set node
+    query.QueryNode(set_ref, VDMS_DESC_SET_TAG, link, constraints, results,
+                    unique);
+
+    if (cmd.isMember("link")) {
+        add_link(query, cmd["link"], node_ref, VDMS_DESC_EDGE_TAG);
+    }
+
+    Json::Value props_edge;
+    query.AddEdge(-1, set_ref, node_ref, VDMS_DESC_SET_EDGE_TAG, props_edge);
+
+    // TODO: deleting files here causes problems with concurrency (TestRetail.py)
+    // keeping local copies as a temporary solution
+    // if(_use_aws_storage)
+    // {
+    //     //delete files in set_path
+    //     std::uintmax_t n = fs::remove_all(set_path);
+    //     std::cout << "Deleted " << n << " files or directories\n";
+    // }
+
+    return 0;
+
+}
+
+int AddDescriptor::add_descriptor_batch(PMGDQuery &query,
+                                         const Json::Value &jsoncmd,
+                                         const std::string &blob, int grp_id,
+                                         Json::Value &error){
+
+}
+
 int AddDescriptor::construct_protobuf(PMGDQuery &query,
                                       const Json::Value &jsoncmd,
                                       const std::string &blob, int grp_id,
                                       Json::Value &error) {
-  const Json::Value &cmd = jsoncmd[_cmd_name];
 
+  bool batch_mode;
+  int rc;
+  const Json::Value &cmd = jsoncmd[_cmd_name];
   const std::string set_name = cmd["set"].asString();
 
-  Json::Value props = get_value<Json::Value>(cmd, "properties");
 
-  std::string label = get_value<std::string>(cmd, "label", "None");
-  props[VDMS_DESC_LABEL_PROP] = label;
+  Json::Value prop_list = get_value<Json::Value>(cmd, "propertieslist");
+  if(prop_list.size() == 0){
+      //todo check for _ref usage
+      batch_mode = false;
+      rc = add_single_descriptor(query, jsoncmd, blob, grp_id, error);
 
-  int dimensions;
-  const std::string set_path = get_set_path(query, set_name, dimensions);
+  } else {
+      printf("batch mode not implemented\n");
+      exit(0);
 
-  if (set_path.empty()) {
-    error["info"] = "Set " + set_name + " not found";
-    error["status"] = RSCommand::Error;
-    return -1;
   }
 
-  // retrieve the descriptor set from AWS here
-  // operations are currently done in memory with no subsequent write to disk
-  // so there's no need to re-upload to AWS
-  if (_use_aws_storage) {
-    retrieve_aws_descriptorSet(set_path);
-  }
+  /*
+  printf("property list size: %d\n", prop_list.size());
+  for(Json::Value::ArrayIndex i = 0; i < prop_list.size(); i++){
+      Json::Value prop_dict =  prop_list[i];
+      std::cout<<prop_dict<<std::endl;
+  }*/
 
-  long id = insert_descriptor(blob, set_path, dimensions, label, error);
+  return rc;
 
-  if (id < 0) {
-    error["status"] = RSCommand::Error;
-
-    if (_use_aws_storage) {
-      // delete files in set_path
-      std::uintmax_t n = fs::remove_all(set_path);
-      std::cout << "Deleted " << n << " files or directories\n";
-    }
-
-    return -1;
-  }
-
-  props[VDMS_DESC_ID_PROP] = Json::Int64(id);
-
-  int node_ref = get_value<int>(cmd, "_ref", query.get_available_reference());
-
-  query.AddNode(node_ref, VDMS_DESC_TAG, props, Json::nullValue);
-
-  // It passed the checker, so it exists.
-  int set_ref = query.get_available_reference();
-
-  Json::Value link;
-  Json::Value results;
-  Json::Value list_arr;
-  list_arr.append(VDMS_DESC_SET_PATH_PROP);
-  list_arr.append(VDMS_DESC_SET_DIM_PROP);
-  results["list"] = list_arr;
-
-  Json::Value constraints;
-  Json::Value name_arr;
-  name_arr.append("==");
-  name_arr.append(set_name);
-  constraints[VDMS_DESC_SET_NAME_PROP] = name_arr;
-
-  bool unique = true;
-
-  // Query set node
-  query.QueryNode(set_ref, VDMS_DESC_SET_TAG, link, constraints, results,
-                  unique);
-
-  if (cmd.isMember("link")) {
-    add_link(query, cmd["link"], node_ref, VDMS_DESC_EDGE_TAG);
-  }
-
-  Json::Value props_edge;
-  query.AddEdge(-1, set_ref, node_ref, VDMS_DESC_SET_EDGE_TAG, props_edge);
-
-  // TODO: deleting files here causes problems with concurrency (TestRetail.py)
-  // keeping local copies as a temporary solution
-  // if(_use_aws_storage)
-  // {
-  //     //delete files in set_path
-  //     std::uintmax_t n = fs::remove_all(set_path);
-  //     std::cout << "Deleted " << n << " files or directories\n";
-  // }
-
-  return 0;
 }
 
 Json::Value AddDescriptor::construct_responses(

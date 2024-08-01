@@ -75,6 +75,11 @@
   "definitions": {
 
     // misc
+    "propertyArray": {
+      "type": "array",
+      "items": {"type" : "object"},
+      "minimum" : 1
+    },
 
     "positiveInt": {
       "type": "integer",
@@ -744,7 +749,8 @@
         "label":      { "type": "string" },
         "_ref":       { "$ref": "#/definitions/refInt" },
         "link":       { "$ref": "#/definitions/blockLink" },
-        "properties": { "type": "object" }
+        "properties": { "type": "object" },
+        "propertieslist": {"$ref": "#/definitions/propertyArray"}
       },
       "required": ["set"],
       "additionalProperties": false
