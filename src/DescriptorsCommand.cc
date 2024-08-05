@@ -341,8 +341,9 @@ AddDescriptor::AddDescriptor() : DescriptorsCommand("AddDescriptor") {
   //_use_aws_storage = VDMSConfig::instance()->get_aws_flag();
 }
 
+//update to handle multiple descriptors at a go
 long AddDescriptor::insert_descriptor(const std::string &blob,
-                                      const std::string &set_path, int dim,
+                                      const std::string &set_path, int nr_desc,
                                       const std::string &label,
                                       Json::Value &error) {
   long id_first;
@@ -351,21 +352,23 @@ long AddDescriptor::insert_descriptor(const std::string &blob,
 
     VCL::DescriptorSet *desc_set = _dm->get_descriptors_handler(set_path);
 
-    if (blob.length() / 4 != dim) {
+    //TODO this check no longer applies, should move it elsewhere
+    /*if (blob.length() / 4 != dim) {
       std::cerr << "AddDescriptor::insert_descriptor: ";
       std::cerr << "Dimensions mismatch: ";
       std::cerr << blob.length() / 4 << " " << dim << std::endl;
       error["info"] = "Blob Dimensions Mismatch";
       return -1;
-    }
+    }*/
+
 
     if (!label.empty()) {
       long label_id = desc_set->get_label_id(label);
       long *label_ptr = &label_id;
-      id_first = desc_set->add((float *)blob.data(), 1, label_ptr);
+      id_first = desc_set->add((float *)blob.data(), nr_desc, label_ptr);
 
     } else {
-      id_first = desc_set->add((float *)blob.data(), 1);
+      id_first = desc_set->add((float *)blob.data(), nr_desc);
     }
 
     if (output_vcl_timing) {
@@ -422,12 +425,20 @@ int AddDescriptor::add_single_descriptor(PMGDQuery &query,
     std::string label = get_value<std::string>(cmd, "label", "None");
     props[VDMS_DESC_LABEL_PROP] = label;
 
-    int dimensions;
-    const std::string set_path = get_set_path(query, set_name, dimensions);
+    int dim;
+    const std::string set_path = get_set_path(query, set_name, dim);
 
     if (set_path.empty()) {
         error["info"] = "Set " + set_name + " not found";
         error["status"] = RSCommand::Error;
+        return -1;
+    }
+
+    if (blob.length() / 4 != dim) {
+        std::cerr << "AddDescriptor::insert_descriptor: ";
+        std::cerr << "Dimensions mismatch: ";
+        std::cerr << blob.length() / 4 << " " << dim << std::endl;
+        error["info"] = "Blob Dimensions Mismatch";
         return -1;
     }
 
@@ -438,8 +449,8 @@ int AddDescriptor::add_single_descriptor(PMGDQuery &query,
         retrieve_aws_descriptorSet(set_path);
     }
 
-    //TODO modify descriptor
-    long id = insert_descriptor(blob, set_path, dimensions, label, error);
+    //TODO modify insert descriptor to handle batches
+    long id = insert_descriptor(blob, set_path, 1, label, error);
 
     if (id < 0) {
         error["status"] = RSCommand::Error;
@@ -506,6 +517,117 @@ int AddDescriptor::add_descriptor_batch(PMGDQuery &query,
                                          const std::string &blob, int grp_id,
                                          Json::Value &error){
 
+    int expected_blb_size;
+    int nr_expected_descs;
+    int dimensions;
+
+    //Extract set name
+    const Json::Value &cmd = jsoncmd[_cmd_name];
+    const std::string set_name = cmd["set"].asString();
+
+    //extract properties list and get filepath/object location of set
+    Json::Value prop_list = get_value<Json::Value>(cmd, "propertieslist");
+    const std::string set_path = get_set_path(query, set_name, dimensions);
+
+    if (set_path.empty()) {
+        error["info"] = "Set " + set_name + " not found";
+        error["status"] = RSCommand::Error;
+        return -1;
+    }
+
+    std::string label = get_value<std::string>(cmd, "label", "None");
+
+    // retrieve the descriptor set from AWS here
+    // operations are currently done in memory with no subsequent write to disk
+    // so there's no need to re-upload to AWS
+    if (_use_aws_storage) {
+        retrieve_aws_descriptorSet(set_path);
+    }
+
+    // Note dimensionse are based on a 32 bit integer, hence the /4 math on size
+    // as the string blob is sized in 8 bit ints.
+    nr_expected_descs = prop_list.size();
+    expected_blb_size = nr_expected_descs * dimensions * 4;
+
+    //Verify length of input is matching expectations
+    if (blob.length() != expected_blb_size) {
+        std::cerr << "AddDescriptor::insert_descriptor: ";
+        std::cerr << "Expectected Blob Length Does Not Match Input ";
+        std::cerr << blob.length() << " != " << expected_blb_size << std::endl;
+        error["info"] = "FV Input Length Mismatch";
+        return -1;
+    }
+
+    //TODO modify insert descriptor to handle batches
+    long id = insert_descriptor(blob, set_path, nr_expected_descs, label, error);
+
+    if (id < 0) {
+        error["status"] = RSCommand::Error;
+
+        if (_use_aws_storage) {
+            // delete files in set_path
+            std::uintmax_t n = fs::remove_all(set_path);
+            std::cout << "Deleted " << n << " files or directories\n";
+        }
+
+        return -1;
+    }
+
+    //get reference tag for source node for ID
+
+
+    // Loop over properties list, add relevant query, link, and edges for each
+    for(int i=0; i < nr_expected_descs; i++) {
+        int node_ref = query.get_available_reference();
+        Json::Value cur_props;
+        cur_props = prop_list[i];
+        //TODO Note using iterator to modify ID return, we're gonna want to watch this closely.
+        cur_props[VDMS_DESC_ID_PROP] = Json::Int64(id+i);
+
+
+        query.AddNode(node_ref, VDMS_DESC_TAG, cur_props, Json::nullValue);
+
+        // It passed the checker, so it exists.
+        int set_ref = query.get_available_reference();
+
+        Json::Value link;
+        Json::Value results;
+        Json::Value list_arr;
+        list_arr.append(VDMS_DESC_SET_PATH_PROP);
+        list_arr.append(VDMS_DESC_SET_DIM_PROP);
+        results["list"] = list_arr;
+
+        //constraints for getting set node to link to.
+        Json::Value constraints;
+        Json::Value name_arr;
+        name_arr.append("==");
+        name_arr.append(set_name);
+        constraints[VDMS_DESC_SET_NAME_PROP] = name_arr;
+
+        bool unique = true;
+
+        // Query set node-We only need to do this once, outside of the loop TODO MOVE
+        query.QueryNode(set_ref, VDMS_DESC_SET_TAG, link, constraints, results,
+                        unique);
+
+        //note this implicitly means that every node of a batch uses the same link
+        if (cmd.isMember("link")) {
+            add_link(query, cmd["link"], node_ref, VDMS_DESC_EDGE_TAG);
+        }
+
+        Json::Value props_edge;
+        query.AddEdge(-1, set_ref, node_ref, VDMS_DESC_SET_EDGE_TAG, props_edge);
+    }
+
+
+    /* TODO example iteration over properties list
+     * TODO update API to call field "batch_properties"
+    printf("property list size: %d\n", prop_list.size());
+    for(Json::Value::ArrayIndex i = 0; i < prop_list.size(); i++){
+    Json::Value prop_dict =  prop_list[i];
+    std::cout<<prop_dict<<std::endl;
+    }*/
+    return 0;
 }
 
 int AddDescriptor::construct_protobuf(PMGDQuery &query,
@@ -521,22 +643,14 @@ int AddDescriptor::construct_protobuf(PMGDQuery &query,
 
   Json::Value prop_list = get_value<Json::Value>(cmd, "propertieslist");
   if(prop_list.size() == 0){
-      //todo check for _ref usage
-      batch_mode = false;
+      printf("Adding Single Descriptor\n");
       rc = add_single_descriptor(query, jsoncmd, blob, grp_id, error);
-
   } else {
-      printf("batch mode not implemented\n");
-      exit(0);
-
+      printf("Adding Descriptor Batch\n");
+      rc = add_descriptor_batch(query, jsoncmd, blob, grp_id, error);
   }
 
-  /*
-  printf("property list size: %d\n", prop_list.size());
-  for(Json::Value::ArrayIndex i = 0; i < prop_list.size(); i++){
-      Json::Value prop_dict =  prop_list[i];
-      std::cout<<prop_dict<<std::endl;
-  }*/
+
 
   return rc;
 
