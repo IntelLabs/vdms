@@ -1,15 +1,12 @@
 from flask import Flask, request, jsonify, send_file, after_this_request
 import cv2
-import numpy as np
 import json
 from datetime import datetime, timezone
 import os
 import sys
-from collections import defaultdict, deque
-import skvideo.io
-import imutils
 import uuid
 from zipfile import ZipFile
+from werkzeug.utils import secure_filename
 
 for entry in os.scandir("functions"):
     if entry.is_file():
@@ -17,9 +14,6 @@ for entry in os.scandir("functions"):
         exec(string)
 
 app = Flask(__name__)
-
-count = 0
-
 
 def get_current_timestamp():
     dt = datetime.now(timezone.utc)
@@ -42,7 +36,7 @@ def image_api():
 
     format = json_data["format"] if "format" in json_data else "jpg"
 
-    tmpfile = "tmpfile" + uuid.uuid1().hex + "." + str(format)
+    tmpfile = secure_filename("tmpfile" + uuid.uuid1().hex + "." + str(format))
 
     image_data.save(tmpfile)
 
@@ -70,7 +64,7 @@ def video_api():
     video_data = request.files["videoData"]
     format = json_data["format"] if "format" in json_data else "mp4"
 
-    tmpfile = "tmpfile" + uuid.uuid1().hex + "." + str(format)
+    tmpfile = secure_filename("tmpfile" + uuid.uuid1().hex + "." + str(format))
     video_data.save(tmpfile)
 
     video_file, metadata_file = "", ""
