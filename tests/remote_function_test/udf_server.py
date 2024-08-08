@@ -15,6 +15,7 @@ for entry in os.scandir("functions"):
 
 app = Flask(__name__)
 
+
 def get_current_timestamp():
     dt = datetime.now(timezone.utc)
 
