@@ -206,6 +206,119 @@ class TestDescriptors(TestCommand.TestCommand):
 
         self.disconnect(db)
 
+    def test_AddSetAndWrongBatchSize(self):
+
+
+        db = self.create_connection()
+
+        # Create and verify descriptor set
+        trans_list = []
+        trans_dict = {}
+        desc_set = {}
+        desc_set["engine"] = "FaissFlat"
+        desc_set["metric"] = "L2"
+        desc_set["name"] = "wrongbatchsize"
+        desc_set["dimensions"] = 128
+        trans_dict["AddDescriptorSet"] = desc_set
+
+        trans_list.append(trans_dict)
+
+        response, img_array = db.query(trans_list)
+        self.assertEqual(response[0]["AddDescriptorSet"]["status"],0)
+
+        # Create and add a batch of feature vectors
+        trans = []
+        blobs = []
+        nr_dims = 128
+        batch_size = 10
+        desc_blob = []
+        x = np.zeros(nr_dims * batch_size)
+        x = x.astype("float32")
+        desc_blob.append(x.tobytes())
+
+        properties_list=[]
+        for x in range(batch_size + 3):
+            props = {"batchprop": x}
+            properties_list.append(props)
+
+        descriptor = {}
+        descriptor["set"] = "wrongbatchsize"
+        descriptor["propertieslist"] = properties_list
+        query = {}
+        query["AddDescriptor"] = descriptor
+        trans.append(query)
+        blobs.append(desc_blob)
+
+        response, img_array = db.query(trans, blobs)
+        self.assertEqual(response[0]["info"], "FV Input Length Mismatch")
+        self.assertEqual(response[0]["status"], -1)
+
+        self.disconnect(db)
+
+    def test_AddSetAndInsertBatch(self):
+
+        db = self.create_connection()
+
+        # Create and verify descriptor set
+        trans_list = []
+        trans_dict = {}
+        desc_set = {}
+        desc_set["engine"] = "FaissFlat"
+        desc_set["metric"] = "L2"
+        desc_set["name"] = "rightbatchsize"
+        desc_set["dimensions"] = 128
+        trans_dict["AddDescriptorSet"] = desc_set
+
+        trans_list.append(trans_dict)
+
+        response, img_array = db.query(trans_list)
+        self.assertEqual(response[0]["AddDescriptorSet"]["status"],0)
+
+        # Create and add a batch of feature vectors
+        trans = []
+        blobs = []
+        nr_dims = 128
+        batch_size = 10
+        desc_blob = []
+        x = np.zeros(nr_dims * batch_size)
+        x = x.astype("float32")
+        desc_blob.append(x.tobytes())
+
+        properties_list=[]
+        for x in range(batch_size):
+            props = {"batchprop": x}
+            properties_list.append(props)
+
+        descriptor = {}
+        descriptor["set"] = "rightbatchsize"
+        descriptor["propertieslist"] = properties_list
+        query = {}
+        query["AddDescriptor"] = descriptor
+        trans.append(query)
+        blobs.append(desc_blob)
+
+        response, img_array = db.query(trans, blobs)
+        print(response)
+        self.assertEqual(response[0]["AddDescriptor"]["status"], 0)
+
+        # now try to get those same descriptors back
+        desc_find = {}
+        desc_find["set"] = "rightbatchsize"
+        desc_find["results"] = {"list":["batchprop"]}
+
+        query = {}
+        query["FindDescriptor"] = desc_find
+
+        trans = []
+        blobs = []
+        trans.append(query)
+        response, img_array = db.query(trans, blobs)
+        print(response)
+
+        self.disconnect(db)
+
+
+
     def test_classifyDescriptor(self):
         db = self.create_connection()
         set_name = "features_128d_4_classify"
