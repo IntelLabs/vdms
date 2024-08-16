@@ -130,7 +130,6 @@ QueryHandlerPMGD::QueryHandlerPMGD()
 
 bool QueryHandlerPMGD::syntax_checker(const Json::Value &root,
                                       Json::Value &error) {
-  printf("Syntax Checker\n");
   valijson::ValidationResults results;
   valijson::adapters::JsonCppAdapter user_query(root);
   if (!_validator.validate(*_schema, user_query, &results)) {
@@ -199,7 +198,6 @@ bool QueryHandlerPMGD::syntax_checker(const Json::Value &root,
 
 int QueryHandlerPMGD::parse_commands(const protobufs::queryMessage &proto_query,
                                      Json::Value &root) {
-    printf("Parse commands Checker\n");
     Json::Reader reader;
   const std::string commands = proto_query.json();
 
@@ -245,7 +243,6 @@ int QueryHandlerPMGD::parse_commands(const protobufs::queryMessage &proto_query,
     root["status"] = RSCommand::Error;
     return -1;
   }
-  printf("Parse COmmands complete\n");
   return 0;
 }
 
@@ -298,20 +295,19 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
       Json::StyledWriter w;
       std::cerr << w.write(json_responses);
     };
-    printf("Parse Command Pre-\n");
+
     if (parse_commands(proto_query, root) != 0) {
       cmd_current = "Transaction";
       error(root, cmd_current);
       return;
     }
-    printf("Parse Commands Completed, back in proc-query\n");
 
     PMGDQuery pmgd_query(_pmgd_qh);
     int blob_count = 0;
 
     // iterate over the list of the queries
     for (int j = 0; j < root.size(); j++) {
-      printf("Iterating over incoming queries: %d...\n", j);
+
       const Json::Value &query = root[j];
       std::string cmd = query.getMemberNames()[0];
 
@@ -345,11 +341,11 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
       construct_results.push_back(cmd_result);
     }
 
-    printf("Running PMGD Query\n");
+
     timers.add_timestamp("pmgd_query_time");
     Json::Value &tx_responses = pmgd_query.run(_autodelete_init);
     timers.add_timestamp("pmgd_query_time");
-    printf("PMGD query Complete\n");
+
 
     if (!tx_responses.isArray() || tx_responses.size() != root.size()) {
       Json::StyledWriter writer;
@@ -370,7 +366,6 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
     } else {
       blob_count = 0;
       for (int j = 0; j < root.size(); j++) {
-          printf("Response iteration: %d\n", j);
         Json::Value &query = root[j];
         std::string cmd = query.getMemberNames()[0];
 
@@ -406,10 +401,10 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
     if (output_query_level_timing) {
       timers.print_map_runtimes();
     }
-    printf("Writing JSON responses...\n");
+
     proto_res.set_json(fastWriter.write(json_responses));
     _pmgd_qh.cleanup_files();
-    printf("Cleaning up!\n");
+
 
   } catch (VCL::Exception &e) {
     print_exception(e);
