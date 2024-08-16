@@ -526,7 +526,7 @@ int AddDescriptor::add_descriptor_batch(PMGDQuery &query,
     const std::string set_name = cmd["set"].asString();
 
     //extract properties list and get filepath/object location of set
-    Json::Value prop_list = get_value<Json::Value>(cmd, "propertieslist");
+    Json::Value prop_list = get_value<Json::Value>(cmd, "batch_properties");
     const std::string set_path = get_set_path(query, set_name, dimensions);
 
     if (set_path.empty()) {
@@ -574,8 +574,6 @@ int AddDescriptor::add_descriptor_batch(PMGDQuery &query,
     }
 
     //get reference tag for source node for ID
-    printf("Base ID for insertion: %d\n", id);
-
     // Loop over properties list, add relevant query, link, and edges for each
     for(int i=0; i < nr_expected_descs; i++) {
         int node_ref = query.get_available_reference();
@@ -619,14 +617,6 @@ int AddDescriptor::add_descriptor_batch(PMGDQuery &query,
         query.AddEdge(-1, set_ref, node_ref, VDMS_DESC_SET_EDGE_TAG, props_edge);
     }
 
-
-    /* TODO example iteration over properties list
-     * TODO update API to call field "batch_properties"
-    printf("property list size: %d\n", prop_list.size());
-    for(Json::Value::ArrayIndex i = 0; i < prop_list.size(); i++){
-    Json::Value prop_dict =  prop_list[i];
-    std::cout<<prop_dict<<std::endl;
-    }*/
     return 0;
 }
 
@@ -641,12 +631,10 @@ int AddDescriptor::construct_protobuf(PMGDQuery &query,
   const std::string set_name = cmd["set"].asString();
 
 
-  Json::Value prop_list = get_value<Json::Value>(cmd, "propertieslist");
+  Json::Value prop_list = get_value<Json::Value>(cmd, "batch_properties");
   if(prop_list.size() == 0){
-      printf("Adding Single Descriptor\n");
       rc = add_single_descriptor(query, jsoncmd, blob, grp_id, error);
   } else {
-      printf("Adding Descriptor Batch\n");
       rc = add_descriptor_batch(query, jsoncmd, blob, grp_id, error);
   }
 
@@ -850,7 +838,6 @@ int FindDescriptor::construct_protobuf(PMGDQuery &query,
 
   // Case (1)
   if (cmd.isMember("link")) {
-    printf("Link Case for FindDesc\n");
     // Query for the Descriptors related to user-defined link
     // that match the user-defined constraints
     // We will need to do the AND operation
@@ -864,15 +851,12 @@ int FindDescriptor::construct_protobuf(PMGDQuery &query,
     Json::Value link_to_desc;
     link_to_desc["ref"] = desc_ref;
 
-    // Query for the set RESET TO UNIQUE FOR BOOLEAN FALSE
+    // Query for the set
     query.QueryNode(-1, VDMS_DESC_SET_TAG, link_to_desc, constraints_set,
                     results_set, unique);
   }
   // Case (2)
   else if (!cmd.isMember("k_neighbors")) {
-
-      printf("Regular Case for Find Desc\n");
-
     // In this case, we either need properties of the descriptor
     // ("list") on the results block, or we need the descriptor nodes
     // because the user defined a reference.
@@ -895,7 +879,6 @@ int FindDescriptor::construct_protobuf(PMGDQuery &query,
   }
   // Case (3), Just want the descriptor by value, we only need the set
   else {
-    printf("KNN Case\n");
     Json::Value link_null; // null
 
     const int k_neighbors = get_value<int>(cmd, "k_neighbors", 0);

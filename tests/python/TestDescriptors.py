@@ -243,7 +243,7 @@ class TestDescriptors(TestCommand.TestCommand):
 
         descriptor = {}
         descriptor["set"] = "wrongbatchsize"
-        descriptor["propertieslist"] = properties_list
+        descriptor["batch_properties"] = properties_list
         query = {}
         query["AddDescriptor"] = descriptor
         trans.append(query)
@@ -291,7 +291,7 @@ class TestDescriptors(TestCommand.TestCommand):
 
         descriptor = {}
         descriptor["set"] = "rightbatchsize"
-        descriptor["propertieslist"] = properties_list
+        descriptor["batch_properties"] = properties_list
         query = {}
         query["AddDescriptor"] = descriptor
         trans.append(query)
@@ -313,10 +313,9 @@ class TestDescriptors(TestCommand.TestCommand):
         blobs = []
         trans.append(query)
         response, img_array = db.query(trans, blobs)
-        print(response)
+        #print(response)
 
         self.disconnect(db)
-
 
 
     def test_classifyDescriptor(self):

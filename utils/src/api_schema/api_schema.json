@@ -750,7 +750,7 @@
         "_ref":       { "$ref": "#/definitions/refInt" },
         "link":       { "$ref": "#/definitions/blockLink" },
         "properties": { "type": "object" },
-        "propertieslist": {"$ref": "#/definitions/propertyArray"}
+        "batch_properties": {"$ref": "#/definitions/propertyArray"}
       },
       "required": ["set"],
       "additionalProperties": false
