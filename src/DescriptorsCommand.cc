@@ -525,6 +525,8 @@ int AddDescriptor::add_descriptor_batch(PMGDQuery &query,
     const Json::Value &cmd = jsoncmd[_cmd_name];
     const std::string set_name = cmd["set"].asString();
 
+    Json::Value props = get_value<Json::Value>(cmd, "properties");
+
     //extract properties list and get filepath/object location of set
     Json::Value prop_list = get_value<Json::Value>(cmd, "batch_properties");
     const std::string set_path = get_set_path(query, set_name, dimensions);
@@ -536,6 +538,7 @@ int AddDescriptor::add_descriptor_batch(PMGDQuery &query,
     }
 
     std::string label = get_value<std::string>(cmd, "label", "None");
+    props[VDMS_DESC_LABEL_PROP] = label;
 
     // retrieve the descriptor set from AWS here
     // operations are currently done in memory with no subsequent write to disk
@@ -581,7 +584,7 @@ int AddDescriptor::add_descriptor_batch(PMGDQuery &query,
         cur_props = prop_list[i];
         //TODO Note using iterator to modify ID return, we're gonna want to watch this closely.
         cur_props[VDMS_DESC_ID_PROP] = Json::Int64(id+i);
-
+        cur_props[VDMS_DESC_LABEL_PROP] = label;
 
         query.AddNode(node_ref, VDMS_DESC_TAG, cur_props, Json::nullValue);
 
