@@ -298,7 +298,6 @@ class TestDescriptors(TestCommand.TestCommand):
         blobs.append(desc_blob)
 
         response, img_array = db.query(trans, blobs)
-        print(response)
         self.assertEqual(response[0]["AddDescriptor"]["status"], 0)
 
         # now try to get those same descriptors back
@@ -313,7 +312,7 @@ class TestDescriptors(TestCommand.TestCommand):
         blobs = []
         trans.append(query)
         response, img_array = db.query(trans, blobs)
-        #print(response)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"],10)
 
         self.disconnect(db)
 
