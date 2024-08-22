@@ -352,16 +352,6 @@ long AddDescriptor::insert_descriptor(const std::string &blob,
 
     VCL::DescriptorSet *desc_set = _dm->get_descriptors_handler(set_path);
 
-    //TODO this check no longer applies, should move it elsewhere
-    /*if (blob.length() / 4 != dim) {
-      std::cerr << "AddDescriptor::insert_descriptor: ";
-      std::cerr << "Dimensions mismatch: ";
-      std::cerr << blob.length() / 4 << " " << dim << std::endl;
-      error["info"] = "Blob Dimensions Mismatch";
-      return -1;
-    }*/
-
-
     if (!label.empty()) {
       long label_id = desc_set->get_label_id(label);
       long *label_ptr = &label_id;
@@ -449,7 +439,6 @@ int AddDescriptor::add_single_descriptor(PMGDQuery &query,
         retrieve_aws_descriptorSet(set_path);
     }
 
-    //TODO modify insert descriptor to handle batches
     long id = insert_descriptor(blob, set_path, 1, label, error);
 
     if (id < 0) {
@@ -517,6 +506,7 @@ int AddDescriptor::add_descriptor_batch(PMGDQuery &query,
                                          const std::string &blob, int grp_id,
                                          Json::Value &error){
 
+    const int FOUR_BYTE_INT = 4;
     int expected_blb_size;
     int nr_expected_descs;
     int dimensions;
@@ -525,7 +515,7 @@ int AddDescriptor::add_descriptor_batch(PMGDQuery &query,
     const Json::Value &cmd = jsoncmd[_cmd_name];
     const std::string set_name = cmd["set"].asString();
 
-    Json::Value props = get_value<Json::Value>(cmd, "properties");
+    //Json::Value props = get_value<Json::Value>(cmd, "properties");
 
     //extract properties list and get filepath/object location of set
     Json::Value prop_list = get_value<Json::Value>(cmd, "batch_properties");
@@ -538,7 +528,7 @@ int AddDescriptor::add_descriptor_batch(PMGDQuery &query,
     }
 
     std::string label = get_value<std::string>(cmd, "label", "None");
-    props[VDMS_DESC_LABEL_PROP] = label;
+    //props[VDMS_DESC_LABEL_PROP] = label;
 
     // retrieve the descriptor set from AWS here
     // operations are currently done in memory with no subsequent write to disk
@@ -550,18 +540,17 @@ int AddDescriptor::add_descriptor_batch(PMGDQuery &query,
     // Note dimensionse are based on a 32 bit integer, hence the /4 math on size
     // as the string blob is sized in 8 bit ints.
     nr_expected_descs = prop_list.size();
-    expected_blb_size = nr_expected_descs * dimensions * 4;
+    expected_blb_size = nr_expected_descs * dimensions * FOUR_BYTE_INT;
 
     //Verify length of input is matching expectations
     if (blob.length() != expected_blb_size) {
         std::cerr << "AddDescriptor::insert_descriptor: ";
-        std::cerr << "Expectected Blob Length Does Not Match Input ";
-        std::cerr << blob.length() << " != " << expected_blb_size << std::endl;
+        std::cerr << "Expected Blob Length Does Not Match Input ";
+        std::cerr << "Input Length: " <<blob.length() << " != " << "Expected Length: " expected_blb_size << std::endl;
         error["info"] = "FV Input Length Mismatch";
         return -1;
     }
 
-    //TODO modify insert descriptor to handle batches
     long id = insert_descriptor(blob, set_path, nr_expected_descs, label, error);
 
     if (id < 0) {
@@ -572,44 +561,62 @@ int AddDescriptor::add_descriptor_batch(PMGDQuery &query,
             std::uintmax_t n = fs::remove_all(set_path);
             std::cout << "Deleted " << n << " files or directories\n";
         }
-
+        error["info"] = "FV Index Insert Failed";
         return -1;
     }
 
-    //get reference tag for source node for ID
-    // Loop over properties list, add relevant query, link, and edges for each
+    // It passed the checker, so it exists.
+    int set_ref = query.get_available_reference();
+
+    Json::Value link;
+    Json::Value results;
+    Json::Value list_arr;
+    list_arr.append(VDMS_DESC_SET_PATH_PROP);
+    list_arr.append(VDMS_DESC_SET_DIM_PROP);
+    results["list"] = list_arr;
+
+    //constraints for getting set node to link to.
+    Json::Value constraints;
+    Json::Value name_arr;
+    name_arr.append("==");
+    name_arr.append(set_name);
+    constraints[VDMS_DESC_SET_NAME_PROP] = name_arr;
+    bool unique = true;
+
+    // Query set node-We only need to do this once, outside of the loop
+    query.QueryNode(set_ref, VDMS_DESC_SET_TAG, link, constraints, results,
+                    unique);
+
     for(int i=0; i < nr_expected_descs; i++) {
         int node_ref = query.get_available_reference();
         Json::Value cur_props;
         cur_props = prop_list[i];
-        //TODO Note using iterator to modify ID return, we're gonna want to watch this closely.
         cur_props[VDMS_DESC_ID_PROP] = Json::Int64(id+i);
         cur_props[VDMS_DESC_LABEL_PROP] = label;
 
         query.AddNode(node_ref, VDMS_DESC_TAG, cur_props, Json::nullValue);
 
         // It passed the checker, so it exists.
-        int set_ref = query.get_available_reference();
-
-        Json::Value link;
-        Json::Value results;
-        Json::Value list_arr;
-        list_arr.append(VDMS_DESC_SET_PATH_PROP);
-        list_arr.append(VDMS_DESC_SET_DIM_PROP);
-        results["list"] = list_arr;
+        //int set_ref = query.get_available_reference();
+        //Json::Value link;
+        //Json::Value results;
+        //Json::Value list_arr;
+        //list_arr.append(VDMS_DESC_SET_PATH_PROP);
+        //list_arr.append(VDMS_DESC_SET_DIM_PROP);
+        //results["list"] = list_arr;
 
         //constraints for getting set node to link to.
-        Json::Value constraints;
-        Json::Value name_arr;
-        name_arr.append("==");
-        name_arr.append(set_name);
-        constraints[VDMS_DESC_SET_NAME_PROP] = name_arr;
+        //Json::Value constraints;
+        //Json::Value name_arr;
+        //name_arr.append("==");
+        //name_arr.append(set_name);
+        //constraints[VDMS_DESC_SET_NAME_PROP] = name_arr;
 
-        bool unique = true;
+        //bool unique = true;
 
         // Query set node-We only need to do this once, outside of the loop TODO MOVE
-        query.QueryNode(set_ref, VDMS_DESC_SET_TAG, link, constraints, results,
-                        unique);
+        //query.QueryNode(set_ref, VDMS_DESC_SET_TAG, link, constraints, results,
+        //                unique);
 
         //note this implicitly means that every node of a batch uses the same link
         if (cmd.isMember("link")) {
