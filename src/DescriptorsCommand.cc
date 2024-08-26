@@ -546,7 +546,7 @@ int AddDescriptor::add_descriptor_batch(PMGDQuery &query,
     if (blob.length() != expected_blb_size) {
         std::cerr << "AddDescriptor::insert_descriptor: ";
         std::cerr << "Expected Blob Length Does Not Match Input ";
-        std::cerr << "Input Length: " <<blob.length() << " != " << "Expected Length: " expected_blb_size << std::endl;
+        std::cerr << "Input Length: " <<blob.length() << " != " << "Expected Length: " << expected_blb_size << std::endl;
         error["info"] = "FV Input Length Mismatch";
         return -1;
     }
