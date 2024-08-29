@@ -385,7 +385,7 @@ class TestDescriptors(TestCommand.TestCommand):
 
         descriptor_blob = []
         x = np.ones(128)
-        x[2] = x[2] = 2.34 + 1 * 20  # 2.34 + 1*20
+        x[2] = 2.34 + 1 * 20  # 2.34 + 1*20
         x = x.astype("float32")
         descriptor_blob.append(x.tobytes())
 
