@@ -101,4 +101,57 @@ public:
                                   const std::string &blob);
 };
 
+class Neo4jNeoAddDescSet : public Neo4jCommand{
+
+public:
+    Neo4jNeoAddDescSet();
+    bool need_blob(const Json::Value &cmd){return false;};
+    int data_processing(std::string &tx, const Json::Value &root,
+                        const std::string &blob, int grp_id, Json::Value &error);
+    Json::Value construct_responses(Json::Value &json_responses,
+                                    const Json::Value &json,
+                                    protobufs::queryMessage &response,
+                                    const std::string &blob);
+
+};
+
+class Neo4jNeoFindDescSet : public Neo4jCommand{
+
+public:
+    Neo4jNeoFindDescSet();
+    bool need_blob(const Json::Value &cmd){return false;};
+    int data_processing(std::string &tx, const Json::Value &root,
+                        const std::string &blob, int grp_id, Json::Value &error);
+    Json::Value construct_responses(Json::Value &json_responses,
+                                    const Json::Value &json,
+                                    protobufs::queryMessage &response,
+                                    const std::string &blob);
+
+};
+
+class Neo4jNeoAddDesc : public Neo4jCommand{
+    public:
+        Neo4jNeoAddDesc();
+        bool need_blob(const Json::Value &cmd) {return true;};
+        int data_processing(std::string &tx, const Json::Value &root,
+                            const std::string &blob, int grp_id, Json::Value &error);
+        Json::Value construct_responses(Json::Value &json_responses,
+                                        const Json::Value &json,
+                                        protobufs::queryMessage &response,
+                                        const std::string &blob);
+};
+
+
+class Neo4jNeoFindDesc : public Neo4jCommand{
+public:
+    Neo4jNeoFindDesc();
+    bool need_blob(const Json::Value &cmd);
+    int data_processing(std::string &tx, const Json::Value &root,
+                        const std::string &blob, int grp_id, Json::Value &error);
+    Json::Value construct_responses(Json::Value &json_responses,
+                                    const Json::Value &json,
+                                    protobufs::queryMessage &response,
+                                    const std::string &blob);
+};
+
 } // namespace VDMS

@@ -71,6 +71,7 @@ else()
     src/ImageCommand.cc
     src/Neo4jBaseCommands.cc
     src/Neo4JHandlerCommands.cc
+    src/Neo4JDescriptorCommands.cc
     src/OpsIOCoordinator.cc
     src/PMGDIterators.cc
     src/PMGDQuery.cc
