@@ -50,5 +50,6 @@ bool VDMS::DescriptorSetQueryParser::isValidMetric(string &metric) {
 
 bool VDMS::DescriptorSetQueryParser::isValidEngine(string &engine) {
   return (engine == "TileDBDense" || engine == "TileDBSparse" ||
-          engine == "FaissFlat" || engine == "FaissIVFFlat");
+          engine == "FaissFlat" || engine == "FaissIVFFlat" ||
+          engine == "Flinng" || engine =="FaissHNSWFlat");
 }

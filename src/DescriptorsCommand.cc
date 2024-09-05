@@ -295,6 +295,8 @@ Json::Value AddDescriptorSet::construct_responses(
     _eng = VCL::TileDBSparse;
   else if (eng_str == "Flinng")
     _eng = VCL::Flinng;
+  else if (eng_str == "FaissHNSWFlat")
+    _eng = VCL::FaissHNSWFlat;
   else
     throw ExceptionCommand(DescriptorSetError, "Engine not supported");
 
