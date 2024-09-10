@@ -208,7 +208,6 @@ class TestDescriptors(TestCommand.TestCommand):
 
     def test_AddSetAndWrongBatchSize(self):
 
-
         db = self.create_connection()
 
         # Create and verify descriptor set
@@ -224,7 +223,7 @@ class TestDescriptors(TestCommand.TestCommand):
         trans_list.append(trans_dict)
 
         response, img_array = db.query(trans_list)
-        self.assertEqual(response[0]["AddDescriptorSet"]["status"],0)
+        self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
 
         # Create and add a batch of feature vectors
         trans = []
@@ -236,7 +235,7 @@ class TestDescriptors(TestCommand.TestCommand):
         x = x.astype("float32")
         desc_blob.append(x.tobytes())
 
-        properties_list=[]
+        properties_list = []
         for x in range(batch_size + 3):
             props = {"batchprop": x}
             properties_list.append(props)
@@ -272,7 +271,7 @@ class TestDescriptors(TestCommand.TestCommand):
         trans_list.append(trans_dict)
 
         response, img_array = db.query(trans_list)
-        self.assertEqual(response[0]["AddDescriptorSet"]["status"],0)
+        self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
 
         # Create and add a batch of feature vectors
         trans = []
@@ -284,7 +283,7 @@ class TestDescriptors(TestCommand.TestCommand):
         x = x.astype("float32")
         desc_blob.append(x.tobytes())
 
-        properties_list=[]
+        properties_list = []
         for x in range(batch_size):
             props = {"batchprop": x}
             properties_list.append(props)
@@ -303,7 +302,7 @@ class TestDescriptors(TestCommand.TestCommand):
         # now try to get those same descriptors back
         desc_find = {}
         desc_find["set"] = "rightbatchsize"
-        desc_find["results"] = {"list":["batchprop"]}
+        desc_find["results"] = {"list": ["batchprop"]}
 
         query = {}
         query["FindDescriptor"] = desc_find
@@ -312,7 +311,7 @@ class TestDescriptors(TestCommand.TestCommand):
         blobs = []
         trans.append(query)
         response, img_array = db.query(trans, blobs)
-        self.assertEqual(response[0]["FindDescriptor"]["returned"],10)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], 10)
 
         self.disconnect(db)
 
@@ -333,7 +332,7 @@ class TestDescriptors(TestCommand.TestCommand):
         trans_list.append(trans_dict)
 
         response, img_array = db.query(trans_list)
-        self.assertEqual(response[0]["AddDescriptorSet"]["status"],0)
+        self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
 
         # Descriptor Set Created, now lets create a batch to insert
         # first lets make a big combined blob representing the inserted descriptor
@@ -344,7 +343,7 @@ class TestDescriptors(TestCommand.TestCommand):
         desc_blob = []
         x = np.ones(nr_dims * batch_size)
         for i in range(batch_size):
-            x[2 + (i*nr_dims)] = 2.34 + i * 20
+            x[2 + (i * nr_dims)] = 2.34 + i * 20
 
         x = x.astype("float32")
         desc_blob.append(x.tobytes())
@@ -401,7 +400,6 @@ class TestDescriptors(TestCommand.TestCommand):
         self.assertEqual(response[0]["FindDescriptor"]["entities"][1]["_distance"], 400)
         self.assertEqual(response[0]["FindDescriptor"]["entities"][2]["_distance"], 400)
         self.disconnect(db)
-
 
     def test_classifyDescriptor(self):
         db = self.create_connection()
