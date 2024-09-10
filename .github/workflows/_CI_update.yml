@@ -7,6 +7,10 @@ on:
           required: true
           description: "The C++ Coverage for target"
           type: string
+        result_status:
+          required: true
+          description: "Whether results job was success or failure"
+          type: string
 
 permissions: write-all
 
@@ -38,6 +42,8 @@ jobs:
               path: .github/coverage/
 
           - name: Format C++ Code (clang-format), Python (black code), and apply dos2unix
+            # Only format if comparison passed
+            if: (${{ inputs.coverage_value_updated }} == 'true') && (${{ inputs.result_status }} == 'success')
             run: |
               ./.github/scripts/auto-formatter.sh
 
