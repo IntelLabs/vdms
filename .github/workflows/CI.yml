@@ -54,11 +54,10 @@ jobs:
 
   Update:
     # name: Lint & Update Reports
-    needs: [Testing, Results]
-    if: ${{ always() }} 
+    needs: [Results]
+    if: ${{ needs.Results.result == 'success' }} 
     uses: ./.github/workflows/_CI_update.yml
     with:
         coverage_value_updated: ${{ needs.Testing.outputs.coverage_value_updated }}
-        result_status: ${{ needs.Results.result }}
     secrets: inherit
 

@@ -7,10 +7,6 @@ on:
           required: true
           description: "The C++ Coverage for target"
           type: string
-        result_status:
-          required: true
-          description: "Whether results job was success or failure"
-          type: string
 
 permissions: write-all
 
@@ -23,7 +19,6 @@ jobs:
         runs-on: ubuntu-latest
         steps:
           # Checkout code doesn't persist across jobs
-          # If formatting needed, checkout and format again
           - name: Checkout Source Branch
             uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
             with:
@@ -42,8 +37,6 @@ jobs:
               path: .github/coverage/
 
           - name: Format C++ Code (clang-format), Python (black code), and apply dos2unix
-            # Only format if comparison passed
-            if: (${{ inputs.coverage_value_updated }} == 'true') && (${{ inputs.result_status }} == 'success')
             run: |
               ./.github/scripts/auto-formatter.sh
 
