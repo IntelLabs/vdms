@@ -860,7 +860,7 @@ int FindDescriptor::construct_protobuf(PMGDQuery &query,
 
     // Query for the set
     query.QueryNode(-1, VDMS_DESC_SET_TAG, link_to_desc, constraints_set,
-                    results_set, unique);
+                    results_set, false);
   }
   // Case (2)
   else if (!cmd.isMember("k_neighbors")) {
