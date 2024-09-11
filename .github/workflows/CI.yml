@@ -54,8 +54,8 @@ jobs:
 
   Update:
     # name: Lint & Update Reports
-    needs: [Results]
-    if: ${{ needs.Results.result == 'success' }} 
+    needs: [Testing, Results]
+    if: ${{ needs.Testing.result == 'success' }} 
     uses: ./.github/workflows/_CI_update.yml
     with:
         coverage_value_updated: ${{ needs.Testing.outputs.coverage_value_updated }}
