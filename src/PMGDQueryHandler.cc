@@ -1021,6 +1021,37 @@ void insert_into_queue(std::list<AutoDeleteNode *> *queue,
   }
 }
 
+void PMGDQueryHandler::print_node_idx_stats(char *tag_name, char *prop_id){
+
+    try{
+        Transaction tx(*_db, Transaction::ReadWrite);
+        struct Graph::IndexStats istats = _db->get_index_stats(Graph::NodeIndex, tag_name, prop_id);
+        printf("Index Stats for : %s %s\n", tag_name, prop_id);
+        printf("Total Entries: %lu\n", istats.total_unique_entries);
+        printf("Unique Entry Size: %lu\n", istats.unique_entry_size);
+        printf("Total Elements: %lu\n", istats.total_elements);
+        printf("Total Size Bytes: %lu\n", istats.total_size_bytes);
+        printf("Health Factor: %lu\n", istats.health_factor);
+        tx.commit();
+    } catch (PMGD::Exception e) {
+        print_exception(e);
+    }
+
+}
+
+void PMGDQueryHandler::build_node_int_index(char *node_class, char *prop_name){
+
+    try{
+        Transaction tx(*_db, Transaction::ReadWrite);
+        _db->create_index(Graph::NodeIndex, node_class, prop_name, PropertyType::Integer);
+        tx.commit();
+    } catch (PMGD::Exception e){
+        printf("Warning: Failed to create new integer index-%s %s", node_class, prop_name);
+        print_exception(e);
+    }
+
+}
+
 void delete_by_value(std::list<AutoDeleteNode *> *queue, void *p_delete_node) {
   bool delete_flag;
   std::list<AutoDeleteNode *>::iterator it = queue->begin();
@@ -1047,3 +1078,5 @@ void cleanup_pmgd_files(std::vector<std::string> *p_cleanup_list) {
     it++;
   }
 }
+
+
