@@ -223,6 +223,17 @@ int AddDescriptorSet::construct_protobuf(PMGDQuery &query,
   std::string set_name = cmd["name"].asString();
   std::string desc_set_path = _storage_sets + "/" + set_name;
 
+  std::string check_existence;
+  int temp_dim;
+  check_existence = get_set_path(query, set_name, temp_dim);
+
+  //if a set already exists, barf and return
+  if (!check_existence.empty()) {
+      error["info"] = "Set " + set_name + " already exists!";
+      error["status"] = RSCommand::Error;
+      return -1;
+  }
+
   Json::Value props = get_value<Json::Value>(cmd, "properties");
   props[VDMS_DESC_SET_NAME_PROP] = cmd["name"].asString();
   props[VDMS_DESC_SET_DIM_PROP] = cmd["dimensions"].asInt();
@@ -251,6 +262,17 @@ int AddDescriptorSet::construct_protobuf(PMGDQuery &query,
 
   if (cmd.isMember("link")) {
     add_link(query, cmd["link"], node_ref, VDMS_DESC_SET_EDGE_TAG);
+  }
+
+  //create a new index based on the descriptor set name
+  try{
+      std::string idx_prop = VDMS_DESC_ID_PROP + std::string("_") + set_name;
+      query.AddIntNodeIndexImmediate(VDMS_DESC_TAG, (char *)idx_prop.c_str());
+  } catch(...) {
+      printf("Descriptor Set Index Creation Failed for %s\n", set_name.c_str());
+      error["info"] = "Set index creation failed for" + set_name;
+      error["status"] = RSCommand::Error;
+      return -1;
   }
 
   return 0;
@@ -317,6 +339,7 @@ Json::Value AddDescriptorSet::construct_responses(
       desc_set.timers.print_map_runtimes();
     }
     desc_set.timers.clear_all_timers();
+
     delete (param);
   } catch (VCL::Exception e) {
     print_exception(e);
@@ -451,7 +474,8 @@ int AddDescriptor::add_single_descriptor(PMGDQuery &query,
     return -1;
   }
 
-  props[VDMS_DESC_ID_PROP] = Json::Int64(id);
+  std::string desc_id_prop_name = VDMS_DESC_ID_PROP + std::string("_") + set_name;
+  props[desc_id_prop_name] = Json::Int64(id);
 
   int node_ref = get_value<int>(cmd, "_ref", query.get_available_reference());
 
@@ -589,33 +613,13 @@ int AddDescriptor::add_descriptor_batch(PMGDQuery &query,
     int node_ref = query.get_available_reference();
     Json::Value cur_props;
     cur_props = prop_list[i];
-    cur_props[VDMS_DESC_ID_PROP] = Json::Int64(id + i);
+
+    std::string desc_id_prop_name = VDMS_DESC_ID_PROP + std::string("_") + set_name;
+    cur_props[desc_id_prop_name] = Json::Int64(id + i);
+
     cur_props[VDMS_DESC_LABEL_PROP] = label;
 
     query.AddNode(node_ref, VDMS_DESC_TAG, cur_props, Json::nullValue);
-
-    // It passed the checker, so it exists.
-    // int set_ref = query.get_available_reference();
-    // Json::Value link;
-    // Json::Value results;
-    // Json::Value list_arr;
-    // list_arr.append(VDMS_DESC_SET_PATH_PROP);
-    // list_arr.append(VDMS_DESC_SET_DIM_PROP);
-    // results["list"] = list_arr;
-
-    // constraints for getting set node to link to.
-    // Json::Value constraints;
-    // Json::Value name_arr;
-    // name_arr.append("==");
-    // name_arr.append(set_name);
-    // constraints[VDMS_DESC_SET_NAME_PROP] = name_arr;
-
-    // bool unique = true;
-
-    // Query set node-We only need to do this once, outside of the loop TODO
-    // MOVE
-    // query.QueryNode(set_ref, VDMS_DESC_SET_TAG, link, constraints, results,
-    //                unique);
 
     // note this implicitly means that every node of a batch uses the same link
     if (cmd.isMember("link")) {
@@ -818,7 +822,8 @@ int FindDescriptor::construct_protobuf(PMGDQuery &query,
     constraints.removeMember("_label");
   }
   if (constraints.isMember("_id")) {
-    constraints[VDMS_DESC_ID_PROP] = constraints["_id"];
+    std::string desc_id_prop_name = VDMS_DESC_ID_PROP + std::string("_") + set_name;
+    constraints[desc_id_prop_name] = constraints["_id"];
     constraints.removeMember("_id");
   }
 

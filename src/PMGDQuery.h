@@ -116,7 +116,7 @@ public:
 
   //Note: This runs at call time and does not "build" a stack of queries
   //in constrast to the others.
-  void StandloneAddIntNodeIndex(char *node_class, char *prop_name);
+  void AddIntNodeIndexImmediate(char *node_class, char *prop_name);
 
   void DeleteExpired();
 };
