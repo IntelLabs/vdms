@@ -114,8 +114,8 @@ public:
                  const Json::Value &constraints, const Json::Value &results,
                  bool unique = false);
 
-  //Note: This runs at call time and does not "build" a stack of queries
-  //in constrast to the others.
+  // Note: This runs at call time and does not "build" a stack of queries
+  // in constrast to the others.
   void AddIntNodeIndexImmediate(char *node_class, char *prop_name);
 
   void DeleteExpired();

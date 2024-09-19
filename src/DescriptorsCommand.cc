@@ -264,16 +264,16 @@ int AddDescriptorSet::construct_protobuf(PMGDQuery &query,
     add_link(query, cmd["link"], node_ref, VDMS_DESC_SET_EDGE_TAG);
   }
 
-  //create a new index based on the descriptor set name
+  // create a new index based on the descriptor set name
   printf("HERE\n\n");
-  try{
-      std::string idx_prop = VDMS_DESC_ID_PROP + std::string("_") + set_name;
-      query.AddIntNodeIndexImmediate(VDMS_DESC_TAG, (char *)idx_prop.c_str());
-  } catch(...) {
-      printf("Descriptor Set Index Creation Failed for %s\n", set_name.c_str());
-      error["info"] = "Set index creation failed for" + set_name;
-      error["status"] = RSCommand::Error;
-      return -1;
+  try {
+    std::string idx_prop = VDMS_DESC_ID_PROP + std::string("_") + set_name;
+    query.AddIntNodeIndexImmediate(VDMS_DESC_TAG, (char *)idx_prop.c_str());
+  } catch (...) {
+    printf("Descriptor Set Index Creation Failed for %s\n", set_name.c_str());
+    error["info"] = "Set index creation failed for" + set_name;
+    error["status"] = RSCommand::Error;
+    return -1;
   }
 
   return 0;
@@ -475,7 +475,8 @@ int AddDescriptor::add_single_descriptor(PMGDQuery &query,
     return -1;
   }
 
-  std::string desc_id_prop_name = VDMS_DESC_ID_PROP + std::string("_") + set_name;
+  std::string desc_id_prop_name =
+      VDMS_DESC_ID_PROP + std::string("_") + set_name;
   props[desc_id_prop_name] = Json::Int64(id);
 
   int node_ref = get_value<int>(cmd, "_ref", query.get_available_reference());
@@ -615,7 +616,8 @@ int AddDescriptor::add_descriptor_batch(PMGDQuery &query,
     Json::Value cur_props;
     cur_props = prop_list[i];
 
-    std::string desc_id_prop_name = VDMS_DESC_ID_PROP + std::string("_") + set_name;
+    std::string desc_id_prop_name =
+        VDMS_DESC_ID_PROP + std::string("_") + set_name;
     cur_props[desc_id_prop_name.c_str()] = Json::Int64(id + i);
 
     cur_props[VDMS_DESC_LABEL_PROP] = label;
@@ -796,7 +798,8 @@ int FindDescriptor::construct_protobuf(PMGDQuery &query,
 
   int dimensions;
   const std::string set_path = get_set_path(query, set_name, dimensions);
-  std::string desc_id_prop_name = VDMS_DESC_ID_PROP + std::string("_") + set_name;
+  std::string desc_id_prop_name =
+      VDMS_DESC_ID_PROP + std::string("_") + set_name;
 
   if (set_path.empty()) {
     cp_result["status"] = RSCommand::Error;
@@ -971,7 +974,8 @@ void FindDescriptor::populate_blobs(const std::string &set_path,
                                     Json::Value &entities,
                                     protobufs::queryMessage &query_res) {
 
-  std::string desc_id_prop_name = VDMS_DESC_ID_PROP + std::string("_") + set_name;
+  std::string desc_id_prop_name =
+      VDMS_DESC_ID_PROP + std::string("_") + set_name;
   if (get_value<bool>(results, "blob", false)) {
     VCL::DescriptorSet *set = _dm->get_descriptors_handler(set_path);
     int dim = set->get_dimensions();
@@ -994,11 +998,13 @@ void FindDescriptor::populate_blobs(const std::string &set_path,
 }
 
 void FindDescriptor::convert_properties(Json::Value &entities,
-                                        Json::Value &list, std::string set_name) {
+                                        Json::Value &list,
+                                        std::string set_name) {
   bool flag_label = false;
   bool flag_id = false;
 
-  std::string desc_id_prop_name = VDMS_DESC_ID_PROP + std::string("_") + set_name;
+  std::string desc_id_prop_name =
+      VDMS_DESC_ID_PROP + std::string("_") + set_name;
   for (auto &prop : list) {
     if (prop.asString() == "_label") {
       flag_label = true;
@@ -1033,9 +1039,10 @@ Json::Value FindDescriptor::construct_responses(
   Json::Value ret;
 
   bool flag_error = false;
-  
+
   const std::string set_name = cmd["set"].asString();
-  std::string desc_id_prop_name = VDMS_DESC_ID_PROP + std::string("_") + set_name;
+  std::string desc_id_prop_name =
+      VDMS_DESC_ID_PROP + std::string("_") + set_name;
 
   auto error = [&](Json::Value &res) {
     ret[_cmd_name] = res;

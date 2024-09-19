@@ -166,7 +166,6 @@ public:
   void cleanup_files();
   void build_node_int_index(char *node_class, char *prop_name);
   void print_node_idx_stats(char *tag_name, char *prop_id);
-
 };
 
 }; // namespace VDMS
