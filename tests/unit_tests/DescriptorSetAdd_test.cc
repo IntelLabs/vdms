@@ -220,6 +220,15 @@ TEST(Descriptors_Add, add_flatl2_100d_2add) {
 
 //HNSW Tests 
 TEST(Descriptors_Add, add_hnswflatl2_100d) {
+  
+  //test to add 1K descriptors of 100D each
+  // descriptors are created by incrementing a random initial value as follows
+  // init       init      ...   init      (D times)
+  // init+1     init+1    ...   init+1    (D times)
+  // ...
+  // init+nb-1  init+nb-1 ...   init+nb-1 (d times) 
+  // hence, nearest neigbor of any query descriptor are the IDs that is around the query ID
+
   int d = 100;
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
@@ -240,21 +249,15 @@ TEST(Descriptors_Add, add_hnswflatl2_100d) {
   index.search(xb, 1, 4, desc_ids, distances);
 
   int exp = 0;
-  // std::cout << "DescriptorSet: " << std::endl;
   for (auto &desc : desc_ids) {
-    // std::cout << desc << " ";
     EXPECT_EQ(desc, exp++);
   }
-  // std::cout << std::endl;
 
-  // std::cout << "Distances: " << std::endl;
   float results[] = {float(std::pow(0, 2) * d), float(std::pow(1, 2) * d),
                      float(std::pow(2, 2) * d), float(std::pow(3, 2) * d)};
   for (int i = 0; i < 4; ++i) {
-    // std::cout << distances[i] <<  " ";
     EXPECT_EQ(distances[i], results[i]);
   }
-  // std::cout << std::endl;
 
   index.store();
 
@@ -262,6 +265,11 @@ TEST(Descriptors_Add, add_hnswflatl2_100d) {
 }
 
 TEST(Descriptors_Add, add_recons_hnswflatl2_100d) {
+
+  //test to add 1K descriptors of 100D each
+  // Same as last previous test case but addes classes as labels
+  // classes will be searched and checked of nearest neighbors
+
   int d = 100;
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
@@ -299,6 +307,12 @@ TEST(Descriptors_Add, add_recons_hnswflatl2_100d) {
 }
 
 TEST(Descriptors_Add, add_hnswflatl2_100d_2add) {
+  //test to add 2K descriptors of 100D each
+  // this is done in 2 steps 
+  // first 1K and then the index is stored to a file
+  // second 1K are added after the index is read from a file
+  // the test case is to test file i/o of the index 
+
   int d = 100;
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);

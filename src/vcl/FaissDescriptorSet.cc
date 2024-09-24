@@ -356,7 +356,7 @@ long FaissIVFFlatDescriptorSet::add(float *descriptors, unsigned n,
   // according to https://github.com/facebookresearch/faiss/wiki/Indexing-1M-vectors
   // HNSW_M= 48
   // efConstruction = 2 x m
-  // efSeach = 32
+  // efSearch = 32
   // Default values from hnsw.h
       //int efConstruction = 40;
       //int efSearch = 16;
@@ -401,7 +401,12 @@ FaissHNSWFlatDescriptorSet::FaissHNSWFlatDescriptorSet(
 }
 
 void FaissHNSWFlatDescriptorSet::search(float *query, unsigned n_queries, unsigned k, long *descriptors, float *distances)  {
-  ((faiss::IndexHNSWFlat*)_index)->hnsw.efSearch = 128;
+  ((faiss::IndexHNSWFlat*)_index)->hnsw.efSearch = 64;
+  //set according to https://github.com/facebookresearch/faiss/wiki/Indexing-1M-vectors for R@1 accuracy of 0.9779
+  // The higher the value the slower the search is but better accuracy 
+  //efsearch is a runtime parameter. 
+  // ToDO - VDMS should expose an API to set runtime parameters to users of the different indices 
+     
   _index->search(n_queries, query, k, distances, descriptors);
 }
 
