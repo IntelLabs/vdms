@@ -3,7 +3,7 @@ cffi==1.16.0
 click==8.1.7
 colorlog==6.8.2
 coverage==7.6.0
-cryptography==42.0.8
+cryptography==43.0.1
 Flask==3.0.3
 gcovr==7.2
 imutils==0.5.4

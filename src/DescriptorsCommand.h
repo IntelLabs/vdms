@@ -132,6 +132,14 @@ class AddDescriptor : public DescriptorsCommand {
 
   void retrieve_aws_descriptorSet(const std::string &set_path);
 
+  int add_single_descriptor(PMGDQuery &tx, const Json::Value &root,
+                            const std::string &blob, int grp_id,
+                            Json::Value &error);
+
+  int add_descriptor_batch(PMGDQuery &tx, const Json::Value &root,
+                           const std::string &blob, int grp_id,
+                           Json::Value &error);
+
 public:
   AddDescriptor();
 
