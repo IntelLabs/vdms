@@ -289,7 +289,11 @@ FaissIVFFlatDescriptorSet::FaissIVFFlatDescriptorSet(
   // TODO: Revise nlist param for future optimizations.
   // 4 is a suggested value by faiss for the IVFFlat index,
   // that's why we leave it for now.
-  int nlist = 4;
+  // int nlist = 4;
+
+  // default value of 4 is too low for any sizeable dataset
+
+  int nlist = 16;
 
   if (metric == L2) {
     faiss::IndexFlatL2 *quantizer = new faiss::IndexFlatL2(_dimensions);
@@ -338,4 +342,73 @@ long FaissIVFFlatDescriptorSet::add(float *descriptors, unsigned n,
   long id_first = FaissDescriptorSet::add(descriptors, n, labels);
 
   return id_first;
+}
+
+// FaissHNSWFlat
+// Note:
+// setting value of hnsw m= 48
+// M is number of connections each vertex will have
+// i.e. number of nearest neighbors that each vertex will connect to.
+// Total memory usage is (dim * 4 + M * 2 * 4) bytes per vector.
+
+// Rule of thumb to support 1M entries
+// according to
+// https://github.com/facebookresearch/faiss/wiki/Indexing-1M-vectors HNSW_M= 48
+// efConstruction = 2 x m
+// efSearch = 32
+// Default values from hnsw.h
+// int efConstruction = 40;
+// int efSearch = 16;
+// efsearch will be defined in the search params when IndexHNSW::search() is
+// called (can dynamically change during runtime) efconstruction is a compile
+// time paramerter will be defined in IndexHNSW.hnsw struct
+
+FaissHNSWFlatDescriptorSet::FaissHNSWFlatDescriptorSet(
+    const std::string &set_path)
+    : FaissDescriptorSet(set_path) {
+  try {
+    _index = faiss::read_index(_faiss_file.c_str());
+
+  } catch (faiss::FaissException &e) {
+    throw VCLException(OpenFailed, "Problem reading: " + _faiss_file);
+  }
+
+  // Faiss will sometimes throw, or sometimes set _index = NULL,
+  // we check both just in case.
+  if (!_index) {
+    throw VCLException(OpenFailed, "Problem reading: " + _faiss_file);
+  }
+
+  _dimensions = _index->d;
+  _n_total = _index->ntotal;
+}
+
+FaissHNSWFlatDescriptorSet::FaissHNSWFlatDescriptorSet(
+    const std::string &set_path, unsigned dim, DistanceMetric metric)
+    : FaissDescriptorSet(set_path, dim) {
+
+  int hnsw_M = 48;
+  if (metric == L2) {
+    _index = new faiss::IndexHNSWFlat(dim, hnsw_M, faiss::METRIC_L2);
+    ((faiss::IndexHNSWFlat *)_index)->hnsw.efConstruction = 96;
+  } else {
+    // only metric L2 is supported for HNSWFLAT for FAISS v1.7.4
+    // newer version of Faiss e.g. V1.8.0 supports I.P. metric for HNSW
+    throw VCLException(UnsupportedIndex, "Metric Not implemented");
+  }
+}
+
+void FaissHNSWFlatDescriptorSet::search(float *query, unsigned n_queries,
+                                        unsigned k, long *descriptors,
+                                        float *distances) {
+  ((faiss::IndexHNSWFlat *)_index)->hnsw.efSearch = 64;
+  // set according to
+  // https://github.com/facebookresearch/faiss/wiki/Indexing-1M-vectors for R@1
+  // accuracy of 0.9779
+  //  The higher the value the slower the search is but better accuracy
+  // efsearch is a runtime parameter.
+  //  ToDO - VDMS should expose an API to set runtime parameters to users of the
+  //  different indices
+
+  _index->search(n_queries, query, k, distances, descriptors);
 }
