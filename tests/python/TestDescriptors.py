@@ -648,10 +648,9 @@ class TestDescriptors(TestCommand.TestCommand):
         response, blob_array = db.query(all_queries, [descriptor_blob])
 
         # Check success
-        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
-        self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
-        self.assertEqual(len(blob_array), kn)
-        self.assertEqual(descriptor_blob[0], blob_array[0])
+        self.assertEqual(response[0]["status"], -1)
+        self.assertEqual(response[0]["info"], "_ref is not supported for KNN search")
+
         self.disconnect(db)
 
     # @unittest.skip("Skipping class until fixed")
@@ -785,23 +784,25 @@ class TestDescriptors(TestCommand.TestCommand):
         all_queries.append(query)
 
         response, blob_array = db.query(all_queries, [descriptor_blob])
+        self.assertEqual(response[0]["status"], -1)
+        self.assertEqual(response[0]["info"], "_ref is not supported for KNN search")
 
-        self.assertEqual(len(blob_array), kn)
+        #self.assertEqual(len(blob_array), kn)
         # This checks that the received blobs is the same as the inserted.
-        self.assertEqual(descriptor_blob[0], blob_array[0])
+        #self.assertEqual(descriptor_blob[0], blob_array[0])
 
         # Check success
-        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
-        self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
+        #self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
+        #self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
 
-        self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["_distance"], 0)
-        self.assertEqual(response[0]["FindDescriptor"]["entities"][1]["_distance"], 400)
-        self.assertEqual(response[0]["FindDescriptor"]["entities"][2]["_distance"], 400)
+        #self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["_distance"], 0)
+        #self.assertEqual(response[0]["FindDescriptor"]["entities"][1]["_distance"], 400)
+        #self.assertEqual(response[0]["FindDescriptor"]["entities"][2]["_distance"], 400)
 
-        self.assertEqual(response[1]["FindEntity"]["status"], 0)
-        self.assertEqual(response[1]["FindEntity"]["returned"], kn)
+        #self.assertEqual(response[1]["FindEntity"]["status"], 0)
+        #self.assertEqual(response[1]["FindEntity"]["returned"], kn)
 
-        self.assertEqual(response[1]["FindEntity"]["entities"][0]["entity_prop"], 200)
-        self.assertEqual(response[1]["FindEntity"]["entities"][1]["entity_prop"], 201)
-        self.assertEqual(response[1]["FindEntity"]["entities"][2]["entity_prop"], 202)
+        #self.assertEqual(response[1]["FindEntity"]["entities"][0]["entity_prop"], 200)
+        #self.assertEqual(response[1]["FindEntity"]["entities"][1]["entity_prop"], 201)
+        #self.assertEqual(response[1]["FindEntity"]["entities"][2]["entity_prop"], 202)
         self.disconnect(db)

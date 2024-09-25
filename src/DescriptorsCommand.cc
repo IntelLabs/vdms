@@ -960,10 +960,12 @@ int FindDescriptor::construct_protobuf(PMGDQuery &query,
 
       Json::Value node_constraints = constraints;
       cp_result["ids_array"] = ids_array;
-        //TODO QUERY REFACTOR MODS-Still queries for link_to_set
-        for (int i = 0; i < ids.size(); ++i){
+         for (int i = 0; i < ids.size(); ++i){
             printf("IDS!\n");
             Json::Value k_node_constraints;
+
+            //Theoretically this makes a deep copy
+            k_node_constraints = constraints;
 
             // Create a vector with a string and an integer
             std::vector<Json::Value> values;
