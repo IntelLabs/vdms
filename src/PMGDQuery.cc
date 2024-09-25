@@ -749,5 +749,5 @@ void PMGDQuery::DeleteExpired() {
 }
 
 void PMGDQuery::AddIntNodeIndexImmediate(char *node_class, char *prop_name) {
-    _pmgd_qh.build_node_int_index(node_class, prop_name);
+  _pmgd_qh.build_node_int_index(node_class, prop_name);
 }
