@@ -899,15 +899,15 @@ int FindDescriptor::construct_protobuf(PMGDQuery &query,
 
     Json::Value link_null; // null
     if (cmd.isMember("_ref")) {
-        cp_result["status"] = RSCommand::Error;
-        cp_result["info"] = "_ref is not supported for KNN search";
-        return -1;
+      cp_result["status"] = RSCommand::Error;
+      cp_result["info"] = "_ref is not supported for KNN search";
+      return -1;
     }
     const int k_neighbors = get_value<int>(cmd, "k_neighbors", 0);
 
-    //This set query is a little weird and may be optimized away in the future
-    // as we no longer explicitly need the set links, however subsequent logic
-    //uses this to look up the path (again) in construct response
+    // This set query is a little weird and may be optimized away in the future
+    //  as we no longer explicitly need the set links, however subsequent logic
+    // uses this to look up the path (again) in construct response
     int ref_set = query.get_available_reference();
 
     // Query for the set and detect if exist during transaction.
@@ -962,34 +962,34 @@ int FindDescriptor::construct_protobuf(PMGDQuery &query,
 
       Json::Value node_constraints = constraints;
       cp_result["ids_array"] = ids_array;
-         for (int i = 0; i < ids.size(); ++i){
-            printf("IDS!\n");
-            Json::Value k_node_constraints;
+      for (int i = 0; i < ids.size(); ++i) {
+        printf("IDS!\n");
+        Json::Value k_node_constraints;
 
-            //Theoretically this makes a deep copy
-            k_node_constraints = constraints;
+        // Theoretically this makes a deep copy
+        k_node_constraints = constraints;
 
-            // Create a vector with a string and an integer
-            std::vector<Json::Value> values;
-            values.push_back("==");
-            values.push_back(ids[i]);
+        // Create a vector with a string and an integer
+        std::vector<Json::Value> values;
+        values.push_back("==");
+        values.push_back(ids[i]);
 
-            // Add the vector to the JSON object with a key
-            Json::Value jsonArray(Json::arrayValue);
-            for (const auto& value : values) {
-                jsonArray.append(value);
-            }
-            k_node_constraints[desc_id_prop_name] = jsonArray;
-
-            results["limit"] = 1;
-            //TODO UPDATE TO IGNORE LINK TO SET
-            //query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_DESC_TAG,
-            //                link_to_set, k_node_constraints, results, false);
-
-            query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_DESC_TAG,
-                            Json::nullValue, k_node_constraints, results, false);
+        // Add the vector to the JSON object with a key
+        Json::Value jsonArray(Json::arrayValue);
+        for (const auto &value : values) {
+          jsonArray.append(value);
         }
-        //TODO END MODS
+        k_node_constraints[desc_id_prop_name] = jsonArray;
+
+        results["limit"] = 1;
+        // TODO UPDATE TO IGNORE LINK TO SET
+        // query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_DESC_TAG,
+        //                 link_to_set, k_node_constraints, results, false);
+
+        query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_DESC_TAG,
+                        Json::nullValue, k_node_constraints, results, false);
+      }
+      // TODO END MODS
 
       /*query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_DESC_TAG,
                       link_to_set, node_constraints, results, false);*/
@@ -1171,8 +1171,8 @@ Json::Value FindDescriptor::construct_responses(
   }
   // Case (3)
   else {
-    //TODO POSSIBLE REMOVE
-    //assert(json_responses.size() == 2);
+    // TODO POSSIBLE REMOVE
+    // assert(json_responses.size() == 2);
 
     // Get Set info.
     const Json::Value &set_response = json_responses[0];
@@ -1228,32 +1228,32 @@ Json::Value FindDescriptor::construct_responses(
     IDDistancePair *pair = _cache_map[cache_obj_id];
     ids = &(pair->first);
     distances = &(pair->second);
-    //TODO BEGIN MODS
-      Json::Value combined_tx_constraints;
-      Json::Value set_values;
-      Json::Value ent_values;
-      for (int i = 0; i < json_responses.size(); ++i){
+    // TODO BEGIN MODS
+    Json::Value combined_tx_constraints;
+    Json::Value set_values;
+    Json::Value ent_values;
+    for (int i = 0; i < json_responses.size(); ++i) {
 
-          // Create a vector with a string and an integer
-          if (i==0)
-              continue;
-          else{
-              Json::Value desc_data;
-              for (auto ent : json_responses[i]["entities"])
-                  desc_data = ent;
-              ent_values.append(desc_data);
-          }
-          // Add the vector to the JSON object with a key
+      // Create a vector with a string and an integer
+      if (i == 0)
+        continue;
+      else {
+        Json::Value desc_data;
+        for (auto ent : json_responses[i]["entities"])
+          desc_data = ent;
+        ent_values.append(desc_data);
       }
-      set_values["status"] = 0;
-      set_values["returned"] = json_responses.size() - 1;
-      set_values["entities"] = ent_values;
-      //combined_tx_constraints.append(set_values);
+      // Add the vector to the JSON object with a key
+    }
+    set_values["status"] = 0;
+    set_values["returned"] = json_responses.size() - 1;
+    set_values["entities"] = ent_values;
+    // combined_tx_constraints.append(set_values);
 
-      //std::cout<<"modified pmgd output"<<set_values<<std::endl;
-      findDesc = set_values;
+    // std::cout<<"modified pmgd output"<<set_values<<std::endl;
+    findDesc = set_values;
     // TODO END MODS
-    //findDesc = json_responses[1];
+    // findDesc = json_responses[1];
 
     if (findDesc["status"] != 0 || !findDesc.isMember("entities")) {
 
