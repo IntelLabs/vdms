@@ -79,19 +79,19 @@ void add_patient(protobufs::Command &cmdadd, int id, string name, int age,
   p->set_string_value("Random");
 }
 
-TEST(PMGDQueryHandler, addIndexTest){
+TEST(PMGDQueryHandler, addIndexTest) {
 
-    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
-    PMGDQueryHandler::init();
-    PMGDQueryHandler qh;
-    int idx_build_rc;
+  VDMSConfig::init("unit_tests/config-pmgd-tests.json");
+  PMGDQueryHandler::init();
+  PMGDQueryHandler qh;
+  int idx_build_rc;
 
-    idx_build_rc = qh.build_node_int_index((char * ) "Patient", (char *) "Age");
-    qh.print_node_idx_stats((char *)"Patient", (char *)"Age");
-    ASSERT_EQ(idx_build_rc, 0);
+  idx_build_rc = qh.build_node_int_index((char *)"Patient", (char *)"Age");
+  qh.print_node_idx_stats((char *)"Patient", (char *)"Age");
+  ASSERT_EQ(idx_build_rc, 0);
 
-    VDMSConfig::destroy();
-    PMGDQueryHandler::destroy();
+  VDMSConfig::destroy();
+  PMGDQueryHandler::destroy();
 }
 
 TEST(PMGDQueryHandler, addTest) {
