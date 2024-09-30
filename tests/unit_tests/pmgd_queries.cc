@@ -79,6 +79,44 @@ void add_patient(protobufs::Command &cmdadd, int id, string name, int age,
   p->set_string_value("Random");
 }
 
+TEST(PMGDQueryHandler, addIndexTest){
+
+    VDMSConfig::init("unit_tests/config-pmgd-tests.json");
+    PMGDQueryHandler::init();
+    PMGDQueryHandler qh;
+    int idx_build_rc;
+
+    vector<protobufs::Command *> cmds;
+
+    idx_build_rc = qh.build_node_int_index((char * ) "Patient", (char *) "Age");
+
+    int txid = 1, patientid = 1, eid = 1, query_count = 0;
+    //Begin TX
+    protobufs::Command cmdtx;
+    cmdtx.set_cmd_id(protobufs::Command::TxBegin);
+    cmdtx.set_tx_id(txid);
+    cmds.push_back(&cmdtx);
+    query_count++;
+
+    protobufs::Command cmdadd1;
+    cmdadd1.set_tx_id(txid);
+    add_patient(cmdadd1, patientid++, "Keira F.", 39,
+    "Sat Nov 12 17:59:24 PDT 1984", "kfa@abc.com", FEMALE);
+    cmds.push_back(&cmdadd1);
+    query_count++;
+
+    //commit TX
+    protobufs::Command cmdtxcommit;
+    cmdtxcommit.set_cmd_id(protobufs::Command::TxCommit);
+    cmdtxcommit.set_tx_id(txid);
+    cmds.push_back(&cmdtxcommit);
+
+    //TODO prints/RC checks
+    qh.print_node_idx_stats((char *)"Patient", (char *)"Age");
+    ASSERT_EQ(idx_build_rc, 0);
+
+}
+
 TEST(PMGDQueryHandler, addTest) {
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();

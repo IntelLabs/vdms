@@ -1039,7 +1039,7 @@ void PMGDQueryHandler::print_node_idx_stats(char *tag_name, char *prop_id) {
   }
 }
 
-void PMGDQueryHandler::build_node_int_index(char *node_class, char *prop_name) {
+int PMGDQueryHandler::build_node_int_index(char *node_class, char *prop_name) {
 
   try {
     Transaction tx(*_db, Transaction::ReadWrite);
@@ -1050,7 +1050,9 @@ void PMGDQueryHandler::build_node_int_index(char *node_class, char *prop_name) {
     printf("Warning: Failed to create new integer index-%s %s", node_class,
            prop_name);
     print_exception(e);
+    return -1;
   }
+  return 0;
 }
 
 void delete_by_value(std::list<AutoDeleteNode *> *queue, void *p_delete_node) {

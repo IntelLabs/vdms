@@ -223,17 +223,6 @@ int AddDescriptorSet::construct_protobuf(PMGDQuery &query,
   std::string set_name = cmd["name"].asString();
   std::string desc_set_path = _storage_sets + "/" + set_name;
 
-  /*std::string check_existence;
-  int temp_dim;
-
-  check_existence = get_set_path(query, set_name, temp_dim);
-  //if a set already exists, barf and return
-  if (!check_existence.empty()) {
-      error["info"] = "Set " + set_name + " already exists!";
-      error["status"] = RSCommand::Error;
-      return -1;
-  }*/
-
   Json::Value props = get_value<Json::Value>(cmd, "properties");
   props[VDMS_DESC_SET_NAME_PROP] = cmd["name"].asString();
   props[VDMS_DESC_SET_DIM_PROP] = cmd["dimensions"].asInt();
@@ -963,7 +952,6 @@ int FindDescriptor::construct_protobuf(PMGDQuery &query,
       Json::Value node_constraints = constraints;
       cp_result["ids_array"] = ids_array;
       for (int i = 0; i < ids.size(); ++i) {
-        printf("IDS!\n");
         Json::Value k_node_constraints;
 
         // Theoretically this makes a deep copy
@@ -982,17 +970,10 @@ int FindDescriptor::construct_protobuf(PMGDQuery &query,
         k_node_constraints[desc_id_prop_name] = jsonArray;
 
         results["limit"] = 1;
-        // TODO UPDATE TO IGNORE LINK TO SET
-        // query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_DESC_TAG,
-        //                 link_to_set, k_node_constraints, results, false);
 
         query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_DESC_TAG,
                         Json::nullValue, k_node_constraints, results, false);
       }
-      // TODO END MODS
-
-      /*query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_DESC_TAG,
-                      link_to_set, node_constraints, results, false);*/
 
     } catch (VCL::Exception e) {
       print_exception(e);
@@ -1171,9 +1152,6 @@ Json::Value FindDescriptor::construct_responses(
   }
   // Case (3)
   else {
-    // TODO POSSIBLE REMOVE
-    // assert(json_responses.size() == 2);
-
     // Get Set info.
     const Json::Value &set_response = json_responses[0];
 
@@ -1228,7 +1206,7 @@ Json::Value FindDescriptor::construct_responses(
     IDDistancePair *pair = _cache_map[cache_obj_id];
     ids = &(pair->first);
     distances = &(pair->second);
-    // TODO BEGIN MODS
+
     Json::Value combined_tx_constraints;
     Json::Value set_values;
     Json::Value ent_values;
@@ -1248,12 +1226,8 @@ Json::Value FindDescriptor::construct_responses(
     set_values["status"] = 0;
     set_values["returned"] = json_responses.size() - 1;
     set_values["entities"] = ent_values;
-    // combined_tx_constraints.append(set_values);
 
-    // std::cout<<"modified pmgd output"<<set_values<<std::endl;
     findDesc = set_values;
-    // TODO END MODS
-    // findDesc = json_responses[1];
 
     if (findDesc["status"] != 0 || !findDesc.isMember("entities")) {
 
