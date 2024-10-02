@@ -253,6 +253,17 @@ int AddDescriptorSet::construct_protobuf(PMGDQuery &query,
     add_link(query, cmd["link"], node_ref, VDMS_DESC_SET_EDGE_TAG);
   }
 
+  // create a new index based on the descriptor set name
+  try {
+    std::string idx_prop = VDMS_DESC_ID_PROP + std::string("_") + set_name;
+    query.AddIntNodeIndexImmediate(VDMS_DESC_TAG, (char *)idx_prop.c_str());
+  } catch (...) {
+    printf("Descriptor Set Index Creation Failed for %s\n", set_name.c_str());
+    error["info"] = "Set index creation failed for" + set_name;
+    error["status"] = RSCommand::Error;
+    return -1;
+  }
+
   return 0;
 }
 
@@ -319,6 +330,7 @@ Json::Value AddDescriptorSet::construct_responses(
       desc_set.timers.print_map_runtimes();
     }
     desc_set.timers.clear_all_timers();
+
     delete (param);
   } catch (VCL::Exception e) {
     print_exception(e);
@@ -453,7 +465,9 @@ int AddDescriptor::add_single_descriptor(PMGDQuery &query,
     return -1;
   }
 
-  props[VDMS_DESC_ID_PROP] = Json::Int64(id);
+  std::string desc_id_prop_name =
+      VDMS_DESC_ID_PROP + std::string("_") + set_name;
+  props[desc_id_prop_name] = Json::Int64(id);
 
   int node_ref = get_value<int>(cmd, "_ref", query.get_available_reference());
 
@@ -591,33 +605,14 @@ int AddDescriptor::add_descriptor_batch(PMGDQuery &query,
     int node_ref = query.get_available_reference();
     Json::Value cur_props;
     cur_props = prop_list[i];
-    cur_props[VDMS_DESC_ID_PROP] = Json::Int64(id + i);
+
+    std::string desc_id_prop_name =
+        VDMS_DESC_ID_PROP + std::string("_") + set_name;
+    cur_props[desc_id_prop_name.c_str()] = Json::Int64(id + i);
+
     cur_props[VDMS_DESC_LABEL_PROP] = label;
 
     query.AddNode(node_ref, VDMS_DESC_TAG, cur_props, Json::nullValue);
-
-    // It passed the checker, so it exists.
-    // int set_ref = query.get_available_reference();
-    // Json::Value link;
-    // Json::Value results;
-    // Json::Value list_arr;
-    // list_arr.append(VDMS_DESC_SET_PATH_PROP);
-    // list_arr.append(VDMS_DESC_SET_DIM_PROP);
-    // results["list"] = list_arr;
-
-    // constraints for getting set node to link to.
-    // Json::Value constraints;
-    // Json::Value name_arr;
-    // name_arr.append("==");
-    // name_arr.append(set_name);
-    // constraints[VDMS_DESC_SET_NAME_PROP] = name_arr;
-
-    // bool unique = true;
-
-    // Query set node-We only need to do this once, outside of the loop TODO
-    // MOVE
-    // query.QueryNode(set_ref, VDMS_DESC_SET_TAG, link, constraints, results,
-    //                unique);
 
     // note this implicitly means that every node of a batch uses the same link
     if (cmd.isMember("link")) {
@@ -793,6 +788,8 @@ int FindDescriptor::construct_protobuf(PMGDQuery &query,
 
   int dimensions;
   const std::string set_path = get_set_path(query, set_name, dimensions);
+  std::string desc_id_prop_name =
+      VDMS_DESC_ID_PROP + std::string("_") + set_name;
 
   if (set_path.empty()) {
     cp_result["status"] = RSCommand::Error;
@@ -820,7 +817,7 @@ int FindDescriptor::construct_protobuf(PMGDQuery &query,
     constraints.removeMember("_label");
   }
   if (constraints.isMember("_id")) {
-    constraints[VDMS_DESC_ID_PROP] = constraints["_id"];
+    constraints[desc_id_prop_name.c_str()] = constraints["_id"];
     constraints.removeMember("_id");
   }
 
@@ -843,7 +840,7 @@ int FindDescriptor::construct_protobuf(PMGDQuery &query,
   }
 
   results["list"].append(VDMS_DESC_LABEL_PROP);
-  results["list"].append(VDMS_DESC_ID_PROP);
+  results["list"].append(desc_id_prop_name.c_str());
 
   // Case (1)
   if (cmd.isMember("link")) {
@@ -888,10 +885,18 @@ int FindDescriptor::construct_protobuf(PMGDQuery &query,
   }
   // Case (3), Just want the descriptor by value, we only need the set
   else {
-    Json::Value link_null; // null
 
+    Json::Value link_null; // null
+    if (cmd.isMember("_ref")) {
+      cp_result["status"] = RSCommand::Error;
+      cp_result["info"] = "_ref is not supported for KNN search";
+      return -1;
+    }
     const int k_neighbors = get_value<int>(cmd, "k_neighbors", 0);
 
+    // This set query is a little weird and may be optimized away in the future
+    //  as we no longer explicitly need the set links, however subsequent logic
+    // uses this to look up the path (again) in construct response
     int ref_set = query.get_available_reference();
 
     // Query for the set and detect if exist during transaction.
@@ -941,14 +946,34 @@ int FindDescriptor::construct_protobuf(PMGDQuery &query,
       // This are needed to construct the response.
       if (!results.isMember("list")) {
         results["list"].append(VDMS_DESC_LABEL_PROP);
-        results["list"].append(VDMS_DESC_ID_PROP);
+        results["list"].append(desc_id_prop_name);
       }
 
       Json::Value node_constraints = constraints;
       cp_result["ids_array"] = ids_array;
+      for (int i = 0; i < ids.size(); ++i) {
+        Json::Value k_node_constraints;
 
-      query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_DESC_TAG,
-                      link_to_set, node_constraints, results, false);
+        // Theoretically this makes a deep copy
+        k_node_constraints = constraints;
+
+        // Create a vector with a string and an integer
+        std::vector<Json::Value> values;
+        values.push_back("==");
+        values.push_back(ids[i]);
+
+        // Add the vector to the JSON object with a key
+        Json::Value jsonArray(Json::arrayValue);
+        for (const auto &value : values) {
+          jsonArray.append(value);
+        }
+        k_node_constraints[desc_id_prop_name] = jsonArray;
+
+        results["limit"] = 1;
+
+        query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_DESC_TAG,
+                        Json::nullValue, k_node_constraints, results, false);
+      }
 
     } catch (VCL::Exception e) {
       print_exception(e);
@@ -962,16 +987,19 @@ int FindDescriptor::construct_protobuf(PMGDQuery &query,
 }
 
 void FindDescriptor::populate_blobs(const std::string &set_path,
+                                    std::string set_name,
                                     const Json::Value &results,
                                     Json::Value &entities,
                                     protobufs::queryMessage &query_res) {
-  if (get_value<bool>(results, "blob", false)) {
 
+  std::string desc_id_prop_name =
+      VDMS_DESC_ID_PROP + std::string("_") + set_name;
+  if (get_value<bool>(results, "blob", false)) {
     VCL::DescriptorSet *set = _dm->get_descriptors_handler(set_path);
     int dim = set->get_dimensions();
 
     for (auto &ent : entities) {
-      long id = ent[VDMS_DESC_ID_PROP].asInt64();
+      long id = ent[desc_id_prop_name].asInt64();
 
       ent["blob"] = true;
 
@@ -988,10 +1016,13 @@ void FindDescriptor::populate_blobs(const std::string &set_path,
 }
 
 void FindDescriptor::convert_properties(Json::Value &entities,
-                                        Json::Value &list) {
+                                        Json::Value &list,
+                                        std::string set_name) {
   bool flag_label = false;
   bool flag_id = false;
 
+  std::string desc_id_prop_name =
+      VDMS_DESC_ID_PROP + std::string("_") + set_name;
   for (auto &prop : list) {
     if (prop.asString() == "_label") {
       flag_label = true;
@@ -1008,10 +1039,10 @@ void FindDescriptor::convert_properties(Json::Value &entities,
         element["_label"] = element[VDMS_DESC_LABEL_PROP];
       element.removeMember(VDMS_DESC_LABEL_PROP);
     }
-    if (element.isMember(VDMS_DESC_ID_PROP)) {
+    if (element.isMember(desc_id_prop_name)) {
       if (flag_id)
-        element["_id"] = element[VDMS_DESC_ID_PROP];
-      element.removeMember(VDMS_DESC_ID_PROP);
+        element["_id"] = element[desc_id_prop_name];
+      element.removeMember(desc_id_prop_name);
     }
   }
 }
@@ -1026,6 +1057,10 @@ Json::Value FindDescriptor::construct_responses(
   Json::Value ret;
 
   bool flag_error = false;
+
+  const std::string set_name = cmd["set"].asString();
+  std::string desc_id_prop_name =
+      VDMS_DESC_ID_PROP + std::string("_") + set_name;
 
   auto error = [&](Json::Value &res) {
     ret[_cmd_name] = res;
@@ -1068,8 +1103,8 @@ Json::Value FindDescriptor::construct_responses(
     if (findDesc.isMember("entities")) {
       try {
         Json::Value &entities = findDesc["entities"];
-        populate_blobs(set_path, results, entities, query_res);
-        convert_properties(entities, list);
+        populate_blobs(set_path, set_name, results, entities, query_res);
+        convert_properties(entities, list, set_name);
       } catch (VCL::Exception e) {
         print_exception(e);
         findDesc["status"] = RSCommand::Error;
@@ -1097,8 +1132,8 @@ Json::Value FindDescriptor::construct_responses(
     if (findDesc.isMember("entities")) {
       try {
         Json::Value &entities = findDesc["entities"];
-        populate_blobs(set_path, results, entities, query_res);
-        convert_properties(entities, list);
+        populate_blobs(set_path, set_name, results, entities, query_res);
+        convert_properties(entities, list, set_name);
       } catch (VCL::Exception e) {
         print_exception(e);
         findDesc["status"] = RSCommand::Error;
@@ -1117,9 +1152,6 @@ Json::Value FindDescriptor::construct_responses(
   }
   // Case (3)
   else {
-
-    assert(json_responses.size() == 2);
-
     // Get Set info.
     const Json::Value &set_response = json_responses[0];
 
@@ -1175,7 +1207,27 @@ Json::Value FindDescriptor::construct_responses(
     ids = &(pair->first);
     distances = &(pair->second);
 
-    findDesc = json_responses[1];
+    Json::Value combined_tx_constraints;
+    Json::Value set_values;
+    Json::Value ent_values;
+    for (int i = 0; i < json_responses.size(); ++i) {
+
+      // Create a vector with a string and an integer
+      if (i == 0)
+        continue;
+      else {
+        Json::Value desc_data;
+        for (auto ent : json_responses[i]["entities"])
+          desc_data = ent;
+        ent_values.append(desc_data);
+      }
+      // Add the vector to the JSON object with a key
+    }
+    set_values["status"] = 0;
+    set_values["returned"] = json_responses.size() - 1;
+    set_values["entities"] = ent_values;
+
+    findDesc = set_values;
 
     if (findDesc["status"] != 0 || !findDesc.isMember("entities")) {
 
@@ -1197,9 +1249,9 @@ Json::Value FindDescriptor::construct_responses(
       bool pass_constraints = false;
 
       for (auto ent : aux_entities) {
-        if (ent[VDMS_DESC_ID_PROP].asInt64() == d_id) {
+        if (ent[desc_id_prop_name].asInt64() == d_id) {
           for (int idx = 0; idx < ids_array.size(); ++idx) {
-            if (ent[VDMS_DESC_ID_PROP].asInt64() == ids_array[idx].asInt64()) {
+            if (ent[desc_id_prop_name].asInt64() == ids_array[idx].asInt64()) {
               desc_data = ent;
               pass_constraints = true;
               break;
@@ -1233,8 +1285,8 @@ Json::Value FindDescriptor::construct_responses(
     if (findDesc.isMember("entities")) {
       try {
         Json::Value &entities = findDesc["entities"];
-        populate_blobs(set_path, results, entities, query_res);
-        convert_properties(entities, list);
+        populate_blobs(set_path, set_name, results, entities, query_res);
+        convert_properties(entities, list, set_name);
       } catch (VCL::Exception e) {
         print_exception(e);
         findDesc["status"] = RSCommand::Error;

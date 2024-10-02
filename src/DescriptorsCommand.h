@@ -175,9 +175,10 @@ public:
 class FindDescriptor : public DescriptorsCommand {
 
 private:
-  void convert_properties(Json::Value &entities, Json::Value &list);
-  void populate_blobs(const std::string &set_path, const Json::Value &results,
-                      Json::Value &entities,
+  void convert_properties(Json::Value &entities, Json::Value &list,
+                          std::string set_name);
+  void populate_blobs(const std::string &set_path, std::string set_name,
+                      const Json::Value &results, Json::Value &entities,
                       protobufs::queryMessage &query_res);
 
 public:
