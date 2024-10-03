@@ -222,9 +222,8 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
   if (error == false) {
     neoconn_pool->commit_tx(tx);
   }
-  
-  neoconn_pool->put_conn(conn);
 
+  neoconn_pool->put_conn(conn);
 }
 
 int QueryHandlerNeo4j::parse_commands(
