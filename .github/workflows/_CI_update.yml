@@ -7,6 +7,10 @@ on:
           required: true
           description: "The C++ Coverage for target"
           type: string
+        coverage_test_status:
+          required: true
+          description: "Status of coverage tests (passed/failed)"
+          type: string
 
 permissions: write-all
 
@@ -19,7 +23,6 @@ jobs:
         runs-on: ubuntu-latest
         steps:
           # Checkout code doesn't persist across jobs
-          # If formatting needed, checkout and format again
           - name: Checkout Source Branch
             uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
             with:
@@ -31,7 +34,7 @@ jobs:
           - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }}
 
           - name: Retrieve Current Coverage Files
-            if: ${{ inputs.coverage_value_updated }} == 'true'
+            if: ${{ inputs.coverage_value_updated }} == 'true' && ${{ inputs.coverage_test_status }} == 'passed'
             uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e  # v4.1.7
             with:
               name: coverage_artifact
@@ -43,7 +46,7 @@ jobs:
 
           - name: Update coverage reports with latest coverage
             # Change latest coverage as develop (future target)
-            if: ${{ inputs.coverage_value_updated }} == 'true'
+            if: ${{ inputs.coverage_value_updated }} == 'true' && ${{ inputs.coverage_test_status }} == 'passed'
             run: |
               cd ${GITHUB_WORKSPACE}/.github/coverage/
               rm -rf *.develop.*.txt || true

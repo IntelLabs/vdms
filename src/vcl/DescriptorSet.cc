@@ -63,6 +63,8 @@ DescriptorSet::DescriptorSet(const std::string &set_path) {
     _set = new TDBSparseDescriptorSet(set_path);
   else if (_eng == DescriptorSetEngine(Flinng))
     _set = new FlinngDescriptorSet(set_path);
+  else if (_eng == DescriptorSetEngine(FaissHNSWFlat))
+    _set = new FaissHNSWFlatDescriptorSet(set_path);
   else {
     std::cerr << "Index Not supported" << std::endl;
     throw VCLException(UnsupportedIndex, "Index not supported");
@@ -85,6 +87,8 @@ DescriptorSet::DescriptorSet(const std::string &set_path, unsigned dim,
     _set = new TDBSparseDescriptorSet(set_path, dim, metric);
   else if (eng == DescriptorSetEngine(Flinng))
     _set = new FlinngDescriptorSet(set_path, dim, metric, param);
+  else if (eng == DescriptorSetEngine(FaissHNSWFlat))
+    _set = new FaissHNSWFlatDescriptorSet(set_path, dim, metric);
   else {
     std::cerr << "Index Not supported" << std::endl;
     throw VCLException(UnsupportedIndex, "Index not supported");

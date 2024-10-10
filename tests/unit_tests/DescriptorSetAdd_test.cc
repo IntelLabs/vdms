@@ -218,6 +218,131 @@ TEST(Descriptors_Add, add_flatl2_100d_2add) {
   delete[] xb;
 }
 
+// HNSW Tests
+TEST(Descriptors_Add, add_hnswflatl2_100d) {
+
+  // test to add 1K descriptors of 100D each
+  //  descriptors are created by incrementing a random initial value as follows
+  //  init       init      ...   init      (D times)
+  //  init+1     init+1    ...   init+1    (D times)
+  //  ...
+  //  init+nb-1  init+nb-1 ...   init+nb-1 (d times)
+  //  hence, nearest neigbor of any query descriptor are the IDs that is around
+  //  the query ID
+
+  int d = 100;
+  int nb = 10000;
+  float *xb = generate_desc_linear_increase(d, nb);
+
+  std::string index_filename = "dbs/add_hnswflatl2_100d";
+  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat);
+
+  std::vector<long> classes(nb);
+
+  for (auto &str : classes) {
+    str = 1;
+  }
+
+  index.add(xb, nb, classes);
+
+  std::vector<float> distances;
+  std::vector<long> desc_ids;
+  index.search(xb, 1, 4, desc_ids, distances);
+
+  int exp = 0;
+  for (auto &desc : desc_ids) {
+    EXPECT_EQ(desc, exp++);
+  }
+
+  float results[] = {float(std::pow(0, 2) * d), float(std::pow(1, 2) * d),
+                     float(std::pow(2, 2) * d), float(std::pow(3, 2) * d)};
+  for (int i = 0; i < 4; ++i) {
+    EXPECT_EQ(distances[i], results[i]);
+  }
+
+  index.store();
+
+  delete[] xb;
+}
+
+TEST(Descriptors_Add, add_recons_hnswflatl2_100d) {
+
+  // test to add 1K descriptors of 100D each
+  //  Same as last previous test case but addes classes as labels
+  //  classes will be searched and checked of nearest neighbors
+
+  int d = 100;
+  int nb = 10000;
+  float *xb = generate_desc_linear_increase(d, nb);
+
+  std::string index_filename = "dbs/add_recons_hnswflatl2_100d";
+  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat);
+
+  std::vector<long> classes(nb);
+
+  for (auto &cl : classes) {
+    cl = 1;
+  }
+
+  index.add(xb, nb, classes);
+
+  std::vector<float> distances;
+  std::vector<long> desc_ids;
+  index.search(xb, 1, 4, desc_ids, distances);
+  desc_ids.clear();
+
+  float *recons = new float[d * nb];
+  for (int i = 0; i < nb; ++i) {
+    desc_ids.push_back(i);
+  }
+
+  index.get_descriptors(desc_ids, recons);
+
+  for (int i = 0; i < nb * d; ++i) {
+    EXPECT_EQ(xb[i], recons[i]);
+  }
+
+  index.store();
+
+  delete[] xb;
+}
+
+TEST(Descriptors_Add, add_hnswflatl2_100d_2add) {
+  // test to add 2K descriptors of 100D each
+  //  this is done in 2 steps
+  //  first 1K and then the index is stored to a file
+  //  second 1K are added after the index is read from a file
+  //  the test case is to test file i/o of the index
+
+  int d = 100;
+  int nb = 10000;
+  float *xb = generate_desc_linear_increase(d, nb);
+
+  std::string index_filename = "dbs/add_hnswflatl2_100d_2add";
+  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat);
+
+  index.add(xb, nb);
+
+  generate_desc_linear_increase(d, nb, xb, .6);
+
+  index.add(xb, nb);
+
+  generate_desc_linear_increase(d, 4, xb, 0);
+
+  std::vector<float> distances;
+  std::vector<long> desc_ids;
+  index.search(xb, 1, 4, desc_ids, distances);
+
+  float results[] = {float(std::pow(0, 2) * d), float(std::pow(.6, 2) * d),
+                     float(std::pow(1, 2) * d), float(std::pow(1.6, 2) * d)};
+  for (int i = 0; i < 4; ++i) {
+    EXPECT_EQ(std::round(distances[i]), std::round(results[i]));
+  }
+
+  index.store();
+  delete[] xb;
+}
+
 // Flinng Tests
 
 TEST(Descriptors_Add, add_flinngIP_100d) {

@@ -164,6 +164,8 @@ public:
                                                 bool resultdeletion = false,
                                                 bool autodelete_init = false);
   void cleanup_files();
+  int build_node_int_index(char *node_class, char *prop_name);
+  void print_node_idx_stats(char *tag_name, char *prop_id);
 };
 
 }; // namespace VDMS

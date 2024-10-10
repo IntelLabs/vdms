@@ -334,6 +334,7 @@ std::vector<VCL::DescriptorSetEngine> get_engines() {
   std::vector<VCL::DescriptorSetEngine> engs;
   engs.push_back(VCL::FaissFlat);
   engs.push_back(VCL::FaissIVFFlat);
+  engs.push_back(VCL::FaissHNSWFlat);
   engs.push_back(VCL::TileDBDense);
   engs.push_back(VCL::TileDBSparse);
   // engs.push_back(VCL::Flinng);
