@@ -747,3 +747,7 @@ void PMGDQuery::DeleteExpired() {
   cmddel->set_cmd_grp_id(_current_group_id);
   _cmds.push_back(cmddel);
 }
+
+void PMGDQuery::AddIntNodeIndexImmediate(char *node_class, char *prop_name) {
+  _pmgd_qh.build_node_int_index(node_class, prop_name);
+}

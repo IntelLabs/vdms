@@ -54,9 +54,9 @@ RUN apt-get update -y && apt-get upgrade -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /usr/src
-# hadolint ignore=DL3003,SC2086
-RUN apt update -y && \
-    apt install -y libffi-dev libgdbm-dev libnss3-dev libreadline-dev libsqlite3-dev zlib1g-dev && \
+# hadolint ignore=DL3003,DL3008,SC2086
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends libffi-dev libgdbm-dev libnss3-dev libreadline-dev libsqlite3-dev zlib1g-dev && \
     curl -O https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz && \
     tar -xzf Python-${PYTHON_VERSION}.tgz && cd Python-${PYTHON_VERSION} && \
     ./configure --enable-optimizations && make ${BUILD_THREADS} && make altinstall && \
@@ -166,7 +166,7 @@ RUN curl -L -O https://github.com/gpakosz/peg/releases/download/${PEG_VERSION}/p
 # CLEANUP
 RUN rm -rf /dependencies /usr/local/share/doc /usr/local/share/man && \
     mkdir -p /opt/dist/usr/include/x86_64-linux-gnu && \
-        cp -rp /usr/include/x86_64-linux-gnu /opt/dist/usr/include/x86_64-linux-gnu
+    cp -rp /usr/include/x86_64-linux-gnu /opt/dist/usr/include/x86_64-linux-gnu
 
 
 ############################################################

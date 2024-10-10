@@ -85,6 +85,7 @@ class vdms(object):
 
             if self.use_tls:
                 context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+                context.minimum_version = ssl.TLSVersion.TLSv1_2
                 if self.ca_file != "":
                     context.load_verify_locations(cafile=self.ca_file)
                 if self.cert_file != "" and self.key_file != "":
