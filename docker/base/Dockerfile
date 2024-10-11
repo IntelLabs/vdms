@@ -188,7 +188,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
         libssl-dev libswscale-dev libtbb-dev libtbbmalloc2 libtiff5-dev libzip-dev openjdk-17-jdk-headless \
         procps && \
     apt-get --purge remove -y python3.11 && apt-get autoremove -y && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \  
     echo "/usr/local/lib" >> /etc/ld.so.conf.d/all-libs.conf && ldconfig && \
     python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "protobuf==4.${PROTOBUF_VERSION}" \
         "coverage>=7.3.1" "cryptography>=42.0.7"
@@ -200,6 +200,7 @@ RUN git clone -b master --recurse-submodules https://github.com/IntelLabs/vdms.g
     sed -i "s|java-11-openjdk|java-17-openjdk|g" /vdms/src/pmgd/java/CMakeLists.txt && \
     sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/test/neighbortest.cc && \
     sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/tools/mkgraph.cc && \
+	cp /vdms/docker/override_default_config.py /vdms/override_default_config.py && \
     mkdir -p /vdms/build && cd /vdms/build && \
     cmake .. && make ${BUILD_THREADS} && \
     echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
