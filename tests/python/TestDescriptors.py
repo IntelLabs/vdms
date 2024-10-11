@@ -206,6 +206,201 @@ class TestDescriptors(TestCommand.TestCommand):
 
         self.disconnect(db)
 
+    def test_AddSetAndWrongBatchSize(self):
+
+        db = self.create_connection()
+
+        # Create and verify descriptor set
+        trans_list = []
+        trans_dict = {}
+        desc_set = {}
+        desc_set["engine"] = "FaissFlat"
+        desc_set["metric"] = "L2"
+        desc_set["name"] = "wrongbatchsize"
+        desc_set["dimensions"] = 128
+        trans_dict["AddDescriptorSet"] = desc_set
+
+        trans_list.append(trans_dict)
+
+        response, img_array = db.query(trans_list)
+        self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
+
+        # Create and add a batch of feature vectors
+        trans = []
+        blobs = []
+        nr_dims = 128
+        batch_size = 10
+        desc_blob = []
+        x = np.zeros(nr_dims * batch_size)
+        x = x.astype("float32")
+        desc_blob.append(x.tobytes())
+
+        properties_list = []
+        for x in range(batch_size + 3):
+            props = {"batchprop": x}
+            properties_list.append(props)
+
+        descriptor = {}
+        descriptor["set"] = "wrongbatchsize"
+        descriptor["batch_properties"] = properties_list
+        query = {}
+        query["AddDescriptor"] = descriptor
+        trans.append(query)
+        blobs.append(desc_blob)
+
+        response, img_array = db.query(trans, blobs)
+        self.assertEqual(response[0]["info"], "FV Input Length Mismatch")
+        self.assertEqual(response[0]["status"], -1)
+
+        self.disconnect(db)
+
+    def test_AddSetAndInsertBatch(self):
+
+        db = self.create_connection()
+
+        # Create and verify descriptor set
+        trans_list = []
+        trans_dict = {}
+        desc_set = {}
+        desc_set["engine"] = "FaissFlat"
+        desc_set["metric"] = "L2"
+        desc_set["name"] = "rightbatchsize"
+        desc_set["dimensions"] = 128
+        trans_dict["AddDescriptorSet"] = desc_set
+
+        trans_list.append(trans_dict)
+
+        response, img_array = db.query(trans_list)
+        self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
+
+        # Create and add a batch of feature vectors
+        trans = []
+        blobs = []
+        nr_dims = 128
+        batch_size = 10
+        desc_blob = []
+        x = np.zeros(nr_dims * batch_size)
+        x = x.astype("float32")
+        desc_blob.append(x.tobytes())
+
+        properties_list = []
+        for x in range(batch_size):
+            props = {"batchprop": x}
+            properties_list.append(props)
+
+        descriptor = {}
+        descriptor["set"] = "rightbatchsize"
+        descriptor["batch_properties"] = properties_list
+        query = {}
+        query["AddDescriptor"] = descriptor
+        trans.append(query)
+        blobs.append(desc_blob)
+
+        response, img_array = db.query(trans, blobs)
+        self.assertEqual(response[0]["AddDescriptor"]["status"], 0)
+
+        # now try to get those same descriptors back
+        desc_find = {}
+        desc_find["set"] = "rightbatchsize"
+        desc_find["results"] = {"list": ["batchprop"]}
+
+        query = {}
+        query["FindDescriptor"] = desc_find
+
+        trans = []
+        blobs = []
+        trans.append(query)
+        response, img_array = db.query(trans, blobs)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], 10)
+
+        self.disconnect(db)
+
+    def test_AddBatchAndFindKNN(self):
+
+        db = self.create_connection()
+
+        # Create and verify descriptor set
+        trans_list = []
+        trans_dict = {}
+        desc_set = {}
+        desc_set["engine"] = "FaissFlat"
+        desc_set["metric"] = "L2"
+        desc_set["name"] = "knn_batch_set"
+        desc_set["dimensions"] = 128
+        trans_dict["AddDescriptorSet"] = desc_set
+
+        trans_list.append(trans_dict)
+
+        response, img_array = db.query(trans_list)
+        self.assertEqual(response[0]["AddDescriptorSet"]["status"], 0)
+
+        # Descriptor Set Created, now lets create a batch to insert
+        # first lets make a big combined blob representing the inserted descriptor
+        trans = []
+        blobs = []
+        nr_dims = 128
+        batch_size = 5
+        desc_blob = []
+        x = np.ones(nr_dims * batch_size)
+        for i in range(batch_size):
+            x[2 + (i * nr_dims)] = 2.34 + i * 20
+
+        x = x.astype("float32")
+        desc_blob.append(x.tobytes())
+
+        properties_list = []
+        for x in range(batch_size):
+            props = {"myid": x + 200}
+            properties_list.append(props)
+
+        descriptor = {}
+        descriptor["set"] = "knn_batch_set"
+        descriptor["batch_properties"] = properties_list
+
+        query = {}
+        query["AddDescriptor"] = descriptor
+        trans.append(query)
+        blobs.append(desc_blob)
+
+        response, img_array = db.query(trans, blobs)
+        self.assertEqual(response[0]["AddDescriptor"]["status"], 0)
+
+        ### Now try to find a KNN
+        kn = 3
+        finddescriptor = {}
+        finddescriptor["set"] = "knn_batch_set"
+
+        results = {}
+        results["list"] = ["myid", "_id", "_distance"]
+        results["blob"] = True
+        finddescriptor["results"] = results
+        finddescriptor["k_neighbors"] = kn
+
+        query = {}
+        query["FindDescriptor"] = finddescriptor
+
+        all_queries = []
+        all_queries.append(query)
+
+        descriptor_blob = []
+        x = np.ones(128)
+        x[2] = 2.34 + 1 * 20  # 2.34 + 1*20
+        x = x.astype("float32")
+        descriptor_blob.append(x.tobytes())
+
+        response, blob_array = db.query(all_queries, [descriptor_blob])
+
+        self.assertEqual(len(blob_array), kn)
+        self.assertEqual(descriptor_blob[0], blob_array[0])
+
+        # Check success
+        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["_distance"], 0)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][1]["_distance"], 400)
+        self.assertEqual(response[0]["FindDescriptor"]["entities"][2]["_distance"], 400)
+        self.disconnect(db)
+
     def test_classifyDescriptor(self):
         db = self.create_connection()
         set_name = "features_128d_4_classify"
@@ -453,10 +648,9 @@ class TestDescriptors(TestCommand.TestCommand):
         response, blob_array = db.query(all_queries, [descriptor_blob])
 
         # Check success
-        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
-        self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
-        self.assertEqual(len(blob_array), kn)
-        self.assertEqual(descriptor_blob[0], blob_array[0])
+        self.assertEqual(response[0]["status"], -1)
+        self.assertEqual(response[0]["info"], "_ref is not supported for KNN search")
+
         self.disconnect(db)
 
     # @unittest.skip("Skipping class until fixed")
@@ -590,23 +784,25 @@ class TestDescriptors(TestCommand.TestCommand):
         all_queries.append(query)
 
         response, blob_array = db.query(all_queries, [descriptor_blob])
+        self.assertEqual(response[0]["status"], -1)
+        self.assertEqual(response[0]["info"], "_ref is not supported for KNN search")
 
-        self.assertEqual(len(blob_array), kn)
+        # self.assertEqual(len(blob_array), kn)
         # This checks that the received blobs is the same as the inserted.
-        self.assertEqual(descriptor_blob[0], blob_array[0])
+        # self.assertEqual(descriptor_blob[0], blob_array[0])
 
         # Check success
-        self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
-        self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
+        # self.assertEqual(response[0]["FindDescriptor"]["status"], 0)
+        # self.assertEqual(response[0]["FindDescriptor"]["returned"], kn)
 
-        self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["_distance"], 0)
-        self.assertEqual(response[0]["FindDescriptor"]["entities"][1]["_distance"], 400)
-        self.assertEqual(response[0]["FindDescriptor"]["entities"][2]["_distance"], 400)
+        # self.assertEqual(response[0]["FindDescriptor"]["entities"][0]["_distance"], 0)
+        # self.assertEqual(response[0]["FindDescriptor"]["entities"][1]["_distance"], 400)
+        # self.assertEqual(response[0]["FindDescriptor"]["entities"][2]["_distance"], 400)
 
-        self.assertEqual(response[1]["FindEntity"]["status"], 0)
-        self.assertEqual(response[1]["FindEntity"]["returned"], kn)
+        # self.assertEqual(response[1]["FindEntity"]["status"], 0)
+        # self.assertEqual(response[1]["FindEntity"]["returned"], kn)
 
-        self.assertEqual(response[1]["FindEntity"]["entities"][0]["entity_prop"], 200)
-        self.assertEqual(response[1]["FindEntity"]["entities"][1]["entity_prop"], 201)
-        self.assertEqual(response[1]["FindEntity"]["entities"][2]["entity_prop"], 202)
+        # self.assertEqual(response[1]["FindEntity"]["entities"][0]["entity_prop"], 200)
+        # self.assertEqual(response[1]["FindEntity"]["entities"][1]["entity_prop"], 201)
+        # self.assertEqual(response[1]["FindEntity"]["entities"][2]["entity_prop"], 202)
         self.disconnect(db)

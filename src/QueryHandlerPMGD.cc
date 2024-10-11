@@ -59,6 +59,13 @@ using namespace VDMS;
 
 std::unordered_map<std::string, RSCommand *> QueryHandlerPMGD::_rs_cmds;
 
+// Static globals for use in looking up descriptor set locations, defined in
+// DescriptorCommand.h
+tbb::concurrent_unordered_map<std::string, std::string>
+    DescriptorsCommand::_desc_set_locator;
+tbb::concurrent_unordered_map<std::string, int>
+    DescriptorsCommand::_desc_set_dims;
+
 void QueryHandlerPMGD::init() {
   DescriptorsManager::init();
 
@@ -237,12 +244,13 @@ int QueryHandlerPMGD::parse_commands(const protobufs::queryMessage &proto_query,
     root["status"] = RSCommand::Error;
     return -1;
   }
-
   return 0;
 }
 
-void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
-                                     protobufs::queryMessage &proto_res) {
+void QueryHandlerPMGD::process_query(
+    protobufs::queryMessage &proto_query,
+    protobufs::queryMessage
+        &proto_res) { // TODO Investigate why/where json throwing
   Json::FastWriter fastWriter;
 
   Json::Value root;
@@ -302,6 +310,7 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
 
     // iterate over the list of the queries
     for (int j = 0; j < root.size(); j++) {
+
       const Json::Value &query = root[j];
       std::string cmd = query.getMemberNames()[0];
 
@@ -393,6 +402,7 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
     if (output_query_level_timing) {
       timers.print_map_runtimes();
     }
+
     proto_res.set_json(fastWriter.write(json_responses));
     _pmgd_qh.cleanup_files();
 

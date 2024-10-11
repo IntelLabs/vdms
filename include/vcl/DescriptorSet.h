@@ -53,7 +53,8 @@ enum DescriptorSetEngine {
   FaissIVFFlat,
   TileDBDense,
   TileDBSparse,
-  Flinng
+  Flinng,
+  FaissHNSWFlat
 };
 
 enum DistanceMetric { L2, IP };
