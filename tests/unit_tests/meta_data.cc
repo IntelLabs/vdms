@@ -45,6 +45,43 @@ Json::Value Meta_Data::construct_flinng_descriptor() {
   return tuple;
 }
 
+Json::Value Meta_Data::construct_hnsw_Set(std::string &name, int &dim) {
+
+  Json::Value descriptor_set;
+  Json::Value set_query;
+  Json::Value tuple;
+  descriptor_set["name"] = name;
+  descriptor_set["dimensions"] = dim;
+  descriptor_set["metric"] = "L2";
+  descriptor_set["engine"] = "FaissHNSWFlat";
+  set_query["AddDescriptorSet"] = descriptor_set;
+
+  return set_query;
+}
+
+Json::Value Meta_Data::construct_hnsw_descriptor() {
+  Json::Value tuple;
+  std::shared_ptr<VDMS::VDMSClient> test_aclient;
+  std::string name = "hnsw_test_2060";
+  int dim = 100;
+  tuple.append(construct_hnsw_Set(name, dim));
+  test_aclient.reset(new VDMS::VDMSClient(get_server(), get_port()));
+  VDMS::Response response = test_aclient->query(_fastwriter.write(tuple));
+  Json::Value result;
+  _reader.parse(response.json.c_str(), result);
+  Json::Value AddDesc;
+  Json::Value Desc;
+
+  Desc["set"] = "hnsw_test_2060";
+  Desc["label"] = "Person";
+  Desc["_ref"] = 1;
+  Desc["properties"]["id"] = 123;
+  Desc["properties"]["name"] = "Jane Doe";
+  AddDesc["AddDescriptor"] = Desc;
+  tuple.append(AddDesc);
+  return tuple;
+}
+
 Json::Value Meta_Data::construct_descriptor() {
   Json::Value descriptor_set;
   Json::Value set_query;
