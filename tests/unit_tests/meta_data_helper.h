@@ -55,6 +55,8 @@ public:
   Json::Value construct_flinng_descriptor();
   Json::Value construct_find_flinng_descriptor();
   Json::Value construct_Flinng_Set(std::string &, int &);
+  Json::Value construct_hnsw_descriptor();
+  Json::Value construct_hnsw_Set(std::string &, int &);
   std::string get_server() { return _server_name; }
   int get_port() { return _port; }
 };
