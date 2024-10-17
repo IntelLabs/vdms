@@ -136,7 +136,7 @@ fi
 
 
 # SETUP PYTHON VERSION
-version_exists=$(echo "$(python${PYTHON_BASE} --version | cut -d ' ' -f 2)" || echo false)
+version_exists=$(echo "$(python --version | cut -d ' ' -f 2)" || echo false)
 if [ "${version_exists}" != "${PYTHON_VERSION}" ]
 then
     echo "Installing python ${PYTHON_VERSION}..."
@@ -147,6 +147,24 @@ then
     tar -xzf Python-${PYTHON_VERSION}.tgz
     cd Python-${PYTHON_VERSION}
     ./configure --enable-optimizations && make -j && make altinstall
+
+    # Update the path to where the new Python version is installed
+
+    # if the new version of Python is installed in /usr/local/bin
+    if [ -f "/usr/local/bin/python${PYTHON_BASE}" ]; then
+        # and there is already a symbolic link pointing to /usr/bin/python3
+        if [ -f "/usr/bin/python3" ]; then
+            # Remove that outdated path to Python3
+            rm /usr/bin/python3
+            # and update the new path to Python3
+            ln -s /usr/local/bin/python${PYTHON_BASE} /usr/bin/python3
+        fi
+        # Do the same for /usr/bin/python
+        if [ -f "/usr/bin/python" ]; then
+            rm /usr/bin/python
+            ln -s /usr/local/bin/python${PYTHON_BASE} /usr/bin/python
+        fi
+    fi
 else
     echo "python ${PYTHON_VERSION} already installed"
 fi
