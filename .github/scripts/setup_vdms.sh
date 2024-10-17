@@ -136,8 +136,9 @@ fi
 
 
 # SETUP PYTHON VERSION
-version_exists=$(echo "$(python${PYTHON_BASE} --version | cut -d ' ' -f 2)" || echo false)
-if [ "${version_exists}" != "${PYTHON_VERSION}" ]
+version_exists=$(echo "$(python3 --version | cut -d ' ' -f 2)" || echo false)
+# Compare the current version of Python with the $PYTHON_VERSION
+if $(dpkg --compare-versions "${version_exists}" "lt" "${PYTHON_VERSION}")
 then
     echo "Installing python ${PYTHON_VERSION}..."
     apt update -y
@@ -147,10 +148,22 @@ then
     tar -xzf Python-${PYTHON_VERSION}.tgz
     cd Python-${PYTHON_VERSION}
     ./configure --enable-optimizations && make -j && make altinstall
+
+    # Update the path to where the new Python version is installed
+
+    # if the new version of Python is installed in /usr/local/bin
+    if [ -f "/usr/local/bin/python${PYTHON_BASE}" ]; then
+        # and there is already a symbolic link pointing to /usr/bin/python3
+        if [ -f "/usr/bin/python3" ]; then
+            # Remove that outdated path to Python3
+            rm /usr/bin/python3
+            # and update the new path to Python3
+            ln -s /usr/local/bin/python${PYTHON_BASE} /usr/bin/python3
+        fi
+    fi
 else
     echo "python ${PYTHON_VERSION} already installed"
 fi
-alias python=$(which python${PYTHON_BASE})
 alias python3=$(which python${PYTHON_BASE})
 
 python${PYTHON_BASE} -m venv ${VIRTUAL_ENV}
@@ -159,7 +172,7 @@ export PATH="$VIRTUAL_ENV/bin:$PATH"
 
 if [ "${BUILD_COVERAGE}" = "on" ]; then
     apt-get install -y --no-install-suggests --no-install-recommends gdb
-    python -m pip install --no-cache-dir "gcovr>=7.0"
+    python3 -m pip install --no-cache-dir "gcovr>=7.0"
     curl -L -o ${WORKSPACE}/minio https://dl.min.io/server/minio/release/linux-amd64/minio
     chmod +x ${WORKSPACE}/minio
     mkdir -p ${WORKSPACE}/minio_files/minio-bucket
@@ -237,7 +250,7 @@ make install
 
 
 # INSTALL PYTHON PACKAGES
-python -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "coverage>=7.3.1" \
+python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "coverage>=7.3.1" \
     "protobuf==4.${PROTOBUF_VERSION}" "cryptography>=42.0.7"
 
 
@@ -251,7 +264,7 @@ cp -r include/* /usr/local/include/
 git clone --branch ${FAISS_VERSION} https://github.com/facebookresearch/faiss.git $VDMS_DEP_DIR/faiss
 cd $VDMS_DEP_DIR/faiss
 mkdir build && cd build
-cmake -DFAISS_ENABLE_GPU=OFF -DPython_EXECUTABLE=$(which python) \
+cmake -DFAISS_ENABLE_GPU=OFF -DPython_EXECUTABLE=$(which python3) \
     -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release ..
 make ${BUILD_THREADS}
 make install

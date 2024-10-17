@@ -2,7 +2,7 @@
 Here is the detailed process of installation of VDMS dependencies.
 
 ## Dependencies
-To install VDMS, we must install the necessary dependencies via apt, github, and pip (Python 3.9+).
+To install VDMS, we must install the necessary dependencies via apt, github, and pip (Python 3.12+).
 
 ### Install Debian/Ubuntu Packages
 Here we will install the Debian/Ubuntu packages.
@@ -58,8 +58,8 @@ mkdir -p $VDMS_DEP_DIR
 
 
 #### Python3 Packages
-It is expected that you have Python3.9 or higher installed on your system.
-All python calls will use Python3.9+; therefore you may find it convenient to set alias for python.
+It is expected that you have Python3.12 or higher installed on your system.
+All python calls will use Python3.12+; therefore you may find it convenient to set alias for python.
 Here we will install Python 3.12.3 from the Python website.
 ```bash
 PYTHON_VERSION=3.12.3
@@ -75,7 +75,7 @@ If you prefer, you can install the the Python 3 version available on the OS plat
 sudo apt-get install -y python3-dev python3-pip
 ```
 
-***NOTE:*** If multiple versions of Python 3 are present on your system, verify you are using Python3.9 or higher. You can specify the specific verison and set an alias for `python` and/or `python3` to easily use the desired python version. This can be done using the following:
+***NOTE:*** If multiple versions of Python 3 are present on your system, verify you are using Python3.12 or higher. You can specify the specific verison and set an alias for `python` and/or `python3` to easily use the desired python version. This can be done using the following:
 ```bash
 alias python=/usr/bin/python3.x
 alias python3=/usr/bin/python3.x
