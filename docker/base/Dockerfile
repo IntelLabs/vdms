@@ -113,7 +113,7 @@ RUN git clone https://github.com/opencv/opencv.git /dependencies/opencv && \
 
 # VALIJSON
 # hadolint ignore=DL3003
-RUN python -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" && \
+RUN python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" && \
     git clone --branch ${VALIJSON_VERSION} https://github.com/tristanpenman/valijson.git /dependencies/valijson && \
         cd /dependencies/valijson && cp -r include/* /usr/local/include/ && \
         mkdir -p /opt/dist/usr/local/include/ && cp -r include/* /opt/dist/usr/local/include/
@@ -122,7 +122,7 @@ RUN python -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" &&
 # hadolint ignore=DL3003,SC2086
 RUN git clone --branch ${FAISS_VERSION} https://github.com/facebookresearch/faiss.git /dependencies/faiss && \
         cd /dependencies/faiss && mkdir build && cd build && \
-            cmake -DFAISS_ENABLE_GPU=OFF -DPython_EXECUTABLE=$(which python) \
+            cmake -DFAISS_ENABLE_GPU=OFF -DPython_EXECUTABLE=$(which python3) \
             -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release .. && \
             make ${BUILD_THREADS} && make install DESTDIR=/opt/dist && make install && \
     git clone https://github.com/tonyzhang617/FLINNG.git /dependencies/FLINNG && \
