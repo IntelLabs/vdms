@@ -69,7 +69,6 @@ Json::Value Neo4jCommand::check_responses(Json::Value &responses) {
     printf("Error Response!\n");
     return ret;
   }
-  printf("No Error found!\n");
 
   ret = responses[0];
 

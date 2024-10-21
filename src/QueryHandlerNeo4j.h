@@ -40,7 +40,7 @@ namespace VDMS {
 class QueryHandlerNeo4j : public QueryHandlerBase {
 
 protected:
-  static BackendNeo4j *neoconn_pool;
+  //static BackendNeo4j *neoconn_pool;
   static std::unordered_map<std::string, Neo4jCommand *> _rs_cmds;
   friend class QueryHandlerTester;
   bool syntax_checker(const Json::Value &root, Json::Value &error);
@@ -48,6 +48,7 @@ protected:
                      Json::Value &root);
 
 public:
+  static BackendNeo4j *neoconn_pool;
   static void init();
   QueryHandlerNeo4j();
   void process_query(protobufs::queryMessage &proto_query,

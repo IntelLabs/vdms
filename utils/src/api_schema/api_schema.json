@@ -812,6 +812,15 @@
       "additionalProperties": false
     },
 
+    "NeoClassifyDescriptor": {
+      "properties": {
+        "set":         { "type": "string" },
+        "k_neighbors": { "$ref": "#/definitions/positiveInt" }
+      },
+      "required": ["set"],
+      "additionalProperties": false
+    },
+
     "FindDescriptor": {
       "properties": {
         "set":         { "type": "string" },

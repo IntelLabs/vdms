@@ -35,8 +35,12 @@
 #include "vcl/Image.h"
 #include "vcl/VCL.h"
 #include <jsoncpp/json/value.h>
+#include "DescriptorsManager.h"
+#include "tbb/concurrent_unordered_map.h"
 
 namespace VDMS {
+
+    typedef std::pair<std::vector<long>, std::vector<float>> IDDistancePair;
 
 class Neo4jCommand {
 protected:
@@ -101,7 +105,53 @@ public:
                                   const std::string &blob);
 };
 
-class Neo4jNeoAddDescSet : public Neo4jCommand{
+class NeoDescriptorsCommand : public Neo4jCommand {
+protected:
+    DescriptorsManager *_dm;
+    VCL::DescriptorSetEngine _eng;
+    bool output_vcl_timing;
+
+    // IDDistancePair is a pointer so that we can free its content
+    // without having to use erase methods, which are not lock free
+    // for this data structure in tbb
+    tbb::concurrent_unordered_map<long, IDDistancePair *> _cache_map;
+
+    static tbb::concurrent_unordered_map<std::string, std::string>
+            _desc_set_locator;
+    static tbb::concurrent_unordered_map<std::string, int> _desc_set_dims;
+
+    // Will return the path to the set and the dimensions
+    std::string get_set_path(const std::string &set,
+                             int &dim);
+
+    bool check_blob_size(const std::string &blob, const int dimensions,
+                         const long n_desc);
+
+public:
+    NeoDescriptorsCommand(const std::string &cmd_name);
+
+    virtual bool need_blob(const Json::Value &cmd) { return false; }
+
+    int data_processing(std::string &tx, const Json::Value &root,
+                        const std::string &blob, int grp_id, Json::Value &error) = 0;
+
+    virtual Json::Value construct_responses(Json::Value &json_responses,
+                                            const Json::Value &json,
+                                            protobufs::queryMessage &response,
+                                            const std::string &blob) = 0;
+};
+
+class Neo4jNeoAddDescSet : public NeoDescriptorsCommand{
+
+    std::string _storage_sets;
+    uint64_t _flinng_num_rows;
+    uint64_t _flinng_cells_per_row;
+    uint64_t _flinng_num_hash_tables;
+    uint64_t _flinng_hashes_per_table;
+    uint64_t
+            _flinng_sub_hash_bits; // sub_hash_bits * hashes_per_table must be
+    // less than 32, otherwise segfault will happen
+    uint64_t _flinng_cut_off;
 
 public:
     Neo4jNeoAddDescSet();
@@ -115,7 +165,7 @@ public:
 
 };
 
-class Neo4jNeoFindDescSet : public Neo4jCommand{
+class Neo4jNeoFindDescSet : public NeoDescriptorsCommand{
 
 public:
     Neo4jNeoFindDescSet();
@@ -129,7 +179,7 @@ public:
 
 };
 
-class Neo4jNeoAddDesc : public Neo4jCommand{
+class Neo4jNeoAddDesc : public NeoDescriptorsCommand{
     public:
         Neo4jNeoAddDesc();
         bool need_blob(const Json::Value &cmd) {return true;};
@@ -142,7 +192,7 @@ class Neo4jNeoAddDesc : public Neo4jCommand{
 };
 
 
-class Neo4jNeoFindDesc : public Neo4jCommand{
+class Neo4jNeoFindDesc : public NeoDescriptorsCommand{
 public:
     Neo4jNeoFindDesc();
     bool need_blob(const Json::Value &cmd);
