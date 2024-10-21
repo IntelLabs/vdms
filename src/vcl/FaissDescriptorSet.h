@@ -44,6 +44,7 @@
 #include "DescriptorSetData.h"
 
 #include <faiss/IndexFlat.h>
+#include <faiss/IndexHNSW.h>
 #include <faiss/IndexIVFFlat.h>
 
 namespace VCL {
@@ -109,4 +110,16 @@ public:
 
   long add(float *descriptors, unsigned n_descriptors, long *classes);
 };
+
+class FaissHNSWFlatDescriptorSet : public FaissDescriptorSet {
+
+public:
+  FaissHNSWFlatDescriptorSet(const std::string &set_path);
+  FaissHNSWFlatDescriptorSet(const std::string &set_path, unsigned dim,
+                             DistanceMetric metric);
+
+  void search(float *query, unsigned n_queries, unsigned k, long *descriptors,
+              float *distances);
+};
+
 }; // namespace VCL

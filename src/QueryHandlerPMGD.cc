@@ -63,7 +63,8 @@ std::unordered_map<std::string, RSCommand *> QueryHandlerPMGD::_rs_cmds;
 // DescriptorCommand.h
 tbb::concurrent_unordered_map<std::string, std::string>
     DescriptorsCommand::_desc_set_locator;
-tbb::concurrent_unordered_map<std::string, int> DescriptorsCommand::_desc_set_dims;
+tbb::concurrent_unordered_map<std::string, int>
+    DescriptorsCommand::_desc_set_dims;
 
 void QueryHandlerPMGD::init() {
   DescriptorsManager::init();
@@ -198,7 +199,7 @@ bool QueryHandlerPMGD::syntax_checker(const Json::Value &root,
 
 int QueryHandlerPMGD::parse_commands(const protobufs::queryMessage &proto_query,
                                      Json::Value &root) {
-    Json::Reader reader;
+  Json::Reader reader;
   const std::string commands = proto_query.json();
 
   try {
@@ -246,8 +247,10 @@ int QueryHandlerPMGD::parse_commands(const protobufs::queryMessage &proto_query,
   return 0;
 }
 
-void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
-                                     protobufs::queryMessage &proto_res) { //TODO Investigate why/where json throwing
+void QueryHandlerPMGD::process_query(
+    protobufs::queryMessage &proto_query,
+    protobufs::queryMessage
+        &proto_res) { // TODO Investigate why/where json throwing
   Json::FastWriter fastWriter;
 
   Json::Value root;
@@ -341,11 +344,9 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
       construct_results.push_back(cmd_result);
     }
 
-
     timers.add_timestamp("pmgd_query_time");
     Json::Value &tx_responses = pmgd_query.run(_autodelete_init);
     timers.add_timestamp("pmgd_query_time");
-
 
     if (!tx_responses.isArray() || tx_responses.size() != root.size()) {
       Json::StyledWriter writer;
@@ -404,7 +405,6 @@ void QueryHandlerPMGD::process_query(protobufs::queryMessage &proto_query,
 
     proto_res.set_json(fastWriter.write(json_responses));
     _pmgd_qh.cleanup_files();
-
 
   } catch (VCL::Exception &e) {
     print_exception(e);

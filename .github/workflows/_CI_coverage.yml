@@ -103,6 +103,7 @@ jobs:
       source_old_cpp_value: ${{ steps.report_coverage.outputs.source_old_cpp_value }}
       source_old_py_value: ${{ steps.report_coverage.outputs.source_old_py_value }}
       coverage_value_updated: ${{ steps.report_coverage.outputs.cov_changed }}
+      coverage_test_status: ${{ steps.report_coverage.outputs.coverage_test_status }}
     steps:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
         with:
@@ -236,6 +237,7 @@ jobs:
           set -x
 
           did_cov_change='false'
+          test_status='failed'
           if [ "$pr_dev_value_cpp" != "$coverage_value_cpp" ]; then
             did_cov_change='true'
           fi
@@ -262,10 +264,13 @@ jobs:
           then
             exit 1
           fi
+
+          test_status='passed'
           echo "Source Python Coverage: ${coverage_value_py}"
           echo "source_coverage_py=${coverage_value_py}" >> $GITHUB_OUTPUT
           echo "source_old_py_value=${pr_dev_value_py}" >> $GITHUB_OUTPUT
           # echo "target_coverage_py=${target_value_py}" >> $GITHUB_OUTPUT
+          echo "coverage_test_status=${test_status}" >> $GITHUB_OUTPUT
 
       - name: Upload New coverage results
         uses: actions/upload-artifact@0b2256b8c012f0828dc542b3febcab082c67f72b  # v4.3.4

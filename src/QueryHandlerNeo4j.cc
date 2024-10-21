@@ -225,9 +225,9 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
   // errors on response construction
   if (error == false) {
     neoconn_pool->commit_tx(tx);
-  } else {
-    neoconn_pool->put_conn(conn);
   }
+
+  neoconn_pool->put_conn(conn);
 }
 
 int QueryHandlerNeo4j::parse_commands(
