@@ -67,7 +67,13 @@
       { "$ref": "#/definitions/FindBlobTop" },
 
       { "$ref": "#/definitions/NeoAddTop" },
-      { "$ref": "#/definitions/NeoFindTop" }
+      { "$ref": "#/definitions/NeoFindTop" },
+
+      { "$ref": "#/definitions/NeoAddDescriptorSetTop" },
+      { "$ref": "#/definitions/NeoFindDescriptorSetTop" },
+      { "$ref": "#/definitions/NeoAddDescriptorTop" },
+      { "$ref": "#/definitions/NeoClassifyDescriptorTop" },
+      { "$ref": "#/definitions/NeoFindDescriptorTop" }
     ]
   },
   "uniqueItems": false,
@@ -130,7 +136,7 @@
 
     "engineFormatString": {
       "type": "string",
-      "enum": ["FaissFlat", "FaissHNSWFlat", "FaissIVFFlat", "TileDBDense", "TileDBSparse", "Flinng"]
+      "enum": ["FaissFlat", "FaissIVFFlat", "TileDBDense", "TileDBSparse", "Flinng"]
     },
 
     "vidCodecString": {
@@ -452,6 +458,14 @@
       "additionalProperties": false
     },
 
+    "NeoAddDescriptorTop": {
+      "properties": {
+        "NeoAddDescriptor" : { "type": "object",
+          "$ref": "#/definitions/NeoAddDescriptor" }
+      },
+      "additionalProperties": false
+    },
+
     "AddDescriptorSetTop": {
       "properties": {
         "AddDescriptorSet" : { "type": "object",
@@ -459,6 +473,15 @@
       },
       "additionalProperties": false
     },
+
+    "NeoAddDescriptorSetTop": {
+      "properties": {
+        "NeoAddDescriptorSet" : { "type": "object",
+          "$ref": "#/definitions/NeoAddDescriptorSet" }
+      },
+      "additionalProperties": false
+    },
+
     "FindDescriptorSetTop": {
       "properties": {
         "FindDescriptorSet" : { "type": "object",
@@ -466,6 +489,15 @@
       },
       "additionalProperties": false
     },
+
+    "NeoFindDescriptorSetTop": {
+      "properties": {
+        "NeoFindDescriptorSet" : { "type": "object",
+          "$ref": "#/definitions/NeoFindDescriptorSet" }
+      },
+      "additionalProperties": false
+    },
+
     "DeleteExpiredTop": {
       "properties": {
         "DeleteExpired" : { "type": "object", "$ref": "#/definitions/DeleteExpired" }
@@ -481,9 +513,23 @@
       "additionalProperties": false
     },
 
+    "NeoClassifyDescriptorTop": {
+      "properties": {
+        "NeoClassifyDescriptor" : { "type": "object", "$ref": "#/definitions/NeoClassifyDescriptor" }
+      },
+      "additionalProperties": false
+    },
+
     "FindDescriptorTop": {
       "properties": {
         "FindDescriptor" : { "type": "object", "$ref": "#/definitions/FindDescriptor" }
+      },
+      "additionalProperties": false
+    },
+
+    "NeoFindDescriptorTop": {
+      "properties": {
+        "NeoFindDescriptor" : { "type": "object", "$ref": "#/definitions/NeoFindDescriptor" }
       },
       "additionalProperties": false
     },
@@ -535,9 +581,6 @@
       },
       "additionalProperties": false
     },
-
-    
-
 
     "UpdateVideoTop": {
       "properties": {
