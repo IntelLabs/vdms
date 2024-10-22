@@ -146,7 +146,7 @@ class TestCommand(unittest.TestCase):
 
         if blob:
             blob_arr = []
-            fd = open("../test_images/brain.png", "rb")
+            fd = open(os.path.join(self.find_tests_dir(),"test_images/brain.png"), "rb")
             blob_arr.append(fd.read())
             fd.close()
             all_blobs.append(blob_arr)
@@ -235,3 +235,23 @@ class TestCommand(unittest.TestCase):
             and os.environ.get("VDMS_SKIP_REMOTE_PYTHON_TESTS").upper() == "TRUE",
             "VDMS_SKIP_REMOTE_PYTHON_TESTS env var is set to True",
         )
+    
+
+    def find_tests_dir(self) -> str:
+        tests_dir_path = ""
+
+        # Get the path to the tests directory
+        dir_path = os.getcwd()
+        max_levels = 2 # To prevent the access to another directories
+        counter = 0
+        while os.path.basename(dir_path) != "tests" and counter < max_levels:
+            dir_path = os.path.dirname(dir_path)
+            counter = counter+1
+        if os.path.basename(dir_path) == "tests":
+            tests_dir_path = dir_path
+        else:
+            raise Exception("Error: tests directory was not found")
+
+        return tests_dir_path
+
+
