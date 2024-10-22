@@ -69,16 +69,20 @@ function execute_commands() {
     # protoc -I=${base_dir}/utils/src/protobuf --python_out=${client_path}/vdms ${base_dir}/utils/src/protobuf/queryMessage.proto
 
     cd ${TEST_DIR}
-    rm -rf test_db || true
-    rm -rf log.log || true
-    rm -rf screen.log || true
-    mkdir -p test_db || true
+    rm -rf tests_output_dir/test_db || true
+    rm -rf tests_output_dir/log.log || true
+    rm -rf tests_output_dir/screen.log || true
+    mkdir -p tests_output_dir || true
+    mkdir -p tests_output_dir/test_db || true
 
-    ./../../build/vdms -cfg config-tests.json > screen.log 2> log.log &
+    cp config-tests.json tests_output_dir/config-tests.json
+    cp config-tls-tests.json tests_output_dir/config-tls-tests.json
+
+    ./../../build/vdms -cfg tests_output_dir/config-tests.json > tests_output_dir/screen.log 2> tests_output_dir/log.log &
     py_unittest_pid=$!
 
     python3 ../tls_test/prep_certs.py
-    ./../../build/vdms -cfg config-tls-tests.json > screen-tls.log 2> log-tls.log &
+    ./../../build/vdms -cfg tests_output_dir/config-tls-tests.json > tests_output_dir/screen-tls.log 2> tests_output_dir/log-tls.log &
     py_tls_unittest_pid=$!
 
     sleep 1
@@ -95,12 +99,13 @@ function execute_commands() {
 function cleanup() {
     exit_value=$?
 
-    rm  -rf test_db || true
-    rm -rf log.log || true
-    rm -rf screen.log || true
-    rm  -rf test_db_tls || true
-    rm -rf log-tls.log || true
-    rm -rf screen-tls.log || true
+    # rm  -rf tests_output_dir/test_db || true
+    # rm -rf tests_output_dir/log.log || true
+    # rm -rf tests_output_dir/screen.log || true
+    # rm  -rf tests_output_dir/test_db_tls || true
+    # rm -rf tests_output_dir/log-tls.log || true
+    # rm -rf tests_output_dir/screen-tls.log || true
+    rm -rf tests_output_dir || true
     kill -9 $py_unittest_pid || true
     kill -9 $py_tls_unittest_pid || true
     exit $exit_value

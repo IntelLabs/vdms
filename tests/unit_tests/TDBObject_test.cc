@@ -35,11 +35,13 @@
 #include "TDBImage.h"
 #include "TDBObject.h"
 
+const std::string TMP_DIRNAME = "tests_output_dir/";
+
 class TDBObjectTest : public ::testing::Test {
 
 protected:
   virtual void SetUp() {
-    tdb_img_ = "tdb/test_image.tdb";
+    tdb_img_ = TMP_DIRNAME + "tdb/test_image.tdb";
     cv_img_ = cv::imread("test_images/large1.jpg", cv::IMREAD_ANYCOLOR);
   }
 

@@ -3,5 +3,5 @@
 // Sets database paths and other parameters
 {
     // Database paths
-    "pmgd_path": "qhgraph"
+    "pmgd_path": "tests_output_dir/qhgraph"
 }

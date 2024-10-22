@@ -42,12 +42,14 @@
 #include "VDMSConfig.h"
 #include "vcl/Exception.h"
 
+const std::string TMP_DIRNAME = "tests_output_dir/";
+
 class RemoteConnectionTest : public ::testing::Test {
 protected:
   virtual void SetUp() {
-    VDMS::VDMSConfig::init("unit_tests/config-aws-tests.json");
+    VDMS::VDMSConfig::init(TMP_DIRNAME + "config-aws-tests.json");
     img_ = "test_images/large1.jpg";
-    tdb_img_ = "tdb/test_image.tdb";
+    tdb_img_ = TMP_DIRNAME + "tdb/test_image.tdb";
     video_ = "test_videos/Megamind.avi";
     cv_img_ = cv::imread(img_, cv::IMREAD_ANYCOLOR);
     rect_ = VCL::Rectangle(100, 100, 100, 100);
@@ -358,7 +360,7 @@ TEST_F(RemoteConnectionTest, ImageRemoteRemoveJPG) {
 TEST_F(RemoteConnectionTest, TDBImageWriteS3) {
   try {
     ASSERT_TRUE(connection_);
-    VCL::TDBImage tdb("tdb/test_image.tdb", *connection_);
+    VCL::TDBImage tdb(TMP_DIRNAME + "tdb/test_image.tdb", *connection_);
     tdb.write(cv_img_);
   } catch (...) {
     printErrorMessage("TDBImageWriteS3");

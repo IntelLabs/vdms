@@ -8,6 +8,7 @@
     "key_file": "/tmp/trusted_server_key.pem",
     "ca_file": "/tmp/trusted_ca_cert.pem",
     "db_root_path": "test_db_tls",
+    "tmp_path": "./tests_output_dir",
     "storage_type": "local", //local, aws, etc
     "bucket_name": "minio-bucket",
     "more-info": "github.com/IntelLabs/vdms"

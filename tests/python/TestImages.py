@@ -26,7 +26,7 @@
 
 import unittest
 import TestCommand
-
+from os import path
 
 class TestImages(TestCommand.TestCommand):
     def create_image(
@@ -79,7 +79,7 @@ class TestImages(TestCommand.TestCommand):
         imgs_arr = []
         all_queries = []
 
-        fd = open("../test_images/brain.png", "rb")
+        fd = open(path.join(self.find_tests_dir(),"test_images/brain.png"), "rb")
         imgs_arr.append(fd.read())
         fd.close()
 
@@ -116,7 +116,7 @@ class TestImages(TestCommand.TestCommand):
 
         for i in range(0, number_of_inserts):
             # Read Brain Image
-            fd = open("../test_images/large1.jpg", "rb")
+            fd = open(path.join(self.find_tests_dir(),"test_images/large1.jpg"), "rb")
             imgs_arr.append(fd.read())
             fd.close()
 
@@ -147,7 +147,7 @@ class TestImages(TestCommand.TestCommand):
 
         for i in range(0, number_of_inserts):
             # Read Brain Image
-            fd = open("../test_images/brain.png", "rb")
+            fd = open(path.join(self.find_tests_dir(),"test_images/brain.png"), "rb")
             imgs_arr.append(fd.read())
             fd.close()
 
@@ -181,7 +181,7 @@ class TestImages(TestCommand.TestCommand):
 
         for i in range(0, number_of_inserts):
             # Read Brain Image
-            fd = open("../test_images/brain.png", "rb")
+            fd = open(path.join(self.find_tests_dir(),"test_images/brain.png"), "rb")
             imgs_arr.append(fd.read())
             fd.close()
 
@@ -390,7 +390,7 @@ class TestImages(TestCommand.TestCommand):
 
         imgs_arr = []
 
-        fd = open("../test_images/brain.png", "rb")
+        fd = open(path.join(self.find_tests_dir(),"test_images/brain.png"), "rb")
         imgs_arr.append(fd.read())
         fd.close()
 

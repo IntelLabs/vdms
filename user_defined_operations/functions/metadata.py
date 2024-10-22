@@ -6,12 +6,24 @@ import skvideo.io
 import imutils
 import time
 import json
+import os
+import sys
 
-face_cascade = cv2.CascadeClassifier(
-    # This file is available from OpenCV 'data' directory at
-    # https://github.com/opencv/opencv/blob/4.x/data/haarcascades/haarcascade_frontalface_default.xml
-    "functions/files/haarcascade_frontalface_default.xml"
-)
+DEBUG_MODE=True
+
+face_cascade = None
+def set_face_cascade(functions_path):
+    global face_cascade
+    haarcascade_frontalface_default_path = os.path.join(functions_path, "files/haarcascade_frontalface_default.xml")
+
+    if not os.path.exists(haarcascade_frontalface_default_path):
+        raise Exception(f"{haarcascade_frontalface_default_path}: path is invalid")
+
+    face_cascade = cv2.CascadeClassifier(
+        # This file is available from OpenCV 'data' directory at
+        # https://github.com/opencv/opencv/blob/4.x/data/haarcascades/haarcascade_frontalface_default.xml
+        haarcascade_frontalface_default_path
+    )
 
 
 def facedetectbbox(frame):
@@ -21,7 +33,16 @@ def facedetectbbox(frame):
     return faces
 
 
-def run(settings, message, input_params):
+def run(settings, message, input_params, tmp_dir_path, functions_path):
+    if DEBUG_MODE:
+        print("Temporary path:", tmp_dir_path, file=sys.stderr)
+        print("Functions path:", functions_path, file=sys.stderr)
+        print("Settings:", settings, file=sys.stderr)
+        print("message:", message, file=sys.stderr)
+        print("input_params", input_params, file=sys.stderr)
+
+    set_face_cascade(functions_path)
+
     ipfilename = message
     format = message.strip().split(".")[-1]
 
@@ -78,12 +99,20 @@ def run(settings, message, input_params):
 
         response = {"opFile": ipfilename, "metadata": metadata}
         r = json.dumps(response)
-        print(response)
-        print(r)
-        return r
+		
+		if DEBUG_MODE:
+            print("response:", response, file=sys.stderr)
+            print("json:", r, file=sys.stderr)
+        return r, None
     # Extract metadata for image files
     else:
         tdict = {}
+
+        # TODO Remove it
+        print("UDO with Metadata: ipfilename ", ipfilename)
+        if not os.path.exists(ipfilename):
+            raise Exception(f"UDO with Metadata error: File ipfilename {ipfilename} does not exist")
+        
         img = cv2.imread(ipfilename)
         if input_params["otype"] == "face":
             faces = facedetectbbox(img)
@@ -118,4 +147,4 @@ def run(settings, message, input_params):
         print(response)
         print(r)
 
-        return r
+        return r, None

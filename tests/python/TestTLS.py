@@ -4,6 +4,7 @@ import vdms
 import json
 import os
 
+TEMPORARY_DIR = "/tmp"
 
 class TestTLS(unittest.TestCase):
     untrusted_client_key = None
@@ -21,13 +22,21 @@ class TestTLS(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.port = 55566
-        cls.trusted_ca_cert = "/tmp/trusted_ca_cert.pem"
-        cls.trusted_server_cert = "/tmp/trusted_server_cert.pem"
-        cls.trusted_server_key = "/tmp/trusted_server_key.pem"
-        cls.trusted_client_cert = "/tmp/trusted_client_cert.pem"
-        cls.trusted_client_key = "/tmp/trusted_client_key.pem"
-        cls.untrusted_client_cert = "/tmp/untrusted_client_cert.pem"
-        cls.untrusted_client_key = "/tmp/untrusted_client_key.pem"
+        cls.trusted_ca_cert = TEMPORARY_DIR + "/trusted_ca_cert.pem"
+        cls.trusted_server_cert = TEMPORARY_DIR + "/trusted_server_cert.pem"
+        cls.trusted_server_key = TEMPORARY_DIR + "/trusted_server_key.pem"
+        cls.trusted_client_cert = TEMPORARY_DIR + "/trusted_client_cert.pem"
+        cls.trusted_client_key = TEMPORARY_DIR + "/trusted_client_key.pem"
+        cls.untrusted_client_cert = TEMPORARY_DIR + "/untrusted_client_cert.pem"
+        cls.untrusted_client_key = TEMPORARY_DIR + "/untrusted_client_key.pem"
+
+        cls.assertTrue(os.path.exists(cls.trusted_ca_cert), "trusted_ca_cert doesn't exist")
+        cls.assertTrue(os.path.exists(cls.trusted_server_cert), "trusted_server_cert doesn't exist")
+        cls.assertTrue(os.path.exists(cls.trusted_server_key), "trusted_server_key doesn't exist")
+        cls.assertTrue(os.path.exists(cls.trusted_client_cert), "trusted_client_cert doesn't exist")
+        cls.assertTrue(os.path.exists(cls.trusted_client_key), "trusted_client_key doesn't exist")
+        cls.assertTrue(os.path.exists(cls.untrusted_client_cert), "untrusted_client_cert doesn't exist")
+        cls.assertTrue(os.path.exists(cls.untrusted_client_key), "untrusted_client_key doesn't exist")
 
         cls.props = {}
         cls.props["place"] = "Mt Rainier"
@@ -53,9 +62,9 @@ class TestTLS(unittest.TestCase):
         os.remove(cls.trusted_client_key)
         os.remove(cls.untrusted_client_cert)
         os.remove(cls.untrusted_client_key)
-        os.remove("/tmp/trusted_ca_key.pem")
-        os.remove("/tmp/untrusted_ca_cert.pem")
-        os.remove("/tmp/untrusted_ca_key.pem")
+        os.remove(TEMPORARY_DIR + "/trusted_ca_key.pem")
+        os.remove(TEMPORARY_DIR + "/untrusted_ca_cert.pem")
+        os.remove(TEMPORARY_DIR + "/untrusted_ca_key.pem")
 
     def test_fail_connect_without_cert(self):
         # Test without a cert, we still provide a ca cert to avoid failure because of server cert trust issues

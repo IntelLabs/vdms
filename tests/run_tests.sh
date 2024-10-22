@@ -53,37 +53,43 @@ function execute_commands() {
     fi
 
     sh cleandbs.sh || true
-    mkdir test_db_client
-    mkdir dbs || true # necessary for Descriptors
-    mkdir temp || true # necessary for Videos
-    mkdir videos_tests || true
-    mkdir backups || true
+    mkdir -p tests_output_dir
+    mkdir -p tests_output_dir/test_db_client
+    mkdir -p tests_output_dir/dbs || true # necessary for Descriptors
+    mkdir -p tests_output_dir/temp || true # necessary for Videos
+    mkdir -p tests_output_dir/videos_tests || true
+    mkdir -p tests_output_dir/backups || true
+
+    # Copy the config file to the temporary directory so it matches with the path
+    # set in the test files in unit_test dir
+    cp unit_tests/config-tests.json tests_output_dir/config-tests.json
+    cp unit_tests/config-client-tests.json tests_output_dir/config-client-tests.json
 
     # Stop UDF Queue and Remote Server if already running
     pkill -9 -f udf_server.py || true
     pkill -9 -f udf_local.py || true
 
-    # Start remote server for test
+    echo 'Start remote server for test'
     cd remote_function_test
     python3 -m pip install -r  ../../remote_function/requirements.txt
-    python3 udf_server.py 5010 > ../tests_remote_screen.log 2> ../tests_remote_log.log &
+    python3 udf_server.py 5010 ./functions ../tests_output_dir > ../tests_output_dir/tests_remote_screen.log 2> ../tests_output_dir/tests_remote_log.log &
 
-    # Start UDF message queue for test
+    echo "Start UDF message queue for test"
     cd ../udf_test
     python3 -m pip install -r ../../user_defined_operations/requirements.txt
-    python3 udf_local.py > ../tests_udf_screen.log 2> ../tests_udf_log.log &
+    python3 udf_local.py ./functions ./udf_test/settings.json ../tests_output_dir > ../tests_output_dir/tests_udf_screen.log 2> ../tests_output_dir/tests_udf_log.log &
 
-    # Run the prep for the TLS tests to generate certificates
+    echo "Run the prep for the TLS tests to generate certificates"
     cd ../tls_test
-    python3 prep_certs.py > ../tests_tls_prep_screen.log 2> ../tests_tls_prep_log.log &
+    python3 prep_certs.py > ../tests_output_dir/tests_tls_prep_screen.log 2> ../tests_output_dir/tests_tls_prep_log.log &
 
     cd ..
 
     # Start server for client test
-    ./../build/vdms -cfg unit_tests/config-tests.json > tests_screen.log 2> tests_log.log &
+    ./../build/vdms -cfg tests_output_dir/config-tests.json > tests_output_dir/tests_screen.log 2> tests_output_dir/tests_log.log &
     cpp_unittest_pid=$!
 
-    ./../build/vdms -cfg unit_tests/config-client-tests.json > tests_screen.log 2> tests_log.log &
+    ./../build/vdms -cfg tests_output_dir/config-client-tests.json > tests_output_dir/tests_screen.log 2> tests_output_dir/tests_log.log &
     client_test_pid=$!
 
     echo 'not the vdms application - this file is needed for shared key' > vdms
@@ -115,6 +121,7 @@ function cleanup() {
 
     # Clean up
     echo 'Removing the temporary files created'
+    rm -rf tests_output_dir  || true
     sh ./cleandbs.sh || true
 
     exit $exit_value

@@ -99,23 +99,6 @@ function execute_commands() {
         esac
     done
 
-    # Export variables used in VDMS
-    export NEO_TEST_PORT=$neo4j_port
-    export NEO4J_USER=$neo4j_username
-    export NEO4J_PASS=$neo4j_password
-
-    # Print variables
-    echo "Neo4j Test Parameters used:"
-    echo -e "\tapi_port:\t$api_port"
-    echo -e "\tconsole_port:\t$console_port"
-    echo -e "\tminio_password:\t$minio_password"
-    echo -e "\tminio_username:\t$minio_username"
-    echo -e "\tneo4j_endpoint:\t$neo4j_endpoint"
-    echo -e "\tneo4j_port:\t$NEO_TEST_PORT"
-    echo -e "\tneo4j_password:\t$NEO4J_PASS"
-    echo -e "\tneo4j_username:\t$NEO4J_USER"
-    echo -e "\ttest:\t$test\n\n"
-
     if [ "$test_was_set" = false ]; then
         echo 'Missing test argument (-t) for "run_neo4j_tests.sh" script'
         script_usage
@@ -128,6 +111,10 @@ function execute_commands() {
             echo 'Missing MinIO or Neo4j arguments for "run_neo4j_tests.sh" script'
             script_usage
             exit 1;
+        fi
+
+        if [ "$neo4j_endpoint_was_set" = false ]; then
+            neo4j_endpoint=neo4j://localhost:$neo4j_port
         fi
 
         # Set minio bucket name
@@ -150,6 +137,24 @@ function execute_commands() {
         exit 1;
     fi
 
+    # Export variables used in VDMS
+    export NEO_TEST_PORT=$neo4j_port
+    export NEO4J_USER=$neo4j_username
+    export NEO4J_PASS=$neo4j_password
+    export NEO4J_ENDPOINT=$neo4j_endpoint
+
+    # Print variables
+    echo "Neo4j Test Parameters used:"
+    echo -e "\tapi_port:\t$api_port"
+    echo -e "\tconsole_port:\t$console_port"
+    echo -e "\tminio_password:\t$minio_password"
+    echo -e "\tminio_username:\t$minio_username"
+    echo -e "\tneo4j_endpoint:\t$neo4j_endpoint"
+    echo -e "\tneo4j_port:\t$NEO_TEST_PORT"
+    echo -e "\tneo4j_password:\t$NEO4J_PASS"
+    echo -e "\tneo4j_username:\t$NEO4J_USER"
+    echo -e "\ttest:\t$test\n\n"
+
 
     # Kill current instances of minio
     echo 'Killing current instances of minio'
@@ -158,16 +163,22 @@ function execute_commands() {
 
     # Clear other folders
     sh cleandbs.sh || true
-    mkdir test_db_client
-    mkdir dbs  # necessary for Descriptors
-    mkdir temp # necessary for Videos
-    mkdir videos_tests
-    mkdir backups
-    mkdir neo4j_empty || true
+    mkdir -p tests_output_dir
+    mkdir -p tests_output_dir/test_db_client
+    mkdir -p tests_output_dir/dbs  # necessary for Descriptors
+    mkdir -p tests_output_dir/temp # necessary for Videos
+    mkdir -p tests_output_dir/videos_tests
+    mkdir -p tests_output_dir/backups
+    mkdir -p tests_output_dir/neo4j_empty || true
+
+    cp unit_tests/config-neo4j-e2e.json tests_output_dir/config-neo4j-e2e.json
+
+    # For OpsIOCoordinatorTest tests
+    cp unit_tests/config-aws-tests.json tests_output_dir/config-aws-tests.json
 
     if [ "$test" = "OpsIOCoordinatorTest" ] || [ "$test" = "Neo4JE2ETest" ]; then
         #start the minio server
-        ./../minio server ./../minio_files --address :${api_port} --console-address :${console_port} &
+        ./../minio server tests_output_dir/minio_files --address :${api_port} --console-address :${console_port} &
         py_minio_pid=$!
 
         sleep 2
@@ -181,7 +192,7 @@ function execute_commands() {
 
     if [ "$test" = "Neo4JE2ETest" ]; then
         echo "Starting VDMS Server"
-        ./../build/vdms -cfg unit_tests/config-neo4j-e2e.json > neo4j-e2e_screen.log 2> neo4j-e2e_log.log &
+        ./../build/vdms -cfg tests_output_dir/config-neo4j-e2e.json > tests_output_dir/neo4j-e2e_screen.log 2> tests_output_dir/neo4j-e2e_log.log &
 	    cpp_unittest_pid=$!
 
         echo "Sleeping for 10 seconds while VDMS initializes..."
@@ -205,11 +216,7 @@ function cleanup() {
     fi
 
     echo 'Removing temporary files'
-    rm -rf ../minio_files/ || true
-    rm -rf test_db/ || true
-    rm -rf test_db_aws/ || true
-    rm -rf tdb/ || true
-    rm -rf neo4j_empty/ || true
+    rm -rf tests_output_dir || true
 
     if [ "$test" = "Neo4JE2ETest" ]; then
         echo "Stopping the vdms server"

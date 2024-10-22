@@ -1,0 +1,23 @@
+{   
+    // Any relative path must be used by considering the root of the repo
+    // as starting point
+    "test_name": "TestSuite.*",
+    "type_of_test": "ut",//["ut", "pt", "rp", "ru", "neo"]
+    "keep_tmp_tests_dir": false,//[false, true]
+    "tmp_tests_dir": "tests_output_dir",
+    "neo4j_port": 7687,
+    "neo4j_username": "",
+    "neo4j_password": "",
+    "vdms_app_path": "build/vdms",
+    "config_files_for_vdms": ["tests/unit_tests/VDMS1_CONFIG_FILE.json", "tests/unit_tests/VDMS2_CONFIG_FILE.json"],
+    "googletest_path": "build/tests/unit_tests",
+    "stop_tests_on_failure": false,//[false, true]
+    "minio_username": "",
+    "minio_password": "",
+    "minio_app_path": "minio",
+    "minio_port": 9000,
+    "minio_console_port": 9001,
+    "stderr_filename": "stderr_log.log",// by default, the location is in "tmp_tests_dir" dir
+    "stdout_filename": "stdout_log.log",// by default, the location is in "tmp_tests_dir" dir
+    "run": true//[false, true]
+}

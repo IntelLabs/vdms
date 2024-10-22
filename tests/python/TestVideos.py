@@ -107,8 +107,8 @@ class TestVideos(TestCommand.TestCommand):
     def insertVideo(self, db, props=None):
         video_arr = []
         all_queries = []
-
-        fd = open("../test_videos/Megamind.avi", "rb")
+        filepath = os.path.join(self.find_tests_dir(),"test_videos/Megamind.avi")
+        fd = open(filepath, "rb")
         video_arr.append(fd.read())
         fd.close()
 
@@ -137,7 +137,7 @@ class TestVideos(TestCommand.TestCommand):
 
         for i in range(0, number_of_inserts):
             # Read Brain Image
-            fd = open("../test_videos/Megamind.avi", "rb")
+            fd = open(os.path.join(self.find_tests_dir(),"test_videos/Megamind.avi"), "rb")
             video_arr.append(fd.read())
             fd.close()
 
@@ -192,7 +192,7 @@ class TestVideos(TestCommand.TestCommand):
         # The test is meant to fail if both blob and a local file are specified
         db = self.create_connection()
 
-        with open("../test_videos/Megamind.avi", "rb") as fd:
+        with open(os.path.join(self.find_tests_dir(),"test_videos/Megamind.avi"), "rb") as fd:
             video_blob = fd.read()
 
         query = self.create_video(
@@ -219,7 +219,7 @@ class TestVideos(TestCommand.TestCommand):
         db = self.create_connection()
 
         # Copy file to preserve the original one
-        source_file = "../videos/Megamind.mp4"
+        source_file = os.path.join(self.find_tests_dir(),"videos/Megamind.mp4")
         tmp_filepath = "Megamind.mp4"
         shutil.copy2(source_file, tmp_filepath)
 
@@ -234,7 +234,7 @@ class TestVideos(TestCommand.TestCommand):
     def test_extractKeyFrames(self):
         db = self.create_connection()
 
-        fd = open("../videos/Megamind.mp4", "rb")
+        fd = open(os.path.join(self.find_tests_dir(),"videos/Megamind.mp4"), "rb")
         video_blob = fd.read()
         fd.close()
 
@@ -508,7 +508,7 @@ class TestVideos(TestCommand.TestCommand):
 
         imgs_arr = []
 
-        fd = open("../test_videos/Megamind.avi", "rb")
+        fd = open(os.path.join(self.find_tests_dir(),"test_videos/Megamind.avi"), "rb")
         imgs_arr.append(fd.read())
         fd.close()
 

@@ -29,7 +29,6 @@ import unittest
 import vdms
 import os
 
-
 class TestCommand(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestCommand, self).__init__(*args, **kwargs)

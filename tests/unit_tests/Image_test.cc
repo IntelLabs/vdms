@@ -48,18 +48,38 @@
 
 namespace fs = std::filesystem;
 
+const std::string TMP_DIRNAME = "tests_output_dir/";
+
 class ImageTest : public ::testing::Test {
 protected:
   virtual void SetUp() {
-    VDMS::VDMSConfig::init("unit_tests/config-tests.json");
-    img_ = "test_images/large1.jpg";
-    tdb_img_ = "tdb/test_image.tdb";
+    VDMS::VDMSConfig::init(TMP_DIRNAME + "config-tests.json");
+    std::string sourceFile = "test_images/large1.jpg";
+    std::string destFile = TMP_DIRNAME + sourceFile;
+    if (std::filesystem::exists(sourceFile)) {
+      std::filesystem::create_directories(TMP_DIRNAME + "test_images");
+      if (!std::filesystem::copy_file(sourceFile, destFile)) {
+        throw VCLException(ObjectNotFound, sourceFile +
+                                               " was not copied to \"" +
+                                               destFile + "\"");
+      }
+    } else {
+      throw VCLException(ObjectNotFound, sourceFile + " was not found");
+    }
+
+    img_ = destFile;
+
+    tdb_img_ = TMP_DIRNAME + "tdb/test_image.tdb";
     cv_img_ = cv::imread(img_, -1);
 
     size_ = cv_img_.rows * cv_img_.cols * cv_img_.channels();
     rect_ = VCL::Rectangle(100, 100, 100, 100);
     bad_rect_ = VCL::Rectangle(1000, 1000, 10000, 10000);
     dimension_ = 256;
+  }
+
+  virtual void TearDown() {
+    std::filesystem::remove(TMP_DIRNAME + "test_images/large1.jpg");
   }
 
   void compare_mat_buffer(cv::Mat &img, unsigned char *buffer) {
@@ -537,31 +557,30 @@ TEST_F(ImageTest, SetDataFromEncoded) {
 TEST_F(ImageTest, Read) {
   VCL::ImageTest img_data;
   img_data.set_format("jpg");
-
+  
   ASSERT_THROW(img_data.read("test_images/.jpg"), VCL::Exception);
-
   img_data.read("test_images/large1");
-
+  
   EXPECT_EQ("test_images/large1.jpg", img_data.get_image_id());
 }
 
 TEST_F(ImageTest, WriteMatToJPG) {
   VCL::Image img(cv_img_);
-  img.store("test_images/test_image", VCL::Format::JPG);
+  img.store(TMP_DIRNAME + "test_images/test_image", VCL::Format::JPG);
 
-  cv::Mat test = cv::imread("test_images/test_image.jpg");
+  cv::Mat test = cv::imread(TMP_DIRNAME + "test_images/test_image.jpg");
 
   EXPECT_FALSE(test.empty());
 }
 
 TEST_F(ImageTest, WriteMatToTDB) {
   VCL::Image img(cv_img_);
-  img.store("tdb/mat_to_tdb", VCL::Format::TDB);
+  img.store(TMP_DIRNAME + "tdb/mat_to_tdb", VCL::Format::TDB);
 }
 
 TEST_F(ImageTest, WriteStringToTDB) {
   VCL::Image img(img_);
-  img.store("tdb/png_to_tdb.png", VCL::Format::TDB);
+  img.store(TMP_DIRNAME + "tdb/png_to_tdb.png", VCL::Format::TDB);
 }
 
 TEST_F(ImageTest, ResizeMat) {
@@ -633,13 +652,13 @@ TEST_F(ImageTest, Threshold) {
 
 TEST_F(ImageTest, DeleteTDB) {
   // Setup
-  VCL::TDBImage tdb("tdb/no_metadata.tdb");
+  VCL::TDBImage tdb(TMP_DIRNAME + "tdb/no_metadata.tdb");
   tdb.write(cv_img_, false);
-  VCL::ImageTest img_data("tdb/no_metadata.tdb");
+  VCL::ImageTest img_data(TMP_DIRNAME + "tdb/no_metadata.tdb");
 
   EXPECT_TRUE(img_data.delete_image());
 
-  img_data.read("tdb/no_metadata.tdb");
+  img_data.read(TMP_DIRNAME + "tdb/no_metadata.tdb");
 
   // Verify the results
   ASSERT_THROW(img_data.perform_operations(), VCL::Exception);
@@ -773,7 +792,7 @@ TEST_F(ImageTest, TDBToPNG) {
 
   VCL::Image img(tdb_img_);
 
-  img.store("test_images/tdb_to_png", VCL::Format::PNG);
+  img.store(TMP_DIRNAME + "test_images/tdb_to_png", VCL::Format::PNG);
 }
 
 TEST_F(ImageTest, TDBToJPG) {
@@ -782,7 +801,7 @@ TEST_F(ImageTest, TDBToJPG) {
 
   VCL::Image img(tdb_img_);
 
-  img.store("test_images/tdb_to_jpg", VCL::Format::JPG);
+  img.store(TMP_DIRNAME + "test_images/tdb_to_jpg", VCL::Format::JPG);
 }
 
 TEST_F(ImageTest, EncodedImage) {
@@ -814,19 +833,18 @@ TEST_F(ImageTest, CreateNameTDB) {
   VCL::Image img(cv_img_);
 
   for (int i = 0; i < 10; ++i) {
-    std::string name = VCL::create_unique("tdb/", "tdb");
+    std::string name = VCL::create_unique(TMP_DIRNAME + "tdb/", "tdb");
     img.store(name, VCL::Format::TDB);
   }
 }
 
-// TODO Review this
 TEST_F(ImageTest, NoMetadata) {
   // TODO: Remove the GTEST_SKIP() sentences when this test is fixed
   GTEST_SKIP() << "Reason to be skipped: This test is failing for "
                << "non remote tests";
   VCL::Image img(cv_img_);
 
-  std::string name = VCL::create_unique("tdb/", "tdb");
+  std::string name = VCL::create_unique(TMP_DIRNAME + "tdb/", "tdb");
   img.store(name, VCL::Format::TDB, false);
 
   cv::Size dims = img.get_dimensions();
@@ -973,7 +991,6 @@ TEST_F(ImageTest, ImageLoopRemoteFunctionError) {
 
   std::map<std::string, VCL::Image *> imageMap = imageLoop.get_image_map();
   std::map<std::string, VCL::Image *>::iterator iter = imageMap.begin();
-
   ASSERT_TRUE(iter->second->get_query_error_response() != "");
 }
 
@@ -1028,7 +1045,14 @@ TEST_F(ImageTest, ImagePathError) {
   VCL::Image img;
   std::string temp_image_path(VDMS::VDMSConfig::instance()->get_path_tmp() +
                               "/pathimagepatherror.jpg");
+
+  if (fs::exists(fs::path(temp_image_path))){
+    EXPECT_TRUE(std::remove(temp_image_path.data()) == 0);
+  }
+
   std::filesystem::copy_file(img_, temp_image_path);
+  ASSERT_TRUE(fs::exists(fs::path(temp_image_path)));
+
   img = VCL::Image(temp_image_path, true);
 
   EXPECT_TRUE(std::remove(temp_image_path.data()) == 0);
@@ -1043,7 +1067,11 @@ TEST_F(ImageTest, UDFMetadata) {
   ASSERT_TRUE(fs::exists(fs::path(inputFile)));
   std::string temp_image_path(VDMS::VDMSConfig::instance()->get_path_tmp() +
                               "/pathimageudfmetadata.jpg");
+  if(fs::exists(fs::path(temp_image_path))){
+    EXPECT_TRUE(std::remove(temp_image_path.data()) == 0);
+  }
   std::filesystem::copy_file(inputFile, temp_image_path);
+  ASSERT_TRUE(fs::exists(fs::path(temp_image_path)));
   VCL::Image img = VCL::Image(temp_image_path, true);
 
   Json::Value _options;
@@ -1067,7 +1095,13 @@ TEST_F(ImageTest, RemoteMetadata) {
   ASSERT_TRUE(fs::exists(fs::path(inputFile)));
   std::string temp_image_path(VDMS::VDMSConfig::instance()->get_path_tmp() +
                               "/rpathimage.jpg");
+
+  if (fs::exists(fs::path(temp_image_path))){
+    EXPECT_TRUE(std::remove(temp_image_path.data()) == 0);
+  }  
   std::filesystem::copy_file(inputFile, temp_image_path);
+  ASSERT_TRUE(fs::exists(fs::path(temp_image_path)));
+
   VCL::Image img = VCL::Image(temp_image_path, true);
 
   std::string _url = "http://localhost:5010/image";
@@ -1092,7 +1126,13 @@ TEST_F(ImageTest, UDFNoMetadata) {
   ASSERT_TRUE(fs::exists(fs::path(inputFile)));
   std::string temp_image_path(VDMS::VDMSConfig::instance()->get_path_tmp() +
                               "/pathimagenometadata.jpg");
+
+  if (fs::exists(fs::path(temp_image_path))){
+    EXPECT_TRUE(std::remove(temp_image_path.data()) == 0);
+  }
+
   std::filesystem::copy_file(inputFile, temp_image_path);
+  ASSERT_TRUE(fs::exists(fs::path(temp_image_path)));
   VCL::Image img = VCL::Image(temp_image_path, true);
 
   Json::Value _options;
@@ -1103,6 +1143,5 @@ TEST_F(ImageTest, UDFNoMetadata) {
   img.userOperation(_options);
   cv::Mat vcl_img = img.get_cvmat();
   ASSERT_EQ(img.get_ingest_metadata().size(), 0);
-
   EXPECT_TRUE(std::remove(temp_image_path.data()) == 0);
 }

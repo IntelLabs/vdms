@@ -1,8 +1,11 @@
+#include <filesystem>
 #include "CSVParser.h"
 #include "meta_data_helper.h"
+
 TEST(CLIENT_CPP_CSV, parse_csv_entity) {
 
   std::string filename = "../tests/csv_samples/CSVformat100.csv";
+  ASSERT_TRUE(std::filesystem::exists(std::filesystem::path(filename)));
   size_t num_threads = 5;
   std::string vdms_server = "localhost";
   int port = 55558;

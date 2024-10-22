@@ -34,6 +34,7 @@
 #include <fstream>
 #include <iostream>
 #include <string.h> // memcmp
+#include <filesystem>
 
 #include "gtest/gtest.h"
 
@@ -173,6 +174,9 @@ void copy_video_to_temp(std::string source_path, std::string dest_path,
   int width = static_cast<int>(inputVideo.get(cv::CAP_PROP_FRAME_WIDTH));
   int height = static_cast<int>(inputVideo.get(cv::CAP_PROP_FRAME_HEIGHT));
 
+  // Videowriter requires the directory exists
+  std::string parent_dir = std::filesystem::path(dest_path.data()).parent_path();
+  std::filesystem::create_directories(parent_dir);
   cv::VideoWriter outputVideo(dest_path, fourcc, _fps, cv::Size(width, height));
 
   while (true) {

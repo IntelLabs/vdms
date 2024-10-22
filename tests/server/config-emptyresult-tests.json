@@ -6,5 +6,5 @@
     "port": 55557,
 
     // Database paths
-    "pmgd_path": "entitycheck_db"
+    "pmgd_path": "tests_output_dir/entitycheck_db"
 }

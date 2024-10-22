@@ -1,5 +1,5 @@
 {
-    "opfile": "/tmp/tmp_op_file",
+    "opfile": "tests_output_dir/tmp_op_file",
     "port": 5555,
     "functions" : {
         "facedetect" : "facedetect",

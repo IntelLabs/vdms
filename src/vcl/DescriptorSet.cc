@@ -210,29 +210,41 @@ void DescriptorSet::get_descriptors(long *ids, unsigned n,
 }
 
 void DescriptorSet::store() {
-  timers.add_timestamp("desc_set_store");
-  _set->store();
-  write_set_info();
+  try {
+    timers.add_timestamp("desc_set_store");
+    _set->store();
+    write_set_info();
 
-  // grab the descriptor files from local storage, upload them, delete the local
-  // copies not deleting the local copies currently to resolve concurrency
-  // issues
-  if (_storage == VDMS::StorageType::AWS) {
-    std::string dir_path = _set->get_path();
-    std::vector<std::string> filenames;
+    // grab the descriptor files from local storage, upload them, delete the local
+    // copies not deleting the local copies currently to resolve concurrency
+    // issues
+    if (_storage == VDMS::StorageType::AWS) {
+      std::string dir_path = _set->get_path();
+      std::vector<std::string> filenames;
 
-    for (const auto &file : fs::directory_iterator(dir_path)) {
-      filenames.push_back(file.path());
-    }
-
-    for (int i = 0; i < filenames.size(); i++) {
-      bool result = _remote->Write(filenames[i]);
-      if (!result) {
-        throw VCLException(ObjectNotFound,
-                           "Descriptor: File was not added: " + filenames[i]);
+      for (const auto &file : fs::directory_iterator(dir_path)) {
+        filenames.push_back(file.path());
       }
-      // std::remove(filename.c_str());
+
+      for (int i = 0; i < filenames.size(); i++) {
+        bool result = _remote->Write(filenames[i]);
+        if (!result) {
+          throw VCLException(ObjectNotFound,
+                            "Descriptor: File was not added: " + filenames[i]);
+        }
+        // std::remove(filename.c_str());
+      }
     }
+  } catch (std::exception &e) {
+    std::cout << "DescriptorSet::store() Exception: " << e.what() << std::endl;
+    return;
+  } catch (VCL::Exception &e) {
+    print_exception(e);
+    return;
+  } catch (...) {
+    std::cout << "DescriptorSet::store() Error: Unknown exception was caught"
+              << std::endl;
+    return;
   }
   timers.add_timestamp("desc_set_store");
 }

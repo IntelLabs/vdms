@@ -33,6 +33,7 @@
 #include <stdlib.h> /* system, NULL, EXIT_FAILURE */
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #include "gtest/gtest.h"
 #include <jsoncpp/json/writer.h>
@@ -46,6 +47,8 @@
 using namespace VDMS;
 using namespace PMGD;
 using namespace std;
+
+const std::string TMP_DIRNAME = "../tests_output_dir/";
 
 std::string singleAddImage(" \
         { \
@@ -84,7 +87,7 @@ TEST(AutoReplicate, default_replicate) {
   QueryHandlerPMGD::init();
 
   ReplicationConfig replication_test;
-  replication_test.backup_path = "backups";
+  replication_test.backup_path = TMP_DIRNAME + "backups";
   replication_test.db_path = "db_backup";
   replication_test.autoreplicate_interval = 5;
   replication_test.autoreplication_unit = "s";
@@ -160,8 +163,11 @@ TEST(AddImage, simpleAdd) {
   json_reader.parse(response.json(), json_response);
 
   EXPECT_EQ(json_response[0]["AddImage"]["status"].asString(), "0");
-  VDMSConfig::destroy();
+
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(UpdateEntity, simpleAddUpdate) {
@@ -218,8 +224,10 @@ TEST(UpdateEntity, simpleAddUpdate) {
     }
   }
 
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(AddImage, simpleAddx10) {
@@ -271,8 +279,10 @@ TEST(AddImage, simpleAddx10) {
   for (int i = 0; i < total_images; ++i) {
     EXPECT_EQ(json_response[i]["AddImage"]["status"].asString(), "0");
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(AddImage, simpleAddSameFormat) {
@@ -323,8 +333,10 @@ TEST(AddImage, simpleAddSameFormat) {
   for (int i = 0; i < total_images; ++i) {
     EXPECT_EQ(json_response[i]["AddImage"]["status"].asString(), "0");
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(QueryHandler, AddAndFind) {
@@ -478,8 +490,10 @@ TEST(QueryHandler, AddAndFind) {
   EXPECT_EQ(average_found_before, average_found_after);
   EXPECT_EQ(sum_found_before, sum_found_after);
   EXPECT_EQ(count_found_before, count_found_after);
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(QueryHandler, EmptyResultCheck) {
@@ -533,8 +547,10 @@ TEST(QueryHandler, EmptyResultCheck) {
     }
   }
 
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(QueryHandler, DataTypeChecks) {
@@ -581,16 +597,59 @@ TEST(QueryHandler, DataTypeChecks) {
   EXPECT_EQ(query["FindEntity"]["entities"][1]["Birthday"].asString(),
             "1946-10-01T17:49:24.009010-07:00");
 
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(QueryHandler, AutoDeleteNode) {
+
   Json::Reader reader;
+  Json::StyledWriter writer;
 
   std::ifstream ifile;
+ 
   int fsize;
   char *inBuf;
+  ifile.open("server/DataTypeChecks.json", std::ifstream::in);
+  ifile.seekg(0, std::ios::end);
+  fsize = (int)ifile.tellg();
+  ifile.seekg(0, std::ios::beg);
+  inBuf = new char[fsize];
+  ifile.read(inBuf, fsize);
+  std::string json_query = std::string(inBuf);
+  ifile.close();
+  delete[] inBuf;
+  inBuf = nullptr;
+
+  VDMSConfig::init("server/config-datatype-tests.json");
+  PMGDQueryHandler::init();
+  QueryHandlerPMGD::init();
+
+  QueryHandlerPMGD qh_base;
+  qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has
+                                        // been initialized
+  QueryHandlerPMGDTester query_handler(qh_base);
+
+  VDMS::protobufs::queryMessage proto_query;
+  proto_query.set_json(json_query);
+  VDMS::protobufs::queryMessage response;
+
+  query_handler.pq(proto_query, response);
+
+  Json::Value parsed;
+  reader.parse(response.json().c_str(), parsed);
+
+  const Json::Value &query = parsed[3];
+  EXPECT_EQ(query["FindEntity"]["entities"][0]["Birthday"].asString(),
+            "1936-10-01T17:59:24.001-07:00");
+  EXPECT_EQ(query["FindEntity"]["entities"][0]["timestamp"].asInt64(),
+            1544069566053);
+  EXPECT_EQ(query["FindEntity"]["entities"][1]["Birthday"].asString(),
+            "1946-10-01T17:49:24.009010-07:00");
+
+
   ifile.open("server/AutoDeleteNodeInit.json", std::ifstream::in);
   ifile.seekg(0, std::ios::end);
   fsize = (int)ifile.tellg();
@@ -600,6 +659,7 @@ TEST(QueryHandler, AutoDeleteNode) {
   std::string json_query_init = std::string(inBuf);
   ifile.close();
   delete[] inBuf;
+  inBuf = nullptr;
 
   ifile.open("server/AutoDeleteNodeTest.json", std::ifstream::in);
   ifile.seekg(0, std::ios::end);
@@ -610,6 +670,7 @@ TEST(QueryHandler, AutoDeleteNode) {
   std::string json_query_test = std::string(inBuf);
   ifile.close();
   delete[] inBuf;
+  inBuf = nullptr;
 
   std::string image;
   std::ifstream image_file("test_images/brain.png",
@@ -631,14 +692,8 @@ TEST(QueryHandler, AutoDeleteNode) {
   if (!video_file.read(&video[0], video.size()))
     std::cout << "error" << std::endl;
 
-  VDMSConfig::init("server/config-datatype-tests.json");
-  PMGDQueryHandler::init();
-  QueryHandlerPMGD::init();
-
-  QueryHandlerPMGD qh_base;
   qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has
                                         // been initialized
-  QueryHandlerPMGDTester query_handler(qh_base);
 
   VDMS::protobufs::queryMessage proto_query_init;
   proto_query_init.set_json(json_query_init);
@@ -666,7 +721,7 @@ TEST(QueryHandler, AutoDeleteNode) {
   proto_query_test.set_json(json_query_test);
   VDMS::protobufs::queryMessage response_test;
   query_handler.pq(proto_query_test, response_test);
-  Json::Value parsed;
+
   reader.parse(response_test.json().c_str(), parsed);
 
   const Json::Value &query_1 = parsed[0];
@@ -678,7 +733,10 @@ TEST(QueryHandler, AutoDeleteNode) {
   const Json::Value &query_3 = parsed[2];
   EXPECT_EQ(query_3["FindVideo"]["returned"], 1);
   EXPECT_EQ(query_3["FindVideo"]["status"], 0);
+
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
   VDMSConfig::destroy();
 }
 
@@ -725,8 +783,11 @@ TEST(QueryHandler, CustomFunctionNoProcess) {
   const Json::Value &query = parsed[0];
   EXPECT_EQ(query["info"], "custom function process not found");
   EXPECT_EQ(query["status"], -1);
-  VDMSConfig::destroy();
+
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(QueryHandler, AddUpdateFind_Blob) {
@@ -788,10 +849,14 @@ TEST(QueryHandler, AddUpdateFind_Blob) {
     EXPECT_EQ(query[cmd]["status"].asInt(), 0);
   }
 
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 TEST(QueryHandler, AddFind_DescriptorSet) {
+
+  filesystem::remove_all("test_db_1");
 
   Json::StyledWriter writer;
 
@@ -838,7 +903,11 @@ TEST(QueryHandler, AddFind_DescriptorSet) {
     std::string cmd = query.getMemberNames()[0];
     EXPECT_EQ(query[cmd]["status"].asInt(), 0);
   }
+  
+  filesystem::remove_all("test_db_1");
 
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }

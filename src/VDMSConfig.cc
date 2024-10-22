@@ -29,6 +29,7 @@
  *
  */
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -100,7 +101,14 @@ VDMSConfig *VDMSConfig::instance() {
 
 VDMSConfig::VDMSConfig(std::string config_file) {
   Json::Reader reader;
-  std::ifstream file(config_file);
+  std::ifstream file;
+  if (std::filesystem::exists(config_file)) {
+    file.open(config_file);
+  } else {
+    std::string errorMessage =
+        "VDMSConfig error: Invalid config file \"" + config_file + "\"";
+    throw std::runtime_error(errorMessage);
+  }
 
   cfg = nullptr;
   storage_type = StorageType::LOCAL;

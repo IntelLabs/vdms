@@ -29,6 +29,8 @@
  *
  */
 
+#include <filesystem>
+
 #include "PMGDQueryHandler.h"
 #include "PMGDIterators.h"
 #include "VDMSConfig.h"
@@ -58,6 +60,11 @@ void PMGDQueryHandler::init() {
   // These parameters can be loaded everytime VDMS is run.
   // We need PMGD to support these as config params before we can do it here.
 
+  
+  if (_db != nullptr) {
+    delete _db;
+    _db = nullptr;
+  }
   // Create a db
   _db = new PMGD::Graph(dbname.c_str(), PMGD::Graph::Create, &config);
 }

@@ -26,18 +26,18 @@
  * THE SOFTWARE.
  *
  */
-
-#include "gtest/gtest.h"
-
 #include <mutex>
 #include <vector>
+#include <filesystem>
+#include <stdlib.h> /* system, NULL, EXIT_FAILURE */
+
+#include "gtest/gtest.h"
 
 #include "PMGDQueryHandler.h"
 #include "VDMSConfig.h"
 #include "pmgd.h"
 #include "pmgdMessages.pb.h" // Protobuff implementation
 
-#include <stdlib.h> /* system, NULL, EXIT_FAILURE */
 
 using namespace PMGD;
 using namespace VDMS;
@@ -94,115 +94,249 @@ TEST(PMGDQueryHandler, addIndexTest) {
   PMGDQueryHandler::destroy();
 }
 
-TEST(PMGDQueryHandler, addTest) {
-  VDMSConfig::init("unit_tests/config-pmgd-tests.json");
-  PMGDQueryHandler::init();
+void addPatientsData() {
   PMGDQueryHandler qh;
 
   vector<protobufs::Command *> cmds;
 
-  {
-    int txid = 1, patientid = 1, eid = 1, query_count = 0;
-    protobufs::Command cmdtx;
-    cmdtx.set_cmd_id(protobufs::Command::TxBegin);
-    cmdtx.set_tx_id(txid);
-    cmds.push_back(&cmdtx);
-    query_count++;
+  int txid = 1, patientid = 1, eid = 1, query_count = 0;
+  protobufs::Command cmdtx;
+  cmdtx.set_cmd_id(protobufs::Command::TxBegin);
+  cmdtx.set_tx_id(txid);
+  cmds.push_back(&cmdtx);
+  query_count++;
 
-    protobufs::Command cmdadd;
-    cmdadd.set_tx_id(txid);
-    add_patient(cmdadd, patientid++, "John Doe", 86,
-                "Sat Nov 1 18:59:24 PDT 1930", "john.doe@abc.com", MALE);
-    cmds.push_back(&cmdadd);
-    query_count++;
+  protobufs::Command cmdadd;
+  cmdadd.set_tx_id(txid);
+  add_patient(cmdadd, patientid++, "John Doe", 86,
+              "Sat Nov 1 18:59:24 PDT 1930", "john.doe@abc.com", MALE);
+  cmds.push_back(&cmdadd);
+  query_count++;
 
-    protobufs::Command cmdadd1;
-    cmdadd1.set_tx_id(txid);
-    add_patient(cmdadd1, patientid++, "Jane Doe", 80,
-                "Sat Oct 1 17:59:24 PDT 1936", "jane.doe@abc.com", FEMALE);
-    cmds.push_back(&cmdadd1);
-    query_count++;
+  protobufs::Command cmdadd1;
+  cmdadd1.set_tx_id(txid);
+  add_patient(cmdadd1, patientid++, "Jane Doe", 80,
+              "Sat Oct 1 17:59:24 PDT 1936", "jane.doe@abc.com", FEMALE);
+  cmds.push_back(&cmdadd1);
+  query_count++;
 
-    protobufs::Command cmdedge1;
-    cmdedge1.set_tx_id(txid);
-    cmdedge1.set_cmd_id(protobufs::Command::AddEdge);
-    protobufs::AddEdge *ae = cmdedge1.mutable_add_edge();
-    ae->set_identifier(eid++);
-    protobufs::Edge *e = ae->mutable_edge();
-    e->set_src(1);
-    e->set_dst(2);
-    e->set_tag("Married");
-    protobufs::Property *p = e->add_properties();
-    p->set_type(protobufs::Property::TimeType);
-    p->set_key("Since");
-    p->set_time_value("Sat Sep 1 19:59:24 PDT 1956");
-    p = e->add_properties();
-    p->set_type(protobufs::Property::StringType);
-    p->set_key("Status");
-    p->set_string_value("Old Adult");
-    cmds.push_back(&cmdedge1);
-    query_count++;
+  protobufs::Command cmdedge1;
+  cmdedge1.set_tx_id(txid);
+  cmdedge1.set_cmd_id(protobufs::Command::AddEdge);
+  protobufs::AddEdge *ae = cmdedge1.mutable_add_edge();
+  ae->set_identifier(eid++);
+  protobufs::Edge *e = ae->mutable_edge();
+  e->set_src(1);
+  e->set_dst(2);
+  e->set_tag("Married");
+  protobufs::Property *p = e->add_properties();
+  p->set_type(protobufs::Property::TimeType);
+  p->set_key("Since");
+  p->set_time_value("Sat Sep 1 19:59:24 PDT 1956");
+  p = e->add_properties();
+  p->set_type(protobufs::Property::StringType);
+  p->set_key("Status");
+  p->set_string_value("Old Adult");
+  cmds.push_back(&cmdedge1);
+  query_count++;
 
-    protobufs::Command cmdadd2;
-    cmdadd2.set_tx_id(txid);
-    add_patient(cmdadd2, patientid++, "Alice Crypto", 70,
-                "Sat Nov 1 17:59:24 PDT 1946", "alice.crypto@xyz.com", FEMALE);
-    cmds.push_back(&cmdadd2);
-    query_count++;
+  protobufs::Command cmdadd2;
+  cmdadd2.set_tx_id(txid);
+  add_patient(cmdadd2, patientid++, "Alice Crypto", 70,
+              "Sat Nov 1 17:59:24 PDT 1946", "alice.crypto@xyz.com", FEMALE);
+  cmds.push_back(&cmdadd2);
+  query_count++;
 
-    protobufs::Command cmdadd3;
-    cmdadd3.set_tx_id(txid);
-    add_patient(cmdadd3, patientid++, "Bob Crypto", 70,
-                "Sat Nov 30 7:59:24 PDT 1946", "bob.crypto@xyz.com", MALE);
-    cmds.push_back(&cmdadd3);
-    query_count++;
+  protobufs::Command cmdadd3;
+  cmdadd3.set_tx_id(txid);
+  add_patient(cmdadd3, patientid++, "Bob Crypto", 70,
+              "Sat Nov 30 7:59:24 PDT 1946", "bob.crypto@xyz.com", MALE);
+  cmds.push_back(&cmdadd3);
+  query_count++;
 
-    protobufs::Command cmdedge2;
-    cmdedge2.set_tx_id(txid);
-    cmdedge2.set_cmd_id(protobufs::Command::AddEdge);
-    ae = cmdedge2.mutable_add_edge();
-    ae->set_identifier(eid++);
-    e = ae->mutable_edge();
-    e->set_src(3);
-    e->set_dst(4);
-    e->set_tag("Married");
-    p = e->add_properties();
-    p->set_type(protobufs::Property::TimeType);
-    p->set_key("Since");
-    p->set_time_value("Wed Dec 2 19:59:24 PDT 1970");
-    p = e->add_properties();
-    p->set_type(protobufs::Property::StringType);
-    p->set_key("Status");
-    p->set_string_value("Old Adult");
-    cmds.push_back(&cmdedge2);
-    query_count++;
+  protobufs::Command cmdedge2;
+  cmdedge2.set_tx_id(txid);
+  cmdedge2.set_cmd_id(protobufs::Command::AddEdge);
+  ae = cmdedge2.mutable_add_edge();
+  ae->set_identifier(eid++);
+  e = ae->mutable_edge();
+  e->set_src(3);
+  e->set_dst(4);
+  e->set_tag("Married");
+  p = e->add_properties();
+  p->set_type(protobufs::Property::TimeType);
+  p->set_key("Since");
+  p->set_time_value("Wed Dec 2 19:59:24 PDT 1970");
+  p = e->add_properties();
+  p->set_type(protobufs::Property::StringType);
+  p->set_key("Status");
+  p->set_string_value("Old Adult");
+  cmds.push_back(&cmdedge2);
+  query_count++;
 
-    protobufs::Command cmdtxcommit;
-    cmdtxcommit.set_cmd_id(protobufs::Command::TxCommit);
-    cmdtxcommit.set_tx_id(txid);
-    cmds.push_back(&cmdtxcommit);
-    query_count++;
+  protobufs::Command cmdtxcommit;
+  cmdtxcommit.set_cmd_id(protobufs::Command::TxCommit);
+  cmdtxcommit.set_tx_id(txid);
+  cmds.push_back(&cmdtxcommit);
+  query_count++;
 
-    vector<vector<protobufs::CommandResponse *>> responses =
-        qh.process_queries(cmds, query_count, false);
-    int nodeids = 1, edgeids = 1;
-    for (int i = 0; i < query_count; ++i) {
-      vector<protobufs::CommandResponse *> response = responses[i];
-      for (auto it : response) {
-        EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success)
-            << "Unsuccessful TX";
-        if (it->r_type() == protobufs::NodeID) {
-          long nodeid = it->op_int_value();
-          EXPECT_EQ(nodeid, nodeids++) << "Unexpected node id";
-        } else if (it->r_type() == protobufs::EdgeID) {
-          long edgeid = it->op_int_value();
-          EXPECT_EQ(edgeid, edgeids++) << "Unexpected edge id";
-        }
+  vector<vector<protobufs::CommandResponse *>> responses =
+      qh.process_queries(cmds, query_count, false);
+  int nodeids = 1, edgeids = 1;
+  for (int i = 0; i < query_count; ++i) {
+    vector<protobufs::CommandResponse *> response = responses[i];
+    for (auto it : response) {
+      EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success)
+          << "Unsuccessful TX";
+      if (it->r_type() == protobufs::NodeID) {
+        long nodeid = it->op_int_value();
+        EXPECT_EQ(nodeid, nodeids++) << "Unexpected node id";
+      } else if (it->r_type() == protobufs::EdgeID) {
+        long edgeid = it->op_int_value();
+        EXPECT_EQ(edgeid, edgeids++) << "Unexpected edge id";
       }
     }
   }
-  VDMSConfig::destroy();
+}
+
+void addConstraints() {
+  PMGDQueryHandler qh1;
+
+  vector<protobufs::Command *> cmds1;
+
+  int txid1 = 1, patientid1 = 1, eid1 = 1, query_count1 = 0;
+  protobufs::Command cmdtx;
+  cmdtx.set_cmd_id(protobufs::Command::TxBegin);
+  cmdtx.set_tx_id(txid1);
+  cmds1.push_back(&cmdtx);
+  query_count1++;
+
+  protobufs::Command cmdadd;
+  cmdadd.set_tx_id(txid1);
+  add_patient(cmdadd, patientid1++, "John Doe", 86,
+              "Sat Nov 1 18:59:24 PDT 1930", "john.doe@abc.com", MALE);
+  cmds1.push_back(&cmdadd);
+  query_count1++;
+
+  protobufs::Command cmdadd1;
+  cmdadd1.set_tx_id(txid1);
+  add_patient(cmdadd1, patientid1++, "Jane Doe", 80,
+              "Sat Oct 1 17:59:24 PDT 1936", "jane.doe@abc.com", FEMALE);
+  cmds1.push_back(&cmdadd1);
+  query_count1++;
+
+  protobufs::Command cmdedge2;
+  cmdedge2.set_tx_id(txid1);
+  cmdedge2.set_cmd_id(protobufs::Command::AddEdge);
+  protobufs::AddEdge *ae = cmdedge2.mutable_add_edge();
+  ae->set_identifier(eid1++);
+  protobufs::Edge *e = ae->mutable_edge();
+  e->set_src(1);
+  e->set_dst(2);
+  e->set_tag("Married");
+  protobufs::Property *p = e->add_properties();
+  p->set_type(protobufs::Property::TimeType);
+  p->set_key("Since");
+  p->set_time_value("Sat Sep 1 19:59:24 PDT 1956");
+  p = e->add_properties();
+  p->set_type(protobufs::Property::StringType);
+  p->set_key("Status");
+  p->set_string_value("Old Adult");
+  cmds1.push_back(&cmdedge2);
+  query_count1++;
+
+  protobufs::Command cmdadd3;
+  cmdadd3.set_tx_id(txid1);
+  add_patient(cmdadd3, patientid1++, "Alice Crypto", 70,
+              "Sat Nov 1 17:59:24 PDT 1946", "alice.crypto@xyz.com", FEMALE);
+  cmds1.push_back(&cmdadd3);
+  query_count1++;
+
+  protobufs::Command cmdadd4;
+  cmdadd4.set_tx_id(txid1);
+  add_patient(cmdadd4, patientid1++, "Bob Crypto", 70,
+              "Sat Nov 30 7:59:24 PDT 1946", "bob.crypto@xyz.com", MALE);
+  cmds1.push_back(&cmdadd4);
+  query_count1++;
+
+  protobufs::Command cmdedge3;
+  cmdedge3.set_tx_id(txid1);
+  cmdedge3.set_cmd_id(protobufs::Command::AddEdge);
+  ae = cmdedge3.mutable_add_edge();
+  ae->set_identifier(eid1++);
+  e = ae->mutable_edge();
+  e->set_src(3);
+  e->set_dst(4);
+  e->set_tag("Married");
+  p = e->add_properties();
+  p->set_type(protobufs::Property::TimeType);
+  p->set_key("Since");
+  p->set_time_value("Wed Dec 2 19:59:24 PDT 1970");
+  p = e->add_properties();
+  p->set_type(protobufs::Property::StringType);
+  p->set_key("Status");
+  p->set_string_value("Old Adult");
+  cmds1.push_back(&cmdedge3);
+  query_count1++;
+
+  protobufs::Command cmdadd2;
+  cmdadd2.set_tx_id(txid1);
+  cmdadd2.set_cmd_grp_id(query_count1);
+  add_patient(cmdadd2, patientid1++, "Janice Doe", 40,
+              "Fri Oct 1 1:59:24 PDT 1976", "janice.doe@abc.com", FEMALE);
+  cmds1.push_back(&cmdadd2);
+  query_count1++;
+
+  protobufs::Command cmdedge1;
+  cmdedge1.set_tx_id(txid1);
+  cmdedge1.set_cmd_id(protobufs::Command::AddEdge);
+  cmdedge1.set_cmd_grp_id(query_count1);
+  ae = cmdedge1.mutable_add_edge();
+  ae->set_identifier(eid1++);
+  e = ae->mutable_edge();
+  e->set_src(1);
+  e->set_dst(5);
+  e->set_tag("Daughter");
+  p = e->add_properties();
+  p->set_type(protobufs::Property::StringType);
+  p->set_key("Status");
+  p->set_string_value("Young Adult");
+  cmds1.push_back(&cmdedge1);
+  query_count1++;
+
+  protobufs::Command cmdtxcommit;
+  cmdtxcommit.set_cmd_id(protobufs::Command::TxCommit);
+  cmdtxcommit.set_tx_id(txid1);
+  cmds1.push_back(&cmdtxcommit);
+  query_count1++;
+
+  vector<vector<protobufs::CommandResponse *>> responses =
+      qh1.process_queries(cmds1, query_count1, false);
+  int nodeids = 1, edgeids = 1;
+  for (int i = 0; i < query_count1; ++i) {
+    vector<protobufs::CommandResponse *> response = responses[i];
+    for (auto it : response) {
+      EXPECT_EQ(it->error_code(), protobufs::CommandResponse::Success)
+          << "Unsuccessful TX1";
+      if (it->r_type() == protobufs::NodeID) {
+        long nodeid = it->op_int_value();
+        EXPECT_EQ(nodeid, nodeids++) << "Unexpected node id " << nodeid;
+      } else if (it->r_type() == protobufs::EdgeID) {
+        long edgeid = it->op_int_value();
+        EXPECT_EQ(edgeid, edgeids++) << "Unexpected edge id " << edgeid;
+      }
+    }
+  }
+}
+
+TEST(PMGDQueryHandler, addTest) {
+  VDMSConfig::init("unit_tests/config-pmgd-tests.json");
+  PMGDQueryHandler::init();
+  addPatientsData();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 void print_property(const string &key, const protobufs::Property &p) {
@@ -230,8 +364,8 @@ void print_property(const string &key, const protobufs::Property &p) {
 TEST(PMGDQueryHandler, queryTestList) {
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
+  addPatientsData();
   PMGDQueryHandler qh;
-
   vector<protobufs::Command *> cmds;
 
   {
@@ -302,13 +436,18 @@ TEST(PMGDQueryHandler, queryTestList) {
     EXPECT_EQ(nodecount, 2) << "Not enough nodes found";
     EXPECT_EQ(propcount, 2) << "Not enough properties read";
   }
-  VDMSConfig::destroy();
+  
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryTestAverage) {
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
+  addPatientsData();
+
   PMGDQueryHandler qh;
 
   vector<protobufs::Command *> cmds;
@@ -357,13 +496,16 @@ TEST(PMGDQueryHandler, queryTestAverage) {
       }
     }
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryTestUnique) {
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
+  addPatientsData();
   PMGDQueryHandler qh;
 
   vector<protobufs::Command *> cmds;
@@ -423,13 +565,17 @@ TEST(PMGDQueryHandler, queryTestUnique) {
       }
     }
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryNeighborTestList) {
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
+  addPatientsData();
+
   PMGDQueryHandler qh;
 
   vector<protobufs::Command *> cmds;
@@ -521,13 +667,16 @@ TEST(PMGDQueryHandler, queryNeighborTestList) {
     EXPECT_EQ(nodecount, 2) << "Not enough nodes found";
     EXPECT_EQ(propcount, 1) << "Not enough properties read";
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryConditionalNeighborTestList) {
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
+  addPatientsData();
   PMGDQueryHandler qh;
 
   vector<protobufs::Command *> cmds;
@@ -628,13 +777,16 @@ TEST(PMGDQueryHandler, queryConditionalNeighborTestList) {
     EXPECT_EQ(nodecount, 1) << "Not enough nodes found";
     EXPECT_EQ(propcount, 1) << "Not enough properties read";
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryNeighborTestSum) {
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
+  addPatientsData();
   PMGDQueryHandler qh;
 
   vector<protobufs::Command *> cmds;
@@ -714,113 +866,30 @@ TEST(PMGDQueryHandler, queryNeighborTestSum) {
       }
     }
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, addConstrainedTest) {
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
-  PMGDQueryHandler qh;
-
-  vector<protobufs::Command *> cmds;
-
-  {
-    int txid = 1, patientid = 1, eid = 1, query_count = 0;
-    protobufs::Command cmdtx;
-    cmdtx.set_cmd_id(protobufs::Command::TxBegin);
-    cmdtx.set_tx_id(txid);
-    cmdtx.set_cmd_grp_id(query_count);
-    cmds.push_back(&cmdtx);
-    query_count++;
-
-    protobufs::Command cmdadd;
-    cmdadd.set_tx_id(txid);
-    cmdadd.set_cmd_grp_id(query_count);
-    add_patient(cmdadd, patientid, "John Doe", 86,
-                "Sat Nov 1 18:59:24 PDT 1930", "john.doe@abc.com", MALE);
-    // Add a test to verify this node doesn't exist
-    protobufs::AddNode *an = cmdadd.mutable_add_node();
-    protobufs::QueryNode *qn = an->mutable_query_node();
-    protobufs::Constraints *qc = qn->mutable_constraints();
-    protobufs::ResultInfo *qr = qn->mutable_results();
-    qn->set_identifier(patientid++); // ref for caching in case found.
-    qc->set_tag("Patient");
-    qc->set_unique(true);
-    qc->set_p_op(protobufs::And);
-    qr->set_r_type(protobufs::NodeID);
-    protobufs::PropertyPredicate *pp = qc->add_predicates();
-    pp->set_key("Email");
-    pp->set_op(protobufs::PropertyPredicate::Eq);
-    protobufs::Property *p = pp->mutable_v1();
-    p->set_type(protobufs::Property::StringType);
-    // I think the key is not required here.
-    p->set_key("Email");
-    p->set_string_value("john.doe@abc.com");
-    cmds.push_back(&cmdadd);
-    query_count++;
-
-    protobufs::Command cmdadd1;
-    cmdadd1.set_tx_id(txid);
-    cmdadd1.set_cmd_grp_id(query_count);
-    add_patient(cmdadd1, patientid++, "Janice Doe", 40,
-                "Fri Oct 1 1:59:24 PDT 1976", "janice.doe@abc.com", FEMALE);
-    cmds.push_back(&cmdadd1);
-    query_count++;
-
-    protobufs::Command cmdedge1;
-    cmdedge1.set_tx_id(txid);
-    cmdedge1.set_cmd_id(protobufs::Command::AddEdge);
-    cmdedge1.set_cmd_grp_id(query_count);
-    protobufs::AddEdge *ae = cmdedge1.mutable_add_edge();
-    ae->set_identifier(eid++);
-    protobufs::Edge *e = ae->mutable_edge();
-    e->set_src(1);
-    e->set_dst(2);
-    e->set_tag("Daughter");
-    p = e->add_properties();
-    p->set_type(protobufs::Property::StringType);
-    p->set_key("Status");
-    p->set_string_value("Young Adult");
-    cmds.push_back(&cmdedge1);
-    query_count++;
-
-    protobufs::Command cmdtxcommit;
-    cmdtxcommit.set_cmd_id(protobufs::Command::TxCommit);
-    cmdtxcommit.set_tx_id(txid);
-    cmdtxcommit.set_cmd_grp_id(0);
-    cmds.push_back(&cmdtxcommit);
-    query_count++;
-
-    vector<vector<protobufs::CommandResponse *>> responses =
-        qh.process_queries(cmds, query_count, false);
-
-    // Since PMGD queries always generate one response per command,
-    // we can do the following:
-    protobufs::CommandResponse *resp = responses[0][0]; // TxBegin
-    EXPECT_EQ(resp->error_code(), protobufs::CommandResponse::Success)
-        << "Unsuccessful TX";
-    resp = responses[1][0]; // Conditional add
-    EXPECT_EQ(resp->error_code(), protobufs::CommandResponse::Exists)
-        << resp->error_msg();
-    EXPECT_EQ(resp->op_int_value(), 1)
-        << "Unexpected node id for conditional add";
-    resp = responses[2][0]; // Regular add
-    EXPECT_EQ(resp->error_code(), protobufs::CommandResponse::Success)
-        << resp->error_msg();
-    EXPECT_EQ(resp->op_int_value(), 5) << "Unexpected node id for add";
-    resp = responses[3][0]; // Regular add edge
-    EXPECT_EQ(resp->error_code(), protobufs::CommandResponse::Success)
-        << resp->error_msg();
-    EXPECT_EQ(resp->op_int_value(), 3) << "Unexpected edge id for add";
-  }
-  VDMSConfig::destroy();
+  
+  addConstraints();
+  
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryNeighborLinksTestList) {
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
+
+  addConstraints();
+
   PMGDQueryHandler qh;
 
   vector<protobufs::Command *> cmds;
@@ -930,13 +999,18 @@ TEST(PMGDQueryHandler, queryNeighborLinksTestList) {
     EXPECT_EQ(nodecount, 1) << "Not enough nodes found";
     EXPECT_EQ(propcount, 1) << "Not enough properties read";
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryNeighborLinksReuseTestList) {
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
+
+  addConstraints();
+
   PMGDQueryHandler qh;
 
   vector<protobufs::Command *> cmds;
@@ -1061,13 +1135,18 @@ TEST(PMGDQueryHandler, queryNeighborLinksReuseTestList) {
     EXPECT_EQ(totnodecount, 4) << "Not enough total nodes found";
     EXPECT_EQ(totpropcount, 3) << "Not enough total properties read";
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, querySortedNeighborLinksReuseTestList) {
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
+
+  addConstraints();
+
   PMGDQueryHandler qh;
 
   vector<protobufs::Command *> cmds;
@@ -1200,13 +1279,18 @@ TEST(PMGDQueryHandler, querySortedNeighborLinksReuseTestList) {
     EXPECT_EQ(totnodecount, 4) << "Not enough total nodes found";
     EXPECT_EQ(totpropcount, 3) << "Not enough total properties read";
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryTestListLimit) {
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
+
+  addConstraints();
+
   PMGDQueryHandler qh;
 
   vector<protobufs::Command *> cmds;
@@ -1272,13 +1356,18 @@ TEST(PMGDQueryHandler, queryTestListLimit) {
     EXPECT_EQ(nodecount, 4) << "Incorrect number of nodes found";
     EXPECT_EQ(propcount, 2) << "Not enough properties read";
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryTestSortedLimitedAverage) {
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
+
+  addConstraints();
+
   PMGDQueryHandler qh;
 
   vector<protobufs::Command *> cmds;
@@ -1331,8 +1420,10 @@ TEST(PMGDQueryHandler, queryTestSortedLimitedAverage) {
       }
     }
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());  
+  VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryUpdateTest) {
@@ -1341,6 +1432,9 @@ TEST(PMGDQueryHandler, queryUpdateTest) {
 
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
+
+  addConstraints();
+
   PMGDQueryHandler qh;
 
   vector<protobufs::Command *> cmds;
@@ -1447,8 +1541,10 @@ TEST(PMGDQueryHandler, queryUpdateTest) {
       }
     }
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryUpdateConstraintTest) {
@@ -1457,6 +1553,9 @@ TEST(PMGDQueryHandler, queryUpdateConstraintTest) {
 
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
+
+  addConstraints();
+
   PMGDQueryHandler qh;
 
   vector<protobufs::Command *> cmds;
@@ -1526,13 +1625,18 @@ TEST(PMGDQueryHandler, queryUpdateConstraintTest) {
       }
     }
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryEdgeTestList) {
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
+
+  addConstraints();
+
   PMGDQueryHandler qh;
 
   vector<protobufs::Command *> cmds;
@@ -1603,14 +1707,19 @@ TEST(PMGDQueryHandler, queryEdgeTestList) {
     EXPECT_EQ(edgecount, 1) << "Not enough edges found";
     EXPECT_EQ(propcount, 1) << "Not enough properties read";
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryEdgeTestSortList) {
   // Way to test the reusable iterator
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
+
+  addConstraints();
+
   PMGDQueryHandler qh;
 
   vector<protobufs::Command *> cmds;
@@ -1683,13 +1792,18 @@ TEST(PMGDQueryHandler, queryEdgeTestSortList) {
     EXPECT_EQ(edgecount, 3) << "Not enough edges found";
     EXPECT_EQ(propcount, 2) << "Not enough properties read";
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryNodeEdgeTestList) {
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
+
+  addConstraints();
+
   PMGDQueryHandler qh;
 
   vector<protobufs::Command *> cmds;
@@ -1783,13 +1897,18 @@ TEST(PMGDQueryHandler, queryNodeEdgeTestList) {
     EXPECT_EQ(edgecount, 1) << "Not enough edges found";
     EXPECT_EQ(propcount, 1) << "Not enough properties read";
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryNodeEdgeDestTestList) {
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
+
+  addConstraints();
+
   PMGDQueryHandler qh;
 
   vector<protobufs::Command *> cmds;
@@ -1910,13 +2029,18 @@ TEST(PMGDQueryHandler, queryNodeEdgeDestTestList) {
     EXPECT_EQ(edgecount, 1) << "Not enough edges found";
     EXPECT_EQ(propcount, 1) << "Not enough properties read";
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(PMGDQueryHandler, queryUpdateEdge) {
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
+
+  addConstraints();
+
   PMGDQueryHandler qh;
 
   vector<protobufs::Command *> cmds;
@@ -2107,6 +2231,8 @@ TEST(PMGDQueryHandler, queryUpdateEdge) {
     }
     EXPECT_EQ(edgecount, 1) << "Not enough edges found";
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }

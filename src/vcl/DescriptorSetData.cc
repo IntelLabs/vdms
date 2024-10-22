@@ -55,7 +55,7 @@ DescriptorSet::DescriptorSetData::DescriptorSetData(const std::string &set_path,
   _metric = VCL::DistanceMetric::L2; // by default
 
   if (dir_exist(set_path)) {
-    throw VCLException(OpenFailed, "File already exists");
+    throw VCLException(OpenFailed, "File already exists:" + set_path);
   }
 }
 
