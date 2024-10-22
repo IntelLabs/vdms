@@ -7,7 +7,7 @@ DEBUG_MODE=True
 
 def run(settings, message, input_params, tmp_dir_path, functions_path):
     if DEBUG_MODE:
-	    print("Temporary path:", tmp_dir_path, file=sys.stderr)
+        print("Temporary path:", tmp_dir_path, file=sys.stderr)
         print("Functions path:", functions_path, file=sys.stderr)
         print("Settings:", settings, file=sys.stderr)
         print("message:", message, file=sys.stderr)

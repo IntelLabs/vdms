@@ -60,11 +60,11 @@ def setup(functions_path, settings_path, tmp_path):
 
     for entry in os.scandir(functions_path):
         if entry.is_file() and entry.path.endswith(".py"):
-		    if DEBUG_MODE:
+            if DEBUG_MODE:
                 print("Checking:", entry.name)
             module_name = entry.name[:-3]
             if DEBUG_MODE:
-			    print("Module:", module_name)
+                print("Module:", module_name)
 
             # Import the module from the given path
             module = import_module_from_path(module_name, entry)
@@ -120,7 +120,7 @@ def setup(functions_path, settings_path, tmp_path):
             socket.send_string(response)
             i += 1
         except Exception as e:
-		    if DEBUG_MODE:
+            if DEBUG_MODE:
                 print(e.with_traceback(None), file=sys.stderr)
                 print("Exception in Flip:", str(e), file=sys.stderr)
             socket.send_string("An error occurred while running the operation.")

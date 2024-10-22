@@ -4,10 +4,11 @@ import zmq
 import sys
 import importlib.util
 
-DEBUG_MODE=True
+DEBUG_MODE = True
 
 tmp_dir_path = None
 functions_dir_path = None
+
 
 # Function to dynamically import a module given its full path
 def import_module_from_path(module_name, path):
@@ -20,10 +21,11 @@ def import_module_from_path(module_name, path):
         spec.loader.exec_module(module)
         return module
     except Exception as e:
-      print("import_module_from_path() failed:", str(e), file=sys.stderr)
-      return None
+        print("import_module_from_path() failed:", str(e), file=sys.stderr)
+        return None
 
-def setup(functions_path, settings_path, tmp_path): 
+
+def setup(functions_path, settings_path, tmp_path):
     global tmp_dir_path
     global functions_dir_path
     if DEBUG_MODE:
@@ -61,16 +63,18 @@ def setup(functions_path, settings_path, tmp_path):
 
     for entry in os.scandir(functions_path):
         if entry.is_file() and entry.path.endswith(".py"):
-		    if DEBUG_MODE:
+            if DEBUG_MODE:
                 print("Checking:", entry.name)
             module_name = entry.name[:-3]
-			if DEBUG_MODE:
+            if DEBUG_MODE:
                 print("Module:", module_name)
 
             # Import the module from the given path
             module = import_module_from_path(module_name, entry)
             if module is None:
-                raise Exception("setup() error: module '" + entry + "' could not be loaded")
+                raise Exception(
+                    "setup() error: module '" + entry + "' could not be loaded"
+                )
             globals()[module_name] = module
 
     with open(settings_path, "r") as settings_file:
@@ -90,12 +94,11 @@ def setup(functions_path, settings_path, tmp_path):
         message = socket.recv()
 
         try:
-		    if DEBUG_MODE:
+            if DEBUG_MODE:
                 print("Received {}".format(message))
 
             message_received = message.decode("utf-8")
             input_params = json.loads(message_received)
-
 
             if "functions" not in settings:
                 raise Exception("functions value was not found in settings")
@@ -108,42 +111,55 @@ def setup(functions_path, settings_path, tmp_path):
             if id_value not in settings_value:
                 raise Exception(f"{id_value} value was not found in {settings_value}")
             udf_key = settings_value[id_value]
-                
+
             if udf_key not in globals():
                 raise Exception(f"{udf_key} value was not found in globals()")
-                
+
             udf = globals()[udf_key]
             if DEBUG_MODE:
                 print("Module called:", udf, file=sys.stderr)
 
-            response, _ = udf.run(settings, input_params["ipfile"], input_params, tmp_dir_path, functions_dir_path)
+            response, _ = udf.run(
+                settings,
+                input_params["ipfile"],
+                input_params,
+                tmp_dir_path,
+                functions_dir_path,
+            )
             if DEBUG_MODE:
                 print(i, response, file=sys.stderr)
             socket.send_string(response)
             i += 1
         except Exception as e:
-		    if DEBUG_MODE:
-                print("Exception with error: ",e, file=sys.stderr)
+            if DEBUG_MODE:
+                print("Exception with error: ", e, file=sys.stderr)
                 print(e.with_traceback(None))
             socket.send_string("An error occurred while running the operation.")
             break
+
 
 def main():
     if sys.argv[1] == None:
         print(
             "Warning: Path to the functions directory is missing\nBy default the path will be the current directory"
         )
-        print("Correct Usage: python3 udf_local.py [functions_path] [settings_path] [tmp_path]")
+        print(
+            "Correct Usage: python3 udf_local.py [functions_path] [settings_path] [tmp_path]"
+        )
     elif sys.argv[2] == None:
         print(
             "Warning: Path to the settings directory is missing\nBy default the path will be the current directory"
         )
-        print("Correct Usage: python3 udf_local.py [functions_path] [settings_path] [tmp_path]")
+        print(
+            "Correct Usage: python3 udf_local.py [functions_path] [settings_path] [tmp_path]"
+        )
     elif sys.argv[3] == None:
         print(
             "Warning: Path to the temporary directory is missing\nBy default the path will be the current directory"
         )
-        print("Correct Usage: python3 udf_local.py [functions_path] [settings_path] [tmp_path]")
+        print(
+            "Correct Usage: python3 udf_local.py [functions_path] [settings_path] [tmp_path]"
+        )
 
     setup(sys.argv[1], sys.argv[2], sys.argv[3])
 

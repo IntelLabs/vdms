@@ -3,6 +3,8 @@ import cv2
 import os
 import sys
 
+DEBUG_MODE=True
+
 def run(settings, message, input_params, tmp_dir_path, functions_path):
     if DEBUG_MODE:
         print("Temporary path:", tmp_dir_path, file=sys.stderr)
@@ -24,7 +26,7 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
 
     ipfilename = message
     format = message.strip().split(".")[-1]
-	if DEBUG_MODE:
+    if DEBUG_MODE:
         print(ipfilename, file=sys.stderr)
     t1 = time.time()
 

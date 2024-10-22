@@ -1,10 +1,4 @@
 import cv2
-import numpy as np
-from datetime import datetime
-from collections import deque
-import skvideo.io
-import imutils
-import time
 import json
 import os
 import sys
@@ -100,7 +94,7 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
         response = {"opFile": ipfilename, "metadata": metadata}
         r = json.dumps(response)
 		
-		if DEBUG_MODE:
+        if DEBUG_MODE:
             print("response:", response, file=sys.stderr)
             print("json:", r, file=sys.stderr)
         return r, None
@@ -108,8 +102,8 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
     else:
         tdict = {}
 
-        # TODO Remove it
-        print("UDO with Metadata: ipfilename ", ipfilename)
+        if DEBUG_MODE:
+            print("UDO with Metadata: ipfilename ", ipfilename)
         if not os.path.exists(ipfilename):
             raise Exception(f"UDO with Metadata error: File ipfilename {ipfilename} does not exist")
         
@@ -144,7 +138,9 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
         response = {"opFile": ipfilename, "metadata": tdict}
 
         r = json.dumps(response)
-        print(response)
-        print(r)
+
+        if DEBUG_MODE:
+            print("response:", response, file=sys.stderr)
+            print("json:", r, file=sys.stderr)
 
         return r, None

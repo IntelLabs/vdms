@@ -1,7 +1,9 @@
-import time
 import cv2
 import os
 import sys
+
+DEBUG_MODE = True
+
 
 def run(ipfilename, format, options, tmp_dir_path, functions_path):
     if DEBUG_MODE:
@@ -15,7 +17,7 @@ def run(ipfilename, format, options, tmp_dir_path, functions_path):
         print("Flip: ipfilename", ipfilename)
     if not os.path.exists(ipfilename):
         raise Exception(f"Flip error: File ipfilename: {ipfilename} does not exist")
-    
+
     img = cv2.imread(ipfilename)
 
     img = cv2.flip(img, 0)

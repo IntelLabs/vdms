@@ -5,16 +5,16 @@ import json
 from datetime import datetime, timezone
 import os
 import sys
-from collections import defaultdict, deque
-import skvideo.io
-import imutils
 import uuid
 from zipfile import ZipFile
 import importlib.util
 from werkzeug.utils import secure_filename
 
+DEBUG_MODE = True
+
 tmp_dir_path = None
 functions_dir_path = None
+
 
 # Function to dynamically import a module given its full path
 def import_module_from_path(module_name, path):
@@ -27,8 +27,9 @@ def import_module_from_path(module_name, path):
         spec.loader.exec_module(module)
         return module
     except Exception as e:
-      print("import_module_from_path() failed:", str(e))
-      return None
+        print("import_module_from_path() failed:", str(e))
+        return None
+
 
 def setup(functions_path, tmp_path):
     global tmp_dir_path
@@ -40,14 +41,14 @@ def setup(functions_path, tmp_path):
 
     if not os.path.exists(functions_path):
         raise Exception(f"{functions_path}: path to functions dir is invalid")
-    
+
     if tmp_path is None:
         tmp_path = os.path.join(os.getcwd(), "tmp")
         print("Warning: Using temporary dir:", tmp_path, " as default.")
 
     if not os.path.exists(tmp_path):
         raise Exception(f"{tmp_path}: path to temporary dir is invalid")
-    
+
     # Set path to temporary dir
     tmp_dir_path = tmp_path
 
@@ -60,15 +61,16 @@ def setup(functions_path, tmp_path):
             if DEBUG_MODE:
                 print("Checking:", entry.name)
             module_name = entry.name[:-3]
-			if DEBUG_MODE:
+            if DEBUG_MODE:
                 print("Module:", module_name)
 
             # Import the module from the given path
             module = import_module_from_path(module_name, entry)
             if module is None:
-                raise Exception("setup() error: module '" + entry + "' could not be loaded")
+                raise Exception(
+                    "setup() error: module '" + entry + "' could not be loaded"
+                )
             globals()[module_name] = module
-        
 
 
 app = Flask(__name__)
@@ -98,7 +100,9 @@ def image_api():
 
         format = json_data["format"] if "format" in json_data else "jpg"
 
-        tmpfile = secure_filename(os.path.join(tmp_dir_path, "tmpfile" + uuid.uuid1().hex + "." + str(format)))
+        tmpfile = secure_filename(
+            os.path.join(tmp_dir_path, "tmpfile" + uuid.uuid1().hex + "." + str(format))
+        )
 
         image_data.save(tmpfile)
 
@@ -108,27 +112,31 @@ def image_api():
             raise Exception("id value was not found in json_data")
 
         id = json_data["id"]
-            
+
         if id not in globals():
             raise Exception(f"id={id} value was not found in globals()")
-            
+
         udf = globals()[id]
 
         if DEBUG_MODE:
             print("Module called:", udf, file=sys.stderr)
 
         if "ingestion" in json_data:
-            r_img, r_meta = udf.run(tmpfile, format, json_data, tmp_dir_path, functions_dir_path)
+            r_img, r_meta = udf.run(
+                tmpfile, format, json_data, tmp_dir_path, functions_dir_path
+            )
         else:
-            r_img, _ = udf.run(tmpfile, format, json_data, tmp_dir_path, functions_dir_path)
+            r_img, _ = udf.run(
+                tmpfile, format, json_data, tmp_dir_path, functions_dir_path
+            )
 
         img_encode = cv2.imencode("." + str(format), r_img)[1]
-        
-        # Converting the image into numpy array 
-        data_encode = np.array(img_encode) 
-  
-        # Converting the array to bytes. 
-        return_string = data_encode.tobytes() 
+
+        # Converting the image into numpy array
+        data_encode = np.array(img_encode)
+
+        # Converting the array to bytes.
+        return_string = data_encode.tobytes()
 
         if r_meta != "":
             return_string += ":metadata:".encode("utf-8")
@@ -138,7 +146,7 @@ def image_api():
         return return_string
     except Exception as e:
         error_message = f"Exception: {str(e)}"
-		if DEBUG_MODE:
+        if DEBUG_MODE:
             print(error_message, file=sys.stderr)
         return error_message
 
@@ -152,7 +160,9 @@ def video_api():
         video_data = request.files["videoData"]
         format = json_data["format"] if "format" in json_data else "mp4"
 
-        tmpfile = secure_filename(os.path.join(tmp_dir_path, "tmpfile" + uuid.uuid1().hex + "." + str(format)))
+        tmpfile = secure_filename(
+            os.path.join(tmp_dir_path, "tmpfile" + uuid.uuid1().hex + "." + str(format))
+        )
         video_data.save(tmpfile)
 
         video_file, metadata_file = "", ""
@@ -161,21 +171,27 @@ def video_api():
             raise Exception("id value was not found in json_data")
 
         id = json_data["id"]
-            
+
         if id not in globals():
             raise Exception(f"id={id} value was not found in globals()")
-        
+
         udf = globals()[id]
 
         if DEBUG_MODE:
             print("Module called:", udf, file=sys.stderr)
 
         if "ingestion" in json_data:
-            video_file, metadata_file = udf.run(tmpfile, format, json_data, tmp_dir_path, functions_dir_path)
+            video_file, metadata_file = udf.run(
+                tmpfile, format, json_data, tmp_dir_path, functions_dir_path
+            )
         else:
-            video_file, _ = udf.run(tmpfile, format, json_data, tmp_dir_path, functions_dir_path)
+            video_file, _ = udf.run(
+                tmpfile, format, json_data, tmp_dir_path, functions_dir_path
+            )
 
-        response_file = os.path.join(tmp_dir_path, "tmpfile" + uuid.uuid1().hex + ".zip")
+        response_file = os.path.join(
+            tmp_dir_path, "tmpfile" + uuid.uuid1().hex + ".zip"
+        )
 
         with ZipFile(response_file, "w") as zip_object:
             zip_object.write(video_file)
@@ -192,19 +208,21 @@ def video_api():
                 os.remove(video_file)
                 os.remove(metadata_file)
             except Exception as e:
-			    if DEBUG_MODE:
+                if DEBUG_MODE:
                     print("Some files cannot be deleted or are not present")
             return response
 
         try:
-            return send_file(response_file, as_attachment=True, download_name=response_file)
+            return send_file(
+                response_file, as_attachment=True, download_name=response_file
+            )
         except Exception as e:
-		    if DEBUG_MODE:
+            if DEBUG_MODE:
                 print("Error in file read:", str(e), file=sys.stderr)
             return "Error in file read"
     except Exception as e:
         error_message = f"Exception: {str(e)}"
-		if DEBUG_MODE:
+        if DEBUG_MODE:
             print(error_message, file=sys.stderr)
         return error_message
 
@@ -220,7 +238,7 @@ def handle_bad_request(e):
         }
     )
     response.content_type = "application/json"
-	if DEBUG_MODE:
+    if DEBUG_MODE:
         print("400 error:", response, file=sys.stderr)
     return response
 

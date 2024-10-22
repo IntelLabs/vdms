@@ -1,13 +1,10 @@
 import cv2
-import numpy as np
-from datetime import datetime
-from collections import deque
 import skvideo.io
-import imutils
 import time
 import sys
 
-DEBUG_MODE=True
+DEBUG_MODE = True
+
 
 def run(settings, message, input_params, tmp_dir_path, functions_path):
     if DEBUG_MODE:
@@ -16,13 +13,13 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
         print("Settings:", settings, file=sys.stderr)
         print("message:", message, file=sys.stderr)
         print("input_params", input_params, file=sys.stderr)
-    
+
     ipfilename = message
     format = message.strip().split(".")[-1]
 
     t1 = time.time()
     opfilename = settings["opfile"] + str(t1) + "." + format
-	if DEBUG_MODE:
+    if DEBUG_MODE:
         print(opfilename)
     vs = cv2.VideoCapture(ipfilename)
 

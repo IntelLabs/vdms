@@ -1,14 +1,11 @@
 import cv2
-import numpy as np
-from datetime import datetime
-from collections import deque
 import skvideo.io
-import imutils
 import uuid
 import os
 import sys
 
-DEBUG_MODE=True
+DEBUG_MODE = True
+
 
 def run(ipfilename, format, options, tmp_dir_path, functions_path):
     if DEBUG_MODE:
@@ -21,13 +18,15 @@ def run(ipfilename, format, options, tmp_dir_path, functions_path):
     if not os.path.exists(tmp_dir_path):
         raise Exception(f"{tmp_dir_path}: path is invalid")
 
-    opfilename = os.path.join(tmp_dir_path, "tmpfile" + uuid.uuid1().hex + "." + str(format))
+    opfilename = os.path.join(
+        tmp_dir_path, "tmpfile" + uuid.uuid1().hex + "." + str(format)
+    )
     print(opfilename)
     vs = cv2.VideoCapture(ipfilename)
 
     video = skvideo.io.FFmpegWriter(opfilename, {"-pix_fmt": "bgr24"})
     print(options)
-    i = 0
+
     while True:
         (grabbed, frame) = vs.read()
         if not grabbed:

@@ -1,9 +1,4 @@
 import cv2
-import numpy as np
-from datetime import datetime
-from collections import deque
-import skvideo.io
-import imutils
 import uuid
 import json
 import os
@@ -13,9 +8,12 @@ DEBUG_MODE = True
 
 face_cascade = None
 
+
 def set_face_cascade(functions_path):
     global face_cascade
-    haarcascade_frontalface_default_path = os.path.join(functions_path, "files/haarcascade_frontalface_default.xml")
+    haarcascade_frontalface_default_path = os.path.join(
+        functions_path, "files/haarcascade_frontalface_default.xml"
+    )
 
     if not os.path.exists(haarcascade_frontalface_default_path):
         raise Exception(f"{haarcascade_frontalface_default_path}: path is invalid")
@@ -23,7 +21,7 @@ def set_face_cascade(functions_path):
     face_cascade = cv2.CascadeClassifier(
         # This file is available from OpenCV 'data' directory at
         # https://github.com/opencv/opencv/blob/4.x/data/haarcascades/haarcascade_frontalface_default.xml
-        #"functions/files/haarcascade_frontalface_default.xml"
+        # "functions/files/haarcascade_frontalface_default.xml"
         haarcascade_frontalface_default_path
     )
 
@@ -108,8 +106,10 @@ def run(ipfilename, format, options, tmp_dir_path, functions_path):
         if DEBUG_MODE:
             print("Metadata: ipfilename=", ipfilename, file=sys.stderr)
         if not os.path.exists(ipfilename):
-            raise Exception(f"RF dir with Metadata error: File ipfilename {ipfilename} does not exist")
-        
+            raise Exception(
+                f"RF dir with Metadata error: File ipfilename {ipfilename} does not exist"
+            )
+
         img = cv2.imread(ipfilename)
         if options["otype"] == "face":
             faces = facedetectbbox(img)

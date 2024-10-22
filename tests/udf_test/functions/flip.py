@@ -3,7 +3,8 @@ import cv2
 import os
 import sys
 
-DEBUG_MODE=True
+DEBUG_MODE = True
+
 
 def run(settings, message, input_params, tmp_dir_path, functions_path):
     if DEBUG_MODE:
@@ -32,7 +33,9 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
     if DEBUG_MODE:
         print("Flip: parent_dir", parent_dir)
     if not os.path.exists(parent_dir):
-        raise Exception(f"Flip error: Directory for opfilename: {opfilename} does not exist")
+        raise Exception(
+            f"Flip error: Directory for opfilename: {opfilename} does not exist"
+        )
 
     cv2.imwrite(opfilename, img)
 

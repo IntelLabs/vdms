@@ -1,19 +1,19 @@
 import cv2
-import numpy as np
-from datetime import datetime
-from collections import deque
-import skvideo.io
-import imutils
 import uuid
 import json
 import os
 import sys
 
+DEBUG_MODE = True
+
 face_cascade = None
+
 
 def set_face_cascade(functions_path):
     global face_cascade
-    haarcascade_frontalface_default_path = os.path.join(functions_path, "files/haarcascade_frontalface_default.xml")
+    haarcascade_frontalface_default_path = os.path.join(
+        functions_path, "files/haarcascade_frontalface_default.xml"
+    )
 
     if not os.path.exists(haarcascade_frontalface_default_path):
         raise Exception(f"{haarcascade_frontalface_default_path}: path is invalid")
@@ -24,6 +24,7 @@ def set_face_cascade(functions_path):
         haarcascade_frontalface_default_path
     )
 
+
 def facedetectbbox(frame):
     global face_cascade
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -31,7 +32,7 @@ def facedetectbbox(frame):
     return faces
 
 
-def run(ipfilename, format, options,tmp_dir_path, functions_path):
+def run(ipfilename, format, options, tmp_dir_path, functions_path):
     if DEBUG_MODE:
         print("Using old metadata **** Temporary path:", tmp_dir_path, file=sys.stderr)
         print("Functions path:", functions_path, file=sys.stderr)

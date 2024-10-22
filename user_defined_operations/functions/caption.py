@@ -1,9 +1,5 @@
 import cv2
-import numpy as np
-from datetime import datetime
-from collections import deque
 import skvideo.io
-import imutils
 import time
 import sys
 
@@ -21,7 +17,7 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
 
     t1 = time.time()
     opfilename = settings["opfile"] + str(t1) + "." + format
-	if DEBUG_MODE:
+    if DEBUG_MODE:
         print(opfilename, file=sys.stderr)
     vs = cv2.VideoCapture(ipfilename)
 
