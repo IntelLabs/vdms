@@ -148,7 +148,7 @@ def image_api():
         error_message = f"Exception: {str(e)}"
         if DEBUG_MODE:
             print(error_message, file=sys.stderr)
-        return error_message
+        return "An internal error has occurred. Please try again later."
 
 
 @app.route("/video", methods=["POST"])
@@ -224,7 +224,7 @@ def video_api():
         error_message = f"Exception: {str(e)}"
         if DEBUG_MODE:
             print(error_message, file=sys.stderr)
-        return error_message
+        return "An internal error has occurred. Please try again later."
 
 
 @app.errorhandler(400)
