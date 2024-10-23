@@ -171,9 +171,9 @@ def video_api():
             if not is_zipfile(response_file):
                 raise Exception("response_file is invalid: " + response_file)
     except Exception as e:
-        error_message = f"Exception: {str(e)}"
+        error_message = "An internal error has occurred."
         if DEBUG_MODE:
-            print(error_message, file=sys.stderr)
+            print(f"Exception: {str(e)}", file=sys.stderr)
         return error_message, 500
 
     if DEBUG_MODE:
