@@ -2,14 +2,14 @@
 
 cd /vdms/tests
 
-# # Run S3 C++ PMGD Based Tests
-# echo 'Checking for the available disk space due MinIO requires at least 1gb free'
-# df -h
+# Run S3 C++ PMGD Based Tests
+echo 'Checking for the available disk space due MinIO requires at least 1gb free'
+df -h
 
 chmod +x ./run_all_tests.py
 
-# echo 'Running run_all_tests.py script for remote C++ tests (-t=ru)'
-# python ./run_all_tests.py -t=ru -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY}
+echo 'Running run_all_tests.py script for remote C++ tests (-t=ru)'
+python ./run_all_tests.py -t=ru -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY}
 
 echo 'Running run_all_tests script for C++ tests (-t=ut)'
 python ./run_all_tests.py -t=ut -k

@@ -947,11 +947,9 @@ class AbstractTest(ABC):
         - stdoutFD: The file descriptor for capturing stdout output.
 
         Global Variables:
-        - processList (list): A global list to keep track of running processes.
         - DEBUG_MODE (bool): A global flag indicating whether debug information
         should be printed.
         """
-        global processList
         try:
             stop_on_failure_value = ""
             if testingArgs.stop_tests_on_failure:
@@ -1085,13 +1083,9 @@ class AbstractTest(ABC):
         - stdoutFD: The file descriptor for capturing stdout output.
 
         Global Variables:
-        - processList (list): A global list to keep track of running processes.
         - DEBUG_MODE (bool): A global flag indicating whether debug information
         should be printed.
         """
-        global processList
-
-        pythonProcess = None
         try:
             print("Running Python tests...")
             print("Test filter:", testingArgs.test_name)
@@ -1099,38 +1093,17 @@ class AbstractTest(ABC):
             # To avoid BASH injection, the test_name is escaped
             test_name = testingArgs.test_name
             if testingArgs.test_name != DEFAULT_PYTHON_TEST_FILTER:
-                test_name = quote(testingArgs.test_name)
+                test_name = testingArgs.test_name
 
-            # Run the command and capture the output
-            cmd = f'python3 -m coverage run -a --include="{DEFAULT_DIR_REPO}/*" --omit="{DEFAULT_DIR_REPO}/client/python/vdms/queryMessage_pb2.py,{DEFAULT_DIR_REPO}/tests/*" -m unittest'
-            cmd = cmd + " " + test_name
-            cmd = cmd + " -v"
-            pythonProcess = subprocess.Popen(
-                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+            cmd = ['python3', '-m', 'coverage', 'run', '-a', f'--include="{DEFAULT_DIR_REPO}/*"', f'--omit="{DEFAULT_DIR_REPO}/client/python/vdms/queryMessage_pb2.py,{DEFAULT_DIR_REPO}/tests/*"', '-m', 'unittest']
+            cmd.extend(test_name.split())
+            cmd.append('-v')
+
+            subprocess.run(
+                cmd, text=True, check=True
             )
-            stdout, stderr = pythonProcess.communicate()
-
-            # Decode the byte strings
-            output = stdout.decode("utf-8")
-            errors = stderr.decode("utf-8")
-
-            # Print the command output
-            self.write_to_fd("stdout", "run_python_tests", output, stdoutFD, DEBUG_MODE)
-
-            # Check for errors
-            if errors:
-                self.write_to_fd(
-                    "stderr", "run_python_tests", errors, stderrFD, DEBUG_MODE
-                )
-
-            if DEBUG_MODE:
-                print("Using python3 pid for tests:", pythonProcess.pid)
-
-            processList.append(pythonProcess)
 
         except Exception as e:
-            if pythonProcess is not None:
-                pythonProcess.kill()
             raise Exception("run_python_tests() error: " + str(e))
 
     def write_to_fd(self, message_type, function_name, message, writer, verbose=False):

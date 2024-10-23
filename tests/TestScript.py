@@ -74,6 +74,7 @@ from run_all_tests import (
     NEO4J_OPS_IO_TEST_TYPE,
     NEO4J_E2E_TEST_TYPE,
     NEO4J_BACKEND_TEST_TYPE,
+    DEFAULT_PYTHON_TEST_FILTER,
     main,
 )
 
@@ -1298,84 +1299,53 @@ class TestAbstractTest(unittest.TestCase):
         self.assertEqual(str(context.exception), expected_message)
 
     #### Tests for run_python_tests() ####
-    @patch("run_all_tests.subprocess.Popen")
-    @patch("run_all_tests.print")
-    def test_run_python_tests(self, mock_print, mock_popen):
-        instance = ConcreteClass()
-        # Set up the mock for Popen
-        mock_process = MagicMock()
-        mock_process.communicate.return_value = (b"output", b"errors")
-        mock_process.pid = 12345
-        mock_popen.return_value = mock_process
-
-        # Set up TestingArgs
+    @patch('run_all_tests.subprocess.run')
+    def test_run_python_tests_default_filter(self, mock_subprocess_run):
+        # Arrange
+        mock_subprocess_run.return_value = None  # simulate successful run
         testing_args = TestingArgs()
-        testing_args.test_name = "test_module.TestClass"
-
-        # Mock file descriptors
-        stderrFD = MagicMock()
-        stdoutFD = MagicMock()
-
-        # Mock write_to_fd method
-        instance.write_to_fd = MagicMock()
-
-        # Call the method
-        instance.run_python_tests(testing_args, stderrFD, stdoutFD)
-
-        # Check if the correct print statements were made
-        mock_print.assert_any_call("Running Python tests...")
-        mock_print.assert_any_call("Test filter:", testing_args.test_name)
-
-        # Check if the process was added to the list
-        self.assertIn(mock_process, run_all_tests.processList)
-
-        # Check if the output and errors were handled correctly
-        instance.write_to_fd.assert_any_call(
-            "stdout", "run_python_tests", "output", stdoutFD, run_all_tests.DEBUG_MODE
-        )
-        instance.write_to_fd.assert_any_call(
-            "stderr", "run_python_tests", "errors", stderrFD, run_all_tests.DEBUG_MODE
-        )
-
-    @patch("run_all_tests.subprocess.Popen")
-    def test_run_python_tests_exception(self, mock_popen):
+        testing_args.test_name = DEFAULT_PYTHON_TEST_FILTER
         instance = ConcreteClass()
 
-        # Mock DEFAULT_DIR_REPO
-        run_all_tests.DEFAULT_DIR_REPO = "/path/to/repo"
+        # Act
+        instance.run_python_tests(testing_args, None, None)
 
-        # Set DEBUG_MODE for testing purposes
-        run_all_tests.DEBUG_MODE = True
+        # Assert
+        expected_cmd = ['python3', '-m', 'coverage', 'run', '-a', f'--include="{run_all_tests.DEFAULT_DIR_REPO}/*"', f'--omit="{run_all_tests.DEFAULT_DIR_REPO}/client/python/vdms/queryMessage_pb2.py,{run_all_tests.DEFAULT_DIR_REPO}/tests/*"', '-m', 'unittest']
+        expected_cmd.extend(testing_args.test_name.split())
+        expected_cmd.append('-v')
+        mock_subprocess_run.assert_called_once_with(expected_cmd, text=True, check=True)
 
-        # Set up the mock for Popen to return a mock process with a kill method
-        mock_process = MagicMock()
-        mock_process.communicate.return_value = (b"output", b"errors")
-        mock_process.pid = 12345
-        mock_popen.return_value = mock_process
-
-        # Set up TestingArgs
+    @patch('run_all_tests.subprocess.run')
+    def test_run_python_tests_custom_filter(self, mock_subprocess_run):
+        # Arrange
+        custom_filter = "custom_test"
+        mock_subprocess_run.return_value = None  # simulate successful run
         testing_args = TestingArgs()
-        testing_args.test_name = "test_module.TestClass"
+        testing_args.test_name = custom_filter
+        instance = ConcreteClass()
 
-        # Mock file descriptors
-        stderrFD = MagicMock()
-        stdoutFD = MagicMock()
+        # Act
+        instance.run_python_tests(testing_args, None, None)
 
-        # Mock write_to_fd method
-        instance.write_to_fd = MagicMock()
+        expected_cmd = ['python3', '-m', 'coverage', 'run', '-a', f'--include="{run_all_tests.DEFAULT_DIR_REPO}/*"', f'--omit="{run_all_tests.DEFAULT_DIR_REPO}/client/python/vdms/queryMessage_pb2.py,{run_all_tests.DEFAULT_DIR_REPO}/tests/*"', '-m', 'unittest']
+        expected_cmd.extend(testing_args.test_name.split())
+        expected_cmd.append('-v')
+        mock_subprocess_run.assert_called_once_with(expected_cmd, text=True, check=True)
 
-        # Set up the mock to raise an exception after Popen is called
-        mock_process.communicate.side_effect = Exception("Test Exception")
+    @patch('run_all_tests.subprocess.run')
+    def test_run_python_tests_exception(self, mock_subprocess_run):
+        # Arrange
+        mock_subprocess_run.side_effect = subprocess.CalledProcessError(1, 'cmd')  # simulate command failure
+        testing_args = TestingArgs()
+        testing_args.test_name = DEFAULT_PYTHON_TEST_FILTER
+        instance = ConcreteClass()
 
-        # Call the method and check for exception
+        # Act & Assert
         with self.assertRaises(Exception) as context:
-            instance.run_python_tests(testing_args, stderrFD, stdoutFD)
-
-        # Check the exception message
-        self.assertTrue("run_python_tests() error:" in str(context.exception))
-
-        # Check if the process's kill method was called
-        mock_process.kill.assert_called()
+            instance.run_python_tests(testing_args, None, None)
+        
+        self.assertTrue("run_python_tests() error: " in str(context.exception))
 
     #### Tests for write_to_fd() ####
     @patch("run_all_tests.print")
