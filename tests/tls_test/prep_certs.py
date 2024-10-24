@@ -15,6 +15,7 @@ import socket
 import ssl
 import time
 
+TEMPORARY_DIR = "/tmp"
 
 def generate_private_key():
     return rsa.generate_private_key(
@@ -106,6 +107,9 @@ def write_to_disk(directory, name, key, cert):
 
 if __name__ == "__main__":
 
+    if not os.path.exists(TEMPORARY_DIR):
+        raise Exception("Error in prep_certs.py: " + TEMPORARY_DIR + " does not exist")
+
     #####################################################################################
     # GENERATE TRUSTED CERTS AND KEYS
     #####################################################################################
@@ -126,9 +130,9 @@ if __name__ == "__main__":
     )
 
     # Write keys and certificates to disk
-    write_to_disk("/tmp", "trusted_ca", trusted_ca_key, trusted_ca_cert)
-    write_to_disk("/tmp", "trusted_server", server_key, server_cert)
-    write_to_disk("/tmp", "trusted_client", trusted_client_key, trusted_client_cert)
+    write_to_disk(TEMPORARY_DIR, "trusted_ca", trusted_ca_key, trusted_ca_cert)
+    write_to_disk(TEMPORARY_DIR, "trusted_server", server_key, server_cert)
+    write_to_disk(TEMPORARY_DIR, "trusted_client", trusted_client_key, trusted_client_cert)
 
     #####################################################################################
     # GENERATE UNTRUSTED CERTS AND KEYS TO ENSURE UNTRUSTED CLIENT CERTS AREN'T ACCEPTED
@@ -144,7 +148,7 @@ if __name__ == "__main__":
     )
 
     # Write keys and certificates to disk
-    write_to_disk("/tmp", "untrusted_ca", untrusted_ca_key, untrusted_ca_cert)
+    write_to_disk(TEMPORARY_DIR, "untrusted_ca", untrusted_ca_key, untrusted_ca_cert)
     write_to_disk(
-        "/tmp", "untrusted_client", untrusted_client_key, untrusted_client_cert
+        TEMPORARY_DIR, "untrusted_client", untrusted_client_key, untrusted_client_cert
     )

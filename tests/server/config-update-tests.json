@@ -6,7 +6,7 @@
     "port": 55557,
 
     // Database paths
-    "pmgd_path": "simpleUpdate_db",
+    "pmgd_path": "tests_output_dir/simpleUpdate_db",
 
     "more-info": "github.com/IntelLabs/vmds"
 }

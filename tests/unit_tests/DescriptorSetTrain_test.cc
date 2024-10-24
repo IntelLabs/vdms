@@ -34,10 +34,13 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <filesystem>
 
 #include "helpers.h"
 #include "vcl/VCL.h"
 #include "gtest/gtest.h"
+
+const std::string TMP_DIRNAME = "tests_output_dir/";
 
 TEST(Descriptors_Train, train_flatl2_4d) {
   int d = 4;
@@ -45,7 +48,7 @@ TEST(Descriptors_Train, train_flatl2_4d) {
 
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/train_flatl2_4d.faiss";
+  std::string index_filename = TMP_DIRNAME + "dbs/train_flatl2_4d.faiss";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissFlat);
 
   int offset = 10;
@@ -94,8 +97,9 @@ TEST(Descriptors_Train, train_10k) {
     float *xb = generate_desc_linear_increase(d, nb);
 
     for (auto eng : get_engines()) {
-      std::string index_filename =
-          "dbs/train_10k" + std::to_string(d) + "_" + std::to_string(eng);
+      std::string index_filename = TMP_DIRNAME + "dbs/train_10k" +
+                                   std::to_string(d) + "_" +
+                                   std::to_string(eng);
 
       VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
@@ -143,7 +147,8 @@ TEST(Descriptors_Train, train_ivfflatl2_4d_labels) {
 
   auto class_map = animals_map();
 
-  std::string index_filename = "dbs/train_ivfflatl2_4d_labels.faiss";
+  std::string index_filename =
+      TMP_DIRNAME + "dbs/train_ivfflatl2_4d_labels.faiss";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissIVFFlat);
 
   int offset = 10;
@@ -201,8 +206,9 @@ TEST(Descriptors_Train, train_labels_10k) {
     float *xb = generate_desc_linear_increase(d, nb);
 
     for (auto eng : get_engines()) {
-      std::string index_filename = "dbs/train_labels_10k_" + std::to_string(d) +
-                                   "_" + std::to_string(eng);
+      std::string index_filename = TMP_DIRNAME + "dbs/train_labels_10k_" +
+                                   std::to_string(d) + "_" +
+                                   std::to_string(eng);
 
       VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
@@ -256,7 +262,8 @@ TEST(Descriptors_Train, train_flatl2_4d_str_label) {
 
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/train_flatl2_4d_str_label.faiss";
+  std::string index_filename =
+      TMP_DIRNAME + "dbs/train_flatl2_4d_str_label.faiss";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissFlat);
 
   auto class_map = animals_map();
@@ -320,7 +327,12 @@ TEST(Descriptors_Train, train_tdbdense_4d) {
 
   auto class_map = animals_map();
 
-  std::string index_filename = "dbs/train_tdbdense_4d";
+  std::string dir_path = TMP_DIRNAME + "dbs";
+  if (!std::filesystem::exists(dir_path)) {
+    std::filesystem::create_directories(dir_path);
+  }
+
+  std::string index_filename = dir_path + "/train_tdbdense_4d";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::TileDBDense);
 
   index.set_labels_map(class_map);

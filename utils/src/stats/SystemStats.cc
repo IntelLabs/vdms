@@ -42,6 +42,7 @@
 using namespace std;
 
 const std::string LOG_FILENAME_PREFIX = "vdms_system_stats_";
+const std::string TEMPORARY_DIR = "/tmp";
 
 // *****************************************************************************
 // Public methods definitions
@@ -49,7 +50,7 @@ const std::string LOG_FILENAME_PREFIX = "vdms_system_stats_";
 
 SystemStats::SystemStats() {
   m_numProcessors = 0;
-  std::string tmp_dir = "/tmp/"; // Could VDMS config file be called from utils?
+  std::string tmp_dir = TEMPORARY_DIR + "/"; // Could VDMS config file be called from utils?
   std::string filename =
       tmp_dir + get_filename_prefix() + std::to_string(get_epoch());
   set_log_filename(filename);

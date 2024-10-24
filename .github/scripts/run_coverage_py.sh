@@ -1,11 +1,28 @@
 #!/bin/bash -e
 
-cd /vdms/tests/python
+cd /vdms/tests
+chmod +x ./run_all_tests.py
+chmod +x ./TestScript.py
 
-./run_python_tests.sh
-./run_python_aws_tests.sh -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY}
-python -m coverage report -m 2>&1 | tee /vdms/tests/coverage_report/python.new.coverage_report.txt
-python -m coverage xml -o /vdms/tests/coverage_report/python.new.coverage_report.xml
+# Check .coverage file doesn't exist
+if [ -f './.coverage' ]; then
+    echo ".coverage exists."
+    rm ./.coverage
+    echo ".coverage deleted."
+fi
+
+echo 'Running run_all_tests script for Python tests (-t=pt)'
+python3 ./run_all_tests.py -t=pt
+
+echo 'Running run_all_tests script for Remote Python tests (-t=rp)'
+python3 ./run_all_tests.py -t=rp -u=${AWS_ACCESS_KEY_ID} -p=${AWS_SECRET_ACCESS_KEY}
+
+echo 'Running the tests included in TestScript.py file'
+# Append the coverage results to the ones obtained from running run_all_tests.py
+python3 -m coverage run -a --omit="./run_all_tests.py,./TestScript.py" -m unittest discover --pattern=TestScript.py -v
+
+python3 -m coverage report -m 2>&1 | tee /vdms/tests/coverage_report/python.new.coverage_report.txt
+python3 -m coverage xml -o /vdms/tests/coverage_report/python.new.coverage_report.xml
 
 echo "DONE"
 

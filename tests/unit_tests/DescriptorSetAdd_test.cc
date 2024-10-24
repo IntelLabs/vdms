@@ -36,10 +36,13 @@
 #include <fstream>
 #include <iostream>
 #include <list>
+#include <filesystem>
 
 #include "helpers.h"
 #include "vcl/VCL.h"
 #include "gtest/gtest.h"
+
+const std::string TMP_DIRNAME = "tests_output_dir/";
 
 TEST(Descriptors_Add, add_flatl2_100d) {
   int d = 100;
@@ -47,7 +50,7 @@ TEST(Descriptors_Add, add_flatl2_100d) {
 
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/add_flatl2_100d";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_flatl2_100d";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissFlat);
 
   index.add(xb, nb);
@@ -84,7 +87,8 @@ TEST(Descriptors_Add, add_and_radius_search_flatl2_100d) {
 
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/add_and_radius_search_flatl2_100d";
+  std::string index_filename =
+      TMP_DIRNAME + "dbs/add_and_radius_search_flatl2_100d";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissFlat);
 
   index.add(xb, nb);
@@ -114,7 +118,7 @@ TEST(Descriptors_Add, add_ivfflatl2_100d) {
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/add_ivfflatl2_100d";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_ivfflatl2_100d";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissIVFFlat);
 
   std::vector<long> classes(nb);
@@ -156,7 +160,7 @@ TEST(Descriptors_Add, add_recons_flatl2_100d) {
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/add_recons_flatl2_100d";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_recons_flatl2_100d";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissFlat);
 
   std::vector<long> classes(nb);
@@ -193,7 +197,7 @@ TEST(Descriptors_Add, add_flatl2_100d_2add) {
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/add_flatl2_100d_2add";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_flatl2_100d_2add";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissFlat);
 
   index.add(xb, nb);
@@ -234,7 +238,7 @@ TEST(Descriptors_Add, add_hnswflatl2_100d) {
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/add_hnswflatl2_100d";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_hnswflatl2_100d";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat);
 
   std::vector<long> classes(nb);
@@ -275,7 +279,7 @@ TEST(Descriptors_Add, add_recons_hnswflatl2_100d) {
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/add_recons_hnswflatl2_100d";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_recons_hnswflatl2_100d";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat);
 
   std::vector<long> classes(nb);
@@ -318,7 +322,7 @@ TEST(Descriptors_Add, add_hnswflatl2_100d_2add) {
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/add_hnswflatl2_100d_2add";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_hnswflatl2_100d_2add";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat);
 
   index.add(xb, nb);
@@ -357,7 +361,7 @@ TEST(Descriptors_Add, add_flinngIP_100d) {
 
   float *xb = generate_desc_normal_cluster(d, nb, init, cluster_size,
                                            clusterhead_std, cluster_std);
-  std::string index_filename = "dbs/add_flinngIP_100d";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_flinngIP_100d";
 
   VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12);
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::Flinng,
@@ -419,7 +423,7 @@ TEST(Descriptors_Add, add_flinngL2_100d) {
 
   float *xb = generate_desc_normal_cluster(d, nb, init, cluster_size,
                                            clusterhead_std, cluster_std);
-  std::string index_filename = "dbs/add_flinngL2_100d";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_flinngL2_100d";
 
   VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12);
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::Flinng,
@@ -478,7 +482,7 @@ TEST(Descriptors_Add, add_recons_flinngIP_100d) {
 
   float *xb = generate_desc_normal_cluster(d, nb, init, cluster_size,
                                            clusterhead_std, cluster_std);
-  std::string index_filename = "dbs/add_recons_flinngIP_100d";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_recons_flinngIP_100d";
 
   VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12);
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::Flinng,
@@ -540,7 +544,7 @@ TEST(Descriptors_Add, add_flinngIP_100d_2add) {
 
   float *xb = generate_desc_normal_cluster(d, nb, init, cluster_size,
                                            clusterhead_std, cluster_std);
-  std::string index_filename = "dbs/add_flingIP_100d_2add";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_flingIP_100d_2add";
 
   VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12);
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::Flinng,
@@ -611,7 +615,7 @@ TEST(Descriptors_Add, add_flinngIP_same) {
 
   float *xb = generate_desc_normal_cluster(d, nb, init, cluster_size,
                                            clusterhead_std, cluster_std);
-  std::string index_filename = "dbs/add_flinngIP_same";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_flinngIP_same";
 
   VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12);
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::Flinng,
@@ -671,7 +675,13 @@ TEST(Descriptors_Add, add_tiledbdense_100d) {
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/add_tiledbdense_100d_tdb";
+  std::string dir_path = TMP_DIRNAME + "dbs";
+  if (!std::filesystem::exists(dir_path)) {
+    std::filesystem::create_directories(dir_path);
+  }
+
+  std::string index_filename = dir_path + "/add_tiledbdense_100d_tdb";
+
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::TileDBDense);
 
   index.add(xb, nb);
@@ -706,7 +716,12 @@ TEST(Descriptors_Add, add_tiledbdense_100d_2add) {
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/add_tiledbdense_100d_2add";
+  std::string dir_path = TMP_DIRNAME + "dbs";
+  if (!std::filesystem::exists(dir_path)) {
+    std::filesystem::create_directories(dir_path);
+  }
+
+  std::string index_filename = dir_path + "/add_tiledbdense_100d_2add";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::TileDBDense);
 
   index.add(xb, nb);
@@ -749,7 +764,12 @@ TEST(Descriptors_Add, add_tiledbsparse_100d_2add) {
   float *xb = generate_desc_linear_increase(d, nb);
   // generate_desc_linear_increase(d, nb, xb, .1);
 
-  std::string index_filename = "dbs/add_tiledbsparse_100d_2add";
+  std::string dir_path = TMP_DIRNAME + "dbs";
+  if (!std::filesystem::exists(dir_path)) {
+    std::filesystem::create_directories(dir_path);
+  }
+
+  std::string index_filename = dir_path + "/add_tiledbsparse_100d_2add";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::TileDBSparse);
 
   index.add(xb, nb);
@@ -781,7 +801,12 @@ TEST(Descriptors_Add, add_tiledbsparse_100d) {
   float *xb = generate_desc_linear_increase(d, nb);
   // generate_desc_linear_increase(d, nb, xb, .1);
 
-  std::string index_filename = "dbs/add_tiledbsparse_100d";
+  std::string dir_path = TMP_DIRNAME + "dbs";
+  if (!std::filesystem::exists(dir_path)) {
+    std::filesystem::create_directories(dir_path);
+  }
+
+  std::string index_filename = dir_path + "/add_tiledbsparse_100d";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::TileDBSparse);
 
   index.add(xb, nb);
@@ -812,8 +837,13 @@ TEST(Descriptors_Add, add_2_times_same_tdbsparse) {
 
     auto eng = VCL::TileDBSparse;
 
-    std::string index_filename = "dbs/add_2_times_same_tdbsparse_" +
-                                 std::to_string(d) + "_" + std::to_string(eng);
+    std::string dir_path = TMP_DIRNAME + "dbs";
+    if (!std::filesystem::exists(dir_path)) {
+      std::filesystem::create_directories(dir_path);
+    }
+
+    std::string index_filename = dir_path + "/add_2_times_same_tdbsparse_" +
+                                  std::to_string(d) + "_" + std::to_string(eng);
 
     VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
@@ -851,7 +881,12 @@ TEST(Descriptors_Add, add_2_times_tdbsparse) {
 
     auto eng = VCL::TileDBSparse;
 
-    std::string index_filename = "dbs/add_2_times_tdbsparse_" +
+    std::string dir_path = TMP_DIRNAME + "dbs";
+    if (!std::filesystem::exists(dir_path)) {
+      std::filesystem::create_directories(dir_path);
+    }
+
+    std::string index_filename = dir_path + "/add_2_times_tdbsparse_" +
                                  std::to_string(d) + "_" + std::to_string(eng);
 
     VCL::DescriptorSet index(index_filename, unsigned(d), eng);
@@ -892,7 +927,7 @@ TEST(Descriptors_Add, add_and_search_10k) {
     float *xb = generate_desc_linear_increase(d, nb);
 
     for (auto eng : get_engines()) {
-      std::string index_filename = "dbs/add_and_search_10k" +
+      std::string index_filename = TMP_DIRNAME + "dbs/add_and_search_10k" +
                                    std::to_string(d) + "_" +
                                    std::to_string(eng);
 
@@ -957,9 +992,9 @@ TEST(Descriptors_Add, add_and_search_10k_negative) {
     float *xb = generate_desc_linear_increase(d, nb, -900);
 
     for (auto eng : get_engines()) {
-      std::string index_filename = "dbs/add_and_search_10k_negative" +
-                                   std::to_string(d) + "_" +
-                                   std::to_string(eng);
+      std::string index_filename =
+          TMP_DIRNAME + "dbs/add_and_search_10k_negative" + std::to_string(d) +
+          "_" + std::to_string(eng);
 
       VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
@@ -1001,7 +1036,7 @@ TEST(Descriptors_Add, add_1by1_and_search_1k) {
       if (eng == VCL::FaissIVFFlat)
         continue;
 
-      std::string index_filename = "dbs/add_1by1_and_search_1k_" +
+      std::string index_filename = TMP_DIRNAME + "dbs/add_1by1_and_search_1k_" +
                                    std::to_string(d) + "_" +
                                    std::to_string(eng);
 
@@ -1047,9 +1082,9 @@ TEST(Descriptors_Add, add_and_search_2_neigh_10k) {
     float *xb = generate_desc_linear_increase(d, nb);
 
     for (auto eng : get_engines()) {
-      std::string index_filename = "dbs/add_and_search_2_neigh_10k" +
-                                   std::to_string(d) + "_" +
-                                   std::to_string(eng);
+      std::string index_filename =
+          TMP_DIRNAME + "dbs/add_and_search_2_neigh_10k" + std::to_string(d) +
+          "_" + std::to_string(eng);
 
       VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
@@ -1109,8 +1144,14 @@ TEST(Descriptors_Add, add_2_times) {
       if (eng == VCL::TileDBSparse)
         continue;
 
-      std::string index_filename =
-          "dbs/add_2_times_" + std::to_string(d) + "_" + std::to_string(eng);
+      std::string dir_path = TMP_DIRNAME + "dbs";
+      if (!std::filesystem::exists(dir_path)) {
+        std::filesystem::create_directories(dir_path);
+      }
+
+      std::string index_filename = dir_path + "/add_2_times_" +
+                                   std::to_string(d) + "_" +
+                                   std::to_string(eng);
 
       VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
@@ -1156,9 +1197,9 @@ TEST(Descriptors_Add, add_and_get_descriptors) {
     }
 
     for (auto eng : get_engines()) {
-      std::string index_filename = "dbs/add_and_get_descriptors_10k" +
-                                   std::to_string(d) + "_" +
-                                   std::to_string(eng);
+      std::string index_filename =
+          TMP_DIRNAME + "dbs/add_and_get_descriptors_10k" + std::to_string(d) +
+          "_" + std::to_string(eng);
 
       VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 

@@ -5,6 +5,6 @@
 
     "port": 55558,
     "db_root_path": "test_db_client",
-
+    "tmp_path": "./tests_output_dir",
     "more-info": "github.com/IntelLabs/vdms"
 }

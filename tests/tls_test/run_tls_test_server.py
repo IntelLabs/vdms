@@ -2,6 +2,7 @@ import socket
 import ssl
 import time
 
+TEMPORARY_DIR = "/tmp"
 
 def print_and_flush(message):
     print(message, flush=True)
@@ -86,9 +87,9 @@ class TLSClient:
 if __name__ == "__main__":
 
     tls_client = TLSClient(
-        ca_cert_path="/tmp/trusted_ca_cert.pem",
-        client_cert_path="/tmp/trusted_client_cert.pem",
-        client_key_path="/tmp/trusted_client_key.pem",
+        ca_cert_path=TEMPORARY_DIR + "/trusted_ca_cert.pem",
+        client_cert_path=TEMPORARY_DIR + "/trusted_client_cert.pem",
+        client_key_path=TEMPORARY_DIR + "/trusted_client_key.pem",
         timeout=1800,
     )
     tls_client.create_connection()

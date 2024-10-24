@@ -5,6 +5,7 @@
    
     "port": 55557,
     "db_root_path": "test_db_1",
+    "tmp_path": "./tests_output_dir",
     "storage_type": "aws", //local, aws, etc
     "bucket_name": "minio-bucket",
     "more-info": "github.com/IntelLabs/vdms",

@@ -40,6 +40,8 @@
 
 using namespace VDMS;
 
+const std::string TMP_DIRNAME = "tests_output_dir/";
+
 // TODO valid JSON helpers for image transformations
 // may want to borrow from existing tests
 std::string raw_neoadd_json(
@@ -103,7 +105,7 @@ class OpsIOCoordinatorTest : public ::testing::Test {
 
 protected:
   virtual void SetUp() {
-    VDMS::VDMSConfig::init("unit_tests/config-aws-tests.json");
+    VDMS::VDMSConfig::init(TMP_DIRNAME + "config-aws-tests.json");
     global_s3_connection = instantiate_connection();
   }
 

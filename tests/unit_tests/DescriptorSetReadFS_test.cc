@@ -41,6 +41,8 @@
 #include "vcl/VCL.h"
 #include "gtest/gtest.h"
 
+const std::string TMP_DIRNAME = "tests_output_dir/";
+
 TEST(Descriptors_ReadFS, read_and_search_10k) {
   int nb = 10000;
   auto dimensions_list = get_dimensions_list();
@@ -51,7 +53,7 @@ TEST(Descriptors_ReadFS, read_and_search_10k) {
 
     for (auto eng : get_engines()) {
 
-      std::string index_filename = "dbs/read_and_search_10k" +
+      std::string index_filename = TMP_DIRNAME + "dbs/read_and_search_10k" +
                                    std::to_string(d) + "_" +
                                    std::to_string(eng);
       {
@@ -92,7 +94,7 @@ TEST(Descriptors_ReadFS, read_and_classify_10k) {
     float *xb = generate_desc_linear_increase(d, nb);
 
     for (auto eng : get_engines()) {
-      std::string index_filename = "dbs/read_and_classify_10k" +
+      std::string index_filename = TMP_DIRNAME + "dbs/read_and_classify_10k" +
                                    std::to_string(d) + "_" +
                                    std::to_string(eng);
       int offset = 10;

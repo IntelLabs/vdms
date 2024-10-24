@@ -41,6 +41,7 @@
 #include <vector>
 
 #include <dirent.h>
+#include <filesystem>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -91,7 +92,7 @@ protected:
           return EEXIST;
       else if (errno != ENOENT)
         return errno;
-      else if (mkdir(path, 0777) == 0)
+      else if (std::filesystem::create_directories(path))
         return 0;
       else if (errno != EEXIST)
         return errno;

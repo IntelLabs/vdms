@@ -26,7 +26,7 @@
 
 from threading import Thread
 import TestCommand
-
+from os import path
 
 class TestEntities(TestCommand.TestCommand):
     def addSingleEntity(self, thID, results, db):
@@ -360,7 +360,7 @@ class TestEntities(TestCommand.TestCommand):
         all_queries.append(query)
 
         blob_arr = []
-        fd = open("../test_images/brain.png", "rb")
+        fd = open(path.join(self.find_tests_dir(),"test_images/brain.png"), "rb")
         blob_arr.append(fd.read())
         fd.close()
 
@@ -406,7 +406,7 @@ class TestEntities(TestCommand.TestCommand):
         all_queries.append(query)
 
         blob_arr = []
-        fd = open("../test_images/brain.png", "rb")
+        fd = open(path.join(self.find_tests_dir(),"test_images/brain.png"), "rb")
         blob_arr.append(fd.read())
         fd.close()
 

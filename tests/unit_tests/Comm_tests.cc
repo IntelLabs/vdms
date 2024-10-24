@@ -41,10 +41,12 @@
 #define SERVER_PORT_MULTIPLE 43444
 #define NUMBER_OF_MESSAGES 1
 
+const std::string TEMPORARY_DIR = "/tmp";
+
 typedef std::basic_string<uint8_t> BytesBuffer;
-std::string cert_file_ = "/tmp/trusted_server_cert.pem";
-std::string key_file_ = "/tmp/trusted_server_key.pem";
-std::string ca_file_ = "/tmp/trusted_ca_cert.pem";
+std::string cert_file_ = TEMPORARY_DIR + "/trusted_server_cert.pem";
+std::string key_file_ = TEMPORARY_DIR + "/trusted_server_key.pem";
+std::string ca_file_ = TEMPORARY_DIR + "/trusted_ca_cert.pem";
 
 TEST(CommTest, MoveCopy) {
   comm::Connection a;

@@ -6,5 +6,5 @@
     "port": 55557,
 
     // Database paths
-    "pmgd_path": "jsongraph"
+    "pmgd_path": "tests_output_dir/jsongraph"
 }

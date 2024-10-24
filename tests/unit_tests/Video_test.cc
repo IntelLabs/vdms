@@ -51,7 +51,10 @@
 
 using namespace std;
 namespace fs = std::filesystem;
-const std::string OUTPUT_VIDEO_DIR = "test_db_1";
+// The value of TMP_DIRNAME must match with the value in the config file of the
+// tmp_path variable
+const std::string TMP_DIRNAME = "tests_output_dir/";
+const std::string OUTPUT_VIDEO_DIR = TMP_DIRNAME + "test_db_1";
 
 class VideoTest : public ::testing::Test {
 
@@ -63,7 +66,7 @@ protected:
 
   virtual void SetUp() {
 
-    VDMS::VDMSConfig::init("unit_tests/config-tests.json");
+    VDMS::VDMSConfig::init(TMP_DIRNAME + "config-tests.json");
     _video_path_avi_xvid = "videos/Megamind.avi";
     _video_path_mp4_h264 = "videos/Megamind.mp4";
 
@@ -195,7 +198,7 @@ TEST_F(VideoTest, BlobConstructor) {
   ifile.read(inBuf, fsize);
   ifile.close();
 
-  std::string vcl_from_buffer("videos_tests/from_buffer.avi");
+  std::string vcl_from_buffer(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/from_buffer.avi");
   {
     VCL::Video video_data(inBuf, fsize);
     video_data.store(vcl_from_buffer, VCL::Video::Codec::XVID);
@@ -206,7 +209,7 @@ TEST_F(VideoTest, BlobConstructor) {
   // OpenCV writing the video H264
   // We need to write again to make sure we use the same parameters
   // when writting the video.
-  std::string write_output_ocv("videos_tests/write_test_ocv.avi");
+  std::string write_output_ocv(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/write_test_ocv.avi");
   {
     cv::VideoCapture testWriteVideo(_video_path_avi_xvid);
 
@@ -327,14 +330,14 @@ TEST_F(VideoTest, WriteMP4_H264) {
                                 "/video_test_WriteMP4_H264_test.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
 
-    std::string write_output_vcl("videos_tests/write_test_vcl.mp4");
+    std::string write_output_vcl(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/write_test_vcl.mp4");
     {
       VCL::Video video_data(temp_video_input);
       video_data.store(write_output_vcl, VCL::Video::Codec::H264);
     }
 
     // OpenCV writing the video H264
-    std::string write_output_ocv("videos_tests/write_test_ocv.mp4");
+    std::string write_output_ocv(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/write_test_ocv.mp4");
     { copy_video_to_temp(temp_video_test, write_output_ocv, get_fourcc()); }
 
     VCL::Video video_data(write_output_vcl);
@@ -381,14 +384,14 @@ TEST_F(VideoTest, WriteAVI_XVID) {
     copy_video_to_temp(_video_path_avi_xvid, temp_video_test,
                        cv::VideoWriter::fourcc('X', 'V', 'I', 'D'));
 
-    std::string write_output_vcl("videos_tests/write_test_vcl.avi");
+    std::string write_output_vcl(VDMS::VDMSConfig::instance()->get_path_tmp() +"/videos_tests/write_test_vcl.avi");
     {
       VCL::Video video_data(temp_video_input);
       video_data.store(write_output_vcl, VCL::Video::Codec::XVID);
     }
 
     // OpenCV writing the video H264
-    std::string write_output_ocv("videos_tests/write_test_ocv.avi");
+    std::string write_output_ocv(VDMS::VDMSConfig::instance()->get_path_tmp() +"/videos_tests/write_test_ocv.avi");
     {
       copy_video_to_temp(temp_video_test, write_output_ocv,
                          cv::VideoWriter::fourcc('X', 'V', 'I', 'D'));
@@ -439,7 +442,7 @@ TEST_F(VideoTest, ResizeWrite) {
                                 "/video_test_ResizeWrite_test.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
 
-    std::string resize_name_vcl("videos_tests/resize_vcl.mp4");
+    std::string resize_name_vcl(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/resize_vcl.mp4");
     {
       VCL::Video video_data(temp_video_input); //
       video_data.resize(new_w, new_h);
@@ -447,7 +450,7 @@ TEST_F(VideoTest, ResizeWrite) {
     }
 
     // OpenCV writing the video H264
-    std::string resize_name_ocv("videos_tests/resize_ocv.mp4");
+    std::string resize_name_ocv(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/resize_ocv.mp4");
     {
       cv::VideoCapture testWriteVideo(temp_video_test);
 
@@ -516,7 +519,7 @@ TEST_F(VideoTest, IntervalWrite) {
                                 "/video_test_IntervalWrite_test.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
 
-    std::string interval_name_vcl("videos_tests/interval_vcl.mp4");
+    std::string interval_name_vcl(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/interval_vcl.mp4");
     {
       VCL::Video video_data(temp_video_input); //
       video_data.interval(VCL::Video::FRAMES, init, end, step);
@@ -524,7 +527,7 @@ TEST_F(VideoTest, IntervalWrite) {
     }
 
     // OpenCV writing the video H264
-    std::string interval_name_ocv("videos_tests/interval_ocv.mp4");
+    std::string interval_name_ocv(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/interval_ocv.mp4");
     {
       cv::VideoCapture testWriteVideo(_video_path_avi_xvid);
 
@@ -648,7 +651,7 @@ TEST_F(VideoTest, ThresholdWrite) {
                                 "/video_test_ThresholdWrite_test.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
 
-    std::string threshold_name_vcl("videos_tests/threshold_vcl.mp4");
+    std::string threshold_name_vcl(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/threshold_vcl.mp4");
     {
       VCL::Video video_data(temp_video_input); //
       video_data.threshold(ths);
@@ -656,7 +659,7 @@ TEST_F(VideoTest, ThresholdWrite) {
     }
 
     // OpenCV writing the video H264
-    std::string threshold_name_ocv("videos_tests/threshold_ocv.mp4");
+    std::string threshold_name_ocv(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/threshold_ocv.mp4");
     {
       cv::VideoCapture testWriteVideo(temp_video_test);
 
@@ -733,7 +736,7 @@ TEST_F(VideoTest, CropWrite) {
                                 "/video_test_CropWrite_test.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
 
-    std::string crop_name_vcl("videos_tests/crop_vcl.mp4");
+    std::string crop_name_vcl(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/crop_vcl.mp4");
     {
       VCL::Video video_data(temp_video_input); //
       video_data.crop(rect);
@@ -741,7 +744,7 @@ TEST_F(VideoTest, CropWrite) {
     }
 
     // OpenCV writing the video H264
-    std::string crop_name_ocv("videos_tests/crop_ocv.mp4");
+    std::string crop_name_ocv(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/crop_ocv.mp4");
     {
       cv::VideoCapture testWriteVideo(temp_video_test);
 
@@ -825,7 +828,7 @@ TEST_F(VideoTest, SyncRemoteWrite) {
                                 "/video_test_SyncRemoteWrite_test.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
 
-    std::string syncremote_name_vcl("videos_tests/syncremote_vcl.mp4");
+    std::string syncremote_name_vcl(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/syncremote_vcl.mp4");
     {
       VCL::Video video_data(temp_video_input); //
       video_data.syncremoteOperation(_url, _options);
@@ -833,7 +836,7 @@ TEST_F(VideoTest, SyncRemoteWrite) {
     }
 
     // OpenCV writing the video H264
-    std::string syncremote_name_ocv("videos_tests/syncremote_ocv.mp4");
+    std::string syncremote_name_ocv(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/syncremote_ocv.mp4");
     {
       cv::VideoCapture testWriteVideo(temp_video_test);
 
@@ -892,16 +895,12 @@ TEST_F(VideoTest, SyncRemoteWrite) {
  * that undergoes a captioning operation.
  */
 TEST_F(VideoTest, UDFWrite) {
-  // TODO: Remove the GTEST_SKIP() sentences when this test is fixed
-  GTEST_SKIP() << "Reason to be skipped: This test is failing "
-               << "for non remote tests";
   Json::Value _options;
   _options["port"] = 5555;
   _options["text"] = "Video";
   _options["id"] = "caption";
 
   try {
-
     std::string temp_video_input(VDMS::VDMSConfig::instance()->get_path_tmp() +
                                  "/video_test_UDFWrite_input.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
@@ -909,7 +908,7 @@ TEST_F(VideoTest, UDFWrite) {
                                 "/video_test_UDFemoteWrite_test.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
 
-    std::string udf_name_vcl("videos_tests/udf_vcl.mp4");
+    std::string udf_name_vcl(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/udf_vcl.mp4");
     {
       VCL::Video video_data(temp_video_input); //
       video_data.userOperation(_options);
@@ -917,7 +916,7 @@ TEST_F(VideoTest, UDFWrite) {
     }
 
     // OpenCV writing the video H264
-    std::string udf_name_ocv("videos_tests/udf_ocv.mp4");
+    std::string udf_name_ocv(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/udf_ocv.mp4");
     {
       cv::VideoCapture testWriteVideo(temp_video_test);
 
@@ -984,7 +983,7 @@ TEST_F(VideoTest, VideoLoopTest) {
                                "/video_test_VideoLoopTest_input.avi");
   copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
 
-  std::string vloop_name_vcl("videos_tests/vloop_vcl.mp4");
+  std::string vloop_name_vcl(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/vloop_vcl.mp4");
   {
     VCL::Video video_data(temp_video_input);
     video_data.store(vloop_name_vcl, VCL::Video::Codec::H264);
@@ -1040,7 +1039,7 @@ TEST_F(VideoTest, VideoLoopPipelineTest) {
                                "/video_test_VideoLoopPipelineTest_input.avi");
   copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
 
-  std::string vloop_name_vcl("videos_tests/vloop_vcl.mp4");
+  std::string vloop_name_vcl(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/vloop_vcl.mp4");
   {
     VCL::Video video_data(temp_video_input);
     video_data.store(vloop_name_vcl, VCL::Video::Codec::H264);
@@ -1092,7 +1091,7 @@ TEST_F(VideoTest, VideoLoopTestError) {
                                "/video_test_VideoLoopTestError_input.avi");
   copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
 
-  std::string vloop_name_vcl("videos_tests/vloop_vcl.mp4");
+  std::string vloop_name_vcl(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/vloop_vcl.mp4");
   {
     VCL::Video video_data(temp_video_input);
     video_data.store(vloop_name_vcl, VCL::Video::Codec::H264);
@@ -1134,7 +1133,7 @@ TEST_F(VideoTest, VideoLoopSyncRemoteTestError) {
       "/video_test_VideoLoopSyncRemoteTestError_input.avi");
   copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
 
-  std::string vloop_name_vcl("videos_tests/vloop_vcl.mp4");
+  std::string vloop_name_vcl(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/vloop_vcl.mp4");
   {
     VCL::Video video_data(temp_video_input);
     video_data.store(vloop_name_vcl, VCL::Video::Codec::H264);
@@ -1221,14 +1220,15 @@ TEST_F(VideoTest, KeyFrameDecodingSuccess) {
 
       std::string s = std::to_string(i);
       s.insert(s.begin(), 5 - s.length(), '0');
-      std::string filename = "videos_tests/kf_frame_" + s;
+      std::string filename = VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/kf_frame_" + s;
 
       VCL::Image img(mat_list[i], false);
       img.store(filename, VCL::Format::PNG, false);
     }
 
   } catch (VCL::Exception e) {
-    ASSERT_TRUE(false);
+    print_exception(e);
+    FAIL();
   }
 }
 
@@ -1319,7 +1319,7 @@ TEST_F(VideoTest, WriteFromFilePath) {
     }
 
     // OpenCV writing the video H264
-    std::string write_output_ocv("videos_tests/write_test_ocv.mp4");
+    std::string write_output_ocv(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/write_test_ocv.mp4");
     {
       copy_video_to_temp(_video_path_mp4_h264, write_output_ocv, get_fourcc());
     }
@@ -1354,13 +1354,15 @@ TEST_F(VideoTest, WriteFromFilePath) {
  */
 TEST_F(VideoTest, FilePathAccessError) {
   try {
-    std::string write_output_vcl("videos_tests/write_test_vcl.mp4");
+    std::string write_output_vcl(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/write_test_vcl.mp4");
     copy_video_to_temp(_video_path_mp4_h264, write_output_vcl, get_fourcc());
+    
     std::string uname = VCL::create_unique(OUTPUT_VIDEO_DIR + "/videos", "mp4");
     {
       VCL::Video video_data(write_output_vcl, true);
       video_data.store(uname, VCL::Video::Codec::H264);
     }
+
 
     if (std::remove(write_output_vcl.data()) != 0) {
       throw VCLException(ObjectEmpty,
@@ -1398,11 +1400,12 @@ TEST_F(VideoTest, SyncRemoteWriteWithMetadata) {
                                 "/video_test_SyncRemoteWriteMD_test.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
 
-    std::string syncremote_name_vcl("videos_tests/syncremotemd_vcl.mp4");
+    std::string syncremote_name_vcl(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/syncremotemd_vcl.mp4");
     {
       VCL::Video video_data(temp_video_input); //
       video_data.syncremoteOperation(_url, _options);
       video_data.store(syncremote_name_vcl, VCL::Video::Codec::H264);
+      ASSERT_STREQ(video_data.get_query_error_response().data(), "");
       for (auto metadata : video_data.get_ingest_metadata()) {
         ASSERT_STREQ(metadata["1"]["bbox"]["object"].asString().data(), "face");
       }
@@ -1442,7 +1445,7 @@ TEST_F(VideoTest, UDFWriteWithMetadata) {
                                 "/video_test_UDFemoteWrite_test.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
 
-    std::string udf_name_vcl("videos_tests/udf_vcl.mp4");
+    std::string udf_name_vcl(VDMS::VDMSConfig::instance()->get_path_tmp() + "/videos_tests/udf_vcl.mp4");
     {
       VCL::Video video_data(temp_video_input); //
       video_data.userOperation(_options);

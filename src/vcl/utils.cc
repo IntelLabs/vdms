@@ -31,12 +31,13 @@
 #include <sstream>
 #include <string>
 #include <sys/stat.h>
-
+#include <filesystem>
 #include "../VDMSConfig.h"
 #include "vcl/Exception.h"
 #include "vcl/Image.h"
 #include "vcl/utils.h"
 
+namespace fs = std::filesystem;
 namespace VCL {
 
 std::string format_to_string(VCL::Format format) {
@@ -125,6 +126,12 @@ uint64_t get_uint64() {
 std::string get_extension(const std::string &object_id) {
   size_t file_ext = object_id.find_last_of(".");
   size_t dir_ext = object_id.find_last_of("/");
+
+  // In case of the "." character is before than the last "/" character
+  // that means the filename does not have extension
+  if (file_ext < dir_ext){
+    return "";
+  }
 
   if (file_ext != std::string::npos) {
     if (file_ext > dir_ext + 2)

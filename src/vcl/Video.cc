@@ -29,6 +29,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <filesystem>
 
 #include "../VDMSConfig.h"
 #include "VDMSConfigHelper.h"
@@ -490,9 +491,19 @@ void Video::store_video_no_operation(std::string id, std::string store_id,
     }
   }
   _video_id = store_id;
-  if (std::rename(fname.data(), _video_id.data()) != 0) {
+  if (!std::filesystem::exists(fname.data())){
     throw VCLException(ObjectEmpty,
-                       "Error encountered while renaming the file.");
+                        "Error encountered while finding the src file: " + fname);
+  }
+
+  try {
+    std::string parent_dir = std::filesystem::path(_video_id.data()).parent_path();
+    std::filesystem::create_directories(parent_dir);
+    std::filesystem::rename(fname.data(), _video_id.data());
+  }
+  catch(...){
+    throw VCLException(ObjectEmpty, 
+                      "Error encountered while renaming the file.");
   }
 }
 
@@ -596,6 +607,7 @@ void Video::perform_operations(bool is_store, std::string store_id) {
                            "video_id " + id + " could not be opened");
       }
     } catch (Exception e) {
+      std::cout << "video_id " + id + " could not be opened" << std::endl;
       throw VCLException(OpenFailed, "video_id " + id + " could not be opened");
     }
 
@@ -651,12 +663,19 @@ void Video::perform_operations(bool is_store, std::string store_id) {
                                "Error encountered while removing the file.");
           }
         }
+
         if (!_no_blob) {
+          // std::rename requires the directory exists
+          std::string parent_dir = std::filesystem::path(store_id.data()).parent_path();
+          std::filesystem::create_directories(parent_dir);
           if (std::rename(fname.data(), store_id.data()) != 0) {
             throw VCLException(ObjectEmpty,
                                "Error encountered while renaming the file.");
           }
         } else {
+          // std::rename requires the directory exists
+          std::string parent_dir = std::filesystem::path(_video_id.data()).parent_path();
+          std::filesystem::create_directories(parent_dir);
           if (std::rename(fname.data(), _video_id.data()) != 0) {
             throw VCLException(ObjectEmpty,
                                "Error encountered while renaming the file.");
@@ -993,12 +1012,18 @@ Json::Value process_response(std::string zip_file_name,
                              std::string video_file_name, std::string format) {
   const char *zipFileName = zip_file_name.c_str();
   Json::Value metadata;
+  int zip_err = 0;
 
-  zip *archive = zip_open(zipFileName, 0, NULL);
-
+  zip *archive = zip_open(zipFileName, 0, &zip_err);
   if (!archive) {
-    std::cerr << "Failed to open the zip file." << std::endl;
-    return 1;
+    zip_error_t error;
+    zip_error_init_with_code(&error, zip_err);
+    std::string errorMessage = "Failed to open the zip file: " + std::string(zipFileName);
+    errorMessage += ". Error: " + std::string(zip_error_strerror(&error));
+    zip_error_fini(&error);
+
+    std::cerr << errorMessage << std::endl;
+    throw VCLException(OpenFailed, errorMessage);
   }
 
   int numFiles = zip_get_num_files(archive);
@@ -1147,6 +1172,7 @@ void Video::SyncRemoteOperation::operator()(Video *video, cv::Mat &frame,
         // Throw exceptions for different error codes received from the remote
         // server
         if (http_status_code != 200) {
+          std::cerr << "SyncRemoteOperation returned status code: " << http_status_code << std::endl;
           if (http_status_code == 0) {
             throw VCLException(ObjectEmpty, "Remote server is not running.");
           }
@@ -1222,6 +1248,9 @@ void Video::UserOperation::operator()(Video *video, cv::Mat &frame,
 
       zmq::context_t context(1);
       zmq::socket_t socket(context, zmq::socket_type::req);
+      // This is setting a timeout for avoiding infinite loops
+      socket.setsockopt(ZMQ_SNDTIMEO, 10000);// milliseconds
+      socket.setsockopt(ZMQ_RCVTIMEO, 30000);
 
       std::string port = _options["port"].asString();
       std::string address = "tcp://127.0.0.1:" + port;
@@ -1261,6 +1290,12 @@ void Video::UserOperation::operator()(Video *video, cv::Mat &frame,
         }
         video->set_ingest_metadata(message["metadata"]);
       } else {
+        if (response == "") {
+          std::string errorMessage = "UserOperation error: Timeout, no response from the server";
+          std::cout << errorMessage << std::endl;
+          throw VCLException(SystemNotFound, errorMessage);
+        }
+
         opfile = response;
 
         std::ifstream rfile;
@@ -1289,6 +1324,14 @@ void Video::UserOperation::operator()(Video *video, cv::Mat &frame,
   } catch (VCL::Exception e) {
     video->set_query_error_response(e.msg);
     print_exception(e);
+    return;
+  } catch (std::exception &e) {
+    video->set_query_error_response(e.what());
+    std::cerr << "UserOperation exception: " << e.what() << std::endl;
+    return;
+  } catch (...) {
+    video->set_query_error_response("Unknown error");
+    std::cerr << "Unknown error" << std::endl;
     return;
   }
 }

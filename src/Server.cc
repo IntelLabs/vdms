@@ -33,6 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h> /* system, NULL, EXIT_FAILURE */
 #include <thread>
+#include <filesystem>
 
 #include "Exception.h"
 #include <jsoncpp/json/json.h>
@@ -305,6 +306,8 @@ Server::~Server() {
   _cm->shutdown();
   delete _cm;
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
   DescriptorsManager::instance()->flush();
   VDMSConfig::destroy();
 }

@@ -1,17 +1,29 @@
 import cv2
-import numpy as np
-from datetime import datetime
-from collections import deque
-import skvideo.io
-import imutils
 import uuid
 import json
+import os
+import sys
 
-face_cascade = cv2.CascadeClassifier(
-    # This file is available from OpenCV 'data' directory at
-    # https://github.com/opencv/opencv/blob/4.x/data/haarcascades/haarcascade_frontalface_default.xml
-    "functions/files/haarcascade_frontalface_default.xml"
-)
+DEBUG_MODE = True
+
+face_cascade = None
+
+
+def set_face_cascade(functions_path):
+    global face_cascade
+    haarcascade_frontalface_default_path = os.path.join(
+        functions_path, "files/haarcascade_frontalface_default.xml"
+    )
+
+    if not os.path.exists(haarcascade_frontalface_default_path):
+        raise Exception(f"{haarcascade_frontalface_default_path}: path is invalid")
+
+    face_cascade = cv2.CascadeClassifier(
+        # This file is available from OpenCV 'data' directory at
+        # https://github.com/opencv/opencv/blob/4.x/data/haarcascades/haarcascade_frontalface_default.xml
+        # "functions/files/haarcascade_frontalface_default.xml"
+        haarcascade_frontalface_default_path
+    )
 
 
 def facedetectbbox(frame):
@@ -21,7 +33,15 @@ def facedetectbbox(frame):
     return faces
 
 
-def run(ipfilename, format, options):
+def run(ipfilename, format, options, tmp_dir_path, functions_path):
+    if DEBUG_MODE:
+        print("Temporary path:", tmp_dir_path, file=sys.stderr)
+        print("Functions path:", functions_path, file=sys.stderr)
+        print("options:", options, file=sys.stderr)
+        print("format:", format, file=sys.stderr)
+        print("ipfilename:", ipfilename, file=sys.stderr)
+
+    set_face_cascade(functions_path)
 
     # Extract metadata for video files
     if options["media_type"] == "video":
@@ -76,13 +96,20 @@ def run(ipfilename, format, options):
 
         response = {"opFile": ipfilename, "metadata": metadata}
 
-        jsonfile = "jsonfile" + uuid.uuid1().hex + ".json"
+        jsonfile = os.path.join(tmp_dir_path, "jsonfile" + uuid.uuid1().hex + ".json")
         with open(jsonfile, "w") as f:
             json.dump(response, f, indent=4)
         return ipfilename, jsonfile
     # Extract metadata for image files
     else:
         tdict = {}
+        if DEBUG_MODE:
+            print("Metadata: ipfilename=", ipfilename, file=sys.stderr)
+        if not os.path.exists(ipfilename):
+            raise Exception(
+                f"RF dir with Metadata error: File ipfilename {ipfilename} does not exist"
+            )
+
         img = cv2.imread(ipfilename)
         if options["otype"] == "face":
             faces = facedetectbbox(img)
