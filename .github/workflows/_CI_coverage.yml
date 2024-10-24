@@ -284,6 +284,11 @@ jobs:
       - name: Cleanup Docker Containers
         if: ${{ always() }}
         run: |
+          echo "Print all the logs" >> $GITHUB_OUTPUT
+          mkdir ${{ env.SOURCE_CONTAINER_NAME }}_logs || true
+          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/*.logs ${{ env.SOURCE_CONTAINER_NAME }}_logs || true
+          cat ${{ env.SOURCE_CONTAINER_NAME }}_logs/*.log >> $GITHUB_OUTPUT
+          rm -rf ${{ env.SOURCE_CONTAINER_NAME }}_logs
           docker kill ${{ env.SOURCE_CONTAINER_NAME }} || true
           docker kill ${{ env.SOURCE_CONTAINER_NAME }}_tmp || true
           docker kill ${{ env.NEO4J_CONTAINER_NAME }} || true
