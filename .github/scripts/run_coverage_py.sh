@@ -12,10 +12,10 @@ if [ -f './.coverage' ]; then
 fi
 
 echo 'Running run_all_tests script for Python tests (-t=pt)'
-python3 ./run_all_tests.py -t=pt
+python3 ./run_all_tests.py -t=pt -k
 
 echo 'Running run_all_tests script for Remote Python tests (-t=rp)'
-python3 ./run_all_tests.py -t=rp -u=${AWS_ACCESS_KEY_ID} -p=${AWS_SECRET_ACCESS_KEY}
+python3 ./run_all_tests.py -t=rp -k -u=${AWS_ACCESS_KEY_ID} -p=${AWS_SECRET_ACCESS_KEY}
 
 echo 'Running the tests included in TestScript.py file'
 # Append the coverage results to the ones obtained from running run_all_tests.py
