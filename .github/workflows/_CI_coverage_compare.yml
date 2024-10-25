@@ -20,10 +20,12 @@ on:
         description: "The Python Coverage for source"
         type: string
 
-permissions: write-all
+permissions: read-all
 
 jobs:
     compare_coverage:
+      permissions:
+        contents: write
       name: Compare Reported Coverage
       runs-on: ubuntu-latest
       steps:
