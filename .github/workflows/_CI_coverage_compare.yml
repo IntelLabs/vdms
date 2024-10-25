@@ -20,7 +20,8 @@ on:
         description: "The Python Coverage for source"
         type: string
 
-permissions: read-all
+permissions:
+  content: write
 
 jobs:
     compare_coverage:
