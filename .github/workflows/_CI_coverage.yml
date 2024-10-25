@@ -286,7 +286,16 @@ jobs:
         run: |
           echo "Print all the logs" >> $GITHUB_OUTPUT
           mkdir -p ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs || true
-          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/*.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs || true
+          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/tests_stderr_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/tests_stderr_log.log || true
+          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/tests_stdout_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/tests_stdout_log.log || true
+          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/tls_stderr_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/tls_stderr_log.log || true
+          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/tls_stdout_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/tls_stdout_log.log || true
+          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/udf_local_stderr_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/udf_local_stderr_log.log || true
+          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/udf_local_stdout_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/udf_local_stdout_log.log || true
+          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/udf_server_stderr_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/udf_server_stderr_log.log || true
+          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/udf_server_stdout_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/udf_server_stdout_log.log || true
+          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/vdms_stderr_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/vdms_stderr_log.log || true
+          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/vdms_stdout_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/vdms_stdout_log.log || true
           cat ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/*.log >> $GITHUB_OUTPUT
           rm -rf ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs || true
           docker kill ${{ env.SOURCE_CONTAINER_NAME }} || true
