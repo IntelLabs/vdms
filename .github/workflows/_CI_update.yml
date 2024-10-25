@@ -12,8 +12,6 @@ on:
           description: "Status of coverage tests (passed/failed)"
           type: string
 
-permissions: read-all
-
 jobs:
     commit_job:
         permissions:
