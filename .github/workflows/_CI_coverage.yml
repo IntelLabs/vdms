@@ -296,6 +296,7 @@ jobs:
           docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/udf_server_stdout_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/udf_server_stdout_log.log || true
           docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/vdms_stderr_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/vdms_stderr_log.log || true
           docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/vdms_stdout_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/vdms_stdout_log.log || true
+
           cat ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/*.log >> $GITHUB_OUTPUT
           rm -rf ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs || true
           docker kill ${{ env.SOURCE_CONTAINER_NAME }} || true
