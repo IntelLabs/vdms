@@ -21,7 +21,7 @@ on:
         type: string
 
 permissions:
-  content: write
+  contents: write
 
 jobs:
     compare_coverage:
