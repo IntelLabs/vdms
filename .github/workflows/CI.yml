@@ -42,6 +42,11 @@ jobs:
     secrets: inherit
 
   Results:
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
     # name: Compare code coverage
     needs: [Testing]
     uses: ./.github/workflows/_CI_coverage_compare.yml
