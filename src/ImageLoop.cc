@@ -330,11 +330,15 @@ void ImageLoop::execute_remote_operations(
         continue;
       }
       cv::Mat dmat = write_image(responseBuffer[rindex]);
+      if (dmat.rows == 0 || dmat.cols == 0){
+        throw VCLException(ObjectEmpty,
+                                 "Invalid response from the remote server.");
+      }
       if (dmat.empty()) {
         pendingImages.push_back(img);
       }
 
-      img->shallow_copy_cv(dmat);
+      img->shallow_copy_cv(dmat);      
       img->update_op_completed();
 
       auto const result = imageMap.insert(
