@@ -10,6 +10,7 @@ echo 'Running run_tests.sh script'
 # Run S3 C++ PMGD Based Tests
 echo 'Checking for the available disk space due MinIO requires at least 1gb free'
 df -h
+
 chmod +x run_aws_tests.sh
 echo 'Running run_aws_tests.sh script'
 ./run_aws_tests.sh -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY}
