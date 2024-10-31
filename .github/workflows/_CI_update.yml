@@ -12,9 +12,6 @@ on:
           description: "Status of coverage tests (passed/failed)"
           type: string
 
-permissions:
-  contents: write
-
 jobs:
     commit_job:
         permissions:
