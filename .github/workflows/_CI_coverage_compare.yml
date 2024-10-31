@@ -20,15 +20,14 @@ on:
         description: "The Python Coverage for source"
         type: string
 
-permissions:
-  contents: write
-  issues: write
-  pull-requests: write
-
 jobs:
     compare_coverage:
       name: Compare Reported Coverage
       runs-on: ubuntu-latest
+      permissions:
+        contents: write
+        issues: write
+        pull-requests: write
       steps:
         - name: Comment Coverage
           uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea  # v7.0.1
