@@ -227,7 +227,37 @@ jobs:
           docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/coverage_report/python.new.coverage_value.txt ${GITHUB_WORKSPACE}/.github/coverage/python.new.coverage_value.txt || true
           echo "coverage_value_py=$(cat ${GITHUB_WORKSPACE}/.github/coverage/python.new.coverage_value.txt)" >> $GITHUB_ENV
           echo "pr_dev_value_py=$(cat ${GITHUB_WORKSPACE}/.github/coverage/python.old-develop.coverage_value.txt)" >> $GITHUB_ENV
-
+      - name: Print out the logs
+        shell: bash
+        id: print_out_logs
+        if: ${{ always() }}
+        run: |
+          echo "Print out the logs" >> $GITHUB_OUTPUT
+          echo "tests_stderr_log:" >> $GITHUB_OUTPUT
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/tests_stderr_log.log || true
+          echo "tests_stdout_log:" >> $GITHUB_OUTPUT
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/tests_stdout_log.log || true
+          echo "tls_stderr_log:" >> $GITHUB_OUTPUT
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/tls_stderr_log.log || true
+          echo "tls_stdout_log:" >> $GITHUB_OUTPUT
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/tls_stdout_log.log || true
+          echo "udf_local_stderr_log:" >> $GITHUB_OUTPUT
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/udf_local_stderr_log.log || true
+          echo "udf_local_stdout_log:" >> $GITHUB_OUTPUT
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/udf_local_stdout_log.log || true
+          echo "udf_server_stderr_log:" >> $GITHUB_OUTPUT
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/udf_server_stderr_log.log || true
+          echo "udf_server_stdout_log:" >> $GITHUB_OUTPUT
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/udf_server_stdout_log.log || true
+          echo "vdms_stderr_log:" >> $GITHUB_OUTPUT
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/vdms_stderr_log.log || true
+          echo "vdms_stdout_log:" >> $GITHUB_OUTPUT
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/vdms_stdout_log.log || true
+          echo "End of Print out the logs..."
+      - name: Docker Compose down
+        shell: bash
+        id: docker_compose_down
+        run: |
           # Stops containers and removes containers, networks, volumes, and images
           cd ${GITHUB_WORKSPACE}/.github/scripts
           docker compose down
@@ -284,34 +314,6 @@ jobs:
       - name: Cleanup Docker Containers
         if: ${{ always() }}
         run: |
-          echo "Copy the logs" >> $GITHUB_OUTPUT
-          mkdir -p ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs || true
-          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/tests_stderr_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/tests_stderr_log.log || true
-          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/tests_stdout_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/tests_stdout_log.log || true
-          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/tls_stderr_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/tls_stderr_log.log || true
-          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/tls_stdout_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/tls_stdout_log.log || true
-          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/udf_local_stderr_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/udf_local_stderr_log.log || true
-          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/udf_local_stdout_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/udf_local_stdout_log.log || true
-          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/udf_server_stderr_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/udf_server_stderr_log.log || true
-          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/udf_server_stdout_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/udf_server_stdout_log.log || true
-          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/vdms_stderr_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/vdms_stderr_log.log || true
-          docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/tests_output_dir/vdms_stdout_log.log ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/vdms_stdout_log.log || true
-
-          echo "Print out the logs" >> $GITHUB_OUTPUT
-          cat ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/tests_stderr_log.log >> $GITHUB_OUTPUT
-          cat ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/tests_stdout_log.log >> $GITHUB_OUTPUT
-          cat ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/tls_stderr_log.log >> $GITHUB_OUTPUT
-          cat ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/tls_stdout_log.log >> $GITHUB_OUTPUT
-          cat ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/udf_local_stderr_log.log >> $GITHUB_OUTPUT
-          cat ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/udf_local_stdout_log.log >> $GITHUB_OUTPUT
-          cat ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/udf_server_stderr_log.log >> $GITHUB_OUTPUT
-          cat ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/udf_server_stdout_log.log >> $GITHUB_OUTPUT
-          cat ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/vdms_stderr_log.log >> $GITHUB_OUTPUT
-          cat ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs/vdms_stdout_log.log >> $GITHUB_OUTPUT
-
-          echo "Remove the log files" >> $GITHUB_OUTPUT
-          rm -rf ${GITHUB_WORKSPACE}/${{ env.SOURCE_CONTAINER_NAME }}_logs || true
-
           docker kill ${{ env.SOURCE_CONTAINER_NAME }} || true
           docker kill ${{ env.SOURCE_CONTAINER_NAME }}_tmp || true
           docker kill ${{ env.NEO4J_CONTAINER_NAME }} || true
