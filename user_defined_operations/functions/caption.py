@@ -18,7 +18,7 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
     t1 = time.time()
     opfilename = settings["opfile"] + str(t1) + "." + format
     if DEBUG_MODE:
-        print(opfilename, file=sys.stderr)
+        print("opfilename:", opfilename, file=sys.stderr)
     vs = cv2.VideoCapture(ipfilename)
 
     video = skvideo.io.FFmpegWriter(opfilename, {"-pix_fmt": "bgr24"})

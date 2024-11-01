@@ -6,7 +6,6 @@ import sys
 
 DEBUG_MODE = True
 
-
 def run(ipfilename, format, options, tmp_dir_path, functions_path):
     if DEBUG_MODE:
         print("Temporary path:", tmp_dir_path, file=sys.stderr)
@@ -17,7 +16,8 @@ def run(ipfilename, format, options, tmp_dir_path, functions_path):
     opfilename = os.path.join(
         tmp_dir_path, "tmpfile" + uuid.uuid1().hex + "." + str(format)
     )
-    print(opfilename)
+    if DEBUG_MODE:
+        print("opfilename:", opfilename, file=sys.stderr)
     vs = cv2.VideoCapture(ipfilename)
 
     video = skvideo.io.FFmpegWriter(opfilename, {"-pix_fmt": "bgr24"})
