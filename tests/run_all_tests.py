@@ -1446,7 +1446,7 @@ class NonRemoteTest(AbstractTest):
         try:
 
             subprocess.run(
-                f"python -m pip install -r {DEFAULT_DIR_REPO}/remote_function/requirements.txt",
+                f"python3 -m pip install -r {DEFAULT_DIR_REPO}/remote_function/requirements.txt",
                 shell=True,
                 stderr=stderrFD,
                 stdout=stdoutFD,
@@ -1557,7 +1557,7 @@ class NonRemoteTest(AbstractTest):
         try:
 
             subprocess.run(
-                f"python -m pip install -r {DEFAULT_DIR_REPO}/user_defined_operations/requirements.txt",
+                f"python3 -m pip install -r {DEFAULT_DIR_REPO}/user_defined_operations/requirements.txt",
                 shell=True,
                 stderr=stderrFD,
                 stdout=stdoutFD,
