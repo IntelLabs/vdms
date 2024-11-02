@@ -3,6 +3,7 @@ import uuid
 import json
 import os
 import sys
+import skvideo.io
 
 DEBUG_MODE = True
 
