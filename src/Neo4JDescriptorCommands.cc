@@ -55,7 +55,6 @@ std::string NeoDescriptorsCommand::get_set_path(const std::string &set_name,
     auto element = _desc_set_locator.find(set_name);
     std::string mapped_path;
 
-
     //if we have a cached location, use that.
     if (element != _desc_set_locator.end()) {
         mapped_path = element->second;
@@ -70,12 +69,10 @@ std::string NeoDescriptorsCommand::get_set_path(const std::string &set_name,
     Json::Value neo4j_resp;
     Json::Value ind_metadata;
     std::string cypher_tx;
-    int rc;
-
+    std::string desc_path_str;
 
     //query for the descriptor set + path info
-    cypher_tx = cypher_tx + "MATCH (DESCSET:VDMS_descset {set_name: '" + set +"'}) return DESCSET:set_path";
-
+    cypher_tx = cypher_tx + "MATCH (DESCSET:VDMS_descset {set_name: '" + set_name +"'}) return DESCSET.set_path, DESCSET.dimensions";
     conn = QueryHandlerNeo4j::neoconn_pool->get_conn();
 
     // begin neo4j transaction
@@ -84,23 +81,34 @@ std::string NeoDescriptorsCommand::get_set_path(const std::string &set_name,
     //issue cypher command and get result stream, convert response to JSON
     res_stream = QueryHandlerNeo4j::neoconn_pool->run_in_tx((char *)cypher_tx.c_str(), tx);
     neo4j_resp = QueryHandlerNeo4j::neoconn_pool->results_to_json(res_stream);
+    QueryHandlerNeo4j::neoconn_pool->put_conn(conn);
 
     if (neo4j_resp.isMember("metadata_res")) {
-        ind_metadata = neo4j_resp[0];
-        std::cout<< ind_metadata << std::endl;
+        if(neo4j_resp["metadata_res"] == Json::Value::null){
+            return "";
+        } else{
+            dim = neo4j_resp["metadata_res"][0]["DESCSET.dimensions"].asInt();
+            desc_path_str = neo4j_resp["metadata_res"][0]["DESCSET.set_path"].asString();
+            _desc_set_dims[set_name] = dim;
+            _desc_set_locator[set_name] = desc_path_str;
+            return desc_path_str;
+        }
     } else {
-        std::cout << "No set found!" << std::endl;
+        std::cout << "Find Set query Failed!" << std::endl;
     }
-
-    //TODO NEED TO RETURN CONNECTION
 
     return "";
 }
 
-
+NeoDescriptorsCommand::NeoDescriptorsCommand(const std::string &cmd_name)
+        : Neo4jCommand(cmd_name) {
+    _dm = DescriptorsManager::instance();
+    output_vcl_timing =
+            VDMSConfig::instance()->get_bool_value("print_vcl_timing", false);
+}
 
 //ADD DESCRIPTOR SET
-Neo4jNeoAddDescSet::Neo4jNeoAddDescSet() : NeoDescriptorsCommand("NeoAddDescSet") {
+Neo4jNeoAddDescSet::Neo4jNeoAddDescSet() : NeoDescriptorsCommand("NeoAddDescriptorSet") {
 
     _storage_sets = VDMSConfig::instance()->get_path_descriptors();
     _flinng_num_rows = 3; // set based on the default values of Flinng
@@ -115,20 +123,22 @@ Neo4jNeoAddDescSet::Neo4jNeoAddDescSet() : NeoDescriptorsCommand("NeoAddDescSet"
 int Neo4jNeoAddDescSet::data_processing(std::string &cypher_tx, const Json::Value &root,
                                         const std::string &blob, int grp_id, Json::Value &error){
 
-
     const Json::Value &cmd = root[_cmd_name];
     std::string set_name = cmd["name"].asString();
+    std::string dimensions = cmd["dimensions"].asString();
+    std::string engine = cmd["engine"].asString();
     std::string desc_set_path = _storage_sets + "/" + set_name;
 
-
-    cypher_tx = "CREATE (VDMSNODE:descset { set_name: '" + set +"', set_path: '" + desc_set_path + "'})";
+    //TODO create constant for DESCSET label
+    cypher_tx = "CREATE (VDMSNODE:VDMS_descset { set_name: '" + set_name +"', set_path: '" + desc_set_path + "'";
+    cypher_tx += ", engine: '" + engine +"' ";
+    cypher_tx += ", dimensions: " + dimensions;
+    cypher_tx += "})";
 
     Json::Value props = get_value<Json::Value>(cmd, "properties");
 
     //loop over properties to create properties for new node
     int dim_prop = cmd["dimensions"].asInt();
-    std::string engine = cmd["engine"].asString();
-
     if (props[VDMS_DESC_SET_ENGIN_PROP] == "Flinng") {
         if (cmd.isMember("flinng_num_rows"))
             _flinng_num_rows = cmd["flinng_num_rows"].asInt();
@@ -143,18 +153,11 @@ int Neo4jNeoAddDescSet::data_processing(std::string &cypher_tx, const Json::Valu
         if (cmd.isMember("flinng_cut_off"))
             _flinng_cut_off = cmd["flinng_cut_off"].asInt();
     }
-
     // This is to throw an error if the desc-set already exists
-    // TODO throw error if descriptor set d oes not already exist
-    // This is going to require creating internal constraints
-    /*Json::Value constraints;
-    constraints[VDMS_DESC_SET_NAME_PROP].append("==");
-    constraints[VDMS_DESC_SET_NAME_PROP].append(cmd["name"].asString());
-
-    query.AddNode(node_ref, VDMS_DESC_SET_TAG, props, constraints);*/
     std::string pathcheck = get_set_path(set_name,dim_prop);
     if (pathcheck != ""){
-        printf("Error: Descriptor set already exists!\n");
+        error["status"] = Neo4jCommand::Error;
+        error["info"] = "Descriptor set already exists!";
         return -1;
     }
 
@@ -173,15 +176,15 @@ Json::Value Neo4jNeoAddDescSet::construct_responses(Json::Value &json_responses,
 
     const Json::Value &cmd = json[_cmd_name];
     Json::Value resp = check_responses(json_responses);
-
     Json::Value ret;
 
     auto error = [&](Json::Value &res) {
         ret[_cmd_name] = res;
         return ret;
-    };
+    };//TODO CHECK THAT HANDLER IS SETTING ERROR
 
-    if (resp["status"] !=  Neo4jCommand::Error) {
+    if (resp["status"] ==  Neo4jCommand::Error) {
+        printf("Status: Error");
         return error(resp);
     }
 
@@ -194,7 +197,6 @@ Json::Value Neo4jNeoAddDescSet::construct_responses(Json::Value &json_responses,
 
     // For now, we use the default faiss index.
     std::string eng_str = get_value<std::string>(cmd, "engine", "FaissFlat");
-
     if (eng_str == "FaissFlat")
         _eng = VCL::FaissFlat;
     else if (eng_str == "FaissIVFFlat")
@@ -219,12 +221,13 @@ Json::Value Neo4jNeoAddDescSet::construct_responses(Json::Value &json_responses,
                                           _flinng_hashes_per_table);
         VCL::DescriptorSet desc_set(desc_set_path, dimensions, _eng, metric, param);
 
-        if (_use_aws_storage) {
+        //TODO AWS storage not currently supported
+        /*if (_use_aws_storage) {
             VCL::RemoteConnection *connection = new VCL::RemoteConnection();
             std::string bucket = VDMSConfig::instance()->get_bucket_name();
             connection->_bucket_name = bucket;
             desc_set.set_connection(connection);
-        }
+        }*/
 
         desc_set.store();
         if (output_vcl_timing) {
@@ -240,7 +243,6 @@ Json::Value Neo4jNeoAddDescSet::construct_responses(Json::Value &json_responses,
         delete (param);
         return error(resp);
     }
-
     resp.clear();
     resp["status"] = Neo4jCommand::Success;
 

@@ -48,16 +48,20 @@ using namespace VDMS;
 
 std::unordered_map<std::string, Neo4jCommand *> QueryHandlerNeo4j::_rs_cmds;
 BackendNeo4j *QueryHandlerNeo4j::neoconn_pool;
-// VCL::RemoteConnection *global_s3_connection;
+
+// Static globals for use in looking up descriptor set locations, defined in
+// DescriptorCommand.h
+tbb::concurrent_unordered_map<std::string, std::string>
+        NeoDescriptorsCommand::_desc_set_locator;
+tbb::concurrent_unordered_map<std::string, int> NeoDescriptorsCommand::_desc_set_dims;
+
 
 void QueryHandlerNeo4j::init() {
+  DescriptorsManager::init();
 
   _rs_cmds["NeoAdd"] = new Neo4jNeoAdd();
   _rs_cmds["NeoFind"] = new Neo4jNeoFind();
-  _rs_cmds["NeoAddDescriptorSet"] =  new Neo4jNeoAddDescSet();
-  _rs_cmds["NeoFindDescriptorSet"] =  new Neo4jNeoFindDescSet();
-  _rs_cmds["NeoAddDescriptor"] = new Neo4jNeoAddDesc();
-  _rs_cmds["NeoFindDescriptor"] = new Neo4jNeoFindDesc();
+  _rs_cmds["NeoAddDescriptorSet"] = new Neo4jNeoAddDescSet();
   // seed random time
   srand((unsigned)time(NULL));
 
@@ -203,8 +207,8 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
     rc = rscmd->data_processing(cypher, query, blob, 0, cmd_result);
 
     if (rc != 0) {
-      printf("Data Processing failed, aborting transaction...\n");
       error = true;
+      proto_res.set_json(fastWriter.write(cmd_result));
       break;
     }
 

@@ -63,14 +63,12 @@ Json::Value Neo4jCommand::check_responses(Json::Value &responses) {
   bool flag_error = false;
   Json::Value ret;
   if (responses.size() == 0) {
-    printf("NO responses found! Setting Errror!\n");
     ret["status"] = Neo4jCommand::Error;
-    ret["info"] = "No responses!";
-    printf("Error Response!\n");
+    ret["info"] = "No Neo4J responses!";
     return ret;
   }
 
-  ret = responses[0];
+  ret = responses["metadata_res"];
 
   if (!flag_error) {
     ret["status"] = Neo4jCommand::Success;
