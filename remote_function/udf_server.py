@@ -9,6 +9,7 @@ import uuid
 from zipfile import ZipFile
 import importlib.util
 from werkzeug.utils import secure_filename
+import skvideo
 
 DEBUG_MODE = True
 
@@ -72,7 +73,7 @@ def setup(functions_path, tmp_path):
                 )
             globals()[module_name] = module
 
-
+    importlib.reload(skvideo)
 app = Flask(__name__)
 
 

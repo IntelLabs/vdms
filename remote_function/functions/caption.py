@@ -3,10 +3,14 @@ import skvideo.io
 import uuid
 import os
 import sys
+import importlib
 
 DEBUG_MODE = True
 
 def run(ipfilename, format, options, tmp_dir_path, functions_path):
+    importlib.reload(skvideo)
+    
+
     if DEBUG_MODE:
         print("Temporary path:", tmp_dir_path, file=sys.stderr)
         print("Functions path:", functions_path, file=sys.stderr)
@@ -20,7 +24,7 @@ def run(ipfilename, format, options, tmp_dir_path, functions_path):
         print("opfilename:", opfilename, file=sys.stderr)
     vs = cv2.VideoCapture(ipfilename)
 
-    video = skvideo.io.FFmpegWriter(opfilename, {"-pix_fmt": "bgr24"})
+    video = skvideo.io.F(opfilename, {"-pix_fmt": "bgr24"})
     print(options)
     i = 0
     while True:

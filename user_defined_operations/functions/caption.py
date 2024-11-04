@@ -2,10 +2,12 @@ import cv2
 import skvideo.io
 import time
 import sys
+import importlib
 
 DEBUG_MODE=True
 
 def run(settings, message, input_params, tmp_dir_path, functions_path):
+    importlib.reload(skvideo)
     if DEBUG_MODE:
         print("Temporary path:", tmp_dir_path, file=sys.stderr)
         print("Functions path:", functions_path, file=sys.stderr)

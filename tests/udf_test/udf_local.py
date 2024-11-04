@@ -3,6 +3,7 @@ import json
 import zmq
 import sys
 import importlib.util
+import skvideo
 
 DEBUG_MODE = True
 
@@ -76,6 +77,8 @@ def setup(functions_path, settings_path, tmp_path):
                     "setup() error: module '" + entry + "' could not be loaded"
                 )
             globals()[module_name] = module
+        
+    importlib.reload(skvideo)
 
     with open(settings_path, "r") as settings_file:
         settings_data = settings_file.read()
