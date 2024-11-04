@@ -927,13 +927,13 @@ TEST_F(ImageTest, ImageLoop) {
   imageLoop.set_nrof_entities(1);
 
   imageLoop.enqueue(&img);
-
   while (imageLoop.is_loop_running()) {
     continue;
   }
-
   std::map<std::string, VCL::Image *> imageMap = imageLoop.get_image_map();
   std::map<std::string, VCL::Image *>::iterator iter = imageMap.begin();
+
+  ASSERT_TRUE(iter->second->get_query_error_response() == "");
 
   while (iter != imageMap.end()) {
     std::vector<unsigned char> img_enc =
@@ -1114,6 +1114,7 @@ TEST_F(ImageTest, RemoteMetadata) {
 
   img.syncremoteOperation(_url, _options);
   cv::Mat vcl_img = img.get_cvmat();
+  ASSERT_TRUE(img.get_ingest_metadata().size() > 0);
   for (auto metadata : img.get_ingest_metadata()) {
     ASSERT_STREQ(metadata["object"].asString().data(), "face");
   }
