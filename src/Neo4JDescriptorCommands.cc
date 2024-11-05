@@ -47,6 +47,20 @@
 
 using namespace VDMS;
 
+void append_results_to_cypher(std::string &tx, Json::Value &results){
+
+    printf("Results Append to Cypher\n");
+    std::cout << results <<std::endl;
+    tx += "return ";
+    for (Json::Value::ArrayIndex i = 0; i != results["list"].size(); i++){
+        if(i == results["list"].size() -1) {
+            tx += "DESCSET." + results["list"][i].asString() + ";";
+        } else {
+            tx += "DESCSET." + results["list"][i].asString() + ", ";
+        }
+    }
+}
+
 std::string NeoDescriptorsCommand::get_set_path(const std::string &set_name,
                                              int &dim) {
 
@@ -250,14 +264,41 @@ Json::Value Neo4jNeoAddDescSet::construct_responses(Json::Value &json_responses,
     return ret;
 }
 
-
-
 //FIND DESCRIPTOR SET
-Neo4jNeoFindDescSet::Neo4jNeoFindDescSet() : NeoDescriptorsCommand("NeoFindDescSet") {}
+Neo4jNeoFindDescSet::Neo4jNeoFindDescSet() : NeoDescriptorsCommand("NeoFindDescriptorSet") {}
 
-int Neo4jNeoFindDescSet::data_processing(std::string &tx, const Json::Value &root,
+int Neo4jNeoFindDescSet::data_processing(std::string &tx, const Json::Value &jsoncmd,
                                          const std::string &blob, int grp_id,
                                          Json::Value &error) {
+
+    const Json::Value &cmd = jsoncmd[_cmd_name];
+    Json::Value results = get_value<Json::Value>(cmd, "results");
+
+    const std::string set_name = cmd["set"].asString();
+    const std::string set_path = _storage_sets + "/" + set_name;
+
+    Json::Value constraints, link;
+    Json::Value name_arr;
+    name_arr.append("==");
+    name_arr.append(set_name);
+    constraints[VDMS_DESC_SET_NAME_PROP] = name_arr;
+
+    Json::Value list_arr;
+    list_arr.append("set_name");
+    list_arr.append("set_path");
+    list_arr.append("engine");
+    list_arr.append("dimensions");
+
+    tx = "MATCH (DESCSET:VDMS_descset {set_name: '" + set_name +"'})";
+
+    results["list"] = list_arr;
+
+    append_results_to_cypher(tx, results);
+    std::cout << "Test Run" << std::endl;
+    std::cout << tx << std::endl;
+
+
+    return 0;
 
     return 0;
 }

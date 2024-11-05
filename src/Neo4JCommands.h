@@ -167,6 +167,8 @@ public:
 
 class Neo4jNeoFindDescSet : public NeoDescriptorsCommand{
 
+    std::string _storage_sets;
+
 public:
     Neo4jNeoFindDescSet();
     bool need_blob(const Json::Value &cmd){return false;};

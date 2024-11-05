@@ -62,6 +62,8 @@ void QueryHandlerNeo4j::init() {
   _rs_cmds["NeoAdd"] = new Neo4jNeoAdd();
   _rs_cmds["NeoFind"] = new Neo4jNeoFind();
   _rs_cmds["NeoAddDescriptorSet"] = new Neo4jNeoAddDescSet();
+  _rs_cmds["NeoFindDescriptorSet"] = new Neo4jNeoFindDescSet();
+
   // seed random time
   srand((unsigned)time(NULL));
 
