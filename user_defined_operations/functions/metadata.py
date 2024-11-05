@@ -30,6 +30,7 @@ def facedetectbbox(frame):
 
 
 def run(settings, message, input_params, tmp_dir_path, functions_path):
+    importlib.reload(cv2)
     importlib.reload(skvideo)
     if DEBUG_MODE:
         print("Temporary path:", tmp_dir_path, file=sys.stderr)

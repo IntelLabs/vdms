@@ -36,6 +36,7 @@ def facedetectbbox(frame):
 
 
 def run(ipfilename, format, options, tmp_dir_path, functions_path):
+    importlib.reload(cv2)
     importlib.reload(skvideo)
 
     if DEBUG_MODE:
