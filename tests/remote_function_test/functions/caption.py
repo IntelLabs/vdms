@@ -8,8 +8,8 @@ import importlib
 DEBUG_MODE = True
 
 def run(ipfilename, format, options, tmp_dir_path, functions_path):
-    importlib.reload(cv2)
-    importlib.reload(skvideo)
+    # importlib.reload(cv2)
+    # importlib.reload(skvideo)
     if DEBUG_MODE:
         print("Temporary path:", tmp_dir_path, file=sys.stderr)
         print("Functions path:", functions_path, file=sys.stderr)

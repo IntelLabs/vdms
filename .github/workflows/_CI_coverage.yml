@@ -232,6 +232,8 @@ jobs:
         id: print_out_logs
         if: ${{ always() }}
         run: |
+          echo "print pip version"
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} pip -V || true
           echo "Python version"
           docker exec ${{ env.SOURCE_CONTAINER_NAME }} python --version || true
           echo "Python3 version"

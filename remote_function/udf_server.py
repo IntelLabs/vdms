@@ -73,8 +73,8 @@ def setup(functions_path, tmp_path):
                 )
             globals()[module_name] = module
 
-    importlib.reload(cv2)
-    importlib.reload(skvideo)
+    # importlib.reload(cv2)
+    # importlib.reload(skvideo)
 
 app = Flask(__name__)
 
