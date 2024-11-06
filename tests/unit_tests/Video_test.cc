@@ -809,10 +809,6 @@ TEST_F(VideoTest, CropWrite) {
  * that undergoes a captioning operation.
  */
 TEST_F(VideoTest, SyncRemoteWrite) {
-  // TODO: Remove the GTEST_SKIP() sentences when this test is fixed
-  GTEST_SKIP() << "Reason to be skipped: This test is failing "
-               << "for non remote tests. "
-               << "Margin of error is higher than the max limit";
   std::string _url = "http://localhost:5010/video";
   Json::Value _options;
   _options["format"] = "mp4";

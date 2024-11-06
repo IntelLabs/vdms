@@ -8,7 +8,6 @@ import uuid
 from zipfile import ZipFile, is_zipfile
 import importlib.util
 from werkzeug.utils import secure_filename
-import skvideo
 
 DEBUG_MODE = True
 
@@ -75,8 +74,7 @@ def setup(functions_path, tmp_path):
                     "setup() error: module '" + entry + "' could not be loaded"
                 )
             globals()[module_name] = module
-    # importlib.reload(cv2)
-    # importlib.reload(skvideo)
+
 app = Flask(__name__)
 
 

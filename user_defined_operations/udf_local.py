@@ -3,8 +3,6 @@ import json
 import zmq
 import sys
 import importlib.util
-import cv2
-import skvideo
 
 DEBUG_MODE=True
 
@@ -73,9 +71,6 @@ def setup(functions_path, settings_path, tmp_path):
             if module is None:
                 raise Exception("setup() error: module '" + entry + "' could not be loaded")
             globals()[module_name] = module
-    # importlib.reload(cv2)
-    # importlib.reload(skvideo)
-
     with open(settings_path, "r") as settings_file:
         settings_data = settings_file.read()
 
