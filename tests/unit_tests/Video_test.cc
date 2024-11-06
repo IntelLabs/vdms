@@ -1388,6 +1388,7 @@ TEST_F(VideoTest, SyncRemoteWriteWithMetadata) {
   _options["id"] = "metadata";
   _options["media_type"] = "video";
   _options["otype"] = "face";
+  _options["ingestion"] = 1;
 
   try {
 
@@ -1403,6 +1404,7 @@ TEST_F(VideoTest, SyncRemoteWriteWithMetadata) {
       VCL::Video video_data(temp_video_input); //
       video_data.syncremoteOperation(_url, _options);
       video_data.store(syncremote_name_vcl, VCL::Video::Codec::H264);
+      ASSERT_TRUE(video_data.get_ingest_metadata().size() > 0);
       for (auto metadata : video_data.get_ingest_metadata()) {
         ASSERT_STREQ(metadata["1"]["bbox"]["object"].asString().data(), "face");
       }
@@ -1439,7 +1441,7 @@ TEST_F(VideoTest, UDFWriteWithMetadata) {
                                  "/video_test_UDFWrite_input.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_input, get_fourcc());
     std::string temp_video_test(VDMS::VDMSConfig::instance()->get_path_tmp() +
-                                "/video_test_UDFemoteWrite_test.avi");
+                                "/video_test_UDFWrite_test.avi");
     copy_video_to_temp(_video_path_avi_xvid, temp_video_test, get_fourcc());
 
     std::string udf_name_vcl("videos_tests/udf_vcl.mp4");

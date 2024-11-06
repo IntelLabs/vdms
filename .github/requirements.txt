@@ -19,4 +19,4 @@ Pygments==2.18.0
 pyzmq==26.0.3
 scipy==1.14.1
 sk-video==1.1.10
-Werkzeug==3.0.4
+Werkzeug==3.0.6
