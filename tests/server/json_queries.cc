@@ -781,7 +781,7 @@ TEST(QueryHandler, CustomFunctionNoProcess) {
 
   reader.parse(response.json().c_str(), parsed);
   const Json::Value &query = parsed[0];
-  EXPECT_EQ(query["info"], "custom function process not found");
+  EXPECT_EQ(query["info"], "custom function process not found") << "Response: " << response.json().c_str();
   EXPECT_EQ(query["status"], -1);
 
   PMGDQueryHandler::destroy();
