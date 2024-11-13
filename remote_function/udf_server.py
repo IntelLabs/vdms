@@ -56,6 +56,8 @@ def image_api():
         return_string += r_meta.encode("utf-8")
 
     os.remove(tmpfile)
+    if return_string == "" or return_string == None:
+        return "error"
     return return_string
 
 
