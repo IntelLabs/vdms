@@ -29,9 +29,9 @@
 
 #pragma once
 
+#include <string>
 #include <time.h>
 #include <vector>
-#include <string>
 
 namespace VCL {
 
