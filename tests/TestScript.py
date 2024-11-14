@@ -1311,10 +1311,10 @@ class TestAbstractTest(unittest.TestCase):
         instance.run_python_tests(testing_args, None, None)
 
         # Assert
-        expected_cmd = ['python3', '-m', 'coverage', 'run', '-a', f'--include="{run_all_tests.DEFAULT_DIR_REPO}/*"', f'--omit="{run_all_tests.DEFAULT_DIR_REPO}/client/python/vdms/queryMessage_pb2.py,{run_all_tests.DEFAULT_DIR_REPO}/tests/*"', '-m', 'unittest']
-        expected_cmd.extend(testing_args.test_name.split())
-        expected_cmd.append('-v')
-        mock_subprocess_run.assert_called_once_with(expected_cmd, text=True, check=True)
+        expected_cmd = f'python3 -m coverage run -a --include="{run_all_tests.DEFAULT_DIR_REPO}/*" --omit="{run_all_tests.DEFAULT_DIR_REPO}/client/python/vdms/queryMessage_pb2.py,{run_all_tests.DEFAULT_DIR_REPO}/tests/*" -m unittest'
+        expected_cmd = expected_cmd + " " + testing_args.test_name
+        expected_cmd = expected_cmd + " -v"
+        mock_subprocess_run.assert_called_once_with(expected_cmd, text=True, check=True, shell=True)
 
     @patch('run_all_tests.subprocess.run')
     def test_run_python_tests_custom_filter(self, mock_subprocess_run):
@@ -1328,10 +1328,10 @@ class TestAbstractTest(unittest.TestCase):
         # Act
         instance.run_python_tests(testing_args, None, None)
 
-        expected_cmd = ['python3', '-m', 'coverage', 'run', '-a', f'--include="{run_all_tests.DEFAULT_DIR_REPO}/*"', f'--omit="{run_all_tests.DEFAULT_DIR_REPO}/client/python/vdms/queryMessage_pb2.py,{run_all_tests.DEFAULT_DIR_REPO}/tests/*"', '-m', 'unittest']
-        expected_cmd.extend(testing_args.test_name.split())
-        expected_cmd.append('-v')
-        mock_subprocess_run.assert_called_once_with(expected_cmd, text=True, check=True)
+        expected_cmd = f'python3 -m coverage run -a --include="{run_all_tests.DEFAULT_DIR_REPO}/*" --omit="{run_all_tests.DEFAULT_DIR_REPO}/client/python/vdms/queryMessage_pb2.py,{run_all_tests.DEFAULT_DIR_REPO}/tests/*" -m unittest'
+        expected_cmd = expected_cmd + " " + testing_args.test_name
+        expected_cmd = expected_cmd + " -v"
+        mock_subprocess_run.assert_called_once_with(expected_cmd, text=True, check=True, shell=True)
 
     @patch('run_all_tests.subprocess.run')
     def test_run_python_tests_exception(self, mock_subprocess_run):
