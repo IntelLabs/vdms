@@ -181,12 +181,11 @@ jobs:
         run: |
           cd ${GITHUB_WORKSPACE}/.github/scripts
 
-          # TODO Uncomment these tests once they are fixed
-          # # E2E Test
-          # echo "${{ env.CMD_STR_e2e }}"
-          # docker exec -w /vdms/tests ${{ env.SOURCE_CONTAINER_NAME }} bash -c "python ${{ env.CMD_STR_e2e }}"
-          # docker kill ${{ env.NEO4J_CONTAINER_NAME }} || true
-          # sleep 15
+          # E2E Test
+          echo "${{ env.CMD_STR_e2e }}"
+          docker exec -w /vdms/tests ${{ env.SOURCE_CONTAINER_NAME }} bash -c "python ${{ env.CMD_STR_e2e }}"
+          docker kill ${{ env.NEO4J_CONTAINER_NAME }} || true
+          sleep 15
 
           AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
             AWS_API_PORT=${{ env.AWS_API_PORT }} \
