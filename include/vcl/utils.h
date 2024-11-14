@@ -31,6 +31,7 @@
 
 #include <time.h>
 #include <vector>
+#include <string>
 
 namespace VCL {
 
