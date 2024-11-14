@@ -33,10 +33,10 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <list>
-#include <filesystem>
 
 #include "helpers.h"
 #include "vcl/VCL.h"
@@ -843,7 +843,7 @@ TEST(Descriptors_Add, add_2_times_same_tdbsparse) {
     }
 
     std::string index_filename = dir_path + "/add_2_times_same_tdbsparse_" +
-                                  std::to_string(d) + "_" + std::to_string(eng);
+                                 std::to_string(d) + "_" + std::to_string(eng);
 
     VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 

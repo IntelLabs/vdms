@@ -969,9 +969,7 @@ class AbstractTest(ABC):
             if stop_on_failure_value != "":
                 cmd.append(stop_on_failure_value)
 
-            subprocess.run(
-                cmd, text=True, check=True
-            )
+            subprocess.run(cmd, text=True, check=True)
 
         except Exception as e:
             raise Exception("run_google_tests() error: " + str(e))
@@ -1093,15 +1091,13 @@ class AbstractTest(ABC):
             # To avoid BASH injection, the test_name is escaped
             test_name = testingArgs.test_name
             if testingArgs.test_name != DEFAULT_PYTHON_TEST_FILTER:
-                test_name = testingArgs.test_name
+                test_name = quote(testingArgs.test_name)
 
-            cmd = ['python3', '-m', 'coverage', 'run', '-a', f'--include="{DEFAULT_DIR_REPO}/*"', f'--omit="{DEFAULT_DIR_REPO}/client/python/vdms/queryMessage_pb2.py,{DEFAULT_DIR_REPO}/tests/*"', '-m', 'unittest']
-            cmd.extend(test_name.split())
-            cmd.append('-v')
+            cmd = f'python3 -m coverage run -a --include="{DEFAULT_DIR_REPO}/*" --omit="{DEFAULT_DIR_REPO}/client/python/vdms/queryMessage_pb2.py,{DEFAULT_DIR_REPO}/tests/*" -m unittest'
+            cmd = cmd + " " + test_name
+            cmd = cmd + " -v"
 
-            subprocess.run(
-                cmd, text=True, check=True
-            )
+            subprocess.run(cmd, text=True, check=True, shell=True)
 
         except Exception as e:
             raise Exception("run_python_tests() error: " + str(e))
@@ -1451,7 +1447,7 @@ class NonRemoteTest(AbstractTest):
                 stderr=stderrFD,
                 stdout=stdoutFD,
                 text=True,
-                check=True
+                check=True,
             )
 
         except Exception as e:
@@ -1562,7 +1558,7 @@ class NonRemoteTest(AbstractTest):
                 stderr=stderrFD,
                 stdout=stdoutFD,
                 text=True,
-                check=True
+                check=True,
             )
 
         except Exception as e:
@@ -2065,7 +2061,6 @@ class RemoteTest(AbstractTest):
         testsStdoutFD = ""
         minioStderrFD = ""
         minioStdoutFD = ""
-
 
         if DEBUG_MODE:
             print("RemoteTest::run() was called")

@@ -27,15 +27,15 @@
  *
  */
 
-#include <cpuid.h>
-#include <sstream>
-#include <string>
-#include <sys/stat.h>
-#include <filesystem>
+#include "vcl/utils.h"
 #include "../VDMSConfig.h"
 #include "vcl/Exception.h"
 #include "vcl/Image.h"
-#include "vcl/utils.h"
+#include <cpuid.h>
+#include <filesystem>
+#include <sstream>
+#include <string>
+#include <sys/stat.h>
 
 namespace fs = std::filesystem;
 namespace VCL {
@@ -129,7 +129,7 @@ std::string get_extension(const std::string &object_id) {
 
   // In case of the "." character is before than the last "/" character
   // that means the filename does not have extension
-  if (file_ext < dir_ext){
+  if (file_ext < dir_ext) {
     return "";
   }
 

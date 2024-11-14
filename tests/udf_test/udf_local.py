@@ -24,6 +24,7 @@ def import_module_from_path(module_name, path):
         print("import_module_from_path() failed:", str(e), file=sys.stderr)
         return None
 
+
 def setup(functions_path, settings_path, tmp_path):
     global tmp_dir_path
     global functions_dir_path

@@ -4,6 +4,7 @@ import time
 
 TEMPORARY_DIR = "/tmp"
 
+
 def print_and_flush(message):
     print(message, flush=True)
 

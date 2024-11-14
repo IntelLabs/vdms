@@ -31,8 +31,8 @@
 
 #include <filesystem>
 
-#include "PMGDQueryHandler.h"
 #include "PMGDIterators.h"
+#include "PMGDQueryHandler.h"
 #include "VDMSConfig.h"
 #include "defines.h"
 #include "util.h" // PMGD util
@@ -60,7 +60,6 @@ void PMGDQueryHandler::init() {
   // These parameters can be loaded everytime VDMS is run.
   // We need PMGD to support these as config params before we can do it here.
 
-  
   if (_db != nullptr) {
     delete _db;
     _db = nullptr;

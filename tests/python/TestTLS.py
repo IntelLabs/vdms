@@ -6,6 +6,7 @@ import os
 
 TEMPORARY_DIR = "/tmp"
 
+
 class TestTLS(unittest.TestCase):
     untrusted_client_key = None
     untrusted_client_cert = None
@@ -30,13 +31,29 @@ class TestTLS(unittest.TestCase):
         cls.untrusted_client_cert = TEMPORARY_DIR + "/untrusted_client_cert.pem"
         cls.untrusted_client_key = TEMPORARY_DIR + "/untrusted_client_key.pem"
 
-        cls.assertTrue(os.path.exists(cls.trusted_ca_cert), "trusted_ca_cert doesn't exist")
-        cls.assertTrue(os.path.exists(cls.trusted_server_cert), "trusted_server_cert doesn't exist")
-        cls.assertTrue(os.path.exists(cls.trusted_server_key), "trusted_server_key doesn't exist")
-        cls.assertTrue(os.path.exists(cls.trusted_client_cert), "trusted_client_cert doesn't exist")
-        cls.assertTrue(os.path.exists(cls.trusted_client_key), "trusted_client_key doesn't exist")
-        cls.assertTrue(os.path.exists(cls.untrusted_client_cert), "untrusted_client_cert doesn't exist")
-        cls.assertTrue(os.path.exists(cls.untrusted_client_key), "untrusted_client_key doesn't exist")
+        cls.assertTrue(
+            os.path.exists(cls.trusted_ca_cert), "trusted_ca_cert doesn't exist"
+        )
+        cls.assertTrue(
+            os.path.exists(cls.trusted_server_cert), "trusted_server_cert doesn't exist"
+        )
+        cls.assertTrue(
+            os.path.exists(cls.trusted_server_key), "trusted_server_key doesn't exist"
+        )
+        cls.assertTrue(
+            os.path.exists(cls.trusted_client_cert), "trusted_client_cert doesn't exist"
+        )
+        cls.assertTrue(
+            os.path.exists(cls.trusted_client_key), "trusted_client_key doesn't exist"
+        )
+        cls.assertTrue(
+            os.path.exists(cls.untrusted_client_cert),
+            "untrusted_client_cert doesn't exist",
+        )
+        cls.assertTrue(
+            os.path.exists(cls.untrusted_client_key),
+            "untrusted_client_key doesn't exist",
+        )
 
         cls.props = {}
         cls.props["place"] = "Mt Rainier"

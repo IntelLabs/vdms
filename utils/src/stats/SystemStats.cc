@@ -50,7 +50,8 @@ const std::string TEMPORARY_DIR = "/tmp";
 
 SystemStats::SystemStats() {
   m_numProcessors = 0;
-  std::string tmp_dir = TEMPORARY_DIR + "/"; // Could VDMS config file be called from utils?
+  std::string tmp_dir =
+      TEMPORARY_DIR + "/"; // Could VDMS config file be called from utils?
   std::string filename =
       tmp_dir + get_filename_prefix() + std::to_string(get_epoch());
   set_log_filename(filename);

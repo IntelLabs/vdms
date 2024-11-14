@@ -215,9 +215,9 @@ void DescriptorSet::store() {
     _set->store();
     write_set_info();
 
-    // grab the descriptor files from local storage, upload them, delete the local
-    // copies not deleting the local copies currently to resolve concurrency
-    // issues
+    // grab the descriptor files from local storage, upload them, delete the
+    // local copies not deleting the local copies currently to resolve
+    // concurrency issues
     if (_storage == VDMS::StorageType::AWS) {
       std::string dir_path = _set->get_path();
       std::vector<std::string> filenames;
@@ -230,7 +230,7 @@ void DescriptorSet::store() {
         bool result = _remote->Write(filenames[i]);
         if (!result) {
           throw VCLException(ObjectNotFound,
-                            "Descriptor: File was not added: " + filenames[i]);
+                             "Descriptor: File was not added: " + filenames[i]);
         }
         // std::remove(filename.c_str());
       }

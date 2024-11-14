@@ -75,6 +75,7 @@ def setup(functions_path, tmp_path):
                 )
             globals()[module_name] = module
 
+
 app = Flask(__name__)
 
 

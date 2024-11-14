@@ -539,7 +539,7 @@ void Image::UserOperation::operator()(Image *img) {
         zmq::socket_t socket(context, zmq::socket_type::req);
 
         // This is setting a timeout for avoiding infinite loops
-        socket.setsockopt(ZMQ_SNDTIMEO, 10000);// milliseconds
+        socket.setsockopt(ZMQ_SNDTIMEO, 10000); // milliseconds
         socket.setsockopt(ZMQ_RCVTIMEO, 30000);
 
         std::string port = _options["port"].asString();
@@ -600,13 +600,14 @@ void Image::UserOperation::operator()(Image *img) {
           img->set_ingest_metadata(message["metadata"]);
         } else {
           if (response == "") {
-            std::string errorMessage = "UserOperation error: Timeout, no response from the server";
+            std::string errorMessage =
+                "UserOperation error: Timeout, no response from the server";
             std::cout << errorMessage << std::endl;
             throw VCLException(SystemNotFound, errorMessage);
-          }          
+          }
           opfile = response;
           std::ifstream rfile;
-          rfile.open(opfile);         
+          rfile.open(opfile);
 
           if (rfile) {
             rfile.close();
@@ -614,7 +615,8 @@ void Image::UserOperation::operator()(Image *img) {
             if (std::remove(filePath.data()) != 0) {
               throw VCLException(ObjectNotFound, "Unable to remove file");
             }
-            throw VCLException(OpenFailed, "UDF Error with file: " + filePath + ". Response:" + opfile);
+            throw VCLException(OpenFailed, "UDF Error with file: " + filePath +
+                                               ". Response:" + opfile);
           }
 
           VCL::Image res_image(opfile);

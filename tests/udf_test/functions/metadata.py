@@ -7,6 +7,7 @@ DEBUG_MODE = True
 
 face_cascade = None
 
+
 def set_face_cascade(functions_path):
     global face_cascade
     haarcascade_frontalface_default_path = os.path.join(

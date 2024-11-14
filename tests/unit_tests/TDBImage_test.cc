@@ -26,11 +26,11 @@
  * THE SOFTWARE.
  *
  */
+#include <filesystem>
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <string>
-#include <filesystem>
 
 #include "TDBImage.h"
 #include "TDBObject.h"
@@ -291,7 +291,6 @@ TEST_F(TDBImageTest, OperatorEquals) {
   EXPECT_EQ(TMP_DIRNAME + "tdb/operator_equals.tdb", tdb.get_object_id());
   tdb.write(cv_img_);
   EXPECT_EQ(tdb.get_image_height(), cv_img_.rows);
-  
 
   VCL::TDBImage imgcopy;
 
@@ -386,7 +385,7 @@ TEST_F(TDBImageTest, WriteString) {
   long c = tdb.get_image_channels();
 
   EXPECT_EQ(h * w * c, tdb.get_image_size());
-  
+
   VCL::TDBImage tdb2(tdb_img_);
 
   ASSERT_THROW(tdb2.write(tdb_test_), VCL::Exception);
@@ -542,7 +541,7 @@ TEST_F(TDBImageTest, DeleteImageAfterRead) {
   compare_mat_mat(copy, cv_img_);
 
   imgcopy.write(TMP_DIRNAME + "tdb/copied.tdb");
-  
+
   VCL::TDBImage tdb2(TMP_DIRNAME + "tdb/copied.tdb");
 
   tdb2.read();

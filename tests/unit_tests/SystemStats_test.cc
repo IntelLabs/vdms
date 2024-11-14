@@ -338,7 +338,8 @@ TEST_F(SystemStatsTest, get_totals_info_WHEN_IS_UNFORMATTED_TEST) {
   try {
     // Prepare the test
     MockSystemStats systemStats;
-    std::string filename = TEMPORARY_DIR + "/get_totals_info_WHEN_IS_UNFORMATTED_TEST.txt";
+    std::string filename =
+        TEMPORARY_DIR + "/get_totals_info_WHEN_IS_UNFORMATTED_TEST.txt";
     FILE *w_file = fopen(filename.c_str(), "w");
     if (w_file) {
       fwrite("test\n", sizeof(char), sizeof("test\n"), w_file);
@@ -815,7 +816,8 @@ TEST_F(SystemStatsTest, get_process_virtual_memory_TEST) {
 
     long long expected_virtual_memory_process = 8220;
 
-    std::string filename = TEMPORARY_DIR + "/get_process_virtual_memory_TEST.txt";
+    std::string filename =
+        TEMPORARY_DIR + "/get_process_virtual_memory_TEST.txt";
     FILE *w_file = fopen(filename.c_str(), "w");
     if (w_file) {
       // Fills the file with the expected data
@@ -945,7 +947,8 @@ TEST_F(SystemStatsTest, get_process_physical_memory_TEST) {
     MockSystemStats systemStats;
     long long expected_physical_memory_process = 584;
 
-    std::string filename = TEMPORARY_DIR + "/get_process_physical_memory_TEST.txt";
+    std::string filename =
+        TEMPORARY_DIR + "/get_process_physical_memory_TEST.txt";
     FILE *w_file = fopen(filename.c_str(), "w");
     if (w_file) {
       // Fills the file with the expected data
@@ -1001,7 +1004,8 @@ TEST_F(SystemStatsTest, get_process_physical_memory_WHEN_IS_NULL_TEST) {
 }
 
 TEST_F(SystemStatsTest, get_process_physical_memory_WHEN_LINE_IS_INVALID_TEST) {
-  std::string filename = TEMPORARY_DIR + "/get_process_physical_memory_TEST.txt";
+  std::string filename =
+      TEMPORARY_DIR + "/get_process_physical_memory_TEST.txt";
 
   try {
     // Prepare the test
