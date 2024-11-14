@@ -26,10 +26,10 @@
  * THE SOFTWARE.
  *
  */
-#include <mutex>
-#include <vector>
 #include <filesystem>
+#include <mutex>
 #include <stdlib.h> /* system, NULL, EXIT_FAILURE */
+#include <vector>
 
 #include "gtest/gtest.h"
 
@@ -37,7 +37,6 @@
 #include "VDMSConfig.h"
 #include "pmgd.h"
 #include "pmgdMessages.pb.h" // Protobuff implementation
-
 
 using namespace PMGD;
 using namespace VDMS;
@@ -436,7 +435,7 @@ TEST(PMGDQueryHandler, queryTestList) {
     EXPECT_EQ(nodecount, 2) << "Not enough nodes found";
     EXPECT_EQ(propcount, 2) << "Not enough properties read";
   }
-  
+
   PMGDQueryHandler::destroy();
   std::string dbname = VDMSConfig::instance()->get_path_pmgd();
   std::filesystem::remove_all(dbname.c_str());
@@ -875,9 +874,9 @@ TEST(PMGDQueryHandler, queryNeighborTestSum) {
 TEST(PMGDQueryHandler, addConstrainedTest) {
   VDMSConfig::init("unit_tests/config-pmgd-tests.json");
   PMGDQueryHandler::init();
-  
+
   addConstraints();
-  
+
   PMGDQueryHandler::destroy();
   std::string dbname = VDMSConfig::instance()->get_path_pmgd();
   std::filesystem::remove_all(dbname.c_str());
@@ -1422,7 +1421,7 @@ TEST(PMGDQueryHandler, queryTestSortedLimitedAverage) {
   }
   PMGDQueryHandler::destroy();
   std::string dbname = VDMSConfig::instance()->get_path_pmgd();
-  std::filesystem::remove_all(dbname.c_str());  
+  std::filesystem::remove_all(dbname.c_str());
   VDMSConfig::destroy();
 }
 

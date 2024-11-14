@@ -2,7 +2,8 @@ import cv2
 import time
 import sys
 
-DEBUG_MODE=True
+DEBUG_MODE = True
+
 
 def run(settings, message, input_params, tmp_dir_path, functions_path):
     if DEBUG_MODE:
@@ -19,11 +20,13 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
     if DEBUG_MODE:
         print("opfilename:", opfilename, file=sys.stderr)
     vs = cv2.VideoCapture(ipfilename)
-    
+
     frame_width = int(vs.get(3))
     frame_height = int(vs.get(4))
 
-    video = cv2.VideoWriter(opfilename,cv2.VideoWriter_fourcc(*'XVID'), 30, (frame_width, frame_height))
+    video = cv2.VideoWriter(
+        opfilename, cv2.VideoWriter_fourcc(*"XVID"), 30, (frame_width, frame_height)
+    )
     # video = skvideo.io.FFmpegWriter(opfilename, {"-pix_fmt": "bgr24"})
 
     i = 0
@@ -31,7 +34,7 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
         (grabbed, frame) = vs.read()
         if not grabbed:
             print("[INFO] no frame read from stream - exiting")
-            #video.close()
+            # video.close()
             # sys.exit(0)
             break
 
@@ -40,7 +43,7 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
             frame, label, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2
         )
 
-        #video.writeFrame(frame)
+        # video.writeFrame(frame)
         video.write(frame)
     video.release()
 

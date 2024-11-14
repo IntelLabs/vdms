@@ -1148,7 +1148,6 @@ class TestAbstractTest(unittest.TestCase):
         # Check if the correct print statements were made
         mock_print.assert_any_call("Starting Google tests: MyTest...")
 
-
     @patch("run_all_tests.subprocess.Popen")
     @patch("run_all_tests.print")
     def test_run_google_tests_with_exception(self, mock_print, mock_popen):
@@ -1299,7 +1298,7 @@ class TestAbstractTest(unittest.TestCase):
         self.assertEqual(str(context.exception), expected_message)
 
     #### Tests for run_python_tests() ####
-    @patch('run_all_tests.subprocess.run')
+    @patch("run_all_tests.subprocess.run")
     def test_run_python_tests_default_filter(self, mock_subprocess_run):
         # Arrange
         mock_subprocess_run.return_value = None  # simulate successful run
@@ -1314,9 +1313,11 @@ class TestAbstractTest(unittest.TestCase):
         expected_cmd = f'python3 -m coverage run -a --include="{run_all_tests.DEFAULT_DIR_REPO}/*" --omit="{run_all_tests.DEFAULT_DIR_REPO}/client/python/vdms/queryMessage_pb2.py,{run_all_tests.DEFAULT_DIR_REPO}/tests/*" -m unittest'
         expected_cmd = expected_cmd + " " + testing_args.test_name
         expected_cmd = expected_cmd + " -v"
-        mock_subprocess_run.assert_called_once_with(expected_cmd, text=True, check=True, shell=True)
+        mock_subprocess_run.assert_called_once_with(
+            expected_cmd, text=True, check=True, shell=True
+        )
 
-    @patch('run_all_tests.subprocess.run')
+    @patch("run_all_tests.subprocess.run")
     def test_run_python_tests_custom_filter(self, mock_subprocess_run):
         # Arrange
         custom_filter = "custom_test"
@@ -1331,12 +1332,16 @@ class TestAbstractTest(unittest.TestCase):
         expected_cmd = f'python3 -m coverage run -a --include="{run_all_tests.DEFAULT_DIR_REPO}/*" --omit="{run_all_tests.DEFAULT_DIR_REPO}/client/python/vdms/queryMessage_pb2.py,{run_all_tests.DEFAULT_DIR_REPO}/tests/*" -m unittest'
         expected_cmd = expected_cmd + " " + testing_args.test_name
         expected_cmd = expected_cmd + " -v"
-        mock_subprocess_run.assert_called_once_with(expected_cmd, text=True, check=True, shell=True)
+        mock_subprocess_run.assert_called_once_with(
+            expected_cmd, text=True, check=True, shell=True
+        )
 
-    @patch('run_all_tests.subprocess.run')
+    @patch("run_all_tests.subprocess.run")
     def test_run_python_tests_exception(self, mock_subprocess_run):
         # Arrange
-        mock_subprocess_run.side_effect = subprocess.CalledProcessError(1, 'cmd')  # simulate command failure
+        mock_subprocess_run.side_effect = subprocess.CalledProcessError(
+            1, "cmd"
+        )  # simulate command failure
         testing_args = TestingArgs()
         testing_args.test_name = DEFAULT_PYTHON_TEST_FILTER
         instance = ConcreteClass()
@@ -1344,7 +1349,7 @@ class TestAbstractTest(unittest.TestCase):
         # Act & Assert
         with self.assertRaises(Exception) as context:
             instance.run_python_tests(testing_args, None, None)
-        
+
         self.assertTrue("run_python_tests() error: " in str(context.exception))
 
     #### Tests for write_to_fd() ####
@@ -2256,9 +2261,7 @@ class TestNonRemoteTest(unittest.TestCase):
 
     #### Tests for setup_requirements_for_local_udf_message_queue ####
     @patch("run_all_tests.subprocess.run")
-    def test_setup_requirements_for_local_udf_message_queue_success(
-        self, mock_run
-    ):
+    def test_setup_requirements_for_local_udf_message_queue_success(self, mock_run):
         nonRemoteTest = NonRemoteTest()
 
         # Mock file descriptors

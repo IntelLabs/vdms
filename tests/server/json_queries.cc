@@ -27,13 +27,13 @@
  *
  */
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <mutex>
 #include <stdlib.h> /* system, NULL, EXIT_FAILURE */
 #include <string>
 #include <vector>
-#include <filesystem>
 
 #include "gtest/gtest.h"
 #include <jsoncpp/json/writer.h>
@@ -609,7 +609,7 @@ TEST(QueryHandler, AutoDeleteNode) {
   Json::StyledWriter writer;
 
   std::ifstream ifile;
- 
+
   int fsize;
   char *inBuf;
   ifile.open("server/DataTypeChecks.json", std::ifstream::in);
@@ -648,7 +648,6 @@ TEST(QueryHandler, AutoDeleteNode) {
             1544069566053);
   EXPECT_EQ(query["FindEntity"]["entities"][1]["Birthday"].asString(),
             "1946-10-01T17:49:24.009010-07:00");
-
 
   ifile.open("server/AutoDeleteNodeInit.json", std::ifstream::in);
   ifile.seekg(0, std::ios::end);
@@ -853,7 +852,7 @@ TEST(QueryHandler, AddFind_DescriptorSet) {
     std::string cmd = query.getMemberNames()[0];
     EXPECT_EQ(query[cmd]["status"].asInt(), 0);
   }
-  
+
   filesystem::remove_all("test_db_1");
 
   PMGDQueryHandler::destroy();

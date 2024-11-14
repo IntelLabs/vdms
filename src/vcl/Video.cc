@@ -28,8 +28,8 @@
  */
 
 #include <algorithm>
-#include <fstream>
 #include <filesystem>
+#include <fstream>
 
 #include "../VDMSConfig.h"
 #include "VDMSConfigHelper.h"
@@ -491,19 +491,19 @@ void Video::store_video_no_operation(std::string id, std::string store_id,
     }
   }
   _video_id = store_id;
-  if (!std::filesystem::exists(fname.data())){
-    throw VCLException(ObjectEmpty,
-                        "Error encountered while finding the src file: " + fname);
+  if (!std::filesystem::exists(fname.data())) {
+    throw VCLException(
+        ObjectEmpty, "Error encountered while finding the src file: " + fname);
   }
 
   try {
-    std::string parent_dir = std::filesystem::path(_video_id.data()).parent_path();
+    std::string parent_dir =
+        std::filesystem::path(_video_id.data()).parent_path();
     std::filesystem::create_directories(parent_dir);
     std::filesystem::rename(fname.data(), _video_id.data());
-  }
-  catch(...){
-    throw VCLException(ObjectEmpty, 
-                      "Error encountered while renaming the file.");
+  } catch (...) {
+    throw VCLException(ObjectEmpty,
+                       "Error encountered while renaming the file.");
   }
 }
 
@@ -666,7 +666,8 @@ void Video::perform_operations(bool is_store, std::string store_id) {
 
         if (!_no_blob) {
           // std::rename requires the directory exists
-          std::string parent_dir = std::filesystem::path(store_id.data()).parent_path();
+          std::string parent_dir =
+              std::filesystem::path(store_id.data()).parent_path();
           std::filesystem::create_directories(parent_dir);
           if (std::rename(fname.data(), store_id.data()) != 0) {
             throw VCLException(ObjectEmpty,
@@ -674,7 +675,8 @@ void Video::perform_operations(bool is_store, std::string store_id) {
           }
         } else {
           // std::rename requires the directory exists
-          std::string parent_dir = std::filesystem::path(_video_id.data()).parent_path();
+          std::string parent_dir =
+              std::filesystem::path(_video_id.data()).parent_path();
           std::filesystem::create_directories(parent_dir);
           if (std::rename(fname.data(), _video_id.data()) != 0) {
             throw VCLException(ObjectEmpty,
@@ -1018,7 +1020,8 @@ Json::Value process_response(std::string zip_file_name,
   if (!archive) {
     zip_error_t error;
     zip_error_init_with_code(&error, zip_err);
-    std::string errorMessage = "Failed to open the zip file: " + std::string(zipFileName);
+    std::string errorMessage =
+        "Failed to open the zip file: " + std::string(zipFileName);
     errorMessage += ". Error: " + std::string(zip_error_strerror(&error));
     zip_error_fini(&error);
 
@@ -1172,7 +1175,8 @@ void Video::SyncRemoteOperation::operator()(Video *video, cv::Mat &frame,
         // Throw exceptions for different error codes received from the remote
         // server
         if (http_status_code != 200) {
-          std::cerr << "SyncRemoteOperation returned status code: " << http_status_code << std::endl;
+          std::cerr << "SyncRemoteOperation returned status code: "
+                    << http_status_code << std::endl;
           if (http_status_code == 0) {
             throw VCLException(ObjectEmpty, "Remote server is not running.");
           }
@@ -1249,7 +1253,7 @@ void Video::UserOperation::operator()(Video *video, cv::Mat &frame,
       zmq::context_t context(1);
       zmq::socket_t socket(context, zmq::socket_type::req);
       // This is setting a timeout for avoiding infinite loops
-      socket.setsockopt(ZMQ_SNDTIMEO, 10000);// milliseconds
+      socket.setsockopt(ZMQ_SNDTIMEO, 10000); // milliseconds
       socket.setsockopt(ZMQ_RCVTIMEO, 30000);
 
       std::string port = _options["port"].asString();
@@ -1291,7 +1295,8 @@ void Video::UserOperation::operator()(Video *video, cv::Mat &frame,
         video->set_ingest_metadata(message["metadata"]);
       } else {
         if (response == "") {
-          std::string errorMessage = "UserOperation error: Timeout, no response from the server";
+          std::string errorMessage =
+              "UserOperation error: Timeout, no response from the server";
           std::cout << errorMessage << std::endl;
           throw VCLException(SystemNotFound, errorMessage);
         }

@@ -969,9 +969,7 @@ class AbstractTest(ABC):
             if stop_on_failure_value != "":
                 cmd.append(stop_on_failure_value)
 
-            subprocess.run(
-                cmd, text=True, check=True
-            )
+            subprocess.run(cmd, text=True, check=True)
 
         except Exception as e:
             raise Exception("run_google_tests() error: " + str(e))
@@ -1099,9 +1097,7 @@ class AbstractTest(ABC):
             cmd = cmd + " " + test_name
             cmd = cmd + " -v"
 
-            subprocess.run(
-                cmd, text=True, check=True, shell=True
-            )
+            subprocess.run(cmd, text=True, check=True, shell=True)
 
         except Exception as e:
             raise Exception("run_python_tests() error: " + str(e))
@@ -1451,7 +1447,7 @@ class NonRemoteTest(AbstractTest):
                 stderr=stderrFD,
                 stdout=stdoutFD,
                 text=True,
-                check=True
+                check=True,
             )
 
         except Exception as e:
@@ -1562,7 +1558,7 @@ class NonRemoteTest(AbstractTest):
                 stderr=stderrFD,
                 stdout=stdoutFD,
                 text=True,
-                check=True
+                check=True,
             )
 
         except Exception as e:
@@ -2065,7 +2061,6 @@ class RemoteTest(AbstractTest):
         testsStdoutFD = ""
         minioStderrFD = ""
         minioStdoutFD = ""
-
 
         if DEBUG_MODE:
             print("RemoteTest::run() was called")

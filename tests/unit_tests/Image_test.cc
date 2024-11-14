@@ -557,10 +557,10 @@ TEST_F(ImageTest, SetDataFromEncoded) {
 TEST_F(ImageTest, Read) {
   VCL::ImageTest img_data;
   img_data.set_format("jpg");
-  
+
   ASSERT_THROW(img_data.read("test_images/.jpg"), VCL::Exception);
   img_data.read("test_images/large1");
-  
+
   EXPECT_EQ("test_images/large1.jpg", img_data.get_image_id());
 }
 
@@ -1046,7 +1046,7 @@ TEST_F(ImageTest, ImagePathError) {
   std::string temp_image_path(VDMS::VDMSConfig::instance()->get_path_tmp() +
                               "/pathimagepatherror.jpg");
 
-  if (fs::exists(fs::path(temp_image_path))){
+  if (fs::exists(fs::path(temp_image_path))) {
     EXPECT_TRUE(std::remove(temp_image_path.data()) == 0);
   }
 
@@ -1067,7 +1067,7 @@ TEST_F(ImageTest, UDFMetadata) {
   ASSERT_TRUE(fs::exists(fs::path(inputFile)));
   std::string temp_image_path(VDMS::VDMSConfig::instance()->get_path_tmp() +
                               "/pathimageudfmetadata.jpg");
-  if(fs::exists(fs::path(temp_image_path))){
+  if (fs::exists(fs::path(temp_image_path))) {
     EXPECT_TRUE(std::remove(temp_image_path.data()) == 0);
   }
   std::filesystem::copy_file(inputFile, temp_image_path);
@@ -1096,9 +1096,9 @@ TEST_F(ImageTest, RemoteMetadata) {
   std::string temp_image_path(VDMS::VDMSConfig::instance()->get_path_tmp() +
                               "/rpathimage.jpg");
 
-  if (fs::exists(fs::path(temp_image_path))){
+  if (fs::exists(fs::path(temp_image_path))) {
     EXPECT_TRUE(std::remove(temp_image_path.data()) == 0);
-  }  
+  }
   std::filesystem::copy_file(inputFile, temp_image_path);
   ASSERT_TRUE(fs::exists(fs::path(temp_image_path)));
 
@@ -1128,7 +1128,7 @@ TEST_F(ImageTest, UDFNoMetadata) {
   std::string temp_image_path(VDMS::VDMSConfig::instance()->get_path_tmp() +
                               "/pathimagenometadata.jpg");
 
-  if (fs::exists(fs::path(temp_image_path))){
+  if (fs::exists(fs::path(temp_image_path))) {
     EXPECT_TRUE(std::remove(temp_image_path.data()) == 0);
   }
 

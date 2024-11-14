@@ -116,7 +116,7 @@ protected:
 
   void add_find_img_test() {
 
-    try{
+    try {
 
       std::string image;
       Meta_Data *meta_obj = new Meta_Data();
@@ -137,7 +137,7 @@ protected:
       Json::Value tuple;
 
       tuple = construct_cypher_add_img("test_prop_name", "test_prop_value",
-                                      "test_label", "jpg", ops_tuple);
+                                       "test_label", "jpg", ops_tuple);
 
       // get binary image blob
       std::vector<std::string *> blobs;
@@ -163,10 +163,9 @@ protected:
       Json::Value find_ops_tuple;
       find_ops_tuple.append(find_op);
 
-
       Json::Value find_tuple;
       find_tuple = construct_cypher_find_img("test_prop_name", "test_label",
-                                            "jpg", find_ops_tuple);
+                                             "jpg", find_ops_tuple);
       response = qclient.query(meta_obj->_fastwriter.write(find_tuple));
 
       meta_obj->_reader.parse(response.json.c_str(), result);
@@ -185,15 +184,16 @@ protected:
       print_exception(e);
       FAIL() << "VCL::Exception in add_find_img_test()" << std::endl;
     } catch (std::exception &e) {
-        std::string error_message = std::string("Exception in add_find_img_test(): ") + e.what();
-        std::cerr << error_message << std::endl;
-        FAIL() << error_message;
+      std::string error_message =
+          std::string("Exception in add_find_img_test(): ") + e.what();
+      std::cerr << error_message << std::endl;
+      FAIL() << error_message;
     }
   }
 
   void add_find_md_test() {
 
-    try{
+    try {
       Meta_Data *meta_obj = new Meta_Data();
       VDMS::VDMSClient qclient(vdms_server_, vdms_port_);
       VDMS::Response response;
@@ -202,26 +202,25 @@ protected:
       std::string md_res_1;
       std::string md_res_2;
 
-
       // Construct 2 add queries
       tuple = construct_cypher_add_md("test_md_name", "test_md_value_1",
                                       "md_only_label");
       response = qclient.query(meta_obj->_fastwriter.write(tuple));
-      //TODO Delete this line
+      // TODO Delete this line
       std::cerr << "Response 1:" << response.json.c_str() << std::endl;
-
 
       tuple = construct_cypher_add_md("test_md_name", "test_md_value_2",
                                       "md_only_label");
       response = qclient.query(meta_obj->_fastwriter.write(tuple));
 
-
       tuple = construct_cypher_find_md("test_md_name", "md_only_label");
       response = qclient.query(meta_obj->_fastwriter.write(tuple));
 
       meta_obj->_reader.parse(response.json.c_str(), result);
-      md_res_1 = result[0]["metadata_res"][0]["VDMSNODE.test_md_name"].asString();
-      md_res_2 = result[0]["metadata_res"][1]["VDMSNODE.test_md_name"].asString();
+      md_res_1 =
+          result[0]["metadata_res"][0]["VDMSNODE.test_md_name"].asString();
+      md_res_2 =
+          result[0]["metadata_res"][1]["VDMSNODE.test_md_name"].asString();
       delete meta_obj;
 
       ASSERT_STREQ(md_res_1.c_str(), "test_md_value_1");
@@ -230,9 +229,10 @@ protected:
       print_exception(e);
       FAIL() << "VCL::Exception in add_find_md_test()" << std::endl;
     } catch (std::exception &e) {
-        std::string error_message = std::string("Exception in add_find_md_test(): ") + e.what();
-        std::cerr << error_message << std::endl;
-        FAIL() << error_message;
+      std::string error_message =
+          std::string("Exception in add_find_md_test(): ") + e.what();
+      std::cerr << error_message << std::endl;
+      FAIL() << error_message;
     }
   }
 

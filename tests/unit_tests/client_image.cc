@@ -137,7 +137,7 @@ TEST(CLIENT_CPP, find_image_syncremote) {
 
   Meta_Data *meta_obj = new Meta_Data();
   meta_obj->_aclient.reset(
-    new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
+      new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
 
   add_image_util(meta_obj);
   Json::Value tuple;
@@ -160,7 +160,8 @@ TEST(CLIENT_CPP, find_image_syncremote) {
 
 TEST(CLIENT_CPP, find_image_udf) {
   // TODO: Remove the GTEST_SKIP() sentences when this test is fixed
-  GTEST_SKIP() << "Reason to be skipped: This test is failing and blocking the rest of the tests";
+  GTEST_SKIP() << "Reason to be skipped: This test is failing and blocking the "
+                  "rest of the tests";
   Meta_Data *meta_obj = new Meta_Data();
   meta_obj->_aclient.reset(
       new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
@@ -267,11 +268,10 @@ TEST(CLIENT_CPP, find_image_dynamic_metadata) {
 
   int status1 = result[0]["AddImage"]["status"].asInt();
   EXPECT_EQ(status1, 0);
- 
+
   // Execute the test
   tuple = meta_obj->construct_find_image_with_dynamic_metadata();
-  response =
-      meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple));
+  response = meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple));
   meta_obj->_reader.parse(response.json.c_str(), result);
   int status_i = result[0]["FindImage"]["status"].asInt();
   int status_b = result[1]["FindImage"]["status"].asInt();

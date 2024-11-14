@@ -3,12 +3,16 @@ import json
 import os
 import sys
 
-DEBUG_MODE=True
+DEBUG_MODE = True
 
 face_cascade = None
+
+
 def set_face_cascade(functions_path):
     global face_cascade
-    haarcascade_frontalface_default_path = os.path.join(functions_path, "files/haarcascade_frontalface_default.xml")
+    haarcascade_frontalface_default_path = os.path.join(
+        functions_path, "files/haarcascade_frontalface_default.xml"
+    )
 
     if not os.path.exists(haarcascade_frontalface_default_path):
         raise Exception(f"{haarcascade_frontalface_default_path}: path is invalid")
@@ -93,7 +97,7 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
 
         response = {"opFile": ipfilename, "metadata": metadata}
         r = json.dumps(response)
-		
+
         if DEBUG_MODE:
             print("response:", response, file=sys.stderr)
             print("json:", r, file=sys.stderr)
@@ -105,8 +109,10 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
         if DEBUG_MODE:
             print("UDO with Metadata: ipfilename ", ipfilename)
         if not os.path.exists(ipfilename):
-            raise Exception(f"UDO with Metadata error: File ipfilename {ipfilename} does not exist")
-        
+            raise Exception(
+                f"UDO with Metadata error: File ipfilename {ipfilename} does not exist"
+            )
+
         img = cv2.imread(ipfilename)
         if input_params["otype"] == "face":
             faces = facedetectbbox(img)

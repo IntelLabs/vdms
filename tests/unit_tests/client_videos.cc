@@ -192,8 +192,7 @@ TEST(CLIENT_CPP_Video, find_dynamic_metadata) {
   // Execute the test
 
   tuple = meta_obj->construct_find_video_with_dynamic_metadata();
-  response =
-      meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple));
+  response = meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple));
   meta_obj->_reader.parse(response.json.c_str(), result);
   int status_v, status_f, status_b;
   std::string objectId;
@@ -207,6 +206,7 @@ TEST(CLIENT_CPP_Video, find_dynamic_metadata) {
   EXPECT_EQ(status_v, 0) << "response:\n" << response.json.c_str();
   EXPECT_EQ(status_f, 0) << "response:\n" << response.json.c_str();
   EXPECT_EQ(status_b, 0) << "response:\n" << response.json.c_str();
-  EXPECT_STREQ(objectId.data(), "face") << "response:\n" << response.json.c_str();
+  EXPECT_STREQ(objectId.data(), "face") << "response:\n"
+                                        << response.json.c_str();
   delete meta_obj;
 }

@@ -67,7 +67,7 @@ TEST(BLOB, update_Blob) {
     std::cout << "response:\n" << response.json.c_str() << std::endl;
   }
 
-  EXPECT_EQ(status1, 0);  
+  EXPECT_EQ(status1, 0);
 }
 TEST(BLOB, find_Blob) {
 

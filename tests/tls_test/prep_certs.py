@@ -17,6 +17,7 @@ import time
 
 TEMPORARY_DIR = "/tmp"
 
+
 def generate_private_key():
     return rsa.generate_private_key(
         public_exponent=65537, key_size=2048, backend=default_backend()
@@ -132,7 +133,9 @@ if __name__ == "__main__":
     # Write keys and certificates to disk
     write_to_disk(TEMPORARY_DIR, "trusted_ca", trusted_ca_key, trusted_ca_cert)
     write_to_disk(TEMPORARY_DIR, "trusted_server", server_key, server_cert)
-    write_to_disk(TEMPORARY_DIR, "trusted_client", trusted_client_key, trusted_client_cert)
+    write_to_disk(
+        TEMPORARY_DIR, "trusted_client", trusted_client_key, trusted_client_cert
+    )
 
     #####################################################################################
     # GENERATE UNTRUSTED CERTS AND KEYS TO ENSURE UNTRUSTED CLIENT CERTS AREN'T ACCEPTED
