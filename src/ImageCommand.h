@@ -30,7 +30,6 @@
  */
 
 #pragma once
-#include "vcl/CustomVCL.h"
 #include "vcl/Image.h"
 #include <mutex>
 #include <string>

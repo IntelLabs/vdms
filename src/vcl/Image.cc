@@ -538,10 +538,6 @@ void Image::UserOperation::operator()(Image *img) {
         zmq::context_t context(1);
         zmq::socket_t socket(context, zmq::socket_type::req);
 
-        // This is setting a timeout for avoiding infinite loops
-        socket.setsockopt(ZMQ_SNDTIMEO, 10000); // milliseconds
-        socket.setsockopt(ZMQ_RCVTIMEO, 30000);
-
         std::string port = _options["port"].asString();
         std::string address = "tcp://127.0.0.1:" + port;
 
@@ -601,7 +597,7 @@ void Image::UserOperation::operator()(Image *img) {
         } else {
           if (response == "") {
             std::string errorMessage =
-                "UserOperation error: Timeout, no response from the server";
+                "UserOperation error: empty response from the server";
             std::cout << errorMessage << std::endl;
             throw VCLException(SystemNotFound, errorMessage);
           }

@@ -5,7 +5,7 @@
  *
  * The MIT License
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2024 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"),
@@ -30,7 +30,6 @@
  */
 
 #pragma once
-#include "vcl/CustomVCL.h"
 #include "vcl/Image.h"
 #include <mutex>
 #include <string>

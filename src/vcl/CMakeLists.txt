@@ -23,9 +23,8 @@ add_library(vcl SHARED
     TDBSparseDescriptorSet.cc
     utils.cc
     Video.cc
-    CustomVCL.cc
     RemoteConnection.cc
-        ../../utils/src/timers/TimerMap.cc
+    ../../utils/src/timers/TimerMap.cc
 )
 link_directories( /usr/local/lib )
 target_link_libraries(vcl lapack faiss tiledb flinng avformat avcodec swscale ${OpenCV_LIBS})

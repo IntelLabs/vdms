@@ -5,7 +5,7 @@
  *
  * The MIT License
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2024 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,9 +29,10 @@
 
 #pragma once
 
-#include <string>
 #include <time.h>
 #include <vector>
+#include <cstdint>
+#include <string>
 
 namespace VCL {
 
