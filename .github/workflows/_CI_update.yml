@@ -16,8 +16,8 @@ permissions: read-all
 
 jobs:
     commit_job:
-        permissions:
-          contents: write
+        # permissions:
+        #   contents: write
         name: Commit Code Updates 
         env:
           COMMIT_MSG: "Automated updates: Format and/or coverage"
