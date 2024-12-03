@@ -20,6 +20,9 @@ on:
         description: "The Python Coverage for source"
         type: string
 
+permissions:  # added using https://github.com/step-security/secure-repo
+  contents: read
+  
 jobs:
     compare_coverage:
       name: Compare Reported Coverage
