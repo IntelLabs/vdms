@@ -61,7 +61,7 @@ on:
         value: ${{ jobs.coverage_job.outputs.coverage_value_updated }}
 
 
-permissions: {}
+permissions: read-all
 
 jobs:
   target_coverage_job:
