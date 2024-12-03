@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize, reopened]
     branches: [develop]
 
-# Declare default permissions as write only.
+# Declare default permissions as read-all only.
 permissions: read-all
 
 # If another push to the same PR or branch happens while this workflow is still running,
