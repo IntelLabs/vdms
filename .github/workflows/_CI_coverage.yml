@@ -60,11 +60,6 @@ on:
         description: "Whether coverage for source has changed"
         value: ${{ jobs.coverage_job.outputs.coverage_value_updated }}
 
-
-permissions:
-  contents: write
-  actions: write
-
 jobs:
   target_coverage_job:
     name: Target Coverage
