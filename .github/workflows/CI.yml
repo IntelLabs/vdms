@@ -34,6 +34,7 @@ jobs:
     # name: Code coverage in Docker
     permissions:
       contents: write
+      actions: write
     needs: [Get-Envs]
     uses: ./.github/workflows/_CI_coverage.yml
     with:
