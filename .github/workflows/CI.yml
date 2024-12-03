@@ -43,7 +43,7 @@ jobs:
 
   Results:
     permissions:
-      contents: write
+      # contents: write
       issues: write
       pull-requests: write
 
@@ -58,8 +58,8 @@ jobs:
     secrets: inherit
 
   Update:
-    permissions:
-        contents: write
+    # permissions:
+        # contents: write
     # name: Lint & Update Reports
     needs: [Testing, Results]
     if: ${{ always() }} 
