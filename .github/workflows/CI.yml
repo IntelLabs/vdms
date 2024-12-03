@@ -7,7 +7,9 @@ on:
   workflow_dispatch:
 
 # Declare default permissions as write only.
-permissions: read-all
+permissions: 
+  contents: read
+  actions: write
 
 # If another push to the same PR or branch happens while this workflow is still running,
 # cancel the earlier run in favor of the next run.
