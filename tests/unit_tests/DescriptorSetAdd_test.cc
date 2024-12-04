@@ -351,11 +351,11 @@ TEST(Descriptors_Add, add_hnswflatip_100d) {
   //  init.11     init.11    ...   init.11    (D times)
   //  ...
   //  init.nb-1  init.nb-1 ...   init.nb-1 (D times)
-  //  hence, nearest neigbor of any query descriptor are the IDs that is next to 
+  //  hence, nearest neigbor of any query descriptor are the IDs that is next to
   //  the query ID
 
   int d = 100;
-  int nb = 100; //we are using 2 decimal points for I.P. nb is maximum 100
+  int nb = 100; // we are using 2 decimal points for I.P. nb is maximum 100
   float *xb = generate_desc_inner_product_increase(d, nb);
 
   std::string index_filename = "dbs/add_hnswflatip_100d";
@@ -382,12 +382,11 @@ TEST(Descriptors_Add, add_hnswflatip_100d) {
   for (int i = 0; i < distances.size() - 1; ++i) {
     EXPECT_LT(distances[i], distances[i + 1]);
   }
-  
+
   index.store();
 
   delete[] xb;
 }
-
 
 // Flinng Tests
 

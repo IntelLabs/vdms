@@ -60,7 +60,8 @@ void generate_desc_linear_increase(int d, int nb, float *xb, float init = 0);
 
 float *generate_desc_linear_increase(int d, int nb, float init = 0);
 
-void generate_desc_inner_product_increase(int d, int nb, float *xb, float init = 1.0);
+void generate_desc_inner_product_increase(int d, int nb, float *xb,
+                                          float init = 1.0);
 
 float *generate_desc_inner_product_increase(int d, int nb, float init = 1.0);
 
