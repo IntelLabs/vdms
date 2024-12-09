@@ -8,9 +8,9 @@ on:
   schedule:
     - cron: '44 15 * * 0'
   push:
-    branches: [ "active_scorecard" ]
+    branches: [ "develop" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "develop" ]
 
 # Declare default permissions as read only.
 permissions: read-all
