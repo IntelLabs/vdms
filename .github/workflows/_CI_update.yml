@@ -11,7 +11,7 @@ on:
           required: true
           description: "Status of coverage tests (passed/failed)"
           type: string
-
+permissions: {}
 jobs:
     commit_job:
         permissions:
