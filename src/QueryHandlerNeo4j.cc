@@ -63,6 +63,8 @@ void QueryHandlerNeo4j::init() {
   _rs_cmds["NeoFind"] = new Neo4jNeoFind();
   _rs_cmds["NeoAddDescriptorSet"] = new Neo4jNeoAddDescSet();
   _rs_cmds["NeoFindDescriptorSet"] = new Neo4jNeoFindDescSet();
+  _rs_cmds["NeoAddDescriptor"] = new Neo4jNeoAddDesc();
+  _rs_cmds["NeoFindDescriptor"] = new Neo4jNeoFindDesc();
 
   // seed random time
   srand((unsigned)time(NULL));
@@ -199,14 +201,20 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
     const Json::Value &query = root[j];
     std::string cmd = query.getMemberNames()[0];
 
-    Neo4jCommand *rscmd = _rs_cmds[cmd];
 
+    if (_rs_cmds.count(cmd) == 0) {
+        std::cout<<"Command: " << cmd << "Does not exist!" << std::endl;
+    }
+
+    Neo4jCommand *rscmd = _rs_cmds[cmd];
     cypher = query[cmd]["cypher"].asString();
 
     const std::string &blob =
         rscmd->need_blob(query) ? proto_query.blobs(blob_count++) : "";
 
+    printf("DP Start\n");
     rc = rscmd->data_processing(cypher, query, blob, 0, cmd_result);
+    printf("DP Return\n");
 
     if (rc != 0) {
       error = true;

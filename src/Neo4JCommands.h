@@ -182,7 +182,23 @@ public:
 };
 
 class Neo4jNeoAddDesc : public NeoDescriptorsCommand{
-    public:
+
+    int add_single_descriptor(std::string &tx, const Json::Value &root,
+                              const std::string &blob, int grp_id,
+                              Json::Value &error);
+
+    int add_descriptor_batch(std::string &tx, const Json::Value &root,
+                             const std::string &blob, int grp_id,
+                             Json::Value &error);
+
+    long insert_descriptor(const std::string &blob,
+                                         const std::string &set_path, int nr_desc,
+                                         const std::string &label,
+                                         Json::Value &error);
+
+
+
+public:
         Neo4jNeoAddDesc();
         bool need_blob(const Json::Value &cmd) {return true;};
         int data_processing(std::string &tx, const Json::Value &root,
@@ -195,6 +211,13 @@ class Neo4jNeoAddDesc : public NeoDescriptorsCommand{
 
 
 class Neo4jNeoFindDesc : public NeoDescriptorsCommand{
+
+private:
+    void convert_properties(Json::Value &entities, Json::Value &list,
+                            std::string set_name);
+    void populate_blobs(const std::string &set_path, std::string set_name,
+                        const Json::Value &results, Json::Value &entities,
+                        protobufs::queryMessage &query_res);
 public:
     Neo4jNeoFindDesc();
     bool need_blob(const Json::Value &cmd);
