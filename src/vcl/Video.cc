@@ -33,7 +33,7 @@
 #include "../VDMSConfig.h"
 #include "VDMSConfigHelper.h"
 #include "vcl/Video.h"
-
+#include "EntityClient.cc"
 using namespace VCL;
 
 /*  *********************** */
@@ -1053,6 +1053,144 @@ Json::Value process_response(std::string zip_file_name,
   return metadata;
 }
 
+// void Video::SyncRemoteOperation::operator()(Video *video, cv::Mat &frame,
+//                                             std::string args) {
+//   try {
+//     int frame_count = video->get_frame_count(false);
+//     if (frame_count > 0) {
+//       std::string fname = args;
+
+//       CURL *curl = NULL;
+
+//       CURLcode res;
+//       struct curl_slist *headers = NULL;
+//       curl_mime *form = NULL;
+//       curl_mimepart *field = NULL;
+
+//       curl = curl_easy_init();
+
+//       if (curl) {
+
+//         form = curl_mime_init(curl);
+
+//         field = curl_mime_addpart(form);
+//         curl_mime_name(field, "videoData");
+//         if (curl_mime_filedata(field, fname.data()) != CURLE_OK) {
+//           throw VCLException(ObjectEmpty,
+//                              "Unable to retrieve local file for remoting");
+//         }
+
+//         field = curl_mime_addpart(form);
+//         curl_mime_name(field, "jsonData");
+//         if (curl_mime_data(field, _options.toStyledString().data(),
+//                            _options.toStyledString().length()) != CURLE_OK) {
+//           throw VCLException(
+//               ObjectEmpty, "Unable to create curl mime data for client params");
+//         }
+
+//         // Post data
+//         std::string format = "";
+//         char *s = const_cast<char *>(args.data());
+//         if (fname != "") {
+//           std::string delimiter = ".";
+//           char *p = std::strtok(s, delimiter.data());
+//           while (p != NULL) {
+//             p = std::strtok(NULL, delimiter.data());
+//             if (p != NULL) {
+//               format.assign(p, std::strlen(p));
+//             }
+//           }
+//         } else {
+//           throw VCLException(ObjectNotFound, "Video file not available");
+//         }
+
+//         auto time_now = std::chrono::system_clock::now();
+//         std::chrono::duration<double> utc_time = time_now.time_since_epoch();
+//         std::string response_filepath =
+//             VDMS::VDMSConfig::instance()->get_path_tmp() + "/rtempfile" +
+//             std::to_string(utc_time.count()) + "." + format;
+
+//         std::string zip_response_filepath =
+//             VDMS::VDMSConfig::instance()->get_path_tmp() + "/rtempzipfile" +
+//             std::to_string(utc_time.count()) + ".zip";
+//         FILE *zip_response_file = fopen(zip_response_filepath.data(), "wb");
+
+//         if (curl_easy_setopt(curl, CURLOPT_URL, _url.data()) != CURLE_OK) {
+//           throw VCLException(UndefinedException, "CURL setup error with URL");
+//         }
+//         if (curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, videoCallback) !=
+//             CURLE_OK) {
+//           throw VCLException(UndefinedException,
+//                              "CURL setup error with callback");
+//         }
+
+//         if (zip_response_file) {
+//           if (curl_easy_setopt(curl, CURLOPT_WRITEDATA, zip_response_file) !=
+//               CURLE_OK) {
+//             throw VCLException(UndefinedException,
+//                                "CURL setup error callback response file");
+//           }
+//           if (curl_easy_setopt(curl, CURLOPT_MIMEPOST, form) != CURLE_OK) {
+//             throw VCLException(UndefinedException,
+//                                "CURL setup error with form");
+//           }
+//           curl_easy_perform(curl);
+//           fclose(zip_response_file);
+//         }
+
+//         int http_status_code;
+//         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_status_code);
+
+//         curl_easy_cleanup(curl);
+//         curl_mime_free(form);
+
+//         // Throw exceptions for different error codes received from the remote
+//         // server
+//         if (http_status_code != 200) {
+//           if (http_status_code == 0) {
+//             throw VCLException(ObjectEmpty, "Remote server is not running.");
+//           }
+//           if (http_status_code == 400) {
+//             throw VCLException(ObjectEmpty,
+//                                "Invalid Request to the Remote Server.");
+//           } else if (http_status_code == 404) {
+//             throw VCLException(ObjectEmpty,
+//                                "Invalid URL Request. Please check the URL.");
+//           } else if (http_status_code == 500) {
+//             throw VCLException(ObjectEmpty,
+//                                "Exception occurred at the remote server. "
+//                                "Please check your query.");
+//           } else if (http_status_code == 503) {
+//             throw VCLException(ObjectEmpty, "Unable to reach remote server");
+//           } else {
+//             throw VCLException(ObjectEmpty, "Remote Server error.");
+//           }
+//         }
+
+//         Json::Value metadata_response =
+//             process_response(zip_response_filepath, response_filepath, format);
+//         if (!metadata_response.empty()) {
+//           video->set_ingest_metadata(metadata_response["metadata"]);
+//         }
+
+//         if (std::remove(fname.data()) != 0) {
+//           throw VCLException(ObjectEmpty,
+//                              "Error encountered while removing the file.");
+//         }
+//         if (std::rename(response_filepath.data(), fname.data()) != 0) {
+//           throw VCLException(ObjectEmpty,
+//                              "Error encountered while renaming the file.");
+//         }
+//       }
+//     } else
+//       throw VCLException(ObjectEmpty, "Video object is empty");
+//   } catch (VCL::Exception e) {
+//     video->set_query_error_response(e.msg);
+//     print_exception(e);
+//     return;
+//   }
+// }
+
 void Video::SyncRemoteOperation::operator()(Video *video, cv::Mat &frame,
                                             std::string args) {
   try {
@@ -1060,128 +1198,60 @@ void Video::SyncRemoteOperation::operator()(Video *video, cv::Mat &frame,
     if (frame_count > 0) {
       std::string fname = args;
 
-      CURL *curl = NULL;
-
-      CURLcode res;
-      struct curl_slist *headers = NULL;
-      curl_mime *form = NULL;
-      curl_mimepart *field = NULL;
-
-      curl = curl_easy_init();
-
-      if (curl) {
-
-        form = curl_mime_init(curl);
-
-        field = curl_mime_addpart(form);
-        curl_mime_name(field, "videoData");
-        if (curl_mime_filedata(field, fname.data()) != CURLE_OK) {
-          throw VCLException(ObjectEmpty,
-                             "Unable to retrieve local file for remoting");
-        }
-
-        field = curl_mime_addpart(form);
-        curl_mime_name(field, "jsonData");
-        if (curl_mime_data(field, _options.toStyledString().data(),
-                           _options.toStyledString().length()) != CURLE_OK) {
-          throw VCLException(
-              ObjectEmpty, "Unable to create curl mime data for client params");
-        }
-
-        // Post data
-        std::string format = "";
-        char *s = const_cast<char *>(args.data());
-        if (fname != "") {
-          std::string delimiter = ".";
-          char *p = std::strtok(s, delimiter.data());
-          while (p != NULL) {
-            p = std::strtok(NULL, delimiter.data());
-            if (p != NULL) {
-              format.assign(p, std::strlen(p));
-            }
-          }
-        } else {
-          throw VCLException(ObjectNotFound, "Video file not available");
-        }
-
-        auto time_now = std::chrono::system_clock::now();
-        std::chrono::duration<double> utc_time = time_now.time_since_epoch();
-        std::string response_filepath =
-            VDMS::VDMSConfig::instance()->get_path_tmp() + "/rtempfile" +
-            std::to_string(utc_time.count()) + "." + format;
-
-        std::string zip_response_filepath =
-            VDMS::VDMSConfig::instance()->get_path_tmp() + "/rtempzipfile" +
-            std::to_string(utc_time.count()) + ".zip";
-        FILE *zip_response_file = fopen(zip_response_filepath.data(), "wb");
-
-        if (curl_easy_setopt(curl, CURLOPT_URL, _url.data()) != CURLE_OK) {
-          throw VCLException(UndefinedException, "CURL setup error with URL");
-        }
-        if (curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, videoCallback) !=
-            CURLE_OK) {
-          throw VCLException(UndefinedException,
-                             "CURL setup error with callback");
-        }
-
-        if (zip_response_file) {
-          if (curl_easy_setopt(curl, CURLOPT_WRITEDATA, zip_response_file) !=
-              CURLE_OK) {
-            throw VCLException(UndefinedException,
-                               "CURL setup error callback response file");
-          }
-          if (curl_easy_setopt(curl, CURLOPT_MIMEPOST, form) != CURLE_OK) {
-            throw VCLException(UndefinedException,
-                               "CURL setup error with form");
-          }
-          curl_easy_perform(curl);
-          fclose(zip_response_file);
-        }
-
-        int http_status_code;
-        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_status_code);
-
-        curl_easy_cleanup(curl);
-        curl_mime_free(form);
-
-        // Throw exceptions for different error codes received from the remote
-        // server
-        if (http_status_code != 200) {
-          if (http_status_code == 0) {
-            throw VCLException(ObjectEmpty, "Remote server is not running.");
-          }
-          if (http_status_code == 400) {
-            throw VCLException(ObjectEmpty,
-                               "Invalid Request to the Remote Server.");
-          } else if (http_status_code == 404) {
-            throw VCLException(ObjectEmpty,
-                               "Invalid URL Request. Please check the URL.");
-          } else if (http_status_code == 500) {
-            throw VCLException(ObjectEmpty,
-                               "Exception occurred at the remote server. "
-                               "Please check your query.");
-          } else if (http_status_code == 503) {
-            throw VCLException(ObjectEmpty, "Unable to reach remote server");
-          } else {
-            throw VCLException(ObjectEmpty, "Remote Server error.");
+      std::string format = "";
+      char *s = const_cast<char *>(args.data());
+      if (fname != "") {
+        std::string delimiter = ".";
+        char *p = std::strtok(s, delimiter.data());
+        while (p != NULL) {
+          p = std::strtok(NULL, delimiter.data());
+          if (p != NULL) {
+            format.assign(p, std::strlen(p));
           }
         }
-
-        Json::Value metadata_response =
-            process_response(zip_response_filepath, response_filepath, format);
-        if (!metadata_response.empty()) {
-          video->set_ingest_metadata(metadata_response["metadata"]);
-        }
-
-        if (std::remove(fname.data()) != 0) {
-          throw VCLException(ObjectEmpty,
-                             "Error encountered while removing the file.");
-        }
-        if (std::rename(response_filepath.data(), fname.data()) != 0) {
-          throw VCLException(ObjectEmpty,
-                             "Error encountered while renaming the file.");
-        }
+      } else {
+        throw VCLException(ObjectNotFound, "Video file not available");
       }
+
+      auto time_now = std::chrono::system_clock::now();
+      std::chrono::duration<double> utc_time = time_now.time_since_epoch();
+      std::string response_filepath =
+          VDMS::VDMSConfig::instance()->get_path_tmp() + "/rtempfile" +
+          std::to_string(utc_time.count()) + "." + format;
+
+      std::string server_address{"anchor.jf.intel.com:50051"};
+      EntityClient client{grpc::CreateChannel(server_address, grpc::InsecureChannelCredentials())};
+
+      std::ifstream ifile(fname, std::ifstream::in);
+      ifile.seekg(0, std::ios::end);
+      size_t encoded_size = (long)ifile.tellg();
+      ifile.seekg(0, std::ios::beg);
+      
+      std::vector<unsigned char> encoded(encoded_size);
+
+      ifile.read((char *)encoded.data(), encoded_size);
+      ifile.close();
+
+      Json::StreamWriterBuilder builder;
+      std::string output = Json::writeString(builder, _options);
+      std::string ent(encoded.begin(), encoded.end());
+
+      client.Operate(ent, output);
+
+      // Json::Value metadata_response =
+      //     process_response(zip_response_filepath, response_filepath, format);
+      // if (!metadata_response.empty()) {
+      //   video->set_ingest_metadata(metadata_response["metadata"]);
+      // }
+
+      // if (std::remove(fname.data()) != 0) {
+      //   throw VCLException(ObjectEmpty,
+      //                       "Error encountered while removing the file.");
+      // }
+      // if (std::rename(response_filepath.data(), fname.data()) != 0) {
+      //   throw VCLException(ObjectEmpty,
+      //                       "Error encountered while renaming the file.");
+      // }
     } else
       throw VCLException(ObjectEmpty, "Video object is empty");
   } catch (VCL::Exception e) {

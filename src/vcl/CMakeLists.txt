@@ -24,6 +24,7 @@ add_library(vcl SHARED
     utils.cc
     Video.cc
     CustomVCL.cc
+    EntityClient.cc
     RemoteConnection.cc
         ../../utils/src/timers/TimerMap.cc
 )
