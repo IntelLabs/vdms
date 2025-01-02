@@ -59,7 +59,7 @@ else()
   add_subdirectory(distributed)
 
   link_directories(/usr/local/lib /usr/lib/x86_64-linux-gnu/)
-  include_directories(/usr/include/jsoncpp utils/include/ src/pmgd/include src/pmgd/util include/ src/vcl /usr/include ${CMAKE_CURRENT_BINARY_DIR}/utils/src/protobuf)
+  include_directories(/usr/include/jsoncpp utils/include/ src/pmgd/include src/pmgd/util include/ src/vcl /usr/include ${CMAKE_CURRENT_BINARY_DIR}/utils/src/protobuf /usr/local/include/kubernetes)
   add_library(dms SHARED
     src/BackendNeo4j.cc
     src/BoundingBoxCommand.cc
