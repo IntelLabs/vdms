@@ -30,24 +30,25 @@
  */
 
 #include <iostream>
-
+#include <string>
 #include "ImageCommand.h"
+#include <opencv2/core/types.hpp>
+#include "../utils/include/kubernetes/KubeHelper.h"
+#include <vector>
 #include "VDMSConfig.h"
 #include "defines.h"
-
+#include <chrono>
 #include "ImageLoop.h"
 
 using namespace VDMS;
+using namespace kubernetes;
 
 //========= AddImage definitions =========
 
-ImageCommand::ImageCommand(const std::string &cmd_name) : RSCommand(cmd_name) {
-  output_vcl_timing =
-      VDMSConfig::instance()->get_bool_value("print_vcl_timing", false);
-}
-
+ImageCommand::ImageCommand(const std::string &cmd_name) : RSCommand(cmd_name) {}
+static kubernetes::KubeHelper kubernetes_get_url;
 int ImageCommand::enqueue_operations(VCL::Image &img, const Json::Value &ops,
-                                     bool is_addition) {
+                                     bool is_addition,const std::string& ImageSize) {
   // Correct operation type and parameters are guaranteed at this point
   for (auto &op : ops) {
     const std::string &type = get_value<std::string>(op, "type");
@@ -64,20 +65,33 @@ int ImageCommand::enqueue_operations(VCL::Image &img, const Json::Value &ops,
     } else if (type == "rotate") {
       img.rotate(get_value<double>(op, "angle"), get_value<bool>(op, "resize"));
     } else if (type == "syncremoteOp") {
-      Json::Value options = get_value<Json::Value>(op, "options");
-      if (is_addition) {
-        options["ingestion"] = 1;
-      }
-      img.syncremoteOperation(get_value<std::string>(op, "url"), options);
+      img.syncremoteOperation(get_value<std::string>(op, "url"),
+                              get_value<Json::Value>(op, "options"));
     } else if (type == "remoteOp") {
-      Json::Value options = get_value<Json::Value>(op, "options");
       if (is_addition) {
-        options["ingestion"] = 1;
-        img.syncremoteOperation(get_value<std::string>(op, "url"), options);
+        img.syncremoteOperation(get_value<std::string>(op, "url"),
+                                get_value<Json::Value>(op, "options"));
       } else {
-        img.remoteOperation(get_value<std::string>(op, "url"), options);
-      }
-    } else if (type == "userOp") {
+        // This should come from a config variable
+        bool kube_cfg = VDMS::VDMSConfig::instance()->get_kube_flag();
+        std::cout<<kube_cfg<<std::endl;
+        bool myBool = true;
+        if(myBool){
+          // Use the url generator from the utils path by creating the object
+          //When using size based decisions
+          std::cout<<"=======================================This is a New Remote Operation====================================="<<std::endl;
+          std::string url_k8s = kubernetes_get_url.query_scheduler(ImageSize);
+          img.syncremoteOperation(url_k8s,get_value<Json::Value>(op, "options"));
+        }
+        else{
+          // In case of absence of Kubernetes Infrastructure
+          std::cout<< "size of the Image is "<<ImageSize<<std::endl;
+          img.remoteOperation(get_value<std::string>(op, "url"),
+                            get_value<Json::Value>(op, "options"));
+          }
+    }
+    }
+    else if (type == "userOp") {
       img.userOperation(get_value<Json::Value>(op, "options"));
     } else if (type == "custom") {
       VCL::Image *tmp_image = new VCL::Image(img, true);
@@ -145,6 +159,7 @@ int AddImage::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
   const std::string from_file_path =
       get_value<std::string>(cmd, "from_file_path", "");
   const bool is_local_file = get_value<bool>(cmd, "is_local_file", false);
+
   std::string format = get_value<std::string>(cmd, "format", "");
   char binary_img_flag = 0;
   if (format == "bin") {
@@ -205,6 +220,7 @@ int AddImage::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
       connection->_bucket_name = bucket;
       img.set_connection(connection);
     }
+
     if (cmd.isMember("operations")) {
       operation_flags = enqueue_operations(img, cmd["operations"], true);
     }
@@ -250,33 +266,6 @@ int AddImage::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
     query.AddNode(node_ref, VDMS_IM_TAG, props, Json::Value());
 
     img.store(file_name, input_format);
-
-    std::vector<Json::Value> image_metadata = img.get_ingest_metadata();
-
-    if (image_metadata.size() > 0) {
-      for (Json::Value metadata : image_metadata) {
-        int bb_ref = query.get_available_reference();
-        Json::Value bbox_props;
-        bbox_props[VDMS_DM_IMG_NAME_PROP] = props[VDMS_IM_PATH_PROP];
-        bbox_props[VDMS_DM_IMG_OBJECT_PROP] = metadata["object"].asString();
-        bbox_props[VDMS_ROI_COORD_X_PROP] = metadata["x"].asFloat();
-        bbox_props[VDMS_ROI_COORD_Y_PROP] = metadata["y"].asFloat();
-        bbox_props[VDMS_ROI_WIDTH_PROP] = metadata["width"].asFloat();
-        bbox_props[VDMS_ROI_HEIGHT_PROP] = metadata["height"].asFloat();
-        bbox_props[VDMS_DM_VID_OBJECT_DET] =
-            metadata["object_det"].toStyledString();
-
-        Json::Value bb_edge_props;
-        bb_edge_props[VDMS_DM_IMG_NAME_PROP] = props[VDMS_IM_PATH_PROP];
-
-        query.AddNode(bb_ref, VDMS_ROI_TAG, bbox_props, Json::Value());
-        query.AddEdge(-1, node_ref, bb_ref, VDMS_DM_IMG_BB_EDGE, bb_edge_props);
-      }
-    }
-
-    if (output_vcl_timing) {
-      img.timers.print_map_runtimes();
-    }
   }
 
   // In case we need to cleanup the query
@@ -333,28 +322,9 @@ int FindImage::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
     results["list"].append(VDMS_IM_PATH_PROP);
   }
 
-  if (cmd.isMember("metaconstraints")) {
-    results["list"].append(VDMS_DM_IMG_NAME_PROP);
-
-    for (auto member : cmd["metaconstraints"].getMemberNames()) {
-      results["list"].append(member);
-    }
-
-    results["list"].append(VDMS_DM_IMG_OBJECT_PROP);
-    results["list"].append(VDMS_DM_IMG_OBJECT_DET);
-    results["list"].append(VDMS_ROI_COORD_X_PROP);
-    results["list"].append(VDMS_ROI_COORD_Y_PROP);
-    results["list"].append(VDMS_ROI_WIDTH_PROP);
-    results["list"].append(VDMS_ROI_HEIGHT_PROP);
-
-    query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_ROI_TAG, cmd["link"],
-                    cmd["metaconstraints"], results,
-                    get_value<bool>(cmd, "unique", false));
-  } else {
-    query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_IM_TAG, cmd["link"],
-                    cmd["constraints"], results,
-                    get_value<bool>(cmd, "unique", false));
-  }
+  query.QueryNode(get_value<int>(cmd, "_ref", -1), VDMS_IM_TAG, cmd["link"],
+                  cmd["constraints"], results,
+                  get_value<bool>(cmd, "unique", false));
 
   return 0;
 }
@@ -363,7 +333,12 @@ Json::Value FindImage::construct_responses(Json::Value &responses,
                                            const Json::Value &json,
                                            protobufs::queryMessage &query_res,
                                            const std::string &blob) {
+  auto start = std::chrono::high_resolution_clock::now();
   const Json::Value &cmd = json[_cmd_name];
+  Json::Value unq = cmd["constraints"];
+  std::cout<<get_value<Json::Value>(unq,"unq")<<std::endl;
+  Json::Value arr_unq = get_value<Json::Value>(unq,"unq")[1];
+  std::string size_img = arr_unq.asString();
   int operation_flags = 0;
   bool has_operations = false;
   std::string no_op_def_image;
@@ -411,22 +386,16 @@ Json::Value FindImage::construct_responses(Json::Value &responses,
 
     ImageLoop eventloop;
     eventloop.set_nrof_entities(findImage["entities"].size());
-
+    
     for (auto &ent : findImage["entities"]) {
       assert(ent.isMember(VDMS_IM_PATH_PROP));
 
-      std::string im_path;
-      if (cmd.isMember("metaconstraints")) {
-        im_path = ent[VDMS_DM_IMG_NAME_PROP].asString();
-      } else {
-        im_path = ent[VDMS_IM_PATH_PROP].asString();
-        ent.removeMember(VDMS_IM_PATH_PROP);
-      }
+      std::string im_path = ent[VDMS_IM_PATH_PROP].asString();
+      ent.removeMember(VDMS_IM_PATH_PROP);
 
       if (ent.getMemberNames().size() == 0) {
         flag_empty = true;
       }
-
       try {
         VCL::Image img(im_path);
         if (_use_aws_storage) {
@@ -437,8 +406,12 @@ Json::Value FindImage::construct_responses(Json::Value &responses,
         }
 
         if (cmd.isMember("operations")) {
-          operation_flags = enqueue_operations(img, cmd["operations"]);
+          auto start_operation_q = std::chrono::high_resolution_clock::now();
+          operation_flags = enqueue_operations(img, cmd["operations"],false,size_img);
           has_operations = true;
+          auto end_operation_q = std::chrono::high_resolution_clock::now();
+          std::chrono::duration<double> elapsed_operation_q = end_operation_q - start_operation_q;
+          std::cout << "Elapsed time to Complete the Enqueue Operation Function is: " << elapsed_operation_q.count() << " seconds"<< std::endl;
         }
 
         // We will return the image in the format the user
@@ -465,9 +438,13 @@ Json::Value FindImage::construct_responses(Json::Value &responses,
         }
 
         if (has_operations) {
+          auto start_has_op_imgq = std::chrono::high_resolution_clock::now();
           formats.insert(
               std::pair<std::string, VCL::Format>(img.get_image_id(), format));
           eventloop.enqueue(&img);
+          auto end_has_op_imgq = std::chrono::high_resolution_clock::now();
+          std::chrono::duration<double> elapsed_operation_q1 = end_has_op_imgq - start_has_op_imgq;
+          std::cout << "Elapsed time to Complete eventloop.enqueue(&img): " << elapsed_operation_q1.count() << " seconds"<< std::endl;
         } else {
           std::vector<unsigned char> img_enc;
           img_enc = img.get_encoded_image(format);
@@ -493,7 +470,8 @@ Json::Value FindImage::construct_responses(Json::Value &responses,
         return error(return_error);
       }
     }
-
+    
+    auto start_eventloop = std::chrono::high_resolution_clock::now();
     if (has_operations) {
       while (eventloop.is_loop_running()) {
         continue;
@@ -522,13 +500,11 @@ Json::Value FindImage::construct_responses(Json::Value &responses,
           return_error["info"] = "Image Data not found";
           return error(return_error);
         }
-
-        if (output_vcl_timing) {
-          iter->second->timers.print_map_runtimes();
-        }
-
         iter++;
       }
+    auto end_eventloop = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed_eventloop = end_eventloop - start_eventloop;
+    std::cout << "Elapsed time by the eventloop to finish: " << elapsed_eventloop.count() << " seconds"<< std::endl;
     } else {
       eventloop.close_no_operation_loop(no_op_def_image);
     }
@@ -537,5 +513,8 @@ Json::Value FindImage::construct_responses(Json::Value &responses,
     findImage.removeMember("entities");
   }
   ret[_cmd_name].swap(findImage);
+  auto end = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> elapsed = end - start;
+  std::cout << "Elapsed time to execute Find Image operation is: " << elapsed.count() << " seconds"<< std::endl;
   return ret;
 }

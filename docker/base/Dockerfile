@@ -47,6 +47,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
         libcurl4-openssl-dev libdc1394-dev libgflags-dev libgoogle-glog-dev \
         libgtk-3-dev libgtk2.0-dev libhdf5-dev libjpeg-dev libjpeg62-turbo-dev libjsoncpp-dev \
         libleveldb-dev liblmdb-dev liblz4-dev libncurses5-dev libopenblas-dev libopenmpi-dev \
+        libwebsockets-dev uncrustify \
         libpng-dev librdkafka-dev libsnappy-dev libssl-dev libswscale-dev libtbb-dev libtbbmalloc2 \
         libtiff-dev libtiff5-dev libtool linux-libc-dev mpich openjdk-17-jdk-headless \
         pkg-config procps software-properties-common swig unzip uuid-dev && \
@@ -185,6 +186,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
         build-essential bzip2 cppzmq-dev curl g++ gcc git javacc libarchive-tools libavcodec-dev \
         libavformat-dev libcurl4-openssl-dev libdc1394-dev libgoogle-glog-dev libgtk-3-dev \
         libhdf5-dev libjpeg62-turbo-dev libjsoncpp-dev libopenblas-dev libpng-dev librdkafka-dev \
+        libwebsockets-dev uncrustify \
         libssl-dev libswscale-dev libtbb-dev libtbbmalloc2 libtiff5-dev libzip-dev openjdk-17-jdk-headless \
         procps && \
     apt-get --purge remove -y python3.11 && apt-get autoremove -y && \
@@ -193,6 +195,22 @@ RUN apt-get update -y && apt-get upgrade -y && \
     python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "protobuf==4.${PROTOBUF_VERSION}" \
         "coverage>=7.3.1" "cryptography>=42.0.7"
 
+RUN git clone --depth 1 https://github.com/yaml/libyaml.git /libyaml && \
+cd /libyaml && \
+mkdir build && \
+cd build &&\
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_TESTING=OFF  -DBUILD_SHARED_LIBS=ON && \
+make && \
+make install
+    
+#Kubernetes
+RUN git clone https://github.com/kubernetes-client/c.git /k8s && \
+    CLIENT_REPO_ROOT=/k8s && \
+    cd /k8s/kubernetes && \
+    mkdir build && \
+    cd build && \
+    cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local/ && \
+    make && make install
 # VDMS
 WORKDIR /vdms
 # hadolint ignore=DL3003,SC2086
