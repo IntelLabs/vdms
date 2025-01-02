@@ -144,3 +144,6 @@ python3 udf_server.py 5010
     ]
 }
 ```
+## To compile Docker Image of Remot UDF
+1. Use the command given below
+```sudo docker build -t soccer-match-info:latest --build-arg=http_proxy --build-arg=https_proxy --file=Dockerfile.txt .```
