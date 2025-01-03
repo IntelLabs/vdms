@@ -1,0 +1,1689 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 12.10kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/debian:12-slim
+#2 DONE 0.6s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [base 1/1] FROM docker.io/library/debian:12-slim@sha256:d365f4920711a9074c4bcd178e8f457ee59250426441ab2a5f8106ed8fe948eb
+#4 DONE 0.0s
+
+#5 [build  9/15] RUN git clone --branch v1.7.4 https://github.com/facebookresearch/faiss.git /dependencies/faiss &&         cd /dependencies/faiss && mkdir build && cd build &&             cmake -DFAISS_ENABLE_GPU=OFF -DPython_EXECUTABLE=$(which python)             -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Release .. &&             make -j16 && make install DESTDIR=/opt/dist && make install &&     git clone https://github.com/tonyzhang617/FLINNG.git /dependencies/FLINNG &&         cd /dependencies/FLINNG && mkdir build && cd build && cmake .. &&             make -j16 && make install DESTDIR=/opt/dist && make install
+#5 CACHED
+
+#6 [build  8/15] RUN python -m pip install --no-cache-dir "numpy>=1.26.0,<2.0.0" &&     git clone --branch v0.6 https://github.com/tristanpenman/valijson.git /dependencies/valijson &&         cd /dependencies/valijson && cp -r include/* /usr/local/include/ &&         mkdir -p /opt/dist/usr/local/include/ && cp -r include/* /opt/dist/usr/local/include/
+#6 CACHED
+
+#7 [build  1/15] RUN apt-get update -y && apt-get upgrade -y &&     apt-get install -o 'Acquire::Retries=3' -y --no-install-suggests         --no-install-recommends --fix-broken --fix-missing         apt-transport-https automake bison build-essential bzip2 ca-certificates         cppzmq-dev curl ed flex g++ gcc git gnupg-agent javacc libarchive-tools libatlas-base-dev         libavcodec-dev libavformat-dev libavutil-dev libboost-all-dev libbz2-dev libc-ares-dev         libcurl4-openssl-dev libdc1394-dev libgflags-dev libgoogle-glog-dev         libgtk-3-dev libgtk2.0-dev libhdf5-dev libjpeg-dev libjpeg62-turbo-dev libjsoncpp-dev         libleveldb-dev liblmdb-dev liblz4-dev libncurses5-dev libopenblas-dev libopenmpi-dev         libwebsockets-dev uncrustify         libpng-dev librdkafka-dev libsnappy-dev libssl-dev libswscale-dev libtbb-dev libtbbmalloc2         libtiff-dev libtiff5-dev libtool linux-libc-dev mpich openjdk-17-jdk-headless         pkg-config procps software-properties-common swig unzip uuid-dev &&     apt-get --purge remove -y python3.11 && apt-get autoremove -y &&     apt-get clean && rm -rf /var/lib/apt/lists/*
+#7 CACHED
+
+#8 [stage-2 3/7] COPY --from=build /usr/local/lib/python3.12 /usr/local/lib/python3.12
+#8 CACHED
+
+#9 [stage-2 5/7] RUN apt-get update -y && apt-get upgrade -y &&     apt-get install -o 'Acquire::Retries=3' -y --no-install-suggests         --no-install-recommends --fix-broken --fix-missing         build-essential bzip2 cppzmq-dev curl g++ gcc git javacc libarchive-tools libavcodec-dev         libavformat-dev libcurl4-openssl-dev libdc1394-dev libgoogle-glog-dev libgtk-3-dev         libhdf5-dev libjpeg62-turbo-dev libjsoncpp-dev libopenblas-dev libpng-dev librdkafka-dev         libwebsockets-dev uncrustify         libssl-dev libswscale-dev libtbb-dev libtbbmalloc2 libtiff5-dev libzip-dev openjdk-17-jdk-headless         procps &&     apt-get --purge remove -y python3.11 && apt-get autoremove -y &&     apt-get clean && rm -rf /var/lib/apt/lists/* &&     echo "/usr/local/lib" >> /etc/ld.so.conf.d/all-libs.conf && ldconfig &&     python3 -m pip install --no-cache-dir "numpy>=1.26.0,<2.0.0" "protobuf==4.24.2"         "coverage>=7.3.1" "cryptography>=42.0.7"
+#9 CACHED
+
+#10 [stage-2 4/7] COPY --from=build /opt/venv /opt/venv
+#10 CACHED
+
+#11 [build  2/15] WORKDIR /usr/src
+#11 CACHED
+
+#12 [build  5/15] RUN git clone --branch v3.28.5 https://github.com/Kitware/CMake.git /dependencies/CMake &&         cd /dependencies/CMake && ./bootstrap && make -j16 &&             make install DESTDIR=/opt/dist && make install
+#12 CACHED
+
+#13 [build 14/15] RUN git clone https://github.com/kubernetes-client/c.git /k8s &&     CLIENT_REPO_ROOT=/k8s &&     cd /k8s/kubernetes &&     mkdir build &&     cd build &&     cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local/ &&     make && make install
+#13 CACHED
+
+#14 [stage-2 1/7] COPY --from=build /opt/dist /
+#14 CACHED
+
+#15 [build  6/15] RUN git clone -b "v24.2" --recurse-submodules https://github.com/protocolbuffers/protobuf.git /dependencies/protobuf &&         cd /dependencies/protobuf/third_party/googletest && mkdir build && cd build/ &&             cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release                 -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local                 -DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 .. &&             make -j16 && make install &&         cd /dependencies/protobuf/third_party/abseil-cpp && mkdir build && cd build &&             cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON                 -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local -DABSL_BUILD_TESTING=ON                 -DABSL_USE_EXTERNAL_GOOGLETEST=ON                 -DABSL_FIND_GOOGLETEST=ON -DCMAKE_CXX_STANDARD=17 .. &&             make -j16 && make install && ldconfig /opt/dist/usr/local/lib &&         cd /dependencies/protobuf &&             cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local                 -DCMAKE_CXX_STANDARD=17 -Dprotobuf_BUILD_SHARED_LIBS=ON                 -Dprotobuf_ABSL_PROVIDER=package                 -Dprotobuf_BUILD_TESTS=ON                 -Dabsl_DIR=/opt/dist/usr/local/lib/cmake/absl . &&             make -j16 && make install
+#15 CACHED
+
+#16 [build 15/15] RUN rm -rf /dependencies /usr/local/share/doc /usr/local/share/man &&     mkdir -p /opt/dist/usr/include/x86_64-linux-gnu &&     cp -rp /usr/include/x86_64-linux-gnu /opt/dist/usr/include/x86_64-linux-gnu
+#16 CACHED
+
+#17 [build 13/15] RUN git clone --depth 1 https://github.com/yaml/libyaml.git /libyaml && cd /libyaml && mkdir build && cd build &&cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_TESTING=OFF  -DBUILD_SHARED_LIBS=ON && make && make install
+#17 CACHED
+
+#18 [stage-2 2/7] COPY --from=build /usr/local/bin/python3.12 /usr/local/bin/python3.12
+#18 CACHED
+
+#19 [build 12/15] RUN curl -L -O https://github.com/gpakosz/peg/releases/download/0.1.19/peg-0.1.19.tar.gz &&         tar -xf peg-0.1.19.tar.gz && cd peg-0.1.19 &&         make -j16 && make install DESTDIR=/opt/dist && make install &&     git clone https://github.com/cleishm/libcypher-parser.git /dependencies/libcypher &&         cd /dependencies/libcypher && ./autogen.sh && ./configure &&         make install DESTDIR=/opt/dist && make install &&     curl -L -o /dependencies/libedit-20230828-3.1.tar.gz https://thrysoee.dk/editline/libedit-20230828-3.1.tar.gz &&         cd /dependencies && tar -xzf libedit-20230828-3.1.tar.gz && cd libedit-20230828-3.1 &&         ./configure && make -j16 && make install DESTDIR=/opt/dist && make install &&     git clone https://github.com/majensen/libneo4j-omni.git /dependencies/libomni &&         cd /dependencies/libomni && ./autogen.sh &&         ./configure --disable-werror --prefix=/opt/dist/usr &&         make clean check && make install -w --debug
+#19 CACHED
+
+#20 [build  7/15] RUN git clone https://github.com/opencv/opencv.git /dependencies/opencv &&         cd /dependencies/opencv && git checkout tags/4.9.0 &&         mkdir build && cd build && cmake -DBUILD_PERF_TESTS=OFF -DBUILD_TESTS=OFF .. &&             make -j16 && make install DESTDIR=/opt/dist && make install
+#20 CACHED
+
+#21 [build 10/15] RUN curl -L -O https://github.com/TileDB-Inc/TileDB/archive/refs/tags/2.14.1.tar.gz &&         tar -xvf 2.14.1.tar.gz && cd TileDB-2.14.1 &&         mkdir build && cd build && ../bootstrap --prefix=/usr/local/ && make -j16 &&         make install-tiledb DESTDIR=/opt/dist && make install-tiledb &&     git clone -b 1.11.336 --recurse-submodules https://github.com/aws/aws-sdk-cpp /dependencies/aws-sdk-cpp &&         mkdir -p /dependencies/aws-sdk-cpp/build && cd /dependencies/aws-sdk-cpp/build &&         cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=/usr/local/ -DCMAKE_INSTALL_PREFIX=/usr/local/             -DBUILD_ONLY="s3" -DCUSTOM_MEMORY_MANAGEMENT=OFF -DENABLE_TESTING=OFF &&         make -j16 && make install DESTDIR=/opt/dist && make install
+#21 CACHED
+
+#22 [build  3/15] RUN apt-get update -y &&     apt-get install -y --no-install-recommends libffi-dev libgdbm-dev libnss3-dev libreadline-dev libsqlite3-dev zlib1g-dev &&     curl -O https://www.python.org/ftp/python/3.12.3/Python-3.12.3.tgz &&     tar -xzf Python-3.12.3.tgz && cd Python-3.12.3 &&     ./configure --enable-optimizations && make -j16 && make altinstall &&     update-alternatives --install /usr/bin/python python /usr/local/bin/python3.12 1 &&     python3.12 -m venv /opt/venv
+#22 CACHED
+
+#23 [build  4/15] WORKDIR /dependencies
+#23 CACHED
+
+#24 [build 11/15] RUN curl -O  https://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.xz &&         tar -xf autoconf-2.71.tar.xz && cd autoconf-2.71 &&         ./configure && make -j16 && make install DESTDIR=/opt/dist && make install
+#24 CACHED
+
+#25 [stage-2 6/7] WORKDIR /vdms
+#25 CACHED
+
+#26 [stage-2 7/7] RUN git clone -b kubernetes_support --recurse-submodules https://github.com/IntelLabs/vdms.git /vdms &&     sed -i "s|java-11-openjdk|java-17-openjdk|g" /vdms/src/pmgd/java/CMakeLists.txt &&     sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/test/neighbortest.cc &&     sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/tools/mkgraph.cc && 	cp /vdms/docker/override_default_config.py /vdms/override_default_config.py &&     mkdir -p /vdms/build && cd /vdms/build &&     cmake .. && make -j16 &&     echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh &&     echo 'python /vdms/override_default_config.py -i /vdms/config-vdms.json -o /vdms/build/config-vdms.json' >> /start.sh &&     echo './vdms' >> /start.sh && chmod 755 /start.sh
+#26 0.246 Cloning into '/vdms'...
+#26 2.015 Submodule 'pmgd' (https://github.com/omp87/pmgd.git) registered for path 'src/pmgd'
+#26 2.018 Cloning into '/vdms/src/pmgd'...
+#26 2.619 Submodule path 'src/pmgd': checked out 'f52a0b3c2c661bb07ae3218214557165f72a0b22'
+#26 2.710 -- The C compiler identification is GNU 12.2.0
+#26 2.789 -- The CXX compiler identification is GNU 12.2.0
+#26 2.813 -- Detecting C compiler ABI info
+#26 2.910 -- Detecting C compiler ABI info - done
+#26 2.941 -- Check for working C compiler: /usr/bin/cc - skipped
+#26 2.942 -- Detecting C compile features
+#26 2.943 -- Detecting C compile features - done
+#26 2.961 -- Detecting CXX compiler ABI info
+#26 3.082 -- Detecting CXX compiler ABI info - done
+#26 3.113 -- Check for working CXX compiler: /usr/bin/c++ - skipped
+#26 3.114 -- Detecting CXX compile features
+#26 3.116 -- Detecting CXX compile features - done
+#26 3.128 -- Found OpenCV: /usr/local (found version "4.9.0") 
+#26 3.154 -- Found ZLIB: /usr/lib/x86_64-linux-gnu/libz.so (found version "1.2.13")  
+#26 3.157 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+#26 3.258 -- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Success
+#26 3.262 -- Found Threads: TRUE  
+#26 3.372 -- Found CURL: /usr/lib/x86_64-linux-gnu/libcurl.so (found version "7.88.1")  
+#26 3.377 -- Found AWS SDK for C++, Version: 1.11.336, Install Root:/usr/local, Platform Prefix:, Platform Dependent Libraries: pthread;crypto;ssl;z;curl
+#26 3.379 -- Components specified for AWSSDK: core;s3, application will be depending on libs: aws-cpp-sdk-s3;aws-cpp-sdk-core
+#26 3.379 -- Try finding aws-cpp-sdk-core
+#26 3.400 -- Found crypto: /usr/lib/x86_64-linux-gnu/libcrypto.a  
+#26 3.400 -- LibCrypto Include Dir: /usr/include
+#26 3.400 -- LibCrypto Shared Lib:  /usr/lib/x86_64-linux-gnu/libcrypto.so
+#26 3.400 -- LibCrypto Static Lib:  /usr/lib/x86_64-linux-gnu/libcrypto.a
+#26 3.474 -- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.15")  
+#26 3.499 -- Found aws-cpp-sdk-core
+#26 3.499 -- Try finding aws-cpp-sdk-s3
+#26 3.501 -- Found aws-cpp-sdk-s3
+#26 3.565 -- clwb
+#26 3.574 CMake Deprecation Warning at src/pmgd/java/CMakeLists.txt:1 (cmake_minimum_required):
+#26 3.574   Compatibility with CMake < 3.5 will be removed from a future version of
+#26 3.574   CMake.
+#26 3.574 
+#26 3.574   Update the VERSION argument <min> value or use a ...<max> suffix to tell
+#26 3.574   CMake that the project does not need compatibility with older versions.
+#26 3.574 
+#26 3.574 
+#26 3.646 -- Found Java: /usr/bin/java (found version "17.0.13") 
+#26 3.652 STAUS/vdms/build/src/pmgd/java
+#26 3.666 -- 
+#26 3.670 Coverage:OFF
+#26 3.696 CMake Deprecation Warning at distributed/CMakeLists.txt:1 (cmake_minimum_required):
+#26 3.696   Compatibility with CMake < 3.5 will be removed from a future version of
+#26 3.696   CMake.
+#26 3.696 
+#26 3.696   Update the VERSION argument <min> value or use a ...<max> suffix to tell
+#26 3.696   CMake that the project does not need compatibility with older versions.
+#26 3.696 
+#26 3.696 
+#26 3.699 -- Configuring done (1.1s)
+#26 3.824 -- Generating done (0.1s)
+#26 3.831 -- Build files have been written to: /vdms/build
+#26 3.878 [  1%] Running cpp protocol buffer compiler on /vdms/utils/src/protobuf/queryMessage.proto
+#26 3.878 [  1%] Running cpp protocol buffer compiler on /vdms/utils/src/protobuf/partitionerMessages.proto
+#26 3.879 [  1%] Running cpp protocol buffer compiler on /vdms/utils/src/protobuf/pmgdMessages.proto
+#26 3.887 [  1%] Building CXX object src/vcl/CMakeFiles/vcl.dir/DescriptorSetData.cc.o
+#26 3.887 [  1%] Building CXX object src/vcl/CMakeFiles/vcl.dir/Exception.cc.o
+#26 3.887 [  2%] Building CXX object src/vcl/CMakeFiles/vcl.dir/DescriptorSet.cc.o
+#26 3.887 [  3%] Building CXX object src/vcl/CMakeFiles/vcl.dir/FaissDescriptorSet.cc.o
+#26 3.888 [  3%] Building CXX object src/vcl/CMakeFiles/vcl.dir/Image.cc.o
+#26 3.888 [  3%] Building CXX object src/vcl/CMakeFiles/vcl.dir/__/VDMSConfig.cc.o
+#26 3.888 [  3%] Building CXX object src/vcl/CMakeFiles/vcl.dir/FlinngDescriptorSet.cc.o
+#26 3.888 [  3%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/Allocator.cc.o
+#26 3.889 [  3%] Building CXX object src/vcl/CMakeFiles/vcl.dir/TDBDenseDescriptorSet.cc.o
+#26 3.889 [  4%] Building CXX object src/vcl/CMakeFiles/vcl.dir/KeyFrame.cc.o
+#26 3.890 [  4%] Building CXX object utils/CMakeFiles/vdms-utils.dir/src/timers/TimerMap.cc.o
+#26 3.890 [  5%] Building CXX object src/pmgd/util/CMakeFiles/pmgd-util.dir/dump_debug.cc.o
+#26 3.893 [  5%] Building Java objects for pmgd-jar.jar
+#26 3.925 [  5%] Building CXX object src/pmgd/util/CMakeFiles/pmgd-util.dir/dump_gexf.cc.o
+#26 3.968 [  6%] Building CXX object utils/CMakeFiles/vdms-utils.dir/src/comm/ConnClient.cc.o
+#26 4.069 In file included from /vdms/src/pmgd/util/../include/pmgd.h:38,
+#26 4.069                  from /vdms/src/pmgd/util/dump_debug.cc:33:
+#26 4.069 /vdms/src/pmgd/util/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 4.069 /vdms/src/pmgd/util/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 4.069    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 4.069       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 4.069 /vdms/src/pmgd/util/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 4.069    45 |     struct Time {
+#26 4.069       |            ^~~~
+#26 4.112 [  6%] Building CXX object src/vcl/CMakeFiles/vcl.dir/TDBDescriptorSet.cc.o
+#26 4.160 In file included from /vdms/src/pmgd/util/../include/pmgd.h:38,
+#26 4.160                  from /vdms/src/pmgd/util/dump_gexf.cc:33:
+#26 4.160 /vdms/src/pmgd/util/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 4.160 /vdms/src/pmgd/util/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 4.160    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 4.160       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 4.160 /vdms/src/pmgd/util/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 4.160    45 |     struct Time {
+#26 4.160       |            ^~~~
+#26 4.202 In file included from /vdms/src/vcl/Image.cc:41:
+#26 4.202 /vdms/src/vcl/../../include/vcl/Image.h:253:1: warning: "/*" within comment [-Wcomment]
+#26 4.202   253 | /**
+#26 4.202       |  
+#26 4.218 /vdms/src/vcl/KeyFrame.cc: In member function 'int VCL::KeyFrameParser::fill_frame_list()':
+#26 4.218 /vdms/src/vcl/KeyFrame.cc:153:27: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 4.218   153 |     if (pkt->stream_index != _fctx.video_stream_idx) {
+#26 4.218       |         ~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~
+#26 4.221 /vdms/src/vcl/KeyFrame.cc: In destructor 'virtual VCL::KeyFrameDecoder::~KeyFrameDecoder()':
+#26 4.221 /vdms/src/vcl/KeyFrame.cc:197:5: warning: suggest braces around empty body in an 'if' statement [-Wempty-body]
+#26 4.221   197 |     ;
+#26 4.221       |     ^
+#26 4.221 /vdms/src/vcl/KeyFrame.cc:200:5: warning: suggest braces around empty body in an 'if' statement [-Wempty-body]
+#26 4.221   200 |     ;
+#26 4.221       |     ^
+#26 4.229 /vdms/src/vcl/KeyFrame.cc: In member function 'int VCL::KeyFrameDecoder::decode_interval(const VCL::KeyFrame&, const VCL::KeyFrame&, const std::vector<unsigned int>&)':
+#26 4.229 /vdms/src/vcl/KeyFrame.cc:331:34: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 4.229   331 |       } while (pkt->stream_index != _fctx.video_stream_idx);
+#26 4.229       |                ~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~
+#26 4.231 /vdms/src/vcl/KeyFrame.cc: In member function 'int VCL::KeyFrameDecoder::populate_intervals(const VCL::KeyFrameList&)':
+#26 4.231 /vdms/src/vcl/KeyFrame.cc:407:22: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<VCL::KeyFrame>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 4.231   407 |   for (auto i = 0; i < sorted_frame_list.size() - 1; ++i) {
+#26 4.231       |                    ~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#26 4.263 /vdms/utils/src/timers/TimerMap.cc: In member function 'std::vector<long long int> TimerMap::return_all_timestamps(std::string)':
+#26 4.263 /vdms/utils/src/timers/TimerMap.cc:67:19: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::chrono::time_point<std::chrono::_V2::steady_clock, std::chrono::duration<long int, std::ratio<1, 1000000000> > > >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 4.263    67 |     for (i = 0; i < timestamps->size(); i++) {
+#26 4.263       |                 ~~^~~~~~~~~~~~~~~~~~~~
+#26 4.268 /vdms/utils/src/timers/TimerMap.cc: In member function 'std::vector<double> TimerMap::return_intervals(std::string)':
+#26 4.268 /vdms/utils/src/timers/TimerMap.cc:91:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::chrono::time_point<std::chrono::_V2::steady_clock, std::chrono::duration<long int, std::ratio<1, 1000000000> > > >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 4.268    91 |     for (int i = 0; i < timestamps->size(); i++) {
+#26 4.268       |                     ~~^~~~~~~~~~~~~~~~~~~~
+#26 4.268 /vdms/utils/src/timers/TimerMap.cc:95:13: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::chrono::time_point<std::chrono::_V2::steady_clock, std::chrono::duration<long int, std::ratio<1, 1000000000> > > >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 4.268    95 |       if (i < timestamps->size() - 1) {
+#26 4.268       |           ~~^~~~~~~~~~~~~~~~~~~~~~~~
+#26 4.276 /vdms/utils/src/timers/TimerMap.cc: In member function 'void TimerMap::print_map_runtimes()':
+#26 4.276 /vdms/utils/src/timers/TimerMap.cc:156:21: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::__cxx11::basic_string<char> >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 4.276   156 |   for (int i = 0; i < timer_id_list.size(); i++) {
+#26 4.276       |                   ~~^~~~~~~~~~~~~~~~~~~~~~
+#26 4.278 /vdms/utils/src/timers/TimerMap.cc: In destructor 'TimerMap::~TimerMap()':
+#26 4.278 /vdms/utils/src/timers/TimerMap.cc:170:17: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::__cxx11::basic_string<char> >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 4.278   170 |   for (i = 0; i < timerids.size(); i++) {
+#26 4.278       |               ~~^~~~~~~~~~~~~~~~~
+#26 4.283 /vdms/utils/src/comm/ConnClient.cc: In constructor 'comm::ConnClient::ConnClient(std::string, int, const std::string&, const std::string&, const std::string&)':
+#26 4.283 /vdms/utils/src/comm/ConnClient.cc:73:12: warning: comparison of integer expressions of different signedness: 'int' and 'const unsigned int' [-Wsign-compare]
+#26 4.283    73 |   if (port > MAX_PORT_NUMBER || port <= 0) {
+#26 4.283       |       ~~~~~^~~~~~~~~~~~~~~~~
+#26 4.323 /vdms/src/vcl/TDBDescriptorSet.cc:96: warning: ignoring '#pragma omp parallel' [-Wunknown-pragmas]
+#26 4.323    96 | #pragma omp parallel for
+#26 4.323       | 
+#26 4.331 [  6%] Building CXX object CMakeFiles/vdms_protobuf.dir/partitionerMessages.pb.cc.o
+#26 4.385 [  7%] Building CXX object src/vcl/CMakeFiles/vcl.dir/TDBImage.cc.o
+#26 4.467 [  7%] Building CXX object src/pmgd/util/CMakeFiles/pmgd-util.dir/dump_pmgd.cc.o
+#26 4.636 In file included from /vdms/src/pmgd/util/../include/pmgd.h:38,
+#26 4.636                  from /vdms/src/pmgd/util/dump_pmgd.cc:32:
+#26 4.636 /vdms/src/pmgd/util/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 4.636 /vdms/src/pmgd/util/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 4.636    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 4.636       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 4.636 /vdms/src/pmgd/util/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 4.636    45 |     struct Time {
+#26 4.636       |            ^~~~
+#26 4.670 In file included from /vdms/src/vcl/../../include/vcl/VCL.h:36,
+#26 4.670                  from /vdms/src/vcl/TDBImage.cc:41:
+#26 4.670 /vdms/src/vcl/../../include/vcl/Image.h:253:1: warning: "/*" within comment [-Wcomment]
+#26 4.670   253 | /**
+#26 4.670       |  
+#26 4.670 [  8%] Building CXX object src/pmgd/util/CMakeFiles/pmgd-util.dir/exception.cc.o
+#26 4.678 In file included from /vdms/src/VDMSConfig.cc:44:
+#26 4.678 /vdms/src/VDMSConfig.h:138:3: warning: type qualifiers ignored on function return type [-Wignored-qualifiers]
+#26 4.678   138 |   const Aws::Utils::Logging::LogLevel get_aws_log_level() {
+#26 4.678       |   ^~~~~
+#26 4.697 /vdms/src/VDMSConfig.cc: In member function 'void VDMS::VDMSConfig::expand_directory_layer(std::vector<std::vector<std::__cxx11::basic_string<char> >*>*, int)':
+#26 4.697 /vdms/src/VDMSConfig.cc:160:12: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::__cxx11::basic_string<char> >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 4.697   160 |          j < (*p_directory_list)[p_directory_list->size() - 1]->size(); j++) {
+#26 4.697       |          ~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#26 4.698 /vdms/src/VDMSConfig.cc: In member function 'void VDMS::VDMSConfig::create_directory_layer(std::vector<std::vector<std::__cxx11::basic_string<char> >*>*, std::string)':
+#26 4.698 /vdms/src/VDMSConfig.cc:178:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::vector<std::__cxx11::basic_string<char> >*>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 4.698   178 |     for (int i = 0; i < p_directory_list->size(); i++) {
+#26 4.698       |                     ~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+#26 4.698 /vdms/src/VDMSConfig.cc:180:25: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::__cxx11::basic_string<char> >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 4.698   180 |       for (int j = 0; j < tmp_string_vector->size(); j++) {
+#26 4.698       |                       ~~^~~~~~~~~~~~~~~~~~~~~~~~~~~
+#26 4.705 Note: Some input files use or override a deprecated API.
+#26 4.705 Note: Recompile with -Xlint:deprecation for details.
+#26 4.737 [  8%] Building CXX object utils/CMakeFiles/vdms-utils.dir/src/comm/Connection.cc.o
+#26 4.747 [  9%] Generating CMakeFiles/pmgd-jar.dir/java_class_filelist
+#26 4.759 [  9%] Creating Java archive pmgd-jar.jar
+#26 4.822 [  9%] Building CXX object src/vcl/CMakeFiles/vcl.dir/TDBObject.cc.o
+#26 4.825 In file included from /vdms/src/pmgd/src/../include/iterator.h:36,
+#26 4.825                  from /vdms/src/pmgd/src/../include/graph.h:34,
+#26 4.825                  from /vdms/src/pmgd/src/GraphConfig.h:35,
+#26 4.825                  from /vdms/src/pmgd/src/TransactionManager.h:38,
+#26 4.825                  from /vdms/src/pmgd/src/TransactionImpl.h:37,
+#26 4.825                  from /vdms/src/pmgd/src/Allocator.h:36,
+#26 4.825                  from /vdms/src/pmgd/src/Allocator.cc:37:
+#26 4.825 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 4.825 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 4.825    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 4.825       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 4.825 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 4.825    45 |     struct Time {
+#26 4.825       |            ^~~~
+#26 4.844 In file included from /vdms/src/pmgd/util/../include/pmgd.h:38,
+#26 4.844                  from /vdms/src/pmgd/util/exception.cc:32:
+#26 4.844 /vdms/src/pmgd/util/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 4.844 /vdms/src/pmgd/util/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 4.844    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 4.844       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 4.844 /vdms/src/pmgd/util/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 4.844    45 |     struct Time {
+#26 4.844       |            ^~~~
+#26 4.909 [  9%] Built target pmgd-jar
+#26 4.915 [  9%] Building CXX object src/vcl/CMakeFiles/vcl.dir/TDBSparseDescriptorSet.cc.o
+#26 4.990 /vdms/src/vcl/TDBObject.cc:42: warning: "UCHAR_MAX" redefined
+#26 4.990    42 | #define UCHAR_MAX 256
+#26 4.990       | 
+#26 4.990 In file included from /usr/local/include/aws/common/math.h:12,
+#26 4.990                  from /usr/local/include/aws/common/array_list.h:9,
+#26 4.990                  from /usr/local/include/aws/common/byte_buf.h:8,
+#26 4.990                  from /usr/local/include/aws/common/thread.h:8,
+#26 4.990                  from /usr/local/include/aws/common/logging.h:11,
+#26 4.990                  from /usr/local/include/aws/core/utils/logging/CRTLogSystem.h:10,
+#26 4.990                  from /usr/local/include/aws/core/Aws.h:9,
+#26 4.990                  from /vdms/src/vcl/../../include/vcl/RemoteConnection.h:41,
+#26 4.990                  from /vdms/src/vcl/TDBObject.h:42,
+#26 4.990                  from /vdms/src/vcl/TDBObject.cc:37:
+#26 4.990 /usr/lib/gcc/x86_64-linux-gnu/12/include/limits.h:82: note: this is the location of the previous definition
+#26 4.990    82 | # define UCHAR_MAX (SCHAR_MAX * 2 + 1)
+#26 4.990       | 
+#26 4.991 In file included from /vdms/utils/src/comm/Connection.cc:37:
+#26 4.991 /vdms/utils/include/comm/Connection.h: In constructor 'comm::Connection::Connection(int, SSL*)':
+#26 4.991 /vdms/utils/include/comm/Connection.h:71:8: warning: 'comm::Connection::_ssl' will be initialized after [-Wreorder]
+#26 4.991    71 |   SSL *_ssl;
+#26 4.991       |        ^~~~
+#26 4.991 /vdms/utils/include/comm/Connection.h:69:12: warning:   'uint32_t comm::Connection::_buffer_size_limit' [-Wreorder]
+#26 4.991    69 |   uint32_t _buffer_size_limit{};
+#26 4.991       |            ^~~~~~~~~~~~~~~~~~
+#26 4.991 /vdms/utils/src/comm/Connection.cc:44:1: warning:   when initialized here [-Wreorder]
+#26 4.991    44 | Connection::Connection(int socket_fd, SSL *ssl)
+#26 4.991       | ^~~~~~~~~~
+#26 4.992 /vdms/utils/src/comm/Connection.cc: In member function 'void comm::Connection::send_message(const uint8_t*, uint32_t)':
+#26 4.992 /vdms/utils/src/comm/Connection.cc:101:21: warning: comparison of integer expressions of different signedness: 'int' and 'uint32_t' {aka 'unsigned int'} [-Wsign-compare]
+#26 4.992   101 |   while (bytes_sent < size) {
+#26 4.992       |          ~~~~~~~~~~~^~~~~~
+#26 4.992 /vdms/utils/src/comm/Connection.cc: In lambda function:
+#26 4.992 /vdms/utils/src/comm/Connection.cc:128:53: warning: pointer of type 'void *' used in arithmetic [-Wpointer-arith]
+#26 4.992   128 |         ret = SSL_read(_ssl, (void *)(char *)buffer + bytes_recv,
+#26 4.992       |                              ~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~
+#26 5.078 [  9%] Building CXX object src/pmgd/util/CMakeFiles/pmgd-util.dir/loader.cc.o
+#26 5.110 [  9%] Building CXX object utils/CMakeFiles/vdms-utils.dir/src/comm/Exception.cc.o
+#26 5.119 /vdms/src/vcl/TDBSparseDescriptorSet.cc:194: warning: ignoring '#pragma omp parallel' [-Wunknown-pragmas]
+#26 5.119   194 | #pragma omp parallel for
+#26 5.119       | 
+#26 5.119 /vdms/src/vcl/TDBSparseDescriptorSet.cc:327: warning: ignoring '#pragma omp parallel' [-Wunknown-pragmas]
+#26 5.119   327 | #pragma omp parallel for
+#26 5.119       | 
+#26 5.119 /vdms/src/vcl/TDBSparseDescriptorSet.cc:389: warning: ignoring '#pragma omp parallel' [-Wunknown-pragmas]
+#26 5.119   389 | #pragma omp parallel for
+#26 5.119       | 
+#26 5.132 [  9%] Building CXX object src/pmgd/util/CMakeFiles/pmgd-util.dir/load_gson.cc.o
+#26 5.158 /vdms/src/pmgd/src/Allocator.cc: In destructor 'PMGD::Allocator::~Allocator()':
+#26 5.158 /vdms/src/pmgd/src/Allocator.cc:116:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<PMGD::AllocatorUnit*>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 5.158   116 |     for (int i = 0; i < _allocators.size(); ++i)
+#26 5.158       |                     ~~^~~~~~~~~~~~~~~~~~~~
+#26 5.159 /vdms/src/pmgd/src/Allocator.cc: In member function 'int PMGD::Allocator::get_allocator()':
+#26 5.159 /vdms/src/pmgd/src/Allocator.cc:128:41: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<PMGD::AllocatorUnit*>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 5.159   128 |         for (int alloc_id = 0; alloc_id < _allocators.size(); ++alloc_id) {
+#26 5.159       |                                ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~
+#26 5.166 In file included from /vdms/src/pmgd/src/../include/property.h:33:
+#26 5.166 /vdms/src/pmgd/src/Allocator.cc: In member function 'void PMGD::Allocator::lock_allocators(const PerAllocatorFreeList&)':
+#26 5.166 /vdms/src/pmgd/src/Allocator.cc:172:42: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<PMGD::AllocatorUnit*>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 5.166   172 |         assert(alloc_id >= 0 && alloc_id < _allocators.size());
+#26 5.166       |                                 ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~
+#26 5.289 In file included from /vdms/src/pmgd/util/../include/pmgd.h:38,
+#26 5.289                  from loader.y:34:
+#26 5.289 /vdms/src/pmgd/util/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 5.289 /vdms/src/pmgd/util/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 5.289    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 5.289       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 5.289 /vdms/src/pmgd/util/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 5.289    45 |     struct Time {
+#26 5.289       |            ^~~~
+#26 5.295 [ 10%] Building CXX object src/vcl/CMakeFiles/vcl.dir/utils.cc.o
+#26 5.426 [ 11%] Building CXX object utils/CMakeFiles/vdms-utils.dir/src/comm/ConnServer.cc.o
+#26 5.545 In file included from /vdms/src/vcl/utils.cc:37:
+#26 5.545 /vdms/src/vcl/../../include/vcl/Image.h:253:1: warning: "/*" within comment [-Wcomment]
+#26 5.545   253 | /**
+#26 5.545       |  
+#26 5.564 In file included from /vdms/src/pmgd/util/../include/pmgd.h:38,
+#26 5.564                  from /vdms/src/pmgd/util/load_gson.cc:39:
+#26 5.564 /vdms/src/pmgd/util/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 5.564 /vdms/src/pmgd/util/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 5.564    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 5.564       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 5.564 /vdms/src/pmgd/util/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 5.564    45 |     struct Time {
+#26 5.564       |            ^~~~
+#26 5.739 /vdms/utils/src/comm/ConnServer.cc: In constructor 'comm::ConnServer::ConnServer(int, const std::string&, const std::string&, const std::string&)':
+#26 5.739 /vdms/utils/src/comm/ConnServer.cc:47:13: warning: comparison of integer expressions of different signedness: 'int' and 'const unsigned int' [-Wsign-compare]
+#26 5.739    47 |   if (_port > MAX_PORT_NUMBER || _port <= 0) {
+#26 5.739       |       ~~~~~~^~~~~~~~~~~~~~~~~
+#26 5.769 In file included from /vdms/src/vcl/FaissDescriptorSet.h:44,
+#26 5.769                  from /vdms/src/vcl/FaissDescriptorSet.cc:39:
+#26 5.769 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual long int VCL::DescriptorSet::DescriptorSetData::add_and_store(float*, unsigned int, long int*)':
+#26 5.769 /vdms/src/vcl/DescriptorSetData.h:153:37: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 5.769   153 |   virtual long add_and_store(float *descriptors, unsigned n_descriptors,
+#26 5.769       |                              ~~~~~~~^~~~~~~~~~~
+#26 5.769 /vdms/src/vcl/DescriptorSetData.h:153:59: warning: unused parameter 'n_descriptors' [-Wunused-parameter]
+#26 5.769   153 |   virtual long add_and_store(float *descriptors, unsigned n_descriptors,
+#26 5.769       |                                                  ~~~~~~~~~^~~~~~~~~~~~~
+#26 5.769 /vdms/src/vcl/DescriptorSetData.h:154:36: warning: unused parameter 'labels' [-Wunused-parameter]
+#26 5.769   154 |                              long *labels = NULL) {
+#26 5.769       |                                    ^
+#26 5.769 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual void VCL::DescriptorSet::DescriptorSetData::search(float*, unsigned int, unsigned int, long int*)':
+#26 5.769 /vdms/src/vcl/DescriptorSetData.h:171:30: warning: unused parameter 'query' [-Wunused-parameter]
+#26 5.769   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 5.769       |                       ~~~~~~~^~~~~
+#26 5.769 /vdms/src/vcl/DescriptorSetData.h:171:46: warning: unused parameter 'n' [-Wunused-parameter]
+#26 5.769   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 5.769       |                                     ~~~~~~~~~^
+#26 5.769 /vdms/src/vcl/DescriptorSetData.h:171:58: warning: unused parameter 'k' [-Wunused-parameter]
+#26 5.769   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 5.769       |                                                 ~~~~~~~~~^
+#26 5.769 /vdms/src/vcl/DescriptorSetData.h:171:67: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 5.769   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 5.769       |                                                             ~~~~~~^~~~~~~~~~~
+#26 5.769 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual void VCL::DescriptorSet::DescriptorSetData::train(float*, unsigned int)':
+#26 5.769 /vdms/src/vcl/DescriptorSetData.h:228:29: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 5.769   228 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 5.769       |                      ~~~~~~~^~~~~~~~~~~
+#26 5.769 /vdms/src/vcl/DescriptorSetData.h:228:51: warning: unused parameter 'n' [-Wunused-parameter]
+#26 5.769   228 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 5.769       |                                          ~~~~~~~~~^
+#26 5.810 [ 12%] Building CXX object src/pmgd/util/CMakeFiles/pmgd-util.dir/load_tsv.cc.o
+#26 5.815 [ 12%] Building CXX object utils/CMakeFiles/vdms-utils.dir/src/stats/SystemStats.cc.o
+#26 5.838 [ 12%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/AllocatorUnit.cc.o
+#26 5.847 In file included from /vdms/src/vcl/FlinngDescriptorSet.h:44,
+#26 5.847                  from /vdms/src/vcl/FlinngDescriptorSet.cc:40:
+#26 5.847 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual long int VCL::DescriptorSet::DescriptorSetData::add_and_store(float*, unsigned int, long int*)':
+#26 5.847 /vdms/src/vcl/DescriptorSetData.h:153:37: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 5.847   153 |   virtual long add_and_store(float *descriptors, unsigned n_descriptors,
+#26 5.847       |                              ~~~~~~~^~~~~~~~~~~
+#26 5.847 /vdms/src/vcl/DescriptorSetData.h:153:59: warning: unused parameter 'n_descriptors' [-Wunused-parameter]
+#26 5.847   153 |   virtual long add_and_store(float *descriptors, unsigned n_descriptors,
+#26 5.847       |                                                  ~~~~~~~~~^~~~~~~~~~~~~
+#26 5.847 /vdms/src/vcl/DescriptorSetData.h:154:36: warning: unused parameter 'labels' [-Wunused-parameter]
+#26 5.847   154 |                              long *labels = NULL) {
+#26 5.847       |                                    ^
+#26 5.847 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual void VCL::DescriptorSet::DescriptorSetData::search(float*, unsigned int, unsigned int, long int*)':
+#26 5.847 /vdms/src/vcl/DescriptorSetData.h:171:30: warning: unused parameter 'query' [-Wunused-parameter]
+#26 5.847   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 5.847       |                       ~~~~~~~^~~~~
+#26 5.847 /vdms/src/vcl/DescriptorSetData.h:171:46: warning: unused parameter 'n' [-Wunused-parameter]
+#26 5.847   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 5.847       |                                     ~~~~~~~~~^
+#26 5.847 /vdms/src/vcl/DescriptorSetData.h:171:58: warning: unused parameter 'k' [-Wunused-parameter]
+#26 5.847   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 5.847       |                                                 ~~~~~~~~~^
+#26 5.847 /vdms/src/vcl/DescriptorSetData.h:171:67: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 5.847   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 5.847       |                                                             ~~~~~~^~~~~~~~~~~
+#26 5.847 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual void VCL::DescriptorSet::DescriptorSetData::train(float*, unsigned int)':
+#26 5.847 /vdms/src/vcl/DescriptorSetData.h:228:29: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 5.847   228 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 5.847       |                      ~~~~~~~^~~~~~~~~~~
+#26 5.847 /vdms/src/vcl/DescriptorSetData.h:228:51: warning: unused parameter 'n' [-Wunused-parameter]
+#26 5.847   228 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 5.847       |                                          ~~~~~~~~~^
+#26 5.864 In file included from /vdms/src/vcl/DescriptorSetData.cc:36:
+#26 5.864 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual long int VCL::DescriptorSet::DescriptorSetData::add_and_store(float*, unsigned int, long int*)':
+#26 5.864 /vdms/src/vcl/DescriptorSetData.h:153:37: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 5.864   153 |   virtual long add_and_store(float *descriptors, unsigned n_descriptors,
+#26 5.864       |                              ~~~~~~~^~~~~~~~~~~
+#26 5.864 /vdms/src/vcl/DescriptorSetData.h:153:59: warning: unused parameter 'n_descriptors' [-Wunused-parameter]
+#26 5.864   153 |   virtual long add_and_store(float *descriptors, unsigned n_descriptors,
+#26 5.864       |                                                  ~~~~~~~~~^~~~~~~~~~~~~
+#26 5.864 /vdms/src/vcl/DescriptorSetData.h:154:36: warning: unused parameter 'labels' [-Wunused-parameter]
+#26 5.864   154 |                              long *labels = NULL) {
+#26 5.864       |                                    ^
+#26 5.864 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual void VCL::DescriptorSet::DescriptorSetData::search(float*, unsigned int, unsigned int, long int*)':
+#26 5.864 /vdms/src/vcl/DescriptorSetData.h:171:30: warning: unused parameter 'query' [-Wunused-parameter]
+#26 5.864   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 5.864       |                       ~~~~~~~^~~~~
+#26 5.864 /vdms/src/vcl/DescriptorSetData.h:171:46: warning: unused parameter 'n' [-Wunused-parameter]
+#26 5.864   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 5.864       |                                     ~~~~~~~~~^
+#26 5.864 /vdms/src/vcl/DescriptorSetData.h:171:58: warning: unused parameter 'k' [-Wunused-parameter]
+#26 5.864   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 5.864       |                                                 ~~~~~~~~~^
+#26 5.864 /vdms/src/vcl/DescriptorSetData.h:171:67: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 5.864   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 5.864       |                                                             ~~~~~~^~~~~~~~~~~
+#26 5.864 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual void VCL::DescriptorSet::DescriptorSetData::train(float*, unsigned int)':
+#26 5.864 /vdms/src/vcl/DescriptorSetData.h:228:29: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 5.864   228 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 5.864       |                      ~~~~~~~^~~~~~~~~~~
+#26 5.864 /vdms/src/vcl/DescriptorSetData.h:228:51: warning: unused parameter 'n' [-Wunused-parameter]
+#26 5.864   228 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 5.864       |                                          ~~~~~~~~~^
+#26 5.867 /vdms/src/vcl/DescriptorSetData.cc: In member function 'virtual void VCL::DescriptorSet::DescriptorSetData::radius_search(float*, float, long int*, float*)':
+#26 5.867 /vdms/src/vcl/DescriptorSetData.cc:64:61: warning: unused parameter 'query' [-Wunused-parameter]
+#26 5.867    64 | void DescriptorSet::DescriptorSetData::radius_search(float *query, float radius,
+#26 5.867       |                                                      ~~~~~~~^~~~~
+#26 5.867 /vdms/src/vcl/DescriptorSetData.cc:64:74: warning: unused parameter 'radius' [-Wunused-parameter]
+#26 5.867    64 | void DescriptorSet::DescriptorSetData::radius_search(float *query, float radius,
+#26 5.867       |                                                                    ~~~~~~^~~~~~
+#26 5.867 /vdms/src/vcl/DescriptorSetData.cc:65:60: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 5.867    65 |                                                      long *descriptors,
+#26 5.867       |                                                      ~~~~~~^~~~~~~~~~~
+#26 5.867 /vdms/src/vcl/DescriptorSetData.cc:66:61: warning: unused parameter 'distances' [-Wunused-parameter]
+#26 5.867    66 |                                                      float *distances) {
+#26 5.867       |                                                      ~~~~~~~^~~~~~~~~
+#26 5.870 /vdms/src/vcl/DescriptorSetData.cc: In member function 'std::vector<std::__cxx11::basic_string<char>, std::allocator<std::__cxx11::basic_string<char> > > VCL::DescriptorSet::DescriptorSetData::get_str_labels(long int*, unsigned int)':
+#26 5.870 /vdms/src/vcl/DescriptorSetData.cc:87:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 5.870    87 |   for (int i = 0; i < n; ++i) {
+#26 5.870       |                   ~~^~~
+#26 5.870 In file included from /usr/include/c++/12/cassert:44,
+#26 5.870                  from /usr/local/include/aws/crt/StringView.h:12,
+#26 5.870                  from /usr/local/include/aws/crt/Types.h:10,
+#26 5.870                  from /usr/local/include/aws/crt/DateTime.h:8,
+#26 5.870                  from /usr/local/include/aws/crt/auth/Sigv4Signing.h:9,
+#26 5.870                  from /usr/local/include/aws/core/auth/signer/AWSAuthV4Signer.h:19,
+#26 5.870                  from /usr/local/include/aws/core/auth/AWSAuthSigner.h:11,
+#26 5.870                  from /usr/local/include/aws/core/AmazonWebServiceRequest.h:11,
+#26 5.870                  from /usr/local/include/aws/core/client/AWSUrlPresigner.h:9,
+#26 5.870                  from /usr/local/include/aws/core/client/AWSClient.h:12,
+#26 5.870                  from /usr/local/include/aws/core/monitoring/MonitoringManager.h:11,
+#26 5.870                  from /usr/local/include/aws/core/Aws.h:13,
+#26 5.870                  from /vdms/src/vcl/../../include/vcl/RemoteConnection.h:41,
+#26 5.870                  from /vdms/src/vcl/../../include/vcl/DescriptorSet.h:39,
+#26 5.870                  from /vdms/src/vcl/DescriptorSetData.h:48:
+#26 5.870 /vdms/src/vcl/DescriptorSetData.cc:88:22: warning: comparison of integer expressions of different signedness: '__gnu_cxx::__alloc_traits<std::allocator<long int>, long int>::value_type' {aka 'long int'} and 'std::map<long int, std::__cxx11::basic_string<char> >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 5.870    88 |     assert(labels[i] < _labels_map.size());
+#26 5.898 /vdms/src/vcl/FlinngDescriptorSet.cc: In member function 'virtual void VCL::FlinngDescriptorSet::train(float*, unsigned int)':
+#26 5.898 /vdms/src/vcl/FlinngDescriptorSet.cc:176:40: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 5.898   176 | void FlinngDescriptorSet::train(float *descriptors, unsigned n) {
+#26 5.898       |                                 ~~~~~~~^~~~~~~~~~~
+#26 5.898 /vdms/src/vcl/FlinngDescriptorSet.cc:176:62: warning: unused parameter 'n' [-Wunused-parameter]
+#26 5.898   176 | void FlinngDescriptorSet::train(float *descriptors, unsigned n) {
+#26 5.898       |                                                     ~~~~~~~~~^
+#26 5.898 /vdms/src/vcl/FlinngDescriptorSet.cc: In member function 'virtual void VCL::FlinngDescriptorSet::radius_search(float*, float, long int*, float*)':
+#26 5.898 /vdms/src/vcl/FlinngDescriptorSet.cc:206:48: warning: unused parameter 'query' [-Wunused-parameter]
+#26 5.898   206 | void FlinngDescriptorSet::radius_search(float *query, float radius,
+#26 5.898       |                                         ~~~~~~~^~~~~
+#26 5.898 /vdms/src/vcl/FlinngDescriptorSet.cc:206:61: warning: unused parameter 'radius' [-Wunused-parameter]
+#26 5.898   206 | void FlinngDescriptorSet::radius_search(float *query, float radius,
+#26 5.898       |                                                       ~~~~~~^~~~~~
+#26 5.898 /vdms/src/vcl/FlinngDescriptorSet.cc:207:47: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 5.898   207 |                                         long *descriptors, float *distances) {
+#26 5.898       |                                         ~~~~~~^~~~~~~~~~~
+#26 5.898 /vdms/src/vcl/FlinngDescriptorSet.cc:207:67: warning: unused parameter 'distances' [-Wunused-parameter]
+#26 5.898   207 |                                         long *descriptors, float *distances) {
+#26 5.898       |                                                            ~~~~~~~^~~~~~~~~
+#26 5.899 /vdms/src/vcl/FlinngDescriptorSet.cc: In member function 'virtual void VCL::FlinngDescriptorSet::classify(float*, unsigned int, long int*, unsigned int)':
+#26 5.899 /vdms/src/vcl/FlinngDescriptorSet.cc:221:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 5.899   221 |   for (int j = 0; j < n; ++j) {
+#26 5.899       |                   ~~^~~
+#26 5.904 /vdms/src/vcl/FlinngDescriptorSet.cc:225:23: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 5.904   225 |     for (int i = 0; i < quorum; ++i) {
+#26 5.904       |                     ~~^~~~~~~~
+#26 5.904 /vdms/src/vcl/FlinngDescriptorSet.cc:232:15: warning: comparison of integer expressions of different signedness: 'unsigned int' and 'std::map<long int, int>::mapped_type' {aka 'int'} [-Wsign-compare]
+#26 5.904   232 |       if (max < map_voting[label_id]) {
+#26 5.904 /vdms/src/vcl/FlinngDescriptorSet.cc: In member function 'virtual void VCL::FlinngDescriptorSet::get_labels(long int*, unsigned int, long int*)':
+#26 5.904 /vdms/src/vcl/FlinngDescriptorSet.cc:245:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 5.904   245 |   for (int i = 0; i < n; ++i) {
+#26 5.904       |                   ~~^~~
+#26 5.904 /vdms/src/vcl/FlinngDescriptorSet.cc:247:13: warning: comparison of integer expressions of different signedness: 'long int' and 'std::vector<long int>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 5.904   247 |     if (idx > _label_ids.size()) {
+#26 5.904       |         ~~~~^~~~~~~~~~~~~~~~~~~
+#26 5.905 /vdms/src/vcl/FlinngDescriptorSet.cc: In member function 'virtual void VCL::FlinngDescriptorSet::get_descriptors(long int*, unsigned int, float*)':
+#26 5.905 /vdms/src/vcl/FlinngDescriptorSet.cc:259:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 5.905   259 |   for (int i = 0; i < n; ++i) {
+#26 5.905       |                   ~~^~~
+#26 5.905 /vdms/src/vcl/FlinngDescriptorSet.cc:258:7: warning: unused variable 'offset' [-Wunused-variable]
+#26 5.905   258 |   int offset = 0;
+#26 5.905       |       ^~~~~~
+#26 5.911 /vdms/src/vcl/FaissDescriptorSet.cc: In member function 'virtual void VCL::FaissDescriptorSet::classify(float*, unsigned int, long int*, unsigned int)':
+#26 5.911 /vdms/src/vcl/FaissDescriptorSet.cc:160:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 5.911   160 |   for (int j = 0; j < n; ++j) {
+#26 5.911       |                   ~~^~~
+#26 5.916 /vdms/src/vcl/FaissDescriptorSet.cc:164:23: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 5.916   164 |     for (int i = 0; i < quorum; ++i) {
+#26 5.916       |                     ~~^~~~~~~~
+#26 5.916 /vdms/src/vcl/FaissDescriptorSet.cc:171:15: warning: comparison of integer expressions of different signedness: 'unsigned int' and 'std::map<long int, int>::mapped_type' {aka 'int'} [-Wsign-compare]
+#26 5.916   171 |       if (max < map_voting[label_id]) {
+#26 5.917 /vdms/src/vcl/FaissDescriptorSet.cc: In member function 'virtual void VCL::FaissDescriptorSet::get_labels(long int*, unsigned int, long int*)':
+#26 5.917 /vdms/src/vcl/FaissDescriptorSet.cc:184:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 5.917   184 |   for (int i = 0; i < n; ++i) {
+#26 5.917       |                   ~~^~~
+#26 5.917 /vdms/src/vcl/FaissDescriptorSet.cc:186:13: warning: comparison of integer expressions of different signedness: 'long int' and 'std::vector<long int>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 5.917   186 |     if (idx > _label_ids.size()) {
+#26 5.917       |         ~~~~^~~~~~~~~~~~~~~~~~~
+#26 5.917 /vdms/src/vcl/FaissDescriptorSet.cc: In member function 'virtual void VCL::FaissDescriptorSet::get_descriptors(long int*, unsigned int, float*)':
+#26 5.917 /vdms/src/vcl/FaissDescriptorSet.cc:201:23: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 5.917   201 |     for (int i = 0; i < n; ++i) {
+#26 5.917       |                     ~~^~~
+#26 5.917 /vdms/src/vcl/FaissDescriptorSet.cc:198:7: warning: unused variable 'offset' [-Wunused-variable]
+#26 5.917   198 |   int offset = 0;
+#26 5.917       |       ^~~~~~
+#26 5.957 In file included from /vdms/src/vcl/DescriptorSet.cc:39:
+#26 5.957 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual long int VCL::DescriptorSet::DescriptorSetData::add_and_store(float*, unsigned int, long int*)':
+#26 5.957 /vdms/src/vcl/DescriptorSetData.h:153:37: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 5.957   153 |   virtual long add_and_store(float *descriptors, unsigned n_descriptors,
+#26 5.957       |                              ~~~~~~~^~~~~~~~~~~
+#26 5.957 /vdms/src/vcl/DescriptorSetData.h:153:59: warning: unused parameter 'n_descriptors' [-Wunused-parameter]
+#26 5.957   153 |   virtual long add_and_store(float *descriptors, unsigned n_descriptors,
+#26 5.957       |                                                  ~~~~~~~~~^~~~~~~~~~~~~
+#26 5.957 /vdms/src/vcl/DescriptorSetData.h:154:36: warning: unused parameter 'labels' [-Wunused-parameter]
+#26 5.957   154 |                              long *labels = NULL) {
+#26 5.957       |                                    ^
+#26 5.957 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual void VCL::DescriptorSet::DescriptorSetData::search(float*, unsigned int, unsigned int, long int*)':
+#26 5.957 /vdms/src/vcl/DescriptorSetData.h:171:30: warning: unused parameter 'query' [-Wunused-parameter]
+#26 5.957   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 5.957       |                       ~~~~~~~^~~~~
+#26 5.957 /vdms/src/vcl/DescriptorSetData.h:171:46: warning: unused parameter 'n' [-Wunused-parameter]
+#26 5.957   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 5.957       |                                     ~~~~~~~~~^
+#26 5.957 /vdms/src/vcl/DescriptorSetData.h:171:58: warning: unused parameter 'k' [-Wunused-parameter]
+#26 5.957   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 5.957       |                                                 ~~~~~~~~~^
+#26 5.957 /vdms/src/vcl/DescriptorSetData.h:171:67: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 5.957   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 5.957       |                                                             ~~~~~~^~~~~~~~~~~
+#26 5.957 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual void VCL::DescriptorSet::DescriptorSetData::train(float*, unsigned int)':
+#26 5.957 /vdms/src/vcl/DescriptorSetData.h:228:29: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 5.957   228 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 5.957       |                      ~~~~~~~^~~~~~~~~~~
+#26 5.957 /vdms/src/vcl/DescriptorSetData.h:228:51: warning: unused parameter 'n' [-Wunused-parameter]
+#26 5.957   228 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 5.957       |                                          ~~~~~~~~~^
+#26 5.963 In file included from /vdms/src/pmgd/util/../include/pmgd.h:38,
+#26 5.963                  from /vdms/src/pmgd/util/load_tsv.cc:32:
+#26 5.963 /vdms/src/pmgd/util/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 5.963 /vdms/src/pmgd/util/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 5.963    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 5.963       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 5.963 /vdms/src/pmgd/util/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 5.963    45 |     struct Time {
+#26 5.963       |            ^~~~
+#26 5.963 [ 12%] Building CXX object src/pmgd/util/CMakeFiles/pmgd-util.dir/neighbor.cc.o
+#26 6.031 In file included from /vdms/src/vcl/utils.cc:35:
+#26 6.031 /vdms/src/vcl/../VDMSConfig.h:138:3: warning: type qualifiers ignored on function return type [-Wignored-qualifiers]
+#26 6.031   138 |   const Aws::Utils::Logging::LogLevel get_aws_log_level() {
+#26 6.031       |   ^~~~~
+#26 6.179 In file included from /vdms/src/vcl/TDBDescriptorSet.h:45,
+#26 6.179                  from /vdms/src/vcl/TDBDenseDescriptorSet.cc:40:
+#26 6.179 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual long int VCL::DescriptorSet::DescriptorSetData::add_and_store(float*, unsigned int, long int*)':
+#26 6.179 /vdms/src/vcl/DescriptorSetData.h:153:37: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 6.179   153 |   virtual long add_and_store(float *descriptors, unsigned n_descriptors,
+#26 6.179       |                              ~~~~~~~^~~~~~~~~~~
+#26 6.179 /vdms/src/vcl/DescriptorSetData.h:153:59: warning: unused parameter 'n_descriptors' [-Wunused-parameter]
+#26 6.179   153 |   virtual long add_and_store(float *descriptors, unsigned n_descriptors,
+#26 6.179       |                                                  ~~~~~~~~~^~~~~~~~~~~~~
+#26 6.179 /vdms/src/vcl/DescriptorSetData.h:154:36: warning: unused parameter 'labels' [-Wunused-parameter]
+#26 6.179   154 |                              long *labels = NULL) {
+#26 6.179       |                                    ^
+#26 6.179 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual void VCL::DescriptorSet::DescriptorSetData::search(float*, unsigned int, unsigned int, long int*)':
+#26 6.179 /vdms/src/vcl/DescriptorSetData.h:171:30: warning: unused parameter 'query' [-Wunused-parameter]
+#26 6.179   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 6.179       |                       ~~~~~~~^~~~~
+#26 6.179 /vdms/src/vcl/DescriptorSetData.h:171:46: warning: unused parameter 'n' [-Wunused-parameter]
+#26 6.179   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 6.179       |                                     ~~~~~~~~~^
+#26 6.179 /vdms/src/vcl/DescriptorSetData.h:171:58: warning: unused parameter 'k' [-Wunused-parameter]
+#26 6.179   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 6.179       |                                                 ~~~~~~~~~^
+#26 6.179 /vdms/src/vcl/DescriptorSetData.h:171:67: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 6.179   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 6.179       |                                                             ~~~~~~^~~~~~~~~~~
+#26 6.179 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual void VCL::DescriptorSet::DescriptorSetData::train(float*, unsigned int)':
+#26 6.179 /vdms/src/vcl/DescriptorSetData.h:228:29: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 6.179   228 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 6.179       |                      ~~~~~~~^~~~~~~~~~~
+#26 6.179 /vdms/src/vcl/DescriptorSetData.h:228:51: warning: unused parameter 'n' [-Wunused-parameter]
+#26 6.179   228 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 6.179       |                                          ~~~~~~~~~^
+#26 6.188 /vdms/src/vcl/TDBDescriptorSet.h: In member function 'virtual void VCL::TDBDescriptorSet::train(float*, unsigned int)':
+#26 6.188 /vdms/src/vcl/TDBDescriptorSet.h:87:29: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 6.188    87 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 6.188       |                      ~~~~~~~^~~~~~~~~~~
+#26 6.188 /vdms/src/vcl/TDBDescriptorSet.h:87:51: warning: unused parameter 'n' [-Wunused-parameter]
+#26 6.188    87 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 6.188       |                                          ~~~~~~~~~^
+#26 6.193 /vdms/src/vcl/TDBDenseDescriptorSet.cc: In constructor 'VCL::TDBDenseDescriptorSet::TDBDenseDescriptorSet(const std::string&, uint32_t, VCL::DistanceMetric)':
+#26 6.193 /vdms/src/vcl/TDBDenseDescriptorSet.cc:57:61: warning: unused parameter 'metric' [-Wunused-parameter]
+#26 6.193    57 |                                              DistanceMetric metric)
+#26 6.193       |                                              ~~~~~~~~~~~~~~~^~~~~~
+#26 6.200 /vdms/src/vcl/TDBDenseDescriptorSet.cc: In member function 'virtual void VCL::TDBDenseDescriptorSet::search(float*, unsigned int, unsigned int, long int*, float*)':
+#26 6.200 /vdms/src/vcl/TDBDenseDescriptorSet.cc:196:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 6.200   196 |   for (int i = 0; i < n_queries; ++i) {
+#26 6.200       |                   ~~^~~~~~~~~~~
+#26 6.200 /vdms/src/vcl/TDBDenseDescriptorSet.cc:203:23: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 6.200   203 |     for (int j = 0; j < k; ++j) {
+#26 6.200       |                     ~~^~~
+#26 6.200 /vdms/src/vcl/TDBDenseDescriptorSet.cc: In member function 'virtual void VCL::TDBDenseDescriptorSet::get_descriptors(long int*, unsigned int, float*)':
+#26 6.200 /vdms/src/vcl/TDBDenseDescriptorSet.cc:216:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 6.200   216 |   for (int i = 0; i < n; ++i) {
+#26 6.200       |                   ~~^~~
+#26 6.228 In file included from /vdms/src/pmgd/util/../include/pmgd.h:38,
+#26 6.228                  from /vdms/src/pmgd/util/neighbor.cc:36:
+#26 6.228 /vdms/src/pmgd/util/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 6.228 /vdms/src/pmgd/util/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 6.228    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 6.228       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 6.228 /vdms/src/pmgd/util/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 6.228    45 |     struct Time {
+#26 6.228       |            ^~~~
+#26 6.248 [ 12%] Building CXX object utils/CMakeFiles/vdms-utils.dir/src/kubernetes/KubeHelper.cc.o
+#26 6.258 [ 12%] Building CXX object src/pmgd/util/CMakeFiles/pmgd-util.dir/scanner.cc.o
+#26 6.314 /vdms/utils/src/kubernetes/KubeHelper.cc:11:10: fatal error: /usr/local/include/kubernetes/config/incluster_config.h: No such file or directory
+#26 6.314    11 | #include </usr/local/include/kubernetes/config/incluster_config.h>
+#26 6.314       |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#26 6.314 compilation terminated.
+#26 6.316 make[2]: *** [utils/CMakeFiles/vdms-utils.dir/build.make:160: utils/CMakeFiles/vdms-utils.dir/src/kubernetes/KubeHelper.cc.o] Error 1
+#26 6.316 make[1]: *** [CMakeFiles/Makefile2:1923: utils/CMakeFiles/vdms-utils.dir/all] Error 2
+#26 6.316 make[1]: *** Waiting for unfinished jobs....
+#26 6.320 [ 13%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/AvlTree.cc.o
+#26 6.422 In file included from /vdms/src/vcl/DescriptorSet.cc:42:
+#26 6.422 /vdms/src/vcl/TDBDescriptorSet.h: In member function 'virtual void VCL::TDBDescriptorSet::train(float*, unsigned int)':
+#26 6.422 /vdms/src/vcl/TDBDescriptorSet.h:87:29: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 6.422    87 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 6.422       |                      ~~~~~~~^~~~~~~~~~~
+#26 6.422 /vdms/src/vcl/TDBDescriptorSet.h:87:51: warning: unused parameter 'n' [-Wunused-parameter]
+#26 6.422    87 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 6.422       |                                          ~~~~~~~~~^
+#26 6.423 In file included from /vdms/src/pmgd/util/../include/pmgd.h:38,
+#26 6.423                  from util/scanner.l:34:
+#26 6.423 /vdms/src/pmgd/util/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 6.423 /vdms/src/pmgd/util/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 6.423    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 6.423       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 6.423 /vdms/src/pmgd/util/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 6.423    45 |     struct Time {
+#26 6.423       |            ^~~~
+#26 6.440 /vdms/src/vcl/DescriptorSet.cc: In member function 'void VCL::DescriptorSet::store()':
+#26 6.440 /vdms/src/vcl/DescriptorSet.cc:228:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::__cxx11::basic_string<char>, std::allocator<std::__cxx11::basic_string<char> > >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 6.440   228 |     for (int i = 0; i < filenames.size(); i++) {
+#26 6.440       |                     ~~^~~~~~~~~~~~~~~~~~
+#26 6.444 /vdms/src/vcl/DescriptorSet.cc: In member function 'void VCL::DescriptorSet::set_labels_map(LabelIdVector&, std::vector<std::__cxx11::basic_string<char>, std::allocator<std::__cxx11::basic_string<char> > >&)':
+#26 6.444 /vdms/src/vcl/DescriptorSet.cc:327:21: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<long int>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 6.444   327 |   for (int i = 0; i < ids.size(); ++i) {
+#26 6.444       |                   ~~^~~~~~~~~~~~
+#26 6.445 /vdms/src/vcl/DescriptorSet.cc: In member function 'std::vector<std::__cxx11::basic_string<char>, std::allocator<std::__cxx11::basic_string<char> > > VCL::DescriptorSet::label_id_to_string(LabelIdVector&)':
+#26 6.445 /vdms/src/vcl/DescriptorSet.cc:339:21: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<long int>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 6.445   339 |   for (int i = 0; i < l_id.size(); ++i) {
+#26 6.445       |                   ~~^~~~~~~~~~~~~
+#26 6.448 In file included from /vdms/src/vcl/TDBDescriptorSet.h:45,
+#26 6.448                  from /vdms/src/vcl/TDBDescriptorSet.cc:48:
+#26 6.448 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual long int VCL::DescriptorSet::DescriptorSetData::add_and_store(float*, unsigned int, long int*)':
+#26 6.448 /vdms/src/vcl/DescriptorSetData.h:153:37: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 6.448   153 |   virtual long add_and_store(float *descriptors, unsigned n_descriptors,
+#26 6.448       |                              ~~~~~~~^~~~~~~~~~~
+#26 6.448 /vdms/src/vcl/DescriptorSetData.h:153:59: warning: unused parameter 'n_descriptors' [-Wunused-parameter]
+#26 6.448   153 |   virtual long add_and_store(float *descriptors, unsigned n_descriptors,
+#26 6.448       |                                                  ~~~~~~~~~^~~~~~~~~~~~~
+#26 6.448 /vdms/src/vcl/DescriptorSetData.h:154:36: warning: unused parameter 'labels' [-Wunused-parameter]
+#26 6.448   154 |                              long *labels = NULL) {
+#26 6.448       |                                    ^
+#26 6.448 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual void VCL::DescriptorSet::DescriptorSetData::search(float*, unsigned int, unsigned int, long int*)':
+#26 6.448 /vdms/src/vcl/DescriptorSetData.h:171:30: warning: unused parameter 'query' [-Wunused-parameter]
+#26 6.448   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 6.448       |                       ~~~~~~~^~~~~
+#26 6.448 /vdms/src/vcl/DescriptorSetData.h:171:46: warning: unused parameter 'n' [-Wunused-parameter]
+#26 6.448   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 6.448       |                                     ~~~~~~~~~^
+#26 6.448 /vdms/src/vcl/DescriptorSetData.h:171:58: warning: unused parameter 'k' [-Wunused-parameter]
+#26 6.448   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 6.448       |                                                 ~~~~~~~~~^
+#26 6.448 /vdms/src/vcl/DescriptorSetData.h:171:67: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 6.448   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 6.448       |                                                             ~~~~~~^~~~~~~~~~~
+#26 6.448 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual void VCL::DescriptorSet::DescriptorSetData::train(float*, unsigned int)':
+#26 6.448 /vdms/src/vcl/DescriptorSetData.h:228:29: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 6.448   228 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 6.448       |                      ~~~~~~~^~~~~~~~~~~
+#26 6.448 /vdms/src/vcl/DescriptorSetData.h:228:51: warning: unused parameter 'n' [-Wunused-parameter]
+#26 6.448   228 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 6.448       |                                          ~~~~~~~~~^
+#26 6.457 /vdms/src/vcl/TDBDescriptorSet.h: In member function 'virtual void VCL::TDBDescriptorSet::train(float*, unsigned int)':
+#26 6.457 /vdms/src/vcl/TDBDescriptorSet.h:87:29: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 6.457    87 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 6.457       |                      ~~~~~~~^~~~~~~~~~~
+#26 6.457 /vdms/src/vcl/TDBDescriptorSet.h:87:51: warning: unused parameter 'n' [-Wunused-parameter]
+#26 6.457    87 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 6.457       |                                          ~~~~~~~~~^
+#26 6.462 /vdms/src/vcl/TDBDescriptorSet.cc: In member function 'void VCL::TDBDescriptorSet::compute_distances(float*, std::vector<float>&, std::vector<float>&)':
+#26 6.462 /vdms/src/vcl/TDBDescriptorSet.cc:97:21: warning: comparison of integer expressions of different signedness: 'int' and 'size_t' {aka 'long unsigned int'} [-Wsign-compare]
+#26 6.462    97 |   for (int i = 0; i < n; ++i) {
+#26 6.462       |                   ~~^~~
+#26 6.462 /vdms/src/vcl/TDBDescriptorSet.cc:102:23: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 6.462   102 |     for (int j = 0; j < _dimensions; ++j) {
+#26 6.462       |                     ~~^~~~~~~~~~~~~
+#26 6.463 /vdms/src/vcl/TDBDescriptorSet.cc: In member function 'virtual void VCL::TDBDescriptorSet::classify(float*, unsigned int, long int*, unsigned int)':
+#26 6.463 /vdms/src/vcl/TDBDescriptorSet.cc:119:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 6.463   119 |   for (int j = 0; j < n; ++j) {
+#26 6.463       |                   ~~^~~
+#26 6.465 [ 13%] Building CXX object CMakeFiles/vdms_protobuf.dir/pmgdMessages.pb.cc.o
+#26 6.469 /vdms/src/vcl/TDBDescriptorSet.cc:124:23: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 6.469   124 |     for (int i = 0; i < quorum; ++i) {
+#26 6.469       |                     ~~^~~~~~~~
+#26 6.469 /vdms/src/vcl/TDBDescriptorSet.cc:131:15: warning: comparison of integer expressions of different signedness: 'unsigned int' and 'std::map<long int, int>::mapped_type' {aka 'int'} [-Wsign-compare]
+#26 6.469   131 |       if (max < map_voting[label_id]) {
+#26 6.470 /vdms/src/vcl/TDBDescriptorSet.cc: In member function 'virtual void VCL::TDBDescriptorSet::get_labels(long int*, unsigned int, long int*)':
+#26 6.470 /vdms/src/vcl/TDBDescriptorSet.cc:143:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 6.470   143 |   for (int i = 0; i < n; ++i) {
+#26 6.470       |                   ~~^~~
+#26 6.470 /vdms/src/vcl/TDBDescriptorSet.cc: In member function 'virtual void VCL::TDBDescriptorSet::get_descriptors(long int*, unsigned int, float*)':
+#26 6.470 /vdms/src/vcl/TDBDescriptorSet.cc:148:46: warning: unused parameter 'ids' [-Wunused-parameter]
+#26 6.470   148 | void TDBDescriptorSet::get_descriptors(long *ids, unsigned n,
+#26 6.470       |                                        ~~~~~~^~~
+#26 6.470 /vdms/src/vcl/TDBDescriptorSet.cc:148:60: warning: unused parameter 'n' [-Wunused-parameter]
+#26 6.470   148 | void TDBDescriptorSet::get_descriptors(long *ids, unsigned n,
+#26 6.470       |                                                   ~~~~~~~~~^
+#26 6.470 /vdms/src/vcl/TDBDescriptorSet.cc:149:47: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 6.470   149 |                                        float *descriptors) {
+#26 6.470       |                                        ~~~~~~~^~~~~~~~~~~
+#26 6.470 /vdms/src/vcl/TDBDescriptorSet.cc: In member function 'virtual void VCL::TDBDescriptorSet::store(std::string)':
+#26 6.470 /vdms/src/vcl/TDBDescriptorSet.cc:155:42: warning: unused parameter 'filename' [-Wunused-parameter]
+#26 6.470   155 | void TDBDescriptorSet::store(std::string filename) {
+#26 6.470       |                              ~~~~~~~~~~~~^~~~~~~~
+#26 6.610 In file included from /vdms/src/pmgd/src/../include/iterator.h:36,
+#26 6.610                  from /vdms/src/pmgd/src/../include/graph.h:34,
+#26 6.610                  from /vdms/src/pmgd/src/GraphConfig.h:35,
+#26 6.610                  from /vdms/src/pmgd/src/TransactionManager.h:38,
+#26 6.610                  from /vdms/src/pmgd/src/TransactionImpl.h:37,
+#26 6.610                  from /vdms/src/pmgd/src/FixedAllocator.h:34,
+#26 6.610                  from /vdms/src/pmgd/src/AllocatorUnit.h:37,
+#26 6.610                  from /vdms/src/pmgd/src/AllocatorUnit.cc:34:
+#26 6.610 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 6.610 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 6.610    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 6.610       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 6.610 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 6.610    45 |     struct Time {
+#26 6.610       |            ^~~~
+#26 6.725 In file included from /vdms/src/vcl/Image.cc:43:
+#26 6.725 /vdms/src/vcl/../VDMSConfig.h:138:3: warning: type qualifiers ignored on function return type [-Wignored-qualifiers]
+#26 6.725   138 |   const Aws::Utils::Logging::LogLevel get_aws_log_level() {
+#26 6.725       |   ^~~~~
+#26 6.728 [ 14%] Building CXX object src/pmgd/util/CMakeFiles/pmgd-util.dir/text.cc.o
+#26 6.732 /vdms/src/vcl/../../include/vcl/Image.h: In constructor 'VCL::Image::Write::Write(const std::string&, VCL::Format, VCL::Format, bool)':
+#26 6.732 /vdms/src/vcl/../../include/vcl/Image.h:681:10: warning: 'VCL::Image::Write::_metadata' will be initialized after [-Wreorder]
+#26 6.732   681 |     bool _metadata;
+#26 6.732       |          ^~~~~~~~~
+#26 6.732 /vdms/src/vcl/../../include/vcl/Image.h:677:17: warning:   'std::string VCL::Image::Write::_fullpath' [-Wreorder]
+#26 6.732   677 |     std::string _fullpath;
+#26 6.732       |                 ^~~~~~~~~
+#26 6.732 /vdms/src/vcl/Image.cc:110:1: warning:   when initialized here [-Wreorder]
+#26 6.732   110 | Image::Write::Write(const std::string &filename, VCL::Format format,
+#26 6.732       | ^~~~~
+#26 6.744 /vdms/src/vcl/Image.cc: In member function 'virtual void VCL::Image::SyncRemoteOperation::operator()(VCL::Image*)':
+#26 6.744 /vdms/src/vcl/Image.cc:408:16: warning: variable 'opstart' set but not used [-Wunused-but-set-variable]
+#26 6.744   408 |           auto opstart = std::chrono::system_clock::now();
+#26 6.744       |                ^~~~~~~
+#26 6.744 /vdms/src/vcl/Image.cc:378:18: warning: variable 'res' set but not used [-Wunused-but-set-variable]
+#26 6.744   378 |         CURLcode res;
+#26 6.744       |                  ^~~
+#26 6.744 /vdms/src/vcl/Image.cc:379:28: warning: unused variable 'headers' [-Wunused-variable]
+#26 6.744   379 |         struct curl_slist *headers = NULL;
+#26 6.744       |                            ^~~~~~~
+#26 6.754 /vdms/src/vcl/Image.cc: In constructor 'VCL::Image::Image(const std::string&, const std::string&, VCL::Format)':
+#26 6.754 /vdms/src/vcl/Image.cc:731:33: warning: unused parameter 'filename' [-Wunused-parameter]
+#26 6.754   731 | Image::Image(const std::string &filename, const std::string &blob,
+#26 6.754       |              ~~~~~~~~~~~~~~~~~~~^~~~~~~~
+#26 6.754 /vdms/src/vcl/Image.cc:731:62: warning: unused parameter 'blob' [-Wunused-parameter]
+#26 6.754   731 | Image::Image(const std::string &filename, const std::string &blob,
+#26 6.754       |                                           ~~~~~~~~~~~~~~~~~~~^~~~
+#26 6.759 /vdms/src/vcl/Image.cc: In copy constructor 'VCL::Image::Image(const VCL::Image&, bool)':
+#26 6.759 /vdms/src/vcl/Image.cc:828:27: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::shared_ptr<VCL::Image::Operation> >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 6.759   828 |     for (int i = start; i < img._operations.size(); ++i) {
+#26 6.759       |                         ~~^~~~~~~~~~~~~~~~~~~~~~~~
+#26 6.761 /vdms/src/vcl/Image.cc: In member function 'VCL::Image& VCL::Image::operator=(const VCL::Image&)':
+#26 6.761 /vdms/src/vcl/Image.cc:898:27: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::shared_ptr<VCL::Image::Operation> >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 6.761   898 |     for (int i = start; i < img._operations.size(); ++i) {
+#26 6.761       |                         ~~^~~~~~~~~~~~~~~~~~~~~~~~
+#26 6.774 /vdms/src/vcl/Image.cc: In member function 'void VCL::Image::perform_operations()':
+#26 6.774 /vdms/src/vcl/Image.cc:1302:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::shared_ptr<VCL::Image::Operation> >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 6.774  1302 |     for (int x = 0; x < _operations.size(); ++x) {
+#26 6.774       |                     ~~^~~~~~~~~~~~~~~~~~~~
+#26 6.833 /vdms/src/vcl/TDBObject.cc: In member function 'void VCL::TDBObject::set_attributes(const std::vector<std::__cxx11::basic_string<char>, std::allocator<std::__cxx11::basic_string<char> > >&)':
+#26 6.833 /vdms/src/vcl/TDBObject.cc:265:22: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::__cxx11::basic_string<char>, std::allocator<std::__cxx11::basic_string<char> > >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 6.833   265 |   for (auto x = 0; x < attributes.size(); ++x) {
+#26 6.833       |                    ~~^~~~~~~~~~~~~~~~~~~
+#26 6.833 /vdms/src/vcl/TDBObject.cc:273:22: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<char*>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 6.833   273 |   for (auto x = 0; x < charArrays.size(); ++x) {
+#26 6.833       |                    ~~^~~~~~~~~~~~~~~~~~~
+#26 6.834 /vdms/src/vcl/TDBObject.cc: In member function 'void VCL::TDBObject::set_config(VCL::RemoteConnection*)':
+#26 6.834 /vdms/src/vcl/TDBObject.cc:308:46: warning: unused parameter 'remote' [-Wunused-parameter]
+#26 6.834   308 | void TDBObject::set_config(RemoteConnection *remote) {
+#26 6.834       |                            ~~~~~~~~~~~~~~~~~~^~~~~~
+#26 6.835 /vdms/src/vcl/TDBObject.cc: In member function 'void VCL::TDBObject::set_schema_domain(tiledb::ArraySchema&)':
+#26 6.835 /vdms/src/vcl/TDBObject.cc:416:21: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<tiledb::Dimension>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 6.835   416 |   for (int x = 0; x < _full_dimensions.size(); ++x) {
+#26 6.835       |                   ~~^~~~~~~~~~~~~~~~~~~~~~~~~
+#26 6.837 /vdms/src/vcl/TDBObject.cc: In member function 'void VCL::TDBObject::set_from_schema(const std::string&)':
+#26 6.837 /vdms/src/vcl/TDBObject.cc:538:21: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<tiledb::Dimension>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 6.837   538 |   for (int i = 0; i < dimensions.size(); ++i) {
+#26 6.837       |                   ~~^~~~~~~~~~~~~~~~~~~
+#26 6.838 /vdms/src/vcl/TDBObject.cc: In member function 'void VCL::TDBObject::find_tile_extents()':
+#26 6.838 /vdms/src/vcl/TDBObject.cc:601:9: warning: unused variable 'num_tiles' [-Wunused-variable]
+#26 6.838   601 |     int num_tiles = 0;
+#26 6.838       |         ^~~~~~~~~
+#26 6.885 In file included from /vdms/src/pmgd/util/../include/pmgd.h:38,
+#26 6.885                  from /vdms/src/pmgd/util/text.cc:32:
+#26 6.885 /vdms/src/pmgd/util/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 6.885 /vdms/src/pmgd/util/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 6.885    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 6.885       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 6.885 /vdms/src/pmgd/util/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 6.885    45 |     struct Time {
+#26 6.885       |            ^~~~
+#26 6.973 [ 14%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/AvlTreeIndex.cc.o
+#26 7.000 In file included from /vdms/src/vcl/TDBDescriptorSet.h:45,
+#26 7.000                  from /vdms/src/vcl/TDBSparseDescriptorSet.cc:38:
+#26 7.000 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual long int VCL::DescriptorSet::DescriptorSetData::add_and_store(float*, unsigned int, long int*)':
+#26 7.000 /vdms/src/vcl/DescriptorSetData.h:153:37: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 7.000   153 |   virtual long add_and_store(float *descriptors, unsigned n_descriptors,
+#26 7.000       |                              ~~~~~~~^~~~~~~~~~~
+#26 7.000 /vdms/src/vcl/DescriptorSetData.h:153:59: warning: unused parameter 'n_descriptors' [-Wunused-parameter]
+#26 7.000   153 |   virtual long add_and_store(float *descriptors, unsigned n_descriptors,
+#26 7.000       |                                                  ~~~~~~~~~^~~~~~~~~~~~~
+#26 7.000 /vdms/src/vcl/DescriptorSetData.h:154:36: warning: unused parameter 'labels' [-Wunused-parameter]
+#26 7.000   154 |                              long *labels = NULL) {
+#26 7.000       |                                    ^
+#26 7.000 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual void VCL::DescriptorSet::DescriptorSetData::search(float*, unsigned int, unsigned int, long int*)':
+#26 7.000 /vdms/src/vcl/DescriptorSetData.h:171:30: warning: unused parameter 'query' [-Wunused-parameter]
+#26 7.000   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 7.000       |                       ~~~~~~~^~~~~
+#26 7.000 /vdms/src/vcl/DescriptorSetData.h:171:46: warning: unused parameter 'n' [-Wunused-parameter]
+#26 7.000   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 7.000       |                                     ~~~~~~~~~^
+#26 7.000 /vdms/src/vcl/DescriptorSetData.h:171:58: warning: unused parameter 'k' [-Wunused-parameter]
+#26 7.000   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 7.000       |                                                 ~~~~~~~~~^
+#26 7.000 /vdms/src/vcl/DescriptorSetData.h:171:67: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 7.000   171 |   virtual void search(float *query, unsigned n, unsigned k, long *descriptors) {
+#26 7.000       |                                                             ~~~~~~^~~~~~~~~~~
+#26 7.000 /vdms/src/vcl/DescriptorSetData.h: In member function 'virtual void VCL::DescriptorSet::DescriptorSetData::train(float*, unsigned int)':
+#26 7.000 /vdms/src/vcl/DescriptorSetData.h:228:29: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 7.000   228 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 7.000       |                      ~~~~~~~^~~~~~~~~~~
+#26 7.000 /vdms/src/vcl/DescriptorSetData.h:228:51: warning: unused parameter 'n' [-Wunused-parameter]
+#26 7.000   228 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 7.000       |                                          ~~~~~~~~~^
+#26 7.009 /vdms/src/vcl/TDBDescriptorSet.h: In member function 'virtual void VCL::TDBDescriptorSet::train(float*, unsigned int)':
+#26 7.009 /vdms/src/vcl/TDBDescriptorSet.h:87:29: warning: unused parameter 'descriptors' [-Wunused-parameter]
+#26 7.009    87 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 7.009       |                      ~~~~~~~^~~~~~~~~~~
+#26 7.009 /vdms/src/vcl/TDBDescriptorSet.h:87:51: warning: unused parameter 'n' [-Wunused-parameter]
+#26 7.009    87 |   virtual void train(float *descriptors, unsigned n) { train(); }
+#26 7.009       |                                          ~~~~~~~~~^
+#26 7.013 /vdms/src/vcl/TDBSparseDescriptorSet.cc: In constructor 'VCL::TDBSparseDescriptorSet::TDBSparseDescriptorSet(const std::string&, uint32_t, VCL::DistanceMetric)':
+#26 7.013 /vdms/src/vcl/TDBSparseDescriptorSet.cc:67:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 7.013    67 |   for (int i = 0; i < _dimensions; ++i) {
+#26 7.013       |                   ~~^~~~~~~~~~~~~
+#26 7.014 /vdms/src/vcl/TDBSparseDescriptorSet.cc:58:63: warning: unused parameter 'metric' [-Wunused-parameter]
+#26 7.014    58 |                                                DistanceMetric metric)
+#26 7.014       |                                                ~~~~~~~~~~~~~~~^~~~~~
+#26 7.018 /vdms/src/vcl/TDBSparseDescriptorSet.cc: In member function 'void VCL::TDBSparseDescriptorSet::load_neighbors(float*, unsigned int, std::vector<float>&, std::vector<long int>&, std::vector<long int>&)':
+#26 7.018 /vdms/src/vcl/TDBSparseDescriptorSet.cc:195:23: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 7.018   195 |     for (int i = 0; i < _dimensions; ++i) {
+#26 7.018       |                     ~~^~~~~~~~~~~~~
+#26 7.019 /vdms/src/vcl/TDBSparseDescriptorSet.cc: In member function 'virtual void VCL::TDBSparseDescriptorSet::classify(float*, unsigned int, long int*, unsigned int)':
+#26 7.019 /vdms/src/vcl/TDBSparseDescriptorSet.cc:244:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 7.019   244 |   for (int j = 0; j < n; ++j) {
+#26 7.019       |                   ~~^~~
+#26 7.025 /vdms/src/vcl/TDBSparseDescriptorSet.cc:249:23: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 7.025   249 |     for (int i = 0; i < quorum; ++i) {
+#26 7.025       |                     ~~^~~~~~~~
+#26 7.025 /vdms/src/vcl/TDBSparseDescriptorSet.cc:256:15: warning: comparison of integer expressions of different signedness: 'unsigned int' and 'std::map<long int, int>::mapped_type' {aka 'int'} [-Wsign-compare]
+#26 7.025   256 |       if (max < map_voting[label_id]) {
+#26 7.026 /vdms/src/vcl/TDBSparseDescriptorSet.cc: In member function 'void VCL::TDBSparseDescriptorSet::search(float*, unsigned int, unsigned int, long int*, float*, long int*)':
+#26 7.026 /vdms/src/vcl/TDBSparseDescriptorSet.cc:274:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 7.026   274 |   for (int i = 0; i < n; ++i) {
+#26 7.026       |                   ~~^~~
+#26 7.026 /vdms/src/vcl/TDBSparseDescriptorSet.cc:288:23: warning: comparison of integer expressions of different signedness: 'int' and 'const unsigned int' [-Wsign-compare]
+#26 7.026   288 |     for (int j = 0; j < std::min(k, found); ++j) {
+#26 7.026       |                     ~~^~~~~~~~~~~~~~~~~~~~
+#26 7.026 /vdms/src/vcl/TDBSparseDescriptorSet.cc:294:29: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 7.026   294 |       for (int j = found; j < k; ++j) {
+#26 7.026       |                           ~~^~~
+#26 7.027 /vdms/src/vcl/TDBSparseDescriptorSet.cc:303:25: warning: comparison of integer expressions of different signedness: 'int' and 'const unsigned int' [-Wsign-compare]
+#26 7.027   303 |       for (int j = 0; j < std::min(k, found); ++j) {
+#26 7.027       |                       ~~^~~~~~~~~~~~~~~~~~~~
+#26 7.027 /vdms/src/vcl/TDBSparseDescriptorSet.cc:308:31: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 7.027   308 |         for (int j = found; j < k; ++j) {
+#26 7.027       |                             ~~^~~
+#26 7.027 /vdms/src/vcl/TDBSparseDescriptorSet.cc: In member function 'virtual void VCL::TDBSparseDescriptorSet::get_descriptors(long int*, unsigned int, float*)':
+#26 7.027 /vdms/src/vcl/TDBSparseDescriptorSet.cc:328:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 7.027   328 |   for (int i = 0; i < _dimensions; ++i) {
+#26 7.027       |                   ~~^~~~~~~~~~~~~
+#26 7.028 /vdms/src/vcl/TDBSparseDescriptorSet.cc:362:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 7.028   362 |   for (int i = 0; i < n; ++i) {
+#26 7.028       |                   ~~^~~
+#26 7.028 /vdms/src/vcl/TDBSparseDescriptorSet.cc:367:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<long int>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.028   367 |     for (int j = 0; j < desc_ids.size(); ++j) {
+#26 7.028       |                     ~~^~~~~~~~~~~~~~~~~
+#26 7.028 /vdms/src/vcl/TDBSparseDescriptorSet.cc:380:23: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 7.028   380 |     for (int j = 0; j < _dimensions; ++j) {
+#26 7.028       |                     ~~^~~~~~~~~~~~~
+#26 7.028 /vdms/src/vcl/TDBSparseDescriptorSet.cc:325:9: warning: unused variable 'space' [-Wunused-variable]
+#26 7.028   325 |   float space = 20;
+#26 7.028       |         ^~~~~
+#26 7.028 /vdms/src/vcl/TDBSparseDescriptorSet.cc: In member function 'virtual void VCL::TDBSparseDescriptorSet::get_labels(long int*, unsigned int, long int*)':
+#26 7.028 /vdms/src/vcl/TDBSparseDescriptorSet.cc:390:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 7.028   390 |   for (int i = 0; i < _dimensions; ++i) {
+#26 7.028       |                   ~~^~~~~~~~~~~~~
+#26 7.029 /vdms/src/vcl/TDBSparseDescriptorSet.cc:424:21: warning: comparison of integer expressions of different signedness: 'int' and 'unsigned int' [-Wsign-compare]
+#26 7.029   424 |   for (int i = 0; i < n; ++i) {
+#26 7.029       |                   ~~^~~
+#26 7.029 /vdms/src/vcl/TDBSparseDescriptorSet.cc:429:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<long int>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.029   429 |     for (int j = 0; j < desc_ids.size(); ++j) {
+#26 7.029       |                     ~~^~~~~~~~~~~~~~~~~
+#26 7.029 /vdms/src/vcl/TDBSparseDescriptorSet.cc:425:10: warning: unused variable 'offset' [-Wunused-variable]
+#26 7.029   425 |     long offset = i * _dimensions;
+#26 7.029       |          ^~~~~~
+#26 7.066 In file included from /vdms/src/pmgd/src/../include/iterator.h:36,
+#26 7.066                  from /vdms/src/pmgd/src/../include/graph.h:34,
+#26 7.066                  from /vdms/src/pmgd/src/GraphConfig.h:35,
+#26 7.066                  from /vdms/src/pmgd/src/TransactionManager.h:38,
+#26 7.066                  from /vdms/src/pmgd/src/TransactionImpl.h:37,
+#26 7.066                  from /vdms/src/pmgd/src/Allocator.h:36,
+#26 7.066                  from /vdms/src/pmgd/src/AvlTree.h:33,
+#26 7.066                  from /vdms/src/pmgd/src/AvlTree.cc:31:
+#26 7.066 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 7.066 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 7.066    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 7.066       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 7.066 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 7.066    45 |     struct Time {
+#26 7.066       |            ^~~~
+#26 7.081 /vdms/src/vcl/TDBObject.cc: In instantiation of 'void VCL::TDBObject::set_full_dimensions(const std::vector<std::__cxx11::basic_string<char>, std::allocator<std::__cxx11::basic_string<char> > >&, const std::vector<T, std::allocator<_CharT> >&, const std::vector<T, std::allocator<_CharT> >&, int) [with T = long unsigned int]':
+#26 7.081 /vdms/src/vcl/TDBObject.cc:251:42:   required from here
+#26 7.081 /vdms/src/vcl/TDBObject.cc:241:21: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::__cxx11::basic_string<char>, std::allocator<std::__cxx11::basic_string<char> > >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.081   241 |   for (int i = 0; i < names.size(); ++i) {
+#26 7.081       |                   ~~^~~~~~~~~~~~~~
+#26 7.081 /vdms/src/vcl/TDBObject.cc: In instantiation of 'void VCL::TDBObject::set_full_dimensions(const std::vector<std::__cxx11::basic_string<char>, std::allocator<std::__cxx11::basic_string<char> > >&, const std::vector<T, std::allocator<_CharT> >&, const std::vector<T, std::allocator<_CharT> >&, int) [with T = float]':
+#26 7.081 /vdms/src/vcl/TDBObject.cc:254:53:   required from here
+#26 7.081 /vdms/src/vcl/TDBObject.cc:241:21: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::__cxx11::basic_string<char>, std::allocator<std::__cxx11::basic_string<char> > >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.086 /vdms/src/vcl/TDBObject.cc: In instantiation of 'void VCL::TDBObject::set_single_attribute(std::string&, VCL::CompressionType, T) [with T = int; std::string = std::__cxx11::basic_string<char>]':
+#26 7.086 /vdms/src/vcl/TDBObject.cc:292:63:   required from here
+#26 7.086 /vdms/src/vcl/TDBObject.cc:280:54: warning: unused parameter 'compressor' [-Wunused-parameter]
+#26 7.086   280 |                                      CompressionType compressor,
+#26 7.086       |                                      ~~~~~~~~~~~~~~~~^~~~~~~~~~
+#26 7.086 /vdms/src/vcl/TDBObject.cc: In instantiation of 'void VCL::TDBObject::set_single_attribute(std::string&, VCL::CompressionType, T) [with T = long unsigned int; std::string = std::__cxx11::basic_string<char>]':
+#26 7.086 /vdms/src/vcl/TDBObject.cc:295:68:   required from here
+#26 7.086 /vdms/src/vcl/TDBObject.cc:280:54: warning: unused parameter 'compressor' [-Wunused-parameter]
+#26 7.086 /vdms/src/vcl/TDBObject.cc: In instantiation of 'void VCL::TDBObject::set_single_attribute(std::string&, VCL::CompressionType, T) [with T = long int; std::string = std::__cxx11::basic_string<char>]':
+#26 7.086 /vdms/src/vcl/TDBObject.cc:298:64:   required from here
+#26 7.086 /vdms/src/vcl/TDBObject.cc:280:54: warning: unused parameter 'compressor' [-Wunused-parameter]
+#26 7.087 /vdms/src/vcl/TDBObject.cc: In instantiation of 'void VCL::TDBObject::set_single_attribute(std::string&, VCL::CompressionType, T) [with T = float; std::string = std::__cxx11::basic_string<char>]':
+#26 7.087 /vdms/src/vcl/TDBObject.cc:301:65:   required from here
+#26 7.087 /vdms/src/vcl/TDBObject.cc:280:54: warning: unused parameter 'compressor' [-Wunused-parameter]
+#26 7.087 /vdms/src/vcl/TDBObject.cc: In instantiation of 'void VCL::TDBObject::set_single_attribute(std::string&, VCL::CompressionType, T) [with T = unsigned char; std::string = std::__cxx11::basic_string<char>]':
+#26 7.087 /vdms/src/vcl/TDBObject.cc:304:73:   required from here
+#26 7.087 /vdms/src/vcl/TDBObject.cc:280:54: warning: unused parameter 'compressor' [-Wunused-parameter]
+#26 7.087 /vdms/src/vcl/TDBObject.cc: In instantiation of 'void VCL::TDBObject::set_schema_attributes(tiledb::ArraySchema&, std::vector<T, std::allocator<_CharT> >&) [with T = unsigned char]':
+#26 7.087 /vdms/src/vcl/TDBObject.cc:369:74:   required from here
+#26 7.087 /vdms/src/vcl/TDBObject.cc:352:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<const char*>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.087   352 |     for (int x = 0; x < _attributes.size(); ++x) {
+#26 7.087       |                     ~~^~~~~~~~~~~~~~~~~~~~
+#26 7.087 /vdms/src/vcl/TDBObject.cc:362:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<tiledb::Attribute>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.087   362 |     for (int x = 0; x < _full_attributes.size(); ++x) {
+#26 7.087       |                     ~~^~~~~~~~~~~~~~~~~~~~~~~~~
+#26 7.087 /vdms/src/vcl/TDBObject.cc: In instantiation of 'void VCL::TDBObject::set_schema_attributes(tiledb::ArraySchema&, std::vector<T, std::allocator<_CharT> >&) [with T = long int]':
+#26 7.087 /vdms/src/vcl/TDBObject.cc:372:65:   required from here
+#26 7.087 /vdms/src/vcl/TDBObject.cc:352:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<const char*>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.087   352 |     for (int x = 0; x < _attributes.size(); ++x) {
+#26 7.087       |                     ~~^~~~~~~~~~~~~~~~~~~~
+#26 7.090 /vdms/src/vcl/TDBObject.cc:362:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<tiledb::Attribute>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.090   362 |     for (int x = 0; x < _full_attributes.size(); ++x) {
+#26 7.090       |                     ~~^~~~~~~~~~~~~~~~~~~~~~~~~
+#26 7.091 /vdms/src/vcl/TDBObject.cc: In instantiation of 'void VCL::TDBObject::set_schema_attributes(tiledb::ArraySchema&, std::vector<T, std::allocator<_CharT> >&) [with T = long unsigned int]':
+#26 7.091 /vdms/src/vcl/TDBObject.cc:375:69:   required from here
+#26 7.091 /vdms/src/vcl/TDBObject.cc:352:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<const char*>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.091   352 |     for (int x = 0; x < _attributes.size(); ++x) {
+#26 7.091       |                     ~~^~~~~~~~~~~~~~~~~~~~
+#26 7.091 /vdms/src/vcl/TDBObject.cc:362:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<tiledb::Attribute>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.091   362 |     for (int x = 0; x < _full_attributes.size(); ++x) {
+#26 7.091       |                     ~~^~~~~~~~~~~~~~~~~~~~~~~~~
+#26 7.091 /vdms/src/vcl/TDBObject.cc: In instantiation of 'void VCL::TDBObject::set_schema_attributes(tiledb::ArraySchema&, std::vector<T, std::allocator<_CharT> >&) [with T = float]':
+#26 7.091 /vdms/src/vcl/TDBObject.cc:378:66:   required from here
+#26 7.091 /vdms/src/vcl/TDBObject.cc:352:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<const char*>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.091   352 |     for (int x = 0; x < _attributes.size(); ++x) {
+#26 7.091       |                     ~~^~~~~~~~~~~~~~~~~~~~
+#26 7.091 /vdms/src/vcl/TDBObject.cc:362:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<tiledb::Attribute>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.091   362 |     for (int x = 0; x < _full_attributes.size(); ++x) {
+#26 7.091       |                     ~~^~~~~~~~~~~~~~~~~~~~~~~~~
+#26 7.094 /vdms/src/vcl/TDBObject.cc: In instantiation of 'void VCL::TDBObject::set_schema(std::vector<T, std::allocator<_CharT> >&, const std::string&, ORDER, ORDER, tiledb::ArraySchema&) [with T = unsigned char; std::string = std::__cxx11::basic_string<char>]':
+#26 7.094 /vdms/src/vcl/TDBObject.cc:515:70:   required from here
+#26 7.094 /vdms/src/vcl/TDBObject.cc:487:17: warning: unused variable 'value' [-Wunused-variable]
+#26 7.094   487 |   for (const T &value : cell_val_num) {
+#26 7.094       |                 ^~~~~
+#26 7.095 /vdms/src/vcl/TDBObject.cc:484:47: warning: unused parameter 'object_id' [-Wunused-parameter]
+#26 7.095   484 |                            const std::string &object_id, ORDER tile_order,
+#26 7.095       |                            ~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+#26 7.095 /vdms/src/vcl/TDBObject.cc: In instantiation of 'void VCL::TDBObject::set_schema(std::vector<T, std::allocator<_CharT> >&, const std::string&, ORDER, ORDER, tiledb::ArraySchema&) [with T = long int; std::string = std::__cxx11::basic_string<char>]':
+#26 7.095 /vdms/src/vcl/TDBObject.cc:519:70:   required from here
+#26 7.095 /vdms/src/vcl/TDBObject.cc:487:17: warning: unused variable 'value' [-Wunused-variable]
+#26 7.095   487 |   for (const T &value : cell_val_num) {
+#26 7.095       |                 ^~~~~
+#26 7.095 /vdms/src/vcl/TDBObject.cc:484:47: warning: unused parameter 'object_id' [-Wunused-parameter]
+#26 7.095   484 |                            const std::string &object_id, ORDER tile_order,
+#26 7.095       |                            ~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+#26 7.095 /vdms/src/vcl/TDBObject.cc: In instantiation of 'void VCL::TDBObject::set_schema(std::vector<T, std::allocator<_CharT> >&, const std::string&, ORDER, ORDER, tiledb::ArraySchema&) [with T = long unsigned int; std::string = std::__cxx11::basic_string<char>]':
+#26 7.095 /vdms/src/vcl/TDBObject.cc:523:70:   required from here
+#26 7.095 /vdms/src/vcl/TDBObject.cc:487:17: warning: unused variable 'value' [-Wunused-variable]
+#26 7.095   487 |   for (const T &value : cell_val_num) {
+#26 7.095       |                 ^~~~~
+#26 7.096 /vdms/src/vcl/TDBObject.cc:484:47: warning: unused parameter 'object_id' [-Wunused-parameter]
+#26 7.096   484 |                            const std::string &object_id, ORDER tile_order,
+#26 7.096       |                            ~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+#26 7.096 /vdms/src/vcl/TDBObject.cc: In instantiation of 'void VCL::TDBObject::set_schema(std::vector<T, std::allocator<_CharT> >&, const std::string&, ORDER, ORDER, tiledb::ArraySchema&) [with T = float; std::string = std::__cxx11::basic_string<char>]':
+#26 7.096 /vdms/src/vcl/TDBObject.cc:527:70:   required from here
+#26 7.096 /vdms/src/vcl/TDBObject.cc:487:17: warning: unused variable 'value' [-Wunused-variable]
+#26 7.096   487 |   for (const T &value : cell_val_num) {
+#26 7.096       |                 ^~~~~
+#26 7.096 /vdms/src/vcl/TDBObject.cc:484:47: warning: unused parameter 'object_id' [-Wunused-parameter]
+#26 7.096   484 |                            const std::string &object_id, ORDER tile_order,
+#26 7.096       |                            ~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+#26 7.100 /vdms/src/vcl/TDBObject.cc: In instantiation of 'void VCL::TDBObject::read_metadata(const std::string&, const std::vector<T, std::allocator<_CharT> >&, std::vector<long unsigned int>&, std::string&) [with T = int; std::string = std::__cxx11::basic_string<char>]':
+#26 7.100 /vdms/src/vcl/TDBObject.cc:586:62:   required from here
+#26 7.100 /vdms/src/vcl/TDBObject.cc:570:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<unsigned char>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.100   570 |     for (int i = 0; i < temp_values.size(); ++i) {
+#26 7.100       |                     ~~^~~~~~~~~~~~~~~~~~~~
+#26 7.101 /vdms/src/vcl/TDBObject.cc: In instantiation of 'void VCL::TDBObject::read_metadata(const std::string&, const std::vector<T, std::allocator<_CharT> >&, std::vector<long unsigned int>&, std::string&) [with T = long unsigned int; std::string = std::__cxx11::basic_string<char>]':
+#26 7.101 /vdms/src/vcl/TDBObject.cc:590:62:   required from here
+#26 7.101 /vdms/src/vcl/TDBObject.cc:570:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<unsigned char>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.101 /vdms/src/vcl/TDBObject.cc: In instantiation of 'void VCL::TDBObject::read_metadata(const std::string&, const std::vector<T, std::allocator<_CharT> >&, std::vector<long unsigned int>&, std::string&) [with T = long int; std::string = std::__cxx11::basic_string<char>]':
+#26 7.101 /vdms/src/vcl/TDBObject.cc:594:62:   required from here
+#26 7.101 /vdms/src/vcl/TDBObject.cc:570:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<unsigned char>::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.112 [ 14%] Building CXX object src/vcl/CMakeFiles/vcl.dir/Video.cc.o
+#26 7.191 [ 14%] Building CXX object src/vcl/CMakeFiles/vcl.dir/CustomVCL.cc.o
+#26 7.193 [ 15%] Building CXX object src/vcl/CMakeFiles/vcl.dir/RemoteConnection.cc.o
+#26 7.208 [ 15%] Linking CXX shared library libpmgd-util.so
+#26 7.232 In file included from /vdms/src/pmgd/src/Index.h:31,
+#26 7.232                  from /vdms/src/pmgd/src/AvlTreeIndex.h:31,
+#26 7.232                  from /vdms/src/pmgd/src/AvlTreeIndex.cc:31:
+#26 7.232 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 7.232 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 7.232    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 7.232       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 7.232 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 7.232    45 |     struct Time {
+#26 7.232       |            ^~~~
+#26 7.273 [ 15%] Building CXX object src/vcl/CMakeFiles/vcl.dir/__/__/utils/src/timers/TimerMap.cc.o
+#26 7.309 [ 15%] Built target pmgd-util
+#26 7.313 [ 16%] Building CXX object CMakeFiles/vdms_protobuf.dir/queryMessage.pb.cc.o
+#26 7.355 In file included from /vdms/src/vcl/../../include/vcl/Video.h:44,
+#26 7.355                  from /vdms/src/vcl/Video.cc:35:
+#26 7.355 /vdms/src/vcl/../../include/vcl/Image.h:253:1: warning: "/*" within comment [-Wcomment]
+#26 7.355   253 | /**
+#26 7.355       |  
+#26 7.452 /vdms/src/pmgd/src/AvlTree.cc: In instantiation of 'PMGD::AvlTree<K, V>::TreeNode* PMGD::AvlTree<K, V>::add_recursive(TreeNode*, const K&, V*&, PMGD::Allocator&, PMGD::TransactionImpl*, bool&) [with K = int; V = int]':
+#26 7.452 /vdms/src/pmgd/src/AvlTree.cc:765:16:   required from here
+#26 7.452 /vdms/src/pmgd/src/AvlTree.cc:337:20: warning: comparison of integer expressions of different signedness: 'uint32_t' {aka 'unsigned int'} and 'int' [-Wsign-compare]
+#26 7.452   337 |     if (new_height != curr->height) {
+#26 7.452       |         ~~~~~~~~~~~^~~~~~~~~~~~~~~
+#26 7.453 /vdms/src/pmgd/src/AvlTree.cc: In instantiation of 'PMGD::AvlTree<K, V>::TreeNode* PMGD::AvlTree<K, V>::remove_recursive(TreeNode*, const K&, PMGD::Allocator&, PMGD::TransactionImpl*, bool&) [with K = int; V = int]':
+#26 7.453 /vdms/src/pmgd/src/AvlTree.cc:765:16:   required from here
+#26 7.453 /vdms/src/pmgd/src/AvlTree.cc:663:20: warning: comparison of integer expressions of different signedness: 'uint32_t' {aka 'unsigned int'} and 'int' [-Wsign-compare]
+#26 7.453   663 |     if (new_height != curr->height) {
+#26 7.453       |         ~~~~~~~~~~~^~~~~~~~~~~~~~~
+#26 7.460 /vdms/src/pmgd/src/AvlTree.cc: In instantiation of 'PMGD::AvlTree<K, V>::TreeNode* PMGD::AvlTree<K, V>::add_recursive(TreeNode*, const K&, V*&, PMGD::Allocator&, PMGD::TransactionImpl*, bool&) [with K = long long int; V = PMGD::List<void*>]':
+#26 7.460 /vdms/src/pmgd/src/AvlTree.cc:766:16:   required from here
+#26 7.460 /vdms/src/pmgd/src/AvlTree.cc:337:20: warning: comparison of integer expressions of different signedness: 'uint32_t' {aka 'unsigned int'} and 'int' [-Wsign-compare]
+#26 7.460   337 |     if (new_height != curr->height) {
+#26 7.460       |         ~~~~~~~~~~~^~~~~~~~~~~~~~~
+#26 7.460 /vdms/src/pmgd/src/AvlTree.cc: In instantiation of 'PMGD::AvlTree<K, V>::TreeNode* PMGD::AvlTree<K, V>::remove_recursive(TreeNode*, const K&, PMGD::Allocator&, PMGD::TransactionImpl*, bool&) [with K = long long int; V = PMGD::List<void*>]':
+#26 7.460 /vdms/src/pmgd/src/AvlTree.cc:766:16:   required from here
+#26 7.460 /vdms/src/pmgd/src/AvlTree.cc:663:20: warning: comparison of integer expressions of different signedness: 'uint32_t' {aka 'unsigned int'} and 'int' [-Wsign-compare]
+#26 7.460   663 |     if (new_height != curr->height) {
+#26 7.460       |         ~~~~~~~~~~~^~~~~~~~~~~~~~~
+#26 7.465 In file included from /vdms/src/vcl/../../include/vcl/VCL.h:37:
+#26 7.465 /vdms/src/vcl/../../include/vcl/Video.h: In constructor 'VCL::Video::Interval::Interval(VCL::Video::Unit, int, int, int)':
+#26 7.465 /vdms/src/vcl/../../include/vcl/Video.h:569:17: warning: 'VCL::Video::Interval::_u' will be initialized after [-Wreorder]
+#26 7.465   569 |     Video::Unit _u;
+#26 7.465       |                 ^~
+#26 7.465 /vdms/src/vcl/../../include/vcl/Video.h:566:9: warning:   'int VCL::Video::Interval::_start' [-Wreorder]
+#26 7.465   566 |     int _start;
+#26 7.465       |         ^~~~~~
+#26 7.465 /vdms/src/vcl/../../include/vcl/Video.h:580:5: warning:   when initialized here [-Wreorder]
+#26 7.465   580 |     Interval(Video::Unit u, const int start, const int stop, int step)
+#26 7.465       |     ^~~~~~~~
+#26 7.467 /vdms/src/pmgd/src/AvlTree.cc: In instantiation of 'PMGD::AvlTree<K, V>::TreeNode* PMGD::AvlTree<K, V>::add_recursive(TreeNode*, const K&, V*&, PMGD::Allocator&, PMGD::TransactionImpl*, bool&) [with K = bool; V = PMGD::List<void*>]':
+#26 7.467 /vdms/src/pmgd/src/AvlTree.cc:767:16:   required from here
+#26 7.467 /vdms/src/pmgd/src/AvlTree.cc:337:20: warning: comparison of integer expressions of different signedness: 'uint32_t' {aka 'unsigned int'} and 'int' [-Wsign-compare]
+#26 7.467   337 |     if (new_height != curr->height) {
+#26 7.467       |         ~~~~~~~~~~~^~~~~~~~~~~~~~~
+#26 7.468 /vdms/src/pmgd/src/AvlTree.cc: In instantiation of 'PMGD::AvlTree<K, V>::TreeNode* PMGD::AvlTree<K, V>::remove_recursive(TreeNode*, const K&, PMGD::Allocator&, PMGD::TransactionImpl*, bool&) [with K = bool; V = PMGD::List<void*>]':
+#26 7.468 /vdms/src/pmgd/src/AvlTree.cc:767:16:   required from here
+#26 7.468 /vdms/src/pmgd/src/AvlTree.cc:663:20: warning: comparison of integer expressions of different signedness: 'uint32_t' {aka 'unsigned int'} and 'int' [-Wsign-compare]
+#26 7.468   663 |     if (new_height != curr->height) {
+#26 7.468       |         ~~~~~~~~~~~^~~~~~~~~~~~~~~
+#26 7.469 /vdms/src/vcl/TDBImage.cc: In member function 'void VCL::TDBImage::operator=(VCL::TDBImage&)':
+#26 7.469 /vdms/src/vcl/TDBImage.cc:149:18: warning: unused variable 'temp' [-Wunused-variable]
+#26 7.469   149 |   unsigned char *temp = _raw_data;
+#26 7.469       |                  ^~~~
+#26 7.469 /vdms/src/vcl/TDBImage.cc: In member function 'bool VCL::TDBImage::operator==(const VCL::TDBImage&)':
+#26 7.469 /vdms/src/vcl/TDBImage.cc:183:32: warning: comparison of integer expressions of different signedness: 'size_t' {aka 'long unsigned int'} and 'long int' [-Wsign-compare]
+#26 7.469   183 |   for (size_t index = 0; index < _img_size; index++) {
+#26 7.469       |                          ~~~~~~^~~~~~~~~~~
+#26 7.475 /vdms/src/pmgd/src/AvlTree.cc: In instantiation of 'PMGD::AvlTree<K, V>::TreeNode* PMGD::AvlTree<K, V>::add_recursive(TreeNode*, const K&, V*&, PMGD::Allocator&, PMGD::TransactionImpl*, bool&) [with K = double; V = PMGD::List<void*>]':
+#26 7.475 /vdms/src/pmgd/src/AvlTree.cc:768:16:   required from here
+#26 7.475 /vdms/src/pmgd/src/AvlTree.cc:337:20: warning: comparison of integer expressions of different signedness: 'uint32_t' {aka 'unsigned int'} and 'int' [-Wsign-compare]
+#26 7.475   337 |     if (new_height != curr->height) {
+#26 7.475       |         ~~~~~~~~~~~^~~~~~~~~~~~~~~
+#26 7.475 /vdms/src/vcl/TDBImage.cc: In member function 'void VCL::TDBImage::write(const std::string&, bool)':
+#26 7.475 /vdms/src/vcl/TDBImage.cc:314:56: warning: unused parameter 'metadata' [-Wunused-parameter]
+#26 7.475   314 | void TDBImage::write(const std::string &image_id, bool metadata) {
+#26 7.475       |                                                   ~~~~~^~~~~~~~
+#26 7.475 /vdms/src/pmgd/src/AvlTree.cc: In instantiation of 'PMGD::AvlTree<K, V>::TreeNode* PMGD::AvlTree<K, V>::remove_recursive(TreeNode*, const K&, PMGD::Allocator&, PMGD::TransactionImpl*, bool&) [with K = double; V = PMGD::List<void*>]':
+#26 7.475 /vdms/src/pmgd/src/AvlTree.cc:768:16:   required from here
+#26 7.475 /vdms/src/pmgd/src/AvlTree.cc:663:20: warning: comparison of integer expressions of different signedness: 'uint32_t' {aka 'unsigned int'} and 'int' [-Wsign-compare]
+#26 7.475   663 |     if (new_height != curr->height) {
+#26 7.475       |         ~~~~~~~~~~~^~~~~~~~~~~~~~~
+#26 7.477 /vdms/src/vcl/TDBImage.cc: In member function 'void VCL::TDBImage::write(const cv::Mat&, bool)':
+#26 7.477 /vdms/src/vcl/TDBImage.cc:421:23: warning: comparison of integer expressions of different signedness: 'int' and 'uint64_t' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.477   421 |     for (int i = 0; i < _img_height; ++i) {
+#26 7.477       |                     ~~^~~~~~~~~~~~~
+#26 7.478 In file included from /vdms/src/vcl/./../ExceptionsCommand.h:34,
+#26 7.478                  from /vdms/src/vcl/../../include/vcl/CustomVCL.h:15,
+#26 7.478                  from /vdms/src/vcl/CustomVCL.cc:1:
+#26 7.478 /vdms/src/vcl/../../include/vcl/Image.h:253:1: warning: "/*" within comment [-Wcomment]
+#26 7.478   253 | /**
+#26 7.478       |  
+#26 7.478 /vdms/src/vcl/TDBImage.cc:362:50: warning: unused parameter 'metadata' [-Wunused-parameter]
+#26 7.478   362 | void TDBImage::write(const cv::Mat &cv_img, bool metadata) {
+#26 7.478       |                                             ~~~~~^~~~~~~~
+#26 7.478 /vdms/src/vcl/TDBImage.cc: In member function 'void VCL::TDBImage::read(const VCL::Rectangle&)':
+#26 7.478 /vdms/src/vcl/TDBImage.cc:464:21: warning: comparison of integer expressions of different signedness: 'uint64_t' {aka 'long unsigned int'} and 'int' [-Wsign-compare]
+#26 7.478   464 |     if (_img_height < rect.height + rect.y || _img_width < rect.width + rect.x)
+#26 7.478       |         ~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~
+#26 7.478 /vdms/src/vcl/TDBImage.cc:464:58: warning: comparison of integer expressions of different signedness: 'uint64_t' {aka 'long unsigned int'} and 'int' [-Wsign-compare]
+#26 7.478   464 |     if (_img_height < rect.height + rect.y || _img_width < rect.width + rect.x)
+#26 7.478       |                                               ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~
+#26 7.481 /vdms/src/vcl/TDBImage.cc: In member function 'void VCL::TDBImage::get_tile_coordinates(int64_t*, int, int)':
+#26 7.481 /vdms/src/vcl/TDBImage.cc:558:15: warning: comparison of integer expressions of different signedness: 'int' and 'uint64_t' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.481   558 |   if (row_end > _img_height)
+#26 7.481       |       ~~~~~~~~^~~~~~~~~~~~~
+#26 7.481 /vdms/src/vcl/TDBImage.cc:561:18: warning: comparison of integer expressions of different signedness: 'int' and 'uint64_t' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.481   561 |   if (column_end > _img_width)
+#26 7.481       |       ~~~~~~~~~~~^~~~~~~~~~~~
+#26 7.481 /vdms/src/vcl/TDBImage.cc: In member function 'void VCL::TDBImage::get_index_value(unsigned char*, int, float, float)':
+#26 7.481 /vdms/src/vcl/TDBImage.cc:579:20: warning: comparison of integer expressions of different signedness: 'int' and 'uint64_t' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.481   579 |   if (column_right > _img_width - 1)
+#26 7.481       |       ~~~~~~~~~~~~~^~~~~~~~~~~~~~~~
+#26 7.481 /vdms/src/vcl/TDBImage.cc:584:18: warning: comparison of integer expressions of different signedness: 'int' and 'uint64_t' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.481   584 |   if (row_bottom > _img_height - 1)
+#26 7.481       |       ~~~~~~~~~~~^~~~~~~~~~~~~~~~~
+#26 7.481 /vdms/src/vcl/TDBImage.cc:592:21: warning: comparison of integer expressions of different signedness: 'int' and 'uint64_t' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.481   592 |   for (int x = 0; x < _img_channels; ++x) {
+#26 7.481       |                   ~~^~~~~~~~~~~~~~~
+#26 7.483 /vdms/src/pmgd/src/AvlTree.cc: In instantiation of 'PMGD::AvlTree<K, V>::TreeNode* PMGD::AvlTree<K, V>::add_recursive(TreeNode*, const K&, V*&, PMGD::Allocator&, PMGD::TransactionImpl*, bool&) [with K = PMGD::Time; V = PMGD::List<void*>]':
+#26 7.483 /vdms/src/pmgd/src/AvlTree.cc:769:16:   required from here
+#26 7.483 /vdms/src/pmgd/src/AvlTree.cc:337:20: warning: comparison of integer expressions of different signedness: 'uint32_t' {aka 'unsigned int'} and 'int' [-Wsign-compare]
+#26 7.483   337 |     if (new_height != curr->height) {
+#26 7.483       |         ~~~~~~~~~~~^~~~~~~~~~~~~~~
+#26 7.483 /vdms/src/pmgd/src/AvlTree.cc: In instantiation of 'PMGD::AvlTree<K, V>::TreeNode* PMGD::AvlTree<K, V>::remove_recursive(TreeNode*, const K&, PMGD::Allocator&, PMGD::TransactionImpl*, bool&) [with K = PMGD::Time; V = PMGD::List<void*>]':
+#26 7.483 /vdms/src/pmgd/src/AvlTree.cc:769:16:   required from here
+#26 7.483 /vdms/src/pmgd/src/AvlTree.cc:663:20: warning: comparison of integer expressions of different signedness: 'uint32_t' {aka 'unsigned int'} and 'int' [-Wsign-compare]
+#26 7.483   663 |     if (new_height != curr->height) {
+#26 7.483       |         ~~~~~~~~~~~^~~~~~~~~~~~~~~
+#26 7.490 /vdms/src/pmgd/src/AvlTree.cc: In instantiation of 'PMGD::AvlTree<K, V>::TreeNode* PMGD::AvlTree<K, V>::add_recursive(TreeNode*, const K&, V*&, PMGD::Allocator&, PMGD::TransactionImpl*, bool&) [with K = PMGD::IndexString; V = PMGD::List<void*>]':
+#26 7.490 /vdms/src/pmgd/src/AvlTree.cc:770:16:   required from here
+#26 7.490 /vdms/src/pmgd/src/AvlTree.cc:337:20: warning: comparison of integer expressions of different signedness: 'uint32_t' {aka 'unsigned int'} and 'int' [-Wsign-compare]
+#26 7.490   337 |     if (new_height != curr->height) {
+#26 7.490       |         ~~~~~~~~~~~^~~~~~~~~~~~~~~
+#26 7.491 /vdms/src/pmgd/src/AvlTree.cc: In instantiation of 'PMGD::AvlTree<K, V>::TreeNode* PMGD::AvlTree<K, V>::remove_recursive(TreeNode*, const K&, PMGD::Allocator&, PMGD::TransactionImpl*, bool&) [with K = PMGD::IndexString; V = PMGD::List<void*>]':
+#26 7.491 /vdms/src/pmgd/src/AvlTree.cc:770:16:   required from here
+#26 7.491 /vdms/src/pmgd/src/AvlTree.cc:663:20: warning: comparison of integer expressions of different signedness: 'uint32_t' {aka 'unsigned int'} and 'int' [-Wsign-compare]
+#26 7.491   663 |     if (new_height != curr->height) {
+#26 7.491       |         ~~~~~~~~~~~^~~~~~~~~~~~~~~
+#26 7.595 In file included from /vdms/src/vcl/./../PMGDQueryHandler.h:40,
+#26 7.595                  from /vdms/src/vcl/./../PMGDQuery.h:35,
+#26 7.595                  from /vdms/src/vcl/./../RSCommand.h:39,
+#26 7.595                  from /vdms/src/vcl/./../ExceptionsCommand.h:40:
+#26 7.595 /vdms/src/vcl/./../AutoDeleteNode.h:41:10: fatal error: iterator.h: No such file or directory
+#26 7.595    41 | #include "iterator.h"
+#26 7.595       |          ^~~~~~~~~~~~
+#26 7.595 compilation terminated.
+#26 7.602 make[2]: *** [src/vcl/CMakeFiles/vcl.dir/build.make:286: src/vcl/CMakeFiles/vcl.dir/CustomVCL.cc.o] Error 1
+#26 7.602 make[2]: *** Waiting for unfinished jobs....
+#26 7.606 [ 16%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/ChunkAllocator.cc.o
+#26 7.609 /vdms/utils/src/timers/TimerMap.cc: In member function 'std::vector<long long int> TimerMap::return_all_timestamps(std::string)':
+#26 7.609 /vdms/utils/src/timers/TimerMap.cc:67:19: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::chrono::time_point<std::chrono::_V2::steady_clock, std::chrono::duration<long int, std::ratio<1, 1000000000> > > >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.609    67 |     for (i = 0; i < timestamps->size(); i++) {
+#26 7.609       |                 ~~^~~~~~~~~~~~~~~~~~~~
+#26 7.614 /vdms/utils/src/timers/TimerMap.cc: In member function 'std::vector<double> TimerMap::return_intervals(std::string)':
+#26 7.614 /vdms/utils/src/timers/TimerMap.cc:91:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::chrono::time_point<std::chrono::_V2::steady_clock, std::chrono::duration<long int, std::ratio<1, 1000000000> > > >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.614    91 |     for (int i = 0; i < timestamps->size(); i++) {
+#26 7.614       |                     ~~^~~~~~~~~~~~~~~~~~~~
+#26 7.614 /vdms/utils/src/timers/TimerMap.cc:95:13: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::chrono::time_point<std::chrono::_V2::steady_clock, std::chrono::duration<long int, std::ratio<1, 1000000000> > > >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.614    95 |       if (i < timestamps->size() - 1) {
+#26 7.614       |           ~~^~~~~~~~~~~~~~~~~~~~~~~~
+#26 7.620 /vdms/utils/src/timers/TimerMap.cc: In member function 'void TimerMap::print_map_runtimes()':
+#26 7.620 /vdms/utils/src/timers/TimerMap.cc:156:21: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::__cxx11::basic_string<char> >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.620   156 |   for (int i = 0; i < timer_id_list.size(); i++) {
+#26 7.620       |                   ~~^~~~~~~~~~~~~~~~~~~~~~
+#26 7.622 /vdms/utils/src/timers/TimerMap.cc: In destructor 'TimerMap::~TimerMap()':
+#26 7.622 /vdms/utils/src/timers/TimerMap.cc:170:17: warning: comparison of integer expressions of different signedness: 'int' and 'std::vector<std::__cxx11::basic_string<char> >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.622   170 |   for (i = 0; i < timerids.size(); i++) {
+#26 7.622       |               ~~^~~~~~~~~~~~~~~~~
+#26 7.779 /vdms/src/vcl/utils.cc: In function 'uint64_t VCL::combine(uint64_t, uint64_t)':
+#26 7.779 /vdms/src/vcl/utils.cc:108:21: warning: comparison of integer expressions of different signedness: 'int' and 'uint64_t' {aka 'long unsigned int'} [-Wsign-compare]
+#26 7.779   108 |   while (multiplier <= a) {
+#26 7.779       |          ~~~~~~~~~~~^~~~
+#26 7.779 /vdms/src/vcl/utils.cc: In function 'uint64_t VCL::get_uint64()':
+#26 7.779 /vdms/src/vcl/utils.cc:119:5: warning: statement has no effect [-Wunused-value]
+#26 7.779   119 |     init_rand;
+#26 7.779       |     ^~~~~~~~~
+#26 7.879 In file included from /vdms/src/vcl/Video.cc:33:
+#26 7.879 /vdms/src/vcl/../VDMSConfig.h:138:3: warning: type qualifiers ignored on function return type [-Wignored-qualifiers]
+#26 7.879   138 |   const Aws::Utils::Logging::LogLevel get_aws_log_level() {
+#26 7.879       |   ^~~~~
+#26 7.975 [ 17%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/edge.cc.o
+#26 8.218 In file included from /vdms/src/pmgd/src/../include/edge.h:33,
+#26 8.218                  from /vdms/src/pmgd/src/edge.cc:31:
+#26 8.218 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 8.218 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 8.218    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 8.218       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 8.218 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 8.218    45 |     struct Time {
+#26 8.218       |            ^~~~
+#26 8.232 [ 17%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/EdgeIndex.cc.o
+#26 8.271 [ 17%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/FixedAllocator.cc.o
+#26 8.344 In file included from /vdms/src/pmgd/src/../include/iterator.h:36,
+#26 8.344                  from /vdms/src/pmgd/src/../include/graph.h:34,
+#26 8.344                  from /vdms/src/pmgd/src/GraphConfig.h:35,
+#26 8.344                  from /vdms/src/pmgd/src/TransactionManager.h:38,
+#26 8.344                  from /vdms/src/pmgd/src/TransactionImpl.h:37,
+#26 8.344                  from /vdms/src/pmgd/src/FixedAllocator.h:34,
+#26 8.344                  from /vdms/src/pmgd/src/AllocatorUnit.h:37,
+#26 8.344                  from /vdms/src/pmgd/src/ChunkAllocator.cc:34:
+#26 8.344 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 8.344 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 8.344    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 8.344       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 8.344 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 8.344    45 |     struct Time {
+#26 8.344       |            ^~~~
+#26 8.652 In file included from /vdms/src/vcl/RemoteConnection.cc:38:
+#26 8.652 /vdms/src/vcl/../../src/VDMSConfig.h:138:3: warning: type qualifiers ignored on function return type [-Wignored-qualifiers]
+#26 8.652   138 |   const Aws::Utils::Logging::LogLevel get_aws_log_level() {
+#26 8.652       |   ^~~~~
+#26 8.662 [ 18%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/FixSizeAllocator.cc.o
+#26 8.662 /vdms/src/vcl/RemoteConnection.cc: In member function 'void VCL::RemoteConnection::ConfigureAws()':
+#26 8.662 /vdms/src/vcl/RemoteConnection.cc:86:20: warning: suggest parentheses around assignment used as truth value [-Wparentheses]
+#26 8.662    86 |     if (port_value = VDMS::VDMSConfig::instance()->get_proxy_port()) {
+#26 8.662       |         ~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#26 8.706 [ 18%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/FlexFixedAllocator.cc.o
+#26 8.797 [ 18%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/graph.cc.o
+#26 8.992 In file included from /vdms/src/pmgd/src/../include/iterator.h:36,
+#26 8.992                  from /vdms/src/pmgd/src/../include/graph.h:34,
+#26 8.992                  from /vdms/src/pmgd/src/GraphConfig.h:35,
+#26 8.992                  from /vdms/src/pmgd/src/TransactionManager.h:38,
+#26 8.992                  from /vdms/src/pmgd/src/TransactionImpl.h:37,
+#26 8.992                  from /vdms/src/pmgd/src/FixedAllocator.h:34,
+#26 8.992                  from /vdms/src/pmgd/src/FixedAllocator.cc:41:
+#26 8.992 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 8.992 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 8.992    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 8.992       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 8.992 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 8.992    45 |     struct Time {
+#26 8.992       |            ^~~~
+#26 8.992 In file included from /vdms/src/pmgd/src/../include/iterator.h:36,
+#26 8.992                  from /vdms/src/pmgd/src/../include/graph.h:34,
+#26 8.992                  from /vdms/src/pmgd/src/GraphConfig.h:35,
+#26 8.992                  from /vdms/src/pmgd/src/TransactionManager.h:38,
+#26 8.992                  from /vdms/src/pmgd/src/TransactionImpl.h:37,
+#26 8.992                  from /vdms/src/pmgd/src/Allocator.h:36,
+#26 8.992                  from /vdms/src/pmgd/src/EdgeIndex.h:33,
+#26 8.992                  from /vdms/src/pmgd/src/EdgeIndex.cc:30:
+#26 8.992 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 8.992 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 8.992    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 8.992       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 8.992 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 8.992    45 |     struct Time {
+#26 8.992       |            ^~~~
+#26 9.113 [ 19%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/GraphConfig.cc.o
+#26 9.142 In file included from /vdms/src/pmgd/src/../include/iterator.h:36,
+#26 9.142                  from /vdms/src/pmgd/src/../include/graph.h:34,
+#26 9.142                  from /vdms/src/pmgd/src/graph.cc:32:
+#26 9.142 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 9.142 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 9.142    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 9.142       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 9.142 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 9.142    45 |     struct Time {
+#26 9.142       |            ^~~~
+#26 9.290 In file included from /vdms/src/pmgd/src/../include/iterator.h:36,
+#26 9.290                  from /vdms/src/pmgd/src/../include/graph.h:34,
+#26 9.290                  from /vdms/src/pmgd/src/GraphConfig.h:35,
+#26 9.290                  from /vdms/src/pmgd/src/TransactionManager.h:38,
+#26 9.290                  from /vdms/src/pmgd/src/TransactionImpl.h:37,
+#26 9.290                  from /vdms/src/pmgd/src/FixedAllocator.h:34,
+#26 9.290                  from /vdms/src/pmgd/src/AllocatorUnit.h:37,
+#26 9.290                  from /vdms/src/pmgd/src/FlexFixedAllocator.cc:34:
+#26 9.290 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 9.290 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 9.290    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 9.290       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 9.290 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 9.290    45 |     struct Time {
+#26 9.290       |            ^~~~
+#26 9.317 [ 19%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/Index.cc.o
+#26 9.372 [ 19%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/IndexManager.cc.o
+#26 9.408 In file included from /vdms/src/pmgd/src/../include/iterator.h:36,
+#26 9.408                  from /vdms/src/pmgd/src/../include/graph.h:34,
+#26 9.408                  from /vdms/src/pmgd/src/GraphConfig.h:35,
+#26 9.408                  from /vdms/src/pmgd/src/TransactionManager.h:38,
+#26 9.408                  from /vdms/src/pmgd/src/TransactionImpl.h:37,
+#26 9.408                  from /vdms/src/pmgd/src/FixedAllocator.h:34,
+#26 9.408                  from /vdms/src/pmgd/src/AllocatorUnit.h:37,
+#26 9.408                  from /vdms/src/pmgd/src/FixSizeAllocator.cc:34:
+#26 9.408 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 9.408 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 9.408    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 9.408       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 9.408 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 9.408    45 |     struct Time {
+#26 9.408       |            ^~~~
+#26 9.426 In file included from /vdms/src/pmgd/src/../include/iterator.h:36,
+#26 9.426                  from /vdms/src/pmgd/src/../include/graph.h:34,
+#26 9.426                  from /vdms/src/pmgd/src/GraphConfig.cc:34:
+#26 9.426 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 9.426 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 9.426    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 9.426       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 9.426 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 9.426    45 |     struct Time {
+#26 9.426       |            ^~~~
+#26 9.456 [ 20%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/IndexString.cc.o
+#26 9.496 [ 20%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/linux.cc.o
+#26 9.570 In file included from /vdms/src/pmgd/src/Index.h:31,
+#26 9.570                  from /vdms/src/pmgd/src/Index.cc:31:
+#26 9.570 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 9.570 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 9.570    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 9.570       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 9.570 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 9.570    45 |     struct Time {
+#26 9.570       |            ^~~~
+#26 9.590 [ 20%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/node.cc.o
+#26 9.605 [ 21%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/property.cc.o
+#26 9.616 [ 21%] Built target vdms_protobuf
+#26 9.621 [ 21%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/PropertyList.cc.o
+#26 9.625 [ 21%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/stringid.cc.o
+#26 9.675 /vdms/src/vcl/../../include/vcl/Video.h: In constructor 'VCL::Video::Interval::Interval(VCL::Video::Unit, int, int, int)':
+#26 9.675 /vdms/src/vcl/../../include/vcl/Video.h:569:17: warning: 'VCL::Video::Interval::_u' will be initialized after [-Wreorder]
+#26 9.675   569 |     Video::Unit _u;
+#26 9.675       |                 ^~
+#26 9.675 /vdms/src/vcl/../../include/vcl/Video.h:566:9: warning:   'int VCL::Video::Interval::_start' [-Wreorder]
+#26 9.675   566 |     int _start;
+#26 9.675       |         ^~~~~~
+#26 9.675 /vdms/src/vcl/../../include/vcl/Video.h:580:5: warning:   when initialized here [-Wreorder]
+#26 9.675   580 |     Interval(Video::Unit u, const int start, const int stop, int step)
+#26 9.675       |     ^~~~~~~~
+#26 9.676 /vdms/src/vcl/../../include/vcl/Video.h: In constructor 'VCL::Video::Video()':
+#26 9.676 /vdms/src/vcl/../../include/vcl/Video.h:466:9: warning: 'VCL::Video::_fps' will be initialized after [-Wreorder]
+#26 9.676   466 |   float _fps;
+#26 9.676       |         ^~~~
+#26 9.676 /vdms/src/vcl/../../include/vcl/Video.h:450:15: warning:   'std::string VCL::Video::_video_id' [-Wreorder]
+#26 9.676   450 |   std::string _video_id;
+#26 9.676       |               ^~~~~~~~~
+#26 9.676 /vdms/src/vcl/Video.cc:43:1: warning:   when initialized here [-Wreorder]
+#26 9.676    43 | Video::Video()
+#26 9.676       | ^~~~~
+#26 9.676 /vdms/src/vcl/../../include/vcl/Video.h:468:9: warning: 'VCL::Video::_codec' will be initialized after [-Wreorder]
+#26 9.676   468 |   Codec _codec; // (h.264, etc).
+#26 9.676       |         ^~~~~~
+#26 9.676 /vdms/src/vcl/../../include/vcl/Video.h:87:21: warning:   'VCL::RemoteConnection* VCL::Video::_remote' [-Wreorder]
+#26 9.676    87 |   RemoteConnection *_remote; // Remote connection (if one exists)
+#26 9.676       |                     ^~~~~~~
+#26 9.676 /vdms/src/vcl/Video.cc:43:1: warning:   when initialized here [-Wreorder]
+#26 9.676    43 | Video::Video()
+#26 9.676       | ^~~~~
+#26 9.696 /vdms/src/vcl/Video.cc: In member function 'void VCL::Video::set_video_writer_size(int)':
+#26 9.696 /vdms/src/vcl/Video.cc:425:28: warning: comparison of integer expressions of different signedness: 'int' and 'std::__cxx11::list<std::shared_ptr<VCL::Video::Operation> >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 9.696   425 |   for (int j = op_count; j < _operations.size(); j++) {
+#26 9.696       |                          ~~^~~~~~~~~~~~~~~~~~~~
+#26 9.703 /vdms/src/vcl/Video.cc: In member function 'int VCL::Video::perform_single_frame_operations(std::string, int, std::string)':
+#26 9.703 /vdms/src/vcl/Video.cc:535:26: warning: comparison of integer expressions of different signedness: 'int' and 'std::__cxx11::list<std::shared_ptr<VCL::Video::Operation> >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 9.703   535 |     for (i = op_count; i < _operations.size(); i++) {
+#26 9.703       |                        ~~^~~~~~~~~~~~~~~~~~~~
+#26 9.703 /vdms/src/vcl/Video.cc:547:15: warning: comparison of integer expressions of different signedness: 'int' and 'std::__cxx11::list<std::shared_ptr<VCL::Video::Operation> >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 9.703   547 |         if (i == _operations.size() - 1) {
+#26 9.703       |             ~~^~~~~~~~~~~~~~~~~~~~~~~~~
+#26 9.705 /vdms/src/vcl/Video.cc: In member function 'void VCL::Video::perform_operations(bool, std::string)':
+#26 9.705 /vdms/src/vcl/Video.cc:614:23: warning: comparison of integer expressions of different signedness: 'int' and 'std::__cxx11::list<std::shared_ptr<VCL::Video::Operation> >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 9.705   614 |       while (op_count < _operations.size()) {
+#26 9.705       |              ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~
+#26 9.706 /vdms/src/vcl/Video.cc:625:22: warning: comparison of integer expressions of different signedness: 'int' and 'std::__cxx11::list<std::shared_ptr<VCL::Video::Operation> >::size_type' {aka 'long unsigned int'} [-Wsign-compare]
+#26 9.706   625 |         if (op_count < _operations.size()) {
+#26 9.706       |             ~~~~~~~~~^~~~~~~~~~~~~~~~~~~~
+#26 9.730 [ 22%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/StringTable.cc.o
+#26 9.739 /vdms/src/vcl/Video.cc: In member function 'void VCL::Video::store(const std::string&, Codec)':
+#26 9.739 /vdms/src/vcl/Video.cc:809:61: warning: unused parameter 'video_codec' [-Wunused-parameter]
+#26 9.739   809 | void Video::store(const std::string &video_id, Video::Codec video_codec) {
+#26 9.739       |                                                ~~~~~~~~~~~~~^~~~~~~~~~~
+#26 9.740 /vdms/src/vcl/Video.cc: In member function 'virtual void VCL::Video::Resize::operator()(VCL::Video*, cv::Mat&, std::string)':
+#26 9.740 /vdms/src/vcl/Video.cc:831:74: warning: unused parameter 'args' [-Wunused-parameter]
+#26 9.740   831 | void Video::Resize::operator()(Video *video, cv::Mat &frame, std::string args) {
+#26 9.740       |                                                              ~~~~~~~~~~~~^~~~
+#26 9.740 /vdms/src/vcl/Video.cc: In member function 'virtual void VCL::Video::Crop::operator()(VCL::Video*, cv::Mat&, std::string)':
+#26 9.740 /vdms/src/vcl/Video.cc:849:72: warning: unused parameter 'args' [-Wunused-parameter]
+#26 9.740   849 | void Video::Crop::operator()(Video *video, cv::Mat &frame, std::string args) {
+#26 9.740       |                                                            ~~~~~~~~~~~~^~~~
+#26 9.740 /vdms/src/vcl/Video.cc: In member function 'virtual void VCL::Video::Threshold::operator()(VCL::Video*, cv::Mat&, std::string)':
+#26 9.740 /vdms/src/vcl/Video.cc:867:47: warning: unused parameter 'args' [-Wunused-parameter]
+#26 9.740   867 |                                   std::string args) {
+#26 9.740       |                                   ~~~~~~~~~~~~^~~~
+#26 9.743 /vdms/src/vcl/Video.cc: In member function 'virtual void VCL::Video::Interval::operator()(VCL::Video*, cv::Mat&, std::string)':
+#26 9.743 /vdms/src/vcl/Video.cc:881:57: warning: unused parameter 'frame' [-Wunused-parameter]
+#26 9.743   881 | void Video::Interval::operator()(Video *video, cv::Mat &frame,
+#26 9.743       |                                                ~~~~~~~~~^~~~~
+#26 9.748 /vdms/src/vcl/Video.cc: In member function 'virtual void VCL::Video::SyncRemoteOperation::operator()(VCL::Video*, cv::Mat&, std::string)':
+#26 9.748 /vdms/src/vcl/Video.cc:1065:16: warning: unused variable 'res' [-Wunused-variable]
+#26 9.748  1065 |       CURLcode res;
+#26 9.748       |                ^~~
+#26 9.748 /vdms/src/vcl/Video.cc:1066:26: warning: unused variable 'headers' [-Wunused-variable]
+#26 9.748  1066 |       struct curl_slist *headers = NULL;
+#26 9.748       |                          ^~~~~~~
+#26 9.749 /vdms/src/vcl/Video.cc:1056:68: warning: unused parameter 'frame' [-Wunused-parameter]
+#26 9.749  1056 | void Video::SyncRemoteOperation::operator()(Video *video, cv::Mat &frame,
+#26 9.749       |                                                           ~~~~~~~~~^~~~~
+#26 9.749 /vdms/src/vcl/Video.cc: In member function 'virtual void VCL::Video::RemoteOperation::operator()(VCL::Video*, cv::Mat&, std::string)':
+#26 9.749 /vdms/src/vcl/Video.cc:1197:64: warning: unused parameter 'frame' [-Wunused-parameter]
+#26 9.749  1197 | void Video::RemoteOperation::operator()(Video *video, cv::Mat &frame,
+#26 9.749       |                                                       ~~~~~~~~~^~~~~
+#26 9.749 /vdms/src/vcl/Video.cc:1198:53: warning: unused parameter 'args' [-Wunused-parameter]
+#26 9.749  1198 |                                         std::string args) {
+#26 9.749       |                                         ~~~~~~~~~~~~^~~~
+#26 9.752 /vdms/src/vcl/Video.cc: In member function 'virtual void VCL::Video::UserOperation::operator()(VCL::Video*, cv::Mat&, std::string)':
+#26 9.752 /vdms/src/vcl/Video.cc:1214:62: warning: unused parameter 'frame' [-Wunused-parameter]
+#26 9.752  1214 | void Video::UserOperation::operator()(Video *video, cv::Mat &frame,
+#26 9.752       |                                                     ~~~~~~~~~^~~~~
+#26 9.760 In file included from /vdms/src/pmgd/src/property.cc:30:
+#26 9.760 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 9.760 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 9.760    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 9.760       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 9.760 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 9.760    45 |     struct Time {
+#26 9.760       |            ^~~~
+#26 9.809 In file included from /vdms/src/pmgd/src/../include/iterator.h:36,
+#26 9.809                  from /vdms/src/pmgd/src/../include/graph.h:34,
+#26 9.809                  from /vdms/src/pmgd/src/GraphImpl.h:34,
+#26 9.809                  from /vdms/src/pmgd/src/IndexString.cc:32:
+#26 9.809 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 9.809 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 9.809    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 9.809       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 9.809 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 9.809    45 |     struct Time {
+#26 9.809       |            ^~~~
+#26 9.847 [ 22%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/transaction.cc.o
+#26 9.868 In file included from /vdms/src/pmgd/src/../include/iterator.h:36,
+#26 9.868                  from /vdms/src/pmgd/src/node.cc:34:
+#26 9.868 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 9.868 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 9.868    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 9.868       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 9.868 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 9.868    45 |     struct Time {
+#26 9.868       |            ^~~~
+#26 9.891 /vdms/src/pmgd/src/graph.cc: In constructor 'PMGD::GraphImpl::GraphInit::GraphInit(const char*, int, const PMGD::Graph::Config*)':
+#26 9.891 /vdms/src/pmgd/src/graph.cc:163:23: warning: narrowing conversion of '(options & ((int)PMGD::Graph::Create))' from 'int' to 'bool' [-Wnarrowing]
+#26 9.891   163 |     : params{(options & Graph::Create), (options & Graph::ReadOnly),
+#26 9.891       |              ~~~~~~~~~^~~~~~~~~~~~~~~~
+#26 9.891 /vdms/src/pmgd/src/graph.cc:163:50: warning: narrowing conversion of '(options & ((int)PMGD::Graph::ReadOnly))' from 'int' to 'bool' [-Wnarrowing]
+#26 9.891   163 |     : params{(options & Graph::Create), (options & Graph::ReadOnly),
+#26 9.891       |                                         ~~~~~~~~~^~~~~~~~~~~~~~~~~~
+#26 9.901 In file included from /vdms/src/pmgd/src/../include/iterator.h:36,
+#26 9.901                  from /vdms/src/pmgd/src/../include/graph.h:34,
+#26 9.901                  from /vdms/src/pmgd/src/GraphConfig.h:35,
+#26 9.901                  from /vdms/src/pmgd/src/StringTable.h:34,
+#26 9.901                  from /vdms/src/pmgd/src/stringid.cc:33:
+#26 9.901 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 9.901 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 9.901    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 9.901       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 9.901 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 9.901    45 |     struct Time {
+#26 9.901       |            ^~~~
+#26 9.949 [ 22%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/TransactionManager.cc.o
+#26 9.966 [ 23%] Building CXX object src/pmgd/src/CMakeFiles/pmgd.dir/VariableAllocator.cc.o
+#26 9.971 In file included from /vdms/src/pmgd/src/../include/iterator.h:36,
+#26 9.971                  from /vdms/src/pmgd/src/../include/graph.h:34,
+#26 9.971                  from /vdms/src/pmgd/src/PropertyList.cc:36:
+#26 9.971 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 9.971 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 9.971    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 9.971       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 9.971 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 9.971    45 |     struct Time {
+#26 9.971       |            ^~~~
+#26 9.981 In file included from /vdms/src/pmgd/src/../include/iterator.h:36,
+#26 9.981                  from /vdms/src/pmgd/src/../include/graph.h:34,
+#26 9.981                  from /vdms/src/pmgd/src/GraphConfig.h:35,
+#26 9.981                  from /vdms/src/pmgd/src/TransactionManager.h:38,
+#26 9.981                  from /vdms/src/pmgd/src/TransactionImpl.h:37,
+#26 9.981                  from /vdms/src/pmgd/src/Allocator.h:36,
+#26 9.981                  from /vdms/src/pmgd/src/ChunkList.h:34,
+#26 9.981                  from /vdms/src/pmgd/src/IndexManager.h:32,
+#26 9.981                  from /vdms/src/pmgd/src/IndexManager.cc:31:
+#26 9.981 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 9.981 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 9.981    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 9.981       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 9.981 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 9.981    45 |     struct Time {
+#26 9.981       |            ^~~~
+#26 9.991 /vdms/src/pmgd/src/GraphConfig.cc: In constructor 'PMGD::Graph::Config::Config()':
+#26 9.991 /vdms/src/pmgd/src/GraphConfig.cc:66:11: warning: 'void* memset(void*, int, size_t)' clearing an object of type 'struct PMGD::Graph::Config' with no trivial copy-assignment; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 9.991    66 |     memset(this, 0, offsetof(Config, locale_name));
+#26 9.991       |     ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#26 9.991 /vdms/src/pmgd/src/../include/graph.h:55:16: note: 'struct PMGD::Graph::Config' declared here
+#26 9.991    55 |         struct Config {
+#26 9.991       |                ^~~~~~
+#26 10.03 In file included from /vdms/src/pmgd/src/../include/iterator.h:36,
+#26 10.03                  from /vdms/src/pmgd/src/../include/graph.h:34,
+#26 10.03                  from /vdms/src/pmgd/src/GraphConfig.h:35,
+#26 10.03                  from /vdms/src/pmgd/src/StringTable.h:34,
+#26 10.03                  from /vdms/src/pmgd/src/StringTable.cc:32:
+#26 10.03 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 10.03 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 10.03    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 10.03       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 10.03 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 10.03    45 |     struct Time {
+#26 10.03       |            ^~~~
+#26 10.24 In file included from /vdms/src/pmgd/src/../include/iterator.h:36,
+#26 10.24                  from /vdms/src/pmgd/src/../include/graph.h:34,
+#26 10.24                  from /vdms/src/pmgd/src/../include/transaction.h:33,
+#26 10.24                  from /vdms/src/pmgd/src/transaction.cc:34:
+#26 10.24 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 10.24 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 10.24    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 10.24       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 10.24 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 10.24    45 |     struct Time {
+#26 10.24       |            ^~~~
+#26 10.30 /vdms/src/pmgd/src/ChunkList.h: In instantiation of 'V* PMGD::ChunkList<K, V, CHUNK_SIZE>::add(const K&, PMGD::Allocator&) [with K = PMGD::StringID; V = PMGD::ChunkList<PMGD::StringID, PMGD::Index*, 128>; unsigned int CHUNK_SIZE = 128]':
+#26 10.30 /vdms/src/pmgd/src/IndexManager.cc:49:57:   required from here
+#26 10.30 /vdms/src/pmgd/src/ChunkList.h:218:23: warning: comparison of integer expressions of different signedness: 'int' and 'const unsigned int' [-Wsign-compare]
+#26 10.30   218 |             if (elems < MAX_PER_CHUNK && !empty_chunk) {
+#26 10.30       |                 ~~~~~~^~~~~~~~~~~~~~~
+#26 10.30 /vdms/src/pmgd/src/ChunkList.h: In instantiation of 'V* PMGD::ChunkList<K, V, CHUNK_SIZE>::add(const K&, PMGD::Allocator&) [with K = PMGD::StringID; V = PMGD::Index*; unsigned int CHUNK_SIZE = 128]':
+#26 10.30 /vdms/src/pmgd/src/IndexManager.cc:59:39:   required from here
+#26 10.30 /vdms/src/pmgd/src/ChunkList.h:218:23: warning: comparison of integer expressions of different signedness: 'int' and 'const unsigned int' [-Wsign-compare]
+#26 10.54 In file included from /vdms/src/pmgd/src/../include/iterator.h:36,
+#26 10.54                  from /vdms/src/pmgd/src/../include/graph.h:34,
+#26 10.54                  from /vdms/src/pmgd/src/GraphConfig.h:35,
+#26 10.54                  from /vdms/src/pmgd/src/TransactionManager.h:38,
+#26 10.54                  from /vdms/src/pmgd/src/TransactionManager.cc:32:
+#26 10.54 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 10.54 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 10.54    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 10.54       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 10.54 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 10.54    45 |     struct Time {
+#26 10.54       |            ^~~~
+#26 10.62 In file included from /vdms/src/pmgd/src/../include/iterator.h:36,
+#26 10.62                  from /vdms/src/pmgd/src/../include/graph.h:34,
+#26 10.62                  from /vdms/src/pmgd/src/GraphConfig.h:35,
+#26 10.62                  from /vdms/src/pmgd/src/TransactionManager.h:38,
+#26 10.62                  from /vdms/src/pmgd/src/TransactionImpl.h:37,
+#26 10.62                  from /vdms/src/pmgd/src/FixedAllocator.h:34,
+#26 10.62                  from /vdms/src/pmgd/src/AllocatorUnit.h:37,
+#26 10.62                  from /vdms/src/pmgd/src/VariableAllocator.cc:34:
+#26 10.62 /vdms/src/pmgd/src/../include/property.h: In constructor 'PMGD::Time::Time()':
+#26 10.62 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+#26 10.62    70 |         Time() { memset(this, 0, sizeof(Time)); }
+#26 10.62       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+#26 10.62 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+#26 10.62    45 |     struct Time {
+#26 10.62       |            ^~~~
+#26 11.41 [ 23%] Linking CXX shared library libpmgd.so
+#26 11.61 [ 23%] Built target pmgd
+#26 12.27 make[1]: *** [CMakeFiles/Makefile2:1981: src/vcl/CMakeFiles/vcl.dir/all] Error 2
+#26 12.27 make: *** [Makefile:91: all] Error 2
+#26 ERROR: process "/bin/sh -c git clone -b kubernetes_support --recurse-submodules https://github.com/IntelLabs/vdms.git /vdms &&     sed -i \"s|java-11-openjdk|java-17-openjdk|g\" /vdms/src/pmgd/java/CMakeLists.txt &&     sed -i \"s|#include <stdio.h>|#include <stdio.h>\\n#include <stdexcept>|\" /vdms/src/pmgd/test/neighbortest.cc &&     sed -i \"s|#include <stdio.h>|#include <stdio.h>\\n#include <stdexcept>|\" /vdms/src/pmgd/tools/mkgraph.cc && \tcp /vdms/docker/override_default_config.py /vdms/override_default_config.py &&     mkdir -p /vdms/build && cd /vdms/build &&     cmake .. && make ${BUILD_THREADS} &&     echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh &&     echo 'python /vdms/override_default_config.py -i /vdms/config-vdms.json -o /vdms/build/config-vdms.json' >> /start.sh &&     echo './vdms' >> /start.sh && chmod 755 /start.sh" did not complete successfully: exit code: 2
+------
+ > [stage-2 7/7] RUN git clone -b kubernetes_support --recurse-submodules https://github.com/IntelLabs/vdms.git /vdms &&     sed -i "s|java-11-openjdk|java-17-openjdk|g" /vdms/src/pmgd/java/CMakeLists.txt &&     sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/test/neighbortest.cc &&     sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/tools/mkgraph.cc && 	cp /vdms/docker/override_default_config.py /vdms/override_default_config.py &&     mkdir -p /vdms/build && cd /vdms/build &&     cmake .. && make -j16 &&     echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh &&     echo 'python /vdms/override_default_config.py -i /vdms/config-vdms.json -o /vdms/build/config-vdms.json' >> /start.sh &&     echo './vdms' >> /start.sh && chmod 755 /start.sh:
+10.62 /vdms/src/pmgd/src/../include/property.h:70:24: warning: 'void* memset(void*, int, size_t)' clearing an object of non-trivial type 'struct PMGD::Time'; use assignment or value-initialization instead [-Wclass-memaccess]
+10.62    70 |         Time() { memset(this, 0, sizeof(Time)); }
+10.62       |                  ~~~~~~^~~~~~~~~~~~~~~~~~~~~~~
+10.62 /vdms/src/pmgd/src/../include/property.h:45:12: note: 'struct PMGD::Time' declared here
+10.62    45 |     struct Time {
+10.62       |            ^~~~
+11.41 [ 23%] Linking CXX shared library libpmgd.so
+11.61 [ 23%] Built target pmgd
+12.27 make[1]: *** [CMakeFiles/Makefile2:1981: src/vcl/CMakeFiles/vcl.dir/all] Error 2
+12.27 make: *** [Makefile:91: all] Error 2
+------
+Dockerfile:217
+--------------------
+ 216 |     # hadolint ignore=DL3003,SC2086
+ 217 | >>> RUN git clone -b kubernetes_support --recurse-submodules https://github.com/IntelLabs/vdms.git /vdms && \
+ 218 | >>>     sed -i "s|java-11-openjdk|java-17-openjdk|g" /vdms/src/pmgd/java/CMakeLists.txt && \
+ 219 | >>>     sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/test/neighbortest.cc && \
+ 220 | >>>     sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/tools/mkgraph.cc && \
+ 221 | >>> 	cp /vdms/docker/override_default_config.py /vdms/override_default_config.py && \
+ 222 | >>>     mkdir -p /vdms/build && cd /vdms/build && \
+ 223 | >>>     cmake .. && make ${BUILD_THREADS} && \
+ 224 | >>>     echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
+ 225 | >>>     echo 'python /vdms/override_default_config.py -i /vdms/config-vdms.json -o /vdms/build/config-vdms.json' >> /start.sh && \
+ 226 | >>>     echo './vdms' >> /start.sh && chmod 755 /start.sh
+ 227 |     
+--------------------
+ERROR: failed to solve: process "/bin/sh -c git clone -b kubernetes_support --recurse-submodules https://github.com/IntelLabs/vdms.git /vdms &&     sed -i \"s|java-11-openjdk|java-17-openjdk|g\" /vdms/src/pmgd/java/CMakeLists.txt &&     sed -i \"s|#include <stdio.h>|#include <stdio.h>\\n#include <stdexcept>|\" /vdms/src/pmgd/test/neighbortest.cc &&     sed -i \"s|#include <stdio.h>|#include <stdio.h>\\n#include <stdexcept>|\" /vdms/src/pmgd/tools/mkgraph.cc && \tcp /vdms/docker/override_default_config.py /vdms/override_default_config.py &&     mkdir -p /vdms/build && cd /vdms/build &&     cmake .. && make ${BUILD_THREADS} &&     echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh &&     echo 'python /vdms/override_default_config.py -i /vdms/config-vdms.json -o /vdms/build/config-vdms.json' >> /start.sh &&     echo './vdms' >> /start.sh && chmod 755 /start.sh" did not complete successfully: exit code: 2

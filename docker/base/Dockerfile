@@ -214,7 +214,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
 # VDMS
 WORKDIR /vdms
 # hadolint ignore=DL3003,SC2086
-RUN git clone -b master --recurse-submodules https://github.com/IntelLabs/vdms.git /vdms && \
+RUN git clone -b kubernetes_support --recurse-submodules https://github.com/IntelLabs/vdms.git /vdms && \
     sed -i "s|java-11-openjdk|java-17-openjdk|g" /vdms/src/pmgd/java/CMakeLists.txt && \
     sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/test/neighbortest.cc && \
     sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/tools/mkgraph.cc && \
