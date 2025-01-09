@@ -10,7 +10,7 @@ Use is the sample kubeConfig file that can be used add details of Master/Worker 
 
 # Proxy setting for running containerd behind a proxy #
 
-Follow the steps below
+Follow the steps below for containerd
 
 ```bash
     sudo mkdir -p /etc/systemd/system/containerd.service.d
@@ -18,7 +18,7 @@ Follow the steps below
     sudo nano /etc/systemd/system/containerd.service.d/http-proxy.conf
 ```
 
-Edit the http-proxy.conf as below, add the proxy details as per your system
+Edit the http-proxy.conf as below, add the proxy details as per your system for containerd
 
 ```bash
     [Service]
@@ -32,6 +32,30 @@ Restart the services as mentioned below
 ```bash
     sudo systemctl daemon-reload
     sudo systemctl restart containerd
+```
+
+Follow the steps below for Docker
+
+```bash
+    sudo mkdir -p /etc/systemd/system/docker.service.d
+    sudo touch /etc/systemd/system/docker.service.d/http-proxy.conf
+    sudo nano /etc/systemd/system/docker.service.d/http-proxy.conf
+```
+
+Edit the http-proxy.conf as below, add the proxy details as per your system for containerd
+
+```bash
+    [Service]
+    Environment="HTTP_PROXY=http://proxy.example.com"
+    Environment="HTTPS_PROXY=http://proxy.example.com"
+    Environment="NO_PROXY=localhost"
+```
+
+Restart the services as mentioned below
+
+```bash
+    sudo systemctl daemon-reload
+    sudo systemctl restart docker
 ```
 # Bringing up your cluster to run Multi-node Cluster for VDMS application #
 
