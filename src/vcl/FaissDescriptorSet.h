@@ -105,8 +105,9 @@ class FaissIVFFlatDescriptorSet : public FaissDescriptorSet {
 
 public:
   FaissIVFFlatDescriptorSet(const std::string &set_path);
-  FaissIVFFlatDescriptorSet(const std::string &set_path, unsigned dim,
-                            DistanceMetric metric);
+  // FaissIVFFlatDescriptorSet(const std::string &set_path, unsigned dim, DistanceMetric metric);  
+  FaissIVFFlatDescriptorSet(const std::string &set_path, unsigned dim, 
+                          DistanceMetric metric, VCL::DescriptorParams *par);                          
 
   long add(float *descriptors, unsigned n_descriptors, long *classes);
 };
@@ -115,11 +116,13 @@ class FaissHNSWFlatDescriptorSet : public FaissDescriptorSet {
 
 public:
   FaissHNSWFlatDescriptorSet(const std::string &set_path);
+  // FaissHNSWFlatDescriptorSet(const std::string &set_path, unsigned dim,DistanceMetric metric);
   FaissHNSWFlatDescriptorSet(const std::string &set_path, unsigned dim,
-                             DistanceMetric metric);
+                             DistanceMetric metric, VCL::DescriptorParams *par);
 
   void search(float *query, unsigned n_queries, unsigned k, long *descriptors,
               float *distances);
+  
 };
 
 }; // namespace VCL
