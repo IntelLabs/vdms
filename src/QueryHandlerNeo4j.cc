@@ -106,7 +106,7 @@ bool QueryHandlerNeo4j::syntax_checker(const Json::Value &root,
                                        Json::Value &error) {
   valijson::ValidationResults results;
   valijson::adapters::JsonCppAdapter user_query(root);
-  std::cerr << root.toStyledString() << std::endl; // TEMPORARY
+  //std::cerr << root.toStyledString() << std::endl; // TEMPORARY
   if (!_validator.validate(*_schema, user_query, &results)) {
     std::cerr << "API validation failed for:" << std::endl;
     std::cerr << root.toStyledString() << std::endl;
@@ -182,7 +182,7 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
   int rc;
 
   Json::FastWriter fastWriter;
-  Json::Value hello_res;
+  Json::Value final_resp;
   Json::Value json_responses;
   Json::Value cmd_result;
 
@@ -198,7 +198,7 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
     Json::Value neo4j_resp;
     std::string cypher;
 
-    const Json::Value &query = root[j];
+    Json::Value &query = root[j];
     std::string cmd = query.getMemberNames()[0];
 
 
@@ -212,9 +212,7 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
     const std::string &blob =
         rscmd->need_blob(query) ? proto_query.blobs(blob_count++) : "";
 
-    printf("DP Start\n");
     rc = rscmd->data_processing(cypher, query, blob, 0, cmd_result);
-    printf("DP Return\n");
 
     if (rc != 0) {
       error = true;
@@ -225,16 +223,22 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
     res_stream = neoconn_pool->run_in_tx((char *)cypher.c_str(), tx);
     neo4j_resp = neoconn_pool->results_to_json(res_stream);
 
-    rscmd->construct_responses(neo4j_resp, query, proto_res, blob);
+    query["cp_result"] = cmd_result;
 
-    if (neo4j_resp.isMember("metadata_res")) {
-      hello_res["metadata_res"] = neo4j_resp["metadata_res"];
+    Json::Value resp_retval = rscmd->construct_responses(neo4j_resp, query, proto_res, blob);
+
+    //THIS IS VERY CLUNKY and confusing, NEEDS TO BE REFACTORED
+    if (neo4j_resp.isMember("metadata_res") && (cmd == "NeoAdd" || cmd == "NeoFind")) {
+        resp_retval["metadata_res"] = neo4j_resp["metadata_res"];
+    } else {
+        std::cout << "Non NeoAdd/Find" << std::endl;
     }
 
-    json_responses.append(hello_res);
+    json_responses.append(resp_retval);
 
-    proto_res.set_json(fastWriter.write(json_responses));
+
   }
+    proto_res.set_json(fastWriter.write(json_responses));
   // commit neo4j transaction, needs to be updated in future to account for
   // errors on response construction
   if (error == false) {

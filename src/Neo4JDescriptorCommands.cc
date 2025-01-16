@@ -49,8 +49,6 @@ using namespace VDMS;
 
 void append_results_to_cypher(std::string &tx, std::string varnam, Json::Value &results){
 
-    printf("Results Append to Cypher\n");
-    std::cout << results <<std::endl;
     tx += " return ";
     for (Json::Value::ArrayIndex i = 0; i != results["list"].size(); i++){
         if(i == results["list"].size() -1) {
@@ -69,7 +67,6 @@ void append_and_constraints(std::string &tx, std::string varnam, Json::Value &co
     std::string cons_string = "";
     int ctr = 0;
     for (auto it = constraints.begin(); it != constraints.end(); it++){
-        std::cout << it.key() << std::endl;
         std::string prop_key = it.key().asString();
         auto cur_list = constraints[prop_key];
 
@@ -122,10 +119,8 @@ void append_and_constraints(std::string &tx, std::string varnam, Json::Value &co
         }
 
     }
-    std::cout <<"Contraints" << std::endl;
-    std::cout << cons_string << std::endl;
+
     tx += cons_string;
-    std::cout << tx << std::endl;
 
 }
 
@@ -237,7 +232,7 @@ std::string NeoDescriptorsCommand::get_set_path(const std::string &set_name,
             return desc_path_str;
         }
     } else {
-        std::cout << "Find Set query Failed!" << std::endl;
+        std::cerr << "Find Set query Failed!" << std::endl;
     }
 
     return "";
@@ -365,12 +360,6 @@ Json::Value Neo4jNeoAddDescSet::construct_responses(Json::Value &json_responses,
         VCL::DescriptorSet desc_set(desc_set_path, dimensions, _eng, metric, param);
 
         //TODO AWS storage not currently supported
-        /*if (_use_aws_storage) {
-            VCL::RemoteConnection *connection = new VCL::RemoteConnection();
-            std::string bucket = VDMSConfig::instance()->get_bucket_name();
-            connection->_bucket_name = bucket;
-            desc_set.set_connection(connection);
-        }*/
 
         desc_set.store();
         if (output_vcl_timing) {
@@ -423,8 +412,7 @@ int Neo4jNeoFindDescSet::data_processing(std::string &tx, const Json::Value &jso
     results["list"] = list_arr;
 
     append_results_to_cypher(tx,"DESCSET", results);
-    std::cout << "Test Run" << std::endl;
-    std::cout << tx << std::endl;
+
 
     return 0;
 }
@@ -536,8 +524,6 @@ int Neo4jNeoAddDesc::add_single_descriptor(std::string &tx,
 
     tx += "})";
 
-    std::cout << tx << std::endl;
-    printf("Here we are!\n");
 
     /*for (Json::Value::ArrayIndex i = 0; i != results["list"].size(); i++){
         if(i == results["list"].size() -1) {
@@ -667,7 +653,7 @@ int Neo4jNeoAddDesc::add_descriptor_batch(std::string &tx,
 
 int Neo4jNeoAddDesc::data_processing(std::string &tx, const Json::Value &root,
                                      const std::string &blob, int grp_id,
-                                     Json::Value &error) {
+                                     Json::Value &result) {
 
     bool batch_mode;
     int rc;
@@ -676,16 +662,16 @@ int Neo4jNeoAddDesc::data_processing(std::string &tx, const Json::Value &root,
 
     Json::Value prop_list = get_value<Json::Value>(cmd, "batch_properties");
     if (prop_list.size() == 0) {
-        printf("Add Single Desc\n");
-        rc = add_single_descriptor(tx, root, blob, grp_id, error);
+        rc = add_single_descriptor(tx, root, blob, grp_id, result);
     } else {
-        printf("Add Batch Desc\n");
-        rc = add_descriptor_batch(tx, root, blob, grp_id, error);
+        rc = add_descriptor_batch(tx, root, blob, grp_id, result);
     }
 
-    if (rc < 0)
-        error["status"] = Neo4jCommand::Error;
-
+    if (rc < 0) {
+        result["status"] = Neo4jCommand::Error;
+    } else {
+        result["status"] = Neo4jCommand::Success;
+    }
     return rc;
 }
 
@@ -695,6 +681,7 @@ Json::Value Neo4jNeoAddDesc::construct_responses(Json::Value &json_responses,
                                                  const std::string &blob) {
 
     Json::Value ret;
+
     return ret;
 }
 
@@ -844,7 +831,7 @@ int Neo4jNeoFindDesc::data_processing(std::string &tx, const Json::Value &root,
                 }
             }
 
-
+            error["ids_array"] = ids_array;
             // This are needed to construct the response.
             if (!results.isMember("list")) {
                 results["list"].append(VDMS_DESC_LABEL_PROP);
@@ -854,9 +841,8 @@ int Neo4jNeoFindDesc::data_processing(std::string &tx, const Json::Value &root,
             Json::Value node_constraints = constraints;
             tx = "MATCH (n:VDMS_desc) WHERE n." + desc_id_prop_name + " IN [";
             //creates an OR list for the query
-            std::cout<< "IDS" << std::endl;
+
             for (int i = 0; i < ids.size() - 1; ++i) {
-                std::cout << ids[i] << std::endl;
                 tx += std::to_string(ids[i]) + ",";
             }
             tx += std::to_string(ids[ids.size()-1]) + "] ";
@@ -875,7 +861,6 @@ int Neo4jNeoFindDesc::data_processing(std::string &tx, const Json::Value &root,
             return -1;
         }
     }
-    std::cout << tx << std::endl;
     return 0;
 }
 
@@ -885,7 +870,6 @@ Json::Value Neo4jNeoFindDesc::construct_responses(Json::Value &neo4j_responses,
                                                   const std::string &blob) {
 
 
-    std::cout << neo4j_responses << std::endl;
 
     Json::Value findDesc;
     const Json::Value &cmd = orig_query[_cmd_name];
@@ -912,119 +896,47 @@ Json::Value Neo4jNeoFindDesc::construct_responses(Json::Value &neo4j_responses,
     }
 
     const Json::Value &results = cmd["results"];
-    Json::Value list = get_value<Json::Value>(results, "list");
+    Json::Value res_list = get_value<Json::Value>(results, "list");
 
     // Case (1)
     if (cmd.isMember("link")) {
 
         //TODO link is currently not supported
-        /*assert(json_responses.size() == 2);
-
-        findDesc = json_responses[0];
-
-        if (findDesc["status"] != 0) {
-            Json::Value return_error;
-            return_error["status"] = RSCommand::Error;
-            return_error["info"] = "Descriptors Not Found";
-            return error(return_error);
-        }
-
-        const Json::Value &set_response = json_responses[1];
-        const Json::Value &set = set_response["entities"][0];
-
-        // These properties should always exist
-        assert(set.isMember(VDMS_DESC_SET_PATH_PROP));
-        assert(set.isMember(VDMS_DESC_SET_DIM_PROP));
-        std::string set_path = set[VDMS_DESC_SET_PATH_PROP].asString();
-        int dim = set[VDMS_DESC_SET_DIM_PROP].asInt();
-
-        if (findDesc.isMember("entities")) {
-            try {
-                Json::Value &entities = findDesc["entities"];
-                populate_blobs(set_path, set_name, results, entities, query_res);
-                convert_properties(entities, list, set_name);
-            } catch (VCL::Exception e) {
-                print_exception(e);
-                findDesc["status"] = RSCommand::Error;
-                findDesc["info"] = "VCL Exception";
-                return error(findDesc);
-            }
-        }*/
     }
         // Case (2)
     else if (!cmd.isMember("k_neighbors")) {
-        /*
-        assert(json_responses.size() == 2);
-
-        const Json::Value &set_response = json_responses[0];
-        const Json::Value &set = set_response["entities"][0];
-
-        // These properties should always exist
-        assert(set.isMember(VDMS_DESC_SET_PATH_PROP));
-        assert(set.isMember(VDMS_DESC_SET_DIM_PROP));
-        std::string set_path = set[VDMS_DESC_SET_PATH_PROP].asString();
-        int dim = set[VDMS_DESC_SET_DIM_PROP].asInt();
-
-        findDesc = json_responses[1];
-
-        if (findDesc.isMember("entities")) {
-            try {
-                Json::Value &entities = findDesc["entities"];
-                populate_blobs(set_path, set_name, results, entities, query_res);
-                convert_properties(entities, list, set_name);
-            } catch (VCL::Exception e) {
-                print_exception(e);
-                findDesc["status"] = RSCommand::Error;
-                findDesc["info"] = "VCL Exception";
-                return error(findDesc);
-            }
-        }
-
-        if (findDesc["status"] != 0) {
-            std::cerr << json_responses.toStyledString() << std::endl;
-            Json::Value return_error;
-            return_error["status"] = RSCommand::Error;
-            return_error["info"] = "Descriptors Not Found";
-            return error(return_error);
-        }*/
         printf("Just MD\n");
     }
         // Case (3)
     else {
+
         // Get Set info.
-        const Json::Value &set_response = neo4j_responses[0];
+        //const Json::Value &set_response = neo4j_responses[0];
+        const Json::Value &metadata_desc_res = neo4j_responses["metadata_res"];
 
         //TODO error check and verify we got some metadata back
-        assert(set_response["entities"].size() == 1);
+        assert(metadata_desc_res.size() >= 1);
 
-        const Json::Value &set = set_response["entities"][0];
 
-        // This properties should always exist
-        assert(set.isMember(VDMS_DESC_SET_PATH_PROP));
-        assert(set.isMember(VDMS_DESC_SET_DIM_PROP));
-        std::string set_path = set[VDMS_DESC_SET_PATH_PROP].asString();
-        int dim = set[VDMS_DESC_SET_DIM_PROP].asInt();
-
-        if (!check_blob_size(blob, dim, 1)) {
+        /*if (!check_blob_size(blob, dim, 1)) {
             Json::Value return_error;
             return_error["status"] = Neo4jCommand::Error;
             return_error["info"] = "Blob (required) is null or size invalid";
             return error(return_error);
-        }
+        }*/
 
         std::vector<long> *ids;
         std::vector<float> *distances;
 
         //TODO Keep this, as it bolts distance onto the results
         bool compute_distance = false;
-
-        Json::Value list = get_value<Json::Value>(results, "list");
-        for (auto &prop: list) {
+        for (auto &prop: res_list) {
             if (prop.asString() == "_distance") {
                 compute_distance = true;
                 break;
             }
         }
+
 
         // Test whether there is any cached result.
         assert(cache.isMember("cache_obj_id"));
@@ -1038,52 +950,61 @@ Json::Value Neo4jNeoFindDesc::construct_responses(Json::Value &neo4j_responses,
         ids = &(pair->first);
         distances = &(pair->second);
 
-        Json::Value aux_entities = findDesc["entities"];
-        findDesc.removeMember("entities");
-
         uint64_t new_cnt = 0;
 
         //Loop over IDs, match distances to metadata returns
+        std::map<long, float> id_dist_map;
         for (int i = 0; i < (*ids).size(); ++i) {
-
-            Json::Value desc_data;
-
             long d_id = (*ids)[i];
-            bool pass_constraints = false;
-
-
-            if (findDesc.isMember("entities")) {
-                try {
-                    Json::Value &entities = findDesc["entities"];
-                    populate_blobs(set_path, set_name, results, entities, query_res);
-                    convert_properties(entities, list, set_name);
-                } catch (VCL::Exception e) {
-                    print_exception(e);
-                    findDesc["status"] = Neo4jCommand::Error;
-                    findDesc["info"] = "VCL Exception";
-                    return error(findDesc);
-                }
-            }
-
-            if (cache.isMember("cache_obj_id")) {
-                // We remove the vectors associated with that entry to
-                // free memory, without removing the entry from _cache_map
-                // because tbb does not have a lock free way to do this.
-                IDDistancePair *pair = _cache_map[cache["cache_obj_id"].asInt64()];
-                delete pair;
-            }
+            float cur_dist = (*distances)[i];
+            id_dist_map[d_id] = cur_dist;
         }
 
-        if (findDesc.isMember("entities")) {
-            for (auto &ent: findDesc["entities"]) {
-                if (ent.getMemberNames().size() == 0) {
-                    findDesc.removeMember("entities");
-                    break;
-                }
-            }
+        //clean up cache used to hand off distances
+        if (cache.isMember("cache_obj_id")) {
+            // We remove the vectors associated with that entry to
+            // free memory, without removing the entry from _cache_map
+            // because tbb does not have a lock free way to do this.
+            IDDistancePair *pair = _cache_map[cache["cache_obj_id"].asInt64()];
+            delete pair;
         }
+
+        //iterate over metadata returns
+        Json::Value md_list = neo4j_responses["metadata_res"];
+        Json::Value resp_list;
+        for(Json::Value::ArrayIndex i = 0; i != md_list.size(); i++){
+            Json::Value cur_obj;
+            cur_obj = md_list[i];
+            Json::Value resp_obj;
+            long desc_id = cur_obj["n." + desc_id_prop_name].asInt();
+            float dist = id_dist_map[desc_id];
+
+
+            //iterate over desired results and extract
+
+            for(Json::Value::ArrayIndex k = 0; k != res_list.size(); k++){
+                std::string res_str = res_list[k].asString();
+
+                if(res_str == "_id"){
+                    resp_obj["_id"] = desc_id;
+                    continue;
+                }
+                if(res_str == "_distance"){
+                    resp_obj["_distance"] = dist;
+                    continue;
+                }
+
+                resp_obj[res_str] = cur_obj["n." + res_str];
+            }
+            resp_list.append(resp_obj);
+        }
+
 
         findDesc["status"] = Neo4jCommand::Success;
+        findDesc["entities"] = resp_list;
         ret[_cmd_name] = findDesc;
+
     }
+
+    return ret;
 }
