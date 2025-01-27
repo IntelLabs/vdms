@@ -164,22 +164,7 @@ RUN curl -L -O https://github.com/gpakosz/peg/releases/download/${PEG_VERSION}/p
         ./configure --disable-werror --prefix=/opt/dist/usr && \
         make clean check && make install -w --debug
 
-RUN git clone --depth 1 https://github.com/yaml/libyaml.git /libyaml && \
-cd /libyaml && \
-mkdir build && \
-cd build &&\
-cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_TESTING=OFF  -DBUILD_SHARED_LIBS=ON && \
-make && \
-make install
-    
-#Kubernetes
-RUN git clone https://github.com/kubernetes-client/c.git /k8s && \
-    CLIENT_REPO_ROOT=/k8s && \
-    cd /k8s/kubernetes && \
-    mkdir build && \
-    cd build && \
-    cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local/ && \
-    make && make install
+
 # CLEANUP
 RUN rm -rf /dependencies /usr/local/share/doc /usr/local/share/man && \
     mkdir -p /opt/dist/usr/include/x86_64-linux-gnu && \
@@ -210,11 +195,26 @@ RUN apt-get update -y && apt-get upgrade -y && \
     echo "/usr/local/lib" >> /etc/ld.so.conf.d/all-libs.conf && ldconfig && \
     python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "protobuf==4.${PROTOBUF_VERSION}" \
         "coverage>=7.3.1" "cryptography>=42.0.7"
-
+RUN git clone --depth 1 https://github.com/yaml/libyaml.git /libyaml && \
+cd /libyaml && \
+mkdir build && \
+cd build &&\
+cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_TESTING=OFF  -DBUILD_SHARED_LIBS=ON && \
+make && \
+make install
+    
+#Kubernetes
+RUN git clone https://github.com/kubernetes-client/c.git /k8s && \
+    CLIENT_REPO_ROOT=/k8s && \
+    cd /k8s/kubernetes && \
+    mkdir build && \
+    cd build && \
+    cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local/ && \
+    make && make install
 # VDMS
 WORKDIR /vdms
 # hadolint ignore=DL3003,SC2086
-RUN git clone -b kubernetes_support --recurse-submodules https://github.com/IntelLabs/vdms.git /vdms && \
+RUN git clone --recurse-submodules https://github.com/IntelLabs/vdms.git /vdms && \
     sed -i "s|java-11-openjdk|java-17-openjdk|g" /vdms/src/pmgd/java/CMakeLists.txt && \
     sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/test/neighbortest.cc && \
     sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/tools/mkgraph.cc && \
