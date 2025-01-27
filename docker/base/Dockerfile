@@ -164,22 +164,24 @@ RUN curl -L -O https://github.com/gpakosz/peg/releases/download/${PEG_VERSION}/p
         ./configure --disable-werror --prefix=/opt/dist/usr && \
         make clean check && make install -w --debug
 
-
-RUN git clone --depth 1 https://github.com/yaml/libyaml.git /dependencies/libyaml && \
+# hadolint ignore=DL3003,SC2086
+RUN git clone https://github.com/yaml/libyaml --depth 1 --branch release/0.2.5 && \
 cd /dependencies/libyaml && \
 mkdir build && \
 cd build &&\
-cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_TESTING=OFF  -DBUILD_SHARED_LIBS=ON && \
+cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_TESTING=OFF  -DBUILD_SHARED_LIBS=ON .. && \
 make  ${BUILD_THREADS} && \
 make install DESTDIR=/opt/dist && make install
     
 #Kubernetes
+# hadolint ignore=DL3003,SC2086
 RUN git clone https://github.com/kubernetes-client/c.git /dependencies/k8s && \
     CLIENT_REPO_ROOT=/dependencies/k8s && \
     cd /dependencies/k8s/kubernetes && \
     mkdir build && \
     cd build && \
-    cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local/ && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local .. && \
+    make  ${BUILD_THREADS} && \
     make install DESTDIR=/opt/dist && make install
 
 # CLEANUP
