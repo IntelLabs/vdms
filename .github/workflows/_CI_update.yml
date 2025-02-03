@@ -11,11 +11,11 @@ on:
           required: true
           description: "Status of coverage tests (passed/failed)"
           type: string
-
-permissions: write-all
-
+permissions: {}
 jobs:
     commit_job:
+        permissions:
+          contents: write
         name: Commit Code Updates 
         env:
           COMMIT_MSG: "Automated updates: Format and/or coverage"
