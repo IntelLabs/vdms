@@ -59,7 +59,7 @@ void append_results_to_cypher(std::string &tx, std::string varnam, Json::Value &
     }
 }
 
-void append_and_constraints(std::string &tx, std::string varnam, Json::Value &constraints){
+void append_and_constraints(std::string &tx, std::string varnam, Json::Value &constraints, bool leading_and){
 
     //TODO this is working, we should have confidence that each value associated with a particular
     // value will be in a consistent format
@@ -75,9 +75,8 @@ void append_and_constraints(std::string &tx, std::string varnam, Json::Value &co
         // to determine how we're assembling the cypher query (upper and lower bound vs upper XOR lower bound XOR equality)
         int list_sz = cur_list.size();
 
-
-        cons_string += " AND ";
-
+        if(leading_and || ctr != 0) cons_string += " AND ";
+        ctr += 1;
 
         if(list_sz == 2) {
             auto eq_1 = cur_list[0];
@@ -506,9 +505,10 @@ int Neo4jNeoAddDesc::add_single_descriptor(std::string &tx,
 
     //query.AddNode(node_ref, VDMS_DESC_TAG, props, Json::nullValue);
     //Add properties to query
+    tx += "MATCH (descset:VDMS_descset) WHERE descset.set_name = \"" + set_name + "\" ";
     tx += "CREATE (VDMSNODE:VDMS_desc { ";
 
-    //any
+    // append properties
     int ctr = 0;
     for (Json::Value::iterator it=props.begin(); it != props.end(); it++){
         Json::Value key = it.key();
@@ -522,19 +522,8 @@ int Neo4jNeoAddDesc::add_single_descriptor(std::string &tx,
         ctr++;
     }
 
-    tx += "})";
-
-
-    /*for (Json::Value::ArrayIndex i = 0; i != results["list"].size(); i++){
-        if(i == results["list"].size() -1) {
-            tx += "DESCSET." + results["list"][i].asString() + ";";
-        } else {
-            tx += "DESCSET." + results["list"][i].asString() + ", ";
-        }
-    }*/
-
-   //TODO check for existence of desc set prior
-
+    tx += "})-[:part_of]->(descset)";
+    std::cout << tx << std::endl;
     return 0;
 }
 
@@ -543,7 +532,7 @@ int Neo4jNeoAddDesc::add_descriptor_batch(std::string &tx,
                                         const std::string &blob, int grp_id,
                                         Json::Value &error) {
 
-    /*const int FOUR_BYTE_INT = 4;
+    const int FOUR_BYTE_INT = 4;
     int expected_blb_size;
     int nr_expected_descs;
     int dimensions;
@@ -552,27 +541,19 @@ int Neo4jNeoAddDesc::add_descriptor_batch(std::string &tx,
     const Json::Value &cmd = jsoncmd[_cmd_name];
     const std::string set_name = cmd["set"].asString();
 
-    // Json::Value props = get_value<Json::Value>(cmd, "properties");
+    Json::Value props = get_value<Json::Value>(cmd, "properties");
 
     // extract properties list and get filepath/object location of set
     Json::Value prop_list = get_value<Json::Value>(cmd, "batch_properties");
-    const std::string set_path = get_set_path(query, set_name, dimensions);
+    const std::string set_path = get_set_path(set_name, dimensions);
 
     if (set_path.empty()) {
         error["info"] = "Set " + set_name + " not found";
-        error["status"] = RSCommand::Error;
+        error["status"] = Neo4jCommand::Error;
         return -1;
     }
 
-    std::string label = get_value<std::string>(cmd, "label", "None");
-    // props[VDMS_DESC_LABEL_PROP] = label;
-
-    // retrieve the descriptor set from AWS here
-    // operations are currently done in memory with no subsequent write to disk
-    // so there's no need to re-upload to AWS
-    if (_use_aws_storage) {
-        retrieve_aws_descriptorSet(set_path);
-    }
+    std::string label = get_value<std::string>(cmd, "label", "null");
 
     // Note dimensionse are based on a 32 bit integer, hence the /4 math on size
     // as the string blob is sized in 8 bit ints.
@@ -591,63 +572,36 @@ int Neo4jNeoAddDesc::add_descriptor_batch(std::string &tx,
 
     long id = insert_descriptor(blob, set_path, nr_expected_descs, label, error);
 
-    if (id < 0) {
-        error["status"] = RSCommand::Error;
-
-        if (_use_aws_storage) {
-            // delete files in set_path
-            std::uintmax_t n = fs::remove_all(set_path);
-            std::cout << "Deleted " << n << " files or directories\n";
-        }
-        error["info"] = "FV Index Insert Failed";
-        return -1;
-    }
-
-    // It passed the checker, so it exists.
-    int set_ref = query.get_available_reference();
-
-    Json::Value link;
-    Json::Value results;
-    Json::Value list_arr;
-    list_arr.append(VDMS_DESC_SET_PATH_PROP);
-    list_arr.append(VDMS_DESC_SET_DIM_PROP);
-    results["list"] = list_arr;
-
-    // constraints for getting set node to link to.
-    Json::Value constraints;
-    Json::Value name_arr;
-    name_arr.append("==");
-    name_arr.append(set_name);
-    constraints[VDMS_DESC_SET_NAME_PROP] = name_arr;
-    bool unique = true;
-
-    // Query set node-We only need to do this once, outside of the loop
-    query.QueryNode(set_ref, VDMS_DESC_SET_TAG, link, constraints, results,
-                    unique);
-
     //TODO convert to cypher
+    std::string desc_id_prop_name =
+            "VD_descId_" + set_name;
+    tx += "MATCH (descset:VDMS_descset) WHERE descset.set_name =\"" + set_name +"\" ";
+    ;
     for (int i = 0; i < nr_expected_descs; i++) {
-        int node_ref = query.get_available_reference();
         Json::Value cur_props;
         cur_props = prop_list[i];
+        tx += "CREATE (:VDMS_desc { ";
 
-        std::string desc_id_prop_name =
-                VDMS_DESC_ID_PROP + std::string("_") + set_name;
         cur_props[desc_id_prop_name.c_str()] = Json::Int64(id + i);
+        cur_props["VD_label"] = label;
 
-        cur_props[VDMS_DESC_LABEL_PROP] = label;
+        // append properties
+        int ctr = 0;
+        for (Json::Value::iterator it=cur_props.begin(); it != cur_props.end(); it++){
+            Json::Value key = it.key();
+            Json::Value value = (*it);
 
-        query.AddNode(node_ref, VDMS_DESC_TAG, cur_props, Json::nullValue);
-
-        // note this implicitly means that every node of a batch uses the same link
-        if (cmd.isMember("link")) {
-            add_link(query, cmd["link"], node_ref, VDMS_DESC_EDGE_TAG);
+            if(ctr == 0) {
+                tx += key.asString() + ": " + value.asString();
+            } else {
+                tx += ", " + key.asString() + ": " + value.asString();
+            }
+            ctr++;
         }
+        tx += "})-[:part_of]->(descset) ";
+    }
 
-        Json::Value props_edge;
-        query.AddEdge(-1, set_ref, node_ref, VDMS_DESC_SET_EDGE_TAG, props_edge);
-    }*/
-
+    std::cout << tx << std::endl;
     return 0;
 }
 
@@ -718,14 +672,6 @@ int Neo4jNeoFindDesc::data_processing(std::string &tx, const Json::Value &root,
         return -1;
     }
 
-    /*Json::Value results_set;
-    Json::Value list_arr_set;
-    list_arr_set.append(VDMS_DESC_SET_PATH_PROP);
-    list_arr_set.append(VDMS_DESC_SET_DIM_PROP);
-    results_set["list"] = list_arr_set;
-
-    bool unique = true;*/
-
     Json::Value constraints = cmd["constraints"];
     if (constraints.isMember("_label")) {
         constraints[VDMS_DESC_LABEL_PROP] = constraints["_label"];
@@ -782,10 +728,17 @@ int Neo4jNeoFindDesc::data_processing(std::string &tx, const Json::Value &root,
         // In this case, we either need properties of the descriptor
         // ("list") on the results block, or we need the descriptor nodes
         // because the user defined a reference.
-        //TODO this is basically just a neo4j query over descriptors at this point
+        //TODO need to verify match against set
 
-        // Case (3), Just want the descriptor by value, we only need the set
-        printf("Empty\n");
+        tx = "MATCH (n:VDMS_desc) WHERE ";
+        //Add in additional constraints (all AND-ed together), this currently matches PMGD model
+        append_and_constraints(tx, "n", constraints, false);
+        tx += " AND n." + desc_id_prop_name + " IS NOT NULL ";
+        //append returns
+        append_results_to_cypher(tx,"n", results);
+
+
+        std::cout << tx << std::endl;
     } else {
 
         Json::Value link_null; // null
@@ -848,11 +801,11 @@ int Neo4jNeoFindDesc::data_processing(std::string &tx, const Json::Value &root,
             tx += std::to_string(ids[ids.size()-1]) + "] ";
 
             //Add in additional constraints (all AND-ed together), this currently matches PMGD model
-            append_and_constraints(tx, "n", constraints);
+            append_and_constraints(tx, "n", constraints, true);
 
             //append returns
             append_results_to_cypher(tx,"n", results);
-
+            std::cout << tx << std::endl;
 
         } catch (VCL::Exception e) {
             print_exception(e);
@@ -898,6 +851,9 @@ Json::Value Neo4jNeoFindDesc::construct_responses(Json::Value &neo4j_responses,
     const Json::Value &results = cmd["results"];
     Json::Value res_list = get_value<Json::Value>(results, "list");
 
+    int dim;
+    const std::string set_path = get_set_path(set_name, dim);
+
     // Case (1)
     if (cmd.isMember("link")) {
 
@@ -905,10 +861,32 @@ Json::Value Neo4jNeoFindDesc::construct_responses(Json::Value &neo4j_responses,
     }
         // Case (2)
     else if (!cmd.isMember("k_neighbors")) {
-        printf("Just MD\n");
-    }
-        // Case (3)
-    else {
+
+        //iterate over metadata returns
+        Json::Value md_list = neo4j_responses["metadata_res"];
+        Json::Value resp_list;
+        for(Json::Value::ArrayIndex i = 0; i != md_list.size(); i++){
+            Json::Value cur_obj;
+            cur_obj = md_list[i];
+            Json::Value resp_obj;
+            long desc_id = cur_obj["n." + desc_id_prop_name].asInt();
+
+            //iterate over desired results and extract
+            for(Json::Value::ArrayIndex k = 0; k != res_list.size(); k++){
+                std::string res_str = res_list[k].asString();
+                resp_obj[res_str] = cur_obj["n." + res_str];
+            }
+            resp_list.append(resp_obj);
+        }
+
+        findDesc["status"] = Neo4jCommand::Success;
+        findDesc["entities"] = resp_list;
+        ret[_cmd_name] = findDesc;
+        printf("CASE 2 RETURN\n");
+        std::cout << ret <<std::endl;
+        std::cout << md_list << std::endl;
+
+    } else { // Case (3)
 
         // Get Set info.
         //const Json::Value &set_response = neo4j_responses[0];
@@ -981,7 +959,6 @@ Json::Value Neo4jNeoFindDesc::construct_responses(Json::Value &neo4j_responses,
 
 
             //iterate over desired results and extract
-
             for(Json::Value::ArrayIndex k = 0; k != res_list.size(); k++){
                 std::string res_str = res_list[k].asString();
 
@@ -1004,6 +981,19 @@ Json::Value Neo4jNeoFindDesc::construct_responses(Json::Value &neo4j_responses,
         findDesc["entities"] = resp_list;
         ret[_cmd_name] = findDesc;
 
+    }
+
+    //Now populate the blobs as needed
+    //TODO metadata existence check from Neo4J returns
+    try {
+        Json::Value &entities = findDesc["entities"];
+        populate_blobs(set_path, set_name, results, entities, query_res);
+        //convert_properties(entities, list, set_name);
+    } catch (VCL::Exception e) {
+        print_exception(e);
+        findDesc["status"] = Neo4jCommand::Error;
+        findDesc["info"] = "VCL Exception";
+        return error(findDesc);
     }
 
     return ret;
