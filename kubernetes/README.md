@@ -1,5 +1,5 @@
 # Configure kubeConfig.json #
-Use is the sample kubeConfig file that can be used add details of Master/Worker node
+Sample kubeConfig file that can be used to add details of Master/Worker node
 
 ```json
     {
@@ -69,7 +69,6 @@ On the Master node follow the steps below after downloading the VDMS image -
 ```
 On the Worker Node follow the steps below after downloading/creating the remote UDF - 
 
-On the Master node follow the steps below after downloading the VDMS image - 
 ```bash
     cd kubernetes/
     chmod +x global_vdms_setup_script.sh
@@ -88,10 +87,10 @@ On the Worker Node follow the steps below to load the remote UDF image locally
 
 On the Master Node execute the following command
 ```bash
-    ./global_vdms_setup_script.sh -m master -s yes
+    ./global_vdms_setup_script.sh -m master -s yes -j <path to kubeConfig.json>
 ```
 
-The file named join_vdms_cluster.sh will be created in <mark>kubernetes/</mark> folder, copy/transfer that to the <mark>kubernetes/</mark> folder at the Woreker nodes
+The file named join_vdms_cluster.sh will be created in <mark>kubernetes/</mark> folder, copy/transfer that to the <mark>kubernetes/</mark> folder at the Worker nodes
 
 On the Worker Node execute the following command 
 ```bash
@@ -100,7 +99,7 @@ On the Worker Node execute the following command
 
 Final step, On the Master Node execute the following command 
 ```bash
-    ./global_vdms_setup_script.sh -m master -k yes
+    ./global_vdms_setup_script.sh -m master -k yes -j <path to kubeConfig.json>
 ```
 
-Use ipconfig/ip addr to get the IP address of the Control plane and use playbook.ipynb to send requests to VDMS application
+Use ipconfig/ip addr to get the IP address of the Control plane.

@@ -3,12 +3,13 @@
 helpFunction()
 {
    echo ""
-   echo "Usage: $0 -m machinetype -i install -s setup_the_node -k k8s_setup -c clear_the_node"
-   echo -e "\t-m Input the machine type either 'remote' or 'master'"
-   echo -e "\t-i Input the installation taske as 'yes' or 'no'"
-   echo -e "\t-s Input the status for the Node setup as - 'yes' or 'no'"
-   echo -e "\t-k Input the status for the Kubernetes setup on Node as - 'yes' or 'no'"
-   echo -e "\t-k Input to clear the node of the Kubernetes setup on Node as - 'yes' or 'no'"
+   echo "Usage: $0 -m machinetype -i install -s setup_the_node -k k8s_setup -c clear_the_node -j local_kubeConfig"
+   echo "\t-m Input the machine type either 'remote' or 'master'"
+   echo "\t-i Input the installation taske as 'yes' or 'no'"
+   echo "\t-s Input the status for the Node setup as - 'yes' or 'no'"
+   echo "\t-k Input the status for the Kubernetes setup on Node as - 'yes' or 'no'"
+   echo "\t-c Input to clear the node of the Kubernetes setup on Node as - 'yes' or 'no'"
+   echo "\t-j Path to the master node kubeConfig.json"
    exit 1 # Exit script after printing help
 }
 
@@ -160,7 +161,7 @@ masterSetupFunction()
 
 jsonparserFunction_remote()
 {
-   json_data=$(cat /home/sourish/VDMS/kubeConfig.json)
+   json_data=$(cat $1)
    workers=$(echo $json_data | jq ".WorkerNodeDetail")
    num_workers=$(echo $workers | jq length)
    one=1
@@ -182,7 +183,7 @@ jsonparserFunction_remote()
 
 jsonparserFunction_setup()
 {
-   json_data=$(cat /home/sourish/VDMS/kubeConfig.json)
+   json_data=$(cat $1)
    workers=$(echo $json_data | jq ".WorkerNodeDetail")
    num_workers=$(echo $workers | jq length)
    one=1
@@ -204,7 +205,7 @@ jsonparserFunction_setup()
 
 jsonparserFunction_master()
 {
-   json_data=$(cat /home/sourish/VDMS/kubeConfig.json)
+   json_data=$(cat $1)
    masternode=$(echo $json_data | jq ".MasterNodeDetail")
    dict_string="${masternode#\{}"
    dict_string="${dict_string%\}}"
@@ -220,7 +221,7 @@ masterVDMSk8setupFunction()
 {
    echo "Setup the VDMS on the master node and generate the keys"
    ## use the json parser here
-   jsonparserFunction_master
+   jsonparserFunction_master $1
    kubectl label node ${MASTER} vdmstype=vdmsmaster
    kubectl create clusterrolebinding serviceaccounts-cluster-admin \
    --clusterrole=cluster-admin \
@@ -229,12 +230,12 @@ masterVDMSk8setupFunction()
    kubectl taint node ${MASTER} node-role.kubernetes.io/control-plane:NoSchedule-
    kubectl apply -f vdms-config.yaml
    kubectl apply -f service-config.yaml
-   jsonparserFunction_remote
+   jsonparserFunction_remote $1
 }
 
 
 
-OPTSTRING=":m:i:s:k:c:"
+OPTSTRING=":m:i:s:k:c:j:p"
 
 while getopts ${OPTSTRING} opt; do
   case ${opt} in
@@ -262,6 +263,11 @@ while getopts ${OPTSTRING} opt; do
       clean_up="$OPTARG"
       clean_up=${clean_up// /}
       echo "Do we clean up the k8s cluster? - ${OPTARG}"
+      ;;
+    j)
+      config_path="$OPTARG"
+      config_path=${config_path// /}
+      echo "Path to the kubeConfig.json - ${OPTARG}"
       ;;
     \?)
       echo "Invalid option: -$OPTARG" >&2
@@ -299,7 +305,7 @@ if [ "$setup_arg" == "yes" ]; then
    if [ "$machinetype" == "master" ]; then 
       echo "setup the master Node"
       masterSetupFunction
-      jsonparserFunction_setup
+      jsonparserFunction_setup $config_path
       echo "sudo $(kubeadm token create --print-join-command)" > join_vdms_cluster.sh
    fi
 fi
@@ -312,7 +318,7 @@ if [ "$k8s_setup_arg" == "yes" ]; then
    fi
    if [ "$machinetype" == "master" ]; then 
       echo "setup the k8s on master Node"
-      masterVDMSk8setupFunction
+      masterVDMSk8setupFunction $config_path
    fi
 fi
 
