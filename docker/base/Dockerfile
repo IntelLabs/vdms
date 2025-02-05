@@ -69,7 +69,7 @@ WORKDIR /dependencies
 ENV AUTOCONF_VERSION="2.71" \
     AWS_SDK_VERSION="1.11.336" \
     CMAKE_VERSION="v3.28.5"  \
-    FAISS_VERSION="v1.7.4" \
+    FAISS_VERSION="v1.9.0" \
     LIBEDIT_VERSION="20230828-3.1" \
     OPENCV_VERSION="4.9.0" \
     PEG_VERSION="0.1.19" \
@@ -188,7 +188,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
         libssl-dev libswscale-dev libtbb-dev libtbbmalloc2 libtiff5-dev libzip-dev openjdk-17-jdk-headless \
         procps && \
     apt-get --purge remove -y python3.11 && apt-get autoremove -y && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* && \  
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
     echo "/usr/local/lib" >> /etc/ld.so.conf.d/all-libs.conf && ldconfig && \
     python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "protobuf==4.${PROTOBUF_VERSION}" \
         "coverage>=7.3.1" "cryptography>=42.0.7"

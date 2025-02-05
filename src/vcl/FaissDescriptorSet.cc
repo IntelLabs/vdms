@@ -397,9 +397,13 @@ FaissHNSWFlatDescriptorSet::FaissHNSWFlatDescriptorSet(
     _index = new faiss::IndexHNSWFlat(dim, hnsw_M, faiss::METRIC_L2);
     ((faiss::IndexHNSWFlat *)_index)->hnsw.efConstruction = hnsw_efConstruction;
     ((faiss::IndexHNSWFlat *)_index)->hnsw.efSearch = hnsw_efsearch;
+  } else if (metric == IP) {
+    _index = new faiss::IndexHNSWFlat(dim, hnsw_M, faiss::METRIC_INNER_PRODUCT);
+    ((faiss::IndexHNSWFlat *)_index)->hnsw.efConstruction = hnsw_efConstruction;
+    ((faiss::IndexHNSWFlat *)_index)->hnsw.efSearch = hnsw_efsearch;
   } else {
-    // only metric L2 is supported for HNSWFLAT for FAISS v1.7.4
-    // newer version of Faiss e.g. V1.8.0 supports I.P. metric for HNSW
+    // only metric L2 is supported for HNSWFLAT upto FAISS v1.7.4
+    // for V1.8.0+ it supports I.P.
     throw VCLException(UnsupportedIndex, "Metric Not implemented");
   }
 }
