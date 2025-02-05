@@ -402,8 +402,6 @@ FaissHNSWFlatDescriptorSet::FaissHNSWFlatDescriptorSet(
     ((faiss::IndexHNSWFlat *)_index)->hnsw.efConstruction = hnsw_efConstruction;
     ((faiss::IndexHNSWFlat *)_index)->hnsw.efSearch = hnsw_efsearch;
   } else {
-    // only metric L2 is supported for HNSWFLAT upto FAISS v1.7.4
-    // for V1.8.0+ it supports I.P.
     throw VCLException(UnsupportedIndex, "Metric Not implemented");
   }
 }
