@@ -214,24 +214,19 @@ RUN git clone https://github.com/kubernetes-client/c.git /k8s && \
 # VDMS
 WORKDIR /vdms
 # hadolint ignore=DL3003,SC2086
-COPY . .
-COPY custom_bash.sh /
-RUN chmod +x /custom_bash.sh
-RUN sed -i "s|java-11-openjdk|java-17-openjdk|g" /vdms/src/pmgd/java/CMakeLists.txt && \
-sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/test/neighbortest.cc && \
-sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/tools/mkgraph.cc && \
-cp /vdms/docker/override_default_config.py /vdms/override_default_config.py && \  
-mkdir -p /vdms/build && cd /vdms/build && \
-cmake .. && make ${BUILD_THREADS} VERBOSE=1 && \
-echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
-cp /vdms/docker/override_default_config.py /vdms/ && \
-echo 'python3 /vdms/override_default_config.py -i /vdms/config-vdms.json -o /vdms/build/config-vdms.json' >> /start.sh && \
-echo './vdms' >> /start.sh && chmod 755 /start.sh
-ENV PYTHONPATH=/vdms/client/python:${PYTHONPATH}
+RUN git clone -b master --recurse-submodules https://github.com/IntelLabs/vdms.git /vdms && \
+    sed -i "s|java-11-openjdk|java-17-openjdk|g" /vdms/src/pmgd/java/CMakeLists.txt && \
+    sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/test/neighbortest.cc && \
+    sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/tools/mkgraph.cc && \
+    cp /vdms/docker/override_default_config.py /vdms/override_default_config.py && \  
+    mkdir -p /vdms/build && cd /vdms/build && \
+    cmake .. && make ${BUILD_THREADS} VERBOSE=1 && \
+    echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
+    cp /vdms/docker/override_default_config.py /vdms/ && \
+    echo 'python3 /vdms/override_default_config.py -i /vdms/config-vdms.json -o /vdms/build/config-vdms.json' >> /start.sh && \
+    echo './vdms' >> /start.sh && chmod 755 /start.sh
 
-RUN /custom_bash.sh
-RUN pip install Flask
-RUN apt-get update && apt-get install vim -y
+ENV PYTHONPATH=/vdms/client/python:${PYTHONPATH}
 
 HEALTHCHECK CMD echo "This is a healthcheck test." || exit 1
 CMD ["/start.sh"]

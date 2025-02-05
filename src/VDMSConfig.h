@@ -89,6 +89,7 @@ const std::string PARAM_PROXY_PORT = "proxy_port";
 const std::string PARAM_PROXY_SCHEME = "proxy_scheme";
 const std::string PARAM_USE_ENDPOINT = "use_endpoint";
 const std::string PARAM_AWS_LOG_LEVEL = "aws_log_level";
+const std::string PARAM_KUBERNETES_CONTAINER = "use_k8s_container";
 
 namespace VDMS {
 
@@ -137,7 +138,8 @@ public:
   const bool &get_use_endpoint() { return use_endpoint; }
   const Aws::Utils::Logging::LogLevel get_aws_log_level() {
     return aws_log_level;
-  }
+  }  
+  const bool &get_k8s_flag() { return k8s_flag; }
 
 protected:
   static VDMSConfig *cfg;
@@ -166,6 +168,8 @@ private:
   std::string aws_bucket_name; // aws bucket name
   bool use_endpoint;           // Use Mocked S3 server or real AWS S3
 
+  bool k8s_flag;
+
   std::optional<std::string> endpoint_override;
   std::optional<std::string> proxy_host;
   std::optional<int> proxy_port;
@@ -181,12 +185,14 @@ private:
   void build_dirs();
   void check_or_create(std::string path);
   int create_dir(std::string path);
+  void set_kubernetes_config();
 
   VDMSConfig *getCfg() { return cfg; }
   VDMSConfig() {
     cfg = nullptr;
     storage_type = StorageType::LOCAL;
     aws_flag = false;
+    k8s_flag = false;
     use_endpoint = false;
     aws_log_level = Aws::Utils::Logging::LogLevel::Off;
     endpoint_override = std::nullopt;

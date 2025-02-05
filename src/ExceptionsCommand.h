@@ -1,11 +1,11 @@
 /**
- * @file   ImageCommand.h
+ * @file   ExceptionCommand.h
  *
  * @section LICENSE
  *
  * The MIT License
  *
- * @copyright Copyright (c) 2023 Intel Corporation
+ * @copyright Copyright (c) 2017 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"),
@@ -30,86 +30,52 @@
  */
 
 #pragma once
-#include "vcl/CustomVCL.h"
-#include "vcl/Image.h"
-#include <mutex>
+
 #include <string>
-#include <vector>
-
-#include "ExceptionsCommand.h"
-#include "RSCommand.h"
-
-#include <curl/curl.h>
 
 namespace VDMS {
 
-// Helper classes for handling various JSON commands.
+enum ExceptionCommandType {
+  FATAL_Query_Handler_Error,
 
-class ImageCommand : public RSCommand {
-public:
-  ImageCommand(const std::string &cmd_name);
+  EntityError,
+  ImageError,
+  DescriptorError,
+  DescriptorSetError,
+  PMGDTransactiontError,
+  LockTimeout,
+  LockError,
 
-  virtual int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
-                                 const std::string &blob, int grp_id,
-                                 Json::Value &error) = 0;
-
-  virtual bool need_blob(const Json::Value &cmd) { return false; }
-
-  // We use this function for enqueueing operations for an 'Image' object
-  // that is allocated outside of <*>Image operations
-  int enqueue_operations(VCL::Image &img, const Json::Value &op,
-                         bool is_addition = false,const std::string& ImageSize="small");
-
-  // Checks if 'format' parameter is specified, and if so, returns the
-  // corresponding VCL::Image::Format type.
-  VCL::Format get_requested_format(const Json::Value &cmd);
-
-protected:
-  bool output_vcl_timing;
+  Undefined = 100, // Any undefined error
 };
 
-class AddImage : public ImageCommand {
-  std::string _storage_tdb;
-  std::string _storage_png;
-  std::string _storage_jpg;
-  std::string _storage_bin;
-  // bool _use_aws_storage;
+struct ExceptionCommand {
+  // Which exception
+  int num;          ///< Exception number
+  const char *name; ///< Exception name
 
-public:
-  AddImage();
+  // Additional information
+  std::string msg;
+  int errno_val;
 
-  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
-                         const std::string &blob, int grp_id,
-                         Json::Value &error);
+  // Where it was thrown
+  const char *file; ///< Source file name
+  int line;         ///< Source line number
 
-  bool need_blob(const Json::Value &cmd);
+  ExceptionCommand(int exc, const char *exc_name, const char *f, int l)
+      : num(exc), name(exc_name), msg(), errno_val(0), file(f), line(l) {}
+
+  ExceptionCommand(int exc, const char *exc_name, const std::string &m,
+                   const char *f, int l)
+      : num(exc), name(exc_name), msg(m), errno_val(0), file(f), line(l) {}
+
+  ExceptionCommand(int exc, const char *exc_name, int err, const std::string &m,
+                   const char *f, int l)
+      : num(exc), name(exc_name), msg(m), errno_val(err), file(f), line(l) {}
 };
 
-class UpdateImage : public ImageCommand {
-public:
-  UpdateImage();
-
-  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
-                         const std::string &blob, int grp_id,
-                         Json::Value &error);
-
-  // TODO In order to support "format" or "operations", we could
-  // implement VCL save operation by adding construct_responses method.
-};
-
-class FindImage : public ImageCommand {
-  // bool _use_aws_storage;
-
-public:
-  FindImage();
-  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
-                         const std::string &blob, int grp_id,
-                         Json::Value &error);
-
-  Json::Value construct_responses(Json::Value &json_responses,
-                                  const Json::Value &json,
-                                  protobufs::queryMessage &response,
-                                  const std::string &blob);
-};
-
+#define ExceptionCommand(name, ...)                                            \
+  ExceptionCommand(VDMS::name, #name, ##__VA_ARGS__, __FILE__, __LINE__)
 }; // namespace VDMS
+
+extern void print_exception(const VDMS::ExceptionCommand &e, FILE *f = stdout);

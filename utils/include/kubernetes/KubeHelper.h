@@ -13,8 +13,7 @@ namespace kubernetes {
         int service_creator(char *ServiceName,char *AppSelector);
         std::vector<std::string> get_workernode();
         std::string k8s_objects_creator(char* appname,std::string node_name);
-        std::string query_scheduler(const std::string& size);
+        std::string query_scheduler(std::string mediaType);
         static inline int query_counter=0;
-        std::string size_based_scheduler(const std::string& size, std::vector<std::string> worker_list);
     };
 } // namespace kubernetes

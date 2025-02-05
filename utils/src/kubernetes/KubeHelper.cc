@@ -217,7 +217,7 @@ std::string KubeHelper::k8s_objects_creator(char* appname,std::string node_name)
 
 
 // Scheduler
-std::string KubeHelper::query_scheduler(const std::string& size){
+std::string KubeHelper::query_scheduler(std::string mediaType){
     // Below logic creates parameters for creating new pods in cluster with help of kube-api-server
     std::string url_final;
     KubeHelper k8s_object;
@@ -232,46 +232,16 @@ std::string KubeHelper::query_scheduler(const std::string& size){
         std::string node_name = worker_nodes_list[KubeHelper::query_counter];
         std::string url_final = k8s_object.k8s_objects_creator(appname, node_name);
         (KubeHelper::query_counter)++;
-        return url_final;}
+        return url_final;
+    }
     else{
         //the new load balancer - Round Robin 
-        // int div = (KubeHelper::query_counter)%num_worker_node;
-        // std::string sv = "rudf";
-        // std::string num = std::to_string(div);
-        // sv = sv+num+"svc";
-        // url_final = sv +":5050/image";
-        auto start = std::chrono::high_resolution_clock::now();
-        url_final = k8s_object.size_based_scheduler(size,worker_nodes_list);
-        auto end = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> elapsed = end - start;
+        int div = (KubeHelper::query_counter)%num_worker_node;
+        std::string sv = "rudf";
+        std::string num = std::to_string(div);
+        sv = sv+num+"svc";
+        url_final = sv + ":5050/" + mediaType;
         (KubeHelper::query_counter)++;
-        std::cout << "Elapsed time by the scheduler is: " << elapsed.count() << " seconds"<< std::endl;
         return url_final;
-        }
-    }   
-    
-// Scheduler Based on the Image Size
-
-std::string KubeHelper::size_based_scheduler(const std::string& size, std::vector<std::string> worker_list){
-    std::string url_sent;
-    std::string str1 = "big";
-    if (size==str1){
-        //Schedule it to a nearer machine - Sky 4
-        std::string sv = "rudf";
-        std::string num="1";
-        sv = sv+num+"svc";
-        url_sent = sv +":5050/image";
-        std::cout<<"======================k8s api server will redirect it to rudf1================"<<std::endl;
-        return url_sent;
     }
-    else{
-        //This can be scheduled for a machine at Ballast
-        std::string sv = "rudf";
-        std::string num="0";
-        sv = sv+num+"svc";
-        url_sent = sv +":5050/image";
-        std::cout<<"======================k8s api server will redirect it to rudf0================"<<std::endl;
-        return url_sent;
-    }
-
 }
