@@ -195,21 +195,22 @@ RUN apt-get update -y && apt-get upgrade -y && \
     echo "/usr/local/lib" >> /etc/ld.so.conf.d/all-libs.conf && ldconfig && \
     python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "protobuf==4.${PROTOBUF_VERSION}" \
         "coverage>=7.3.1" "cryptography>=42.0.7"
-RUN git clone --depth 1 https://github.com/yaml/libyaml.git /libyaml && \
-    cd /libyaml && \
+RUN git clone --depth 1 https://github.com/yaml/libyaml.git /dependencies/libyaml && \
+    cd /dependencies/libyaml && \
     mkdir build && \
     cd build &&\
-    cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_TESTING=OFF  -DBUILD_SHARED_LIBS=ON && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_TESTING=OFF  -DBUILD_SHARED_LIBS=ON .. && \
     make && \
     make install
 
 #Kubernetes
-RUN git clone https://github.com/kubernetes-client/c.git /k8s && \
-    CLIENT_REPO_ROOT=/k8s && \
-    cd /k8s/kubernetes && \
+RUN git clone https://github.com/kubernetes-client/c.git /dependencies/k8s && \
+    CLIENT_REPO_ROOT=/dependencies/k8s/ && \
+    apt-get install libssl-dev libcurl4-openssl-dev libwebsockets-dev uncrustify && \
+    cd ${CLIENT_REPO_ROOT}/kubernetes && \
     mkdir build && \
     cd build && \
-    cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local/ && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local/ .. && \
     make && make install
 # VDMS
 WORKDIR /vdms
