@@ -191,7 +191,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
         libssl-dev libswscale-dev libtbb-dev libtbbmalloc2 libtiff5-dev libzip-dev openjdk-17-jdk-headless \
         procps && \
     apt-get --purge remove -y python3.11 && apt-get autoremove -y && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* && \  
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
     echo "/usr/local/lib" >> /etc/ld.so.conf.d/all-libs.conf && ldconfig && \
     python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "protobuf==4.${PROTOBUF_VERSION}" \
         "coverage>=7.3.1" "cryptography>=42.0.7"
