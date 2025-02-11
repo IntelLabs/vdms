@@ -391,6 +391,9 @@ FaissHNSWFlatDescriptorSet::FaissHNSWFlatDescriptorSet(
   if (metric == L2) {
     _index = new faiss::IndexHNSWFlat(dim, hnsw_M, faiss::METRIC_L2);
     ((faiss::IndexHNSWFlat *)_index)->hnsw.efConstruction = 96;
+  } else if (metric == IP) {
+    _index = new faiss::IndexHNSWFlat(dim, hnsw_M, faiss::METRIC_INNER_PRODUCT);
+    ((faiss::IndexHNSWFlat *)_index)->hnsw.efConstruction = 96;
   } else {
     // only metric L2 is supported for HNSWFLAT for FAISS v1.7.4
     // newer version of Faiss e.g. V1.8.0 supports I.P. metric for HNSW

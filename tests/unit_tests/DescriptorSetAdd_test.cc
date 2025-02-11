@@ -347,6 +347,51 @@ TEST(Descriptors_Add, add_hnswflatl2_100d_2add) {
   delete[] xb;
 }
 
+TEST(Descriptors_Add, add_hnswflatip_100d) {
+
+  // test to add 100 descriptors of 100D each
+  //  descriptors are created by varying an init with a cyclic value
+  //  init       init      ...   init      (D times)
+  //  init.11     init.11    ...   init.11    (D times)
+  //  ...
+  //  init.nb-1  init.nb-1 ...   init.nb-1 (D times)
+  //  hence, nearest neigbor of any query descriptor are the IDs that is next to
+  //  the query ID
+
+  int d = 100;
+  int nb = 100; // we are using 2 decimal points for I.P. nb is maximum 100
+  float *xb = generate_desc_inner_product_increase(d, nb);
+
+  std::string index_filename = "dbs/add_hnswflatip_100d";
+  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat);
+
+  std::vector<long> classes(nb);
+
+  for (auto &str : classes) {
+    str = 1;
+  }
+
+  index.add(xb, nb, classes);
+
+  std::vector<float> distances;
+  std::vector<long> desc_ids;
+  index.search(xb, 1, 4, desc_ids, distances);
+
+  int exp = 0;
+  for (auto &desc : desc_ids) {
+    EXPECT_EQ(desc, exp++);
+  }
+
+  // Check that the distance of k neighbor is always less than k+1 neighbor
+  for (int i = 0; i < distances.size() - 1; ++i) {
+    EXPECT_LT(distances[i], distances[i + 1]);
+  }
+
+  index.store();
+
+  delete[] xb;
+}
+
 // Flinng Tests
 
 TEST(Descriptors_Add, add_flinngIP_100d) {

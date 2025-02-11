@@ -20,6 +20,8 @@ on:
         description: "The Python Coverage for source"
         type: string
 
+permissions: {}
+
 jobs:
     compare_coverage:
       name: Compare Reported Coverage
