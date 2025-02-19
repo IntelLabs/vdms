@@ -115,7 +115,9 @@ TEST(Descriptors_Add, add_ivfflatl2_100d) {
   float *xb = generate_desc_linear_increase(d, nb);
 
   std::string index_filename = "dbs/add_ivfflatl2_100d";
-  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissIVFFlat);
+  VCL::DescriptorParams *param = new VCL::DescriptorParams();
+  param->ivf_nlist=16;
+  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissIVFFlat,VCL::DistanceMetric::L2, param);
 
   std::vector<long> classes(nb);
 
@@ -235,7 +237,11 @@ TEST(Descriptors_Add, add_hnswflatl2_100d) {
   float *xb = generate_desc_linear_increase(d, nb);
 
   std::string index_filename = "dbs/add_hnswflatl2_100d";
-  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat);
+  VCL::DescriptorParams *param = new VCL::DescriptorParams();
+  param->hnsw_efConstruction=96;
+  param->hnsw_efsearch=64;
+  param->hnsw_M=48;
+  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat,VCL::DistanceMetric::L2, param);
 
   std::vector<long> classes(nb);
 
@@ -276,7 +282,11 @@ TEST(Descriptors_Add, add_recons_hnswflatl2_100d) {
   float *xb = generate_desc_linear_increase(d, nb);
 
   std::string index_filename = "dbs/add_recons_hnswflatl2_100d";
-  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat);
+  VCL::DescriptorParams *param = new VCL::DescriptorParams();
+  param->hnsw_efConstruction=96;
+  param->hnsw_efsearch=64;
+  param->hnsw_M=48;
+  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat,VCL::DistanceMetric::L2, param);
 
   std::vector<long> classes(nb);
 
@@ -319,7 +329,11 @@ TEST(Descriptors_Add, add_hnswflatl2_100d_2add) {
   float *xb = generate_desc_linear_increase(d, nb);
 
   std::string index_filename = "dbs/add_hnswflatl2_100d_2add";
-  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat);
+  VCL::DescriptorParams *param = new VCL::DescriptorParams();
+  param->hnsw_efConstruction=96;
+  param->hnsw_efsearch=64;
+  param->hnsw_M=48;
+  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat,VCL::DistanceMetric::L2, param);
 
   index.add(xb, nb);
 
@@ -359,7 +373,11 @@ TEST(Descriptors_Add, add_hnswflatip_100d) {
   float *xb = generate_desc_inner_product_increase(d, nb);
 
   std::string index_filename = "dbs/add_hnswflatip_100d";
-  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat);
+  VCL::DescriptorParams *param = new VCL::DescriptorParams();
+  param->hnsw_efConstruction=96;
+  param->hnsw_efsearch=64;
+  param->hnsw_M=48;
+  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat,VCL::DistanceMetric::IP, param);
 
   std::vector<long> classes(nb);
 
@@ -373,14 +391,14 @@ TEST(Descriptors_Add, add_hnswflatip_100d) {
   std::vector<long> desc_ids;
   index.search(xb, 1, 4, desc_ids, distances);
 
-  int exp = 0;
+  int exp = 99;
   for (auto &desc : desc_ids) {
-    EXPECT_EQ(desc, exp++);
+    EXPECT_EQ(desc, exp--);
   }
 
   // Check that the distance of k neighbor is always less than k+1 neighbor
   for (int i = 0; i < distances.size() - 1; ++i) {
-    EXPECT_LT(distances[i], distances[i + 1]);
+    EXPECT_GT(distances[i], distances[i + 1]);
   }
 
   index.store();
@@ -952,7 +970,10 @@ TEST(Descriptors_Add, add_and_search_10k) {
       VCL::DescriptorSet index(index_filename, unsigned(d), eng,
       VCL::DistanceMetric::L2, param);
       */
-      VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+      
+      VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
+      VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
+      //VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
       /*
       if (eng == VCL::Flinng){
@@ -1006,7 +1027,9 @@ TEST(Descriptors_Add, add_and_search_10k_negative) {
                                    std::to_string(d) + "_" +
                                    std::to_string(eng);
 
-      VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+      VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
+      VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
+      //VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
       index.add(xb, nb);
 
@@ -1050,7 +1073,9 @@ TEST(Descriptors_Add, add_1by1_and_search_1k) {
                                    std::to_string(d) + "_" +
                                    std::to_string(eng);
 
-      VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+      VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
+      VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
+      //VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
       printf("eng: %d \n", eng);
       for (int i = 0; i < nb; ++i) {
@@ -1096,7 +1121,9 @@ TEST(Descriptors_Add, add_and_search_2_neigh_10k) {
                                    std::to_string(d) + "_" +
                                    std::to_string(eng);
 
-      VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+      VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
+      VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
+      //VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
       index.add(xb, nb);
 
@@ -1157,7 +1184,9 @@ TEST(Descriptors_Add, add_2_times) {
       std::string index_filename =
           "dbs/add_2_times_" + std::to_string(d) + "_" + std::to_string(eng);
 
-      VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+      VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
+      VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
+      //VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
       index.add(xb, nb);
 
@@ -1205,7 +1234,9 @@ TEST(Descriptors_Add, add_and_get_descriptors) {
                                    std::to_string(d) + "_" +
                                    std::to_string(eng);
 
-      VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+      VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
+      VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
+      //VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
       index.add(xb, nb);
 

@@ -55,7 +55,9 @@ TEST(Descriptors_ReadFS, read_and_search_10k) {
                                    std::to_string(d) + "_" +
                                    std::to_string(eng);
       {
-        VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+        //VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+        VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
+        VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
         index.add(xb, nb);
         index.store();
       }
@@ -98,7 +100,9 @@ TEST(Descriptors_ReadFS, read_and_classify_10k) {
       int offset = 10;
 
       {
-        VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+        //VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+        VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
+        VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
 
         std::vector<long> classes = classes_increasing_offset(nb, offset);
 
