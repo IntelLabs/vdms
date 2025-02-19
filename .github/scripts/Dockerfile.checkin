@@ -165,22 +165,24 @@ RUN curl -L -O https://github.com/gpakosz/peg/releases/download/${PEG_VERSION}/p
         ./configure --disable-werror --prefix=/opt/dist/usr && \
         make clean check && make install -w --debug
 
-RUN git clone --depth 1 https://github.com/yaml/libyaml.git /libyaml && \
-    cd /libyaml && \
+RUN git clone --depth 1 https://github.com/yaml/libyaml.git /dependencies/libyaml && \
+    cd /dependencies/libyaml && \
     mkdir build && \
-    cd build &&\
-    cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_TESTING=OFF  -DBUILD_SHARED_LIBS=ON && \
+    cd build && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local/ -DBUILD_TESTING=OFF  -DBUILD_SHARED_LIBS=ON .. && \
     make && \
     make install
 
 #Kubernetes
-RUN git clone https://github.com/kubernetes-client/c.git /k8s && \
-    CLIENT_REPO_ROOT=/k8s && \
-    cd /k8s/kubernetes && \
+RUN git clone https://github.com/kubernetes-client/c.git /dependencies/k8s && \
+    ls /dependencies/k8s && \
+    CLIENT_REPO_ROOT=/dependencies/k8s && \
+    cd ${CLIENT_REPO_ROOT}/kubernetes && \
     mkdir build && \
     cd build && \
-    cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local/ && \
-    make && make install
+    cmake .. && \
+    make && \
+    make install
 
 # CLEANUP
 RUN rm -rf /dependencies /usr/local/share/doc /usr/local/share/man && \
@@ -213,6 +215,11 @@ COPY --from=build /opt/dist /
 COPY --from=build /usr/local/bin/python${PYTHON_BASE} /usr/local/bin/python${PYTHON_BASE}
 COPY --from=build /usr/local/lib/python${PYTHON_BASE} /usr/local/lib/python${PYTHON_BASE}
 COPY --from=build ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+COPY --from=build /usr/local/include/kubernetes /usr/local/include/kubernetes
+COPY --from=build /usr/include/libwebsockets /usr/include/libwebsockets
+COPY --from=build /usr/local/lib/libkubernetes.so /usr/local/lib/libkubernetes.so
+COPY --from=build /usr/local/lib/libyaml.so /usr/local/lib/libyaml.so
+COPY --from=build /usr/lib/x86_64-linux-gnu/libwebsockets.so /usr/lib/x86_64-linux-gnu/libwebsockets.so
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # hadolint ignore=DL3008,SC2086
