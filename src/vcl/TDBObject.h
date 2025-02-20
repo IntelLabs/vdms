@@ -32,25 +32,24 @@
 
 #pragma once
 
-#include <iostream>
-
 #include <stdlib.h>
+
+#include <iostream>
 #include <string>
+#include <tiledb/tiledb>
 #include <vector>
 
 #include "vcl/Exception.h"
 #include "vcl/RemoteConnection.h"
 #include "vcl/utils.h"
-#include <tiledb/tiledb>
 
 namespace VCL {
 
 class TDBObject {
-
   /*  *********************** */
   /*        VARIABLES         */
   /*  *********************** */
-protected:
+ protected:
   // Path variables
   std::string _group;
   std::string _name;
@@ -82,7 +81,7 @@ protected:
 
   tiledb::Config _config;
 
-public:
+ public:
   /*  *********************** */
   /*        ENUMS             */
   /*  *********************** */
@@ -313,7 +312,7 @@ public:
                      const std::vector<T> &subarray,
                      std::vector<uint64_t> &values, std::string &attribute);
 
-protected:
+ protected:
   /*  *********************** */
   /*        GET FUNCTIONS     */
   /*  *********************** */
@@ -362,7 +361,7 @@ protected:
    */
   void set_from_schema(const std::string &object_id);
 
-private:
+ private:
   /**
    *  Sets the TileDB type of the attribute values, currently
    *    all are unsigned characters
@@ -434,4 +433,4 @@ private:
    */
   void find_tile_extents();
 };
-}; // namespace VCL
+};  // namespace VCL

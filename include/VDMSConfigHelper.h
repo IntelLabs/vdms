@@ -30,14 +30,14 @@
  *
  */
 #pragma once
-#include <algorithm>
-#include <iostream>
-#include <limits.h>
-#include <map>
-#include <string>
-
 #include <aws/core/utils/logging/AWSLogging.h>
 #include <aws/core/utils/logging/DefaultLogSystem.h>
+#include <limits.h>
+
+#include <algorithm>
+#include <iostream>
+#include <map>
+#include <string>
 
 namespace VDMS {
 
@@ -57,4 +57,4 @@ const std::map<std::string, Aws::Utils::Logging::LogLevel> aws_log_level_map = {
     {"debug", Aws::Utils::Logging::LogLevel::Debug},
     {"trace", Aws::Utils::Logging::LogLevel::Trace}};
 
-} // namespace VDMS
+}  // namespace VDMS

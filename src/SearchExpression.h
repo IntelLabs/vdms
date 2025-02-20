@@ -31,8 +31,9 @@
 
 #pragma once
 
-#include "pmgd.h"
 #include <vector>
+
+#include "pmgd.h"
 
 /// Search expression to query a PMGD Lake database
 ///
@@ -67,7 +68,7 @@ class SearchExpression {
   /// A pointer to the database
   PMGD::Graph &_db;
 
-public:
+ public:
   /// Construction requires a handle to a database
   SearchExpression(PMGD::Graph &db, PMGD::StringID tag, bool p_or)
       : _db(db), _tag(tag), _or(p_or) {}
@@ -98,4 +99,4 @@ public:
   PMGD::EdgeIterator eval_edges();
 };
 
-}; // namespace VDMS
+};  // namespace VDMS

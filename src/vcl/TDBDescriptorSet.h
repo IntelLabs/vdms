@@ -34,13 +34,13 @@
 
 #pragma once
 
+#include <stdlib.h>
+
 #include <fstream>
 #include <map>
-#include <stdlib.h>
 #include <string>
-#include <vector>
-
 #include <tiledb/tiledb>
+#include <vector>
 
 #include "DescriptorSetData.h"
 #include "TDBObject.h"
@@ -53,20 +53,19 @@ typedef std::vector<float> DistanceData;
 
 class TDBDescriptorSet : public DescriptorSet::DescriptorSetData,
                          public TDBObject {
-
-protected:
+ protected:
   const unsigned long MAX_DESC = 100000;
   const unsigned long METADATA_OFFSET = MAX_DESC - 2;
 
   // this is caching data
-  std::vector<long> _label_ids; // we need to move this
+  std::vector<long> _label_ids;  // we need to move this
 
   void compute_distances(float *q, DistanceData &d, DescBuffer &data);
 
   virtual void read_descriptor_metadata() = 0;
   virtual void write_descriptor_metadata() = 0;
 
-public:
+ public:
   /**
    *  Loads an existing collection located at collection_path
    *  or created a new collection if it does not exist
@@ -103,8 +102,7 @@ public:
 };
 
 class TDBDenseDescriptorSet : public TDBDescriptorSet {
-
-private:
+ private:
   // This is for caching, accelerates searches fairly well.
   bool _flag_buffer_updated;
   std::vector<float> _buffer;
@@ -113,7 +111,7 @@ private:
   void read_descriptor_metadata();
   void write_descriptor_metadata();
 
-public:
+ public:
   TDBDenseDescriptorSet(const std::string &collection_path);
 
   TDBDenseDescriptorSet(const std::string &collection_path, unsigned dim,
@@ -130,8 +128,7 @@ public:
 };
 
 class TDBSparseDescriptorSet : public TDBDescriptorSet {
-
-private:
+ private:
   void read_descriptor_metadata();
   void write_descriptor_metadata();
 
@@ -142,7 +139,7 @@ private:
   void search(float *query, unsigned n_queries, unsigned k, long *descriptors,
               float *distances, long *labels);
 
-public:
+ public:
   TDBSparseDescriptorSet(const std::string &collection_path);
 
   TDBSparseDescriptorSet(const std::string &collection_path, unsigned dim,
@@ -161,4 +158,4 @@ public:
 
   void get_labels(long *ids, unsigned n, long *labels);
 };
-}; // namespace VCL
+};  // namespace VCL

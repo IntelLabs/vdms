@@ -29,9 +29,10 @@
 
 #pragma once
 
-#include "comm/Connection.h"
 #include <string>
 #include <vector>
+
+#include "comm/Connection.h"
 // #include "CSVParser.h"
 
 namespace VDMS {
@@ -51,7 +52,7 @@ class VDMSClient {
   // disconnect and connect specifically, then we can add explicit calls.
   comm::ConnClient _conn;
 
-public:
+ public:
   VDMSClient(std::string addr = "localhost", int port = VDMS_PORT,
              const std::string &cert_file = "",
              const std::string &key_file = "", const std::string &ca_file = "");
@@ -61,4 +62,4 @@ public:
                        const std::vector<std::string *> blobs = {});
   // void parse_csv_file(std::string filename, std::string , int);
 };
-}; // namespace VDMS
+};  // namespace VDMS

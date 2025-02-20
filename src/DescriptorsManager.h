@@ -46,7 +46,7 @@ class DescriptorsManager {
 
   DescriptorsManager();
 
-public:
+ public:
   static bool init();
   static DescriptorsManager *instance();
 
@@ -59,4 +59,4 @@ public:
   VCL::DescriptorSet *get_descriptors_handler(std::string path);
   void flush();
 };
-}; // namespace VDMS
+};  // namespace VDMS

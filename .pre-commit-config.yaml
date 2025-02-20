@@ -27,6 +27,6 @@ repos:
       -   id: clang-format
           types: [c, c++]
           args: [
-            "--style=LLVM",
+            "--style=Google",
             "-i"
           ]

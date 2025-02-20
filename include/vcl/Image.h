@@ -33,28 +33,26 @@
  */
 
 #pragma once
-#include <fstream>
+#include <curl/curl.h>
+#include <jsoncpp/json/reader.h>
+#include <jsoncpp/json/value.h>
 #include <stdio.h>
-#include <string>
 
+#include <fstream>
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/objdetect.hpp>
+#include <string>
+#include <zmq.hpp>
 
 #include "Exception.h"
 #include "RemoteConnection.h"
 #include "TDBImage.h"
-#include "utils.h"
-#include <curl/curl.h>
-#include <jsoncpp/json/reader.h>
-#include <jsoncpp/json/value.h>
-#include <zmq.hpp>
-
 #include "VDMSConfigHelper.h"
-
 #include "timers/TimerMap.h"
+#include "utils.h"
 
 namespace VCL {
 
@@ -65,7 +63,7 @@ namespace VCL {
 typedef cv::Rect Rectangle;
 
 class Image {
-public:
+ public:
   // enum class Storage { LOCAL = 0, AWS = 1 };
 
   /*  *********************** */
@@ -258,9 +256,8 @@ public:
 *  @return  A vector containing the encoded image
 *  @see OpenCV documentation for imencode for more details
 */
-  std::vector<unsigned char>
-  get_encoded_image(VCL::Format format,
-                    const std::vector<int> &params = std::vector<int>());
+  std::vector<unsigned char> get_encoded_image(
+      VCL::Format format, const std::vector<int> &params = std::vector<int>());
 
   /**
    *  Gets encoded image data in a buffer in a async way
@@ -271,9 +268,8 @@ public:
    *  @return  A vector containing the encoded image
    *  @see OpenCV documentation for imencode for more details
    */
-  std::vector<unsigned char>
-  get_encoded_image_async(VCL::Format format,
-                          const std::vector<int> &params = std::vector<int>());
+  std::vector<unsigned char> get_encoded_image_async(
+      VCL::Format format, const std::vector<int> &params = std::vector<int>());
 
   /**
    *  Executes the operations in the operation vector
@@ -502,12 +498,13 @@ public:
    *  @param buffer  The buffer that will contain the image
    *    data
    */
-  template <class T> void copy_to_buffer(T *buffer);
+  template <class T>
+  void copy_to_buffer(T *buffer);
 
   TimerMap timers;
   std::vector<std::string> op_labels;
 
-private:
+ private:
   // Forward declaration of Operation class, to be used of _operations
   // list
   class Operation;
@@ -608,7 +605,7 @@ private:
    *   () operator
    */
   class Operation {
-  protected:
+   protected:
     /** The format of the image for this operation */
     Format _format;
 
@@ -620,7 +617,7 @@ private:
      */
     Operation(VCL::Format format) : _format(format) {};
 
-  public:
+   public:
     /**
      *  Implemented by the specific operation, performs what
      *    the operation is supposed to do
@@ -639,11 +636,11 @@ private:
    *  Extends Operation, reads image from the file system
    */
   class Read : public Operation {
-  private:
+   private:
     /** The full path to the object to read */
     std::string _fullpath;
 
-  public:
+   public:
     /**
      *  Constructor, sets the format and path for reading
      *
@@ -672,7 +669,7 @@ private:
    *    format
    */
   class Write : public Operation {
-  private:
+   private:
     /** The full path of where to write the image */
     std::string _fullpath;
     /** The format the image used to be stored as */
@@ -680,7 +677,7 @@ private:
     /** Whether to store the metadata */
     bool _metadata;
 
-  public:
+   public:
     /**
      *  Constructor, sets the formats and path for writing
      *
@@ -709,11 +706,11 @@ private:
    *  Extends Operation, resizes the image to the specified size
    */
   class Resize : public Operation {
-  private:
+   private:
     /** Gives the height and width to resize the image to */
     Rectangle _rect;
 
-  public:
+   public:
     /**
      *  Constructor, sets the size to resize to and the format
      *
@@ -741,11 +738,11 @@ private:
    *  Extends Operation, crops the image to the specified area
    */
   class Crop : public Operation {
-  private:
+   private:
     /** Gives the dimensions and coordinates of the desired area */
     Rectangle _rect;
 
-  public:
+   public:
     /**
      *  Constructor, sets the area to crop to and the format
      *
@@ -775,11 +772,11 @@ private:
    *     threshold and sets that pixel to 0
    */
   class Threshold : public Operation {
-  private:
+   private:
     /** Minimum value pixels should be */
     int _threshold;
 
-  public:
+   public:
     /**
      *  Constructor, sets the threshold value and format
      *
@@ -806,11 +803,11 @@ private:
   /**  Extends Operation, performs a flip operation that
    */
   class Flip : public Operation {
-  private:
+   private:
     /** Minimum value pixels should be */
     int _code;
 
-  public:
+   public:
     /**
      *  Constructor, sets the flip code value.
      *
@@ -837,12 +834,12 @@ private:
   /**  Extends Operation, performs a flip operation that
    */
   class Rotate : public Operation {
-  private:
+   private:
     /** Minimum value pixels should be */
     float _angle;
     bool _keep_size;
 
-  public:
+   public:
     /**
      *  Constructor, sets the flip code value.
      *
@@ -868,12 +865,12 @@ private:
   /**  Extends Operation, performs a remote operation that
    */
   class SyncRemoteOperation : public Operation {
-  private:
+   private:
     /** Minimum value pixels should be */
     std::string _url;
     Json::Value _options;
 
-  public:
+   public:
     /**
      *  Constructor, sets the flip code value.
      *
@@ -903,12 +900,12 @@ private:
   /**  Extends Operation, performs a remote operation that
    */
   class RemoteOperation : public Operation {
-  private:
+   private:
     /** Minimum value pixels should be */
     std::string _url;
     Json::Value _options;
 
-  public:
+   public:
     /**
      *  Constructor, sets the flip code value.
      *
@@ -935,11 +932,11 @@ private:
   /**  Extends Operation, performs a user operation that
    */
   class UserOperation : public Operation {
-  private:
+   private:
     /** Minimum value pixels should be */
     Json::Value _options;
 
-  public:
+   public:
     /**
      *  Constructor, sets the flip code value.
      *
@@ -1002,4 +999,4 @@ private:
    */
   void set_format(const std::string &extension);
 };
-}; // namespace VCL
+};  // namespace VCL

@@ -31,13 +31,12 @@
 
 #pragma once
 
+#include <chrono>
 #include <csignal>
 
 #include "CommunicationManager.h"
 #include "VDMSConfig.h"
 #include "pmgd.h"
-#include <chrono>
-#include <csignal>
 
 namespace VDMS {
 struct ReplicationConfig {
@@ -57,18 +56,24 @@ struct ReplicationConfig {
   int pmgd_num_allocators;
 
   ReplicationConfig()
-      : backup_path("."), db_path("db"), replication_time("-1"),
-        autoreplication_unit("s"), backup_flag("false"),
-        images_path("db/images"), descriptor_path("db/descriptors"),
-        blobs_path("db/blobs"), server_port(55555),
-        max_simultaneous_clients(10), autoreplicate_interval(-1),
-        autodelete_interval(-1), expiration_time(86400),
+      : backup_path("."),
+        db_path("db"),
+        replication_time("-1"),
+        autoreplication_unit("s"),
+        backup_flag("false"),
+        images_path("db/images"),
+        descriptor_path("db/descriptors"),
+        blobs_path("db/blobs"),
+        server_port(55555),
+        max_simultaneous_clients(10),
+        autoreplicate_interval(-1),
+        autodelete_interval(-1),
+        expiration_time(86400),
         pmgd_num_allocators(5) {
     // Additional initialization code if needed
   }
 };
 class Server {
-
   // Defining constants/defaults within the class itself is a bit weird.
   // Consider refactoring
   static const int DEFAULT_PORT = 55555;
@@ -99,7 +104,7 @@ class Server {
   // used to select as well as initialize any state for query handlers
   void setup_query_handler();
 
-public:
+ public:
   VDMSConfig *cfg;
   Server(std::string config_file, std::string cert_file, std::string key_file,
          std::string ca_file);
@@ -111,4 +116,4 @@ public:
   ~Server();
 };
 
-}; // namespace VDMS
+};  // namespace VDMS

@@ -32,11 +32,12 @@
 
 #pragma once
 
+#include <tiledb/tiledb.h>
+
 #include <opencv2/core.hpp>
 
 #include "TDBObject.h"
 #include "vcl/Exception.h"
-#include <tiledb/tiledb.h>
 
 namespace VCL {
 
@@ -47,11 +48,10 @@ namespace VCL {
 typedef cv::Rect Rectangle;
 
 class TDBImage : public TDBObject {
-
   /*  *********************** */
   /*        VARIABLES         */
   /*  *********************** */
-private:
+ private:
   // Image dimensions
   uint64_t _img_height, _img_width, _img_channels;
   long _img_size;
@@ -63,7 +63,7 @@ private:
   unsigned char *_raw_data;
   std::vector<unsigned char> _full_array;
 
-public:
+ public:
   /*  *********************** */
   /*        CONSTRUCTORS      */
   /*  *********************** */
@@ -87,7 +87,8 @@ public:
    *  @param buffer  The raw pixel data
    *  @param size  The length of the buffer
    */
-  template <class T> TDBImage(T *buffer, long size);
+  template <class T>
+  TDBImage(T *buffer, long size);
 
   /**
    *  Creates a TDBImage object from an existing TDBImage
@@ -152,7 +153,8 @@ public:
    *     data when the function ends
    *  @param  buffer_size  The length of buffer (not in bytes)
    */
-  template <class T> void get_buffer(T *buffer, long buffer_size);
+  template <class T>
+  void get_buffer(T *buffer, long buffer_size);
 
   /*  *********************** */
   /*        SET FUNCTIONS     */
@@ -249,7 +251,7 @@ public:
    */
   bool operator==(const TDBImage &rhs);
 
-private:
+ private:
   /*  *********************** */
   /*        GET FUNCTIONS     */
   /*  *********************** */
@@ -389,4 +391,4 @@ private:
   double linear_interpolation(double x1, double val1, double x2, double val2,
                               double x);
 };
-}; // namespace VCL
+};  // namespace VCL

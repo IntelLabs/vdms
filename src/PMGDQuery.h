@@ -30,12 +30,12 @@
  */
 
 #pragma once
-#include <string>
-
-#include "PMGDQueryHandler.h" // to provide the database connection
-
 #include <jsoncpp/json/json.h>
 #include <jsoncpp/json/value.h>
+
+#include <string>
+
+#include "PMGDQueryHandler.h"  // to provide the database connection
 
 namespace VDMS {
 
@@ -49,11 +49,11 @@ class PMGDQuery {
   unsigned _current_group_id;
   PMGDQueryHandler &_pmgd_qh;
   unsigned _current_ref;
-  bool _readonly;         // Stays true unless some write cmd sets it to false.
-  bool _resultdeletion;   // Indicates whether the results should be deleted
-  bool _resultexpiration; // Indicates whether the result should be stored in
-                          // expiration_queue This takes place only during an
-                          // add where the _expiration flag is true
+  bool _readonly;          // Stays true unless some write cmd sets it to false.
+  bool _resultdeletion;    // Indicates whether the results should be deleted
+  bool _resultexpiration;  // Indicates whether the result should be stored in
+                           // expiration_queue This takes place only during an
+                           // add where the _expiration flag is true
 
   Json::Value _json_responses;
 
@@ -76,7 +76,7 @@ class PMGDQuery {
 
   Json::Value construct_error_response(PMGDCmdResponse *response);
 
-public:
+ public:
   PMGDQuery(PMGDQueryHandler &pmgd_qh);
   ~PMGDQuery();
 
@@ -120,4 +120,4 @@ public:
 
   void DeleteExpired();
 };
-} // namespace VDMS
+}  // namespace VDMS

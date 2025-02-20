@@ -1,16 +1,17 @@
 #pragma once
-#include "CSVParserUtil.h"
 #include <mutex>
+
+#include "CSVParserUtil.h"
 
 namespace VDMS {
 
 class EntityQueryParser : public CSVParserUtil {
-public:
+ public:
   VDMS::Response ParseAddEntity(vector<string> row, vector<string> &cols);
   // VDMS::Response  ParseUpdateEntity(vector<string> row, vector<string> &
   // cols);
 };
-}; // namespace VDMS
+};  // namespace VDMS
 
 VDMS::Response VDMS::EntityQueryParser::ParseAddEntity(vector<string> row,
                                                        vector<string> &cols) {
@@ -28,15 +29,11 @@ VDMS::Response VDMS::EntityQueryParser::ParseAddEntity(vector<string> row,
   aquery[command_name]["_ref"] = 11;
 
   for (int j = 1; j < cols.size(); j++) {
-
     if (!row[j].empty()) {
-
       string columnType = cols[j].substr(0, 5);
       if (columnType == "prop_") {
-
         parseProperty(cols[j], row[j], command_name, aquery);
       } else if (columnType == "cons_") {
-
         parseConstraints(cols[j], row[j], command_name, aquery);
       }
     }
