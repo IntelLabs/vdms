@@ -210,6 +210,7 @@ COPY user_defined_operations /vdms/user_defined_operations
 COPY utils /vdms/utils
 COPY CMakeLists.txt /vdms/CMakeLists.txt
 COPY config-vdms.json /vdms/config-vdms.json
+COPY kubeConfig.json /vdms/kubeConfig.json
 COPY docker/override_default_config.py /vdms/override_default_config.py
 COPY --from=build /opt/dist /
 COPY --from=build /usr/local/bin/python${PYTHON_BASE} /usr/local/bin/python${PYTHON_BASE}
