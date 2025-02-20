@@ -118,7 +118,7 @@ def handle_bad_request(e):
 
 
 if __name__ == "__main__":
-    if sys.argv[1] == None:
+    if sys.argv[1] is None:
         print("Port missing\n Correct Usage: python3 udf_server.py <port>")
     else:
         app.run(host="0.0.0.0", port=int(sys.argv[1]))
