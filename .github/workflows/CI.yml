@@ -4,10 +4,6 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     branches: [develop]
-# on:
-#   workflow_run:
-#     workflows: [Pre-commit]
-#     types: [completed]
 
 # Declare default permissions as write only.
 permissions: read-all
@@ -24,6 +20,7 @@ concurrency:
 
 jobs:
   PreCommit:
+    # Apply formatting and linting
     permissions:
       contents: write
       issues: write
