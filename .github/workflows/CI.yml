@@ -1,9 +1,14 @@
 name: CI
 
+# on:
+#   pull_request:
+#     types: [opened, synchronize, reopened]
+#     branches: [develop]
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [develop]
+  workflow_run:
+    workflows: [Pre-commit]
+    types:
+      - completed
 
 # Declare default permissions as write only.
 permissions: read-all
@@ -19,6 +24,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  pre-success:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - run: echo 'Pre-commit completed successfully.'
+  pre-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - run: echo 'Pre-commit failed. Please fix issues.'
+  pre-exit:
+    needs: pre-failure
+    runs-on: ubuntu-latest
+    steps:
+      - run: exit 1
   Get-Envs:
     name: Get Environment vars
     runs-on: ubuntu-latest

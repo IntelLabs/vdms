@@ -1,7 +1,9 @@
 name: Pre-commit
 
 on:
-  push:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [develop]
 
 # Declare default permissions as write only.
 permissions: read-all
