@@ -186,7 +186,6 @@ TEST(CLIENT_CPP, add_image_dynamic_metadata) {
       meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple), blobs);
   Json::Value result;
   meta_obj->_reader.parse(response.json.c_str(), result);
-
   int status1 = result[0]["AddImage"]["status"].asInt();
   EXPECT_EQ(status1, 0);
   delete meta_obj;
@@ -215,7 +214,6 @@ TEST(CLIENT_CPP, add_image_dynamic_metadata_remote) {
       meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple), blobs);
   Json::Value result;
   meta_obj->_reader.parse(response.json.c_str(), result);
-
   int status1 = result[0]["AddImage"]["status"].asInt();
   EXPECT_EQ(status1, 0);
   delete meta_obj;

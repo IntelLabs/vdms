@@ -48,7 +48,6 @@ def image_api():
         r_img, r_meta = udf.run(tmpfile, format, json_data)
     else:
         r_img = udf.run(tmpfile, format, json_data)
-
     return_string = cv2.imencode("." + str(format), r_img)[1].tostring()
 
     if r_meta != "":
