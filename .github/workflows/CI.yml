@@ -75,7 +75,6 @@ jobs:
         contents: write
     # name: Lint & Update Reports
     needs: [Testing, Results]
-    if: ${{ always() }}
     uses: ./.github/workflows/_CI_update.yml
     with:
         coverage_value_updated: ${{ needs.Testing.outputs.coverage_value_updated }}
