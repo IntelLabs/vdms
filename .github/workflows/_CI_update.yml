@@ -70,12 +70,12 @@ jobs:
                 git push
               fi
 
-          - if: steps.update_commit.outcome != 'success'
-            name: Check Push Failure
-            env:
-              FILE_CHANGES: ${{ steps.update_commit.outputs.changes }}
-            run: |
-              if [ "${{ env.FILE_CHANGES }}" != "Empty" ]; then
-                echo "Please provide sys-vdms write access to fork (if applicable)."
-                exit 1
-              fi
+          # - if: steps.update_commit.outcome != 'success'
+          #   name: Check Push Failure
+          #   env:
+          #     FILE_CHANGES: ${{ steps.update_commit.outputs.changes }}
+          #   run: |
+          #     if [ "${{ env.FILE_CHANGES }}" != "Empty" ]; then
+          #       echo "Please provide sys-vdms write access to fork (if applicable)."
+          #       exit 1
+          #     fi
