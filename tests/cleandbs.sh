@@ -43,3 +43,4 @@ rm -rf /tmp/trusted_client_key.pem || true
 rm -rf /tmp/untrusted_client_cert.pem || true
 rm -rf /tmp/untrusted_client_key.pem || true
 rm -rf /tmp/rpathimage.jpg || true
+rm -rf /tmp/kubeconfig || true

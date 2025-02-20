@@ -5,6 +5,7 @@
 #include <fstream>
 #include <chrono>
 #include <thread>
+#include <filesystem>
 
 
 extern "C"{
@@ -168,6 +169,9 @@ int KubeHelper::service_creator(char * ServiceName, char *AppSelector){
 
 std::vector<std::string> KubeHelper::get_workernode(){
     std::string filename = "/etc/config/kubeConfig.json";
+    if (!std::filesystem::exists(filename)){
+        filename = "/tmp/kubeconfig/kubeConfig.json";
+    }
     std::ifstream fileStream(filename);
     if (!fileStream.is_open()) {
         std::cerr << "Failed to open " << filename << std::endl;  
@@ -186,7 +190,6 @@ std::vector<std::string> KubeHelper::get_workernode(){
             for (Json::ValueConstIterator it = nodeDetail.begin(); it != nodeDetail.end(); ++it) {
                 std::string nodeName = it.key().asString();
                 std::string nodeIP = it->asString();
-                std::cout << "Node Name: " << nodeName << ", IP: " << nodeIP << std::endl;
                 node_names.push_back(nodeName);
             }
         }

@@ -1,4 +1,7 @@
 #include "meta_data_helper.h"
+#include "kubernetes/KubeHelper.h"
+
+using namespace kubernetes;
 
 TEST(CLIENT_CPP, add_image) {
 
@@ -238,4 +241,12 @@ TEST(CLIENT_CPP, find_image_dynamic_metadata) {
   EXPECT_EQ(status_b, 0);
   EXPECT_STREQ(objectId.data(), "face");
   delete meta_obj;
+}
+
+TEST(CLIENT_CPP, kubehelper_url) {
+  static kubernetes::KubeHelper kubernetes_get_url;
+  kubernetes_get_url.query_counter++;
+  std::string url_k8s = kubernetes_get_url.query_scheduler("image");
+
+  EXPECT_STREQ(url_k8s.data(), "rudf0svc:5050/image");
 }
