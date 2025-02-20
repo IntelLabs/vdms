@@ -63,10 +63,6 @@ jobs:
               echo "changes=$changes" >> $GITHUB_OUTPUT
 
               if [ "$changes" != "Empty" ]; then
-                # git config user.name ${{ secrets.FACELESS_NAME }}
-                # git config user.email ${{ secrets.FACELESS_NAME }}@intel.com
-                # git remote set-url origin https://x-access-token:${{ secrets.FACELESS_TOKEN }}@github.com/${{ github.event.pull_request.head.repo.full_name }}
-
                 git config user.name github-actions
                 git config user.email github-actions@github.com
                 git add .github/coverage/*
