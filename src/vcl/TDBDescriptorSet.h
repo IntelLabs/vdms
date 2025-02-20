@@ -119,7 +119,7 @@ public:
   TDBDenseDescriptorSet(const std::string &collection_path, unsigned dim,
                         DistanceMetric metric);
 
-  ~TDBDenseDescriptorSet(){};
+  ~TDBDenseDescriptorSet() {};
 
   long add(float *descriptors, unsigned n_descriptors, long *classes);
 
@@ -148,7 +148,7 @@ public:
   TDBSparseDescriptorSet(const std::string &collection_path, unsigned dim,
                          DistanceMetric metric);
 
-  ~TDBSparseDescriptorSet(){};
+  ~TDBSparseDescriptorSet() {};
 
   long add(float *descriptors, unsigned n_descriptors, long *classes);
 

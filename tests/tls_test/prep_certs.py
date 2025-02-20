@@ -5,15 +5,11 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.serialization import (
     Encoding,
     PrivateFormat,
-    BestAvailableEncryption,
     NoEncryption,
 )
 from cryptography.hazmat.backends import default_backend
 import datetime
 import os
-import socket
-import ssl
-import time
 
 
 def generate_private_key():
@@ -42,8 +38,7 @@ def generate_ca_certificate(subject_name, private_key):
         .not_valid_before(datetime.datetime.utcnow())
         .not_valid_after(
             # Our certificate will be valid for 10 days
-            datetime.datetime.utcnow()
-            + datetime.timedelta(days=10)
+            datetime.datetime.utcnow() + datetime.timedelta(days=10)
         )
         .add_extension(
             x509.BasicConstraints(ca=True, path_length=None),
@@ -79,8 +74,7 @@ def generate_signed_certificate(
         .not_valid_before(datetime.datetime.utcnow())
         .not_valid_after(
             # Our certificate will be valid for 10 days
-            datetime.datetime.utcnow()
-            + datetime.timedelta(days=10)
+            datetime.datetime.utcnow() + datetime.timedelta(days=10)
         )
         .add_extension(
             x509.BasicConstraints(ca=False, path_length=None),
@@ -105,7 +99,6 @@ def write_to_disk(directory, name, key, cert):
 
 
 if __name__ == "__main__":
-
     #####################################################################################
     # GENERATE TRUSTED CERTS AND KEYS
     #####################################################################################

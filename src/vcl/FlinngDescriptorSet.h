@@ -42,8 +42,8 @@
 #include <vector>
 
 #include "DescriptorSetData.h"
-//#include "../../../FLINNG/include/lib_flinng.h" //todo update make files for
-// flinng lib include directory
+// #include "../../../FLINNG/include/lib_flinng.h" //todo update make files for
+//  flinng lib include directory
 #include "DescriptorParams.h"
 #include "lib_flinng.h"
 

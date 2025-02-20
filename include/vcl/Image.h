@@ -618,7 +618,7 @@ private:
      *  @param format  The format for the operation
      *  @see Image.h for more details on Format
      */
-    Operation(VCL::Format format) : _format(format){};
+    Operation(VCL::Format format) : _format(format) {};
 
   public:
     /**
@@ -722,7 +722,7 @@ private:
      *  @see Image.h for more details on ::Format and Rectangle
      */
     Resize(const Rectangle &rect, VCL::Format format)
-        : Operation(format), _rect(rect){};
+        : Operation(format), _rect(rect) {};
 
     /**
      *  Resizes an image to the given dimensions
@@ -755,7 +755,7 @@ private:
      *  @see Image.h for more details on ::Format and Rectangle
      */
     Crop(const Rectangle &rect, VCL::Format format)
-        : Operation(format), _rect(rect){};
+        : Operation(format), _rect(rect) {};
 
     /**
      *  Crops the image to the given area
@@ -788,7 +788,7 @@ private:
      *  @see Image.h for more details on ::Format
      */
     Threshold(const int value, VCL::Format format)
-        : Operation(format), _threshold(value){};
+        : Operation(format), _threshold(value) {};
 
     /**
      *  Performs the thresholding operation
@@ -818,7 +818,8 @@ private:
      *  @param format  The current format of the image data
      *  @see Image.h for more details on ::Format
      */
-    Flip(const int code, VCL::Format format) : Operation(format), _code(code){};
+    Flip(const int code, VCL::Format format)
+        : Operation(format), _code(code) {};
 
     /**
      *  Performs the flip operation
@@ -849,7 +850,7 @@ private:
      *  @see Image.h for more details on Format
      */
     Rotate(float angle, bool keep_size, VCL::Format format)
-        : Operation(format), _angle(angle), _keep_size(keep_size){};
+        : Operation(format), _angle(angle), _keep_size(keep_size) {};
 
     /**
      *  Performs the flip operation
@@ -882,7 +883,7 @@ private:
      */
     SyncRemoteOperation(std::string url, Json::Value options,
                         VCL::Format format)
-        : Operation(format), _url(url), _options(options){};
+        : Operation(format), _url(url), _options(options) {};
 
     /**
      *  Performs the remote operation
@@ -916,7 +917,7 @@ private:
      *  @see Image.h for more details on Format
      */
     RemoteOperation(std::string url, Json::Value options, VCL::Format format)
-        : Operation(format), _url(url), _options(options){};
+        : Operation(format), _url(url), _options(options) {};
 
     /**
      *  Performs the remote operation
@@ -946,7 +947,7 @@ private:
      *  @see Image.h for more details on Format
      */
     UserOperation(Json::Value options, VCL::Format format)
-        : Operation(format), _options(options){};
+        : Operation(format), _options(options) {};
 
     /**
      *  Performs the user operation

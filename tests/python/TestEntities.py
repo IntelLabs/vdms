@@ -42,7 +42,7 @@ class TestEntities(TestCommand.TestCommand):
 
         try:
             self.assertEqual(response[0]["AddEntity"]["status"], 0)
-        except:
+        except Exception as _:
             results[thID] = -1
 
         results[thID] = 0
@@ -70,7 +70,7 @@ class TestEntities(TestCommand.TestCommand):
                 response[0]["FindEntity"]["entities"][0]["lastname"], "Ferro"
             )
             self.assertEqual(response[0]["FindEntity"]["entities"][0]["threadid"], thID)
-        except:
+        except Exception as _:
             results[thID] = -1
 
         results[thID] = 0

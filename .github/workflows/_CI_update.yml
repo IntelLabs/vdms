@@ -16,7 +16,7 @@ jobs:
     commit_job:
         permissions:
           contents: write
-        name: Commit Code Updates 
+        name: Commit Code Updates
         env:
           COMMIT_MSG: "Automated updates: Format and/or coverage"
           DOCKER_ARTIFACT_DIR: "Docker_artifacts"

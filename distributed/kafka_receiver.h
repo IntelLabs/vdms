@@ -7,7 +7,7 @@
 #include <librdkafka/rdkafkacpp.h>
 #include <map>
 #include <vector>
-//#include "utils/hash_utils.h"
+// #include "utils/hash_utils.h"
 
 #include <jsoncpp/json/reader.h>
 #include <jsoncpp/json/writer.h>

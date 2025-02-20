@@ -1,15 +1,15 @@
 [
     {
-        "FindEntity": 
+        "FindEntity":
         {
-            "results": 
+            "results":
             {
-                "list": 
+                "list":
                     ["_expiration"]
             },
-            "constraints": 
+            "constraints":
             {
-                "_deletion": 
+                "_deletion":
                     ["==", 1],
                 "type_id":
                     ["==", 0]
@@ -17,32 +17,32 @@
         }
     },
     {
-        "FindImage": 
+        "FindImage":
         {
-            "results": 
+            "results":
             {
-                "list": 
+                "list":
                     ["_expiration"]
             },
-            "constraints": 
+            "constraints":
             {
-                "_expiration": 
+                "_expiration":
                     [">", 0],
                 "type_id": ["==", 1]
             }
         }
     },
     {
-        "FindVideo": 
+        "FindVideo":
         {
-            "results": 
+            "results":
             {
-                "list": 
+                "list":
                     ["_expiration"]
             },
-            "constraints": 
+            "constraints":
             {
-                "_deletion": 
+                "_deletion":
                     ["==", 1],
                 "type_id": ["==", 2]
             }

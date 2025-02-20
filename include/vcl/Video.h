@@ -541,7 +541,7 @@ private:
      *
      *  @param size  Struct that contains w and h
      */
-    Resize(const cv::Size &size) : _size(size){};
+    Resize(const cv::Size &size) : _size(size) {};
 
     /**
      *  Resizes an Video to the given dimensions
@@ -578,7 +578,7 @@ private:
      *  @param step  Number of frames to be skipped in between.
      */
     Interval(Video::Unit u, const int start, const int stop, int step)
-        : _u(u), _start(start), _stop(stop), _step(step){};
+        : _u(u), _start(start), _stop(stop), _step(step) {};
 
     /**
      *  Resizes an Video to the given dimensions
@@ -611,7 +611,7 @@ private:
      *  @param rect  Contains dimensions and coordinates of
      *    desired area
      */
-    Crop(const Rectangle &rect) : _rect(rect){};
+    Crop(const Rectangle &rect) : _rect(rect) {};
 
     /**
      *  Crops the Video to the given area
@@ -646,7 +646,7 @@ private:
      *
      *  @param value  Minimum value pixels should be
      */
-    Threshold(const int value) : _threshold(value){};
+    Threshold(const int value) : _threshold(value) {};
 
     /**
      *  Performs the thresholding operation
@@ -679,7 +679,7 @@ private:
      *  @param options client parameters for the operation
      */
     SyncRemoteOperation(std::string url, Json::Value options)
-        : _url(url), _options(options){};
+        : _url(url), _options(options) {};
 
     /**
      *  Performs the remote operation
@@ -712,7 +712,7 @@ private:
      *  @param options client parameters for the operation
      */
     RemoteOperation(std::string url, Json::Value options)
-        : _url(url), _options(options){};
+        : _url(url), _options(options) {};
 
     /**
      *  Performs the remote operation
@@ -742,7 +742,7 @@ private:
      *
      *  @param options client parameters for the operation
      */
-    UserOperation(Json::Value options) : _options(options){};
+    UserOperation(Json::Value options) : _options(options) {};
 
     /**
      *  Performs the remote operation

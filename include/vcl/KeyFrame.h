@@ -87,8 +87,8 @@ private:
   int fill_frame_list(void) noexcept;
 
 public:
-  KeyFrameParser(std::string filename) : KeyFrameOp(filename){};
-  ~KeyFrameParser() override{};
+  KeyFrameParser(std::string filename) : KeyFrameOp(filename) {};
+  ~KeyFrameParser() override {};
 
   const KeyFrameList &parse(void);
 };
@@ -110,7 +110,7 @@ private:
     DecoderContext()
         : bsf_context(NULL), video_codec_context(NULL),
           frame_codec_context(NULL), sws_context(NULL),
-          byte_stream_format(H264Format::AVCC){};
+          byte_stream_format(H264Format::AVCC) {};
   };
 
   struct FrameInterval {
