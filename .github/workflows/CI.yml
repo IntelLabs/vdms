@@ -1,13 +1,13 @@
 name: CI
 
-on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    branches: [develop]
 # on:
-#   workflow_run:
-#     workflows: [Pre-commit]
-#     types: [completed]
+#   pull_request:
+#     types: [opened, synchronize, reopened]
+#     branches: [develop]
+on:
+  workflow_run:
+    workflows: [Pre-commit]
+    types: [completed]
 
 # Declare default permissions as write only.
 permissions: read-all
@@ -23,38 +23,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  precommit:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.1.7
-      with:
-        submodules: false
-    - uses: actions/setup-python@v4
-      with:
-        python-version: 3.x
-    - uses: pre-commit/action@v3.0.1
-    - uses: pre-commit-ci/lite-action@v1.1.0
-      if: always()
-  pre-success:
-    needs: precommit
-    runs-on: ubuntu-latest
-    if: ${{ needs.precommit.result == 'success' }}
-    # ${{ github.event.workflow_run.conclusion == 'success' }}
-    steps:
-      - run: echo 'Pre-commit completed successfully.'
-  pre-failure:
-    runs-on: ubuntu-latest
-    if: ${{ needs.precommit.result == 'failure' }}
-    # if: ${{ github.event.workflow_run.conclusion == 'failure' }}
-    steps:
-      - run: echo 'Pre-commit failed. Please fix issues.'
-  pre-exit:
-    needs: pre-failure
-    runs-on: ubuntu-latest
-    steps:
-      - run: exit 1
+  PreCommit:
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    uses: ./.github/workflows/_precommit.yml
+    secrets: inherit
+
   Get-Envs:
     name: Get Environment vars
+    needs: [PreCommit]
     runs-on: ubuntu-latest
     outputs:
       CHECKIN_DOCKERFILE: .github/scripts/docker-compose.yml
