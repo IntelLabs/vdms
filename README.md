@@ -28,7 +28,7 @@ storage framework specifically aimed at processing visual data, and also it
 includes an investigation into the right hardware and software optimizations
 to store and efficiently access large scale (pre-processed) visual data.
 
-## Motivation    
+## Motivation
 
 Data access is swiftly becoming a bottleneck in visual data processing,
 providing an opportunity to influence the way visual data is treated in the
