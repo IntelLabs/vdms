@@ -1,13 +1,13 @@
 name: CI
 
-# on:
-#   pull_request:
-#     types: [opened, synchronize, reopened]
-#     branches: [develop]
 on:
-  workflow_run:
-    workflows: [Pre-commit]
-    types: [completed]
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [develop]
+# on:
+#   workflow_run:
+#     workflows: [Pre-commit]
+#     types: [completed]
 
 # Declare default permissions as write only.
 permissions: read-all
@@ -18,19 +18,34 @@ permissions: read-all
 # There's no point in testing an outdated version of the code. GitHub only allows
 # a limited number of job runners to be active at the same time, so it's better to cancel
 # pointless jobs early so that more useful jobs can run sooner.
-# concurrency:
-#   group: ${{ github.workflow }}-${{ github.ref }}
-#   cancel-in-progress: true
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  pre-success:
+  precommit:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+    - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.1.7
+      with:
+        submodules: false
+    - uses: actions/setup-python@v4
+      with:
+        python-version: 3.x
+    - uses: pre-commit/action@v3.0.1
+    - uses: pre-commit-ci/lite-action@v1.1.0
+      if: always()
+  pre-success:
+    needs: precommit
+    runs-on: ubuntu-latest
+    if: ${{ needs.precommit.result == 'success' }}
+    # ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - run: echo 'Pre-commit completed successfully.'
   pre-failure:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    if: ${{ needs.precommit.result == 'failure' }}
+    # if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     steps:
       - run: echo 'Pre-commit failed. Please fix issues.'
   pre-exit:
