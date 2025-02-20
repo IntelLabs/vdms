@@ -1,13 +1,13 @@
 name: CI
 
-# on:
-#   pull_request:
-#     types: [opened, synchronize, reopened]
-#     branches: [develop]
 on:
-  workflow_run:
-    workflows: [Pre-commit]
-    types: [completed]
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [develop]
+# on:
+#   workflow_run:
+#     workflows: [Pre-commit]
+#     types: [completed]
 
 # Declare default permissions as write only.
 permissions: read-all
