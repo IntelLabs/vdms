@@ -26,4 +26,7 @@ jobs:
     - if: failure()
       run: |
         echo 'Pre-commit failed. CI will restart or please fix requested issues.'
+        pre-commit clean
         exit 1
+    - run: pre-commit clean
+
