@@ -10,7 +10,7 @@ def run(ipfilename, format, options):
 
     video = skvideo.io.FFmpegWriter(opfilename, {"-pix_fmt": "bgr24"})
     print(options)
-    # i = 0
+
     while True:
         (grabbed, frame) = vs.read()
         if not grabbed:

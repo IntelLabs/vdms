@@ -419,7 +419,6 @@ class TestBoundingBox(TestCommand.TestCommand):
 
         self.assertEqual(len(img_array), self.number_of_inserts)
         for i in range(0, self.number_of_inserts):
-            # coord = self.number_of_inserts - i - 1
             self.assertEqual(response[i]["FindBoundingBox"]["status"], 0)
             self.assertEqual(
                 response[i]["FindBoundingBox"]["entities"][0]["name"],

@@ -17,7 +17,6 @@ def facedetectbbox(frame):
 
 def run(settings, message, input_params):
     ipfilename = message
-    # format = message.strip().split(".")[-1]
 
     if input_params["media_type"] == "video":
         vs = cv2.VideoCapture(ipfilename)

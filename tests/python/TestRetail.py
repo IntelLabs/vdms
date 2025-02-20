@@ -179,7 +179,7 @@ class TestEntities(TestCommand.TestCommand):
                 cmd = list(response[i].items())[0][0]
                 self.assertEqual(response[i][cmd]["status"], 0)
 
-        except Exception as _:
+        except Exception:
             results[thID] = -1
 
         results[thID] = 0

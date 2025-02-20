@@ -13,7 +13,7 @@ def run(settings, message, input_params):
     vs = cv2.VideoCapture(ipfilename)
 
     video = skvideo.io.FFmpegWriter(opfilename, {"-pix_fmt": "bgr24"})
-    # i = 0
+
     while True:
         (grabbed, frame) = vs.read()
         if not grabbed:

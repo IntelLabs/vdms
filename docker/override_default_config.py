@@ -91,11 +91,10 @@ def main(args):
 
             try:
                 updated_config_value = int(env_value)
-            except Exception as e:
+            except Exception:
                 if any(b in env_value.lower() for b in ["true", "false"]):
                     updated_config_value = bool(env_value)
                 else:
-                    print(f"Exception: {e}")
                     updated_config_value = env_value
 
             config[updated_config_key] = updated_config_value
