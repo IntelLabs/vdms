@@ -25,5 +25,5 @@ jobs:
       if: always()
     - if: failure()
       run: |
-        echo 'Pre-commit failed. Please fix issues.'
+        echo 'Pre-commit failed. CI will restart or please fix requested issues.'
         exit 1
