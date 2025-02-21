@@ -1,16 +1,16 @@
 #ifndef SENDERS_KAFKA_SENDER_H_
 #define SENDERS_KAFKA_SENDER_H_
 
-#include <iostream>
-#include <map>
-
 #include <glog/logging.h>
 #include <librdkafka/rdkafkacpp.h>
+
+#include <iostream>
+#include <map>
 
 #include "utils.h"
 
 class BaseSender {
-public:
+ public:
   BaseSender() {}
 
   virtual ~BaseSender() {}
@@ -20,7 +20,7 @@ public:
 };
 
 class KafkaSender : public BaseSender {
-public:
+ public:
   KafkaSender(const std::string &endpoint)
       : conf_(RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL)),
         tconf_(RdKafka::Conf::create(RdKafka::Conf::CONF_TOPIC)) {
@@ -78,7 +78,7 @@ public:
     producer_->poll(0);
   }
 
-private:
+ private:
   std::unique_ptr<RdKafka::Conf> conf_;
   std::unique_ptr<RdKafka::Conf> tconf_;
   std::unique_ptr<RdKafka::Producer> producer_;

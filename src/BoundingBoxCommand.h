@@ -40,7 +40,7 @@
 namespace VDMS {
 
 class AddBoundingBox : public RSCommand {
-public:
+ public:
   AddBoundingBox();
 
   int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
@@ -49,7 +49,7 @@ public:
 };
 
 class UpdateBoundingBox : public RSCommand {
-public:
+ public:
   UpdateBoundingBox();
 
   int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
@@ -60,7 +60,7 @@ public:
 class FindBoundingBox : public RSCommand {
   // bool _use_aws_storage;
 
-public:
+ public:
   FindBoundingBox();
 
   int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
@@ -73,4 +73,4 @@ public:
                                   const std::string &blob);
 };
 
-}; // namespace VDMS
+};  // namespace VDMS

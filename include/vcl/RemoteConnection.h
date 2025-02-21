@@ -33,11 +33,6 @@
 
 #pragma once
 
-#include <fstream>
-#include <iostream>
-
-#include "Exception.h"
-
 #include <aws/core/Aws.h>
 #include <aws/s3/S3Client.h>
 #include <aws/s3/model/DeleteObjectRequest.h>
@@ -45,10 +40,15 @@
 #include <aws/s3/model/ListObjectsRequest.h>
 #include <aws/s3/model/PutObjectRequest.h>
 
+#include <fstream>
+#include <iostream>
+
+#include "Exception.h"
+
 namespace VCL {
 
 class RemoteConnection {
-public:
+ public:
   RemoteConnection();
   ~RemoteConnection();
 
@@ -65,7 +65,7 @@ public:
 
   Aws::String _bucket_name;
 
-private:
+ private:
   bool _remote_connected = false;
 
   Aws::SDKOptions *_aws_sdk_options;
@@ -84,4 +84,4 @@ private:
                          const std::string &errorMessage = "");
   // void LogEntry(std::string functionName);
 };
-} // namespace VCL
+}  // namespace VCL

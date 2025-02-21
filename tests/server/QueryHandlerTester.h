@@ -35,7 +35,7 @@ namespace VDMS {
 class QueryHandlerPMGDTester {
   QueryHandlerPMGD &_qh;
 
-public:
+ public:
   QueryHandlerPMGDTester(QueryHandlerPMGD &qh) : _qh(qh) {}
 
   void pq(protobufs::queryMessage &proto_query,
@@ -47,7 +47,7 @@ public:
 class QueryHandlerExampleTester {
   QueryHandlerExample &_qh;
 
-public:
+ public:
   QueryHandlerExampleTester(QueryHandlerExample &qh) : _qh(qh) {}
 
   void pq(protobufs::queryMessage &proto_query,
@@ -55,4 +55,4 @@ public:
     _qh.process_query(proto_query, response);
   }
 };
-}; // namespace VDMS
+};  // namespace VDMS

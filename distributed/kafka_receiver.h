@@ -3,29 +3,28 @@
 #define KAFKA_RECIVER
 
 #include <glog/logging.h>
-#include <iostream>
-#include <librdkafka/rdkafkacpp.h>
-#include <map>
-#include <vector>
-//#include "utils/hash_utils.h"
-
 #include <jsoncpp/json/reader.h>
 #include <jsoncpp/json/writer.h>
+#include <librdkafka/rdkafkacpp.h>
+
+#include <iostream>
+#include <map>
+#include <vector>
 
 #include "utils.h"
 // LOG::FLAGS_minloglevel = 100;
 
 class BaseReceiver {
-public:
+ public:
   BaseReceiver() {}
   virtual ~BaseReceiver() {}
   virtual bool Init() = 0;
-  virtual std::unique_ptr<std::stringstream>
-  Receive(const std::string &aux = "", const std::string &color = WHITE) = 0;
+  virtual std::unique_ptr<std::stringstream> Receive(
+      const std::string &aux = "", const std::string &color = WHITE) = 0;
 };
 
 class KafkaReceiver : public BaseReceiver {
-public:
+ public:
   long duration;
 
   KafkaReceiver(const std::string &endpoint)
@@ -79,12 +78,10 @@ public:
     }
     std::unique_ptr<std::stringstream> ret;
     while (true) {
-
       RdKafka::Message *msg =
           consumer_->consume(topics_[topic_str].get(), 0, 10000);
 
       if (msg->err() == RdKafka::ERR_NO_ERROR) {
-
         // LOG(INFO) << color <<"Kafka reads message at offset " <<
         // msg->offset();
         LOG(INFO) << color << "Receiver  "
@@ -107,7 +104,7 @@ public:
     return ret;
   }
 
-private:
+ private:
   std::unique_ptr<RdKafka::Conf> conf_;
   std::unique_ptr<RdKafka::Conf> tconf_;
   std::unique_ptr<RdKafka::Consumer> consumer_;

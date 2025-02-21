@@ -40,6 +40,7 @@
 
 // Json parsing files
 #include <jsoncpp/json/value.h>
+
 #include <valijson/schema.hpp>
 #include <valijson/validator.hpp>
 
@@ -48,11 +49,11 @@ namespace VDMS {
 typedef ::google::protobuf::RepeatedPtrField<std::string> BlobArray;
 
 class QueryHandlerExample : public QueryHandlerBase {
-public:
+ public:
   static void init();
   QueryHandlerExample();
   void process_connection(comm::Connection *c);
   void process_query(protobufs::queryMessage &proto_query,
                      protobufs::queryMessage &response);
 };
-} // namespace VDMS
+}  // namespace VDMS

@@ -2,20 +2,18 @@
 #include "CSVParserUtil.h"
 namespace VDMS {
 class VideoQueryParser : public CSVParserUtil {
-public:
+ public:
   VDMS::Response ParseAddVideo(vector<string> row, vector<string> &columnNames);
   bool isValidCodec(string &row);
   bool isValidContainer(string &row);
 };
-} // namespace VDMS
-VDMS::Response
-VDMS::VideoQueryParser::ParseAddVideo(vector<string> row,
-                                      vector<string> &columnNames) {
+}  // namespace VDMS
+VDMS::Response VDMS::VideoQueryParser::ParseAddVideo(
+    vector<string> row, vector<string> &columnNames) {
   Json::Value aquery;
   Json::Value fullquery;
   std::vector<std::string *> blobs;
-  if (row[0] == "")
-    throw "Video not provided";
+  if (row[0] == "") throw "Video not provided";
   std::string command_name = "AddVideo";
 
   std::string video_name = row[0];
@@ -39,14 +37,12 @@ VDMS::VideoQueryParser::ParseAddVideo(vector<string> row,
         }
 
         if (columnNames[j] == "compressto") {
-          if (!isValidCodec(row[j]))
-            throw "Invalid codec value";
+          if (!isValidCodec(row[j])) throw "Invalid codec value";
           aquery["AddVideo"]["codec"] = row[j];
         }
 
         if (columnNames[j] == "format") {
-          if (!isValidContainer(row[j]))
-            throw "Invalid container value";
+          if (!isValidContainer(row[j])) throw "Invalid container value";
           aquery["AddVideo"]["container"] = row[j];
         }
 
@@ -61,7 +57,7 @@ VDMS::VideoQueryParser::ParseAddVideo(vector<string> row,
             aquery["AddVideo"]["index_frames"] = false;
           } else {
             aquery["AddVideo"]["index_frames"] =
-                false; // or set to a default value
+                false;  // or set to a default value
           }
         }
       }

@@ -31,9 +31,9 @@
 
 extern VCL::RemoteConnection *global_s3_connection;
 
-std::vector<unsigned char>
-do_single_img_ops(const Json::Value &orig_query,
-                  std::vector<unsigned char> &raw_data, std::string cmd_name);
+std::vector<unsigned char> do_single_img_ops(
+    const Json::Value &orig_query, std::vector<unsigned char> &raw_data,
+    std::string cmd_name);
 std::vector<unsigned char> s3_retrieval(std::string obj_name,
                                         VCL::RemoteConnection *connection);
 int s3_upload(std::string obj_name, std::vector<unsigned char> upload_data,

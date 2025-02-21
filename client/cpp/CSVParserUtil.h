@@ -1,21 +1,22 @@
 #pragma once
-#include "VDMSClient.h"
-#include "rapidcsv.h"
 #include <bits/stdc++.h>
+#include <jsoncpp/json/json.h>
+
 #include <cmath>
 #include <cstring>
 #include <iostream>
-#include <jsoncpp/json/json.h>
 #include <sstream>
 #include <string>
 #include <vector>
+
+#include "VDMSClient.h"
+#include "rapidcsv.h"
 
 using namespace std;
 using namespace std::chrono;
 
 namespace VDMS {
 class CSVParserUtil {
-
   enum QueryType {
     EntityClass,
     ConnectionClass,
@@ -57,7 +58,7 @@ class CSVParserUtil {
   std::map<std::string, QueryType> commands;
   std::map<std::string, commandType> command_list;
 
-public:
+ public:
   CSVParserUtil();
   CSVParserUtil(const std::string &, int port, const std::vector<string>,
                 int id);
@@ -93,11 +94,11 @@ public:
   VDMS::Response send_to_vdms(const Json::Value &json_query,
                               const std::vector<std::string *> blobs = {});
 
-public:
+ public:
   std::string vdms_server;
   int vdms_port;
   std::vector<std::string> _columnNames;
   int id;
   std::unique_ptr<VDMS::VDMSClient> vdms_client;
 };
-}; // namespace VDMS
+};  // namespace VDMS

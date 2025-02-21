@@ -29,24 +29,23 @@
  *
  */
 
-#include <iostream>
-#include <stdio.h>
-
-#include <queue>
-#include <vector>
-
 #include <jsoncpp/json/json.h>
 #include <jsoncpp/json/value.h>
+#include <stdio.h>
+
+#include <iostream>
+#include <queue>
+#include <vector>
 
 #include "iterator.h"
 #include "node.h"
 
 class AutoDeleteNode {
-private:
+ private:
   Json::UInt64 _expiration_timestamp;
-  void *_node; // can use void pointer because query only seraches for Nodes and
-               // not edges
-public:
+  void *_node;  // can use void pointer because query only seraches for Nodes
+                // and not edges
+ public:
   AutoDeleteNode(Json::UInt64 new_expiration_timestamp, void *n_node);
   ~AutoDeleteNode();
   Json::UInt64 GetExpirationTimestamp();

@@ -1,9 +1,4 @@
 import cv2
-import numpy as np
-from datetime import datetime
-from collections import deque
-import skvideo.io
-import imutils
 import uuid
 import json
 
@@ -22,9 +17,7 @@ def facedetectbbox(frame):
 
 
 def run(ipfilename, format, options):
-
     if options["media_type"] == "video":
-
         vs = cv2.VideoCapture(ipfilename)
         frameNum = 1
         metadata = {}

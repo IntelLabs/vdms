@@ -1,5 +1,3 @@
-#include "CSVParserUtil.h"
-#include "rapidcsv.h"
 #include <fstream>
 #include <iostream>
 #include <mutex>
@@ -7,20 +5,23 @@
 #include <thread>
 #include <vector>
 
+#include "CSVParserUtil.h"
+#include "rapidcsv.h"
+
 namespace VDMS {
 class CSVParser {
-public:
+ public:
   CSVParser(std::string filename, size_t num_threads, std::string server,
             int port)
-      : m_filename(filename), m_num_threads(num_threads), vdms_server(server),
+      : m_filename(filename),
+        m_num_threads(num_threads),
+        vdms_server(server),
         vdms_port(port) {}
   ~CSVParser() {}
 
-  std::vector<VDMS::Response>
-  parse_csv_lines(const std::string &filename, int start_line, int end_line,
-                  std::vector<VDMS::Response> &local_results,
-                  const size_t thread_id) {
-
+  std::vector<VDMS::Response> parse_csv_lines(
+      const std::string &filename, int start_line, int end_line,
+      std::vector<VDMS::Response> &local_results, const size_t thread_id) {
     rapidcsv::Document csv(filename);
     std::vector<std::string> columnNames = csv.GetColumnNames();
     VDMS::CSVParserUtil csv_util(vdms_server, vdms_port, columnNames,
@@ -58,7 +59,7 @@ public:
     std::mutex mutex;
     std::vector<std::thread> threads;
     std::vector<std::vector<VDMS::Response>> all_local_results(m_num_threads);
-    std::vector<VDMS::Response> all_results; // Local vector for each thread
+    std::vector<VDMS::Response> all_results;  // Local vector for each thread
     all_results.reserve(num_lines);
 
     for (size_t i = 0; i < m_num_threads; i++) {
@@ -76,7 +77,6 @@ public:
     }
     size_t allResultsSizeBefore = all_results.size();
     for (const auto &local_results : all_local_results) {
-
       // Extend the size of all_results to accommodate local_results
       all_results.resize(all_results.size() + local_results.size());
 
@@ -89,10 +89,10 @@ public:
     return all_results;
   }
 
-private:
+ private:
   std::string m_filename;
   size_t m_num_threads;
   std::string vdms_server;
   int vdms_port;
 };
-}; // namespace VDMS
+};  // namespace VDMS
