@@ -16,6 +16,7 @@ jobs:
     commit_job:
         permissions:
           contents: write
+          pull-requests: write
         name: Commit Code Updates
         env:
           COMMIT_MSG: "Automated coverage update"
@@ -63,19 +64,17 @@ jobs:
               echo "changes=$changes" >> $GITHUB_OUTPUT
 
               if [ "$changes" != "Empty" ]; then
-                git config user.name github-actions
-                git config user.email github-actions@github.com
                 git add .github/coverage/*
-                git commit -am "${{ env.COMMIT_MSG }}"
+                git commit -am "${{ env.COMMIT_MSG }}" --allow-empty --author="github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
                 git push
               fi
 
-          # - if: steps.update_commit.outcome != 'success'
-          #   name: Check Push Failure
-          #   env:
-          #     FILE_CHANGES: ${{ steps.update_commit.outputs.changes }}
-          #   run: |
-          #     if [ "${{ env.FILE_CHANGES }}" != "Empty" ]; then
-          #       echo "Please provide sys-vdms write access to fork (if applicable)."
-          #       exit 1
-          #     fi
+          - if: steps.update_commit.outcome != 'success'
+            name: Check Push Failure
+            env:
+              FILE_CHANGES: ${{ steps.update_commit.outputs.changes }}
+            run: |
+              if [ "${{ env.FILE_CHANGES }}" != "Empty" ]; then
+                echo "Error issuing commit. Coverage reports were NOT updated"
+                exit 1
+              fi
