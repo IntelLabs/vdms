@@ -30,7 +30,6 @@ jobs:
               fetch-depth: 0
               ref: ${{ github.event.pull_request.head.ref }}
               repository: ${{ github.event.pull_request.head.repo.full_name }}
-              token: ${{ secrets.FACELESS_TOKEN || github.token }}
 
           - run: mkdir -p ${{ env.DOCKER_ARTIFACT_DIR }}
 
