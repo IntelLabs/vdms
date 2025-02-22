@@ -14,7 +14,7 @@ This submodule is required to execute VDMS operation on a remote server using Fl
 Any operation can be added to the module by creating a python file of the same name as the operation and adding it to the `functions` folder. Any operaion file should follow the following setup to define a `run` function that the endpoint will use;
 ```
 def run(ipfilename, format, options):
-    
+
     # ipfilename: Name of the input file to be read from
     # format: Format of the input file
     # options: Any inputs that the UDF will require from the client
@@ -100,7 +100,7 @@ def run(ipfilename, format, options):
     global car_cascade_src
 
     img = cv2.imread(ipfilename)
-    
+
     # These lines
     # represent the
     # code logic

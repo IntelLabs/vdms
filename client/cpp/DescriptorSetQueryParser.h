@@ -2,13 +2,13 @@
 #include "CSVParserUtil.h"
 namespace VDMS {
 class DescriptorSetQueryParser : public CSVParserUtil {
-public:
+ public:
   VDMS::Response ParseAddDescriptorSet(vector<string> row,
                                        vector<string> &columnNames);
   bool isValidMetric(string &metric);
   bool isValidEngine(string &engine);
 };
-}; // namespace VDMS
+};  // namespace VDMS
 VDMS::Response VDMS::DescriptorSetQueryParser::ParseAddDescriptorSet(
     vector<string> row, vector<string> &columnNames) {
   if (row[0] == "") {
@@ -28,13 +28,11 @@ VDMS::Response VDMS::DescriptorSetQueryParser::ParseAddDescriptorSet(
         aquery["AddDescriptorSet"]["dimensions"] = stoi(row[j]);
       }
       if (columnNames[j] == "distancemetric") {
-        if (!isValidMetric(row[j]))
-          throw "Metric value is not valid";
+        if (!isValidMetric(row[j])) throw "Metric value is not valid";
         aquery["AddDescriptorSet"]["metric"] = row[j];
       }
       if (columnNames[j] == "searchengine") {
-        if (!isValidEngine(row[j]))
-          throw "Engine value is not valid";
+        if (!isValidEngine(row[j])) throw "Engine value is not valid";
         aquery["AddDescriptorSet"]["engine"] = row[j];
       }
     }

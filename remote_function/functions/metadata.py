@@ -46,7 +46,6 @@ def run(ipfilename, format, options, tmp_dir_path, functions_path):
 
     # Extract metadata for video files
     if options["media_type"] == "video":
-
         vs = cv2.VideoCapture(ipfilename)
         frameNum = 1
         metadata = {}

@@ -25,7 +25,6 @@
 #
 
 import sys
-import os
 
 with open(sys.argv[1], "r") as schema_file:
     file = schema_file.readlines()

@@ -38,7 +38,7 @@ class TLSClient:
                         print_and_flush("Connection established.")
                         self.handle_connection(ssock)
                         return
-            except (ConnectionRefusedError, socket.timeout) as e:
+            except (ConnectionRefusedError, socket.timeout):
                 time.sleep(
                     0.1
                 )  # wait a bit before retrying to avoid flooding with attempts
@@ -86,7 +86,6 @@ class TLSClient:
 
 
 if __name__ == "__main__":
-
     tls_client = TLSClient(
         ca_cert_path=TEMPORARY_DIR + "/trusted_ca_cert.pem",
         client_cert_path=TEMPORARY_DIR + "/trusted_client_cert.pem",

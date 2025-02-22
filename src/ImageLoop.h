@@ -29,15 +29,16 @@
  *
  */
 
-#include "vcl/Image.h"
 #include <condition_variable>
 #include <functional>
 #include <future>
 #include <thread>
 #include <vector>
 
+#include "vcl/Image.h"
+
 class ImageLoop {
-public:
+ public:
   ImageLoop() = default;
   ImageLoop(const ImageLoop &) = delete;
   ImageLoop(ImageLoop &&) noexcept = delete;
@@ -56,7 +57,7 @@ public:
   bool is_loop_running();
   void close_no_operation_loop(std::string imageid);
 
-private:
+ private:
   int _nrof_entities = 0;
   bool destroyed = false;
   bool _remote_running = false;

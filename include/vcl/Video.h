@@ -31,35 +31,32 @@
 
 #pragma once
 
-#include <list>
-#include <memory> // For shared_ptr
-#include <string>
+#include <jsoncpp/json/reader.h>
 
+#include <fstream>
+#include <list>
+#include <memory>  // For shared_ptr
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/videoio.hpp>
-
-#include "KeyFrame.h"
-#include "vcl/Image.h"
+#include <string>
 
 #include "../utils/include/stats/SystemStats.h"
 #include "Exception.h"
+#include "KeyFrame.h"
 #include "VDMSConfigHelper.h"
-#include "utils.h"
-#include "zip.h"
-#include <fstream>
-#include <jsoncpp/json/reader.h>
-
 #include "timers/TimerMap.h"
+#include "utils.h"
+#include "vcl/Image.h"
+#include "zip.h"
 
 namespace VCL {
 
-typedef cv::Rect Rectangle; // specify an ROI inside a video
+typedef cv::Rect Rectangle;  // specify an ROI inside a video
 
 class Video {
-
-public:
+ public:
   enum Codec { NOCODEC = 0, MJPG, XVID, H263, H264, AVC1 };
 
   std::string NOERRORSTRING = "";
@@ -84,7 +81,7 @@ public:
     USEROPERATION
   };
 
-  RemoteConnection *_remote; // Remote connection (if one exists)
+  RemoteConnection *_remote;  // Remote connection (if one exists)
   TimerMap timers;
   std::vector<std::string> op_labels;
 
@@ -438,7 +435,7 @@ public:
    */
   int execute_operations(bool isRemote = false);
 
-private:
+ private:
   class Operation;
 
   // Forward declaration of VideoTest class, that is used for the unit
@@ -459,13 +456,13 @@ private:
   // Query Error response
   std::string _query_error_response = "";
 
-  bool _flag_stored; // Flag to avoid unnecessary read/write
+  bool _flag_stored;  // Flag to avoid unnecessary read/write
 
   VideoSize _size;
 
   float _fps;
 
-  Codec _codec; // (h.264, etc).
+  Codec _codec;  // (h.264, etc).
 
   // Pointer to key frame decoder object, allocated when key frames
   // are set, and used whenever frames are decoded using key-frame
@@ -498,8 +495,7 @@ private:
    *   () operator
    */
   class Operation {
-
-  public:
+   public:
     /**
      *  Implemented by the specific operation, performs what
      *    the operation is supposed to do
@@ -531,17 +527,17 @@ private:
    *  Extends Operation, resizes the Video to the specified size
    */
   class Resize : public Operation {
-  private:
+   private:
     /** Gives the height and width to resize the Video to */
     cv::Size _size;
 
-  public:
+   public:
     /**
      *  Constructor, sets the size to resize to and the format
      *
      *  @param size  Struct that contains w and h
      */
-    Resize(const cv::Size &size) : _size(size){};
+    Resize(const cv::Size &size) : _size(size) {};
 
     /**
      *  Resizes an Video to the given dimensions
@@ -562,13 +558,13 @@ private:
   /*  *********************** */
 
   class Interval : public Operation {
-  private:
+   private:
     int _start;
     int _stop;
     int _step;
     Video::Unit _u;
 
-  public:
+   public:
     /**
      *  Constructor, sets the size to resize to and the format
      *
@@ -578,7 +574,7 @@ private:
      *  @param step  Number of frames to be skipped in between.
      */
     Interval(Video::Unit u, const int start, const int stop, int step)
-        : _u(u), _start(start), _stop(stop), _step(step){};
+        : _u(u), _start(start), _stop(stop), _step(step) {};
 
     /**
      *  Resizes an Video to the given dimensions
@@ -600,18 +596,18 @@ private:
    *  Extends Operation, crops the Video to the specified area
    */
   class Crop : public Operation {
-  private:
+   private:
     /** Gives the dimensions and coordinates of the desired area */
     Rectangle _rect;
 
-  public:
+   public:
     /**
      *  Constructor, sets the area to crop to and the format
      *
      *  @param rect  Contains dimensions and coordinates of
      *    desired area
      */
-    Crop(const Rectangle &rect) : _rect(rect){};
+    Crop(const Rectangle &rect) : _rect(rect) {};
 
     /**
      *  Crops the Video to the given area
@@ -636,17 +632,17 @@ private:
    *     threshold and sets that pixel to 0
    */
   class Threshold : public Operation {
-  private:
+   private:
     /** Minimum value pixels should be */
     int _threshold;
 
-  public:
+   public:
     /**
      *  Constructor, sets the threshold value and format
      *
      *  @param value  Minimum value pixels should be
      */
-    Threshold(const int value) : _threshold(value){};
+    Threshold(const int value) : _threshold(value) {};
 
     /**
      *  Performs the thresholding operation
@@ -666,11 +662,11 @@ private:
   /**  Extends Operation, performs a synchronous remote operation
    */
   class SyncRemoteOperation : public Operation {
-  private:
+   private:
     std::string _url;
     Json::Value _options;
 
-  public:
+   public:
     /**
      *
      *  Constructor, sets the remote url and client options
@@ -679,7 +675,7 @@ private:
      *  @param options client parameters for the operation
      */
     SyncRemoteOperation(std::string url, Json::Value options)
-        : _url(url), _options(options){};
+        : _url(url), _options(options) {};
 
     /**
      *  Performs the remote operation
@@ -699,11 +695,11 @@ private:
   /**  Extends Operation, performs an asynchronous remote operation
    */
   class RemoteOperation : public Operation {
-  private:
+   private:
     std::string _url;
     Json::Value _options;
 
-  public:
+   public:
     /**
      *
      *  Constructor, sets the remote url and client options
@@ -712,7 +708,7 @@ private:
      *  @param options client parameters for the operation
      */
     RemoteOperation(std::string url, Json::Value options)
-        : _url(url), _options(options){};
+        : _url(url), _options(options) {};
 
     /**
      *  Performs the remote operation
@@ -732,17 +728,17 @@ private:
   /**  Extends Operation, performs a udf
    */
   class UserOperation : public Operation {
-  private:
+   private:
     Json::Value _options;
 
-  public:
+   public:
     /**
      *
      *  Constructor, sets the client options
      *
      *  @param options client parameters for the operation
      */
-    UserOperation(Json::Value options) : _options(options){};
+    UserOperation(Json::Value options) : _options(options) {};
 
     /**
      *  Performs the remote operation
@@ -756,7 +752,7 @@ private:
     OperationType get_type() { return USEROPERATION; };
   };
 
-protected:
+ protected:
   /*  *********************** */
   /*       UTILITIES          */
   /*  *********************** */
@@ -830,4 +826,4 @@ protected:
                                       std::string fname);
 };
 
-} // namespace VCL
+}  // namespace VCL

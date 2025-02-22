@@ -1,6 +1,5 @@
 import socket
 import ssl
-import time
 
 TEMPORARY_DIR = "/tmp"
 
@@ -78,7 +77,6 @@ class TLSServer:
 
 
 if __name__ == "__main__":
-
     tls_client = TLSServer(
         ca_cert_path=TEMPORARY_DIR + "/trusted_ca_cert.pem",
         server_cert_path=TEMPORARY_DIR + "/trusted_server_cert.pem",

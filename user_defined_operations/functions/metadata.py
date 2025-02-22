@@ -42,11 +42,9 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
     set_face_cascade(functions_path)
 
     ipfilename = message
-    format = message.strip().split(".")[-1]
 
     # Extract metadata for video files
     if input_params["media_type"] == "video":
-
         vs = cv2.VideoCapture(ipfilename)
         frameNum = 1
         metadata = {}

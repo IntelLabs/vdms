@@ -29,7 +29,6 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
     )
     # video = skvideo.io.FFmpegWriter(opfilename, {"-pix_fmt": "bgr24"})
 
-    i = 0
     while True:
         (grabbed, frame) = vs.read()
         if not grabbed:

@@ -1,14 +1,14 @@
 [
     {
-        "AddImage": 
+        "AddImage":
             {
                 "format":
                     "png",
                 "properties":
                     {
                         "name": "brain.png"
-                    }, 
-                    "operations": 
+                    },
+                    "operations":
                         [
                             {
                                 "type":

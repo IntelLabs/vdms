@@ -29,21 +29,21 @@
  *
  */
 
-#include "vcl/Image.h"
-#include "vcl/Video.h"
 #include <condition_variable>
 #include <functional>
 #include <future>
-#include <thread>
-#include <vector>
-
 #include <opencv2/core.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/videoio.hpp>
+#include <thread>
+#include <vector>
+
+#include "vcl/Image.h"
+#include "vcl/Video.h"
 
 class VideoLoop {
-public:
+ public:
   VideoLoop() = default;
   VideoLoop(const VideoLoop &) = delete;
   VideoLoop(VideoLoop &&) noexcept = delete;
@@ -86,7 +86,7 @@ public:
    */
   void close_no_operation_loop(std::string videoId);
 
-private:
+ private:
   // Number of entities in the VDMS query response
   int _nrof_entities = 0;
 

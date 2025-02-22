@@ -34,17 +34,17 @@
 
 #pragma once
 
-#include "DescriptorParams.h"
-#include "Exception.h"
-#include "RemoteConnection.h"
-#include "utils.h"
+#include <VDMSConfigHelper.h>
+
 #include <map>
 #include <string>
 #include <vector>
 
-#include <VDMSConfigHelper.h>
-
+#include "DescriptorParams.h"
+#include "Exception.h"
+#include "RemoteConnection.h"
 #include "timers/TimerMap.h"
+#include "utils.h"
 
 namespace VCL {
 
@@ -61,8 +61,7 @@ enum DistanceMetric { L2, IP };
 // enum class Storage { LOCAL = 0, AWS = 1 };
 
 class DescriptorSet {
-
-public:
+ public:
   typedef std::vector<long> DescIdVector;
   typedef std::vector<long> LabelIdVector;
   typedef std::vector<float> DistanceVector;
@@ -74,7 +73,7 @@ public:
 
   TimerMap timers;
 
-private:
+ private:
   DescriptorSetData *_set;
   DescriptorSetEngine _eng;
 
@@ -84,7 +83,7 @@ private:
   void write_set_info();
   void read_set_info(const std::string &set_path);
 
-public:
+ public:
   /**
    *  Loads an existing collection located at set_path
    *
@@ -376,4 +375,4 @@ public:
    */
   void set_connection(RemoteConnection *remote);
 };
-}; // namespace VCL
+};  // namespace VCL

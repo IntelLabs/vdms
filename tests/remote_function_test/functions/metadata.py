@@ -43,7 +43,6 @@ def run(ipfilename, format, options, tmp_dir_path, functions_path):
     set_face_cascade(functions_path)
 
     if options["media_type"] == "video":
-
         vs = cv2.VideoCapture(ipfilename)
         frameNum = 1
         metadata = {}

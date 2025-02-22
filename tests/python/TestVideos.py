@@ -113,7 +113,7 @@ class TestVideos(TestCommand.TestCommand):
         fd.close()
 
         # adds some prop
-        if not props is None:
+        if props is not None:
             props["test_case"] = "test_case_prop"
 
         query = self.create_video(

@@ -30,20 +30,21 @@
  */
 
 #pragma once
-#include "vcl/Image.h"
 #include <mutex>
 #include <string>
 #include <vector>
 
 #include "ExceptionsCommand.h"
 #include "RSCommand.h"
+#include "vcl/CustomVCL.h"
+#include "vcl/Image.h"
 
 namespace VDMS {
 
 // Helper classes for handling various JSON commands.
 
 class BlobCommand : public RSCommand {
-public:
+ public:
   BlobCommand(const std::string &cmd_name);
 
   virtual int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
@@ -54,10 +55,9 @@ public:
 };
 
 class AddBlob : public BlobCommand {
-
   std::string _storage_bin;
 
-public:
+ public:
   AddBlob();
 
   int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
@@ -68,7 +68,7 @@ public:
 };
 
 class UpdateBlob : public BlobCommand {
-public:
+ public:
   UpdateBlob();
 
   int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
@@ -77,7 +77,7 @@ public:
 };
 
 class FindBlob : public BlobCommand {
-public:
+ public:
   FindBlob();
   int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
                          const std::string &blob, int grp_id,
@@ -89,4 +89,4 @@ public:
                                   const std::string &blob);
 };
 
-}; // namespace VDMS
+};  // namespace VDMS

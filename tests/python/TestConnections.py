@@ -24,7 +24,6 @@
 # THE SOFTWARE.
 #
 
-from threading import Thread
 import TestCommand
 
 
