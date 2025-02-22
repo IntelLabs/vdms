@@ -157,7 +157,6 @@ def kill_processes_by_object():
     """
     global processList
     try:
-
         if DEBUG_MODE:
             print(f"Killing {str(len(processList))} processes")
         processList.reverse()
@@ -1268,7 +1267,6 @@ class Neo4jTest(AbstractTest):
                 neo_test_type == NEO4J_BACKEND_TEST_TYPE
                 or neo_test_type == NEO4J_E2E_TEST_TYPE
             ):
-
                 # Fill the default values for Neo4j configuration
                 testingArgs = self.get_valid_neo4j_values(testingArgs)
 
@@ -1440,7 +1438,6 @@ class NonRemoteTest(AbstractTest):
         """
 
         try:
-
             subprocess.run(
                 f"python3 -m pip install -r {DEFAULT_DIR_REPO}/remote_function/requirements.txt",
                 shell=True,
@@ -1551,7 +1548,6 @@ class NonRemoteTest(AbstractTest):
         - Exception: If any error occurs during the setup process.
         """
         try:
-
             subprocess.run(
                 f"python3 -m pip install -r {DEFAULT_DIR_REPO}/user_defined_operations/requirements.txt",
                 shell=True,
@@ -2149,7 +2145,6 @@ class RemotePythonTest(AbstractTest):
         arguments.
         """
         try:
-
             # Using the flag "-n YOUR_TEST_NAME" for specifying the test name filter.
             # In case that this flag is not specified then it will use the default
             # filter pattern

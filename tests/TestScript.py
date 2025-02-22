@@ -28,7 +28,6 @@
 import os
 import argparse
 import subprocess
-from io import StringIO
 import json
 import signal
 import unittest
@@ -106,7 +105,6 @@ class MockProcess:
 
 
 class TestKillProcessesByObject(unittest.TestCase):
-
     def setUp(self):
         # Set up for each test
         self.original_processList = run_all_tests.processList
@@ -165,7 +163,6 @@ class TestKillProcessesByObject(unittest.TestCase):
 
 #### Test suite for the close_log_files function ####
 class TestCloseLogFiles(unittest.TestCase):
-
     def setUp(self):
         # Set up mock file descriptors and global variables before each test
         self.original_fdList = run_all_tests.fdList
@@ -218,7 +215,6 @@ class TestCloseLogFiles(unittest.TestCase):
 
 #### Test suite the cleanup() function ####
 class TestCleanup(unittest.TestCase):
-
     @patch("run_all_tests.print")
     @patch("run_all_tests.os.path.exists", return_value=True)
     @patch("run_all_tests.shutil.rmtree")
@@ -294,7 +290,6 @@ class TestCleanup(unittest.TestCase):
 
 #### Test suite for the signal_handler function ####
 class TestSignalHandler(unittest.TestCase):
-
     @patch("run_all_tests.print")
     def test_signal_handler_sigterm(self, mock_print):
         # Test that the handler exits with code 0 on SIGTERM and calls the necessary functions
@@ -543,7 +538,6 @@ class TestTestingArgs(unittest.TestCase):
 
 #### Tests for the AbstractTest class ####
 class TestAbstractTest(unittest.TestCase):
-
     def setUp(self):
         # Set up for each test
         self.original_DEBUG_MODE = run_all_tests.DEBUG_MODE
@@ -1416,7 +1410,6 @@ class TestAbstractTest(unittest.TestCase):
 
 #### Tests for the Neo4jTest class
 class TestNeo4jTest(unittest.TestCase):
-
     def setUp(self):
         # Set up for each test
         self.original_DEBUG_MODE = run_all_tests.DEBUG_MODE
@@ -1594,11 +1587,12 @@ class TestNeo4jTest(unittest.TestCase):
         mock_get_valid_neo4j_values.return_value = testing_args
 
         # Use patch.dict to mock os.environ
-        with patch.object(
-            neo4j_test, "get_type_of_neo_test", return_value=NEO4J_E2E_TEST_TYPE
-        ) as mock_get_type_of_neo_test, patch.dict(
-            "os.environ", {}, clear=True
-        ) as mock_environ:
+        with (
+            patch.object(
+                neo4j_test, "get_type_of_neo_test", return_value=NEO4J_E2E_TEST_TYPE
+            ) as mock_get_type_of_neo_test,
+            patch.dict("os.environ", {}, clear=True) as mock_environ,
+        ):
             # Call the method under test
             result = neo4j_test.fill_default_arguments(testing_args)
 
@@ -1646,11 +1640,12 @@ class TestNeo4jTest(unittest.TestCase):
         mock_get_valid_google_test_values.return_value = testing_args
 
         # Use patch.dict to mock os.environ
-        with patch.object(
-            neo4j_test, "get_type_of_neo_test", return_value=NEO4J_OPS_IO_TEST_TYPE
-        ) as mock_get_type_of_neo_test, patch.dict(
-            "os.environ", {}, clear=True
-        ) as mock_environ:
+        with (
+            patch.object(
+                neo4j_test, "get_type_of_neo_test", return_value=NEO4J_OPS_IO_TEST_TYPE
+            ) as mock_get_type_of_neo_test,
+            patch.dict("os.environ", {}, clear=True) as mock_environ,
+        ):
             # Call the method under test
             result = neo4j_test.fill_default_arguments(testing_args)
 
@@ -1962,15 +1957,20 @@ class TestNeo4jTest(unittest.TestCase):
         testing_args = TestingArgs()
 
         testing_args.test_name = "OpsIOCoordinatorTest.some_test_case"
-        with patch.object(
-            neo4j_test, "open_log_files", return_value=(MagicMock(), MagicMock())
-        ), patch.object(
-            neo4j_test, "get_type_of_neo_test", return_value=NEO4J_OPS_IO_TEST_TYPE
-        ), patch.object(
-            neo4j_test, "run_minio_server", return_value=123
-        ) as mock_run_minio_server, patch.object(
-            neo4j_test, "run_google_tests", return_value=456
-        ) as mock_run_google_tests:
+        with (
+            patch.object(
+                neo4j_test, "open_log_files", return_value=(MagicMock(), MagicMock())
+            ),
+            patch.object(
+                neo4j_test, "get_type_of_neo_test", return_value=NEO4J_OPS_IO_TEST_TYPE
+            ),
+            patch.object(
+                neo4j_test, "run_minio_server", return_value=123
+            ) as mock_run_minio_server,
+            patch.object(
+                neo4j_test, "run_google_tests", return_value=456
+            ) as mock_run_google_tests,
+        ):
             neo4j_test.run(testing_args)
             mock_run_minio_server.assert_called_once()
 
@@ -1985,17 +1985,21 @@ class TestNeo4jTest(unittest.TestCase):
         testing_args = TestingArgs()
         testing_args.test_name = "Neo4JE2ETest.some_test_case"
 
-        with patch.object(
-            neo4j_test, "open_log_files", return_value=(MagicMock(), MagicMock())
-        ), patch.object(
-            neo4j_test, "get_type_of_neo_test", return_value=NEO4J_E2E_TEST_TYPE
-        ), patch.object(
-            neo4j_test, "run_minio_server", return_value=789
-        ) as mock_run_minio_server, patch.object(
-            neo4j_test, "run_vdms_server"
-        ) as mock_run_vdms_server, patch.object(
-            neo4j_test, "run_google_tests", return_value=1011
-        ) as mock_run_google_tests:
+        with (
+            patch.object(
+                neo4j_test, "open_log_files", return_value=(MagicMock(), MagicMock())
+            ),
+            patch.object(
+                neo4j_test, "get_type_of_neo_test", return_value=NEO4J_E2E_TEST_TYPE
+            ),
+            patch.object(
+                neo4j_test, "run_minio_server", return_value=789
+            ) as mock_run_minio_server,
+            patch.object(neo4j_test, "run_vdms_server") as mock_run_vdms_server,
+            patch.object(
+                neo4j_test, "run_google_tests", return_value=1011
+            ) as mock_run_google_tests,
+        ):
             neo4j_test.run(testing_args)
             mock_run_minio_server.assert_called_once()
             mock_run_vdms_server.assert_called_once()  # Ensure that VDMS servers are not started in this test case
@@ -2011,16 +2015,18 @@ class TestNeo4jTest(unittest.TestCase):
 
         testing_args.test_name = "Neo4JE2ETest.some_test_case"
         testing_args.config_files_for_vdms = ["config1", "config2"]
-        with patch.object(
-            neo4j_test, "open_log_files", return_value=(MagicMock(), MagicMock())
-        ), patch.object(
-            neo4j_test, "get_type_of_neo_test", return_value=NEO4J_E2E_TEST_TYPE
-        ), patch.object(
-            neo4j_test, "run_minio_server", return_value=789
-        ), patch.object(
-            neo4j_test, "run_vdms_server", return_value=[2021, 2022]
-        ) as mock_run_vdms_server, patch.object(
-            neo4j_test, "run_google_tests", return_value=1011
+        with (
+            patch.object(
+                neo4j_test, "open_log_files", return_value=(MagicMock(), MagicMock())
+            ),
+            patch.object(
+                neo4j_test, "get_type_of_neo_test", return_value=NEO4J_E2E_TEST_TYPE
+            ),
+            patch.object(neo4j_test, "run_minio_server", return_value=789),
+            patch.object(
+                neo4j_test, "run_vdms_server", return_value=[2021, 2022]
+            ) as mock_run_vdms_server,
+            patch.object(neo4j_test, "run_google_tests", return_value=1011),
         ):
             neo4j_test.run(testing_args)
             mock_run_vdms_server.assert_called_once()
@@ -2044,13 +2050,15 @@ class TestNeo4jTest(unittest.TestCase):
         testing_args.test_name = "SomeOtherTest.some_test_case"
         testing_args.run = True  # Ensure this attribute is set to True
 
-        with patch.object(
-            neo4j_test, "open_log_files", return_value=(MagicMock(), MagicMock())
-        ), patch.object(
-            neo4j_test, "get_type_of_neo_test", return_value=None
-        ), patch.object(
-            neo4j_test, "run_google_tests", return_value=3031
-        ) as mock_run_google_tests:
+        with (
+            patch.object(
+                neo4j_test, "open_log_files", return_value=(MagicMock(), MagicMock())
+            ),
+            patch.object(neo4j_test, "get_type_of_neo_test", return_value=None),
+            patch.object(
+                neo4j_test, "run_google_tests", return_value=3031
+            ) as mock_run_google_tests,
+        ):
             neo4j_test.run(testing_args)
             mock_run_google_tests.assert_called_once()
 
@@ -2090,7 +2098,6 @@ class TestNeo4jTest(unittest.TestCase):
 
 #### Tests for the NonRemoteTest class
 class TestNonRemoteTest(unittest.TestCase):
-
     def setUp(self):
         self.non_remote_test = NonRemoteTest()
         self.original_DEBUG_MODE = run_all_tests.DEBUG_MODE
@@ -3358,7 +3365,6 @@ class TestTestingParser(unittest.TestCase):
     #### Tests for parse_arguments ####
     @patch("argparse.ArgumentParser.parse_args")
     def test_parse_arguments(self, mock_parse_args):
-
         testing_args = TestingParser()
 
         # Set up the mock to return a namespace with test arguments
@@ -3621,7 +3627,6 @@ class TestTestingParser(unittest.TestCase):
         )
 
     def test_convert_json_to_testing_args_invalid_vdms_app_path_data(self):
-
         # Create a JSON dictionary with invalid data (e.g., wrong data type)
         json_config_data = {
             "vdms_app_path": 123,  # Invalid data type, expecting a string
@@ -4078,7 +4083,7 @@ class TestTestingParser(unittest.TestCase):
             neo4j_port=7687,
             neo4j_password="",
             neo4j_username="neo4j_user",
-            neo4j_endpoint=f"neo4j://neo4j:7687",
+            neo4j_endpoint="neo4j://neo4j:7687",
             run="not a bool",  # Invalid data type, expecting a bool
         )
 
@@ -4239,11 +4244,14 @@ class TestTestingParser(unittest.TestCase):
         parser = MagicMock(spec=argparse.ArgumentParser)
 
         # Mock the internal validation methods
-        with patch.object(
-            testing_parser, "validate_type_test_value"
-        ) as mock_validate_type, patch.object(
-            testing_parser, "validate_stop_testing_value"
-        ) as mock_validate_stop:
+        with (
+            patch.object(
+                testing_parser, "validate_type_test_value"
+            ) as mock_validate_type,
+            patch.object(
+                testing_parser, "validate_stop_testing_value"
+            ) as mock_validate_stop,
+        ):
             # Call the method under test
             testing_parser.validate_common_arguments(testing_args, parser)
 
@@ -5600,7 +5608,6 @@ class TestTestingParser(unittest.TestCase):
     @patch("run_all_tests.os.path.isabs", return_value=False)
     @patch("run_all_tests.os.path.abspath", side_effect=lambda x: f"/abs/{x}")
     def test_convert_to_absolute_paths(self, mock_abspath, mock_isabs):
-
         testing_parser = TestingParser()
         testing_args = TestingArgs()
 
@@ -5788,9 +5795,7 @@ class TestTestingParser(unittest.TestCase):
         mock_read_json_config_file.assert_called_once_with("config.json", mock_parser)
 
         # Check if the print statements for JSON file loading were made
-        mock_print.assert_any_call(
-            f"Note: -j/--json argument was provided: config.json"
-        )
+        mock_print.assert_any_call("Note: -j/--json argument was provided: config.json")
         mock_print.assert_any_call(
             "\tIf there are other arguments in the command line then they will have a higher priority than the ones found in the JSON file"
         )

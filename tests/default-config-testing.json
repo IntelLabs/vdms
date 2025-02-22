@@ -1,4 +1,4 @@
-{   
+{
     // Any relative path must be used by considering the root of the repo
     // as starting point
     "test_name": "TestSuite.*",

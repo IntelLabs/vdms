@@ -105,7 +105,6 @@ def write_to_disk(directory, name, key, cert):
 
 
 if __name__ == "__main__":
-
     if not os.path.exists(TEMPORARY_DIR):
         raise Exception("Error in prep_certs.py: " + TEMPORARY_DIR + " does not exist")
 

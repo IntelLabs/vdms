@@ -211,7 +211,7 @@ def video_api():
                 os.remove(response_file)
                 os.remove(video_file)
                 os.remove(metadata_file)
-            except Exception as e:
+            except Exception:
                 if DEBUG_MODE:
                     print("Some files cannot be deleted or are not present")
             return response

@@ -29,10 +29,10 @@
 
 #pragma once
 
-#include <cstdint>
-#include <string>
 #include <time.h>
 
+#include <cstdint>
+#include <string>
 #include <vector>
 
 namespace VCL {

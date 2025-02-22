@@ -160,7 +160,6 @@ def video_api():
         print("video_file:", video_file, file=sys.stderr)
 
     try:
-
         with ZipFile(response_file, "w") as zip_object:
             zip_object.write(video_file, os.path.basename(video_file))
             if metadata_file is not None and metadata_file != "":
