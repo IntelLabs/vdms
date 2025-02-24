@@ -50,7 +50,6 @@ void PrintJSONValue(const Json::Value &val) {
 }
 
 void json_printer(const Json::Value &root, unsigned short depth) {
-
   printf("\n---------JSON Dumper-----------\n");
   for (Json::Value::const_iterator itr = root.begin(); itr != root.end();
        itr++) {

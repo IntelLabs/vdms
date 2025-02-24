@@ -24,8 +24,6 @@
 # THE SOFTWARE.
 #
 
-import os
-
 
 def queryPerson(id):
     query = [

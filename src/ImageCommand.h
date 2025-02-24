@@ -30,23 +30,23 @@
  */
 
 #pragma once
-#include "vcl/CustomVCL.h"
-#include "vcl/Image.h"
+#include <curl/curl.h>
+
 #include <mutex>
 #include <string>
 #include <vector>
 
 #include "ExceptionsCommand.h"
 #include "RSCommand.h"
-
-#include <curl/curl.h>
+#include "vcl/CustomVCL.h"
+#include "vcl/Image.h"
 
 namespace VDMS {
 
 // Helper classes for handling various JSON commands.
 
 class ImageCommand : public RSCommand {
-public:
+ public:
   ImageCommand(const std::string &cmd_name);
 
   virtual int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
@@ -64,7 +64,7 @@ public:
   // corresponding VCL::Image::Format type.
   VCL::Format get_requested_format(const Json::Value &cmd);
 
-protected:
+ protected:
   bool output_vcl_timing;
 };
 
@@ -75,7 +75,7 @@ class AddImage : public ImageCommand {
   std::string _storage_bin;
   // bool _use_aws_storage;
 
-public:
+ public:
   AddImage();
 
   int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
@@ -86,7 +86,7 @@ public:
 };
 
 class UpdateImage : public ImageCommand {
-public:
+ public:
   UpdateImage();
 
   int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
@@ -100,7 +100,7 @@ public:
 class FindImage : public ImageCommand {
   // bool _use_aws_storage;
 
-public:
+ public:
   FindImage();
   int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
                          const std::string &blob, int grp_id,
@@ -112,4 +112,4 @@ public:
                                   const std::string &blob);
 };
 
-}; // namespace VDMS
+};  // namespace VDMS

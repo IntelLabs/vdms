@@ -30,7 +30,6 @@
  */
 
 #pragma once
-#include "tbb/concurrent_unordered_map.h"
 #include <atomic>
 #include <string>
 #include <unordered_map>
@@ -38,6 +37,7 @@
 
 #include "PMGDQuery.h"
 #include "queryMessage.pb.h"
+#include "tbb/concurrent_unordered_map.h"
 
 // Json parsing files
 #include <jsoncpp/json/value.h>
@@ -46,7 +46,7 @@ namespace VDMS {
 
 // Helper classes for handling various JSON commands.
 class RSCommand {
-protected:
+ protected:
   const std::string _cmd_name;
   std::map<std::string, int> _valid_params_map;
 
@@ -58,7 +58,7 @@ protected:
 
   virtual Json::Value check_responses(Json::Value &responses);
 
-public:
+ public:
   enum ErrorCode {
     Success = 0,
     Error = -1,
@@ -84,10 +84,10 @@ public:
 };
 
 class AddEntity : public RSCommand {
-private:
+ private:
   std::string _storage_blob;
 
-public:
+ public:
   AddEntity();
   int construct_protobuf(PMGDQuery &query, const Json::Value &root,
                          const std::string &blob, int grp_id,
@@ -97,7 +97,7 @@ public:
 };
 
 class AddConnection : public RSCommand {
-public:
+ public:
   AddConnection();
   int construct_protobuf(PMGDQuery &query, const Json::Value &root,
                          const std::string &blob, int grp_id,
@@ -105,7 +105,7 @@ public:
 };
 
 class UpdateEntity : public RSCommand {
-public:
+ public:
   UpdateEntity();
   int construct_protobuf(PMGDQuery &query, const Json::Value &root,
                          const std::string &blob, int grp_id,
@@ -113,7 +113,7 @@ public:
 };
 
 class UpdateConnection : public RSCommand {
-public:
+ public:
   UpdateConnection();
   int construct_protobuf(PMGDQuery &query, const Json::Value &root,
                          const std::string &blob, int grp_id,
@@ -121,7 +121,7 @@ public:
 };
 
 class FindEntity : public RSCommand {
-public:
+ public:
   FindEntity();
   int construct_protobuf(PMGDQuery &query, const Json::Value &root,
                          const std::string &blob, int grp_id,
@@ -134,7 +134,7 @@ public:
 };
 
 class DeleteExpired : public RSCommand {
-public:
+ public:
   DeleteExpired();
   int construct_protobuf(PMGDQuery &query, const Json::Value &root,
                          const std::string &blob, int grp_id,
@@ -147,10 +147,10 @@ public:
 };
 
 class FindConnection : public RSCommand {
-public:
+ public:
   FindConnection();
   int construct_protobuf(PMGDQuery &query, const Json::Value &root,
                          const std::string &blob, int grp_id,
                          Json::Value &error);
 };
-}; // namespace VDMS
+};  // namespace VDMS

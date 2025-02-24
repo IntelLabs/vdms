@@ -1,20 +1,19 @@
 #include "CSVParserUtil.h"
 namespace VDMS {
 class BoundingBoxQueryParser : public CSVParserUtil {
-private:
+ private:
   vector<string> rectangleKeys{"x", "y", "w", "h"};
   void parseRectangle(string row, string queryType, Json::Value &aquery);
 
-public:
+ public:
   VDMS::Response ParseAddBoundingBox(vector<string> row, vector<string> cols);
   // VDMS::Response ParseUpdateBoundingBox(vector<string> row, vector<string>&
   // cols);
 };
-}; // namespace VDMS
+};  // namespace VDMS
 
-VDMS::Response
-VDMS::BoundingBoxQueryParser::ParseAddBoundingBox(vector<string> row,
-                                                  vector<string> columnNames) {
+VDMS::Response VDMS::BoundingBoxQueryParser::ParseAddBoundingBox(
+    vector<string> row, vector<string> columnNames) {
   if (row.empty() || row[0].empty()) {
     throw "please provide rectangle details";
   }
@@ -49,8 +48,7 @@ VDMS::BoundingBoxQueryParser::ParseAddBoundingBox(vector<string> row,
     }
   }
 
-  if (cons)
-    allquery.append(aqueryf);
+  if (cons) allquery.append(aqueryf);
 
   allquery.append(aquery);
   // std::cout<<allquery<<std::endl;

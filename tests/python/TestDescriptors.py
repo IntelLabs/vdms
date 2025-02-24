@@ -41,7 +41,6 @@ class TestDescriptors(TestCommand.TestCommand):
         constraints: dict = None,
         results: dict = None,
     ):
-
         descriptor: dict = {"set": setname}
 
         if "Add" in command_str and label is not None:
@@ -207,7 +206,6 @@ class TestDescriptors(TestCommand.TestCommand):
         self.disconnect(db)
 
     def test_AddSetAndWrongBatchSize(self):
-
         db = self.create_connection()
 
         # Create and verify descriptor set
@@ -255,7 +253,6 @@ class TestDescriptors(TestCommand.TestCommand):
         self.disconnect(db)
 
     def test_AddSetAndInsertBatch(self):
-
         db = self.create_connection()
 
         # Create and verify descriptor set
@@ -316,7 +313,6 @@ class TestDescriptors(TestCommand.TestCommand):
         self.disconnect(db)
 
     def test_AddBatchAndFindKNN(self):
-
         db = self.create_connection()
 
         # Create and verify descriptor set

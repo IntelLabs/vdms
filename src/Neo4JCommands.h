@@ -31,82 +31,15 @@
 
 #pragma once
 
+#include <jsoncpp/json/value.h>
+
 #include "queryMessage.pb.h"
 #include "vcl/Image.h"
 #include "vcl/VCL.h"
-#include <jsoncpp/json/value.h>
 #include "DescriptorsManager.h"
 #include "tbb/concurrent_unordered_map.h"
-
-namespace VDMS {
-
-    typedef std::pair<std::vector<long>, std::vector<float>> IDDistancePair;
-
-class Neo4jCommand {
-protected:
-  const std::string _cmd_name;
-  std::map<std::string, int> _valid_params_map;
-
-  template <typename T>
-  T get_value(const Json::Value &json, const std::string &key, T def = T());
-  void add_link(std::string &tx, const Json::Value &link, int node_ref,
-                const std::string tag);
-  virtual Json::Value check_responses(Json::Value &responses);
-  bool _use_aws_storage;
-
-public:
-  enum ErrorCode {
-    Success = 0,
-    Error = -1,
-    Empty = 1,
-    Exists = 2,
-    NotUnique = 3
-  };
-
-  Neo4jCommand(const std::string &cmd_name);
-  virtual bool need_blob(const Json::Value &cmd) { return false; }
-  virtual int data_processing(std::string &tx, const Json::Value &root,
-                              const std::string &blob, int grp_id,
-                              Json::Value &error) = 0;
-  virtual Json::Value construct_responses(Json::Value &json_responses,
-                                          const Json::Value &json,
-                                          protobufs::queryMessage &response,
-                                          const std::string &blob);
-};
-
-// Cypher Based Commands
-class Neo4jNeoAdd : public Neo4jCommand {
-  std::string _storage_tdb;
-  std::string _storage_png;
-  std::string _storage_jpg;
-  std::string _storage_bin;
-
-public:
-  Neo4jNeoAdd();
-  bool need_blob(const Json::Value &cmd);
-  int data_processing(std::string &tx, const Json::Value &root,
-                      const std::string &blob, int grp_id, Json::Value &error);
-  Json::Value construct_responses(Json::Value &neo4j_responses,
-                                  const Json::Value &orig_query,
-                                  protobufs::queryMessage &query_res,
-                                  const std::string &blob);
-};
-
-class Neo4jNeoFind : public Neo4jCommand {
-
-public:
-  Neo4jNeoFind();
-  bool need_blob(const Json::Value &cmd) { return false; }
-  int data_processing(std::string &tx, const Json::Value &root,
-                      const std::string &blob, int grp_id, Json::Value &error);
-  Json::Value construct_responses(Json::Value &json_responses,
-                                  const Json::Value &json,
-                                  protobufs::queryMessage &response,
-                                  const std::string &blob);
-};
-
 class NeoDescriptorsCommand : public Neo4jCommand {
-protected:
+  protected:
     DescriptorsManager *_dm;
     VCL::DescriptorSetEngine _eng;
     bool output_vcl_timing;
@@ -129,7 +62,7 @@ protected:
     bool check_blob_size(const std::string &blob, const int dimensions,
                          const long n_desc);
 
-public:
+  public:
     NeoDescriptorsCommand(const std::string &cmd_name);
 
     virtual bool need_blob(const Json::Value &cmd) { return false; }
@@ -155,7 +88,7 @@ class Neo4jNeoAddDescSet : public NeoDescriptorsCommand{
     // less than 32, otherwise segfault will happen
     uint64_t _flinng_cut_off;
 
-public:
+  public:
     Neo4jNeoAddDescSet();
     bool need_blob(const Json::Value &cmd){return false;};
     int data_processing(std::string &tx, const Json::Value &root,
@@ -171,7 +104,7 @@ class Neo4jNeoFindDescSet : public NeoDescriptorsCommand{
 
     std::string _storage_sets;
 
-public:
+  public:
     Neo4jNeoFindDescSet();
     bool need_blob(const Json::Value &cmd){return false;};
     int data_processing(std::string &tx, const Json::Value &root,
@@ -200,7 +133,7 @@ class Neo4jNeoAddDesc : public NeoDescriptorsCommand{
 
 
 
-public:
+  public:
         Neo4jNeoAddDesc();
         bool need_blob(const Json::Value &cmd) {return true;};
         int data_processing(std::string &tx, const Json::Value &root,
@@ -214,13 +147,13 @@ public:
 
 class Neo4jNeoFindDesc : public NeoDescriptorsCommand{
 
-private:
+  private:
     void convert_properties(Json::Value &entities, Json::Value &list,
                             std::string set_name);
     void populate_blobs(const std::string &set_path, std::string set_name,
                         const Json::Value &results, Json::Value &entities,
                         protobufs::queryMessage &query_res);
-public:
+  public:
     Neo4jNeoFindDesc();
     bool need_blob(const Json::Value &cmd);
     int data_processing(std::string &tx, const Json::Value &root,
@@ -231,4 +164,4 @@ public:
                                     const std::string &blob);
 };
 
-} // namespace VDMS
+}  // namespace VDMS

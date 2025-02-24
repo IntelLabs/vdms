@@ -30,7 +30,7 @@
  */
 #pragma once
 
-#include "PMGDQueryHandler.h" // to provide the database connection
+#include "PMGDQueryHandler.h"  // to provide the database connection
 #include "QueryHandlerBase.h"
 #include "RSCommand.h"
 #include "Server.h"
@@ -38,8 +38,7 @@
 namespace VDMS {
 
 class QueryHandlerPMGD : public QueryHandlerBase {
-
-protected:
+ protected:
   friend class QueryHandlerTester;
 
   static std::unordered_map<std::string, RSCommand *> _rs_cmds;
@@ -51,7 +50,7 @@ protected:
   int parse_commands(const protobufs::queryMessage &proto_query,
                      Json::Value &root);
 
-public:
+ public:
   static void init();
   QueryHandlerPMGD();
 
@@ -68,4 +67,4 @@ public:
   bool output_query_level_timing;
 };
 
-} // namespace VDMS
+}  // namespace VDMS

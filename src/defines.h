@@ -57,7 +57,7 @@
 // Descriptor Set
 
 #define VDMS_DESC_SET_TAG "VD:DESCSET"
-#define VDMS_DESC_SET_EDGE_TAG "VD:DESCSETLINK" // link between set and desc
+#define VDMS_DESC_SET_EDGE_TAG "VD:DESCSETLINK"  // link between set and desc
 #define VDMS_DESC_SET_PATH_PROP "VD:descSetPath"
 #define VDMS_DESC_SET_NAME_PROP "VD:name"
 #define VDMS_DESC_SET_DIM_PROP "VD:dimensions"

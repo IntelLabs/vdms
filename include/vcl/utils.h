@@ -30,6 +30,7 @@
 #pragma once
 
 #include <time.h>
+
 #include <vector>
 
 namespace VCL {
@@ -104,4 +105,4 @@ std::string create_unique(const std::string &path,
  * value of PNG and JPG format
  */
 Format read_image_format(void *buffer, long size);
-}; // namespace VCL
+};  // namespace VCL

@@ -5,15 +5,11 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.serialization import (
     Encoding,
     PrivateFormat,
-    BestAvailableEncryption,
     NoEncryption,
 )
 from cryptography.hazmat.backends import default_backend
 import datetime
 import os
-import socket
-import ssl
-import time
 
 
 def generate_private_key():
@@ -33,17 +29,18 @@ def generate_ca_certificate(subject_name, private_key):
         ]
     )
 
+    current_time = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+
     certificate = (
         x509.CertificateBuilder()
         .subject_name(subject)
         .issuer_name(issuer)
         .public_key(private_key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.datetime.utcnow())
+        .not_valid_before(current_time)
         .not_valid_after(
             # Our certificate will be valid for 10 days
-            datetime.datetime.utcnow()
-            + datetime.timedelta(days=10)
+            current_time + datetime.timedelta(days=10)
         )
         .add_extension(
             x509.BasicConstraints(ca=True, path_length=None),
@@ -70,17 +67,18 @@ def generate_signed_certificate(
 
     issuer = issuer_certificate.subject
 
+    current_time = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+
     certificate = (
         x509.CertificateBuilder()
         .subject_name(subject)
         .issuer_name(issuer)
         .public_key(subject_private_key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.datetime.utcnow())
+        .not_valid_before(current_time)
         .not_valid_after(
             # Our certificate will be valid for 10 days
-            datetime.datetime.utcnow()
-            + datetime.timedelta(days=10)
+            current_time + datetime.timedelta(days=10)
         )
         .add_extension(
             x509.BasicConstraints(ca=False, path_length=None),
@@ -105,7 +103,6 @@ def write_to_disk(directory, name, key, cert):
 
 
 if __name__ == "__main__":
-
     #####################################################################################
     # GENERATE TRUSTED CERTS AND KEYS
     #####################################################################################

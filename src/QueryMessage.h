@@ -38,10 +38,10 @@ namespace VDMS {
 class QueryMessage {
   comm::Connection *_conn;
 
-public:
+ public:
   QueryMessage(comm::Connection *conn);
 
   protobufs::queryMessage get_query();
   void send_response(protobufs::queryMessage cmd);
 };
-}; // namespace VDMS
+};  // namespace VDMS

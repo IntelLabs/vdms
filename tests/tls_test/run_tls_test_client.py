@@ -1,6 +1,5 @@
 import socket
 import ssl
-import time
 
 
 def print_and_flush(message):
@@ -76,7 +75,6 @@ class TLSServer:
 
 
 if __name__ == "__main__":
-
     tls_client = TLSServer(
         ca_cert_path="/tmp/trusted_ca_cert.pem",
         server_cert_path="/tmp/trusted_server_cert.pem",
