@@ -1967,9 +1967,7 @@ class TestNeo4jTest(unittest.TestCase):
             patch.object(
                 neo4j_test, "run_minio_server", return_value=123
             ) as mock_run_minio_server,
-            patch.object(
-                neo4j_test, "run_google_tests", return_value=456
-            ),
+            patch.object(neo4j_test, "run_google_tests", return_value=456),
         ):
             neo4j_test.run(testing_args)
             mock_run_minio_server.assert_called_once()
@@ -1996,9 +1994,7 @@ class TestNeo4jTest(unittest.TestCase):
                 neo4j_test, "run_minio_server", return_value=789
             ) as mock_run_minio_server,
             patch.object(neo4j_test, "run_vdms_server") as mock_run_vdms_server,
-            patch.object(
-                neo4j_test, "run_google_tests", return_value=1011
-            ),
+            patch.object(neo4j_test, "run_google_tests", return_value=1011),
         ):
             neo4j_test.run(testing_args)
             mock_run_minio_server.assert_called_once()
