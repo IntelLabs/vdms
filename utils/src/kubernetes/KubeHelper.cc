@@ -88,8 +88,8 @@ int KubeHelper::pod_creator(char* PodName,std::string worker_node_name){
                         free(apiClient);
                         apiClient_unsetupGlobalEnv();
                     return 0;}
-        }        
-    return -1;   
+        }
+    return -1;
 }
 //This function will load the necessary authentication configs for interating with the kube-api-server
 // It will populate the necessary fields and then create a service in the cluster
@@ -113,7 +113,7 @@ int KubeHelper::service_creator(char * ServiceName, char *AppSelector){
             v1_service_port_t *servicePort = (v1_service_port_t*)calloc(1, sizeof(v1_service_port_t));
                 if (!servicePort) {
                     fprintf(stderr, "Memory allocation for servicePort failed\n");
-                    return -1;}      
+                    return -1;}
             int prt = 5050;
             servicePort->port = prt;
             // Add the ServicePort to a list
@@ -174,7 +174,7 @@ std::vector<std::string> KubeHelper::get_workernode(){
     }
     std::ifstream fileStream(filename);
     if (!fileStream.is_open()) {
-        std::cerr << "Failed to open " << filename << std::endl;  
+        std::cerr << "Failed to open " << filename << std::endl;
     }
     Json::Value root;
     Json::CharReaderBuilder builder;
@@ -225,7 +225,7 @@ std::string KubeHelper::query_scheduler(std::string mediaType){
     std::string url_final;
     KubeHelper k8s_object;
 
-    static std::vector<std::string> worker_nodes_list = k8s_object.get_workernode(); 
+    static std::vector<std::string> worker_nodes_list = k8s_object.get_workernode();
     static int num_worker_node = worker_nodes_list.size();
     if((KubeHelper::query_counter)>=0 && (KubeHelper::query_counter)<num_worker_node){
         std::string app = "rudf";
@@ -238,7 +238,7 @@ std::string KubeHelper::query_scheduler(std::string mediaType){
         return url_final;
     }
     else{
-        //the new load balancer - Round Robin 
+        //the new load balancer - Round Robin
         int div = (KubeHelper::query_counter)%num_worker_node;
         std::string sv = "rudf";
         std::string num = std::to_string(div);

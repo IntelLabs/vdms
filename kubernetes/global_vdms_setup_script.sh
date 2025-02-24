@@ -22,13 +22,13 @@ remoteSetupFunction()
    echo "Setup the docker images and registries will be created on the remote machine"
    sudo docker image load < remote_segment.tar
    sudo docker run -d -p 5000:5000 --name registry registry:2
-   sudo docker tag remote-udf-1  localhost:5000/remote-udf-1 
+   sudo docker tag remote-udf-1  localhost:5000/remote-udf-1
    sudo docker push localhost:5000/remote-udf-1
 }
 remoteInstallFunction()
 {
    echo "Dependency Installations will now be done on the remote machine"
-   ##install containerd 
+   ##install containerd
    wget https://github.com/containerd/containerd/releases/download/v1.6.14/containerd-1.6.14-linux-amd64.tar.gz
    sudo tar Cxzvf /usr/local containerd-1.6.2-linux-amd64.tar.gz
    wget https://github.com/opencontainers/runc/releases/download/v1.1.3/runc.amd64
@@ -83,7 +83,7 @@ remoteInstallFunction()
 masterInstallFunction()
 {
    echo "Dependency Installation will now be done on the VDMS Master node"
-   ##install containerd 
+   ##install containerd
    wget https://github.com/containerd/containerd/releases/download/v1.6.14/containerd-1.6.14-linux-amd64.tar.gz
    sudo tar Cxzvf /usr/local containerd-1.6.2-linux-amd64.tar.gz
    wget https://github.com/opencontainers/runc/releases/download/v1.1.3/runc.amd64
@@ -131,7 +131,7 @@ masterInstallFunction()
    curl -sSL "https://raw.githubusercontent.com/kubernetes/release/${RELEASE_VERSION}/cmd/krel/templates/latest/kubelet/kubelet.service" | sed "s:/usr/bin:${DOWNLOAD_DIR}:g" | sudo tee /usr/lib/systemd/system/kubelet.service
    sudo mkdir -p /usr/lib/systemd/system/kubelet.service.d
    curl -sSL "https://raw.githubusercontent.com/kubernetes/release/${RELEASE_VERSION}/cmd/krel/templates/latest/kubeadm/10-kubeadm.conf" | sed "s:/usr/bin:${DOWNLOAD_DIR}:g" | sudo tee /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
-   #Install Cillium 
+   #Install Cillium
    CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
    CLI_ARCH=amd64
    if [ "$(uname -m)" = "aarch64" ]; then CLI_ARCH=arm64; fi
@@ -139,7 +139,7 @@ masterInstallFunction()
    sha256sum --check cilium-linux-${CLI_ARCH}.tar.gz.sha256sum
    sudo tar xzvfC cilium-linux-${CLI_ARCH}.tar.gz /usr/local/bin
    rm cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
-   
+
    sudo docker image load < vdms.tar
    sudo docker run -d -p 5000:5000 --name registry registry:2
    sudo docker tag vdms localhost:5000/vdms
@@ -167,7 +167,7 @@ jsonparserFunction_remote()
    one=1
    count=$(($num_workers-$one))
    for i in $(seq 0 $count);
-   do 
+   do
       node=$(echo $workers | jq -r ".[$i]")
       dict_string="${node#\{}"
       dict_string="${dict_string%\}}"
@@ -189,7 +189,7 @@ jsonparserFunction_setup()
    one=1
    count=$(($num_workers-$one))
    for i in $(seq 0 $count);
-   do 
+   do
       node=$(echo $workers | jq -r ".[$i]")
       dict_string="${node#\{}"
       dict_string="${dict_string%\}}"
@@ -291,7 +291,7 @@ if [ "$install_arg" == "yes" ]; then
       echo "Installing Dependecies on the remote Node"
       remoteInstallFunction
    fi
-   if [ "$machinetype" == "master" ]; then 
+   if [ "$machinetype" == "master" ]; then
       echo "Installing Dependecies on the master Node"
       masterInstallFunction
    fi
@@ -302,7 +302,7 @@ if [ "$setup_arg" == "yes" ]; then
       echo "setup the remote Node"
       remoteSetupFunction
    fi
-   if [ "$machinetype" == "master" ]; then 
+   if [ "$machinetype" == "master" ]; then
       echo "setup the master Node"
       masterSetupFunction
       jsonparserFunction_setup $config_path
@@ -316,7 +316,7 @@ if [ "$k8s_setup_arg" == "yes" ]; then
       chmod +x join_vdms_cluster.sh
       ./join_vdms_cluster.sh
    fi
-   if [ "$machinetype" == "master" ]; then 
+   if [ "$machinetype" == "master" ]; then
       echo "setup the k8s on master Node"
       masterVDMSk8setupFunction $config_path
    fi

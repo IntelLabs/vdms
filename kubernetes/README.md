@@ -75,13 +75,13 @@ Restart the services as mentioned below
 
 Clone the VDMS github reposistory on the Master Node and Worker Node
 
-On the Master node follow the steps below after downloading the VDMS image - 
+On the Master node follow the steps below after downloading the VDMS image -
 ```bash
     cd kubernetes/
     chmod +x global_vdms_setup_script.sh
     ./global_vdms_setup_script.sh -m master -i yes
 ```
-On the Worker Node follow the steps below after downloading/creating the remote UDF - 
+On the Worker Node follow the steps below after downloading/creating the remote UDF -
 
 ```bash
     cd kubernetes/
@@ -91,7 +91,7 @@ On the Worker Node follow the steps below after downloading/creating the remote 
 
 Now update the kubeConfig.json file to add the Master and Worker Node details as per steps provided in first section
 
-On the Worker Node follow the steps below to load the remote UDF image locally 
+On the Worker Node follow the steps below to load the remote UDF image locally
 
 ```bash
     ./global_vdms_setup_script.sh -m remote -s yes
@@ -106,12 +106,12 @@ On the Master Node execute the following command
 
 The file named join_vdms_cluster.sh will be created in <mark>kubernetes/</mark> folder, copy/transfer that to the <mark>kubernetes/</mark> folder at the Worker nodes
 
-On the Worker Node execute the following command 
+On the Worker Node execute the following command
 ```bash
     ./global_vdms_setup_script.sh -m remote -k yes
 ```
 
-Final step, On the Master Node execute the following command 
+Final step, On the Master Node execute the following command
 ```bash
     ./global_vdms_setup_script.sh -m master -k yes -j <path to kubeConfig.json>
 ```

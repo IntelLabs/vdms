@@ -2,7 +2,7 @@ FROM python:3.10
 RUN /bin/bash -c "python3 -m venv venv"
 RUN /bin/bash -c "source venv/bin/activate"
 WORKDIR /remoteUDF
-COPY . . 
+COPY . .
 RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
 RUN /bin/bash -c "python3 -m pip install pip --upgrade"
 RUN /bin/bash -c "python3 -m pip install wheel"

@@ -137,7 +137,7 @@ class VDMSConfig {
   const bool &get_use_endpoint() { return use_endpoint; }
   const Aws::Utils::Logging::LogLevel get_aws_log_level() {
     return aws_log_level;
-  }  
+  }
   const bool &get_k8s_flag() { return k8s_flag; }
 
  protected:
