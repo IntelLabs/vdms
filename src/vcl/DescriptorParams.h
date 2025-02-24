@@ -34,32 +34,31 @@
 
 #pragma once
 
+#include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #include <fstream>
 #include <map>
 #include <mutex>
 #include <string>
 #include <vector>
 
-#include <dirent.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-
 #include "vcl/DescriptorSet.h"
 
 namespace VCL {
 
 class DescriptorParams {
-
-public:
+ public:
   /* Params needed for FLINNG */
   // constants for now until we derive them from N and dimensions
   uint64_t num_rows;
   uint64_t cells_per_row;
   uint64_t num_hash_tables;
   uint64_t hashes_per_table;
-  uint64_t sub_hash_bits; // sub_hash_bits * hashes_per_table must be less than
-                          // 32, otherwise segfault will happen
+  uint64_t sub_hash_bits;  // sub_hash_bits * hashes_per_table must be less than
+                           // 32, otherwise segfault will happen
   uint64_t cut_off;
 
   DescriptorParams(uint64_t numrows = 3, uint64_t cellsperrow = (1 << 12),
@@ -74,4 +73,4 @@ public:
     this->cut_off = cutoff;
   }
 };
-}; // namespace VCL
+};  // namespace VCL

@@ -31,15 +31,16 @@
 
 #pragma once
 
+#include <jsoncpp/json/value.h>
+
 #include "queryMessage.pb.h"
 #include "vcl/Image.h"
 #include "vcl/VCL.h"
-#include <jsoncpp/json/value.h>
 
 namespace VDMS {
 
 class Neo4jCommand {
-protected:
+ protected:
   const std::string _cmd_name;
   std::map<std::string, int> _valid_params_map;
 
@@ -50,7 +51,7 @@ protected:
   virtual Json::Value check_responses(Json::Value &responses);
   bool _use_aws_storage;
 
-public:
+ public:
   enum ErrorCode {
     Success = 0,
     Error = -1,
@@ -77,7 +78,7 @@ class Neo4jNeoAdd : public Neo4jCommand {
   std::string _storage_jpg;
   std::string _storage_bin;
 
-public:
+ public:
   Neo4jNeoAdd();
   bool need_blob(const Json::Value &cmd);
   int data_processing(std::string &tx, const Json::Value &root,
@@ -89,8 +90,7 @@ public:
 };
 
 class Neo4jNeoFind : public Neo4jCommand {
-
-public:
+ public:
   Neo4jNeoFind();
   bool need_blob(const Json::Value &cmd) { return false; }
   int data_processing(std::string &tx, const Json::Value &root,
@@ -101,4 +101,4 @@ public:
                                   const std::string &blob);
 };
 
-} // namespace VDMS
+}  // namespace VDMS

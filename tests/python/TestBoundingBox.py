@@ -45,7 +45,7 @@ class TestBoundingBox(TestCommand.TestCommand):
         bb["rectangle"] = bb_coords
 
         # adds some prop
-        if not props is None:
+        if props is not None:
             bb["properties"] = props
 
         query = {}
@@ -419,7 +419,6 @@ class TestBoundingBox(TestCommand.TestCommand):
 
         self.assertEqual(len(img_array), self.number_of_inserts)
         for i in range(0, self.number_of_inserts):
-            coord = self.number_of_inserts - i - 1
             self.assertEqual(response[i]["FindBoundingBox"]["status"], 0)
             self.assertEqual(
                 response[i]["FindBoundingBox"]["entities"][0]["name"],

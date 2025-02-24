@@ -343,7 +343,7 @@
       "required": ["type", "url"],
       "additionalProperties": false
     },
-    
+
     "operationRemote" : {
       "type": "object",
       "properties": {
@@ -536,7 +536,7 @@
       "additionalProperties": false
     },
 
-    
+
 
 
     "UpdateVideoTop": {
@@ -736,10 +736,10 @@
         "storeIndex" : { "type": "boolean" },
         "constraints": { "type": "object" },
         "link":       { "$ref": "#/definitions/blockLink" }
-        
+
         },
         "required": ["set"],
-      
+
       "additionalProperties": false
     },
 
@@ -828,7 +828,7 @@
         "from_file_path": { "type": "string"},
          "link":             { "$ref": "#/definitions/blockLink" },
          "properties":       { "type": "object" }
-        
+
       },
       "additionalProperties": false
     },
@@ -872,7 +872,7 @@
       },
       "additionalProperties": false
     },
-   
+
     "UpdateVideo": {
       "properties": {
         "_ref":         { "$ref": "#/definitions/refInt" },

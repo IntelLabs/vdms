@@ -1,24 +1,25 @@
 #pragma once
+#include <jsoncpp/json/reader.h>
+#include <jsoncpp/json/writer.h>
+#include <time.h>
+
 #include <cassert>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
-#include <jsoncpp/json/reader.h>
-#include <jsoncpp/json/writer.h>
 #include <list>
 #include <regex>
-#include <time.h>
 #include <vector>
 
 #include "VDMSClient.h"
+#include "gtest/gtest.h"
 #include "helpers.h"
 #include "vcl/VCL.h"
-#include "gtest/gtest.h"
 
 class Meta_Data {
-public:
+ public:
   std::shared_ptr<VDMS::VDMSClient> _aclient;
   std::string _server_name = "localhost";
   int _port = 55558;

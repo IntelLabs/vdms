@@ -1,16 +1,15 @@
 #include "CSVParserUtil.h"
 namespace VDMS {
 class ConnectionQueryParser : public CSVParserUtil {
-public:
+ public:
   VDMS::Response ParseAddConnection(vector<string> row, vector<string> &cols);
   //    VDMS::Response  ParseUpdateConnection(vector<string> row, vector<string>
   //    & cols);
 };
-}; // namespace VDMS
+};  // namespace VDMS
 
-VDMS::Response
-VDMS::ConnectionQueryParser::ParseAddConnection(vector<string> row,
-                                                vector<string> &columnNames) {
+VDMS::Response VDMS::ConnectionQueryParser::ParseAddConnection(
+    vector<string> row, vector<string> &columnNames) {
   Json::Value aquery;
   Json::Value allquery;
   Json::Value find_query1, find_query2, find_query;

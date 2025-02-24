@@ -1,7 +1,6 @@
 import ssl
 import unittest
 import vdms
-import json
 import os
 
 

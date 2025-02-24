@@ -31,16 +31,16 @@
 
 #pragma once
 
+#include <aws/core/utils/logging/AWSLogging.h>
+#include <aws/core/utils/logging/DefaultLogSystem.h>
+#include <jsoncpp/json/value.h>
+
 #include <iomanip>
 #include <iostream>
 #include <optional>
 #include <sstream>
 #include <string>
 #include <vector>
-
-#include <aws/core/utils/logging/AWSLogging.h>
-#include <aws/core/utils/logging/DefaultLogSystem.h>
-#include <jsoncpp/json/value.h>
 
 #include "VDMSConfigHelper.h"
 
@@ -94,8 +94,7 @@ const std::string PARAM_KUBERNETES_CONTAINER = "use_k8s_container";
 namespace VDMS {
 
 class VDMSConfig {
-
-public:
+ public:
   static bool init(std::string config_file);
   static bool destroy();
 
@@ -141,13 +140,13 @@ public:
   }  
   const bool &get_k8s_flag() { return k8s_flag; }
 
-protected:
+ protected:
   static VDMSConfig *cfg;
   static std::mutex _mutex;
   VDMSConfig(std::string config_file);
   ~VDMSConfig() {}
 
-private:
+ private:
   Json::Value json_config;
 
   // Dirs
@@ -164,9 +163,9 @@ private:
   std::string path_tmp;
   StorageType storage_type;
 
-  bool aws_flag;               // use aws flag
-  std::string aws_bucket_name; // aws bucket name
-  bool use_endpoint;           // Use Mocked S3 server or real AWS S3
+  bool aws_flag;                // use aws flag
+  std::string aws_bucket_name;  // aws bucket name
+  bool use_endpoint;            // Use Mocked S3 server or real AWS S3
 
   bool k8s_flag;
 
@@ -202,4 +201,4 @@ private:
   }
 };
 
-}; // namespace VDMS
+};  // namespace VDMS

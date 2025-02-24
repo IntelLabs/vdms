@@ -54,13 +54,13 @@ typedef std::vector<KeyFrame> KeyFrameList;
 typedef std::vector<std::string> EncodedFrameList;
 
 class KeyFrameOp {
-protected:
+ protected:
   struct FormatContext {
     AVFormatContext *fmt_context;
 
     // For now, we only process videos with a SINGLE video stream.
-    AVStream *video_stream;    // Pointer to the video stream in the ctx
-    unsigned video_stream_idx; // Index to the video stream in the ctx
+    AVStream *video_stream;     // Pointer to the video stream in the ctx
+    unsigned video_stream_idx;  // Index to the video stream in the ctx
   };
 
   FormatContext _fctx;
@@ -72,7 +72,7 @@ protected:
   int init_stream(void);
   std::string error_msg(int errnum, const std::string &opt = "");
 
-public:
+ public:
   KeyFrameOp(std::string filename);
   virtual ~KeyFrameOp();
 };
@@ -81,14 +81,14 @@ public:
 /*    KEY_FRAME_PARSER      */
 /*  *********************** */
 class KeyFrameParser : public KeyFrameOp {
-private:
+ private:
   KeyFrameList _frame_list;
 
   int fill_frame_list(void) noexcept;
 
-public:
-  KeyFrameParser(std::string filename) : KeyFrameOp(filename){};
-  ~KeyFrameParser() override{};
+ public:
+  KeyFrameParser(std::string filename) : KeyFrameOp(filename) {};
+  ~KeyFrameParser() override {};
 
   const KeyFrameList &parse(void);
 };
@@ -97,7 +97,7 @@ public:
 /*    KEY_FRAME_DECODER     */
 /*  *********************** */
 class KeyFrameDecoder : public KeyFrameOp {
-private:
+ private:
   enum class H264Format { AVCC = 0, AnnexB = 1 };
 
   struct DecoderContext {
@@ -108,9 +108,11 @@ private:
     H264Format byte_stream_format;
 
     DecoderContext()
-        : bsf_context(NULL), video_codec_context(NULL),
-          frame_codec_context(NULL), sws_context(NULL),
-          byte_stream_format(H264Format::AVCC){};
+        : bsf_context(NULL),
+          video_codec_context(NULL),
+          frame_codec_context(NULL),
+          sws_context(NULL),
+          byte_stream_format(H264Format::AVCC) {};
   };
 
   struct FrameInterval {
@@ -139,11 +141,11 @@ private:
   int populate_interval_map(const std::vector<unsigned> &frames);
   int encode_frames(void);
 
-public:
+ public:
   KeyFrameDecoder(std::string filename);
   ~KeyFrameDecoder() override;
 
   void set_key_frames(const KeyFrameList &key_frames);
   EncodedFrameList &decode(const std::vector<unsigned> &frames);
 };
-} // namespace VCL
+}  // namespace VCL
