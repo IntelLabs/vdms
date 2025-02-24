@@ -550,7 +550,7 @@ class TestAbstractTest(unittest.TestCase):
     def test_abstract_test_cannot_be_instantiated(self):
         # Attempt to instantiate AbstractTest and expect a TypeError
         with self.assertRaises(TypeError):
-            abstract_test = AbstractTest()
+            _ = AbstractTest()
 
     def test_abstract_methods_are_defined(self):
         # Create a temporary concrete subclass within the test
@@ -1643,8 +1643,8 @@ class TestNeo4jTest(unittest.TestCase):
         with (
             patch.object(
                 neo4j_test, "get_type_of_neo_test", return_value=NEO4J_OPS_IO_TEST_TYPE
-            ) as mock_get_type_of_neo_test,
-            patch.dict("os.environ", {}, clear=True) as mock_environ,
+            ),
+            patch.dict("os.environ", {}, clear=True),
         ):
             # Call the method under test
             result = neo4j_test.fill_default_arguments(testing_args)
@@ -1969,7 +1969,7 @@ class TestNeo4jTest(unittest.TestCase):
             ) as mock_run_minio_server,
             patch.object(
                 neo4j_test, "run_google_tests", return_value=456
-            ) as mock_run_google_tests,
+            ),
         ):
             neo4j_test.run(testing_args)
             mock_run_minio_server.assert_called_once()
@@ -1998,7 +1998,7 @@ class TestNeo4jTest(unittest.TestCase):
             patch.object(neo4j_test, "run_vdms_server") as mock_run_vdms_server,
             patch.object(
                 neo4j_test, "run_google_tests", return_value=1011
-            ) as mock_run_google_tests,
+            ),
         ):
             neo4j_test.run(testing_args)
             mock_run_minio_server.assert_called_once()
@@ -2286,28 +2286,6 @@ class TestNonRemoteTest(unittest.TestCase):
         stderrFD = MagicMock()
         stdoutFD = MagicMock()
 
-        nonRemoteTest = NonRemoteTest()
-
-        # Call the method and expect an exception
-        with self.assertRaises(Exception) as context:
-            nonRemoteTest.setup_requirements_for_local_udf_message_queue(
-                stderrFD, stdoutFD
-            )
-
-        # Check the exception message
-        expected_message = (
-            "setup_requirements_for_local_udf_message_queue() error: Popen failed"
-        )
-        self.assertEqual(str(context.exception), expected_message)
-
-    @patch("run_all_tests.subprocess.Popen", side_effect=Exception("Popen failed"))
-    def test_setup_requirements_for_local_udf_message_queue_exception_during_popen(
-        self, mock_popen
-    ):
-        # Mock file descriptors
-        stderrFD = MagicMock()
-        stdoutFD = MagicMock()
-
         run_all_tests.DEBUG_MODE = True
 
         nonRemoteTest = NonRemoteTest()
@@ -2449,7 +2427,7 @@ class TestNonRemoteTest(unittest.TestCase):
         # Call the method and expect an exception
         tmp_dir = "/tmp/udf"
         with self.assertRaises(Exception) as context:
-            self.non_remote_test.setup_for_local_udf_message_queue_tests(
+            non_remote_test.setup_for_local_udf_message_queue_tests(
                 tmp_dir, stderrFD, stdoutFD
             )
 
@@ -2724,7 +2702,6 @@ class TestNonRemotePythonTest(unittest.TestCase):
         # Call the method under test with a None parser and verify that an exception is raised
         non_remote_python_test = NonRemotePythonTest()
         testing_args = TestingArgs()
-        parser = argparse.ArgumentParser()
 
         with self.assertRaises(Exception) as context:
             non_remote_python_test.validate_arguments(testing_args, None)
@@ -2998,7 +2975,6 @@ class TestRemoteTest(unittest.TestCase):
         # Call the method under test with a None parser and verify that an exception is raised
         remote_test = RemoteTest()
         testing_args = TestingArgs()
-        parser = argparse.ArgumentParser()
 
         with self.assertRaises(Exception) as context:
             remote_test.validate_arguments(testing_args, None)

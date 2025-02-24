@@ -136,21 +136,21 @@ def setup(functions_path, settings_path, tmp_path):
 
 
 if __name__ == "__main__":
-    if sys.argv[1] == None:
+    if sys.argv[1] is None:
         print(
             "Warning: Path to the functions directory is missing\nBy default the path will be the current directory"
         )
         print(
             "Correct Usage: python3 udf_local.py [functions_path] [settings_path] [tmp_path]"
         )
-    elif sys.argv[2] == None:
+    elif sys.argv[2] is None:
         print(
             "Warning: Path to the settings directory is missing\nBy default the path will be the current directory"
         )
         print(
             "Correct Usage: python3 udf_local.py [functions_path] [settings_path] [tmp_path]"
         )
-    elif sys.argv[3] == None:
+    elif sys.argv[3] is None:
         print(
             "Warning: Path to the temporary directory is missing\nBy default the path will be the current directory"
         )
