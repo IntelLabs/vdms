@@ -10,6 +10,8 @@
 #include <string>
 #include <tbb/concurrent_queue.h>
 #include <transaction.h>
+//#include <connection.h>
+//#include <result_stream.h>
 
 void print_val(neo4j_value_t val, int val_type);
 int val_check(neo4j_value_t val);

@@ -144,10 +144,6 @@ void Neo4jNeoFindDesc::populate_blobs(const std::string &set_path,
             desc_blob->resize(sizeof(float) * dim);
 
             set->get_descriptors(&id, 1, (float *)(*desc_blob).data());
-            if (output_vcl_timing) {
-                set->timers.print_map_runtimes();
-            }
-            set->timers.clear_all_timers();
         }
     }
 }
@@ -218,6 +214,7 @@ std::string NeoDescriptorsCommand::get_set_path(const std::string &set_name,
     //issue cypher command and get result stream, convert response to JSON
     res_stream = QueryHandlerNeo4j::neoconn_pool->run_in_tx((char *)cypher_tx.c_str(), tx);
     neo4j_resp = QueryHandlerNeo4j::neoconn_pool->results_to_json(res_stream);
+    QueryHandlerNeo4j::neoconn_pool->commit_tx(tx);
     QueryHandlerNeo4j::neoconn_pool->put_conn(conn);
 
     if (neo4j_resp.isMember("metadata_res")) {
@@ -236,6 +233,33 @@ std::string NeoDescriptorsCommand::get_set_path(const std::string &set_name,
 
     return "";
 }
+
+void NeoDescriptorsCommand::add_vec_id_idx(const std::string &set_name) {
+
+    //Neo4j Logic
+    neo4j_transaction *tx;
+    neo4j_connection_t *conn;
+    neo4j_result_stream_t *res_stream;
+    Json::Value neo4j_resp;
+    Json::Value ind_metadata;
+    std::string cypher_tx;
+    std::string desc_path_str;
+
+    cypher_tx = "CREATE INDEX idx_" + set_name + " FOR (n:VDMS_desc) ON (n.VD_descId_" + set_name +")";
+    std::cout << cypher_tx << std::endl;
+    conn = QueryHandlerNeo4j::neoconn_pool->get_conn();
+
+    // begin neo4j transaction
+    tx = QueryHandlerNeo4j::neoconn_pool->open_tx(conn, 10000, "w");
+
+    //issue cypher command and get result stream, convert response to JSON
+    res_stream = QueryHandlerNeo4j::neoconn_pool->run_in_tx((char *)cypher_tx.c_str(), tx);
+    neo4j_resp = QueryHandlerNeo4j::neoconn_pool->results_to_json(res_stream);
+    QueryHandlerNeo4j::neoconn_pool->commit_tx(tx);
+    QueryHandlerNeo4j::neoconn_pool->put_conn(conn);
+}
+
+
 
 NeoDescriptorsCommand::NeoDescriptorsCommand(const std::string &cmd_name)
         : Neo4jCommand(cmd_name) {
@@ -298,6 +322,10 @@ int Neo4jNeoAddDescSet::data_processing(std::string &cypher_tx, const Json::Valu
         return -1;
     }
 
+    //If we get here, the set does not exist, lets create an index for the
+    // IDs as they are key for query speed in filter-queries
+    add_vec_id_idx(set_name);
+
     //TODO Future dev to incorporate linking capability in some fashion
     //if (cmd.isMember("link")) {
     //    add_link(query, cmd["link"], node_ref, VDMS_DESC_SET_EDGE_TAG);
@@ -345,7 +373,7 @@ Json::Value Neo4jNeoAddDescSet::construct_responses(Json::Value &json_responses,
     else if (eng_str == "Flinng")
         _eng = VCL::Flinng;
     else if (eng_str == "FaissHNSWFlat")
-        _eng = VCL::FaissHNSWFlat;
+        _eng = VCL::FaissHNSWFlat; //WARNING
     else
         throw ExceptionCommand(DescriptorSetError, "Engine not supported");
 
@@ -361,10 +389,6 @@ Json::Value Neo4jNeoAddDescSet::construct_responses(Json::Value &json_responses,
         //TODO AWS storage not currently supported
 
         desc_set.store();
-        if (output_vcl_timing) {
-            desc_set.timers.print_map_runtimes();
-        }
-        desc_set.timers.clear_all_timers();
 
         delete (param);
     } catch (VCL::Exception e) {
@@ -448,10 +472,7 @@ long Neo4jNeoAddDesc::insert_descriptor(const std::string &blob,
         }
 
         //TODO reintegrate timers
-        /*if (output_vcl_timing) {
-            desc_set->timers.print_map_runtimes();
-        }
-        desc_set->timers.clear_all_timers();*/
+
     } catch (VCL::Exception e) {
         print_exception(e);
         error["info"] = "VCL Descriptors Exception";
@@ -523,7 +544,7 @@ int Neo4jNeoAddDesc::add_single_descriptor(std::string &tx,
     }
 
     tx += "})-[:part_of]->(descset)";
-    std::cout << tx << std::endl;
+    //std::cout << tx << std::endl;
     return 0;
 }
 
@@ -601,7 +622,7 @@ int Neo4jNeoAddDesc::add_descriptor_batch(std::string &tx,
         tx += "})-[:part_of]->(descset) ";
     }
 
-    std::cout << tx << std::endl;
+    //std::cout << tx << std::endl;
     return 0;
 }
 
@@ -738,7 +759,7 @@ int Neo4jNeoFindDesc::data_processing(std::string &tx, const Json::Value &root,
         append_results_to_cypher(tx,"n", results);
 
 
-        std::cout << tx << std::endl;
+        //std::cout << tx << std::endl;
     } else {
 
         Json::Value link_null; // null
@@ -805,7 +826,7 @@ int Neo4jNeoFindDesc::data_processing(std::string &tx, const Json::Value &root,
 
             //append returns
             append_results_to_cypher(tx,"n", results);
-            std::cout << tx << std::endl;
+            //std::cout << tx << std::endl;
 
         } catch (VCL::Exception e) {
             print_exception(e);
@@ -883,8 +904,8 @@ Json::Value Neo4jNeoFindDesc::construct_responses(Json::Value &neo4j_responses,
         findDesc["entities"] = resp_list;
         ret[_cmd_name] = findDesc;
         printf("CASE 2 RETURN\n");
-        std::cout << ret <<std::endl;
-        std::cout << md_list << std::endl;
+        //std::cout << ret <<std::endl;
+        //std::cout << md_list << std::endl;
 
     } else { // Case (3)
 

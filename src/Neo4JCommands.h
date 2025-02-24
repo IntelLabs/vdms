@@ -124,6 +124,8 @@ protected:
     std::string get_set_path(const std::string &set,
                              int &dim);
 
+    void add_vec_id_idx(const std::string &setname);
+
     bool check_blob_size(const std::string &blob, const int dimensions,
                          const long n_desc);
 

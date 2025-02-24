@@ -74,7 +74,7 @@ void QueryHandlerNeo4j::init() {
   char *pass = getenv("NEO4J_PASS");
 
   uint_fast32_t flags = NEO4J_INSECURE;
-  int nr_conns = 16;
+  int nr_conns = 32; //TODO update to be configurable
 
   neoconn_pool = new BackendNeo4j(nr_conns, (char *)tgtdb, user, pass, flags);
 
@@ -222,7 +222,7 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
 
     res_stream = neoconn_pool->run_in_tx((char *)cypher.c_str(), tx);
     neo4j_resp = neoconn_pool->results_to_json(res_stream);
-
+    std::cout << "Neo4J Resp:" << neo4j_resp << std::endl;
     query["cp_result"] = cmd_result;
 
     Json::Value resp_retval = rscmd->construct_responses(neo4j_resp, query, proto_res, blob);
@@ -242,7 +242,13 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
   // commit neo4j transaction, needs to be updated in future to account for
   // errors on response construction
   if (error == false) {
-    neoconn_pool->commit_tx(tx);
+    rc = neoconn_pool->commit_tx(tx);
+
+    if(rc != 0){
+        printf("Warning! Transaction Error: %d\n", rc);
+        exit(1);
+    }
+
   }
 
   neoconn_pool->put_conn(conn);

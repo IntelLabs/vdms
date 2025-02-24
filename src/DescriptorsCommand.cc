@@ -56,7 +56,6 @@ DescriptorsCommand::DescriptorsCommand(const std::string &cmd_name)
 std::string DescriptorsCommand::get_set_path(PMGDQuery &query_tx,
                                              const std::string &set_name,
                                              int &dim) {
-
   // Check cache for descriptor set, if its found set dimensions and return
   // path,
   // otherwise we go forward and query PMGD to locate the descriptor set
@@ -67,7 +66,6 @@ std::string DescriptorsCommand::get_set_path(PMGDQuery &query_tx,
     dim = _desc_set_dims[set_name];
     return mapped_path;
   }
-
   // Will issue a read-only transaction to check
   // if the Set exists
   PMGDQuery query(query_tx.get_pmgd_qh());
@@ -87,7 +85,6 @@ std::string DescriptorsCommand::get_set_path(PMGDQuery &query_tx,
   results["list"] = list_arr;
 
   bool unique = true;
-
   // Query set node
   query.add_group();
   query.QueryNode(-1, VDMS_DESC_SET_TAG, link, constraints, results, unique,
@@ -110,8 +107,10 @@ std::string DescriptorsCommand::get_set_path(PMGDQuery &query_tx,
     dim = ent[VDMS_DESC_SET_DIM_PROP].asInt();
     _desc_set_dims[set_name] = dim;
     _desc_set_locator[set_name] = set_path;
+
     return set_path;
   }
+
   return "";
 }
 
@@ -305,7 +304,7 @@ Json::Value AddDescriptorSet::construct_responses(
   else if (eng_str == "Flinng")
     _eng = VCL::Flinng;
   else if (eng_str == "FaissHNSWFlat")
-    _eng = VCL::FaissHNSWFlat;
+    _eng = VCL::FaissHNSWFlat; //WARNING
   else
     throw ExceptionCommand(DescriptorSetError, "Engine not supported");
 
@@ -326,10 +325,6 @@ Json::Value AddDescriptorSet::construct_responses(
     }
 
     desc_set.store();
-    if (output_vcl_timing) {
-      desc_set.timers.print_map_runtimes();
-    }
-    desc_set.timers.clear_all_timers();
 
     delete (param);
   } catch (VCL::Exception e) {
@@ -373,10 +368,6 @@ long AddDescriptor::insert_descriptor(const std::string &blob,
       id_first = desc_set->add((float *)blob.data(), nr_desc);
     }
 
-    if (output_vcl_timing) {
-      desc_set->timers.print_map_runtimes();
-    }
-    desc_set->timers.clear_all_timers();
   } catch (VCL::Exception e) {
     print_exception(e);
     error["info"] = "VCL Descriptors Exception";
@@ -1007,10 +998,6 @@ void FindDescriptor::populate_blobs(const std::string &set_path,
       desc_blob->resize(sizeof(float) * dim);
 
       set->get_descriptors(&id, 1, (float *)(*desc_blob).data());
-      if (output_vcl_timing) {
-        set->timers.print_map_runtimes();
-      }
-      set->timers.clear_all_timers();
     }
   }
 }
