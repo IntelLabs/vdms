@@ -1,10 +1,4 @@
 import cv2
-import numpy as np
-from datetime import datetime
-from collections import deque
-import skvideo.io
-import imutils
-import time
 import json
 
 face_cascade = cv2.CascadeClassifier(
@@ -23,10 +17,8 @@ def facedetectbbox(frame):
 
 def run(settings, message, input_params):
     ipfilename = message
-    format = message.strip().split(".")[-1]
 
     if input_params["media_type"] == "video":
-
         vs = cv2.VideoCapture(ipfilename)
         frameNum = 1
         metadata = {}

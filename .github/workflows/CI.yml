@@ -19,8 +19,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  PreCommit:
+    # Apply formatting and linting
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    uses: ./.github/workflows/_precommit.yml
+    secrets: inherit
+
   Get-Envs:
     name: Get Environment vars
+    needs: [PreCommit]
     runs-on: ubuntu-latest
     outputs:
       CHECKIN_DOCKERFILE: .github/scripts/docker-compose.yml
@@ -60,9 +70,9 @@ jobs:
   Update:
     permissions:
         contents: write
+        pull-requests: write
     # name: Lint & Update Reports
     needs: [Testing, Results]
-    if: ${{ always() }} 
     uses: ./.github/workflows/_CI_update.yml
     with:
         coverage_value_updated: ${{ needs.Testing.outputs.coverage_value_updated }}

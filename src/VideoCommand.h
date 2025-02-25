@@ -30,20 +30,20 @@
  */
 
 #pragma once
-#include "vcl/Video.h"
 #include <mutex>
 #include <string>
 #include <vector>
 
 #include "ExceptionsCommand.h"
 #include "RSCommand.h"
+#include "vcl/Video.h"
 
 namespace VDMS {
 
 // Helper classes for handling various JSON commands.
 
 class VideoCommand : public RSCommand {
-protected:
+ protected:
   void enqueue_operations(VCL::Video &video, const Json::Value &op,
                           bool is_addition = false);
 
@@ -52,7 +52,7 @@ protected:
   virtual Json::Value check_responses(Json::Value &responses);
   bool output_vcl_timing;
 
-public:
+ public:
   VideoCommand(const std::string &cmd_name);
 
   virtual int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
@@ -67,7 +67,7 @@ class AddVideo : public VideoCommand {
   std::string _storage_video;
   // bool _use_aws_storage;
 
-public:
+ public:
   AddVideo();
 
   int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
@@ -83,7 +83,7 @@ public:
 };
 
 class UpdateVideo : public VideoCommand {
-public:
+ public:
   UpdateVideo();
 
   int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
@@ -100,7 +100,7 @@ class FindVideo : public VideoCommand {
   // bool _use_aws_storage;
   std::vector<std::string> shortlisted_videos;
 
-public:
+ public:
   FindVideo();
 
   int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
@@ -117,7 +117,7 @@ class FindFrames : public VideoCommand {
   // bool _use_aws_storage;
   bool get_interval_index(const Json::Value &cmd, Json::ArrayIndex &op_index);
 
-public:
+ public:
   FindFrames();
 
   int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
@@ -130,4 +130,4 @@ public:
                                   const std::string &blob) override;
 };
 
-}; // namespace VDMS
+};  // namespace VDMS

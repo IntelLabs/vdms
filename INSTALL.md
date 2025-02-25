@@ -84,7 +84,7 @@ alias python3=/usr/bin/python3.x
 Now that python is setup, now install Numpy and also install the coverage and cryptography packages if interested in running the Python unit tests.
 ```bash
 python3 -m pip install --upgrade pip
-python3 -m pip install --no-cache-dir "numpy>=1.26.0" "coverage>=7.3.1" "cryptography>=42.0.7"
+python3 -m pip install --no-cache-dir "numpy>=1.26.0" "coverage>=7.3.1" "cryptography>=44.0.1"
 ```
 
 

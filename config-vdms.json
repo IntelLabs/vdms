@@ -4,7 +4,7 @@
 //    "key_file": "key.pem",
 //    "ca_file": "ca.pem",
     "autoreplicate_interval":-1, // it should be > 0
-    "unit":"s", 
+    "unit":"s",
     "max_simultaneous_clients": 100,
     // "backup_path":"backups_test", // set this if you want different path to store the back up file
     "db_root_path": "db",

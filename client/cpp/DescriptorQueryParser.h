@@ -2,15 +2,14 @@
 #include "CSVParserUtil.h"
 namespace VDMS {
 class DescriptorQueryParser : public CSVParserUtil {
-public:
+ public:
   VDMS::Response ParseAddDescriptor(vector<string> row,
                                     vector<string> &columnNames, int id);
 };
-}; // namespace VDMS
+};  // namespace VDMS
 
 VDMS::Response VDMS::DescriptorQueryParser::ParseAddDescriptor(
     vector<string> row, vector<string> &columnNames, int id) {
-
   if (row[0] == "") {
     throw "Set not provided";
   }
@@ -31,7 +30,6 @@ VDMS::Response VDMS::DescriptorQueryParser::ParseAddDescriptor(
         aquery["AddDescriptor"]["label"] = row[j];
       }
       if (columnNames[j] == "inputdata") {
-
         parseBlobFile(row[j], &descriptor);
         if (descriptor == nullptr) {
           std::cout << "Failed to parse blob file" << std::endl;

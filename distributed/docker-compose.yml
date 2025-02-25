@@ -15,7 +15,7 @@ services:
     container_name: broker
     depends_on:
       - zookeeper
-    
+
     ports:
       - "9092:9092"
       - "19092:19092"
@@ -52,7 +52,7 @@ services:
       - "8082:8082"
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper:2181'     
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper:2181'
   create-topics:
     image: confluentinc/cp-kafka:5.5.0
     hostname: create-topics
@@ -64,7 +64,7 @@ services:
       kafka-topics --create --if-not-exists --zookeeper zookeeper:2181 --partitions 2 --replication-factor 1 --topic vdms-query'"
     environment:
       KAFKA_BROKER_ID: ignored
-      KAFKA_ZOOKEEPER_CONNECT: ignored    
+      KAFKA_ZOOKEEPER_CONNECT: ignored
   data_store_1:
     build: '../docker/base'
     image: vdms_dist:1
@@ -74,25 +74,25 @@ services:
     network_mode: "host"
     #networks:
      # - default
-    
-    
+
+
   data_store_2:
     image: 'vdms_dist:1'
     container_name: 'data_store_2'
     network_mode: host
     ports:
-      - '55561:55561'  
-  #   # volumes: 
+      - '55561:55561'
+  #   # volumes:
   #   #   - type: 'bind'
   #   #   - 'vdms_data_2:/vdms/build/db'
   #   environment:
   #      NETWORK_PORT: 55561
   #   hostname: 'data_store_2'
-    
+
 # volumes:
 #    - 'vdms_data_1':
 #    - 'vdms_data_2':
 
 
 
-      
+

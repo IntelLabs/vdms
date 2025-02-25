@@ -2,27 +2,25 @@
 #include "CSVParserUtil.h"
 namespace VDMS {
 class ImageQueryParser : public CSVParserUtil {
-private:
+ private:
   std::mutex file_access_mutex;
 
-public:
+ public:
   // ImageQueryParser();
   VDMS::Response ParseAddImage(vector<string> row, vector<string> columnNames);
   // VDMS::Response ParseUpdateImage(vector<string> row,  vector<string>
   // columnNames);
   bool ValidImageFormat(string data);
 };
-}; // namespace VDMS
+};  // namespace VDMS
 
-VDMS::Response
-VDMS::ImageQueryParser::ParseAddImage(vector<string> row,
-                                      vector<string> columnNames) {
+VDMS::Response VDMS::ImageQueryParser::ParseAddImage(
+    vector<string> row, vector<string> columnNames) {
   Json::Value aquery;
   Json::Value fullquery;
   std::vector<std::string *> blobs;
   //
-  if (row[0].empty())
-    throw "Image path is not specified";
+  if (row[0].empty()) throw "Image path is not specified";
   if (columnNames.size() == 0) {
     throw std::invalid_argument("Error: Column names vector is empty.");
   }
@@ -46,8 +44,7 @@ VDMS::ImageQueryParser::ParseAddImage(vector<string> row,
   for (int j = 1; j < columnNames.size(); j++) {
     if (!row[j].empty()) {
       if (columnNames[j] == "format") {
-        if (!ValidImageFormat(row[j]))
-          throw "Invalid image format";
+        if (!ValidImageFormat(row[j])) throw "Invalid image format";
         aquery["AddImage"]["format"] = row[j];
       } else if (columnNames[j].find("prop_") != string::npos) {
         VDMS::CSVParserUtil::parseProperty(columnNames[j], row[j], command_name,

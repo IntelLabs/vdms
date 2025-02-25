@@ -63,7 +63,8 @@ struct ConverterParams {
           std::numeric_limits<long double>::signaling_NaN(),
       const long long pDefaultInteger = 0)
       : mHasDefaultConverter(pHasDefaultConverter),
-        mDefaultFloat(pDefaultFloat), mDefaultInteger(pDefaultInteger) {}
+        mDefaultFloat(pDefaultFloat),
+        mDefaultInteger(pDefaultInteger) {}
 
   /**
    * @brief   specifies if conversion of non-numerical strings shall be
@@ -102,8 +103,9 @@ class no_converter : public std::exception {
  * strings. Only intended for rapidcsv internal usage, but exposed externally to
  * allow specialization for custom datatype conversions.
  */
-template <typename T> class Converter {
-public:
+template <typename T>
+class Converter {
+ public:
   /**
    * @brief   Constructor
    * @param   pConverterParams      specifies how conversion of non-numerical
@@ -196,7 +198,7 @@ public:
     }
   }
 
-private:
+ private:
   const ConverterParams &mConverterParams;
 };
 
@@ -278,8 +280,11 @@ struct SeparatorParams {
                            const bool pHasCR = sPlatformHasCR,
                            const bool pQuotedLinebreaks = false,
                            const bool pAutoQuote = true)
-      : mSeparator(pSeparator), mTrim(pTrim), mHasCR(pHasCR),
-        mQuotedLinebreaks(pQuotedLinebreaks), mAutoQuote(pAutoQuote) {}
+      : mSeparator(pSeparator),
+        mTrim(pTrim),
+        mHasCR(pHasCR),
+        mQuotedLinebreaks(pQuotedLinebreaks),
+        mAutoQuote(pAutoQuote) {}
 
   /**
    * @brief   specifies the column separator.
@@ -325,7 +330,8 @@ struct LineReaderParams {
   explicit LineReaderParams(const bool pSkipCommentLines = false,
                             const char pCommentPrefix = '#',
                             const bool pSkipEmptyLines = false)
-      : mSkipCommentLines(pSkipCommentLines), mCommentPrefix(pCommentPrefix),
+      : mSkipCommentLines(pSkipCommentLines),
+        mCommentPrefix(pCommentPrefix),
         mSkipEmptyLines(pSkipEmptyLines) {}
 
   /**
@@ -348,7 +354,7 @@ struct LineReaderParams {
  * @brief     Class representing a CSV document.
  */
 class Document {
-public:
+ public:
   /**
    * @brief   Constructor
    * @param   pPath                 specifies the path of an existing CSV-file
@@ -368,8 +374,10 @@ public:
       const SeparatorParams &pSeparatorParams = SeparatorParams(),
       const ConverterParams &pConverterParams = ConverterParams(),
       const LineReaderParams &pLineReaderParams = LineReaderParams())
-      : mPath(pPath), mLabelParams(pLabelParams),
-        mSeparatorParams(pSeparatorParams), mConverterParams(pConverterParams),
+      : mPath(pPath),
+        mLabelParams(pLabelParams),
+        mSeparatorParams(pSeparatorParams),
+        mConverterParams(pConverterParams),
         mLineReaderParams(pLineReaderParams) {
     if (!mPath.empty()) {
       ReadCsv();
@@ -394,7 +402,9 @@ public:
       const SeparatorParams &pSeparatorParams = SeparatorParams(),
       const ConverterParams &pConverterParams = ConverterParams(),
       const LineReaderParams &pLineReaderParams = LineReaderParams())
-      : mPath(), mLabelParams(pLabelParams), mSeparatorParams(pSeparatorParams),
+      : mPath(),
+        mLabelParams(pLabelParams),
+        mSeparatorParams(pSeparatorParams),
         mConverterParams(pConverterParams),
         mLineReaderParams(pLineReaderParams) {
     ReadCsv(pStream);
@@ -731,7 +741,8 @@ public:
    * @param   pRowIdx               zero-based row index.
    * @returns vector of row data.
    */
-  template <typename T> std::vector<T> GetRow(const size_t pRowIdx) const {
+  template <typename T>
+  std::vector<T> GetRow(const size_t pRowIdx) const {
     const ssize_t rowIdx = pRowIdx + (mLabelParams.mColumnNameIdx + 1);
     std::vector<T> row;
     Converter<T> converter(mConverterParams);
@@ -1224,7 +1235,7 @@ public:
     return rownames;
   }
 
-private:
+ private:
   void ReadCsv() {
     std::ifstream stream;
     stream.exceptions(std::ifstream::failbit | std::ifstream::badbit);
@@ -1514,7 +1525,7 @@ private:
     }
   }
 
-private:
+ private:
   std::string mPath;
   LabelParams mLabelParams;
   SeparatorParams mSeparatorParams;
@@ -1528,4 +1539,4 @@ private:
   bool mIsLE = false;
 #endif
 };
-} // namespace rapidcsv
+}  // namespace rapidcsv

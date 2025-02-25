@@ -1,0 +1,32 @@
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.6
+    hooks:
+      # Run the linter.
+      - id: ruff
+        args: [
+          "--fix",
+          "--ignore=E402",
+          "--extend-exclude=client/python/vdms/queryMessage_pb2.py"
+        ]
+      # Run the formatter.
+      - id: ruff-format
+        args: [
+          "--exclude=client/python/vdms/queryMessage_pb2.py"
+        ]
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: mixed-line-ending
+        args: ["--fix=auto"]
+      - id: trailing-whitespace
+  -   repo: https://github.com/pre-commit/mirrors-clang-format
+      rev: v19.1.7
+      hooks:
+      -   id: clang-format
+          types: [c, c++]
+          args: [
+            "--style=Google",
+            "-i"
+          ]
