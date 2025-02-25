@@ -104,9 +104,8 @@ class AddDescriptorSet : public DescriptorsCommand {
   uint64_t _flinng_num_rows;
   uint64_t _flinng_cells_per_row;
   uint64_t _flinng_num_hash_tables;
-  uint64_t _flinng_hashes_per_table;
-  uint64_t
-      _flinng_sub_hash_bits; // sub_hash_bits * hashes_per_table must be
+  uint64_t _flinng_hashes_per_table; 
+  uint64_t _flinng_sub_hash_bits; // sub_hash_bits * hashes_per_table must be
                              // less than 32, otherwise segfault will happen
   uint64_t _flinng_cut_off;
   uint64_t _ivf_nlist; //Nlist for IVF Index

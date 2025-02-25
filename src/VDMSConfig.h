@@ -153,6 +153,8 @@ public:
   const std::optional<int> &get_flinng_cells_per_row() { return flinng_cells_per_row; }
   const std::optional<int> &get_flinng_num_hash_tables() { return flinng_num_hash_tables; }
   const std::optional<int> &get_flinng_hashes_per_table() { return flinng_hashes_per_table; }
+  const std::optional<int> &get_flinng_sub_hash_bits() { return flinng_sub_hash_bits; }
+  const std::optional<int> &get_flinng_cut_off() { return flinng_cut_off; }
   const std::optional<int> &get_ivf_nlist() { return ivf_nlist; }
   const std::optional<int> &get_hnsw_efsearch() { return hnsw_efsearch; }
   const std::optional<int> &get_hnsw_efConstruction() { return hnsw_efConstruction; }
@@ -193,14 +195,18 @@ private:
   std::optional<std::string> proxy_scheme;
   Aws::Utils::Logging::LogLevel aws_log_level;
 
-  std::optional<int> flinng_num_rows;
-  std::optional<int> flinng_cells_per_row;
-  std::optional<int> flinng_num_hash_tables;
-  std::optional<int> flinng_hashes_per_table;
-  std::optional<int> ivf_nlist;
-  std::optional<int> hnsw_efsearch;
-  std::optional<int> hnsw_efConstruction;
-  std::optional<int> hnsw_M;
+  std::optional<int> flinng_num_rows=std::optional<int>(3);
+  std::optional<int> flinng_cells_per_row = std::optional<int>(1000);
+  std::optional<int> flinng_num_hash_tables=std::optional<int>(10);
+  std::optional<int> flinng_hashes_per_table=std::optional<int>(12);
+  std::optional<int> flinng_sub_hash_bits=std::optional<int>(2);
+  std::optional<int> flinng_cut_off=std::optional<int>(6);
+
+  std::optional<int> ivf_nlist=std::optional<int>(16);
+  
+  std::optional<int> hnsw_efsearch=std::optional<int>(64);
+  std::optional<int> hnsw_efConstruction=std::optional<int>(96);
+  std::optional<int> hnsw_M=std::optional<int>(48);
 
 
   void expand_directory_layer(

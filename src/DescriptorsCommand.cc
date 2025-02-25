@@ -206,7 +206,9 @@ AddDescriptorSet::AddDescriptorSet() : DescriptorsCommand("AddDescriptorSet") {
   _flinng_num_rows = static_cast<uint64_t>(VDMSConfig::instance()->get_flinng_num_rows().value_or(3));
   _flinng_cells_per_row = static_cast<uint64_t>(VDMSConfig::instance()->get_flinng_cells_per_row().value_or(1000));
   _flinng_num_hash_tables = static_cast<uint64_t>(VDMSConfig::instance()->get_flinng_num_hash_tables().value_or(10));
-  _flinng_hashes_per_table = static_cast<uint64_t>(VDMSConfig::instance()->get_flinng_hashes_per_table().value_or(12)); 
+  _flinng_hashes_per_table = static_cast<uint64_t>(VDMSConfig::instance()->get_flinng_hashes_per_table().value_or(12));
+  _flinng_sub_hash_bits = static_cast<uint64_t>(VDMSConfig::instance()->get_flinng_sub_hash_bits().value_or(2));
+  _flinng_cut_off = static_cast<uint64_t>(VDMSConfig::instance()->get_flinng_cut_off().value_or(6)); 
   
   //IVF params
   _ivf_nlist = static_cast<uint64_t>(VDMSConfig::instance()->get_ivf_nlist().value_or(16)); 
@@ -217,6 +219,7 @@ AddDescriptorSet::AddDescriptorSet() : DescriptorsCommand("AddDescriptorSet") {
   _hnsw_M = static_cast<uint64_t>(VDMSConfig::instance()->get_hnsw_M().value_or(48)); 
 
   //_use_aws_storage = VDMSConfig::instance()->get_aws_flag();
+
 }
 
 int AddDescriptorSet::construct_protobuf(PMGDQuery &query,
@@ -340,10 +343,13 @@ Json::Value AddDescriptorSet::construct_responses(
     param = new VCL::DescriptorParams(_flinng_num_rows, _flinng_cells_per_row,
                                       _flinng_num_hash_tables,
                                       _flinng_hashes_per_table,
+                                      _flinng_sub_hash_bits,
+                                      _flinng_cut_off, 
                                       _ivf_nlist,
                                       _hnsw_efsearch, 
                                       _hnsw_efConstruction, 
                                       _hnsw_M);
+
     VCL::DescriptorSet desc_set(desc_set_path, dimensions, _eng, metric, param);
 
     if (_use_aws_storage) {
