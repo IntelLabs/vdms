@@ -147,7 +147,7 @@ TEST(Descriptors_Train, train_ivfflatl2_4d_labels) {
 
   std::string index_filename = "dbs/train_ivfflatl2_4d_labels.faiss";
   VCL::DescriptorParams *param = new VCL::DescriptorParams();
-  param->ivf_nlist=16;       
+  param->ivf_nlist=16;
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissIVFFlat,VCL::DistanceMetric::L2, param);
 
   int offset = 10;

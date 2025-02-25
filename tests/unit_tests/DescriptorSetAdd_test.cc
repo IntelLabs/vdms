@@ -970,7 +970,7 @@ TEST(Descriptors_Add, add_and_search_10k) {
       VCL::DescriptorSet index(index_filename, unsigned(d), eng,
       VCL::DistanceMetric::L2, param);
       */
-      
+
       VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
       VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
       //VCL::DescriptorSet index(index_filename, unsigned(d), eng);

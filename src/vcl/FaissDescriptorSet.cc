@@ -292,7 +292,7 @@ FaissIVFFlatDescriptorSet::FaissIVFFlatDescriptorSet(
   // int nlist = 4;
 
   // default value of 4 is too low for any sizeable dataset
-  
+
   // int nlist = 16
 
   int nlist = par->ivf_nlist; //nlist is a configurable parameter
@@ -409,8 +409,8 @@ FaissHNSWFlatDescriptorSet::FaissHNSWFlatDescriptorSet(
 void FaissHNSWFlatDescriptorSet::search(float *query, unsigned n_queries,
                                         unsigned k, long *descriptors,
                                         float *distances) {
-  //((faiss::IndexHNSWFlat *)_index)->hnsw.efSearch = 64; 
-  
+  //((faiss::IndexHNSWFlat *)_index)->hnsw.efSearch = 64;
+
   //efSearch is modified to be set as a parameter when the index is constucted
 
   // set according to

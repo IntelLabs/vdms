@@ -120,7 +120,7 @@ VDMSConfig::VDMSConfig(std::string config_file) {
   hnsw_efsearch = std::nullopt;
   hnsw_efConstruction = std::nullopt;
   hnsw_M = std::nullopt;
-    
+
 
   bool parsingSuccessful = reader.parse(file, json_config);
 
@@ -375,7 +375,7 @@ void VDMSConfig::build_dirs() {
     aws_log_level = aws_log_level_map.at(aws_log_level_value);
   }
 
-//Descriptor parameters  
+//Descriptor parameters
 
   // flinng_num_rows
   if (exists_key(PARAM_FLINNG_NUM_ROWS)) {
