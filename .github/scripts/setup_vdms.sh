@@ -138,24 +138,25 @@ fi
 # Check the version used by python3
 version_exists=$(echo "$(python3 --version | cut -d ' ' -f 2)" || echo false)
 version_used_base=""
+is_older_version=$((dpkg --compare-versions "${version_exists}" "lt" "${PYTHON_VERSION}" && echo true) || echo false)
 # if that version is lower than the required one
-if $(dpkg --compare-versions "${version_exists}" "lt" "${PYTHON_VERSION}")
+if [ $is_older_version = true ]
 then
     # Check if the path to the required minimum version exists
     # if it doesn't exist then it displays the error and finish the script
-    if [ $(which python${PYTHON_BASE}) = "" ]; then
-        echo "Error: please install the Python v${PYTHON_VERSION} or greater..."
-        echo "Exiting..."
+    if [[ "$(which python${PYTHON_BASE})" == "" ]]; then
+        echo "Error: please install the Python v${PYTHON_VERSION} or later..."
         # CLEANUP
         rm -rf $VDMS_DEP_DIR
-        exit 1;
+        echo "Exiting..."
+        exit 1
     fi
 
     # If the required version of Python is installed but it is not being used currently
     # Then, the script is going to use at least the version that it is required
     version_used_base=${PYTHON_BASE}
 else
-    # If the current version of Python is equal or greater than the required
+    # If the current version of Python is equal or later than the required one
     echo "$(python3 --version) already installed"
     version_used_base=$(echo ${version_exists} | cut -d. -f-2 || echo false)
 fi
@@ -163,6 +164,9 @@ fi
 # It sets the Python version found (3.12 or more recent) as default
 alias python=$(which python${version_used_base})
 alias python3=$(which python${version_used_base})
+
+# Some versions of Python require to install the corresponding venv package
+apt install python${version_used_base}-venv -y || true
 
 python${version_used_base} -m venv ${VIRTUAL_ENV}
 export PATH="$VIRTUAL_ENV/bin:$PATH"
