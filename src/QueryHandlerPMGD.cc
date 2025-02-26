@@ -289,6 +289,7 @@ void QueryHandlerPMGD::process_query(
     std::vector<std::string> timer_id_list;
 
     auto error = [&](Json::Value &res, Json::Value &failed_command) {
+      std::cout << "error() lambda expression was called" << std::endl;
       cleanup_query(images_log, videos_log);
       res["FailedCommand"] = failed_command;
       json_responses.clear();
@@ -337,6 +338,7 @@ void QueryHandlerPMGD::process_query(
       }
 
       if (ret_code != 0) {
+        std::cout << "ret_code is not zero" << std::endl;
         error(cmd_result, root[j]);
         return;
       }
@@ -409,6 +411,7 @@ void QueryHandlerPMGD::process_query(
   } catch (VCL::Exception &e) {
     print_exception(e);
     error_msg << "Internal Server Error: VCL Exception at QH" << std::endl;
+    std::cout << "exception was caught before calling to cleanup_query()" << std::endl;
     cleanup_query(images_log, videos_log);
     exception_handler();
   } catch (PMGD::Exception &e) {
