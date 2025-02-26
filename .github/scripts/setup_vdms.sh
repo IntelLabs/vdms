@@ -157,16 +157,13 @@ then
     version_used_base=${PYTHON_BASE}
 else
     # If the current version of Python is equal or later than the required one
-    echo "$(python3 --version) already installed"
+    echo "$(python3 --version) is already installed"
     version_used_base=$(echo ${version_exists} | cut -d. -f-2 || echo false)
 fi
 
 # It sets the Python version found (3.12 or more recent) as default
 alias python=$(which python${version_used_base})
 alias python3=$(which python${version_used_base})
-
-# Some versions of Python require to install the corresponding venv package
-apt install python${version_used_base}-venv -y || true
 
 python${version_used_base} -m venv ${VIRTUAL_ENV}
 export PATH="$VIRTUAL_ENV/bin:$PATH"
