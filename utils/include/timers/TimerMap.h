@@ -36,13 +36,12 @@
 #include <vector>
 
 class TimerMap {
-
-private:
+ private:
   std::map<std::string, std::vector<std::chrono::steady_clock::time_point> *>
       timemap;
   std::mutex maplock;
 
-public:
+ public:
   ~TimerMap();
 
   /**
@@ -108,4 +107,4 @@ public:
   void clear_all_timers();
 };
 
-#endif // CLEAN_VDMS_TIMERMAP_H
+#endif  // CLEAN_VDMS_TIMERMAP_H

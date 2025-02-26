@@ -57,3 +57,11 @@ Industrial and Applications @ VLDB 2021 | [Paper](http://vldb.org/pvldb/vol14/p3
 2nd USENIX Workshop @ HotEdge 2019 | [Paper](https://www.usenix.org/system/files/hotedge19-paper-altarawneh.pdf), [Presentation](https://www.usenix.org/sites/default/files/conference/protected-files/hotedge19_slides_altarawneh.pdf) | VDMS in Edge-to-cloud architecture for video streaming application
 Learning Systems @ NIPS 2018 | [Paper](https://export.arxiv.org/abs/1810.11832), [Cite](https://dblp.uni-trier.de/rec/bibtex/journals/corr/abs-1810-11832) | Systems for Machine Learning [Workshop](http://learningsys.org/nips18/cfp.html) @ NIPS
 HotStorage @ ATC 2017 | [Paper](https://www.usenix.org/conference/hotstorage17/program/presentation/gupta-cledat), [Presentation](https://www.usenix.org/conference/hotstorage17/program/presentation/gupta-cledat), [Cite](https://www.usenix.org/biblio/export/bibtex/203374)| Positioning Paper at USENIX ATC 2017 Workshop
+
+
+## Contributing
+
+Thank you for your interest in contributing to VDMS.
+As an open-source project in a rapidly developing field, we are extremely open to contributions, whether they involve new features, improved infrastructure, better documentation, or bug fixes.
+
+To learn how to contribute to VDMS, please follow the [Developer Guide](https://github.com/IntelLabs/vdms/wiki/Developer-Guide).

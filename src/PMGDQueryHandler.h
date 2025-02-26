@@ -39,7 +39,7 @@
 
 #include "AutoDeleteNode.h"
 #include "pmgd.h"
-#include "pmgdMessages.pb.h" // Protobuff implementation
+#include "pmgdMessages.pb.h"  // Protobuff implementation
 
 #define PMGD_QUERY_RETRY_LIMIT 10
 
@@ -63,7 +63,8 @@ typedef std::vector<PMGDCmd *> PMGDCmds;
 typedef std::vector<PMGDCmdResponse *> PMGDCmdResponses;
 
 class PMGDQueryHandler {
-  template <typename T, typename Ti> class ReusableIterator;
+  template <typename T, typename Ti>
+  class ReusableIterator;
 
   typedef ReusableIterator<PMGD::Node, PMGD::NodeIterator> ReusableNodeIterator;
   typedef ReusableIterator<PMGD::Edge, PMGD::EdgeIterator> ReusableEdgeIterator;
@@ -74,15 +75,16 @@ class PMGDQueryHandler {
   static PMGD::Graph *_db;
   static std::list<AutoDeleteNode *> _expiration_timestamp_queue;
   static std::vector<std::string>
-      _cleanup_filename_list; // files cannot be deleted until after blobs are
-                              // added
+      _cleanup_filename_list;  // files cannot be deleted until after blobs are
+                               // added
 
   PMGD::Transaction *_tx;
-  bool _readonly; // Variable changes per TX based on process_queries parameter.
-  bool _resultdeletion;  // Variable that indicates whether results of query
-                         // should be
-  bool _autodelete_init; // Varibale that indicates whether we need to add nodes
-                         // from query into deletion_queue
+  bool
+      _readonly;  // Variable changes per TX based on process_queries parameter.
+  bool _resultdeletion;   // Variable that indicates whether results of query
+                          // should be
+  bool _autodelete_init;  // Varibale that indicates whether we need to add
+                          // nodes from query into deletion_queue
   // deleted after result is complete
 
   // Map an integer ID to a NodeIterator (reset at the end of each transaction).
@@ -106,7 +108,8 @@ class PMGDQueryHandler {
   int add_edge(const PMGD::protobufs::AddEdge &ce, PMGDCmdResponse *response);
   int update_edge(const PMGD::protobufs::UpdateEdge &ue,
                   PMGDCmdResponse *response);
-  template <class Element> void set_property(Element &e, const PMGDProp &p);
+  template <class Element>
+  void set_property(Element &e, const PMGDProp &p);
   int query_node(const PMGDQueryNode &qn, PMGDCmdResponse *response,
                  bool autodelete_init = false);
   int query_edge(const PMGDQueryEdge &qe, PMGDCmdResponse *response);
@@ -139,7 +142,7 @@ class PMGDQueryHandler {
 
   int delete_expired_nodes();
 
-public:
+ public:
   class NodeEdgeIteratorImpl;
   static void init();
   static void destroy();
@@ -168,7 +171,7 @@ public:
   void print_node_idx_stats(char *tag_name, char *prop_id);
 };
 
-}; // namespace VDMS
+};  // namespace VDMS
 
 void insert_into_queue(std::list<AutoDeleteNode *> *queue,
                        AutoDeleteNode *new_element);

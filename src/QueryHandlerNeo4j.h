@@ -38,8 +38,7 @@
 namespace VDMS {
 
 class QueryHandlerNeo4j : public QueryHandlerBase {
-
-protected:
+ protected:
   static BackendNeo4j *neoconn_pool;
   static std::unordered_map<std::string, Neo4jCommand *> _rs_cmds;
   friend class QueryHandlerTester;
@@ -47,11 +46,11 @@ protected:
   int parse_commands(const protobufs::queryMessage &proto_query,
                      Json::Value &root);
 
-public:
+ public:
   static void init();
   QueryHandlerNeo4j();
   void process_query(protobufs::queryMessage &proto_query,
                      protobufs::queryMessage &response);
 };
 
-} // namespace VDMS
+}  // namespace VDMS

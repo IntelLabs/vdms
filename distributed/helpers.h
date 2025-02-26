@@ -1,18 +1,18 @@
 #ifndef SENDERS_KAFKA_HELPER_H_
 #define SENDERS_KAFKA_HELPER_H_
-#include "VDMSClient.h"
-#include "queryMessage.pb.h"
+#include <glog/logging.h>
+#include <jsoncpp/json/reader.h>
+#include <jsoncpp/json/writer.h>
+
 #include <algorithm>
 #include <chrono>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
-#include <jsoncpp/json/reader.h>
-#include <jsoncpp/json/writer.h>
 #include <thread>
 
-#include <glog/logging.h>
-
+#include "VDMSClient.h"
+#include "queryMessage.pb.h"
 #include "utils.h"
 
 using namespace std::chrono;
@@ -93,13 +93,11 @@ Json::Value add_set(std::string &name) {
   descriptor_set["name"] = name;
   descriptor_set["dimensions"] = 1000;
   set_query["AddDescriptorSet"] = descriptor_set;
-  if (add_set)
-    tuple.append(set_query);
+  if (add_set) tuple.append(set_query);
   return tuple;
 }
 
 Json::Value construct_descriptor(std::string &name) {
-
   Json::Value AddDesc;
   Json::Value Desc;
   Json::Value tuple;
@@ -151,7 +149,7 @@ Json::Value construct_query() {
   Json::Value person_json, bounding_box, add_bounding_box, add_FV_entity,
       add_person_entity, edge, connect, tuple_data;
   person_json["_ref"] =
-      1; // to assure the differences between the used references in the DB
+      1;  // to assure the differences between the used references in the DB
   person_json["class"] = "Person";
   person_json["properties"]["Id"] = "1234";
   person_json["properties"]["imaginary_node"] = 1;
@@ -190,8 +188,7 @@ std::string img_query() {
   image.resize(file.tellg());
 
   file.seekg(0, std::ios::beg);
-  if (!file.read(&image[0], image.size()))
-    std::cout << "error" << std::endl;
+  if (!file.read(&image[0], image.size())) std::cout << "error" << std::endl;
 
   std::vector<std::string *> blobs;
   std::string *bytes_str = new std::string(image);

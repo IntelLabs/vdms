@@ -56,6 +56,8 @@ def image_api():
         return_string += r_meta.encode("utf-8")
 
     os.remove(tmpfile)
+    if return_string == "" or return_string is None:
+        return "error"
     return return_string
 
 
@@ -92,7 +94,7 @@ def video_api():
             os.remove(response_file)
             os.remove(video_file)
             os.remove(metadata_file)
-        except Exception as e:
+        except Exception:
             print("Some files cannot be deleted or are not present")
         return response
 
@@ -119,7 +121,7 @@ def handle_bad_request(e):
 
 
 if __name__ == "__main__":
-    if sys.argv[1] == None:
+    if sys.argv[1] is None:
         print("Port missing\n Correct Usage: python3 udf_server.py <port>")
     else:
         app.run(host="0.0.0.0", port=int(sys.argv[1]))

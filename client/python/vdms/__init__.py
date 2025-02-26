@@ -1,3 +1,3 @@
 name = "vdms"
 
-from .vdms import *
+from .vdms import *  # noqa: F403

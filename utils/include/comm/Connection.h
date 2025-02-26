@@ -29,16 +29,17 @@
 
 #pragma once
 
-#include "ExceptionComm.h"
 #include <openssl/err.h>
 #include <openssl/ssl.h>
+
 #include <string>
+
+#include "ExceptionComm.h"
 
 namespace comm {
 
 class Connection {
-
-public:
+ public:
   Connection();
   Connection(int socket_fd, SSL *_ssl);
   ~Connection();
@@ -56,7 +57,7 @@ public:
 
   void set_buffer_size_limit(uint32_t buffer_size_limit);
 
-protected:
+ protected:
   const unsigned MAX_PORT_NUMBER = 65535;
   const unsigned MAX_RETRIES = 100;
 
@@ -73,8 +74,7 @@ protected:
 
 // Implements a TCP/IP server
 class ConnServer {
-
-public:
+ public:
   ConnServer(int port, const std::string &cert_file,
              const std::string &key_file, const std::string &ca_file);
   ~ConnServer();
@@ -82,11 +82,11 @@ public:
   ConnServer(const ConnServer &) = delete;
   Connection accept();
 
-private:
+ private:
   const unsigned MAX_CONN_QUEUE = 2048;
   const unsigned MAX_PORT_NUMBER = 65535;
 
-  int _port; // Server port
+  int _port;  // Server port
   std::string _cert_file;
   std::string _key_file;
   std::string _ca_file;
@@ -96,8 +96,7 @@ private:
 
 // Implements a TCP/IP client
 class ConnClient : public Connection {
-
-public:
+ public:
   struct ServerAddress {
     std::string addr;
     int port;
@@ -111,7 +110,7 @@ public:
   ConnClient(const ConnClient &) = delete;
   ~ConnClient() {}
 
-private:
+ private:
   ConnClient();
   void connect();
   void setupTLS();
@@ -126,4 +125,4 @@ private:
   SSL_CTX *_ssl_ctx;
 };
 
-}; // namespace comm
+};  // namespace comm

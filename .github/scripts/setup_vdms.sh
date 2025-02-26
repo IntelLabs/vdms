@@ -249,7 +249,7 @@ make install
 
 # INSTALL PYTHON PACKAGES
 python -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "coverage>=7.3.1" \
-    "protobuf==4.${PROTOBUF_VERSION}" "cryptography>=42.0.7"
+    "protobuf==4.${PROTOBUF_VERSION}" "cryptography>=44.0.1"
 
 
 # INSTALL VALIJSON

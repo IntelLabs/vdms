@@ -1,9 +1,5 @@
 import cv2
-import numpy as np
-from datetime import datetime
-from collections import deque
 import skvideo.io
-import imutils
 import time
 
 
@@ -17,7 +13,7 @@ def run(settings, message, input_params):
     vs = cv2.VideoCapture(ipfilename)
 
     video = skvideo.io.FFmpegWriter(opfilename, {"-pix_fmt": "bgr24"})
-    i = 0
+
     while True:
         (grabbed, frame) = vs.read()
         if not grabbed:

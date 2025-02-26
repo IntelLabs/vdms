@@ -31,16 +31,16 @@
 
 #pragma once
 
+#include <aws/core/utils/logging/AWSLogging.h>
+#include <aws/core/utils/logging/DefaultLogSystem.h>
+#include <jsoncpp/json/value.h>
+
 #include <iomanip>
 #include <iostream>
 #include <optional>
 #include <sstream>
 #include <string>
 #include <vector>
-
-#include <aws/core/utils/logging/AWSLogging.h>
-#include <aws/core/utils/logging/DefaultLogSystem.h>
-#include <jsoncpp/json/value.h>
 
 #include "VDMSConfigHelper.h"
 
@@ -93,8 +93,7 @@ const std::string PARAM_AWS_LOG_LEVEL = "aws_log_level";
 namespace VDMS {
 
 class VDMSConfig {
-
-public:
+ public:
   static bool init(std::string config_file);
   static bool destroy();
 
@@ -139,13 +138,13 @@ public:
     return aws_log_level;
   }
 
-protected:
+ protected:
   static VDMSConfig *cfg;
   static std::mutex _mutex;
   VDMSConfig(std::string config_file);
   ~VDMSConfig() {}
 
-private:
+ private:
   Json::Value json_config;
 
   // Dirs
@@ -162,9 +161,9 @@ private:
   std::string path_tmp;
   StorageType storage_type;
 
-  bool aws_flag;               // use aws flag
-  std::string aws_bucket_name; // aws bucket name
-  bool use_endpoint;           // Use Mocked S3 server or real AWS S3
+  bool aws_flag;                // use aws flag
+  std::string aws_bucket_name;  // aws bucket name
+  bool use_endpoint;            // Use Mocked S3 server or real AWS S3
 
   std::optional<std::string> endpoint_override;
   std::optional<std::string> proxy_host;
@@ -196,4 +195,4 @@ private:
   }
 };
 
-}; // namespace VDMS
+};  // namespace VDMS
