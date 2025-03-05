@@ -36,7 +36,11 @@ DescriptorParams::DescriptorParams(uint64_t numrows = 3,
                                    uint64_t numhashtables = (1 << 9),
                                    uint64_t hashespertable = 14,
                                    uint64_t subhashbits = 2,
-                                   uint64_t cutoff = 6) {
+                                   uint64_t cutoff = 6,
+                                   uint64_t ivf_nlist = 16,
+                                   uint64_t hnsw_efsearch = 64,
+                                   uint64_t  hnsw_efConstruction = 96,
+                                   uint64_t  hnsw_M = 48) {
   this->num_rows = numrows;
   this->cells_per_row = cellsperrow;
   this->num_hash_tables = numhashtables;
@@ -45,4 +49,10 @@ DescriptorParams::DescriptorParams(uint64_t numrows = 3,
       subhashbits; // sub_hash_bits * hashes_per_table must be less than 32,
                    // otherwise segfault will happen
   this->cut_off = cutoff;
+  //IVF Parameters
+  this->ivf_nlist = ivf_nlist;
+  //HNSW Parameters
+  this->hnsw_efsearch = hnsw_efsearch;
+  this->hnsw_efConstruction = hnsw_efConstruction;
+  this->hnsw_M = hnsw_M;
 }

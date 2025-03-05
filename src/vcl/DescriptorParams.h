@@ -61,16 +61,30 @@ class DescriptorParams {
                            // 32, otherwise segfault will happen
   uint64_t cut_off;
 
+  /*Params needed for IVF*/
+  uint64_t ivf_nlist;
+
+  /*Params needed for HNSW*/
+  uint64_t hnsw_efsearch;
+  uint64_t hnsw_efConstruction;
+  uint64_t hnsw_M;
+
   DescriptorParams(uint64_t numrows = 3, uint64_t cellsperrow = (1 << 12),
                    uint64_t numhashtables = (1 << 9),
                    uint64_t hashespertable = 14, uint64_t subhashbits = 2,
-                   uint64_t cutoff = 6) {
+                   uint64_t cutoff = 6, uint64_t ivf_nlist = 16,
+                   uint64_t hnsw_efsearch = 64,
+                   uint64_t hnsw_efConstruction = 96, uint64_t hnsw_M = 48) {
     this->num_rows = numrows;
     this->cells_per_row = cellsperrow;
     this->num_hash_tables = numhashtables;
     this->hashes_per_table = hashespertable;
     this->sub_hash_bits = subhashbits;
     this->cut_off = cutoff;
+    this->ivf_nlist = ivf_nlist;
+    this->hnsw_efsearch = hnsw_efsearch;
+    this->hnsw_efConstruction = hnsw_efConstruction;
+    this->hnsw_M = hnsw_M;
   }
 };
 };  // namespace VCL

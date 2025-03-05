@@ -46,7 +46,10 @@ TEST(Descriptors_Store, add_ivfflatl2_100d_2add_file) {
   float *xb = generate_desc_linear_increase(d, nb);
 
   std::string index_filename = "dbs/store_ivfflatl2_100d_2add.faiss";
-  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissIVFFlat);
+
+  VCL::DescriptorParams *param = new VCL::DescriptorParams();
+  param->ivf_nlist=16;
+  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissIVFFlat,VCL::DistanceMetric::L2, param);
 
   index.add(xb, nb);
   index.store();
