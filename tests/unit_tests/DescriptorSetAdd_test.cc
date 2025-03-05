@@ -680,7 +680,7 @@ TEST(Descriptors_Add, add_flinngIP_same) {
 
   index.add_and_store(xb, nb); // adding same vectors again
   index.finalize_index();
-  
+
 
   std::vector<long> descriptors(n_clusters * cluster_size * 2);
 
@@ -727,7 +727,7 @@ TEST(Descriptors_Add, add_tiledbdense_100d) {
   index.search(xb, 1, 4, desc_ids, distances);
 
   int exp = 0;
- 
+
   for (auto &desc : desc_ids) {
     EXPECT_EQ(desc, exp++);
   }
@@ -789,7 +789,7 @@ TEST(Descriptors_Add, add_tiledbsparse_100d_2add) {
   int d = 100;
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
-  
+
 
   std::string index_filename = "dbs/add_tiledbsparse_100d_2add";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::TileDBSparse);
@@ -821,7 +821,7 @@ TEST(Descriptors_Add, add_tiledbsparse_100d) {
   int d = 100;
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
-  
+
 
   std::string index_filename = "dbs/add_tiledbsparse_100d";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::TileDBSparse);
@@ -952,7 +952,7 @@ TEST(Descriptors_Add, add_and_search_10k) {
 
       VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
       VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
-      
+
 
       /*
       if (eng == VCL::Flinng){
@@ -980,7 +980,7 @@ TEST(Descriptors_Add, add_and_search_10k) {
       for (int i = 0; i < 4; ++i) {
         EXPECT_EQ(distances[i], results[i]);
       }
-      
+
 
       index.store();
     }
@@ -1103,7 +1103,7 @@ TEST(Descriptors_Add, add_and_search_2_neigh_10k) {
       std::vector<long> desc_ids;
       index.search(xb, 2, 4, desc_ids, distances);
 
-      
+
       float results[] = {float(std::pow(0, 2) * d), float(std::pow(1, 2) * d),
                          float(std::pow(2, 2) * d), float(std::pow(3, 2) * d)};
       for (int i = 0; i < 4; ++i) {

@@ -206,7 +206,7 @@ TEST(Descriptors_Classify, classify_flinngIP_100d_labels) {
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::Flinng,
                            VCL::DistanceMetric::IP, param);
 
-  
+
 
   auto class_map = animals_map();
   std::vector<long> classes = classes_increasing_offset(nb, offset);
