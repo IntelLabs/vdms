@@ -134,26 +134,38 @@ else
 
 fi
 
-
 # SETUP PYTHON VERSION
-version_exists=$(echo "$(python${PYTHON_BASE} --version | cut -d ' ' -f 2)" || echo false)
-if [ "${version_exists}" != "${PYTHON_VERSION}" ]
+# Check the version used by python3
+version_exists=$(echo "$(python3 --version | cut -d ' ' -f 2)" || echo false)
+version_used_base=""
+is_older_version=$((dpkg --compare-versions "${version_exists}" "lt" "${PYTHON_VERSION}" && echo true) || echo false)
+# if that version is lower than the required one
+if [ $is_older_version = true ]
 then
-    echo "Installing python ${PYTHON_VERSION}..."
-    apt update -y
-    apt install -y libffi-dev libgdbm-dev libnss3-dev libreadline-dev libsqlite3-dev zlib1g-dev
-    curl -L -o ${VDMS_DEP_DIR}/Python-${PYTHON_VERSION}.tgz https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz
-    cd ${VDMS_DEP_DIR}
-    tar -xzf Python-${PYTHON_VERSION}.tgz
-    cd Python-${PYTHON_VERSION}
-    ./configure --enable-optimizations && make -j && make altinstall
-else
-    echo "python ${PYTHON_VERSION} already installed"
-fi
-alias python=$(which python${PYTHON_BASE})
-alias python3=$(which python${PYTHON_BASE})
+    # Check if the path to the required minimum version exists
+    # if it doesn't exist then it displays the error and finish the script
+    if [[ "$(which python${PYTHON_BASE})" == "" ]]; then
+        echo "Error: please install the Python v${PYTHON_VERSION} or later..."
+        # CLEANUP
+        rm -rf $VDMS_DEP_DIR
+        echo "Exiting..."
+        exit 1
+    fi
 
-python${PYTHON_BASE} -m venv ${VIRTUAL_ENV}
+    # If the required version of Python is installed but it is not being used currently
+    # Then, the script is going to use at least the version that it is required
+    version_used_base=${PYTHON_BASE}
+else
+    # If the current version of Python is equal or later than the required one
+    echo "$(python3 --version) is already installed"
+    version_used_base=$(echo ${version_exists} | cut -d. -f-2 || echo false)
+fi
+
+# It sets the Python version found (3.12 or more recent) as default
+alias python=$(which python${version_used_base})
+alias python3=$(which python${version_used_base})
+
+python${version_used_base} -m venv ${VIRTUAL_ENV}
 export PATH="$VIRTUAL_ENV/bin:$PATH"
 
 
