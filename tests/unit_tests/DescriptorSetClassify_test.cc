@@ -97,7 +97,6 @@ TEST(Descriptors_Classify, classify_10k) {
 
       VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
       VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
-      //VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
       int offset = 10;
       std::vector<long> classes = classes_increasing_offset(nb, offset);
@@ -118,7 +117,6 @@ TEST(Descriptors_Classify, classify_10k) {
       exp = 0;
       int i = 0;
       for (auto &id : ret_ids) {
-        // printf("%ld - %ld \n", id, exp);
         EXPECT_EQ(id, exp);
         if (++i % offset == 0)
           ++exp;
@@ -208,15 +206,7 @@ TEST(Descriptors_Classify, classify_flinngIP_100d_labels) {
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::Flinng,
                            VCL::DistanceMetric::IP, param);
 
-  /*
-  std::vector<long> classes(nb);
-
-  for (int i = 0; i < n_clusters ; i++) {
-      for (int j = 0; j < offset; j++){
-          classes[i*offset + j] =  i;
-      }
-  }
-  */
+  
 
   auto class_map = animals_map();
   std::vector<long> classes = classes_increasing_offset(nb, offset);
@@ -302,7 +292,6 @@ TEST(Descriptors_Classify, classify_labels_10k) {
                                    std::to_string(eng);
 
 
-      //VCL::DescriptorSet index(index_filename, unsigned(d), eng);
       VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
       VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
 
@@ -461,7 +450,6 @@ TEST(Descriptors_Classify, classify_tdbdense_4d) {
   ret = index.get_str_labels(desc_ids);
 
   for (auto &label : ret) {
-    // std::cout << label << std::endl;
     EXPECT_EQ(label, "parrot");
   }
 

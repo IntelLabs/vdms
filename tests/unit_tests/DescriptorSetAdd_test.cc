@@ -57,21 +57,16 @@ TEST(Descriptors_Add, add_flatl2_100d) {
   index.search(xb, 1, 4, desc_ids, distances);
 
   int exp = 0;
-  // std::cout << "DescriptorSet: " << std::endl;
   for (auto &desc : desc_ids) {
-    // std::cout << desc << " ";
     EXPECT_EQ(desc, exp++);
   }
 
-  // std::cout << "Distances: " << std::endl;
   float results[] = {float(std::pow(0, 2) * d), float(std::pow(1, 2) * d),
                      float(std::pow(2, 2) * d), float(std::pow(3, 2) * d)};
 
   for (int i = 0; i < 4; ++i) {
-    // std::cout << distances[i] <<  " ";
     EXPECT_EQ(distances[i], results[i]);
   }
-  // std::cout << std::endl;
 
   index.store();
 
@@ -99,10 +94,8 @@ TEST(Descriptors_Add, add_and_radius_search_flatl2_100d) {
                      float(std::pow(2, 2) * d), float(std::pow(3, 2) * d)};
 
   for (int i = 0; i < 4; ++i) {
-    // std::cout << distances[i] <<  " ";
     EXPECT_EQ(distances[i], results[i]);
   }
-  // std::cout << std::endl;
 
   index.store();
 
@@ -132,21 +125,15 @@ TEST(Descriptors_Add, add_ivfflatl2_100d) {
   index.search(xb, 1, 4, desc_ids, distances);
 
   int exp = 0;
-  // std::cout << "DescriptorSet: " << std::endl;
   for (auto &desc : desc_ids) {
-    // std::cout << desc << " ";
     EXPECT_EQ(desc, exp++);
   }
-  // std::cout << std::endl;
 
-  // std::cout << "Distances: " << std::endl;
   float results[] = {float(std::pow(0, 2) * d), float(std::pow(1, 2) * d),
                      float(std::pow(2, 2) * d), float(std::pow(3, 2) * d)};
   for (int i = 0; i < 4; ++i) {
-    // std::cout << distances[i] <<  " ";
     EXPECT_EQ(distances[i], results[i]);
   }
-  // std::cout << std::endl;
 
   index.store();
 
@@ -456,7 +443,6 @@ TEST(Descriptors_Add, add_flinngIP_100d) {
     }
   }
   recall = static_cast<float>(correct) / (n_clusters * cluster_size);
-  // std::cout << "\n Recall (Angular Similarity) = " << recall  << std::endl;
   EXPECT_GE(recall, 0.7);
 
   // search without returning distances
@@ -655,7 +641,6 @@ TEST(Descriptors_Add, add_flinngIP_100d_2add) {
     }
   }
   recall = static_cast<float>(correct) / (n_clusters * cluster_size);
-  // std::cout <<"2 adds Recall = " << recall <<std::endl;
   EXPECT_GE(recall, 0.7);
 
   index.store();
@@ -695,8 +680,7 @@ TEST(Descriptors_Add, add_flinngIP_same) {
 
   index.add_and_store(xb, nb); // adding same vectors again
   index.finalize_index();
-  // std::cout << "\n Total number of elements = " << index.get_n_descriptors()
-  // << std::endl;
+  
 
   std::vector<long> descriptors(n_clusters * cluster_size * 2);
 
@@ -719,7 +703,6 @@ TEST(Descriptors_Add, add_flinngIP_same) {
     }
   }
   recall = static_cast<float>(correct) / (n_clusters * cluster_size * 2);
-  // std::cout << "\n Recall (Angular Similarity) = " << recall  << std::endl;
   EXPECT_GE(recall, 0.7);
 
   index.store();
@@ -744,20 +727,17 @@ TEST(Descriptors_Add, add_tiledbdense_100d) {
   index.search(xb, 1, 4, desc_ids, distances);
 
   int exp = 0;
-  // std::cout << "DescriptorSet: " << std::endl;
+ 
   for (auto &desc : desc_ids) {
-    // std::cout << desc << " ";
     EXPECT_EQ(desc, exp++);
   }
 
-  // std::cout << "Distances: " << std::endl;
+
   float results[] = {float(std::pow(0, 2) * d), float(std::pow(1, 2) * d),
                      float(std::pow(2, 2) * d), float(std::pow(3, 2) * d)};
   for (int i = 0; i < 4; ++i) {
-    // std::cout << distances[i] <<  " ";
     EXPECT_EQ(distances[i], results[i]);
   }
-  // std::cout << std::endl;
 
   index.store();
 
@@ -794,7 +774,6 @@ TEST(Descriptors_Add, add_tiledbdense_100d_2add) {
 
   for (int i = 0; i < 4; ++i) {
     EXPECT_EQ(std::round(distances[i]), std::round(results[i]));
-    // printf(" %f, %f \n", float(distances[i]), float(results[i]));
   }
 
   index.store();
@@ -810,7 +789,7 @@ TEST(Descriptors_Add, add_tiledbsparse_100d_2add) {
   int d = 100;
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
-  // generate_desc_linear_increase(d, nb, xb, .1);
+  
 
   std::string index_filename = "dbs/add_tiledbsparse_100d_2add";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::TileDBSparse);
@@ -842,7 +821,7 @@ TEST(Descriptors_Add, add_tiledbsparse_100d) {
   int d = 100;
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
-  // generate_desc_linear_increase(d, nb, xb, .1);
+  
 
   std::string index_filename = "dbs/add_tiledbsparse_100d";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::TileDBSparse);
@@ -973,7 +952,7 @@ TEST(Descriptors_Add, add_and_search_10k) {
 
       VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
       VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
-      //VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+      
 
       /*
       if (eng == VCL::Flinng){
@@ -992,20 +971,16 @@ TEST(Descriptors_Add, add_and_search_10k) {
       index.search(xb, 1, 4, desc_ids, distances);
 
       int exp = 0;
-      // std::cout << "DescriptorSet: " << std::endl;
       for (auto &desc : desc_ids) {
-        // std::cout << desc << " ";
         EXPECT_EQ(desc, exp++);
       }
 
-      // std::cout << "Distances: " << std::endl;
       float results[] = {float(std::pow(0, 2) * d), float(std::pow(1, 2) * d),
                          float(std::pow(2, 2) * d), float(std::pow(3, 2) * d)};
       for (int i = 0; i < 4; ++i) {
-        // std::cout << distances[i] <<  " ";
         EXPECT_EQ(distances[i], results[i]);
       }
-      // std::cout << std::endl;
+      
 
       index.store();
     }
@@ -1029,7 +1004,6 @@ TEST(Descriptors_Add, add_and_search_10k_negative) {
 
       VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
       VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
-      //VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
       index.add(xb, nb);
 
@@ -1075,7 +1049,6 @@ TEST(Descriptors_Add, add_1by1_and_search_1k) {
 
       VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
       VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
-      //VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
       printf("eng: %d \n", eng);
       for (int i = 0; i < nb; ++i) {
@@ -1123,7 +1096,6 @@ TEST(Descriptors_Add, add_and_search_2_neigh_10k) {
 
       VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
       VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
-      //VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
       index.add(xb, nb);
 
@@ -1131,20 +1103,10 @@ TEST(Descriptors_Add, add_and_search_2_neigh_10k) {
       std::vector<long> desc_ids;
       index.search(xb, 2, 4, desc_ids, distances);
 
-      // Does not matter much, but good to test
-      // int exp[] = {0, 1, 2, 3, 1, 2, 0, 3};
-      // int idx = 0;
-      // // std::cout << "DescriptorSet: " << std::endl;
-      // for (auto& desc : desc_ids) {
-      //     // std::cout << desc << " ";
-      //     EXPECT_EQ(desc, exp[idx++]);
-      // }
-
-      // std::cout << "Distances: " << std::endl;
+      
       float results[] = {float(std::pow(0, 2) * d), float(std::pow(1, 2) * d),
                          float(std::pow(2, 2) * d), float(std::pow(3, 2) * d)};
       for (int i = 0; i < 4; ++i) {
-        // std::cout << distances[i] <<  " ";
         EXPECT_EQ(distances[i], results[i]);
       }
 
@@ -1153,10 +1115,8 @@ TEST(Descriptors_Add, add_and_search_2_neigh_10k) {
                            float(std::pow(2, 2) * d)};
 
       for (int i = 4; i < 8; ++i) {
-        // std::cout << distances[i] <<  " ";
         EXPECT_EQ(distances[i], results_2[i - 4]);
       }
-      // std::cout << std::endl;
 
       index.store();
     }
@@ -1166,7 +1126,6 @@ TEST(Descriptors_Add, add_and_search_2_neigh_10k) {
 }
 
 TEST(Descriptors_Add, add_2_times) {
-  // int d = 100;
   int nb = 10000;
 
   auto dimensions_list = get_dimensions_list();
@@ -1186,7 +1145,6 @@ TEST(Descriptors_Add, add_2_times) {
 
       VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
       VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
-      //VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
       index.add(xb, nb);
 
@@ -1236,7 +1194,6 @@ TEST(Descriptors_Add, add_and_get_descriptors) {
 
       VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
       VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
-      //VCL::DescriptorSet index(index_filename, unsigned(d), eng);
 
       index.add(xb, nb);
 
@@ -1246,7 +1203,6 @@ TEST(Descriptors_Add, add_and_get_descriptors) {
       for (int i = 0; i < recons_n * d; ++i) {
         EXPECT_NEAR(xb[i], recons[i], .01f);
       }
-      // printf("%d\n", eng);
 
       delete[] recons;
 
