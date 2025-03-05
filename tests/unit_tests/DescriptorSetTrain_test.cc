@@ -101,7 +101,8 @@ TEST(Descriptors_Train, train_10k) {
                                    std::to_string(d) + "_" +
                                    std::to_string(eng);
 
-      VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+      VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
+      VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
 
       int offset = 10;
       std::vector<long> classes = classes_increasing_offset(nb, offset);
@@ -124,7 +125,6 @@ TEST(Descriptors_Train, train_10k) {
       exp = 0;
       int i = 0;
       for (auto &id : ret_ids) {
-        // printf("%ld - %ld \n", id, exp);
         EXPECT_EQ(id, exp);
         if (++i % offset == 0)
           ++exp;
@@ -147,9 +147,10 @@ TEST(Descriptors_Train, train_ivfflatl2_4d_labels) {
 
   auto class_map = animals_map();
 
-  std::string index_filename =
-      TMP_DIRNAME + "dbs/train_ivfflatl2_4d_labels.faiss";
-  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissIVFFlat);
+  std::string index_filename = TMP_DIRNAME + "dbs/train_ivfflatl2_4d_labels.faiss";
+  VCL::DescriptorParams *param = new VCL::DescriptorParams();
+  param->ivf_nlist=16;
+  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissIVFFlat,VCL::DistanceMetric::L2, param);
 
   int offset = 10;
   std::vector<long> classes = classes_increasing_offset(nb, offset);
@@ -210,7 +211,8 @@ TEST(Descriptors_Train, train_labels_10k) {
                                    std::to_string(d) + "_" +
                                    std::to_string(eng);
 
-      VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+      VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
+      VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
 
       int offset = 10;
       std::vector<long> classes = classes_increasing_offset(nb, offset);
@@ -377,7 +379,6 @@ TEST(Descriptors_Train, train_tdbdense_4d) {
   ret = index.get_str_labels(desc_ids);
 
   for (auto &label : ret) {
-    // std::cout << label << std::endl;
     EXPECT_EQ(label, "parrot");
   }
 
