@@ -232,7 +232,7 @@ RUN git clone -b master --recurse-submodules https://github.com/IntelLabs/vdms.g
     sed -i "s|java-11-openjdk|java-17-openjdk|g" /vdms/src/pmgd/java/CMakeLists.txt && \
     sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/test/neighbortest.cc && \
     sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/tools/mkgraph.cc && \
-    cp /vdms/docker/override_default_config.py /vdms/override_default_config.py && \  
+    cp /vdms/docker/override_default_config.py /vdms/override_default_config.py && \
     mkdir -p /vdms/build && cd /vdms/build && \
     cmake -DUSE_K8S="${USE_K8S}" .. && make ${BUILD_THREADS} VERBOSE=1 && \
     echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \

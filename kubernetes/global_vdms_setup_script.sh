@@ -22,7 +22,7 @@ remoteSetupFunction()
    echo "Setup the docker images and registries will be created on the remote machine"
    sudo docker image load < remote_segment.tar
    sudo docker run -d -p 5000:5000 --name registry registry:2
-   sudo docker tag remote-udf-1  localhost:5000/remote-udf-1 
+   sudo docker tag remote-udf-1  localhost:5000/remote-udf-1
    sudo docker push localhost:5000/remote-udf-1
 }
 remoteInstallFunction()
@@ -144,7 +144,7 @@ masterInstallFunction()
    sha256sum --check cilium-linux-${CLI_ARCH}.tar.gz.sha256sum
    sudo tar xzvfC cilium-linux-${CLI_ARCH}.tar.gz /usr/local/bin
    rm cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
-   
+
    sudo docker image load < vdms.tar
    sudo docker run -d -p 5000:5000 --name registry registry:2
    sudo docker tag vdms localhost:5000/vdms
@@ -172,7 +172,7 @@ jsonparserFunction_remote()
    one=1
    count=$(($num_workers-$one))
    for i in $(seq 0 $count);
-   do 
+   do
       node=$(echo $workers | jq -r ".[$i]")
       dict_string="${node#\{}"
       dict_string="${dict_string%\}}"
@@ -194,7 +194,7 @@ jsonparserFunction_setup()
    one=1
    count=$(($num_workers-$one))
    for i in $(seq 0 $count);
-   do 
+   do
       node=$(echo $workers | jq -r ".[$i]")
       dict_string="${node#\{}"
       dict_string="${dict_string%\}}"
@@ -296,7 +296,7 @@ if [ "$install_arg" == "yes" ]; then
       echo "Installing Dependecies on the remote Node"
       remoteInstallFunction
    fi
-   if [ "$machinetype" == "master" ]; then 
+   if [ "$machinetype" == "master" ]; then
       echo "Installing Dependecies on the master Node"
       masterInstallFunction
    fi
@@ -307,7 +307,7 @@ if [ "$setup_arg" == "yes" ]; then
       echo "setup the remote Node"
       remoteSetupFunction
    fi
-   if [ "$machinetype" == "master" ]; then 
+   if [ "$machinetype" == "master" ]; then
       echo "setup the master Node"
       masterSetupFunction
       jsonparserFunction_setup $config_path
@@ -321,7 +321,7 @@ if [ "$k8s_setup_arg" == "yes" ]; then
       chmod +x join_vdms_cluster.sh
       ./join_vdms_cluster.sh
    fi
-   if [ "$machinetype" == "master" ]; then 
+   if [ "$machinetype" == "master" ]; then
       echo "setup the k8s on master Node"
       masterVDMSk8setupFunction $config_path
    fi
