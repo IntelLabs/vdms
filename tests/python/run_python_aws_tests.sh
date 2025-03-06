@@ -166,14 +166,18 @@ function cleanup() {
 
     unset VDMS_SKIP_REMOTE_PYTHON_TESTS
 
-    echo 'Removing temporary files'
-    rm -rf tests_output_dir/ || true
-
     # Killing vdms and minio processes after finishing the testing
     echo 'Killing vdms, tls, and minio processes after finishing the testing'
     kill -9 $py_unittest_pid || true
     kill -9 $py_tls_unittest_pid || true
     kill -9 $py_minio_pid || true
+
+    echo 'Removing temporary files'
+    rm -rf tests_output_dir/ || true
+    rm -rf test_db/ || true
+    rm -rf test_db_aws/ || true
+    rm -rf test_db_tls/ || true
+
     exit $exit_value
 }
 

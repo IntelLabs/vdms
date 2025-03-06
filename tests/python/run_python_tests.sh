@@ -71,7 +71,8 @@ function execute_commands() {
     cd ${TEST_DIR}
     rm -rf tests_output_dir || true
     mkdir -p tests_output_dir || true
-    mkdir -p tests_output_dir/test_db || true
+    mkdir -p test_db || true
+    mkdir -p test_db_tls || true
 
     cp config-tests.json tests_output_dir/config-tests.json
     cp config-tls-tests.json tests_output_dir/config-tls-tests.json
@@ -98,6 +99,8 @@ function cleanup() {
     exit_value=$?
 
     rm -rf tests_output_dir || true
+    rm -rf test_db
+    rm -rf test_db_tls
     kill -9 $py_unittest_pid || true
     kill -9 $py_tls_unittest_pid || true
     exit $exit_value

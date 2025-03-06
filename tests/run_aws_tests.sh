@@ -111,6 +111,7 @@ function execute_commands() {
     # by using the corresponding MinIO client which connects to the MinIO server
     # by using its username and password
     mc alias set myminio/ http://localhost:${api_port} $username $password
+    sleep 5
     mc mb myminio/minio-bucket
 
     echo 'Running C++ tests...'
@@ -132,6 +133,7 @@ function cleanup() {
 
     echo 'Removing temporary files'
     rm -rf tests_output_dir || true
+    rm -rf test_db_1 || true
     exit $exit_value
 }
 
