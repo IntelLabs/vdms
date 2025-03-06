@@ -28,7 +28,7 @@ remoteSetupFunction()
 remoteInstallFunction()
 {
    echo "Dependency Installations will now be done on the remote machine"
-   ##install containerd 
+   ##install containerd
    wget https://github.com/containerd/containerd/releases/download/v1.6.2/containerd-1.6.2-linux-amd64.tar.gz
    sudo tar Cxzvf /usr/local containerd-1.6.2-linux-amd64.tar.gz
    wget https://github.com/opencontainers/runc/releases/download/v1.1.3/runc.amd64
@@ -85,7 +85,7 @@ remoteInstallFunction()
 masterInstallFunction()
 {
    echo "Dependency Installation will now be done on the VDMS Master node"
-   ##install containerd 
+   ##install containerd
    wget https://github.com/containerd/containerd/releases/download/v1.6.2/containerd-1.6.2-linux-amd64.tar.gz
    sudo tar Cxzvf /usr/local containerd-1.6.2-linux-amd64.tar.gz
    wget https://github.com/opencontainers/runc/releases/download/v1.1.3/runc.amd64
@@ -135,7 +135,7 @@ masterInstallFunction()
    curl -sSL "https://raw.githubusercontent.com/kubernetes/release/${RELEASE_VERSION}/cmd/krel/templates/latest/kubeadm/10-kubeadm.conf" | sed "s:/usr/bin:${DOWNLOAD_DIR}:g" | sudo tee /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
    sudo systemctl enable --now kubelet
 
-   #Install Cillium 
+   #Install Cillium
    cd $CDIR
    CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
    CLI_ARCH=amd64
