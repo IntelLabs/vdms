@@ -3,9 +3,7 @@ RUN /bin/bash -c "python3 -m venv venv"
 RUN /bin/bash -c "source venv/bin/activate"
 WORKDIR /remoteUDF
 COPY . . 
-RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
 RUN /bin/bash -c "python3 -m pip install pip --upgrade"
-RUN /bin/bash -c "python3 -m pip install wheel"
 RUN pip install -r requirements.txt
 RUN pip install pillow
 CMD ["python3","udf_server.py","5030"]

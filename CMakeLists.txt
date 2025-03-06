@@ -41,6 +41,7 @@ protobuf_generate(
   PROTOC_OUT_DIR "${PROTO_BINARY_DIR}"
 )
 
+option(USE_K8S "Enable kubernetes client libraries" OFF)
 option(CLIENT "Built client library." OFF)
 if (CLIENT)
   add_definitions("-D CLIENT")
@@ -59,7 +60,14 @@ else()
   add_subdirectory(distributed)
 
   link_directories(/usr/local/lib /usr/lib/x86_64-linux-gnu/)
-  include_directories(/usr/include/jsoncpp utils/include/ src/pmgd/include src/pmgd/util include/ src/vcl /usr/include ${CMAKE_CURRENT_BINARY_DIR}/utils/src/protobuf /usr/local/include/kubernetes /usr/include/libwebsockets)
+  message("USE_K8S:" ${USE_K8S})
+  if(USE_K8S)
+    include_directories(/usr/include/jsoncpp utils/include/ src/pmgd/include src/pmgd/util include/ src/vcl /usr/include ${CMAKE_CURRENT_BINARY_DIR}/utils/src/protobuf /usr/local/include/kubernetes /usr/include/libwebsockets)
+    add_definitions("-D HAS_KUBERNETES_CLIENT")
+  else()
+    include_directories(/usr/include/jsoncpp utils/include/ src/pmgd/include src/pmgd/util include/ src/vcl /usr/include ${CMAKE_CURRENT_BINARY_DIR}/utils/src/protobuf)
+  endif()
+
   add_library(dms SHARED
     src/BackendNeo4j.cc
     src/BoundingBoxCommand.cc

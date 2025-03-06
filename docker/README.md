@@ -12,6 +12,10 @@ If you are under a proxy, use:
     cd base
     Dockerfile | docker build -t vdms:latest --build-arg=http_proxy --build-arg=https_proxy .
 
+If you are building with Kubernetes client support, use:
+    cd base
+    Dockerfile | docker build -t vdms:latest --build-arg USE_K8S="ON" .
+
 To run the docker image as a container, include the --net flag.
 This flag is needed as the server will be accepting connections on the default VDMS port (55555).
 

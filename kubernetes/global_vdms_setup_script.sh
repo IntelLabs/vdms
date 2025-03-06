@@ -29,7 +29,7 @@ remoteInstallFunction()
 {
    echo "Dependency Installations will now be done on the remote machine"
    ##install containerd 
-   wget https://github.com/containerd/containerd/releases/download/v1.6.14/containerd-1.6.14-linux-amd64.tar.gz
+   wget https://github.com/containerd/containerd/releases/download/v1.6.2/containerd-1.6.2-linux-amd64.tar.gz
    sudo tar Cxzvf /usr/local containerd-1.6.2-linux-amd64.tar.gz
    wget https://github.com/opencontainers/runc/releases/download/v1.1.3/runc.amd64
    sudo install -m 755 runc.amd64 /usr/local/sbin/runc
@@ -56,7 +56,7 @@ remoteInstallFunction()
    sudo apt-get update
 
    sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-   apt-get install conntrack
+   sudo apt-get install conntrack
    ## install kubeadm, kubelet, kubectl
    CNI_PLUGINS_VERSION="v1.3.0"
    ARCH="amd64"
@@ -68,6 +68,7 @@ remoteInstallFunction()
    CRICTL_VERSION="v1.31.0"
    curl -L "https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/crictl-${CRICTL_VERSION}-linux-${ARCH}.tar.gz" | sudo tar -C $DOWNLOAD_DIR -xz
    RELEASE="$(curl -sSL https://dl.k8s.io/release/stable.txt)"
+   CDIR=$(pwd)
    cd $DOWNLOAD_DIR
    sudo curl -L --remote-name-all https://dl.k8s.io/release/${RELEASE}/bin/linux/${ARCH}/{kubeadm,kubelet}
    sudo chmod +x {kubeadm,kubelet}
@@ -76,6 +77,7 @@ remoteInstallFunction()
    sudo mkdir -p /usr/lib/systemd/system/kubelet.service.d
    curl -sSL "https://raw.githubusercontent.com/kubernetes/release/${RELEASE_VERSION}/cmd/krel/templates/latest/kubeadm/10-kubeadm.conf" | sed "s:/usr/bin:${DOWNLOAD_DIR}:g" | sudo tee /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
    sudo systemctl enable --now kubelet
+   cd $CDIR
 }
 
 
@@ -84,7 +86,7 @@ masterInstallFunction()
 {
    echo "Dependency Installation will now be done on the VDMS Master node"
    ##install containerd 
-   wget https://github.com/containerd/containerd/releases/download/v1.6.14/containerd-1.6.14-linux-amd64.tar.gz
+   wget https://github.com/containerd/containerd/releases/download/v1.6.2/containerd-1.6.2-linux-amd64.tar.gz
    sudo tar Cxzvf /usr/local containerd-1.6.2-linux-amd64.tar.gz
    wget https://github.com/opencontainers/runc/releases/download/v1.1.3/runc.amd64
    sudo install -m 755 runc.amd64 /usr/local/sbin/runc
@@ -94,7 +96,6 @@ masterInstallFunction()
    sudo curl -L https://raw.githubusercontent.com/containerd/containerd/main/containerd.service -o /etc/systemd/system/containerd.service
    sudo systemctl daemon-reload
    sudo systemctl enable --now containerd
-   sudo systemctl status containerd
 
    #install docker engine
    # Add Docker's official GPG key:
@@ -112,7 +113,7 @@ masterInstallFunction()
    sudo apt-get update
 
    sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-   apt-get install conntrack
+   sudo apt-get install conntrack
    ## install kubeadm, kubelet, kubectl
    CNI_PLUGINS_VERSION="v1.3.0"
    ARCH="amd64"
@@ -124,6 +125,7 @@ masterInstallFunction()
    CRICTL_VERSION="v1.31.0"
    curl -L "https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/crictl-${CRICTL_VERSION}-linux-${ARCH}.tar.gz" | sudo tar -C $DOWNLOAD_DIR -xz
    RELEASE="$(curl -sSL https://dl.k8s.io/release/stable.txt)"
+   CDIR=$(pwd)
    cd $DOWNLOAD_DIR
    sudo curl -L --remote-name-all https://dl.k8s.io/release/${RELEASE}/bin/linux/${ARCH}/{kubeadm,kubelet}
    sudo chmod +x {kubeadm,kubelet}
@@ -131,7 +133,10 @@ masterInstallFunction()
    curl -sSL "https://raw.githubusercontent.com/kubernetes/release/${RELEASE_VERSION}/cmd/krel/templates/latest/kubelet/kubelet.service" | sed "s:/usr/bin:${DOWNLOAD_DIR}:g" | sudo tee /usr/lib/systemd/system/kubelet.service
    sudo mkdir -p /usr/lib/systemd/system/kubelet.service.d
    curl -sSL "https://raw.githubusercontent.com/kubernetes/release/${RELEASE_VERSION}/cmd/krel/templates/latest/kubeadm/10-kubeadm.conf" | sed "s:/usr/bin:${DOWNLOAD_DIR}:g" | sudo tee /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
+   sudo systemctl enable --now kubelet
+
    #Install Cillium 
+   cd $CDIR
    CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
    CLI_ARCH=amd64
    if [ "$(uname -m)" = "aarch64" ]; then CLI_ARCH=arm64; fi
@@ -150,9 +155,9 @@ masterInstallFunction()
 
 masterSetupFunction()
 {
-   sudo kubeadm reset -f
+   sudo kubeadm reset -f --cri-socket=unix:///var/run/cri-dockerd.sock
    sudo rm -rf $HOME/.kube
-   sudo kubeadm init
+   sudo kubeadm init --cri-socket=unix:///var/run/cri-dockerd.sock
    mkdir -p $HOME/.kube
    sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
    sudo chown $(id -u):$(id -g) $HOME/.kube/config

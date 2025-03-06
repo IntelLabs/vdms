@@ -10,7 +10,7 @@ Use the following steps to create the remote UDF tar file.
 
 + Change to the remote_function directory
 + Follow the README to generate the remote UDF docker image
-+ Run the following command to create the tar file `sudo docker save -o rudf.tar vdms`
++ Run the following command to create the tar file `sudo docker save -o remote_segment.tar rudf`
 
 # Configure kubeConfig.json #
 Sample kubeConfig file that can be used to add details of Master/Worker node

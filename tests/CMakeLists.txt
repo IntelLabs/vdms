@@ -17,6 +17,12 @@ find_package( OpenCV REQUIRED )
 find_package( Threads REQUIRED )
 find_package(AWSSDK REQUIRED COMPONENTS core s3)
 
+option(USE_K8S "Enable kubernetes client libraries" OFF)
+message("USE_K8S:" ${USE_K8S})
+if(USE_K8S)
+    add_definitions("-D HAS_KUBERNETES_CLIENT")
+endif()
+
 link_directories(/usr/local/lib/ /usr/lib/x86_64-linux-gnu/)
 include_directories(
     ../src

@@ -5,6 +5,8 @@ db/
 fr_client
 tmp
 *.onnx
+tests/k8s_test_files/
+tests/run_k8s_tests.sh
 
 # VS Code Specific
 .devcontainer

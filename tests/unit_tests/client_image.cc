@@ -1,7 +1,9 @@
 #include "meta_data_helper.h"
-#include "kubernetes/KubeHelper.h"
 
+#ifdef HAS_KUBERNETES_CLIENT
+#include "kubernetes/KubeHelper.h"
 using namespace kubernetes;
+#endif
 
 TEST(CLIENT_CPP, add_image) {
 
@@ -244,9 +246,11 @@ TEST(CLIENT_CPP, find_image_dynamic_metadata) {
 }
 
 TEST(CLIENT_CPP, kubehelper_url) {
-  static kubernetes::KubeHelper kubernetes_get_url;
-  kubernetes_get_url.query_counter++;
-  std::string url_k8s = kubernetes_get_url.query_scheduler("image");
+  #ifdef HAS_KUBERNETES_CLIENT
+    static kubernetes::KubeHelper kubernetes_get_url;
+    kubernetes_get_url.query_counter++;
+    std::string url_k8s = kubernetes_get_url.query_scheduler("image");
 
-  EXPECT_STREQ(url_k8s.data(), "rudf0svc:5050/image");
+    EXPECT_STREQ(url_k8s.data(), "rudf0svc:5050/image");
+  #endif
 }
