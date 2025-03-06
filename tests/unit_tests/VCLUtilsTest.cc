@@ -38,7 +38,7 @@ protected:
    }
   virtual void TearDown() {
   }
-};git
+};
 
 TEST_F(VCLUtilsTest, GetExtension_WithoutExtension) {
     std::string object_id = "something.with.dots/file";
