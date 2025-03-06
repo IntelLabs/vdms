@@ -91,6 +91,15 @@ const std::string PARAM_USE_ENDPOINT = "use_endpoint";
 const std::string PARAM_AWS_LOG_LEVEL = "aws_log_level";
 const std::string PARAM_KUBERNETES_CONTAINER = "use_k8s_container";
 
+const std::string PARAM_FLINNG_NUM_ROWS = "flinng_num_rows";
+const std::string PARAM_FLINNG_CELLS_PER_ROW = "flinng_cells_per_row";
+const std::string PARAM_FLINNG_NUM_HASH_TABLES = "flinng_num_hash_tables";
+const std::string PARAM_FLINNG_HASHES_PER_TABLE = "flinng_hashes_per_table";
+const std::string PARAM_IVF_NLIST = "ivf_nlist";
+const std::string PARAM_HNSW_EFSEARCH = "hnsw_efsearch";
+const std::string PARAM_HNSW_EFCONSTRUCTION = "hnsw_efConstruction";
+const std::string PARAM_HNSW_M = "hnsw_M";
+
 namespace VDMS {
 
 class VDMSConfig {
@@ -140,6 +149,28 @@ class VDMSConfig {
   }
   const bool &get_k8s_flag() { return k8s_flag; }
 
+  // Descriptor Optional Parameters
+  const std::optional<int> &get_flinng_num_rows() { return flinng_num_rows; }
+  const std::optional<int> &get_flinng_cells_per_row() {
+    return flinng_cells_per_row;
+  }
+  const std::optional<int> &get_flinng_num_hash_tables() {
+    return flinng_num_hash_tables;
+  }
+  const std::optional<int> &get_flinng_hashes_per_table() {
+    return flinng_hashes_per_table;
+  }
+  const std::optional<int> &get_flinng_sub_hash_bits() {
+    return flinng_sub_hash_bits;
+  }
+  const std::optional<int> &get_flinng_cut_off() { return flinng_cut_off; }
+  const std::optional<int> &get_ivf_nlist() { return ivf_nlist; }
+  const std::optional<int> &get_hnsw_efsearch() { return hnsw_efsearch; }
+  const std::optional<int> &get_hnsw_efConstruction() {
+    return hnsw_efConstruction;
+  }
+  const std::optional<int> &get_hnsw_M() { return hnsw_M; }
+
  protected:
   static VDMSConfig *cfg;
   static std::mutex _mutex;
@@ -175,6 +206,19 @@ class VDMSConfig {
   std::optional<std::string> proxy_scheme;
   Aws::Utils::Logging::LogLevel aws_log_level;
 
+  std::optional<int> flinng_num_rows = std::optional<int>(3);
+  std::optional<int> flinng_cells_per_row = std::optional<int>(1000);
+  std::optional<int> flinng_num_hash_tables = std::optional<int>(10);
+  std::optional<int> flinng_hashes_per_table = std::optional<int>(12);
+  std::optional<int> flinng_sub_hash_bits = std::optional<int>(2);
+  std::optional<int> flinng_cut_off = std::optional<int>(6);
+
+  std::optional<int> ivf_nlist = std::optional<int>(16);
+
+  std::optional<int> hnsw_efsearch = std::optional<int>(64);
+  std::optional<int> hnsw_efConstruction = std::optional<int>(96);
+  std::optional<int> hnsw_M = std::optional<int>(48);
+
   void expand_directory_layer(
       std::vector<std::vector<std::string> *> *p_directory_list,
       int current_layer);
@@ -198,6 +242,15 @@ class VDMSConfig {
     proxy_host = std::nullopt;
     proxy_port = std::nullopt;
     proxy_scheme = std::nullopt;
+
+    flinng_num_rows = std::optional<int>{3};
+    flinng_cells_per_row = std::optional<int>{1000};
+    flinng_num_hash_tables = std::optional<int>{10};
+    flinng_hashes_per_table = std::optional<int>{12};
+    ivf_nlist = std::optional<int>{16};
+    hnsw_efsearch = std::optional<int>{64};
+    hnsw_efConstruction = std::optional<int>{96};
+    hnsw_M = std::optional<int>{48};
   }
 };
 

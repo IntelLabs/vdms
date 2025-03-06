@@ -11,5 +11,14 @@
     "proxy_host": "a.proxy.to.be.tested.intel.com",
     "proxy_port": 8000,
     "proxy_scheme": "http",
-    "more-info": "github.com/IntelLabs/vdms"
+    "more-info": "github.com/IntelLabs/vdms",
+    "flinng_num_rows": 3,
+    "flinng_cells_per_row": 1000,
+    "flinng_num_hash_tables": 10,
+    "flinng_hashes_per_table": 12,
+    "ivf_nlist": 16,
+    "hnsw_efsearch": 64,
+    "hnsw_efConstruction": 96,
+    "hnsw_M":48
+
 }
