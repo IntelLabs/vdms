@@ -91,6 +91,8 @@ class DescriptorSet::DescriptorSetData {
           return EEXIST;
       else if (errno != ENOENT)
         return errno;
+      // In case of the path requires to create the whole hierarchy of the
+      // parent directories
       else if (std::filesystem::create_directories(path))
         return 0;
       else if (errno != EEXIST)

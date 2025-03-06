@@ -4,7 +4,7 @@ import json
 import os
 import sys
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 face_cascade = None
 
@@ -21,7 +21,6 @@ def set_face_cascade(functions_path):
     face_cascade = cv2.CascadeClassifier(
         # This file is available from OpenCV 'data' directory at
         # https://github.com/opencv/opencv/blob/4.x/data/haarcascades/haarcascade_frontalface_default.xml
-        # "functions/files/haarcascade_frontalface_default.xml"
         haarcascade_frontalface_default_path
     )
 
@@ -106,7 +105,7 @@ def run(ipfilename, format, options, tmp_dir_path, functions_path):
             print("Metadata: ipfilename=", ipfilename, file=sys.stderr)
         if not os.path.exists(ipfilename):
             raise Exception(
-                f"RF dir with Metadata error: File ipfilename {ipfilename} does not exist"
+                f"Metadata error: File ipfilename {ipfilename} does not exist"
             )
 
         img = cv2.imread(ipfilename)

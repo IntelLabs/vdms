@@ -2,7 +2,7 @@ import cv2
 import os
 import sys
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 
 def run(ipfilename, format, options, tmp_dir_path, functions_path):
@@ -23,7 +23,6 @@ def run(ipfilename, format, options, tmp_dir_path, functions_path):
     face_cascade = cv2.CascadeClassifier(
         # This file is available from OpenCV 'data' directory at
         # https://github.com/opencv/opencv/blob/4.x/data/haarcascades/haarcascade_frontalface_default.xml
-        # "functions/files/haarcascade_frontalface_default.xml"
         haarcascade_frontalface_default_path
     )
 

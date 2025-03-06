@@ -22,7 +22,6 @@ QueryHandlerBase::QueryHandlerBase()
 void QueryHandlerBase::cleanup_query(const std::vector<std::string> &images,
                                      const std::vector<std::string> &videos) {
   try {
-    std::cout << "cleanup_query() was called. Size of images: " << images.size() << ", size of videos: "  << videos.size() << std::endl;
     for (auto &img_path : images) {
       VCL::Image img(img_path);
       bool result = img.delete_image();

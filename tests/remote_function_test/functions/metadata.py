@@ -4,7 +4,7 @@ import json
 import os
 import sys
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 face_cascade = None
 

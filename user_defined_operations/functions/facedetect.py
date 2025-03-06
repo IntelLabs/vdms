@@ -3,7 +3,7 @@ import cv2
 import os
 import sys
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 
 def run(settings, message, input_params, tmp_dir_path, functions_path):

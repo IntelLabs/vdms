@@ -112,16 +112,8 @@ function execute_commands() {
     sleep 2
 
     echo 'Removing temporary files'
-    rm -rf tests_output_dir
-    rm -rf tests_output_dir/minio_files/ || true
-    rm -rf tests_output_dir/test_db/ || true
-    rm -rf tests_output_dir/test_db_aws/ || true
-    rm -rf tests_output_dir/test_db_tls/ || true
+    rm -rf tests_output_dir || true
 
-    rm tests_output_dir/log.log || true
-    rm tests_output_dir/screen.log || true
-    rm tests_output_dir/log-tls.log || true
-    rm tests_output_dir/screen-tls.log || true
     mkdir -p tests_output_dir || true
     mkdir -p tests_output_dir/test_db || true
 
@@ -172,21 +164,10 @@ function execute_commands() {
 function cleanup() {
     exit_value=$?
 
-    # Removing log files
-    echo 'Removing log files'
-    rm -rf tests_output_dir || true
-    # rm tests_output_dir/log.log || true
-    # rm tests_output_dir/screen.log || true
-    # rm tests_output_dir/log-tls.log || true
-    # rm tests_output_dir/screen-tls.log || true
-
     unset VDMS_SKIP_REMOTE_PYTHON_TESTS
 
     echo 'Removing temporary files'
-    rm -rf tests_output_dir/minio_files/ || true
-    rm -rf tests_output_dir/test_db/ || true
-    rm -rf tests_output_dir/test_db_aws/ || true
-    rm -rf tests_output_dir/test_db_tls/ || true
+    rm -rf tests_output_dir/ || true
 
     # Killing vdms and minio processes after finishing the testing
     echo 'Killing vdms, tls, and minio processes after finishing the testing'

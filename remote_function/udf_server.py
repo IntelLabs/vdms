@@ -10,7 +10,7 @@ from zipfile import ZipFile
 import importlib.util
 from werkzeug.utils import secure_filename
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 tmp_dir_path = None
 functions_dir_path = None
@@ -34,7 +34,9 @@ def import_module_from_path(module_name, path):
 def setup(functions_path, tmp_path):
     global tmp_dir_path
     global functions_dir_path
-    print("Calling to setup")
+    if DEBUG_MODE:
+        print("Calling to setup")
+
     if functions_path is None:
         functions_path = os.path.join(os.getcwd(), "functions")
         print("Warning: Using functions dir:", functions_path, " as default.")

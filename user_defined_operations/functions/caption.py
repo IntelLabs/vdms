@@ -2,7 +2,7 @@ import cv2
 import time
 import sys
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 
 def run(settings, message, input_params, tmp_dir_path, functions_path):
@@ -27,14 +27,11 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
     video = cv2.VideoWriter(
         opfilename, cv2.VideoWriter_fourcc(*"XVID"), 30, (frame_width, frame_height)
     )
-    # video = skvideo.io.FFmpegWriter(opfilename, {"-pix_fmt": "bgr24"})
 
     while True:
         (grabbed, frame) = vs.read()
         if not grabbed:
             print("[INFO] no frame read from stream - exiting")
-            # video.close()
-            # sys.exit(0)
             break
 
         label = input_params["text"]
@@ -42,7 +39,6 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
             frame, label, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2
         )
 
-        # video.writeFrame(frame)
         video.write(frame)
     video.release()
 

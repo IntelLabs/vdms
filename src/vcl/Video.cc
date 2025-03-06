@@ -606,7 +606,7 @@ void Video::perform_operations(bool is_store, std::string store_id) {
         throw VCLException(OpenFailed,
                            "video_id " + id + " could not be opened");
       }
-    } catch (Exception e) {
+    } catch (Exception &e) {
       std::cout << "video_id " + id + " could not be opened" << std::endl;
       throw VCLException(OpenFailed, "video_id " + id + " could not be opened");
     }

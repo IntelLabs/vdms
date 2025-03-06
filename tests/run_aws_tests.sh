@@ -132,10 +132,6 @@ function cleanup() {
 
     echo 'Removing temporary files'
     rm -rf tests_output_dir || true
-    # rm -rf tests_output_dir/minio_files/ || true
-    # rm -rf tests_output_dir/test_db/ || true
-    # rm -rf tests_output_dir/test_db_aws/ || true
-    # rm -rf tests_output_dir/tdb/ || true
     exit $exit_value
 }
 

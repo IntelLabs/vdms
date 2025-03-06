@@ -3,7 +3,7 @@ import json
 import os
 import sys
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 face_cascade = None
 
@@ -105,10 +105,10 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
         tdict = {}
 
         if DEBUG_MODE:
-            print("UDO with Metadata: ipfilename ", ipfilename)
+            print("Metadata: ipfilename ", ipfilename)
         if not os.path.exists(ipfilename):
             raise Exception(
-                f"UDO with Metadata error: File ipfilename {ipfilename} does not exist"
+                f"Metadata error: File ipfilename {ipfilename} does not exist"
             )
 
         img = cv2.imread(ipfilename)

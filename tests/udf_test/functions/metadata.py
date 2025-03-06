@@ -3,7 +3,7 @@ import json
 import os
 import sys
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 face_cascade = None
 
@@ -99,8 +99,8 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
 
     else:
         tdict = {}
-        # TODO Remove it
-        print("UT dir with Metadata: ipfilename", ipfilename)
+        if DEBUG_MODE:
+            print("Metadata: ipfilename", ipfilename)
         if not os.path.exists(ipfilename):
             raise Exception(
                 f"UT Metadata error: File ipfilename {ipfilename} does not exist"

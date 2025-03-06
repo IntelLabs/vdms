@@ -9,7 +9,7 @@ from zipfile import ZipFile, is_zipfile
 import importlib.util
 from werkzeug.utils import secure_filename
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 tmp_dir_path = None
 functions_dir_path = None
@@ -149,8 +149,6 @@ def video_api():
     else:
         if DEBUG_MODE:
             print("Not using ingestion in:", json_data["id"], file=sys.stderr)
-        # TODO: why run in Metadata file returns a tuple and here we are ignoring that value?
-        # That is causing the returned tuple is being stored in video_file causing an issue later
         video_file, metadata_file = udf.run(
             tmpfile, format, json_data, tmp_dir_path, functions_dir_path
         )

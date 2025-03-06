@@ -122,7 +122,7 @@ DEFAULT_REMOTE_PYTHON_CONFIG_FILES = [
     "python/config-tls-aws-tests.json",
 ]
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 # Global variable to keep the tracking of the process objects that are running
 processList = []
@@ -4249,7 +4249,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # TODO: Delete this debugging message
-    if DEBUG_MODE:
-        print("__main__ was called")
     main()

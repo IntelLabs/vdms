@@ -4,7 +4,7 @@ import zmq
 import sys
 import importlib.util
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 tmp_dir_path = None
 functions_dir_path = None
@@ -87,7 +87,6 @@ def setup(functions_path, settings_path, tmp_path):
     socket = context.socket(zmq.REP)
     socket.bind("tcp://*:" + str(settings["port"]))
 
-    print(globals())
     i = 0
     print("Started Listening...")
     while True:

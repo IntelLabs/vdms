@@ -2,7 +2,7 @@ import cv2
 import os
 import sys
 
-DEBUG_MODE = True
+DEBUG_MODE = False
 
 
 def run(ipfilename, format, options, tmp_dir_path, functions_path):

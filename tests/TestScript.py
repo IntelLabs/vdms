@@ -213,7 +213,7 @@ class TestCloseLogFiles(unittest.TestCase):
         self.assertEqual(run_all_tests.fdList, [self.mock_file_1, self.mock_file_2])
 
 
-#### Test suite the cleanup() function ####
+#### Test suite for the cleanup() function ####
 class TestCleanup(unittest.TestCase):
     @patch("run_all_tests.print")
     @patch("run_all_tests.os.path.exists", return_value=True)

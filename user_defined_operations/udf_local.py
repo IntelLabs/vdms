@@ -85,7 +85,6 @@ def setup(functions_path, settings_path, tmp_path):
     socket = context.socket(zmq.REP)
     socket.bind("tcp://*:" + str(settings["port"]))
 
-    # print(globals())
     i = 0
     print("Started Listening...")
     while True:
@@ -124,7 +123,6 @@ def setup(functions_path, settings_path, tmp_path):
                 functions_dir_path,
             )
 
-            # print(i, response)
             socket.send_string(response)
             i += 1
         except Exception as e:

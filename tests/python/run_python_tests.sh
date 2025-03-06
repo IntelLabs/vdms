@@ -69,9 +69,7 @@ function execute_commands() {
     # protoc -I=${base_dir}/utils/src/protobuf --python_out=${client_path}/vdms ${base_dir}/utils/src/protobuf/queryMessage.proto
 
     cd ${TEST_DIR}
-    rm -rf tests_output_dir/test_db || true
-    rm -rf tests_output_dir/log.log || true
-    rm -rf tests_output_dir/screen.log || true
+    rm -rf tests_output_dir || true
     mkdir -p tests_output_dir || true
     mkdir -p tests_output_dir/test_db || true
 
@@ -99,12 +97,6 @@ function execute_commands() {
 function cleanup() {
     exit_value=$?
 
-    # rm  -rf tests_output_dir/test_db || true
-    # rm -rf tests_output_dir/log.log || true
-    # rm -rf tests_output_dir/screen.log || true
-    # rm  -rf tests_output_dir/test_db_tls || true
-    # rm -rf tests_output_dir/log-tls.log || true
-    # rm -rf tests_output_dir/screen-tls.log || true
     rm -rf tests_output_dir || true
     kill -9 $py_unittest_pid || true
     kill -9 $py_tls_unittest_pid || true
