@@ -215,7 +215,7 @@ COPY user_defined_operations /vdms/user_defined_operations
 COPY utils /vdms/utils
 COPY CMakeLists.txt /vdms/CMakeLists.txt
 COPY config-vdms.json /vdms/config-vdms.json
-COPY kubeConfig.json /vdms/kubeConfig.json
+COPY kubernetes/kubeConfig.json /vdms/kubernetes/kubeConfig.json
 COPY docker/override_default_config.py /vdms/override_default_config.py
 COPY --from=build /opt/dist /
 COPY --from=build /usr/local/bin/python${PYTHON_BASE} /usr/local/bin/python${PYTHON_BASE}
@@ -271,7 +271,7 @@ RUN git submodule update --init --recursive && \
     sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/test/neighbortest.cc && \
     sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/tools/mkgraph.cc && \
     mkdir -p /vdms/build && cd /vdms/build && \
-    cmake -DCODE_COVERAGE="${BUILD_COVERAGE}" .. && make ${BUILD_THREADS} && \
+    cmake -DUSE_K8S="${USE_K8S}" -DCODE_COVERAGE="${BUILD_COVERAGE}" .. && make ${BUILD_THREADS} && \
     echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
     echo 'python /vdms/override_default_config.py -i /vdms/config-vdms.json -o /vdms/build/config-vdms.json' >> /start.sh && \
     echo './vdms' >> /start.sh && chmod 755 /start.sh

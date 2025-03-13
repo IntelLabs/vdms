@@ -36,7 +36,6 @@
 #include "defines.h"
 
 #include <opencv2/core/types.hpp>
-// #include "../utils/include/kubernetes/KubeHelper.h"
 #include <vector>
 #include <chrono>
 
@@ -49,7 +48,6 @@ static kubernetes::KubeHelper kubernetes_get_url;
 #endif
 
 using namespace VDMS;
-// using namespace kubernetes;
 
 //========= AddImage definitions =========
 
@@ -57,7 +55,6 @@ ImageCommand::ImageCommand(const std::string &cmd_name) : RSCommand(cmd_name) {
   output_vcl_timing =
       VDMSConfig::instance()->get_bool_value("print_vcl_timing", false);
 }
-// static kubernetes::KubeHelper kubernetes_get_url;
 
 int ImageCommand::enqueue_operations(VCL::Image &img, const Json::Value &ops,
                                      bool is_addition) {

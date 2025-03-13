@@ -1,2 +1,5 @@
 opencv-python-headless==4.9.0.80
 pyzmq==26.0.3
+sk-video
+imutils
+zmq

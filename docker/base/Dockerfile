@@ -236,7 +236,6 @@ RUN git clone -b master --recurse-submodules https://github.com/IntelLabs/vdms.g
     mkdir -p /vdms/build && cd /vdms/build && \
     cmake -DUSE_K8S="${USE_K8S}" .. && make ${BUILD_THREADS} VERBOSE=1 && \
     echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
-    cp /vdms/docker/override_default_config.py /vdms/ && \
     echo 'python3 /vdms/override_default_config.py -i /vdms/config-vdms.json -o /vdms/build/config-vdms.json' >> /start.sh && \
     echo './vdms' >> /start.sh && chmod 755 /start.sh
 

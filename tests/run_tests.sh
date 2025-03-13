@@ -59,7 +59,7 @@ function execute_commands() {
     mkdir videos_tests || true
     mkdir backups || true
     mkdir /tmp/kubeconfig || true
-    cp ../kubeConfig.json /tmp/kubeconfig
+    cp ../kubernetes/kubeConfig.json /tmp/kubeconfig
 
     # Stop UDF Queue and Remote Server if already running
     pkill -9 -f udf_server.py || true
