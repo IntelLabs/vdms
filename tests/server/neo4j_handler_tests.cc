@@ -170,6 +170,6 @@ json_reader_find.parse(find_response.json(), json_response_find);
 subobj = json_response_find[0];
 metadata_obj_list = subobj["metadata_res"];
 ind_metadata = metadata_obj_list[0];
-ASSERT_EQ(ind_metadata["(VDMSNODE." + ret_prop_name + ")"],prop_value)
+ASSERT_EQ(ind_metadata["(VDMSNODE." + ret_prop_name + ")"],prop_value);
 VDMS::VDMSConfig::destroy();
 }
