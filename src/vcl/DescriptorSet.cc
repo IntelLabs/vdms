@@ -80,7 +80,7 @@ DescriptorSet::DescriptorSet(const std::string &set_path, unsigned dim,
   if (eng == DescriptorSetEngine(FaissFlat))
     _set = new FaissFlatDescriptorSet(set_path, dim, metric);
   else if (eng == DescriptorSetEngine(FaissIVFFlat))
-    _set = new FaissIVFFlatDescriptorSet(set_path, dim, metric);
+    _set = new FaissIVFFlatDescriptorSet(set_path, dim, metric, param);
   else if (eng == DescriptorSetEngine(TileDBDense))
     _set = new TDBDenseDescriptorSet(set_path, dim, metric);
   else if (eng == DescriptorSetEngine(TileDBSparse))
@@ -88,7 +88,7 @@ DescriptorSet::DescriptorSet(const std::string &set_path, unsigned dim,
   else if (eng == DescriptorSetEngine(Flinng))
     _set = new FlinngDescriptorSet(set_path, dim, metric, param);
   else if (eng == DescriptorSetEngine(FaissHNSWFlat))
-    _set = new FaissHNSWFlatDescriptorSet(set_path, dim, metric);
+    _set = new FaissHNSWFlatDescriptorSet(set_path, dim, metric, param);
   else {
     std::cerr << "Index Not supported" << std::endl;
     throw VCLException(UnsupportedIndex, "Index not supported");
