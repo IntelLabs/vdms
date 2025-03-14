@@ -54,8 +54,8 @@ utils/src/comm/ConnClient.cc                  69      57    82%   49,55,59-60,98
 utils/src/comm/Connection.cc                  82      61    74%   48-53,75,77-79,84,86,97,111,135,140,153,157,159,168,172
 utils/src/comm/ConnServer.cc                  61      49    80%   60,64,68,75,84,91,103,108,128,135,140,145
 utils/src/comm/Exception.cc                    6       0     0%   35-40
-utils/src/stats/SystemStats.cc               250     248    99%   229,453
+utils/src/stats/SystemStats.cc               250     249    99%   453
 utils/src/timers/TimerMap.cc                  82      75    91%   126,151,153,155-158
 ------------------------------------------------------------------------------
-TOTAL                                      10309    6628    64%
+TOTAL                                      10309    6629    64%
 ------------------------------------------------------------------------------
