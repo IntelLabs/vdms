@@ -166,7 +166,7 @@ RUN curl -L -O https://github.com/gpakosz/peg/releases/download/${PEG_VERSION}/p
         ./configure --disable-werror --prefix=/opt/dist/usr && \
         make clean check && make install -w --debug
 
-RUN if [ "$USE_K8S" = "ON" ]; then \
+RUN if [ "$USE_K8S" = "on" ]; then \
         git clone --depth 1 https://github.com/yaml/libyaml.git /dependencies/libyaml && \
         cd /dependencies/libyaml && \
         mkdir build && \
@@ -177,7 +177,7 @@ RUN if [ "$USE_K8S" = "ON" ]; then \
     fi
 
 #Kubernetes
-RUN if [ "$USE_K8S" = "ON" ]; then \
+RUN if [ "$USE_K8S" = "on" ]; then \
         git clone https://github.com/kubernetes-client/c.git /dependencies/k8s && \
         ls /dependencies/k8s && \
         CLIENT_REPO_ROOT=/dependencies/k8s && \
@@ -223,9 +223,9 @@ COPY --from=build /usr/local/lib/python${PYTHON_BASE} /usr/local/lib/python${PYT
 COPY --from=build ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 COPY --from=build /usr/local/include/kubernete[s] /usr/local/include/kubernetes
 COPY --from=build /usr/include/libwebsocket[s] /usr/include/libwebsockets
-COPY --from=build /usr/local/lib/libkubernete[s.so] /usr/local/lib/libkubernetes.so
-COPY --from=build /usr/local/lib/libyam[l.so] /usr/local/lib/libyaml.so
-COPY --from=build /usr/lib/x86_64-linux-gnu/libwebsocket[s.so] /usr/lib/x86_64-linux-gnu/libwebsockets.so
+COPY --from=build /usr/local/lib/libkubernetes.s[o] /usr/local/lib/libkubernetes.so
+COPY --from=build /usr/local/lib/libyaml.s[o] /usr/local/lib/libyaml.so
+COPY --from=build /usr/lib/x86_64-linux-gnu/libwebsockets.s[o] /usr/lib/x86_64-linux-gnu/libwebsockets.so
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # hadolint ignore=DL3008,SC2086
