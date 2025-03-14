@@ -136,7 +136,7 @@
 
     "engineFormatString": {
       "type": "string",
-      "enum": ["FaissFlat", "FaissIVFFlat", "TileDBDense", "TileDBSparse", "Flinng"]
+      "enum": ["FaissFlat", "FaissHNSWFlat","FaissIVFFlat", "TileDBDense", "TileDBSparse", "Flinng"]
     },
 
     "vidCodecString": {
@@ -581,9 +581,6 @@
       },
       "additionalProperties": false
     },
-
-
-
 
     "UpdateVideoTop": {
       "properties": {

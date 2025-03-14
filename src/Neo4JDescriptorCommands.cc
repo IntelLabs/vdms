@@ -272,12 +272,22 @@ NeoDescriptorsCommand::NeoDescriptorsCommand(const std::string &cmd_name)
 Neo4jNeoAddDescSet::Neo4jNeoAddDescSet() : NeoDescriptorsCommand("NeoAddDescriptorSet") {
 
     _storage_sets = VDMSConfig::instance()->get_path_descriptors();
-    _flinng_num_rows = 3; // set based on the default values of Flinng
-    _flinng_cells_per_row = 1000;
-    _flinng_num_hash_tables = 10;
-    _flinng_hashes_per_table = 12;
-    _flinng_sub_hash_bits = 2;
-    _flinng_cut_off = 6;
+
+    //Flinng params
+    _flinng_num_rows = static_cast<uint64_t>(VDMSConfig::instance()->get_flinng_num_rows().value_or(3));
+    _flinng_cells_per_row = static_cast<uint64_t>(VDMSConfig::instance()->get_flinng_cells_per_row().value_or(1000));
+    _flinng_num_hash_tables = static_cast<uint64_t>(VDMSConfig::instance()->get_flinng_num_hash_tables().value_or(10));
+    _flinng_hashes_per_table = static_cast<uint64_t>(VDMSConfig::instance()->get_flinng_hashes_per_table().value_or(12));
+    _flinng_sub_hash_bits = static_cast<uint64_t>(VDMSConfig::instance()->get_flinng_sub_hash_bits().value_or(2));
+    _flinng_cut_off = static_cast<uint64_t>(VDMSConfig::instance()->get_flinng_cut_off().value_or(6));
+
+    //IVF params
+    _ivf_nlist = static_cast<uint64_t>(VDMSConfig::instance()->get_ivf_nlist().value_or(16));
+
+    //HNSW params
+    _hnsw_efsearch = static_cast<uint64_t>(VDMSConfig::instance()->get_hnsw_efsearch().value_or(64));
+    _hnsw_efConstruction = static_cast<uint64_t>(VDMSConfig::instance()->get_hnsw_efConstruction().value_or(96));
+    _hnsw_M = static_cast<uint64_t>(VDMSConfig::instance()->get_hnsw_M().value_or(48));
 
 }
 
@@ -373,7 +383,7 @@ Json::Value Neo4jNeoAddDescSet::construct_responses(Json::Value &json_responses,
     else if (eng_str == "Flinng")
         _eng = VCL::Flinng;
     else if (eng_str == "FaissHNSWFlat")
-        _eng = VCL::FaissHNSWFlat; //WARNING
+        _eng = VCL::FaissHNSWFlat;
     else
         throw ExceptionCommand(DescriptorSetError, "Engine not supported");
 
@@ -471,8 +481,6 @@ long Neo4jNeoAddDesc::insert_descriptor(const std::string &blob,
             id_first = desc_set->add((float *)blob.data(), nr_desc);
         }
 
-        //TODO reintegrate timers
-
     } catch (VCL::Exception e) {
         print_exception(e);
         error["info"] = "VCL Descriptors Exception";
@@ -544,7 +552,7 @@ int Neo4jNeoAddDesc::add_single_descriptor(std::string &tx,
     }
 
     tx += "})-[:part_of]->(descset)";
-    //std::cout << tx << std::endl;
+    std::cout << tx << std::endl;
     return 0;
 }
 

@@ -304,7 +304,7 @@ Json::Value AddDescriptorSet::construct_responses(
   else if (eng_str == "Flinng")
     _eng = VCL::Flinng;
   else if (eng_str == "FaissHNSWFlat")
-    _eng = VCL::FaissHNSWFlat; //WARNING
+    _eng = VCL::FaissHNSWFlat;
   else
     throw ExceptionCommand(DescriptorSetError, "Engine not supported");
 

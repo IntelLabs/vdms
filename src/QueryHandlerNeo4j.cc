@@ -106,7 +106,6 @@ bool QueryHandlerNeo4j::syntax_checker(const Json::Value &root,
                                        Json::Value &error) {
   valijson::ValidationResults results;
   valijson::adapters::JsonCppAdapter user_query(root);
-  //std::cerr << root.toStyledString() << std::endl; // TEMPORARY
   if (!_validator.validate(*_schema, user_query, &results)) {
     std::cerr << "API validation failed for:" << std::endl;
     std::cerr << root.toStyledString() << std::endl;
@@ -191,7 +190,6 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
   bool error = false;
 
   rc = parse_commands(proto_query, root);
-
   // begin neo4j transaction
   tx = neoconn_pool->open_tx(conn, 10000, "w");
   for (int j = 0; j < root.size(); j++) {
@@ -219,21 +217,16 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
       proto_res.set_json(fastWriter.write(cmd_result));
       break;
     }
-
     res_stream = neoconn_pool->run_in_tx((char *)cypher.c_str(), tx);
     neo4j_resp = neoconn_pool->results_to_json(res_stream);
-    std::cout << "Neo4J Resp:" << neo4j_resp << std::endl;
     query["cp_result"] = cmd_result;
-
     Json::Value resp_retval = rscmd->construct_responses(neo4j_resp, query, proto_res, blob);
-
     //THIS IS VERY CLUNKY and confusing, NEEDS TO BE REFACTORED
     if (neo4j_resp.isMember("metadata_res") && (cmd == "NeoAdd" || cmd == "NeoFind")) {
         resp_retval["metadata_res"] = neo4j_resp["metadata_res"];
     } else {
         std::cout << "Non NeoAdd/Find" << std::endl;
     }
-
     json_responses.append(resp_retval);
 
 

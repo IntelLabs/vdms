@@ -8,8 +8,6 @@
 #include <neo4j-client.h>
 #include <tbb/concurrent_queue.h>
 #include <transaction.h>
-// #include <connection.h>
-// #include <result_stream.h>
 
 #include <cstdint>
 #include <string>
