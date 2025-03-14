@@ -9,8 +9,6 @@ from zipfile import ZipFile, is_zipfile
 import importlib.util
 from werkzeug.utils import secure_filename
 
-DEBUG_MODE = False
-
 tmp_dir_path = None
 functions_dir_path = None
 
@@ -33,10 +31,7 @@ def import_module_from_path(module_name, path):
 def setup(functions_path, tmp_path):
     global tmp_dir_path
     global functions_dir_path
-    if DEBUG_MODE:
-        print("udf_server Calling to setup", file=sys.stderr)
-        print("udf_server tmp_path:", tmp_path, file=sys.stderr)
-        print("udf_server functions_path:", functions_path, file=sys.stderr)
+
     if functions_path is None:
         functions_path = os.path.join(os.getcwd(), "functions")
         print("Warning: Using functions dir:", functions_path, " as default.")
@@ -57,15 +52,9 @@ def setup(functions_path, tmp_path):
     # Set path to functions dir
     functions_dir_path = functions_path
 
-    if DEBUG_MODE:
-        print("Searching functions in", functions_path)
     for entry in os.scandir(functions_path):
         if entry.is_file() and entry.path.endswith(".py"):
-            if DEBUG_MODE:
-                print("Checking:", entry.name)
             module_name = entry.name[:-3]
-            if DEBUG_MODE:
-                print("Module:", module_name)
 
             # Import the module from the given path
             module = import_module_from_path(module_name, entry)
@@ -141,41 +130,27 @@ def video_api():
 
     udf = globals()[json_data["id"]]
     if "ingestion" in json_data:
-        if DEBUG_MODE:
-            print("Using ingestion in:", json_data["id"], file=sys.stderr)
         video_file, metadata_file = udf.run(
             tmpfile, format, json_data, tmp_dir_path, functions_dir_path
         )
     else:
-        if DEBUG_MODE:
-            print("Not using ingestion in:", json_data["id"], file=sys.stderr)
         video_file, metadata_file = udf.run(
             tmpfile, format, json_data, tmp_dir_path, functions_dir_path
         )
 
     response_file = os.path.join(tmp_dir_path, "tmpfile" + uuid.uuid1().hex + ".zip")
-    if DEBUG_MODE:
-        print("video_file:", video_file, file=sys.stderr)
 
     try:
         with ZipFile(response_file, "w") as zip_object:
             zip_object.write(video_file, os.path.basename(video_file))
             if metadata_file is not None and metadata_file != "":
-                if DEBUG_MODE:
-                    print("metadata_file:", metadata_file, file=sys.stderr)
                 zip_object.write(metadata_file, os.path.basename(metadata_file))
             zip_object.close()
             if not is_zipfile(response_file):
                 raise Exception("response_file is invalid: " + response_file)
-    except Exception as e:
+    except Exception:
         error_message = "An internal error has occurred."
-        if DEBUG_MODE:
-            print(f"Exception: {str(e)}", file=sys.stderr)
         return error_message, 500
-
-    if DEBUG_MODE:
-        print("udf_server tmpfile:", tmpfile, file=sys.stderr)
-        print("udf_server response_file:", response_file, file=sys.stderr)
 
     @after_this_request
     def remove_tempfile(response):
@@ -198,9 +173,7 @@ def video_api():
             as_attachment=True,
             download_name=os.path.basename(response_file),
         )
-    except Exception as e:
-        if DEBUG_MODE:
-            print("Error in file read:", str(e), file=sys.stderr)
+    except Exception:
         return "Error in file read"
 
 
@@ -236,8 +209,6 @@ def main():
         print("Correct Usage: python3 udf_server.py <port> [functions_path] [tmp_path]")
     else:
         setup(sys.argv[2], sys.argv[3])
-        if DEBUG_MODE:
-            print("using host: 0.0.0.0 port:", sys.argv[1])
         app.run(host="0.0.0.0", port=int(sys.argv[1]))
 
 

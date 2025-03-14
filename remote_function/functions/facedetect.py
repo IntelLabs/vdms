@@ -1,18 +1,8 @@
 import cv2
 import os
-import sys
-
-DEBUG_MODE = False
 
 
 def run(ipfilename, format, options, tmp_dir_path, functions_path):
-    if DEBUG_MODE:
-        print("Temporary path:", tmp_dir_path, file=sys.stderr)
-        print("Functions path:", functions_path, file=sys.stderr)
-        print("options:", options, file=sys.stderr)
-        print("format:", format, file=sys.stderr)
-        print("ipfilename", ipfilename, file=sys.stderr)
-
     haarcascade_frontalface_default_path = os.path.join(
         functions_path, "files/haarcascade_frontalface_default.xml"
     )
@@ -26,8 +16,6 @@ def run(ipfilename, format, options, tmp_dir_path, functions_path):
         haarcascade_frontalface_default_path
     )
 
-    if DEBUG_MODE:
-        print("Facedetect: ipfilename", ipfilename)
     if not os.path.exists(ipfilename):
         raise Exception(
             f"Facedetect error: File ipfilename: {ipfilename} does not exist"

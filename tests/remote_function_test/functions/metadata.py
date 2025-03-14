@@ -2,9 +2,6 @@ import cv2
 import uuid
 import json
 import os
-import sys
-
-DEBUG_MODE = False
 
 face_cascade = None
 
@@ -33,13 +30,6 @@ def facedetectbbox(frame):
 
 
 def run(ipfilename, format, options, tmp_dir_path, functions_path):
-    if DEBUG_MODE:
-        print("Using old metadata **** Temporary path:", tmp_dir_path, file=sys.stderr)
-        print("Functions path:", functions_path, file=sys.stderr)
-        print("options:", options, file=sys.stderr)
-        print("format:", format, file=sys.stderr)
-        print("ipfilename:", ipfilename, file=sys.stderr)
-
     set_face_cascade(functions_path)
 
     if options["media_type"] == "video":

@@ -1,24 +1,13 @@
 import cv2
 import time
-import sys
-
-DEBUG_MODE = False
 
 
 def run(settings, message, input_params, tmp_dir_path, functions_path):
-    if DEBUG_MODE:
-        print("Temporary path:", tmp_dir_path, file=sys.stderr)
-        print("Functions path:", functions_path, file=sys.stderr)
-        print("Settings:", settings, file=sys.stderr)
-        print("message:", message, file=sys.stderr)
-        print("input_params", input_params, file=sys.stderr)
     ipfilename = message
     format = message.strip().split(".")[-1]
 
     t1 = time.time()
     opfilename = settings["opfile"] + str(t1) + "." + format
-    if DEBUG_MODE:
-        print("opfilename:", opfilename, file=sys.stderr)
     vs = cv2.VideoCapture(ipfilename)
 
     frame_width = int(vs.get(3))

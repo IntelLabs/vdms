@@ -10,8 +10,6 @@ from zipfile import ZipFile
 import importlib.util
 from werkzeug.utils import secure_filename
 
-DEBUG_MODE = False
-
 tmp_dir_path = None
 functions_dir_path = None
 
@@ -34,8 +32,6 @@ def import_module_from_path(module_name, path):
 def setup(functions_path, tmp_path):
     global tmp_dir_path
     global functions_dir_path
-    if DEBUG_MODE:
-        print("Calling to setup")
 
     if functions_path is None:
         functions_path = os.path.join(os.getcwd(), "functions")
@@ -56,15 +52,10 @@ def setup(functions_path, tmp_path):
 
     # Set path to functions dir
     functions_dir_path = functions_path
-    if DEBUG_MODE:
-        print("Searching functions in", functions_path)
+
     for entry in os.scandir(functions_path):
         if entry.is_file() and entry.path.endswith(".py"):
-            if DEBUG_MODE:
-                print("Checking:", entry.name)
             module_name = entry.name[:-3]
-            if DEBUG_MODE:
-                print("Module:", module_name)
 
             # Import the module from the given path
             module = import_module_from_path(module_name, entry)
@@ -120,9 +111,6 @@ def image_api():
 
         udf = globals()[id]
 
-        if DEBUG_MODE:
-            print("Module called:", udf, file=sys.stderr)
-
         if "ingestion" in json_data:
             r_img, r_meta = udf.run(
                 tmpfile, format, json_data, tmp_dir_path, functions_dir_path
@@ -152,8 +140,7 @@ def image_api():
         return return_string
     except Exception as e:
         error_message = f"Exception: {str(e)}"
-        if DEBUG_MODE:
-            print(error_message, file=sys.stderr)
+        print(error_message, file=sys.stderr)
         return "An internal error has occurred. Please try again later."
 
 
@@ -183,9 +170,6 @@ def video_api():
 
         udf = globals()[id]
 
-        if DEBUG_MODE:
-            print("Module called:", udf, file=sys.stderr)
-
         if "ingestion" in json_data:
             video_file, metadata_file = udf.run(
                 tmpfile, format, json_data, tmp_dir_path, functions_dir_path
@@ -214,8 +198,7 @@ def video_api():
                 os.remove(video_file)
                 os.remove(metadata_file)
             except Exception:
-                if DEBUG_MODE:
-                    print("Some files cannot be deleted or are not present")
+                print("Warning: Some files cannot be deleted or are not present")
             return response
 
         try:
@@ -223,13 +206,9 @@ def video_api():
                 response_file, as_attachment=True, download_name=response_file
             )
         except Exception as e:
-            if DEBUG_MODE:
-                print("Error in file read:", str(e), file=sys.stderr)
+            print("Error in file read:", str(e), file=sys.stderr)
             return "Error in file read"
-    except Exception as e:
-        error_message = f"Exception: {str(e)}"
-        if DEBUG_MODE:
-            print(error_message, file=sys.stderr)
+    except Exception:
         return "An internal error has occurred. Please try again later."
 
 
@@ -244,8 +223,6 @@ def handle_bad_request(e):
         }
     )
     response.content_type = "application/json"
-    if DEBUG_MODE:
-        print("400 error:", response, file=sys.stderr)
     return response
 
 
@@ -266,8 +243,6 @@ def main():
         print("Correct Usage: python3 udf_server.py <port> [functions_path] [tmp_path]")
     else:
         setup(sys.argv[2], sys.argv[3])
-        if DEBUG_MODE:
-            print("using host: 0.0.0.0 port:", sys.argv[1])
         app.run(host="0.0.0.0", port=int(sys.argv[1]))
 
 

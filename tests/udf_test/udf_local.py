@@ -4,8 +4,6 @@ import zmq
 import sys
 import importlib.util
 
-DEBUG_MODE = False
-
 tmp_dir_path = None
 functions_dir_path = None
 
@@ -28,11 +26,6 @@ def import_module_from_path(module_name, path):
 def setup(functions_path, settings_path, tmp_path):
     global tmp_dir_path
     global functions_dir_path
-    if DEBUG_MODE:
-        print("Setup for udf_local", file=sys.stderr)
-        print("functions_path:", functions_path, file=sys.stderr)
-        print("settings_path:", settings_path, file=sys.stderr)
-        print("tmp_path:", tmp_path, file=sys.stderr)
 
     if functions_path is None:
         functions_path = os.path.join(os.getcwd(), "functions")
@@ -63,11 +56,7 @@ def setup(functions_path, settings_path, tmp_path):
 
     for entry in os.scandir(functions_path):
         if entry.is_file() and entry.path.endswith(".py"):
-            if DEBUG_MODE:
-                print("Checking:", entry.name)
             module_name = entry.name[:-3]
-            if DEBUG_MODE:
-                print("Module:", module_name)
 
             # Import the module from the given path
             module = import_module_from_path(module_name, entry)
@@ -93,9 +82,6 @@ def setup(functions_path, settings_path, tmp_path):
         message = socket.recv()
 
         try:
-            if DEBUG_MODE:
-                print("Received {}".format(message))
-
             message_received = message.decode("utf-8")
             input_params = json.loads(message_received)
 
@@ -115,8 +101,6 @@ def setup(functions_path, settings_path, tmp_path):
                 raise Exception(f"{udf_key} value was not found in globals()")
 
             udf = globals()[udf_key]
-            if DEBUG_MODE:
-                print("Module called:", udf, file=sys.stderr)
 
             response, _ = udf.run(
                 settings,
@@ -125,14 +109,10 @@ def setup(functions_path, settings_path, tmp_path):
                 tmp_dir_path,
                 functions_dir_path,
             )
-            if DEBUG_MODE:
-                print(i, response, file=sys.stderr)
+
             socket.send_string(response)
             i += 1
-        except Exception as e:
-            if DEBUG_MODE:
-                print("Exception with error: ", e, file=sys.stderr)
-                print(e.with_traceback(None))
+        except Exception:
             socket.send_string("An error occurred while running the operation.")
             break
 

@@ -1,9 +1,6 @@
 import cv2
 import json
 import os
-import sys
-
-DEBUG_MODE = False
 
 face_cascade = None
 
@@ -32,12 +29,6 @@ def facedetectbbox(frame):
 
 
 def run(settings, message, input_params, tmp_dir_path, functions_path):
-    if DEBUG_MODE:
-        print("Temporary path:", tmp_dir_path, file=sys.stderr)
-        print("Functions path:", functions_path, file=sys.stderr)
-        print("Settings:", settings, file=sys.stderr)
-        print("message:", message, file=sys.stderr)
-        print("input_params", input_params, file=sys.stderr)
     set_face_cascade(functions_path)
 
     ipfilename = message
@@ -92,15 +83,11 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
         response = {"opFile": ipfilename, "metadata": metadata}
         r = json.dumps(response)
 
-        if DEBUG_MODE:
-            print("response:", response, file=sys.stderr)
-            print("json:", r, file=sys.stderr)
         return r, None
 
     else:
         tdict = {}
-        if DEBUG_MODE:
-            print("Metadata: ipfilename", ipfilename)
+
         if not os.path.exists(ipfilename):
             raise Exception(
                 f"UT Metadata error: File ipfilename {ipfilename} does not exist"
@@ -135,8 +122,4 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
         response = {"opFile": ipfilename, "metadata": tdict}
 
         r = json.dumps(response)
-        if DEBUG_MODE:
-            print("response:", response, file=sys.stderr)
-            print("json:", r, file=sys.stderr)
-
         return r, None

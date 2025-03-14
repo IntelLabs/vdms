@@ -2,9 +2,6 @@ import cv2
 import uuid
 import json
 import os
-import sys
-
-DEBUG_MODE = False
 
 face_cascade = None
 
@@ -33,13 +30,6 @@ def facedetectbbox(frame):
 
 
 def run(ipfilename, format, options, tmp_dir_path, functions_path):
-    if DEBUG_MODE:
-        print("Temporary path:", tmp_dir_path, file=sys.stderr)
-        print("Functions path:", functions_path, file=sys.stderr)
-        print("options:", options, file=sys.stderr)
-        print("format:", format, file=sys.stderr)
-        print("ipfilename:", ipfilename, file=sys.stderr)
-
     set_face_cascade(functions_path)
 
     # Extract metadata for video files
@@ -101,8 +91,6 @@ def run(ipfilename, format, options, tmp_dir_path, functions_path):
     # Extract metadata for image files
     else:
         tdict = {}
-        if DEBUG_MODE:
-            print("Metadata: ipfilename=", ipfilename, file=sys.stderr)
         if not os.path.exists(ipfilename):
             raise Exception(
                 f"Metadata error: File ipfilename {ipfilename} does not exist"
