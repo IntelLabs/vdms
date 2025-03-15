@@ -34,7 +34,6 @@ void create_blob_util(Meta_Data *meta_obj) {
 
 TEST(BLOB, add_Blob) {
   Meta_Data *meta_obj = new Meta_Data();
-  // -blobs.push_back(meta_obj->read_blob(filename));
   meta_obj->_aclient.reset(
       new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
 
