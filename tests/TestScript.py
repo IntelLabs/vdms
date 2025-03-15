@@ -107,23 +107,21 @@ class MockProcess:
 class TestKillProcessesByObject(unittest.TestCase):
     def setUp(self):
         # Set up for each test
+        self.original_DEBUG_MODE = run_all_tests.DEBUG_MODE
+        run_all_tests.DEBUG_MODE = True
+
+    def tearDown(self):
+        run_all_tests.DEBUG_MODE = self.original_DEBUG_MODE
+
+    @patch("os.system")
+    @patch("run_all_tests.print")
+    def test_kill_processes_by_object(self, mock_print, mock_system):
         self.original_processList = run_all_tests.processList
         run_all_tests.processList = [
             MockProcess(123),
             MockProcess(456),
             MockProcess(789),
         ]
-        self.original_DEBUG_MODE = run_all_tests.DEBUG_MODE
-        run_all_tests.DEBUG_MODE = True
-
-    def tearDown(self):
-        # Clean up after each test
-        run_all_tests.processList = self.original_processList
-        run_all_tests.DEBUG_MODE = self.original_DEBUG_MODE
-
-    @patch("os.system")
-    @patch("run_all_tests.print")
-    def test_kill_processes_by_object(self, mock_print, mock_system):
         run_all_tests.kill_processes_by_object()
 
         # Check if the correct print statements were made
@@ -139,6 +137,8 @@ class TestKillProcessesByObject(unittest.TestCase):
 
         # Check if pidList is cleared
         self.assertEqual(run_all_tests.processList, [])
+
+        run_all_tests.processList = self.original_processList
 
     def test_kill_processes_by_object_exception(self):
         # Make the kill method of the first process object raise an exception

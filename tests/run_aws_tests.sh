@@ -105,13 +105,12 @@ function execute_commands() {
     ./../minio server tests_output_dir/minio_files --address :${api_port} &
     py_minio_pid=$!
 
-    sleep 10
+    sleep 2
     echo 'Creating buckets for the tests'
     # Create the minio-bucket for MinIO
     # by using the corresponding MinIO client which connects to the MinIO server
     # by using its username and password
     mc alias set myminio/ http://localhost:${api_port} $username $password
-    sleep 5
     mc mb myminio/minio-bucket
 
     echo 'Running C++ tests...'
