@@ -31,6 +31,11 @@ import subprocess
 import json
 import signal
 import unittest
+import random
+import run_all_tests
+import sys
+import io
+
 from json.decoder import JSONDecodeError
 from unittest.mock import patch, mock_open, MagicMock, Mock, call
 
@@ -77,10 +82,6 @@ from run_all_tests import (
     main,
 )
 
-import run_all_tests
-import sys
-import io
-
 
 #### Concrete class inherited from AbstractTest
 #### This class is used for testing purposes
@@ -116,21 +117,31 @@ class TestKillProcessesByObject(unittest.TestCase):
     @patch("os.system")
     @patch("run_all_tests.print")
     def test_kill_processes_by_object(self, mock_print, mock_system):
+        # Setup
         self.original_processList = run_all_tests.processList
-        run_all_tests.processList = [
-            MockProcess(123),
-            MockProcess(456),
-            MockProcess(789),
-        ]
+        number_of_random_pids = 3
+        min_pid = 1000
+        max_pid = 2000
+        run_all_tests.processList = []
+        random_value_list = []
+        for _ in range(0, number_of_random_pids):
+            random_value = random.randint(min_pid, max_pid)
+            random_value_list.append(random_value)
+            run_all_tests.processList.append(MockProcess(random_value))
+
+        # Execute the test
         run_all_tests.kill_processes_by_object()
 
+        # Reverse the list due to the calls order
+        random_value_list.reverse()
+
+        # Verify the results
         # Check if the correct print statements were made
-        expected_print_calls = [
-            unittest.mock.call("Killing 3 processes"),
-            unittest.mock.call("Killing pid: 789"),
-            unittest.mock.call("Killing pid: 456"),
-            unittest.mock.call("Killing pid: 123"),
-        ]
+        expected_print_calls = []
+        expected_print_calls.append(unittest.mock.call("Killing 3 processes"))
+        for index in range(0, number_of_random_pids):
+            pid = random_value_list[index]
+            expected_print_calls.append(unittest.mock.call(f"Killing pid: {pid}"))
 
         # Check if debug messages were printed
         mock_print.assert_has_calls(expected_print_calls, any_order=False)
@@ -138,6 +149,7 @@ class TestKillProcessesByObject(unittest.TestCase):
         # Check if pidList is cleared
         self.assertEqual(run_all_tests.processList, [])
 
+        # Revert the temporary changes done to processList
         run_all_tests.processList = self.original_processList
 
     def test_kill_processes_by_object_exception(self):
