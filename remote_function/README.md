@@ -78,15 +78,14 @@ We now provide an example to add a new operation `cardetect` as a remote operati
 ~/
 |__remote_function
    |__functions
-   |  |__files
-   |  |  |__haarcascade_frontalface_default.xml
    |  |__facedetect.py
    |__README.md
    |__requirements.txt
    |__udf_server.py
 ```
-2. Download/Copy the `cars.xml` file to the `~/remote_function/functions/files`.
-3. Create the `cardetect.py` file in `~/remote_function/functions`.
+2. Copy the `resources` directory (located at the root of the repo) next to the `remote_function` directory
+3. Download/Copy the `cars.xml` file to the `~/remote_function/functions/files`.
+4. Create the `cardetect.py` file in `~/remote_function/functions`.
 ```
 import time
 import cv2
@@ -113,13 +112,14 @@ def run(ipfilename, format, options):
 |__remote_function
    |__functions
    |  |__files
-   |  |  |__haarcascade_frontalface_default.xml
    |  |  |__cars.xml
    |  |__facedetect.py
    |  |__cardetect.py
    |__README.md
    |__requirements.txt
    |__udf_server.py
+|__resources
+   |__haarcascade_frontalface_default.xml
 ```
 5. Now start the remote server at port `5010` by running;
 ```

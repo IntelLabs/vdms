@@ -92,8 +92,6 @@ We now provide an example to add a new UDF `cardetect`. The `cardetect` operatio
 ~/
 |__user_defined_operations
    |__functions
-   |  |__files
-   |  |  |__haarcascade_frontalface_default.xml
    |  |__facedetect.py
    |  |__flip.py
    |__README.md
@@ -101,6 +99,7 @@ We now provide an example to add a new UDF `cardetect`. The `cardetect` operatio
    |__settings.json
    |__udf_local.py
 ```
+2. Copy the `resources` directory (located at the root of the repo) next to the `user_defined_operations` directory
 2. Download/Copy the `cars.xml` file to the `~/user_defined_operations/functions/files`.
 3. Create the `cardetect.py` file in `~/user_defined_operations/functions`.
 ```
@@ -138,7 +137,6 @@ def run(settings, message, input_params):
 |__user_defined_operations
    |__functions
    |  |__files
-   |  |  |__haarcascade_frontalface_default.xml
    |  |  |__cars.xml
    |  |__facedetect.py
    |  |__flip.py
@@ -147,6 +145,8 @@ def run(settings, message, input_params):
    |__requirements.txt
    |__settings.json
    |__udf_local.py
+|__resources
+   |__haarcascade_frontalface_default.xml
 ```
 5. Update the settings file with the new UDF information.
 ```
