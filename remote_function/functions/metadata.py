@@ -3,23 +3,18 @@ import uuid
 import json
 import os
 
-face_cascade = None
+haarcascade_frontalface_default_path = (
+    "../resources/haarcascade_frontalface_default.xml"
+)
 
+if not os.path.exists(haarcascade_frontalface_default_path):
+    raise Exception(f"{haarcascade_frontalface_default_path}: path is invalid")
 
-def set_face_cascade(functions_path):
-    global face_cascade
-    haarcascade_frontalface_default_path = os.path.join(
-        functions_path, "files/haarcascade_frontalface_default.xml"
-    )
-
-    if not os.path.exists(haarcascade_frontalface_default_path):
-        raise Exception(f"{haarcascade_frontalface_default_path}: path is invalid")
-
-    face_cascade = cv2.CascadeClassifier(
-        # This file is available from OpenCV 'data' directory at
-        # https://github.com/opencv/opencv/blob/4.x/data/haarcascades/haarcascade_frontalface_default.xml
-        haarcascade_frontalface_default_path
-    )
+face_cascade = cv2.CascadeClassifier(
+    # This file is available from OpenCV 'data' directory at
+    # https://github.com/opencv/opencv/blob/4.x/data/haarcascades/haarcascade_frontalface_default.xml
+    haarcascade_frontalface_default_path
+)
 
 
 def facedetectbbox(frame):
@@ -29,9 +24,7 @@ def facedetectbbox(frame):
     return faces
 
 
-def run(ipfilename, format, options, tmp_dir_path, functions_path):
-    set_face_cascade(functions_path)
-
+def run(ipfilename, format, options, tmp_dir_path):
     # Extract metadata for video files
     if options["media_type"] == "video":
         vs = cv2.VideoCapture(ipfilename)

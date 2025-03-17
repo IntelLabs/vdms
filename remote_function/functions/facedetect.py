@@ -1,20 +1,22 @@
 import cv2
 import os
 
+haarcascade_frontalface_default_path = (
+    "../resources/haarcascade_frontalface_default.xml"
+)
 
-def run(ipfilename, format, options, tmp_dir_path, functions_path):
-    haarcascade_frontalface_default_path = os.path.join(
-        functions_path, "files/haarcascade_frontalface_default.xml"
-    )
+if not os.path.exists(haarcascade_frontalface_default_path):
+    raise Exception(f"{haarcascade_frontalface_default_path}: path is invalid")
 
-    if not os.path.exists(haarcascade_frontalface_default_path):
-        raise Exception(f"{haarcascade_frontalface_default_path}: path is invalid")
+face_cascade = cv2.CascadeClassifier(
+    # This file is available from OpenCV 'data' directory at
+    # https://github.com/opencv/opencv/blob/4.x/data/haarcascades/haarcascade_frontalface_default.xml
+    haarcascade_frontalface_default_path
+)
 
-    face_cascade = cv2.CascadeClassifier(
-        # This file is available from OpenCV 'data' directory at
-        # https://github.com/opencv/opencv/blob/4.x/data/haarcascades/haarcascade_frontalface_default.xml
-        haarcascade_frontalface_default_path
-    )
+
+def run(ipfilename, format, options, tmp_dir_path):
+    global face_cascade
 
     if not os.path.exists(ipfilename):
         raise Exception(
