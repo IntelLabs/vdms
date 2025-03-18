@@ -3,8 +3,11 @@ import uuid
 import json
 import os
 
-haarcascade_frontalface_default_path = (
-    "../../../resources/haarcascade_frontalface_default.xml"
+# Get the real directory where this Python file is
+currentDir = os.path.realpath(os.path.dirname(__file__))
+
+haarcascade_frontalface_default_path = os.path.join(
+    currentDir, "../../../resources/haarcascade_frontalface_default.xml"
 )
 
 if not os.path.exists(haarcascade_frontalface_default_path):
