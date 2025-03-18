@@ -3,7 +3,7 @@ import cv2
 import os
 
 haarcascade_frontalface_default_path = (
-    "../resources/haarcascade_frontalface_default.xml"
+    "../../resources/haarcascade_frontalface_default.xml"
 )
 
 if not os.path.exists(haarcascade_frontalface_default_path):
