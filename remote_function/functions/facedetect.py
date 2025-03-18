@@ -6,7 +6,9 @@ haarcascade_frontalface_default_path = (
 )
 
 if not os.path.exists(haarcascade_frontalface_default_path):
-    raise Exception(f"{haarcascade_frontalface_default_path}: path is invalid")
+    raise Exception(
+        f"{haarcascade_frontalface_default_path}: path is invalid in facedetect for the remote function"
+    )
 
 face_cascade = cv2.CascadeClassifier(
     # This file is available from OpenCV 'data' directory at
