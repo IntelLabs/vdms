@@ -306,8 +306,6 @@ Server::~Server() {
   _cm->shutdown();
   delete _cm;
   PMGDQueryHandler::destroy();
-  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
-  std::filesystem::remove_all(dbname.c_str());
   DescriptorsManager::instance()->flush();
   VDMSConfig::destroy();
 }

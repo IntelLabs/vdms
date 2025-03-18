@@ -232,7 +232,6 @@ void DescriptorSet::store() {
           throw VCLException(ObjectNotFound,
                              "Descriptor: File was not added: " + filenames[i]);
         }
-        // std::remove(filename.c_str());
       }
     }
   } catch (std::exception &e) {
