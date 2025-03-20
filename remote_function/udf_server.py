@@ -11,7 +11,6 @@ import importlib.util
 from werkzeug.utils import secure_filename
 
 tmp_dir_path = None
-functions_dir_path = None
 
 
 # Function to dynamically import a module given its full path
@@ -29,29 +28,25 @@ def import_module_from_path(module_name, path):
         return None
 
 
-def setup(functions_path, tmp_path):
+def setup(tmp_path):
     global tmp_dir_path
-    global functions_dir_path
 
-    if functions_path is None:
-        functions_path = os.path.join(os.getcwd(), "functions")
-        print("Warning: Using functions dir:", functions_path, " as default.")
-
-    if not os.path.exists(functions_path):
-        raise Exception(f"{functions_path}: path to functions dir is invalid")
+    # Get the real directory where this Python file is
+    currentDir = os.path.realpath(os.path.dirname(__file__))
 
     if tmp_path is None:
-        tmp_path = os.path.join(os.getcwd(), "tmp")
+        tmp_path = os.path.join(currentDir, "tmp")
         print("Warning: Using temporary dir:", tmp_path, " as default.")
 
     if not os.path.exists(tmp_path):
         raise Exception(f"{tmp_path}: path to temporary dir is invalid")
 
+    functions_path = os.path.join(currentDir, "functions")
+    if not os.path.exists(functions_path):
+        raise Exception(f"{functions_path}: path to functions dir is invalid")
+
     # Set path to temporary dir
     tmp_dir_path = tmp_path
-
-    # Set path to functions dir
-    functions_dir_path = functions_path
 
     for entry in os.scandir(functions_path):
         if entry.is_file() and entry.path.endswith(".py"):
@@ -86,7 +81,6 @@ def hello():
 @app.route("/image", methods=["POST"])
 def image_api():
     global tmp_dir_path
-    global functions_dir_path
     try:
         json_data = json.loads(request.form["jsonData"])
         image_data = request.files["imageData"]
@@ -112,13 +106,9 @@ def image_api():
         udf = globals()[id]
 
         if "ingestion" in json_data:
-            r_img, r_meta = udf.run(
-                tmpfile, format, json_data, tmp_dir_path, functions_dir_path
-            )
+            r_img, r_meta = udf.run(tmpfile, format, json_data, tmp_dir_path)
         else:
-            r_img, _ = udf.run(
-                tmpfile, format, json_data, tmp_dir_path, functions_dir_path
-            )
+            r_img, _ = udf.run(tmpfile, format, json_data, tmp_dir_path)
 
         img_encode = cv2.imencode("." + str(format), r_img)[1]
 
@@ -147,7 +137,6 @@ def image_api():
 @app.route("/video", methods=["POST"])
 def video_api():
     global tmp_dir_path
-    global functions_dir_path
     try:
         json_data = json.loads(request.form["jsonData"])
         video_data = request.files["videoData"]
@@ -172,12 +161,10 @@ def video_api():
 
         if "ingestion" in json_data:
             video_file, metadata_file = udf.run(
-                tmpfile, format, json_data, tmp_dir_path, functions_dir_path
+                tmpfile, format, json_data, tmp_dir_path
             )
         else:
-            video_file, _ = udf.run(
-                tmpfile, format, json_data, tmp_dir_path, functions_dir_path
-            )
+            video_file, _ = udf.run(tmpfile, format, json_data, tmp_dir_path)
 
         response_file = os.path.join(
             tmp_dir_path, "tmpfile" + uuid.uuid1().hex + ".zip"
@@ -228,21 +215,14 @@ def handle_bad_request(e):
 
 def main():
     if sys.argv[1] is None:
-        print(
-            "Port missing\n Correct Usage: python3 udf_server.py <port> [functions_path] [tmp_path]"
-        )
+        print("Port missing\n Correct Usage: python3 udf_server.py <port> [tmp_path]")
     elif sys.argv[2] is None:
-        print(
-            "Warning: Path to the functions directory is missing\nBy default the path will be the current directory"
-        )
-        print("Correct Usage: python3 udf_server.py <port> [functions_path] [tmp_path]")
-    elif sys.argv[3] is None:
         print(
             "Warning: Path to the temporary directory is missing\nBy default the path will be the current directory"
         )
-        print("Correct Usage: python3 udf_server.py <port> [functions_path] [tmp_path]")
+        print("Correct Usage: python3 udf_server.py <port> [tmp_path]")
     else:
-        setup(sys.argv[2], sys.argv[3])
+        setup(sys.argv[2])
         app.run(host="0.0.0.0", port=int(sys.argv[1]))
 
 

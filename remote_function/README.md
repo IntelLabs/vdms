@@ -38,7 +38,7 @@ source venv/bin/activate
 python3 -m pip install pip --upgrade
 python3 -m pip install wheel
 python3 -m pip install -r requirements.txt
-python3 udf_server.py <port_number>
+python3 udf_server.py <port_number> [path_tmp_dir]
 ```
 
 ## Client Query
@@ -121,9 +121,9 @@ def run(ipfilename, format, options):
 |__resources
    |__haarcascade_frontalface_default.xml
 ```
-5. Now start the remote server at port `5010` by running;
+5. Now start the remote server at port `5010` and specify the path to the temporary directory where the temporary files will be created (if you don't specify the directory then it will be created in the same path where the udf_server.py file is located at);
 ```
-python3 udf_server.py 5010
+python3 udf_server.py 5010 [path_tmp_dir]
 ```
 6. Say VDMS has a database of car images that have the property `category` set as `cars`. Then you can run the `cardetect` operation on these images using the following query;
 ```

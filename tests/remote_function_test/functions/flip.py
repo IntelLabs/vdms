@@ -2,7 +2,7 @@ import cv2
 import os
 
 
-def run(ipfilename, format, options, tmp_dir_path, functions_path):
+def run(ipfilename, format, options, tmp_dir_path):
     if not os.path.exists(ipfilename):
         raise Exception(f"Flip error: File ipfilename: {ipfilename} does not exist")
 

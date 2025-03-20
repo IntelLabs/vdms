@@ -4,9 +4,6 @@ import zmq
 import sys
 import importlib.util
 
-tmp_dir_path = None
-functions_dir_path = None
-
 
 # Function to dynamically import a module given its full path
 def import_module_from_path(module_name, path):
@@ -23,36 +20,17 @@ def import_module_from_path(module_name, path):
         return None
 
 
-def setup(functions_path, settings_path, tmp_path):
-    global tmp_dir_path
-    global functions_dir_path
+def setup():
+    # Get the real directory where this Python file is
+    currentDir = os.path.realpath(os.path.dirname(__file__))
 
-    if functions_path is None:
-        functions_path = os.path.join(os.getcwd(), "functions")
-        print("Warning: Using functions dir:", functions_path, " as default.")
-
+    functions_path = os.path.join(currentDir, "functions")
     if not os.path.exists(functions_path):
         raise Exception(f"{functions_path} path is invalid")
 
-    if settings_path is None:
-        settings_path = os.path.join(os.getcwd(), "settings.json")
-        print("Warning: Using settings dir:", settings_path, " as default.")
-
+    settings_path = os.path.join(currentDir, "settings.json")
     if not os.path.exists(settings_path):
         raise Exception(f"{settings_path} path is invalid")
-
-    if tmp_path is None:
-        tmp_path = os.path.join(os.getcwd(), "tmp")
-        print("Warning: Using temporary dir:", tmp_path, " as default.")
-
-    if not os.path.exists(tmp_path):
-        raise Exception(f"{tmp_path}: path to temporary dir is invalid")
-
-    # Set path to temporary dir
-    tmp_dir_path = tmp_path
-
-    # Set path to functions dir
-    functions_dir_path = functions_path
 
     for entry in os.scandir(functions_path):
         if entry.is_file() and entry.path.endswith(".py"):
@@ -102,13 +80,7 @@ def setup(functions_path, settings_path, tmp_path):
 
             udf = globals()[udf_key]
 
-            response, _ = udf.run(
-                settings,
-                input_params["ipfile"],
-                input_params,
-                tmp_dir_path,
-                functions_dir_path,
-            )
+            response, _ = udf.run(settings, input_params["ipfile"], input_params)
 
             socket.send_string(response)
             i += 1
@@ -118,29 +90,7 @@ def setup(functions_path, settings_path, tmp_path):
 
 
 def main():
-    if sys.argv[1] is None:
-        print(
-            "Warning: Path to the functions directory is missing\nBy default the path will be the current directory"
-        )
-        print(
-            "Correct Usage: python3 udf_local.py [functions_path] [settings_path] [tmp_path]"
-        )
-    elif sys.argv[2] is None:
-        print(
-            "Warning: Path to the settings directory is missing\nBy default the path will be the current directory"
-        )
-        print(
-            "Correct Usage: python3 udf_local.py [functions_path] [settings_path] [tmp_path]"
-        )
-    elif sys.argv[3] is None:
-        print(
-            "Warning: Path to the temporary directory is missing\nBy default the path will be the current directory"
-        )
-        print(
-            "Correct Usage: python3 udf_local.py [functions_path] [settings_path] [tmp_path]"
-        )
-
-    setup(sys.argv[1], sys.argv[2], sys.argv[3])
+    setup()
 
 
 if __name__ == "__main__":

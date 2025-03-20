@@ -243,8 +243,8 @@ class TestCommand(unittest.TestCase):
         tests_dir_path = ""
 
         # Get the path to the tests directory
-        dir_path = os.getcwd()
-        max_levels = 2  # To prevent the access to another directories
+        dir_path = os.path.realpath(os.path.dirname(__file__))
+        max_levels = 2  # To prevent the access to other directories
         counter = 0
         while os.path.basename(dir_path) != "tests" and counter < max_levels:
             dir_path = os.path.dirname(dir_path)

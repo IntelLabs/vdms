@@ -38,7 +38,7 @@ from shlex import quote
 from abc import ABC, abstractmethod
 
 # Get the path to the tests directory
-DEFAULT_CURRENT_DIR = os.getcwd()
+DEFAULT_CURRENT_DIR = os.path.realpath(os.path.dirname(__file__))
 
 # Get the root of the repository
 DEFAULT_DIR_REPO = os.path.dirname(DEFAULT_CURRENT_DIR)
@@ -1485,7 +1485,6 @@ class NonRemoteTest(AbstractTest):
                     "python3",
                     udfServer,
                     "5010",
-                    f"{DEFAULT_DIR_REPO}/tests/remote_function_test/functions",
                     tmp_dir,
                 ],
                 stderr=stderrFD,
@@ -1595,9 +1594,6 @@ class NonRemoteTest(AbstractTest):
                 [
                     "python3",
                     udfLocal,
-                    f"{DEFAULT_DIR_REPO}/tests/udf_test/functions",
-                    f"{DEFAULT_DIR_REPO}/tests/udf_test/settings.json",
-                    tmp_dir,
                 ],
                 stderr=stderrFD,
                 stdout=stdoutFD,

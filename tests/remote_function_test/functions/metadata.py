@@ -3,8 +3,11 @@ import uuid
 import json
 import os
 
-haarcascade_frontalface_default_path = (
-    "../../../resources/haarcascade_frontalface_default.xml"
+# Get the real directory where this Python file is
+currentDir = os.path.realpath(os.path.dirname(__file__))
+
+haarcascade_frontalface_default_path = os.path.join(
+    currentDir, "../../../resources/haarcascade_frontalface_default.xml"
 )
 
 if not os.path.exists(haarcascade_frontalface_default_path):
@@ -26,7 +29,7 @@ def facedetectbbox(frame):
     return faces
 
 
-def run(ipfilename, format, options, tmp_dir_path, functions_path):
+def run(ipfilename, format, options, tmp_dir_path):
     if options["media_type"] == "video":
         vs = cv2.VideoCapture(ipfilename)
         frameNum = 1

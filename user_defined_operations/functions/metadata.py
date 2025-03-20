@@ -2,8 +2,11 @@ import cv2
 import json
 import os
 
-haarcascade_frontalface_default_path = (
-    "../../resources/haarcascade_frontalface_default.xml"
+# Get the real directory where this Python file is
+currentDir = os.path.realpath(os.path.dirname(__file__))
+
+haarcascade_frontalface_default_path = os.path.join(
+    currentDir, "../../resources/haarcascade_frontalface_default.xml"
 )
 
 if not os.path.exists(haarcascade_frontalface_default_path):
@@ -25,7 +28,7 @@ def facedetectbbox(frame):
     return faces
 
 
-def run(settings, message, input_params, tmp_dir_path):
+def run(settings, message, input_params):
     ipfilename = message
 
     # Extract metadata for video files
@@ -81,7 +84,7 @@ def run(settings, message, input_params, tmp_dir_path):
         response = {"opFile": ipfilename, "metadata": metadata}
         r = json.dumps(response)
 
-        return r, None
+        return r
     # Extract metadata for image files
     else:
         tdict = {}
@@ -121,4 +124,4 @@ def run(settings, message, input_params, tmp_dir_path):
         response = {"opFile": ipfilename, "metadata": tdict}
 
         r = json.dumps(response)
-        return r, None
+        return r

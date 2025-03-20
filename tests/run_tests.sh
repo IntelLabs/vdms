@@ -72,12 +72,12 @@ function execute_commands() {
     echo 'Start remote server for test'
     cd remote_function_test
     python3 -m pip install -r  ../../remote_function/requirements.txt
-    python3 udf_server.py 5010 ./functions ../tests_output_dir > ../tests_output_dir/tests_remote_screen.log 2> ../tests_output_dir/tests_remote_log.log &
+    python3 udf_server.py 5010 ../tests_output_dir > ../tests_output_dir/tests_remote_screen.log 2> ../tests_output_dir/tests_remote_log.log &
 
     echo "Start UDF message queue for test"
     cd ../udf_test
     python3 -m pip install -r ../../user_defined_operations/requirements.txt
-    python3 udf_local.py ./functions ./udf_test/settings.json ../tests_output_dir > ../tests_output_dir/tests_udf_screen.log 2> ../tests_output_dir/tests_udf_log.log &
+    python3 udf_local.py > ../tests_output_dir/tests_udf_screen.log 2> ../tests_output_dir/tests_udf_log.log &
 
     echo "Run the prep for the TLS tests to generate certificates"
     cd ../tls_test

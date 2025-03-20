@@ -2,7 +2,7 @@ import cv2
 import time
 
 
-def run(settings, message, input_params, tmp_dir_path, functions_path):
+def run(settings, message, input_params):
     ipfilename = message
     format = message.strip().split(".")[-1]
 
@@ -30,4 +30,4 @@ def run(settings, message, input_params, tmp_dir_path, functions_path):
         video.write(frame)
     video.release()
 
-    return opfilename, None
+    return opfilename

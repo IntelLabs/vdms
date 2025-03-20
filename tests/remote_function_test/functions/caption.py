@@ -3,7 +3,7 @@ import uuid
 import os
 
 
-def run(ipfilename, format, options, tmp_dir_path, functions_path):
+def run(ipfilename, format, options, tmp_dir_path):
     if not os.path.exists(tmp_dir_path):
         raise Exception(f"{tmp_dir_path}: path is invalid")
 
