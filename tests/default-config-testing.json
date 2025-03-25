@@ -4,7 +4,7 @@
     "test_name": "TestSuite.*",
     "type_of_test": "ut",//["ut", "pt", "rp", "ru", "neo"]
     "keep_tmp_tests_dir": false,//[false, true]
-    "tmp_tests_dir": "tests_output_dir",
+    "tmp_tests_dir": "/tmp/tests_output_dir",
     "neo4j_port": 7687,
     "neo4j_username": "",
     "neo4j_password": "",

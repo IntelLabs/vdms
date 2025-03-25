@@ -112,27 +112,27 @@ function execute_commands() {
     sleep 2
 
     echo 'Removing temporary files'
-    rm -rf tests_output_dir || true
+    rm -rf /tmp/tests_output_dir || true
 
-    mkdir -p tests_output_dir || true
-    mkdir -p tests_output_dir/test_db || true
+    mkdir -p /tmp/tests_output_dir || true
+    mkdir -p /tmp/tests_output_dir/test_db || true
 
-    cp config-aws-tests.json tests_output_dir/config-aws-tests.json
-    cp config-tls-aws-tests.json tests_output_dir/config-tls-aws-tests.json
+    cp config-aws-tests.json /tmp/tests_output_dir/config-aws-tests.json
+    cp config-tls-aws-tests.json /tmp/tests_output_dir/config-tls-aws-tests.json
 
     echo 'Starting vdms server'
-    ./../../build/vdms -cfg tests_output_dir/config-aws-tests.json > tests_output_dir/screen.log 2> tests_output_dir/log.log &
+    ./../../build/vdms -cfg /tmp/tests_output_dir/config-aws-tests.json > /tmp/tests_output_dir/screen.log 2> /tmp/tests_output_dir/log.log &
     py_unittest_pid=$!
 
     python3 ../tls_test/prep_certs.py
-    ./../../build/vdms -cfg tests_output_dir/config-tls-aws-tests.json > tests_output_dir/screen-tls.log 2> tests_output_dir/log-tls.log &
+    ./../../build/vdms -cfg /tmp/tests_output_dir/config-tls-aws-tests.json > /tmp/tests_output_dir/screen-tls.log 2> /tmp/tests_output_dir/log-tls.log &
     py_tls_unittest_pid=$!
 
     sleep 1
 
     #start the minio server
     echo 'Starting minio server'
-    ./../../minio server tests_output_dir/minio_files --address :${api_port} &
+    ./../../minio server /tmp/tests_output_dir/minio_files --address :${api_port} &
     py_minio_pid=$!
 
     sleep 2
@@ -173,7 +173,7 @@ function cleanup() {
     kill -9 $py_minio_pid || true
 
     echo 'Removing temporary files'
-    rm -rf tests_output_dir/ || true
+    rm -rf /tmp/tests_output_dir/ || true
     rm -rf test_db/ || true
     rm -rf test_db_aws/ || true
     rm -rf test_db_tls/ || true

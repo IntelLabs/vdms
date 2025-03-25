@@ -42,7 +42,7 @@
 #include "vcl/VCL.h"
 #include "gtest/gtest.h"
 
-const std::string TMP_DIRNAME = "tests_output_dir/";
+const std::string TMP_DIRNAME = "/tmp/tests_output_dir/";
 
 TEST(Descriptors_Add, add_flatl2_100d) {
   int d = 100;

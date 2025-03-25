@@ -40,7 +40,7 @@
 
 using namespace VDMS;
 
-const std::string TMP_DIRNAME = "tests_output_dir/";
+const std::string TMP_DIRNAME = "/tmp/tests_output_dir/";
 
 // TODO valid JSON helpers for image transformations
 // may want to borrow from existing tests

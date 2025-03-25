@@ -4,7 +4,7 @@
 #include "VDMSConfig.h"
 #include "meta_data_helper.h"
 
-const std::string TMP_DIRNAME = "tests_output_dir/";
+const std::string TMP_DIRNAME = "/tmp/tests_output_dir/";
 
 Json::Value construct_cypher_add_img(std::string prop_name,
                                      std::string prop_value, std::string label,

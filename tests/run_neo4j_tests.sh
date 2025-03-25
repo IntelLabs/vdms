@@ -163,22 +163,22 @@ function execute_commands() {
 
     # Clear other folders
     sh cleandbs.sh || true
-    mkdir -p tests_output_dir
-    mkdir -p tests_output_dir/test_db_client
-    mkdir -p tests_output_dir/dbs  # necessary for Descriptors
-    mkdir -p tests_output_dir/temp # necessary for Videos
-    mkdir -p tests_output_dir/videos_tests
-    mkdir -p tests_output_dir/backups
-    mkdir -p tests_output_dir/neo4j_empty || true
+    mkdir -p /tmp/tests_output_dir
+    mkdir -p /tmp/tests_output_dir/test_db_client
+    mkdir -p /tmp/tests_output_dir/dbs  # necessary for Descriptors
+    mkdir -p /tmp/tests_output_dir/temp # necessary for Videos
+    mkdir -p /tmp/tests_output_dir/videos_tests
+    mkdir -p /tmp/tests_output_dir/backups
+    mkdir -p /tmp/tests_output_dir/neo4j_empty || true
 
-    cp unit_tests/config-neo4j-e2e.json tests_output_dir/config-neo4j-e2e.json
+    cp unit_tests/config-neo4j-e2e.json /tmp/tests_output_dir/config-neo4j-e2e.json
 
     # For OpsIOCoordinatorTest tests
-    cp unit_tests/config-aws-tests.json tests_output_dir/config-aws-tests.json
+    cp unit_tests/config-aws-tests.json /tmp/tests_output_dir/config-aws-tests.json
 
     if [ "$test" = "OpsIOCoordinatorTest" ] || [ "$test" = "Neo4JE2ETest" ]; then
         #start the minio server
-        ./../minio server tests_output_dir/minio_files --address :${api_port} --console-address :${console_port} &
+        ./../minio server /tmp/tests_output_dir/minio_files --address :${api_port} --console-address :${console_port} &
         py_minio_pid=$!
 
         sleep 2
@@ -192,7 +192,7 @@ function execute_commands() {
 
     if [ "$test" = "Neo4JE2ETest" ]; then
         echo "Starting VDMS Server"
-        ./../build/vdms -cfg tests_output_dir/config-neo4j-e2e.json > tests_output_dir/neo4j-e2e_screen.log 2> tests_output_dir/neo4j-e2e_log.log &
+        ./../build/vdms -cfg /tmp/tests_output_dir/config-neo4j-e2e.json > /tmp/tests_output_dir/neo4j-e2e_screen.log 2> /tmp/tests_output_dir/neo4j-e2e_log.log &
 	    cpp_unittest_pid=$!
 
         echo "Sleeping for 10 seconds while VDMS initializes..."
@@ -216,7 +216,7 @@ function cleanup() {
     fi
 
     echo 'Removing temporary files'
-    rm -rf tests_output_dir || true
+    rm -rf /tmp/tests_output_dir || true
 
     if [ "$test" = "Neo4JE2ETest" ]; then
         echo "Stopping the vdms server"

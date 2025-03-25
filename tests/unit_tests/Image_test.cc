@@ -48,7 +48,7 @@
 
 namespace fs = std::filesystem;
 
-const std::string TMP_DIRNAME = "tests_output_dir/";
+const std::string TMP_DIRNAME = "/tmp/tests_output_dir/";
 
 class ImageTest : public ::testing::Test {
 protected:

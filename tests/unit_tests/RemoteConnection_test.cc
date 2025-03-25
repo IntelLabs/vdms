@@ -42,7 +42,7 @@
 #include "VDMSConfig.h"
 #include "vcl/Exception.h"
 
-const std::string TMP_DIRNAME = "tests_output_dir/";
+const std::string TMP_DIRNAME = "/tmp/tests_output_dir/";
 
 class RemoteConnectionTest : public ::testing::Test {
 protected:

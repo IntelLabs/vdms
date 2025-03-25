@@ -561,7 +561,10 @@ void Image::UserOperation::operator()(Image *img) {
         std::string filePath = VDMS::VDMSConfig::instance()->get_path_tmp() +
                                "/tempfile" + std::to_string(utc_time.count()) +
                                "." + format;
-        cv::imwrite(filePath, img->_cv_img);
+        bool result = cv::imwrite(filePath, img->_cv_img);
+        if (!result) {
+          throw VCLException(ObjectEmpty, "Error writing the file: " + filePath);
+        }
 
         _options["ipfile"] = filePath;
         _options["media_type"] = "image";

@@ -40,7 +40,7 @@
 #include "vcl/VCL.h"
 #include "gtest/gtest.h"
 
-const std::string TMP_DIRNAME = "tests_output_dir/";
+const std::string TMP_DIRNAME = "/tmp/tests_output_dir/";
 
 TEST(Descriptors_Classify, classify_flatl2_4d) {
   int d = 4;

@@ -81,7 +81,7 @@ def setup():
 
             udf = globals()[udf_key]
 
-            response, _ = udf.run(
+            response = udf.run(
                 settings,
                 input_params["ipfile"],
                 input_params,

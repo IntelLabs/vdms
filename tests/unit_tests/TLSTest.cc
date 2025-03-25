@@ -11,7 +11,7 @@
 
 typedef std::basic_string<uint8_t> BytesBuffer;
 
-const std::string TMP_DIRNAME = "../tests_output_dir/";
+const std::string TMP_DIRNAME = "/tmp/tests_output_dir/";
 const std::string TEMPORARY_DIR = "/tmp";
 
 class TLS_CPP : public ::testing::Test {

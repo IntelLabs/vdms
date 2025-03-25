@@ -91,18 +91,18 @@ function execute_commands() {
     sleep 2
 
     sh cleandbs.sh || true
-    mkdir -p tests_output_dir
-    mkdir -p tests_output_dir/test_db_client || true
-    mkdir -p tests_output_dir/dbs || true # necessary for Descriptors
-    mkdir -p tests_output_dir/temp || true # necessary for Videos
-    mkdir -p tests_output_dir/videos_tests || true
-    mkdir -p tests_output_dir/backups || true
+    mkdir -p /tmp/tests_output_dir
+    mkdir -p /tmp/tests_output_dir/test_db_client || true
+    mkdir -p /tmp/tests_output_dir/dbs || true # necessary for Descriptors
+    mkdir -p /tmp/tests_output_dir/temp || true # necessary for Videos
+    mkdir -p /tmp/tests_output_dir/videos_tests || true
+    mkdir -p /tmp/tests_output_dir/backups || true
     # Copy the config file to the temporary directory so it matches with the path
     # set in the test files in unit_test dir
-    cp unit_tests/config-aws-tests.json tests_output_dir/config-aws-tests.json
+    cp unit_tests/config-aws-tests.json /tmp/tests_output_dir/config-aws-tests.json
 
     #start the minio server
-    ./../minio server tests_output_dir/minio_files --address :${api_port} &
+    ./../minio server /tmp/tests_output_dir/minio_files --address :${api_port} &
     py_minio_pid=$!
 
     sleep 2
@@ -131,7 +131,7 @@ function cleanup() {
     kill -9 $py_minio_pid || true
 
     echo 'Removing temporary files'
-    rm -rf tests_output_dir || true
+    rm -rf /tmp/tests_output_dir || true
     rm -rf test_db_1 || true
     exit $exit_value
 }

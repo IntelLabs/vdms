@@ -48,7 +48,7 @@ using namespace VDMS;
 using namespace PMGD;
 using namespace std;
 
-const std::string TMP_DIRNAME = "../tests_output_dir/";
+const std::string TMP_DIRNAME = "/tmp/tests_output_dir/";
 
 std::string singleAddImage(" \
         { \

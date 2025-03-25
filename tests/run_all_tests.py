@@ -79,7 +79,7 @@ DEFAULT_VDMS_STDOUT_FILENAME = "vdms_stdout_log.log"
 
 TYPE_OF_TESTS_AVAILABLE = ["ut", "ru", "pt", "rp", "neo"]
 GOOGLETEST_TYPE_OF_TESTS = ["ut", "ru", "neo"]
-DEFAULT_TMP_DIR = os.path.join(DEFAULT_CURRENT_DIR, "tests_output_dir")
+DEFAULT_TMP_DIR = "/tmp/tests_output_dir"
 
 TESTS_DIRNAME = "tests"
 
@@ -3100,7 +3100,7 @@ class TestingParser:
         # Use the flag "-d TEMPORARY_OUTPUT_DIRECTORY"
         # for specifying the directory where the minio and temporary files or dirs
         # should be created. In case that this flag is not specified
-        # then it will use the default "tests_output_dir" directory
+        # then it will use the default "/tmp/tests_output_dir" directory
         self._set_default_if_unset(testing_args, "tmp_tests_dir", DEFAULT_TMP_DIR)
         global_tmp_tests_dir = testing_args.tmp_tests_dir
 

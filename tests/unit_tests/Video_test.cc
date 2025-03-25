@@ -53,7 +53,7 @@ using namespace std;
 namespace fs = std::filesystem;
 // The value of TMP_DIRNAME must match with the value in the config file of the
 // tmp_path variable
-const std::string TMP_DIRNAME = "tests_output_dir/";
+const std::string TMP_DIRNAME = "/tmp/tests_output_dir/";
 const std::string OUTPUT_VIDEO_DIR = TMP_DIRNAME + "test_db_1";
 
 class VideoTest : public ::testing::Test {

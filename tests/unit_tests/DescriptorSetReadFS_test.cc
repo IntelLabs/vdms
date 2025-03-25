@@ -41,7 +41,7 @@
 #include "vcl/VCL.h"
 #include "gtest/gtest.h"
 
-const std::string TMP_DIRNAME = "tests_output_dir/";
+const std::string TMP_DIRNAME = "/tmp/tests_output_dir/";
 
 TEST(Descriptors_ReadFS, read_and_search_10k) {
   int nb = 10000;

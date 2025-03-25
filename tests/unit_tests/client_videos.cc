@@ -15,7 +15,7 @@ using std::ifstream;
 using std::ostringstream;
 using std::string;
 
-const std::string TMP_DIRNAME = "tests_output_dir/";
+const std::string TMP_DIRNAME = "/tmp/tests_output_dir/";
 
 int get_fourcc() { return cv::VideoWriter::fourcc('H', '2', '6', '4'); }
 

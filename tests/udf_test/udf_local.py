@@ -80,11 +80,13 @@ def setup():
 
             udf = globals()[udf_key]
 
-            response, _ = udf.run(settings, input_params["ipfile"], input_params)
+            ip_file = input_params["ipfile"]
+            response = udf.run(settings, ip_file, input_params)
 
             socket.send_string(response)
             i += 1
-        except Exception:
+        except Exception as ex:
+            print(str(ex), file=sys.stderr)
             socket.send_string("An error occurred while running the operation.")
             break
 
