@@ -82,6 +82,9 @@ from run_all_tests import (
     main,
 )
 
+MIN_PID = 10000
+MAX_PID = 20000
+
 
 #### Concrete class inherited from AbstractTest
 #### This class is used for testing purposes
@@ -117,6 +120,9 @@ class TestKillProcessesByObject(unittest.TestCase):
     @patch("os.system")
     @patch("run_all_tests.print")
     def test_kill_processes_by_object(self, mock_print, mock_system):
+        # The function kill_processes_by_object() kills the list of pids
+        # (process id) once the process is not needed anymore.
+
         # Setup
         self.original_processList = run_all_tests.processList
         number_of_random_pids = 3
@@ -124,6 +130,12 @@ class TestKillProcessesByObject(unittest.TestCase):
         max_pid = 2000
         run_all_tests.processList = []
         random_value_list = []
+
+        # In order to increase the code coverage, it needs to test the
+        # function called kill_processes_by_object() by mocking pids and
+        # the kill() function
+        # To do that this test generates a list of random values which will be
+        # the pids and then this test will mock the calls to the kill() function
         for _ in range(0, number_of_random_pids):
             random_value = random.randint(min_pid, max_pid)
             random_value_list.append(random_value)
@@ -986,7 +998,11 @@ class TestAbstractTest(unittest.TestCase):
         args.minio_password = "miniopass"
 
         mock_process = MagicMock()
-        mock_process.pid = 12345
+
+        # Generates a random pid
+        random_pid = random.randint(MIN_PID, MAX_PID)
+
+        mock_process.pid = random_pid
         mock_popen.return_value = mock_process
 
         stderrFD = MagicMock()
@@ -1010,7 +1026,7 @@ class TestAbstractTest(unittest.TestCase):
 
         # Check if the correct print statements were made
         expected_print_calls = [
-            unittest.mock.call("Using MinIO server pid:", 12345),
+            unittest.mock.call("Using MinIO server pid:", random_pid),
             unittest.mock.call("Creating buckets for the tests"),
         ]
         mock_print.assert_has_calls(expected_print_calls, any_order=False)
@@ -1052,10 +1068,13 @@ class TestAbstractTest(unittest.TestCase):
     def test_run_minio_server_exception_on_check_call(
         self, mock_check_call, mock_popen, mock_system
     ):
+        # Generates a random pid
+        random_pid = random.randint(MIN_PID, MAX_PID)
+
         # Test run_minio_server when an exception occurs in subprocess.check_call
         mock_popen.return_value = MagicMock(
-            pid=123
-        )  # Mock Popen to return a process with pid 123
+            pid=random_pid
+        )  # Mock Popen to return a process with random pid
         mock_check_call.side_effect = subprocess.CalledProcessError(
             1, "mc"
         )  # Simulate an exception in check_call
@@ -1080,8 +1099,11 @@ class TestAbstractTest(unittest.TestCase):
         args.vdms_app_path = "/path/to/vdms"
         args.tmp_config_files_for_vdms = ["/tmp/tests/config1", "/tmp/tests/config2"]
 
+        # Generates a random pid
+        random_pid = random.randint(MIN_PID, MAX_PID)
+
         mock_process = MagicMock()
-        mock_process.pid = 12345
+        mock_process.pid = random_pid
         mock_popen.return_value = mock_process
 
         stderrFD = MagicMock()
@@ -1105,7 +1127,9 @@ class TestAbstractTest(unittest.TestCase):
         expected_print_calls = []
         for config in args.tmp_config_files_for_vdms:
             expected_print_calls.append(unittest.mock.call("Using config:", config))
-            expected_print_calls.append(unittest.mock.call("Using VDMS pid:", 12345))
+            expected_print_calls.append(
+                unittest.mock.call("Using VDMS pid:", random_pid)
+            )
 
         mock_print.assert_has_calls(expected_print_calls, any_order=False)
 
@@ -1968,6 +1992,9 @@ class TestNeo4jTest(unittest.TestCase):
         neo4j_test = Neo4jTest()
         testing_args = TestingArgs()
 
+        # Generates a random pid
+        random_pid = random.randint(MIN_PID, MAX_PID)
+
         testing_args.test_name = "OpsIOCoordinatorTest.some_test_case"
         with (
             patch.object(
@@ -1977,7 +2004,7 @@ class TestNeo4jTest(unittest.TestCase):
                 neo4j_test, "get_type_of_neo_test", return_value=NEO4J_OPS_IO_TEST_TYPE
             ),
             patch.object(
-                neo4j_test, "run_minio_server", return_value=123
+                neo4j_test, "run_minio_server", return_value=random_pid
             ) as mock_run_minio_server,
             patch.object(neo4j_test, "run_google_tests", return_value=456),
         ):
@@ -2160,8 +2187,11 @@ class TestNonRemoteTest(unittest.TestCase):
         self, mock_print, mock_system, mock_popen, mock_exists
     ):
         # Set up the mock for Popen
+
+        # Generates a random pid
+        random_pid = random.randint(MIN_PID, MAX_PID)
         mock_process = MagicMock()
-        mock_process.pid = 12345
+        mock_process.pid = random_pid
         mock_popen.return_value = mock_process
 
         # Mock file descriptors
@@ -2323,7 +2353,11 @@ class TestNonRemoteTest(unittest.TestCase):
     ):
         # Set up the mock for Popen
         mock_process = MagicMock()
-        mock_process.pid = 12345
+
+        # Generates a random pid
+        random_pid = random.randint(MIN_PID, MAX_PID)
+
+        mock_process.pid = random_pid
         mock_popen.return_value = mock_process
 
         run_all_tests.DEBUG_MODE
