@@ -13,13 +13,17 @@ Use the following steps to create the remote UDF tar file.
 + Run the following command to create the tar file `sudo docker save -o remote_segment.tar rudf`
 
 # Configure kubeConfig.json #
-Sample kubeConfig file that can be used to add details of Master/Worker node
-
+Sample kubeConfig file that can be used to add details of Control Plane (Master) and Worker nodes.
 ```json
-    {
-    "MasterNodeDetail": {"_HOST-NAME-OF-MASTER-NODE_": "_IPADDRESS-OF-MASTER-NODE_"},
-    "WorkerNodeDetail": [{"_HOST-NAME-OF-WORKER-NODE_1": "_IPADDRESS-OF-WORKER-NODE_1"},{"_HOST-NAME-OF-WORKER-NODE_2" : "_IPADDRESS-OF-WORKER-NODE_2"},{"_use-similar-blockes-to-add-more-node_"}]
-    }
+{
+    "ControlPlaneNodeDetail": {
+        "_HOST-NAME-OF-CONTROLPLANE-NODE_": "_IPADDRESS-OF-CONTROLPLANE-NODE_"
+    },
+    "WorkerNodeDetail": [
+        {"_HOST-NAME-OF-WORKER-NODE_1": "_IPADDRESS-OF-WORKER-NODE_1"},
+        {"_HOST-NAME-OF-WORKER-NODE_2" : "_IPADDRESS-OF-WORKER-NODE_2"},{"_use-similar-blocks-to-add-more-node_"}
+    ]
+}
 ```
 
 # Proxy setting for running containerd behind a proxy #
@@ -73,13 +77,13 @@ Restart the services as mentioned below
 ```
 # Bringing up your cluster to run Multi-node Cluster for VDMS application #
 
-Clone the VDMS github reposistory on the Master Node and Worker Node
+Clone the VDMS github reposistory on the Control Plane and Worker nodes.
 
-On the Master node follow the steps below after downloading the VDMS image -
+On the Control Plane node follow the steps below after downloading the VDMS image -
 ```bash
     cd kubernetes/
     chmod +x global_vdms_setup_script.sh
-    ./global_vdms_setup_script.sh -m master -i yes
+    ./global_vdms_setup_script.sh -m primary -i yes
 ```
 On the Worker Node follow the steps below after downloading/creating the remote UDF -
 
@@ -89,7 +93,7 @@ On the Worker Node follow the steps below after downloading/creating the remote 
     ./global_vdms_setup_script.sh -m remote -i yes
 ```
 
-Now update the kubeConfig.json file to add the Master and Worker Node details as per steps provided in first section
+Now update the kubeConfig.json file to add the Control Plane and Worker Node details as per steps provided in first section
 
 On the Worker Node follow the steps below to load the remote UDF image locally
 
@@ -99,9 +103,9 @@ On the Worker Node follow the steps below to load the remote UDF image locally
 
 ## Setting up the Multinode Cluster and running VDMS Application ##
 
-On the Master Node execute the following command
+On the Control Plane Node execute the following command
 ```bash
-    ./global_vdms_setup_script.sh -m master -s yes -j <path to kubeConfig.json>
+    ./global_vdms_setup_script.sh -m primary -s yes -j <path to kubeConfig.json>
 ```
 
 The file named join_vdms_cluster.sh will be created in <mark>kubernetes/</mark> folder, copy/transfer that to the <mark>kubernetes/</mark> folder at the Worker nodes
@@ -111,9 +115,9 @@ On the Worker Node execute the following command
     ./global_vdms_setup_script.sh -m remote -k yes
 ```
 
-Final step, On the Master Node execute the following command
+Final step, On the Control Plane Node execute the following command
 ```bash
-    ./global_vdms_setup_script.sh -m master -k yes -j <path to kubeConfig.json>
+    ./global_vdms_setup_script.sh -m primary -k yes -j <path to kubeConfig.json>
 ```
 
 Use ipconfig/ip addr to get the IP address of the Control plane.
