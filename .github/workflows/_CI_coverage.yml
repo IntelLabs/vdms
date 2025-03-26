@@ -239,25 +239,25 @@ jobs:
           docker exec ${{ env.SOURCE_CONTAINER_NAME }} python3 --version || true
           echo "Print out the logs"
           echo "tests_stderr_log:"
-          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/tests_stderr_log.log || true
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/tests_stderr_log.log || true
           echo "tests_stdout_log:"
-          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/tests_stdout_log.log || true
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/tests_stdout_log.log || true
           echo "tls_stderr_log:"
-          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/tls_stderr_log.log || true
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/tls_stderr_log.log || true
           echo "tls_stdout_log:"
-          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/tls_stdout_log.log || true
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/tls_stdout_log.log || true
           echo "udf_local_stderr_log:"
-          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/udf_local_stderr_log.log || true
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/udf_local_stderr_log.log || true
           echo "udf_local_stdout_log:"
-          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/udf_local_stdout_log.log || true
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/udf_local_stdout_log.log || true
           echo "udf_server_stderr_log:"
-          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/udf_server_stderr_log.log || true
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/udf_server_stderr_log.log || true
           echo "udf_server_stdout_log:"
-          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/udf_server_stdout_log.log || true
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/udf_server_stdout_log.log || true
           echo "vdms_stderr_log:"
-          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/vdms_stderr_log.log || true
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/vdms_stderr_log.log || true
           echo "vdms_stdout_log:"
-          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /vdms/tests/tests_output_dir/vdms_stdout_log.log || true
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/vdms_stdout_log.log || true
           echo "End of Print out the logs..."
       - name: Docker Compose down
         shell: bash
