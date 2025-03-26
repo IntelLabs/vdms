@@ -211,7 +211,6 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
         rscmd->need_blob(query) ? proto_query.blobs(blob_count++) : "";
 
     rc = rscmd->data_processing(cypher, query, blob, 0, cmd_result);
-
     if (rc != 0) {
       error = true;
       proto_res.set_json(fastWriter.write(cmd_result));
@@ -224,8 +223,6 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
     //THIS IS VERY CLUNKY and confusing, NEEDS TO BE REFACTORED
     if (neo4j_resp.isMember("metadata_res") && (cmd == "NeoAdd" || cmd == "NeoFind")) {
         resp_retval["metadata_res"] = neo4j_resp["metadata_res"];
-    } else {
-        std::cout << "Non NeoAdd/Find" << std::endl;
     }
     json_responses.append(resp_retval);
 
@@ -286,6 +283,7 @@ int QueryHandlerNeo4j::parse_commands(
           ". Received blobs: " + std::to_string(proto_query.blobs().size()));
       root["status"] = Neo4jCommand::Error;
       std::cerr << "Number of Blobs Mismatch!" << std::endl;
+      std::cerr << "Expected: " << blob_counter << " Received: " << proto_query.blobs().size()<<std::endl;
       return -1;
     }
 

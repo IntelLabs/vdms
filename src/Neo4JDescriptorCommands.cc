@@ -246,7 +246,6 @@ void NeoDescriptorsCommand::add_vec_id_idx(const std::string &set_name) {
     std::string desc_path_str;
 
     cypher_tx = "CREATE INDEX idx_" + set_name + " FOR (n:VDMS_desc) ON (n.VD_descId_" + set_name +")";
-    std::cout << cypher_tx << std::endl;
     conn = QueryHandlerNeo4j::neoconn_pool->get_conn();
 
     // begin neo4j transaction
@@ -434,7 +433,8 @@ int Neo4jNeoFindDescSet::data_processing(std::string &tx, const Json::Value &jso
     name_arr.append(set_name);
     constraints[VDMS_DESC_SET_NAME_PROP] = name_arr;
 
-    Json::Value list_arr;
+    Json::Value list_arr; // NEED TO GO IN AND GRAB OTHER RESULTS ASKED FOR INSTEAD OF BLANKET
+    //REPLACEMENT
     list_arr.append("set_name");
     list_arr.append("set_path");
     list_arr.append("engine");
@@ -450,11 +450,40 @@ int Neo4jNeoFindDescSet::data_processing(std::string &tx, const Json::Value &jso
     return 0;
 }
 
-Json::Value Neo4jNeoFindDescSet::construct_responses(Json::Value &json_responses,
-                                                     const Json::Value &json,
-                                                     protobufs::queryMessage &response,
+Json::Value Neo4jNeoFindDescSet::construct_responses(Json::Value &neo4j_responses,
+                                                     const Json::Value &orig_query,
+                                                     protobufs::queryMessage &query_res,
                                                      const std::string &blob) {
+
     Json::Value ret;
+
+    //iterate over metadata returns
+    Json::Value md_list = neo4j_responses["metadata_res"];
+    Json::Value resp_list;
+    Json::Value find_desc_set;
+
+    const Json::Value &cmd = orig_query[_cmd_name];
+    const Json::Value &results = cmd["results"];
+    Json::Value res_list = get_value<Json::Value>(results, "list");
+
+    for(Json::Value::ArrayIndex i = 0; i != md_list.size(); i++){
+        Json::Value cur_obj;
+        cur_obj = md_list[i];
+        Json::Value resp_obj;
+        //iterate over desired results and extract
+        for(Json::Value::ArrayIndex k = 0; k != res_list.size(); k++){
+            std::string res_str = res_list[k].asString();
+            resp_obj[res_str] = cur_obj["DESCSET." + res_str];
+        }
+        resp_list.append(resp_obj);
+    }
+
+    find_desc_set["status"] = Neo4jCommand::Success;
+    find_desc_set["entities"] = resp_list;
+    ret[_cmd_name] = find_desc_set;
+
+
+
     return ret;
 }
 
@@ -544,15 +573,20 @@ int Neo4jNeoAddDesc::add_single_descriptor(std::string &tx,
         Json::Value value = (*it);
 
         if(ctr == 0) {
-            tx += key.asString() + ": " + value.asString();
+            tx += key.asString() + ": ";
         } else {
-            tx += ", " + key.asString() + ": " + value.asString();
+            tx += ", " + key.asString() + ": ";
+        }
+
+        if( value.isString()) {
+            tx += "\"" + value.asString() + "\"";
+        } else{
+            tx += value.asString();
         }
         ctr++;
     }
 
     tx += "})-[:part_of]->(descset)";
-    std::cout << tx << std::endl;
     return 0;
 }
 
@@ -621,16 +655,21 @@ int Neo4jNeoAddDesc::add_descriptor_batch(std::string &tx,
             Json::Value value = (*it);
 
             if(ctr == 0) {
-                tx += key.asString() + ": " + value.asString();
+                tx += key.asString() + ": ";
             } else {
-                tx += ", " + key.asString() + ": " + value.asString();
+                tx += ", " + key.asString() + ": ";
+            }
+
+            if( value.isString()) {
+                tx += "\"" + value.asString() + "\"";
+            } else{
+                tx += value.asString();
             }
             ctr++;
         }
         tx += "})-[:part_of]->(descset) ";
     }
 
-    //std::cout << tx << std::endl;
     return 0;
 }
 
@@ -767,12 +806,10 @@ int Neo4jNeoFindDesc::data_processing(std::string &tx, const Json::Value &root,
         append_results_to_cypher(tx,"n", results);
 
 
-        //std::cout << tx << std::endl;
-    } else {
 
+    } else {
         Json::Value link_null; // null
         const int k_neighbors = get_value<int>(cmd, "k_neighbors", 0);
-
 
         if (!check_blob_size(blob, dimensions, 1)) {
             error["status"] = Neo4jCommand::Error;
@@ -834,7 +871,6 @@ int Neo4jNeoFindDesc::data_processing(std::string &tx, const Json::Value &root,
 
             //append returns
             append_results_to_cypher(tx,"n", results);
-            //std::cout << tx << std::endl;
 
         } catch (VCL::Exception e) {
             print_exception(e);
@@ -911,9 +947,6 @@ Json::Value Neo4jNeoFindDesc::construct_responses(Json::Value &neo4j_responses,
         findDesc["status"] = Neo4jCommand::Success;
         findDesc["entities"] = resp_list;
         ret[_cmd_name] = findDesc;
-        printf("CASE 2 RETURN\n");
-        //std::cout << ret <<std::endl;
-        //std::cout << md_list << std::endl;
 
     } else { // Case (3)
 
