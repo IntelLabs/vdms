@@ -1,5 +1,5 @@
-opencv-python-headless==4.9.0.80
-pyzmq==26.0.3
-sk-video
-imutils
-zmq
+opencv-python-headless>=4.9.0.80
+pyzmq>=26.0.3
+sk-video>=1.1.10
+imutils>=0.5.4
+zmq>=0.0.0

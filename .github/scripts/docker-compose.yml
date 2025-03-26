@@ -5,6 +5,7 @@ services:
       context: ../..
       args:
         - BUILD_COVERAGE=on
+        - USE_K8S=on
     image: vdms:${SOURCE_CONTAINER_NAME}
     container_name: ${SOURCE_CONTAINER_NAME}
     networks: [backend, frontend]
