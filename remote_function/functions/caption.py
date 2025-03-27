@@ -11,9 +11,13 @@ def run(ipfilename, format, options, tmp_dir_path):
     vs = cv2.VideoCapture(ipfilename)
     frame_width = int(vs.get(3))
     frame_height = int(vs.get(4))
+    video_fps = int(vs.get(cv2.CAP_PROP_FPS))
 
     video = cv2.VideoWriter(
-        opfilename, cv2.VideoWriter_fourcc(*"XVID"), 30, (frame_width, frame_height)
+        opfilename,
+        cv2.VideoWriter_fourcc(*"XVID"),
+        video_fps,
+        (frame_width, frame_height),
     )
 
     while True:
