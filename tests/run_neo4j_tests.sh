@@ -29,7 +29,7 @@ script_usage()
         -v or --neo4j_port          Port for Neo4j container
         -w or --neo4j_pswd          Password for Neo4j container
         -n or --neo4j_user          Username for Neo4j container
-        -t or --test_name           Name of test to run [OpsIOCoordinatorTest, Neo4jBackendTest, or Neo4JE2ETest]
+        -t or --test_name           Name of test to run [OpsIOCoordinatorTest, Neo4JHandlerTest, Neo4jBackendTest, or Neo4JE2ETest]
 EOF
 }
 
@@ -137,7 +137,7 @@ function execute_commands() {
             minio_name=e2e_tester
         fi
 
-    elif [ "$test" = "Neo4jBackendTest" ]; then
+    elif [ "$test" = "Neo4jBackendTest" ] || [ "$test" = "Neo4JHandlerTest" ]; then
         #Test requires Neo4J Container ONLY
         if [ "$neo4j_username_was_set" = false ] || [ "$neo4j_password_was_set" = false ] || [ "$neo4j_endpoint_was_set" = false ]; then
             echo 'Missing Neo4j arguments for "run_neo4j_tests.sh" script'
@@ -146,7 +146,7 @@ function execute_commands() {
         fi
 
     else
-        echo 'Unknown test. Acceptable test names: OpsIOCoordinatorTest, Neo4jBackendTest, or Neo4JE2ETest'
+        echo 'Unknown test. Acceptable test names: OpsIOCoordinatorTest, Neo4JHandlerTest, Neo4jBackendTest, or Neo4JE2ETest'
         exit 1;
     fi
 
@@ -165,7 +165,7 @@ function execute_commands() {
     mkdir backups
     mkdir neo4j_empty || true
 
-    if [ "$test" = "OpsIOCoordinatorTest" ] || [ "$test" = "Neo4JE2ETest" ]; then
+    if [ "$test" = "OpsIOCoordinatorTest" ] || [ "$test" = "Neo4JE2ETest" ] || [ "$test" = "Neo4JHandlerTest" ]; then
         #start the minio server
         ./../minio server ./../minio_files --address :${api_port} --console-address :${console_port} &
         py_minio_pid=$!
