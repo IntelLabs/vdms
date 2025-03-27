@@ -8,21 +8,20 @@ def run(settings, message, input_params):
 
     t1 = time.time()
     opfilename = settings["opfile"] + str(t1) + "." + format
-    vs = cv2.VideoCapture(ipfilename)
-
-    frame_width = int(vs.get(3))
-    frame_height = int(vs.get(4))
-    video_fps = int(vs.get(cv2.CAP_PROP_FPS))
+    vc = cv2.VideoCapture(ipfilename)
+    frame_width = int(vc.get(cv2.CAP_PROP_FRAME_WIDTH))
+    frame_height = int(vc.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    video_fps = vc.get(cv2.CAP_PROP_FPS)
 
     video = cv2.VideoWriter(
         opfilename,
-        cv2.VideoWriter_fourcc(*"XVID"),
+        cv2.VideoWriter_fourcc(*"mp4v"),
         video_fps,
         (frame_width, frame_height),
     )
 
     while True:
-        (grabbed, frame) = vs.read()
+        (grabbed, frame) = vc.read()
         if not grabbed:
             print("[INFO] no frame read from stream - exiting")
             break
@@ -33,6 +32,7 @@ def run(settings, message, input_params):
         )
 
         video.write(frame)
+    vc.release()
     video.release()
 
     return opfilename
