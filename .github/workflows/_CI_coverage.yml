@@ -172,7 +172,7 @@ jobs:
           echo "CMD_STR_bkend=${CMD_STR_bkend_str}" >> $GITHUB_OUTPUT
 
           CMD_STR_hndle_str="./run_neo4j_tests.sh -t Neo4JHandlerTest ${COMMON_ARGS} -e neo4j://neo4j:${{ env.NEO_TEST_PORT}}"
-          echo "CMD_STR_bkend=${CMD_STR_bkend_str}" >> $GITHUB_OUTPUT
+          echo "CMD_STR_hndle_str=${CMD_STR_hndle_str}" >> $GITHUB_OUTPUT
 
       - name: Run Neo4J Tests
         shell: bash
