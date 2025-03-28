@@ -135,6 +135,8 @@ function execute_commands() {
             minio_name=opsio_tester
         elif [ "$test" = "Neo4JE2ETest" ]; then
             minio_name=e2e_tester
+        elif [ "$test" = "Neo4JHandlerTest" ]; then
+            minio_name=Neo4JHandlerTest
         fi
 
     elif [ "$test" = "Neo4jBackendTest" ] || [ "$test" = "Neo4JHandlerTest" ]; then
