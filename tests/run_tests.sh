@@ -65,20 +65,20 @@ function execute_commands() {
     pkill -9 -f udf_local.py || true
 
     # Start remote server for test
-    #cd remote_function_test
-    #python3 -m pip install -r  ../../remote_function/requirements.txt
-    #python3 udf_server.py 5010 > ../tests_remote_screen.log 2> ../tests_remote_log.log &
+    cd remote_function_test
+    python3 -m pip install -r  ../../remote_function/requirements.txt
+    python3 udf_server.py 5010 > ../tests_remote_screen.log 2> ../tests_remote_log.log &
 
     # Start UDF message queue for test
-    #cd ../udf_test
-    #python3 -m pip install -r ../../user_defined_operations/requirements.txt
-    #python3 udf_local.py > ../tests_udf_screen.log 2> ../tests_udf_log.log &
+    cd ../udf_test
+    python3 -m pip install -r ../../user_defined_operations/requirements.txt
+    python3 udf_local.py > ../tests_udf_screen.log 2> ../tests_udf_log.log &
 
     # Run the prep for the TLS tests to generate certificates
-    #cd ../tls_test
-    #python3 prep_certs.py > ../tests_tls_prep_screen.log 2> ../tests_tls_prep_log.log &
+    cd ../tls_test
+    python3 prep_certs.py > ../tests_tls_prep_screen.log 2> ../tests_tls_prep_log.log &
 
-    #cd ..
+    cd ..
 
     # Start server for client test
     ./../build/vdms -cfg unit_tests/config-tests.json > tests_screen.log 2> tests_log.log &
