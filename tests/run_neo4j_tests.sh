@@ -122,7 +122,7 @@ function execute_commands() {
         exit 1;
     fi
 
-    if [ "$test" = "OpsIOCoordinatorTest" ] || [ "$test" = "Neo4JE2ETest" ]; then
+    if [ "$test" = "OpsIOCoordinatorTest" ] || [ "$test" = "Neo4JE2ETest" ] || [ "$test" = "Neo4JHandlerTest" ]; then
         #Test requires MinIO & Neo4J Container
         if [ "$minio_username_was_set" = false ] || [ "$minio_password_was_set" = false ] || [ "$neo4j_username_was_set" = false ] || [ "$neo4j_password_was_set" = false ] || [ "$neo4j_endpoint_was_set" = false ]; then
             echo 'Missing MinIO or Neo4j arguments for "run_neo4j_tests.sh" script'
@@ -139,7 +139,7 @@ function execute_commands() {
             minio_name=Neo4JHandlerTest
         fi
 
-    elif [ "$test" = "Neo4jBackendTest" ] || [ "$test" = "Neo4JHandlerTest" ]; then
+    elif [ "$test" = "Neo4jBackendTest" ]; then
         #Test requires Neo4J Container ONLY
         if [ "$neo4j_username_was_set" = false ] || [ "$neo4j_password_was_set" = false ] || [ "$neo4j_endpoint_was_set" = false ]; then
             echo 'Missing Neo4j arguments for "run_neo4j_tests.sh" script'
