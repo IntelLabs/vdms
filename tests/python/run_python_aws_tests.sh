@@ -70,12 +70,6 @@ function execute_commands() {
         esac
     done
 
-    # Print variables
-    echo "AWS Parameters used:"
-    echo -e "\tapi_port:\t$api_port"
-    echo -e "\tpassword:\t$password"
-    echo -e "\tusername:\t$username"
-
     if [ $username_was_set = false ] || [ $password_was_set = false ]; then
         echo 'Missing arguments for "run_python_aws_tests.sh" script'
         echo 'Usage: sh ./run_python_aws_tests.sh -u YOUR_MINIO_USERNAME -p YOUR_MINIO_PASSWORD [-n TEST_PATTERN_NAME]'
@@ -90,6 +84,17 @@ function execute_commands() {
         test_filter=$testname
         echo 'Using test filter: '$test_filter
     fi
+
+    if [ "$api_port" = ' ' ] || [ "$api_port" = '' ]; then
+        api_port=9000
+        echo 'Default api_port'
+    fi
+
+    # Print variables
+    echo "AWS Parameters used:"
+    echo -e "\tapi_port:\t$api_port"
+    echo -e "\tpassword:\t$password"
+    echo -e "\tusername:\t$username"
 
     TEST_DIR=${PWD}
     base_dir=$(dirname $(dirname $PWD))
@@ -107,30 +112,27 @@ function execute_commands() {
     sleep 2
 
     echo 'Removing temporary files'
-    rm -rf ../../minio_files/ || true
-    rm -rf test_db/ || true
-    rm -rf test_db_aws/ || true
-    rm -rf test_db_tls/ || true
+    rm -rf /tmp/tests_output_dir || true
 
-    rm log.log || true
-    rm screen.log || true
-    mkdir -p test_db || true
-    rm log-tls.log || true
-    rm screen-tls.log || true
+    mkdir -p /tmp/tests_output_dir || true
+    mkdir -p /tmp/tests_output_dir/test_db || true
+
+    cp config-aws-tests.json /tmp/tests_output_dir/config-aws-tests.json
+    cp config-tls-aws-tests.json /tmp/tests_output_dir/config-tls-aws-tests.json
 
     echo 'Starting vdms server'
-    ./../../build/vdms -cfg config-aws-tests.json > screen.log 2> log.log &
+    ./../../build/vdms -cfg /tmp/tests_output_dir/config-aws-tests.json > /tmp/tests_output_dir/screen.log 2> /tmp/tests_output_dir/log.log &
     py_unittest_pid=$!
 
     python3 ../tls_test/prep_certs.py
-    ./../../build/vdms -cfg config-tls-aws-tests.json > screen-tls.log 2> log-tls.log &
+    ./../../build/vdms -cfg /tmp/tests_output_dir/config-tls-aws-tests.json > /tmp/tests_output_dir/screen-tls.log 2> /tmp/tests_output_dir/log-tls.log &
     py_tls_unittest_pid=$!
 
     sleep 1
 
     #start the minio server
     echo 'Starting minio server'
-    ./../../minio server ./../../minio_files &
+    ./../../minio server /tmp/tests_output_dir/minio_files --address :${api_port} &
     py_minio_pid=$!
 
     sleep 2
@@ -162,26 +164,20 @@ function execute_commands() {
 function cleanup() {
     exit_value=$?
 
-    # Removing log files
-    echo 'Removing log files'
-    rm log.log || true
-    rm screen.log || true
-    rm log-tls.log || true
-    rm screen-tls.log || true
-
     unset VDMS_SKIP_REMOTE_PYTHON_TESTS
-
-    echo 'Removing temporary files'
-    rm -rf ../../minio_files/ || true
-    rm -rf test_db/ || true
-    rm -rf test_db_aws/ || true
-    rm -rf test_db_tls/ || true
 
     # Killing vdms and minio processes after finishing the testing
     echo 'Killing vdms, tls, and minio processes after finishing the testing'
     kill -9 $py_unittest_pid || true
     kill -9 $py_tls_unittest_pid || true
     kill -9 $py_minio_pid || true
+
+    echo 'Removing temporary files'
+    rm -rf /tmp/tests_output_dir/ || true
+    rm -rf test_db/ || true
+    rm -rf test_db_aws/ || true
+    rm -rf test_db_tls/ || true
+
     exit $exit_value
 }
 

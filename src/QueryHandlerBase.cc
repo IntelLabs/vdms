@@ -36,6 +36,7 @@ void QueryHandlerBase::cleanup_query(const std::vector<std::string> &images,
       vid.delete_video();
     }
   } catch (VCL::Exception &e) {
+    print_exception(e);
   }
 }
 

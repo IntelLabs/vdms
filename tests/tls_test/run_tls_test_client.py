@@ -1,6 +1,8 @@
 import socket
 import ssl
 
+TEMPORARY_DIR = "/tmp"
+
 
 def print_and_flush(message):
     print(message, flush=True)
@@ -76,8 +78,8 @@ class TLSServer:
 
 if __name__ == "__main__":
     tls_client = TLSServer(
-        ca_cert_path="/tmp/trusted_ca_cert.pem",
-        server_cert_path="/tmp/trusted_server_cert.pem",
-        server_key_path="/tmp/trusted_server_key.pem",
+        ca_cert_path=TEMPORARY_DIR + "/trusted_ca_cert.pem",
+        server_cert_path=TEMPORARY_DIR + "/trusted_server_cert.pem",
+        server_key_path=TEMPORARY_DIR + "/trusted_server_key.pem",
     )
     tls_client.serve()

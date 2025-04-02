@@ -32,6 +32,7 @@
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 
@@ -39,13 +40,15 @@
 #include "vcl/VCL.h"
 #include "gtest/gtest.h"
 
+const std::string TMP_DIRNAME = "/tmp/tests_output_dir/";
+
 TEST(Descriptors_Classify, classify_flatl2_4d) {
   int d = 4;
   int nb = 10000;
 
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/classify_flatl2_4d.faiss";
+  std::string index_filename = TMP_DIRNAME + "dbs/classify_flatl2_4d.faiss";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissFlat);
 
   int offset = 10;
@@ -92,8 +95,9 @@ TEST(Descriptors_Classify, classify_10k) {
     float *xb = generate_desc_linear_increase(d, nb);
 
     for (auto eng : get_engines()) {
-      std::string index_filename =
-          "dbs/classify_10k" + std::to_string(d) + "_" + std::to_string(eng);
+      std::string index_filename = TMP_DIRNAME + "dbs/classify_10k" +
+                                   std::to_string(d) + "_" +
+                                   std::to_string(eng);
 
       VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
       VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
@@ -139,7 +143,7 @@ TEST(Descriptors_Classify, classify_ivfflatl2_4d_labels) {
 
   auto class_map = animals_map();
 
-  std::string index_filename = "dbs/classify_ivfflatl2_4d_labels.faiss";
+  std::string index_filename = TMP_DIRNAME + "dbs/classify_ivfflatl2_4d_labels.faiss";
   VCL::DescriptorParams *param = new VCL::DescriptorParams();
   param->ivf_nlist=16;
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissIVFFlat, VCL::DistanceMetric::L2, param);
@@ -200,7 +204,8 @@ TEST(Descriptors_Classify, classify_flinngIP_100d_labels) {
 
   float *xb = generate_desc_normal_cluster(d, nb, init, offset, clusterhead_std,
                                            cluster_std);
-  std::string index_filename = "dbs/classify_flinngIP_100d_labels";
+  std::string index_filename =
+      TMP_DIRNAME + "dbs/classify_flinngIP_100d_labels";
 
   VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12);
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::Flinng,
@@ -287,7 +292,7 @@ TEST(Descriptors_Classify, classify_labels_10k) {
     float *xb = generate_desc_linear_increase(d, nb);
 
     for (auto eng : get_engines()) {
-      std::string index_filename = "dbs/classify_labels_10k_" +
+      std::string index_filename = TMP_DIRNAME + "dbs/classify_labels_10k_" +
                                    std::to_string(d) + "_" +
                                    std::to_string(eng);
 
@@ -343,7 +348,8 @@ TEST(Descriptors_Classify, classify_flatl2_4d_str_label) {
 
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/classify_flatl2_4d_str_label.faiss";
+  std::string index_filename =
+      TMP_DIRNAME + "dbs/classify_flatl2_4d_str_label.faiss";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissFlat);
 
   auto class_map = animals_map();
@@ -406,7 +412,12 @@ TEST(Descriptors_Classify, classify_tdbdense_4d) {
 
   auto class_map = animals_map();
 
-  std::string index_filename = "dbs/classify_tdbdense_4d";
+  std::string dir_path = TMP_DIRNAME + "dbs";
+  if (!std::filesystem::exists(dir_path)) {
+    std::filesystem::create_directories(dir_path);
+  }
+
+  std::string index_filename = dir_path + "/classify_tdbdense_4d";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::TileDBDense);
 
   index.set_labels_map(class_map);

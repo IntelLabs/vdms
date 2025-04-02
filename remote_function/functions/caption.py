@@ -1,22 +1,29 @@
 import cv2
-import skvideo.io
 import uuid
+import os
 
 
-def run(ipfilename, format, options):
-    opfilename = "tmpfile" + uuid.uuid1().hex + "." + str(format)
-    print(opfilename)
-    vs = cv2.VideoCapture(ipfilename)
+def run(ipfilename, format, options, tmp_dir_path):
+    opfilename = os.path.join(
+        tmp_dir_path, "tmpfile" + uuid.uuid1().hex + "." + str(format)
+    )
 
-    video = skvideo.io.FFmpegWriter(opfilename, {"-pix_fmt": "bgr24"})
-    print(options)
+    vc = cv2.VideoCapture(ipfilename)
+    frame_width = int(vc.get(cv2.CAP_PROP_FRAME_WIDTH))
+    frame_height = int(vc.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    video_fps = vc.get(cv2.CAP_PROP_FPS)
+
+    video = cv2.VideoWriter(
+        opfilename,
+        cv2.VideoWriter_fourcc(*"mp4v"),
+        video_fps,
+        (frame_width, frame_height),
+    )
 
     while True:
-        (grabbed, frame) = vs.read()
+        (grabbed, frame) = vc.read()
         if not grabbed:
             print("[INFO] no frame read from stream - exiting")
-            video.close()
-            # sys.exit(0)
             break
 
         label = options["text"]
@@ -24,6 +31,8 @@ def run(ipfilename, format, options):
             frame, label, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2
         )
 
-        video.writeFrame(frame)
+        video.write(frame)
+    vc.release()
+    video.release()
 
-    return opfilename
+    return opfilename, None

@@ -1,11 +1,24 @@
 import cv2
 import uuid
 import json
+import os
+
+# Get the real directory where this Python file is
+currentDir = os.path.realpath(os.path.dirname(__file__))
+
+haarcascade_frontalface_default_path = os.path.join(
+    currentDir, "../../../resources/haarcascade_frontalface_default.xml"
+)
+
+if not os.path.exists(haarcascade_frontalface_default_path):
+    raise Exception(
+        f"{haarcascade_frontalface_default_path}: path is invalid in metadata for the remote function tests"
+    )
 
 face_cascade = cv2.CascadeClassifier(
     # This file is available from OpenCV 'data' directory at
     # https://github.com/opencv/opencv/blob/4.x/data/haarcascades/haarcascade_frontalface_default.xml
-    "../../remote_function/functions/files/haarcascade_frontalface_default.xml"
+    haarcascade_frontalface_default_path
 )
 
 
@@ -16,7 +29,7 @@ def facedetectbbox(frame):
     return faces
 
 
-def run(ipfilename, format, options):
+def run(ipfilename, format, options, tmp_dir_path):
     if options["media_type"] == "video":
         vs = cv2.VideoCapture(ipfilename)
         frameNum = 1
@@ -66,7 +79,7 @@ def run(ipfilename, format, options):
 
         response = {"opFile": ipfilename, "metadata": metadata}
 
-        jsonfile = "jsonfile" + uuid.uuid1().hex + ".json"
+        jsonfile = os.path.join(tmp_dir_path, "jsonfile" + uuid.uuid1().hex + ".json")
         with open(jsonfile, "w") as f:
             json.dump(response, f, indent=4)
         return ipfilename, jsonfile

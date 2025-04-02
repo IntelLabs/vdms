@@ -1,14 +1,32 @@
 import cv2
+import os
+
+# Get the real directory where this Python file is
+currentDir = os.path.realpath(os.path.dirname(__file__))
+
+haarcascade_frontalface_default_path = os.path.join(
+    currentDir, "../../resources/haarcascade_frontalface_default.xml"
+)
+
+if not os.path.exists(haarcascade_frontalface_default_path):
+    raise Exception(
+        f"{haarcascade_frontalface_default_path}: path is invalid in facedetect for the remote function"
+    )
 
 face_cascade = cv2.CascadeClassifier(
     # This file is available from OpenCV 'data' directory at
     # https://github.com/opencv/opencv/blob/4.x/data/haarcascades/haarcascade_frontalface_default.xml
-    "functions/files/haarcascade_frontalface_default.xml"
+    haarcascade_frontalface_default_path
 )
 
 
-def run(ipfilename, format, options):
+def run(ipfilename, format, options, tmp_dir_path):
     global face_cascade
+
+    if not os.path.exists(ipfilename):
+        raise Exception(
+            f"Facedetect error: File ipfilename: {ipfilename} does not exist"
+        )
 
     img = cv2.imread(ipfilename)
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -17,4 +35,4 @@ def run(ipfilename, format, options):
     for x, y, w, h in faces:
         cv2.rectangle(img, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
-    return img
+    return img, None
