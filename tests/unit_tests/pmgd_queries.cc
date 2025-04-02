@@ -89,8 +89,8 @@ TEST(PMGDQueryHandler, addIndexTest) {
   qh.print_node_idx_stats((char *)"Patient", (char *)"Age");
   ASSERT_EQ(idx_build_rc, 0);
 
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  VDMSConfig::destroy();
 }
 
 void addPatientsData() {

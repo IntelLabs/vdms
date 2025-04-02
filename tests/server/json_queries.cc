@@ -97,6 +97,9 @@ TEST(AutoReplicate, default_replicate) {
   qh_base.regular_run_autoreplicate(
       replication_test); // set flag to show autodelete queue has been
                          // initialized
+
+  PMGDQueryHandler::destroy();
+  VDMSConfig::destroy();
 }
 
 TEST(ExampleHandler, simplePing) {
@@ -124,6 +127,8 @@ TEST(ExampleHandler, simplePing) {
   Json::Value json_response;
   json_reader.parse(response.json(), json_response);
 
+  PMGDQueryHandler::destroy();
+  VDMSConfig::destroy();
   EXPECT_EQ(json_response[0]["HiThere"].asString(), "Hello, world!");
 }
 
