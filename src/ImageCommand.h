@@ -38,7 +38,6 @@
 
 #include "ExceptionsCommand.h"
 #include "RSCommand.h"
-#include "vcl/CustomVCL.h"
 #include "vcl/Image.h"
 
 namespace VDMS {

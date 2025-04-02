@@ -183,6 +183,7 @@ COPY client /vdms/client
 COPY distributed /vdms/distributed
 COPY include /vdms/include
 COPY remote_function /vdms/remote_function
+COPY resources /vdms/resources
 COPY src /vdms/src
 COPY tests /vdms/tests
 COPY user_defined_operations /vdms/user_defined_operations

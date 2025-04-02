@@ -79,22 +79,6 @@ int ImageCommand::enqueue_operations(VCL::Image &img, const Json::Value &ops,
       }
     } else if (type == "userOp") {
       img.userOperation(get_value<Json::Value>(op, "options"));
-    } else if (type == "custom") {
-      VCL::Image *tmp_image = new VCL::Image(img, true);
-      try {
-        if (custom_vcl_function(img, op) != 0) {
-          img.deep_copy_cv(tmp_image->get_cvmat(
-              true)); // function completed but error detected
-          delete tmp_image;
-          return -1;
-        }
-      } catch (...) {
-        img.deep_copy_cv(
-            tmp_image->get_cvmat(true)); // function threw exception
-        delete tmp_image;
-        return -1;
-      }
-      delete tmp_image;
     } else {
       throw ExceptionCommand(ImageError, "Operation not defined");
       return -1;

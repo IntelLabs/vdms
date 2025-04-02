@@ -1,11 +1,11 @@
 /**
- * @file   TDBObject_test.cc
+ * @file   VCLUtilsTest.cc
  *
  * @section LICENSE
  *
  * The MIT License
  *
- * @copyright Copyright (c) 2024 Intel Corporation
+ * @copyright Copyright (c) 2025 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,37 +27,21 @@
  *
  */
 
-#include <string>
+#include "gtest/gtest.h"
 
-#include <gtest/gtest.h>
-#include <opencv2/imgcodecs.hpp>
+#include "vcl/utils.h"
 
-#include "TDBImage.h"
-#include "TDBObject.h"
-
-const std::string TMP_DIRNAME = "/tmp/tests_output_dir/";
-
-class TDBObjectTest : public ::testing::Test {
+class VCLUtilsTest : public ::testing::Test {
 
 protected:
   virtual void SetUp() {
-    tdb_img_ = TMP_DIRNAME + "tdb/test_image.tdb";
-    cv_img_ = cv::imread("test_images/large1.jpg", cv::IMREAD_ANYCOLOR);
+   }
+  virtual void TearDown() {
   }
-
-  virtual void TearDown() {}
-
-  std::string tdb_img_;
-  cv::Mat cv_img_;
 };
 
-TEST_F(TDBObjectTest, EqualOperatorInTDBObject) {
-  VCL::TDBImage sourceTDB(tdb_img_);
-  sourceTDB.write(cv_img_);
-  ASSERT_TRUE(sourceTDB.has_data());
-  // Sliced the object to get the TDBObject
-  VCL::TDBObject destTDBObject = static_cast<VCL::TDBObject>(sourceTDB);
-
-  bool areEqual = (static_cast<VCL::TDBObject>(sourceTDB) == destTDBObject);
-  ASSERT_TRUE(areEqual);
+TEST_F(VCLUtilsTest, GetExtension_WithoutExtension) {
+    std::string object_id = "something.with.dots/file";
+    std::string extension = VCL::get_extension(object_id);
+    ASSERT_STREQ("", extension.c_str());
 }

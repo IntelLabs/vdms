@@ -33,6 +33,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 
@@ -40,12 +41,14 @@
 #include "vcl/VCL.h"
 #include "gtest/gtest.h"
 
+const std::string TMP_DIRNAME = "/tmp/tests_output_dir/";
+
 TEST(Descriptors_Store, add_ivfflatl2_100d_2add_file) {
   int d = 100;
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/store_ivfflatl2_100d_2add.faiss";
+  std::string index_filename = TMP_DIRNAME + "dbs/store_ivfflatl2_100d_2add.faiss";
 
   VCL::DescriptorParams *param = new VCL::DescriptorParams();
   param->ivf_nlist=16;
@@ -80,7 +83,12 @@ TEST(Descriptors_Store, add_tiledbdense_100d_file) {
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/store_tiledbdense_100d_tdb";
+  std::string dir_path = TMP_DIRNAME + "dbs";
+  if (!std::filesystem::exists(dir_path)) {
+    std::filesystem::create_directories(dir_path);
+  }
+
+  std::string index_filename = dir_path + "/store_tiledbdense_100d_tdb";
   VCL::DescriptorSet index_f(index_filename, unsigned(d), VCL::TileDBDense);
 
   index_f.add(xb, nb);
@@ -112,7 +120,12 @@ TEST(Descriptors_Store, add_tiledbdense_100d_2add_file) {
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/store_tiledbdense_100d_2add";
+  std::string dir_path = TMP_DIRNAME + "dbs";
+  if (!std::filesystem::exists(dir_path)) {
+    std::filesystem::create_directories(dir_path);
+  }
+
+  std::string index_filename = dir_path + "/store_tiledbdense_100d_2add";
   VCL::DescriptorSet index_f(index_filename, unsigned(d), VCL::TileDBDense);
 
   index_f.add(xb, nb);

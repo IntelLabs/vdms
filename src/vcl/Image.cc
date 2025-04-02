@@ -561,7 +561,10 @@ void Image::UserOperation::operator()(Image *img) {
         std::string filePath = VDMS::VDMSConfig::instance()->get_path_tmp() +
                                "/tempfile" + std::to_string(utc_time.count()) +
                                "." + format;
-        cv::imwrite(filePath, img->_cv_img);
+        bool result = cv::imwrite(filePath, img->_cv_img);
+        if (!result) {
+          throw VCLException(ObjectEmpty, "Error writing the file: " + filePath);
+        }
 
         _options["ipfile"] = filePath;
         _options["media_type"] = "image";
@@ -595,6 +598,12 @@ void Image::UserOperation::operator()(Image *img) {
           }
           img->set_ingest_metadata(message["metadata"]);
         } else {
+          if (response == "") {
+            std::string errorMessage =
+                "UserOperation error: empty response from the server";
+            std::cout << errorMessage << std::endl;
+            throw VCLException(SystemNotFound, errorMessage);
+          }
           opfile = response;
           std::ifstream rfile;
           rfile.open(opfile);
@@ -605,7 +614,8 @@ void Image::UserOperation::operator()(Image *img) {
             if (std::remove(filePath.data()) != 0) {
               throw VCLException(ObjectNotFound, "Unable to remove file");
             }
-            throw VCLException(OpenFailed, "UDF Error");
+            throw VCLException(OpenFailed, "UDF Error with file: " + filePath +
+                                               ". Response:" + opfile);
           }
 
           VCL::Image res_image(opfile);
@@ -627,6 +637,14 @@ void Image::UserOperation::operator()(Image *img) {
   } catch (VCL::Exception e) {
     img->set_query_error_response(e.msg);
     print_exception(e);
+    return;
+  } catch (std::exception &e) {
+    img->set_query_error_response(e.what());
+    std::cerr << "UserOperation exception: " << e.what() << std::endl;
+    return;
+  } catch (...) {
+    img->set_query_error_response("Unknown error");
+    std::cerr << "Unknown error" << std::endl;
     return;
   }
 }
