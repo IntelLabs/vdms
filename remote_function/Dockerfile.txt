@@ -5,5 +5,5 @@ WORKDIR /remoteUDF
 COPY . .
 RUN /bin/bash -c "python3 -m pip install pip --upgrade"
 RUN pip install -r requirements.txt
-RUN pip install pillow
+
 CMD ["python3","udf_server.py","5030"]

@@ -4,7 +4,8 @@ services:
       dockerfile: .github/scripts/Dockerfile.checkin
       context: ../..
       args:
-        - BUILD_COVERAGE=on
+        - BUILD_COVERAGE=ON
+        - USE_K8S=ON
     image: vdms:${SOURCE_CONTAINER_NAME}
     container_name: ${SOURCE_CONTAINER_NAME}
     networks: [backend, frontend]

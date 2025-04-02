@@ -1,5 +1,6 @@
 flask>=3.0.2
 imutils>=0.5.4
 numpy<2.0.0
-opencv-python-headless==4.9.0.80
-sk-video==1.1.10
+opencv-python-headless>=4.9.0.80
+pillow>=11.1.0
+sk-video>=1.1.10
