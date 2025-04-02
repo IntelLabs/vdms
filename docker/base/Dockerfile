@@ -241,7 +241,7 @@ RUN git clone -b master --recurse-submodules https://github.com/IntelLabs/vdms.g
     echo 'python3 /vdms/override_default_config.py -i /vdms/config-vdms.json -o /vdms/build/config-vdms.json' >> /start.sh && \
     echo './vdms' >> /start.sh && chmod 755 /start.sh
 
-    ENV PYTHONPATH=/vdms/client/python
+ENV PYTHONPATH=/vdms/client/python
 
 HEALTHCHECK CMD echo "This is a healthcheck test." || exit 1
 CMD ["/start.sh"]
