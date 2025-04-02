@@ -13,13 +13,19 @@ Use the following steps to create the remote UDF tar file.
 + Run the following command to create the tar file `sudo docker save -o remote_segment.tar rudf`
 
 # Configure kubeConfig.json #
-Sample kubeConfig file that can be used to add details of Master/Worker node
+Sample kubeConfig file that can be used to add details of Master and Worker nodes.
 
 ```json
-    {
-    "MasterNodeDetail": {"_HOST-NAME-OF-MASTER-NODE_": "_IPADDRESS-OF-MASTER-NODE_"},
-    "WorkerNodeDetail": [{"_HOST-NAME-OF-WORKER-NODE_1": "_IPADDRESS-OF-WORKER-NODE_1"},{"_HOST-NAME-OF-WORKER-NODE_2" : "_IPADDRESS-OF-WORKER-NODE_2"},{"_use-similar-blockes-to-add-more-node_"}]
-    }
+{
+    "MasterNodeDetail": {
+		"_HOST-NAME-OF-MASTER-NODE_": "_IPADDRESS-OF-MASTER-NODE_"
+	},
+    "WorkerNodeDetail": [
+		{"_HOST-NAME-OF-WORKER-NODE_1": "_IPADDRESS-OF-WORKER-NODE_1"},
+		{"_HOST-NAME-OF-WORKER-NODE_2" : "_IPADDRESS-OF-WORKER-NODE_2"},
+		{"_use-similar-blocks-to-add-more-node_"}
+	]
+}
 ```
 
 # Proxy setting for running containerd behind a proxy #
@@ -73,7 +79,7 @@ Restart the services as mentioned below
 ```
 # Bringing up your cluster to run Multi-node Cluster for VDMS application #
 
-Clone the VDMS github reposistory on the Master Node and Worker Node
+Clone the VDMS github repository on the Master and Worker nodes.
 
 On the Master node follow the steps below after downloading the VDMS image -
 ```bash

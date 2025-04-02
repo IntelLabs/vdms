@@ -1,8 +1,6 @@
 cmake_minimum_required (VERSION 3.10)
 project(vdms-utils)
 
-option(USE_K8S "Enable kubernetes client libraries" OFF)
-message("USE_K8S:" ${USE_K8S})
 if(USE_K8S)
     message(STATUS "Including kubernetes client libraries and kubernetes helper class")
     include_directories(include/comm include/chrono include/stats include/timers include/kubernetes /usr/include/libwebsockets)

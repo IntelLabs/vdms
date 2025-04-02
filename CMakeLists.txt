@@ -3,11 +3,16 @@ cmake_minimum_required (VERSION 3.17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_CXX_STANDARD 17)
 
+option(USE_K8S "Enable kubernetes client libraries" OFF)
+string(TOUPPER ${USE_K8S} USE_K8S)
+
+option(CLIENT "Built client library." OFF)
+string(TOUPPER ${CODE_COVERAGE} CODE_COVERAGE)
 
 IF(CODE_COVERAGE)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -coverage -fprofile-abs-path")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -Wall -coverage -fprofile-abs-path")
-    enable_testing()
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -coverage -fprofile-abs-path")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -Wall -coverage -fprofile-abs-path")
+  enable_testing()
 ENDIF()
 
 project(vdms_application)
@@ -41,8 +46,6 @@ protobuf_generate(
   PROTOC_OUT_DIR "${PROTO_BINARY_DIR}"
 )
 
-option(USE_K8S "Enable kubernetes client libraries" OFF)
-option(CLIENT "Built client library." OFF)
 if (CLIENT)
   add_definitions("-D CLIENT")
 
@@ -60,7 +63,7 @@ else()
   add_subdirectory(distributed)
 
   link_directories(/usr/local/lib /usr/lib/x86_64-linux-gnu/)
-  message("USE_K8S:" ${USE_K8S})
+
   if(USE_K8S)
     include_directories(/usr/include/jsoncpp utils/include/ src/pmgd/include src/pmgd/util include/ src/vcl /usr/include ${CMAKE_CURRENT_BINARY_DIR}/utils/src/protobuf /usr/local/include/kubernetes /usr/include/libwebsockets)
     add_definitions("-D HAS_KUBERNETES_CLIENT")
@@ -95,8 +98,15 @@ else()
     src/VideoCommand.cc
     src/AutoDeleteNode.cc
     src/ImageLoop.cc
-    src/VideoLoop.cc)
+    src/VideoLoop.cc
+  )
+
   target_link_libraries(dms vcl pmgd pmgd-util protobuf tbb tiledb vdms-utils pthread -lcurl -lzmq -lzip ${AWSSDK_LINK_LIBRARIES} neo4j-client)
+
   add_executable(vdms src/vdms.cc)
+
   target_link_libraries(vdms dms vdms_protobuf vcl tiledb faiss flinng jsoncpp ${OpenCV_LIBS} ${AWSSDK_LINK_LIBRARIES})
 endif ()
+
+message("Coverage:" ${CODE_COVERAGE})
+message("USE_K8S:" ${USE_K8S})
