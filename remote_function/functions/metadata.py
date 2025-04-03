@@ -29,7 +29,7 @@ def facedetectbbox(frame):
     return faces
 
 
-def run(ipfilename, format, options, tmp_dir_path):
+def run(ipfilename, format, options, tmp_dir_path=""):
     # Extract metadata for video files
     if options["media_type"] == "video":
         vs = cv2.VideoCapture(ipfilename)
