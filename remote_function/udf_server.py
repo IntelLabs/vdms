@@ -152,7 +152,7 @@ def video_api():
         
         # Read file data using pyspdk
         try:
-            buf = pyspdk.read(b'/mnt/nvmedrive/tmp/tempfile1743681248.540612.mp4', 2575792)
+            buf = pyspdk.read(video_path.encode('utf-8'), video_size)
         except:
             print(sys.exc_info())
 
