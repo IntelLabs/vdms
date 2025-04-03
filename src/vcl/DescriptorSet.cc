@@ -49,316 +49,300 @@ namespace fs = std::filesystem;
 
 namespace VCL {
 
-DescriptorSet::DescriptorSet(const std::string &set_path) {
-  read_set_info(set_path);
-  _remote = nullptr;
+    DescriptorSet::DescriptorSet(const std::string &set_path) {
+        read_set_info(set_path);
+        _remote = nullptr;
 
-  if (_eng == DescriptorSetEngine(FaissFlat))
-    _set = new FaissFlatDescriptorSet(set_path);
-  else if (_eng == DescriptorSetEngine(FaissIVFFlat))
-    _set = new FaissIVFFlatDescriptorSet(set_path);
-  else if (_eng == DescriptorSetEngine(TileDBDense))
-    _set = new TDBDenseDescriptorSet(set_path);
-  else if (_eng == DescriptorSetEngine(TileDBSparse))
-    _set = new TDBSparseDescriptorSet(set_path);
-  else if (_eng == DescriptorSetEngine(Flinng))
-    _set = new FlinngDescriptorSet(set_path);
-  else if (_eng == DescriptorSetEngine(FaissHNSWFlat))
-    _set = new FaissHNSWFlatDescriptorSet(set_path);
-  else {
-    std::cerr << "Index Not supported" << std::endl;
-    throw VCLException(UnsupportedIndex, "Index not supported");
-  }
-}
+        if (_eng == DescriptorSetEngine(FaissFlat))
+            _set = new FaissFlatDescriptorSet(set_path);
+        else if (_eng == DescriptorSetEngine(FaissIVFFlat))
+            _set = new FaissIVFFlatDescriptorSet(set_path);
+        else if (_eng == DescriptorSetEngine(TileDBDense))
+            _set = new TDBDenseDescriptorSet(set_path);
+        else if (_eng == DescriptorSetEngine(TileDBSparse))
+            _set = new TDBSparseDescriptorSet(set_path);
+        else if (_eng == DescriptorSetEngine(Flinng))
+            _set = new FlinngDescriptorSet(set_path);
+        else if (_eng == DescriptorSetEngine(FaissHNSWFlat))
+            _set = new FaissHNSWFlatDescriptorSet(set_path);
+        else {
+            std::cerr << "Index Not supported" << std::endl;
+            throw VCLException(UnsupportedIndex, "Index not supported");
+        }
+    }
 
-DescriptorSet::DescriptorSet(const std::string &set_path, unsigned dim,
-                             DescriptorSetEngine eng, DistanceMetric metric,
-                             VCL::DescriptorParams *param)
-    : _eng(eng) {
-  _remote = nullptr;
+    DescriptorSet::DescriptorSet(const std::string &set_path, unsigned dim,
+                                 DescriptorSetEngine eng, DistanceMetric metric,
+                                 VCL::DescriptorParams *param)
+            : _eng(eng) {
+        _remote = nullptr;
 
-  if (eng == DescriptorSetEngine(FaissFlat))
-    _set = new FaissFlatDescriptorSet(set_path, dim, metric);
-  else if (eng == DescriptorSetEngine(FaissIVFFlat))
-    _set = new FaissIVFFlatDescriptorSet(set_path, dim, metric, param);
-  else if (eng == DescriptorSetEngine(TileDBDense))
-    _set = new TDBDenseDescriptorSet(set_path, dim, metric);
-  else if (eng == DescriptorSetEngine(TileDBSparse))
-    _set = new TDBSparseDescriptorSet(set_path, dim, metric);
-  else if (eng == DescriptorSetEngine(Flinng))
-    _set = new FlinngDescriptorSet(set_path, dim, metric, param);
-  else if (eng == DescriptorSetEngine(FaissHNSWFlat))
-    _set = new FaissHNSWFlatDescriptorSet(set_path, dim, metric, param);
-  else {
-    std::cerr << "Index Not supported" << std::endl;
-    throw VCLException(UnsupportedIndex, "Index not supported");
-  }
-}
+        if (eng == DescriptorSetEngine(FaissFlat))
+            _set = new FaissFlatDescriptorSet(set_path, dim, metric);
+        else if (eng == DescriptorSetEngine(FaissIVFFlat))
+            _set = new FaissIVFFlatDescriptorSet(set_path, dim, metric, param);
+        else if (eng == DescriptorSetEngine(TileDBDense))
+            _set = new TDBDenseDescriptorSet(set_path, dim, metric);
+        else if (eng == DescriptorSetEngine(TileDBSparse))
+            _set = new TDBSparseDescriptorSet(set_path, dim, metric);
+        else if (eng == DescriptorSetEngine(Flinng))
+            _set = new FlinngDescriptorSet(set_path, dim, metric, param);
+        else if (eng == DescriptorSetEngine(FaissHNSWFlat))
+            _set = new FaissHNSWFlatDescriptorSet(set_path, dim, metric, param);
+        else {
+            std::cerr << "Index Not supported" << std::endl;
+            throw VCLException(UnsupportedIndex, "Index not supported");
+        }
+    }
 
-DescriptorSet::~DescriptorSet() { delete _set; }
+    DescriptorSet::~DescriptorSet() { delete _set; }
 
-void DescriptorSet::write_set_info() {
-  std::string path = _set->get_path() + "/" + INFO_FILE_NAME;
-  std::ofstream info_file(path);
-  info_file << _eng << std::endl;
-  info_file.close();
-}
+    void DescriptorSet::write_set_info() {
+        std::string path = _set->get_path() + "/" + INFO_FILE_NAME;
+        std::ofstream info_file(path);
+        info_file << _eng << std::endl;
+        info_file.close();
+    }
 
-void DescriptorSet::read_set_info(const std::string &set_path) {
-  std::string path = set_path + "/" + INFO_FILE_NAME;
-  std::ifstream info_file(path);
+    void DescriptorSet::read_set_info(const std::string &set_path) {
+        std::string path = set_path + "/" + INFO_FILE_NAME;
+        std::ifstream info_file(path);
 
-  if (!info_file.good()) {
-    std::cout << "cannot open: " << path << std::endl;
-    throw VCLException(OpenFailed, "Cannot open: " + path);
-  }
+        if (!info_file.good()) {
+            std::cout << "cannot open: " << path << std::endl;
+            throw VCLException(OpenFailed, "Cannot open: " + path);
+        }
 
-  int num;
-  std::string str;
-  std::getline(info_file, str);
-  std::stringstream sstr(str);
-  sstr >> num;
-  _eng = (DescriptorSetEngine)num;
-  info_file.close();
-}
+        int num;
+        std::string str;
+        std::getline(info_file, str);
+        std::stringstream sstr(str);
+        sstr >> num;
+        _eng = (DescriptorSetEngine)num;
+        info_file.close();
+    }
 
 /*  *********************** */
 /*      CORE INTERFACE      */
 /*  *********************** */
 
-std::string DescriptorSet::get_path() { return _set->get_path(); }
+    std::string DescriptorSet::get_path() { return _set->get_path(); }
 
-unsigned DescriptorSet::get_dimensions() { return _set->get_dimensions(); }
+    unsigned DescriptorSet::get_dimensions() { return _set->get_dimensions(); }
 
-long DescriptorSet::get_n_descriptors() { return _set->get_n_total(); }
+    long DescriptorSet::get_n_descriptors() { return _set->get_n_total(); }
 
-void DescriptorSet::search(DescDataArray queries, unsigned n_queries,
-                           unsigned k, long *descriptors_ids,
-                           float *distances) {
-  _set->search(queries, n_queries, k, descriptors_ids, distances);
-}
-
-void DescriptorSet::search(DescDataArray queries, unsigned n_queries,
-                           unsigned k, long *descriptors_ids) {
-  _set->search(queries, n_queries, k, descriptors_ids);
-}
-
-void DescriptorSet::radius_search(DescData queries, float radius,
-                                  long *descriptors_ids, float *distances) {
-  _set->radius_search(queries, radius, descriptors_ids, distances);
-}
-
-long DescriptorSet::add(DescDataArray descriptors, unsigned n, long *labels) {
-  long rc;
-  rc = _set->add(descriptors, n, labels);
-  return rc;
-}
-
-long DescriptorSet::add_and_store(DescDataArray descriptors, unsigned n,
-                                  long *labels) {
-  long rc;
-  rc = _set->add_and_store(descriptors, n, labels);
-  return rc;
-}
-
-void DescriptorSet::train() {
-  _set->train();
-}
-
-void DescriptorSet::finalize_index() {
-  _set->finalize_index();
-}
-
-void DescriptorSet::train(DescDataArray descriptors, unsigned n) {
-  _set->train(descriptors, n);
-}
-
-bool DescriptorSet::is_trained() { return _set->is_trained(); }
-
-void DescriptorSet::classify(DescDataArray descriptors, unsigned n,
-                             long *labels, unsigned quorum) {
-  _set->classify(descriptors, n, labels, quorum);
-}
-
-void DescriptorSet::get_descriptors(long *ids, unsigned n,
-                                    DescDataArray descriptors) {
-  _set->get_descriptors(ids, n, descriptors);
-}
-
-void DescriptorSet::store() {
-
-  _set->store();
-  write_set_info();
-
-  // grab the descriptor files from local storage, upload them, delete the local
-  // copies not deleting the local copies currently to resolve concurrency
-  // issues
-  if (_storage == VDMS::StorageType::AWS) {
-    std::string dir_path = _set->get_path();
-    std::vector<std::string> filenames;
-
-    for (const auto &file : fs::directory_iterator(dir_path)) {
-      filenames.push_back(file.path());
+    void DescriptorSet::search(DescDataArray queries, unsigned n_queries,
+                               unsigned k, long *descriptors_ids,
+                               float *distances) {
+        _set->search(queries, n_queries, k, descriptors_ids, distances);
     }
 
-  try {
-    _set->store();
-    write_set_info();
+    void DescriptorSet::search(DescDataArray queries, unsigned n_queries,
+                               unsigned k, long *descriptors_ids) {
+        _set->search(queries, n_queries, k, descriptors_ids);
+    }
 
-    // grab the descriptor files from local storage, upload them, delete the
-    // local copies not deleting the local copies currently to resolve
-    // concurrency issues
-    if (_storage == VDMS::StorageType::AWS) {
-      std::string dir_path = _set->get_path();
-      std::vector<std::string> filenames;
+    void DescriptorSet::radius_search(DescData queries, float radius,
+                                      long *descriptors_ids, float *distances) {
+        _set->radius_search(queries, radius, descriptors_ids, distances);
+    }
 
-      for (const auto &file : fs::directory_iterator(dir_path)) {
-        filenames.push_back(file.path());
-      }
+    long DescriptorSet::add(DescDataArray descriptors, unsigned n, long *labels) {
+        long rc;
+        rc = _set->add(descriptors, n, labels);
+        return rc;
+    }
 
+    long DescriptorSet::add_and_store(DescDataArray descriptors, unsigned n,
+                                      long *labels) {
+        long rc;
+        rc = _set->add_and_store(descriptors, n, labels);
+        return rc;
+    }
 
-      for (int i = 0; i < filenames.size(); i++) {
-        bool result = _remote->Write(filenames[i]);
-        if (!result) {
-          throw VCLException(ObjectNotFound,
-                             "Descriptor: File was not added: " + filenames[i]);
+    void DescriptorSet::train() {
+        _set->train();
+    }
+
+    void DescriptorSet::finalize_index() {
+        _set->finalize_index();
+    }
+
+    void DescriptorSet::train(DescDataArray descriptors, unsigned n) {
+        _set->train(descriptors, n);
+    }
+
+    bool DescriptorSet::is_trained() { return _set->is_trained(); }
+
+    void DescriptorSet::classify(DescDataArray descriptors, unsigned n,
+                                 long *labels, unsigned quorum) {
+        _set->classify(descriptors, n, labels, quorum);
+    }
+
+    void DescriptorSet::get_descriptors(long *ids, unsigned n,
+                                        DescDataArray descriptors) {
+        _set->get_descriptors(ids, n, descriptors);
+    }
+
+    void DescriptorSet::store() {
+        try {
+            _set->store();
+            write_set_info();
+
+            // grab the descriptor files from local storage, upload them, delete the
+            // local copies not deleting the local copies currently to resolve
+            // concurrency issues
+            if (_storage == VDMS::StorageType::AWS) {
+                std::string dir_path = _set->get_path();
+                std::vector<std::string> filenames;
+
+                for (const auto &file : fs::directory_iterator(dir_path)) {
+                    filenames.push_back(file.path());
+                }
+
+                for (int i = 0; i < filenames.size(); i++) {
+                    bool result = _remote->Write(filenames[i]);
+                    if (!result) {
+                        throw VCLException(ObjectNotFound,
+                                           "Descriptor: File was not added: " + filenames[i]);
+                    }
+                }
+            }
+        } catch (std::exception &e) {
+            std::cout << "DescriptorSet::store() Exception: " << e.what() << std::endl;
+            return;
+        } catch (VCL::Exception &e) {
+            print_exception(e);
+            return;
+        } catch (...) {
+            std::cout << "DescriptorSet::store() Error: Unknown exception was caught"
+                      << std::endl;
+            return;
         }
-      }
     }
-  } catch (std::exception &e) {
-    std::cout << "DescriptorSet::store() Exception: " << e.what() << std::endl;
-    return;
-  } catch (VCL::Exception &e) {
-    print_exception(e);
-    return;
-  } catch (...) {
-    std::cout << "DescriptorSet::store() Error: Unknown exception was caught"
-              << std::endl;
-    return;
-  }
-}
 
-void DescriptorSet::store(std::string set_path) {
-  _set->store(set_path);
-  write_set_info();
-}
+    void DescriptorSet::store(std::string set_path) {
+        _set->store(set_path);
+        write_set_info();
+    }
 
 /*  *********************** */
 /*   VECTOR-BASED INTERFACE */
 /*  *********************** */
 
-long DescriptorSet::add(DescDataArray descriptors, unsigned n,
-                        LabelIdVector &labels) {
-  long rc;
-  if (n != labels.size() && labels.size() != 0)
-    throw VCLException(SizeMismatch, "Labels Vector of Wrong Size");
-  rc = add(descriptors, n, labels.size() > 0 ? (long *)labels.data() : NULL);
+    long DescriptorSet::add(DescDataArray descriptors, unsigned n,
+                            LabelIdVector &labels) {
+        long rc;
+        if (n != labels.size() && labels.size() != 0)
+            throw VCLException(SizeMismatch, "Labels Vector of Wrong Size");
+        rc = add(descriptors, n, labels.size() > 0 ? (long *)labels.data() : NULL);
 
-  return rc;
-}
+        return rc;
+    }
 
-long DescriptorSet::add_and_store(DescDataArray descriptors, unsigned n,
-                                  LabelIdVector &labels) {
-  long rc;
-  if (n != labels.size() && labels.size() != 0)
-    throw VCLException(SizeMismatch, "Labels Vector of Wrong Size");
+    long DescriptorSet::add_and_store(DescDataArray descriptors, unsigned n,
+                                      LabelIdVector &labels) {
+        long rc;
+        if (n != labels.size() && labels.size() != 0)
+            throw VCLException(SizeMismatch, "Labels Vector of Wrong Size");
 
-  rc = add_and_store(descriptors, n,
-                     labels.size() > 0 ? (long *)labels.data() : NULL);
+        rc = add_and_store(descriptors, n,
+                           labels.size() > 0 ? (long *)labels.data() : NULL);
+;
+        return rc;
+    }
 
-  return rc;
-}
+    void DescriptorSet::search(DescDataArray queries, unsigned n, unsigned k,
+                               DescIdVector &ids, DistanceVector &distances) {
+        ids.resize(n * k);
+        distances.resize(n * k);
+        search(queries, n, k, ids.data(), distances.data());
+    }
 
-void DescriptorSet::search(DescDataArray queries, unsigned n, unsigned k,
-                           DescIdVector &ids, DistanceVector &distances) {
-  ids.resize(n * k);
-  distances.resize(n * k);
-  search(queries, n, k, ids.data(), distances.data());
-}
+    void DescriptorSet::search(DescDataArray queries, unsigned n, unsigned k,
+                               DescIdVector &ids) {
+        ids.resize(n * k);
+        search(queries, n, k, ids.data());
+    }
 
-void DescriptorSet::search(DescDataArray queries, unsigned n, unsigned k,
-                           DescIdVector &ids) {
-  ids.resize(n * k);
-  search(queries, n, k, ids.data());
-}
+    std::vector<long> DescriptorSet::classify(DescDataArray descriptors, unsigned n,
+                                              unsigned quorum) {
+        LabelIdVector labels;
+        labels.resize(n);
+        classify(descriptors, n, labels.data(), quorum);
+        return labels;
+    }
 
-std::vector<long> DescriptorSet::classify(DescDataArray descriptors, unsigned n,
-                                          unsigned quorum) {
-  LabelIdVector labels;
-  labels.resize(n);
-  classify(descriptors, n, labels.data(), quorum);
-  return labels;
-}
-
-void DescriptorSet::get_descriptors(std::vector<long> &ids,
-                                    float *descriptors) {
-  get_descriptors(ids.data(), ids.size(), descriptors);
-}
+    void DescriptorSet::get_descriptors(std::vector<long> &ids,
+                                        float *descriptors) {
+        get_descriptors(ids.data(), ids.size(), descriptors);
+    }
 
 /*  *********************** */
 /*   STRING-LABELS SUPPORT  */
 /*  *********************** */
 
-void DescriptorSet::set_labels_map(std::map<long, std::string> &labels) {
-  return _set->set_labels_map(labels);
-}
-
-std::map<long, std::string> DescriptorSet::get_labels_map() {
-  return _set->get_labels_map();
-}
-
-void DescriptorSet::set_labels_map(LabelIdVector &ids,
-                                   std::vector<std::string> &labels) {
-  assert(ids.size() == labels.size());
-  std::map<long, std::string> labels_map;
-  for (int i = 0; i < ids.size(); ++i) {
-    labels_map[ids[i]] = labels[i];
-  }
-
-  set_labels_map(labels_map);
-}
-
-std::vector<std::string>
-DescriptorSet::label_id_to_string(LabelIdVector &l_id) {
-  std::vector<std::string> ret_labels(l_id.size());
-  std::map<long, std::string> labels_map = _set->get_labels_map();
-
-  for (int i = 0; i < l_id.size(); ++i) {
-    ret_labels[i] = labels_map[l_id[i]];
-  }
-  return ret_labels;
-}
-
-long DescriptorSet::get_label_id(const std::string &label) {
-  auto map = _set->get_labels_map();
-
-  for (auto it = map.begin(); it != map.end(); ++it) {
-    if (it->second == label) {
-      return it->first;
+    void DescriptorSet::set_labels_map(std::map<long, std::string> &labels) {
+        return _set->set_labels_map(labels);
     }
-  }
 
-  long id = map.size();
-  map[id] = label;
-  _set->set_labels_map(map);
+    std::map<long, std::string> DescriptorSet::get_labels_map() {
+        return _set->get_labels_map();
+    }
 
-  return id;
-}
+    void DescriptorSet::set_labels_map(LabelIdVector &ids,
+                                       std::vector<std::string> &labels) {
+        assert(ids.size() == labels.size());
+        std::map<long, std::string> labels_map;
+        for (int i = 0; i < ids.size(); ++i) {
+            labels_map[ids[i]] = labels[i];
+        }
 
-std::vector<std::string> DescriptorSet::get_str_labels(DescIdVector &ids) {
-  return _set->get_str_labels(ids.data(), ids.size());
-}
+        set_labels_map(labels_map);
+    }
 
-void DescriptorSet::set_connection(RemoteConnection *remote) {
-  if (!remote->connected())
-    remote->start();
+    std::vector<std::string>
+    DescriptorSet::label_id_to_string(LabelIdVector &l_id) {
+        std::vector<std::string> ret_labels(l_id.size());
+        std::map<long, std::string> labels_map = _set->get_labels_map();
 
-  if (!remote->connected()) {
-    throw VCLException(SystemNotFound, "No remote connection started");
-  }
+        for (int i = 0; i < l_id.size(); ++i) {
+            ret_labels[i] = labels_map[l_id[i]];
+        }
+        return ret_labels;
+    }
 
-  _remote = remote;
-  _storage = VDMS::StorageType::AWS;
-}
+    long DescriptorSet::get_label_id(const std::string &label) {
+        auto map = _set->get_labels_map();
+
+        for (auto it = map.begin(); it != map.end(); ++it) {
+            if (it->second == label) {
+                return it->first;
+            }
+        }
+
+        long id = map.size();
+        map[id] = label;
+        _set->set_labels_map(map);
+
+        return id;
+    }
+
+    std::vector<std::string> DescriptorSet::get_str_labels(DescIdVector &ids) {
+        return _set->get_str_labels(ids.data(), ids.size());
+    }
+
+    void DescriptorSet::set_connection(RemoteConnection *remote) {
+        if (!remote->connected())
+            remote->start();
+
+        if (!remote->connected()) {
+            throw VCLException(SystemNotFound, "No remote connection started");
+        }
+
+        _remote = remote;
+        _storage = VDMS::StorageType::AWS;
+    }
 
 } // namespace VCL
