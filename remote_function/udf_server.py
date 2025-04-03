@@ -9,6 +9,7 @@ import uuid
 from zipfile import ZipFile
 import importlib.util
 from werkzeug.utils import secure_filename
+import pyspdk
 
 tmp_dir_path = None
 
@@ -139,13 +140,25 @@ def video_api():
     global tmp_dir_path
     try:
         json_data = json.loads(request.form["jsonData"])
-        video_data = request.files["videoData"]
-        format = json_data["format"] if "format" in json_data else "mp4"
+        video_path = str(request.form["videoPath"])
+        video_size = int(request.form["videoSize"])
+        format = json_data["format"] if "format" in json_data else "mp4"        
 
         tmpfile = secure_filename(
             os.path.join(tmp_dir_path, "tmpfile" + uuid.uuid1().hex + "." + str(format))
         )
-        video_data.save(tmpfile)
+
+        print(tmpfile, video_path, video_size)
+        
+        # Read file data using pyspdk
+        try:
+            buf = pyspdk.read(b'/mnt/nvmedrive/tmp/tempfile1743681248.540612.mp4', 2575792)
+        except:
+            print(sys.exc_info())
+
+        # Save file data into tmpfile
+        with open(tmpfile, 'wb') as f:
+            f.write(buf)
 
         video_file, metadata_file = "", ""
 
@@ -223,6 +236,9 @@ def main():
         print("Correct Usage: python3 udf_server.py <port> [tmp_path]")
     else:
         setup(sys.argv[2])
+
+        # Initialize pyspdk
+        print(pyspdk.spdk_init(b'TCP', b'IPv4', b'10.23.221.241', b'4421', b'nqn.2024-02.io.spdk:cnode1'))
         app.run(host="0.0.0.0", port=int(sys.argv[1]))
 
 

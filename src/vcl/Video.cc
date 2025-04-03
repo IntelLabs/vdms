@@ -35,6 +35,9 @@
 #include "VDMSConfigHelper.h"
 #include "vcl/Video.h"
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
 using namespace VCL;
 
 /*  *********************** */
@@ -669,6 +672,7 @@ void Video::perform_operations(bool is_store, std::string store_id) {
           std::string parent_dir =
               std::filesystem::path(store_id.data()).parent_path();
           std::filesystem::create_directories(parent_dir);
+          std::cout<< "Renaming: " << fname.data() << " " << store_id.data() << std::endl;
           if (std::rename(fname.data(), store_id.data()) != 0) {
             throw VCLException(ObjectEmpty,
                                "Error encountered while renaming the file.");
@@ -678,6 +682,7 @@ void Video::perform_operations(bool is_store, std::string store_id) {
           std::string parent_dir =
               std::filesystem::path(_video_id.data()).parent_path();
           std::filesystem::create_directories(parent_dir);
+          std::cout<< "Renaming: " << fname.data() << " " << _video_id.data() << std::endl;
           if (std::rename(fname.data(), _video_id.data()) != 0) {
             throw VCLException(ObjectEmpty,
                                "Error encountered while renaming the file.");
@@ -1102,11 +1107,22 @@ void Video::SyncRemoteOperation::operator()(Video *video, cv::Mat &frame,
         form = curl_mime_init(curl);
 
         field = curl_mime_addpart(form);
-        curl_mime_name(field, "videoData");
-        if (curl_mime_filedata(field, fname.data()) != CURLE_OK) {
+        curl_mime_name(field, "videoPath");
+        if (curl_mime_data(field, fname.data(), fname.length()) != CURLE_OK) {
           throw VCLException(ObjectEmpty,
                              "Unable to retrieve local file for remoting");
         }
+
+        field = curl_mime_addpart(form);
+        struct stat st;
+        stat(fname.data(), &st);
+        curl_mime_name(field, "videoSize");
+        if (curl_mime_data(field, std::to_string(st.st_size).data(), CURL_ZERO_TERMINATED) != CURLE_OK) {
+          throw VCLException(ObjectEmpty,
+                             "Unable to retrieve local file for remoting");
+        }
+
+        std::cout<< "File data: " << fname << " " << st.st_size << std::endl;
 
         field = curl_mime_addpart(form);
         curl_mime_name(field, "jsonData");
