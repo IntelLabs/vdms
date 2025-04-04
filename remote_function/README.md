@@ -77,7 +77,7 @@ The client query should contain the following three parameters:
 We now provide an example to add a new operation `cardetect` as a remote operation that would work with VDMS. The `cardetect` operation detects cars in an image and creates a rectangle around all cars. This operation requires a pretrained model available in the form of `xml` file online.
 
 1. Copy `remote_function` directory to your remote server machine. Say the address is `my.remote.server` and you copy the folder in the `home` directory.
-2. Copy `resources` directory (located at the root of the repository) next to the `remote_function` directory. The folder structure you have now will look something like this;
+2. Copy `resources` directory (located at the root of the repository) into the `remote_function` directory. The folder structure you have now will look something like this;
 ```
 ~/
 |__remote_function
