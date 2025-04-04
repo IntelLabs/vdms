@@ -7,9 +7,9 @@ option(USE_K8S "Enable kubernetes client libraries" OFF)
 string(TOUPPER ${USE_K8S} USE_K8S)
 
 option(CLIENT "Built client library." OFF)
-string(TOUPPER ${CODE_COVERAGE} CODE_COVERAGE)
 
 IF(CODE_COVERAGE)
+  string(TOUPPER ${CODE_COVERAGE} CODE_COVERAGE)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -coverage -fprofile-abs-path")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -Wall -coverage -fprofile-abs-path")
   enable_testing()
