@@ -159,16 +159,16 @@ jobs:
           echo "VDMS_TAG=${VDMS_TAG_STR}" >> $GITHUB_OUTPUT
 
           # Commands for neo4j tests
-          COMMON_ARGS="-n ${{ secrets.NEO4J_USER }} -w ${{ secrets.NEO4J_PASS }} -v ${{ env.NEO_TEST_PORT}}"
-          S3_ARGS="-a ${{ env.AWS_API_PORT }} -c ${{ env.AWS_CONSOLE_PORT}} -u ${{ secrets.AWS_ACCESS_KEY_ID }} -p ${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+          COMMON_ARGS="--neo4j_username ${{ secrets.NEO4J_USER }} --neo4j_password ${{ secrets.NEO4J_PASS }} --neo4j_port ${{ env.NEO_TEST_PORT }}"
+          S3_ARGS="--minio_port ${{ env.AWS_API_PORT }} --minio_console_port ${{ env.AWS_CONSOLE_PORT }} -u ${{ secrets.AWS_ACCESS_KEY_ID }} -p ${{ secrets.AWS_SECRET_ACCESS_KEY }}"
 
-          CMD_STR_e2e_str="./run_neo4j_tests.sh -t Neo4JE2ETest ${S3_ARGS} ${COMMON_ARGS} -e neo4j://neo4j:${{ env.NEO_TEST_PORT}}"
+          CMD_STR_e2e_str="./run_all_tests.py --type_of_test neo --test_name 'Neo4JE2ETest.*' ${S3_ARGS} ${COMMON_ARGS} --neo4j_endpoint neo4j://neo4j:${{ env.NEO_TEST_PORT}}"
           echo "CMD_STR_e2e=${CMD_STR_e2e_str}" >> $GITHUB_OUTPUT
 
-          CMD_STR_OpsIO_str="./run_neo4j_tests.sh -t OpsIOCoordinatorTest ${S3_ARGS} ${COMMON_ARGS} -e neo4j://neo4j:${{ env.NEO_TEST_PORT}}"
+          CMD_STR_OpsIO_str="./run_all_tests.py --type_of_test neo --test_name 'OpsIOCoordinatorTest.*' ${S3_ARGS} ${COMMON_ARGS} --neo4j_endpoint neo4j://neo4j:${{ env.NEO_TEST_PORT }}"
           echo "CMD_STR_OpsIO=${CMD_STR_OpsIO_str}" >> $GITHUB_OUTPUT
 
-          CMD_STR_bkend_str="./run_neo4j_tests.sh -t Neo4jBackendTest ${COMMON_ARGS} -e neo4j://neo4j:${{ env.NEO_TEST_PORT}}"
+          CMD_STR_bkend_str="./run_all_tests.py --type_of_test neo --test_name 'Neo4jBackendTest.*' ${COMMON_ARGS} --neo4j_endpoint neo4j://neo4j:${{ env.NEO_TEST_PORT }}"
           echo "CMD_STR_bkend=${CMD_STR_bkend_str}" >> $GITHUB_OUTPUT
 
       - name: Run Neo4J Tests
@@ -183,7 +183,7 @@ jobs:
 
           # E2E Test
           echo "${{ env.CMD_STR_e2e }}"
-          docker exec -w /vdms/tests ${{ env.SOURCE_CONTAINER_NAME }} bash -c "${{ env.CMD_STR_e2e }}"
+          docker exec -w /vdms/tests ${{ env.SOURCE_CONTAINER_NAME }} bash -c "python ${{ env.CMD_STR_e2e }}"
           docker kill ${{ env.NEO4J_CONTAINER_NAME }} || true
           sleep 15
 
@@ -203,7 +203,7 @@ jobs:
 
           # Ops IO Test
           echo "${{ env.CMD_STR_OpsIO }}"
-          docker exec -w /vdms/tests ${{ env.SOURCE_CONTAINER_NAME }} bash -c "${{ env.CMD_STR_OpsIO }}"
+          docker exec -w /vdms/tests ${{ env.SOURCE_CONTAINER_NAME }} bash -c "python ${{ env.CMD_STR_OpsIO }}"
           docker kill ${{ env.NEO4J_CONTAINER_NAME }} || true
           sleep 15
 
@@ -226,7 +226,43 @@ jobs:
           docker cp ${{ env.SOURCE_CONTAINER_NAME }}:/vdms/tests/coverage_report/python.new.coverage_value.txt ${GITHUB_WORKSPACE}/.github/coverage/python.new.coverage_value.txt || true
           echo "coverage_value_py=$(cat ${GITHUB_WORKSPACE}/.github/coverage/python.new.coverage_value.txt)" >> $GITHUB_ENV
           echo "pr_dev_value_py=$(cat ${GITHUB_WORKSPACE}/.github/coverage/python.old-develop.coverage_value.txt)" >> $GITHUB_ENV
-
+      - name: Print out the logs
+        shell: bash
+        id: print_out_logs
+        if: ${{ always() }}
+        run: |
+          echo "print pip version"
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} pip -V || true
+          echo "Python version"
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} python --version || true
+          echo "Python3 version"
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} python3 --version || true
+          echo "Print out the logs"
+          echo "tests_stderr_log:"
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/tests_stderr_log.log || true
+          echo "tests_stdout_log:"
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/tests_stdout_log.log || true
+          echo "tls_stderr_log:"
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/tls_stderr_log.log || true
+          echo "tls_stdout_log:"
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/tls_stdout_log.log || true
+          echo "udf_local_stderr_log:"
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/udf_local_stderr_log.log || true
+          echo "udf_local_stdout_log:"
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/udf_local_stdout_log.log || true
+          echo "udf_server_stderr_log:"
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/udf_server_stderr_log.log || true
+          echo "udf_server_stdout_log:"
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/udf_server_stdout_log.log || true
+          echo "vdms_stderr_log:"
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/vdms_stderr_log.log || true
+          echo "vdms_stdout_log:"
+          docker exec ${{ env.SOURCE_CONTAINER_NAME }} cat /tmp/tests_output_dir/vdms_stdout_log.log || true
+          echo "End of Print out the logs..."
+      - name: Docker Compose down
+        shell: bash
+        id: docker_compose_down
+        run: |
           # Stops containers and removes containers, networks, volumes, and images
           cd ${GITHUB_WORKSPACE}/.github/scripts
           docker compose down

@@ -25,6 +25,7 @@
 #
 
 import TestCommand
+from os import path
 
 
 class TestBoundingBox(TestCommand.TestCommand):
@@ -61,7 +62,7 @@ class TestBoundingBox(TestCommand.TestCommand):
         all_queries = []
         imgs_arr = []
 
-        fd = open("../test_images/brain.png", "rb")
+        fd = open(path.join(self.find_tests_dir(), "test_images/brain.png"), "rb")
         imgs_arr.append(fd.read())
         fd.close()
 
@@ -227,7 +228,7 @@ class TestBoundingBox(TestCommand.TestCommand):
         all_queries = []
         imgs_arr = []
 
-        fd = open("../test_images/brain.png", "rb")
+        fd = open(path.join(self.find_tests_dir(), "test_images/brain.png"), "rb")
         imgs_arr.append(fd.read())
         fd.close()
 

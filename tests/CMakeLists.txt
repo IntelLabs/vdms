@@ -66,6 +66,8 @@ add_executable(unit_tests
     unit_tests/VDMSConfig_test.cc
     unit_tests/SystemStats_test.cc
     unit_tests/TimerMapTest.cc
+    unit_tests/QueryHandlerTest.cc
+    unit_tests/VCLUtilsTest.cc
 )
 
 target_link_libraries(unit_tests
