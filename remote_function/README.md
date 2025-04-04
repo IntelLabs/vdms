@@ -29,7 +29,7 @@ def run(ipfilename, format, options, tmp_dir_path=""):
 
 ## Setup
 1. Copy the `remote_function` directory on the machine you want to run the remote server. Can be run on any location, independent of where VDMS is running. However, the location should be reachable from the machine that is running VDMS. You can also use `sparse-checkout` to only retrieve the `remote_function` directory from the VDMS repo.
-2. Copy `resources` directory (located at the root of the repository) next to the `remote_function` directory.
+2. Copy `resources` directory (located at the root of the repository) into the `remote_function` directory.
 3. Create the operation scripts as python scripts and place them in the `remote_function/functions` directory.
 4. Follow the following steps to run the remote on port <port_number> and it will create the temporary files in the directory specified by the optional parameter called `path_to_tmp_dir`.
    Note: if you do not specify the `path_to_tmp_dir` parameter, then the temporary files will be created in the same directory where the `udf_server.py` file is located.
@@ -86,10 +86,10 @@ We now provide an example to add a new operation `cardetect` as a remote operati
    |__README.md
    |__requirements.txt
    |__udf_server.py
-|__resources
-   |__haarcascade_frontalface_default.xml
+   |__resources
+      |__haarcascade_frontalface_default.xml
 ```
-3. Download/Copy the `cars.xml` file to the `~/resources`.
+3. Download/Copy the `cars.xml` file to the `~/remote_function/resources` directory.
 4. Create the `cardetect.py` file in `~/remote_function/functions`.
 ```
 import time
@@ -97,7 +97,7 @@ import cv2
 from PIL import Image
 import numpy as np
 
-car_cascade_src = '~/resources/cars.xml'
+car_cascade_src = '~/remote_function/resources/cars.xml'
 
 def run(ipfilename, format, options, tmp_dir_path=""):
 
@@ -121,9 +121,9 @@ def run(ipfilename, format, options, tmp_dir_path=""):
    |__README.md
    |__requirements.txt
    |__udf_server.py
-|__resources
-   |__haarcascade_frontalface_default.xml
-   |__cars.xml
+   |__resources
+      |__haarcascade_frontalface_default.xml
+      |__cars.xml
 ```
 6. Now start the remote server at port `5010` and if you wish you could specify the path to the temporary directory where the temporary files will be created (if you don't specify the directory then it will be created in the same path where the udf_server.py file is located);
 ```

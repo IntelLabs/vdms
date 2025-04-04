@@ -87,7 +87,7 @@ The client query should contain the following two parameters:
 ## Detailed Instructions for new UDF
 We now provide an example to add a new UDF `cardetect`. The `cardetect` operation detects cars in an image and creates a rectangle around all cars. This operation requires a pretrained model available in the form of `xml` file online.
 1. Copy `user_defined_operations` directory to anywhere you want but on the same server that is running VDMS. Say you copy the folder in the `home` directory.
-2. Copy `resources` directory (located at the root of the repository) next to the `user_defined_operations` directory. The folder structure you have now will look something like this;
+2. Copy `resources` directory (located at the root of the repository) into the `user_defined_operations` directory. The folder structure you have now will look something like this;
 ```
 ~/
 |__user_defined_operations
@@ -98,10 +98,10 @@ We now provide an example to add a new UDF `cardetect`. The `cardetect` operatio
    |__requirements.txt
    |__settings.json
    |__udf_local.py
-|__resources
-   |__haarcascade_frontalface_default.xml
+   |__resources
+      |__haarcascade_frontalface_default.xml
 ```
-3. Download/Copy the `cars.xml` file to the `~/resources` directory.
+3. Download/Copy the `cars.xml` file to the `~/user_defined_operations/resources` directory.
 4. Create the `cardetect.py` file in `~/user_defined_operations/functions`.
 ```
 import time
@@ -109,7 +109,7 @@ import cv2
 from PIL import Image
 import numpy as np
 
-car_cascade_src = '~/resources/cars.xml'
+car_cascade_src = '~/user_defined_operations/resources/cars.xml'
 
 def run(settings, message, input_params):
 
