@@ -144,9 +144,9 @@ def run(settings, message, input_params):
    |__requirements.txt
    |__settings.json
    |__udf_local.py
-|__resources
-   |__haarcascade_frontalface_default.xml
-   |__cars.xml
+   |__resources
+      |__haarcascade_frontalface_default.xml
+      |__cars.xml
 ```
 6. Update the settings file with the new UDF information.
 ```
