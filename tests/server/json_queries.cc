@@ -757,36 +757,6 @@ TEST(PMGDQueryHandler, AutoDeleteNode) {
   VDMSConfig::destroy();
 }
 
-TEST(PMGDQueryHandler, CustomFunctionNoProcess) {
-  Json::Reader reader;
-  std::ifstream ifile;
-  int fsize;
-  char *inBuf;
-  ifile.open("server/CustomFunctionNoProcess.json", std::ifstream::in);
-  ifile.seekg(0, std::ios::end);
-  fsize = (int)ifile.tellg();
-  ifile.seekg(0, std::ios::beg);
-  inBuf = new char[fsize];
-  ifile.read(inBuf, fsize);
-  std::string json_query = std::string(inBuf);
-  ifile.close();
-  delete[] inBuf;
-  std::string image;
-  std::ifstream image_file("test_images/brain.png",
-                           std::ios::in | std::ios::binary | std::ios::ate);
-
-  image.resize(image_file.tellg());
-
-  image_file.seekg(0, std::ios::beg);
-  if (!image_file.read(&image[0], image.size()))
-    std::cout << "error" << std::endl;
-
-  PMGDQueryHandler::destroy();
-  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
-  std::filesystem::remove_all(dbname.c_str());
-  VDMSConfig::destroy();
-}
-
 TEST(PMGDQueryHandler, AddUpdateFind_Blob) {
 
   Json::StyledWriter writer;
