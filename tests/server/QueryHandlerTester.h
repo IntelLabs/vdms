@@ -29,6 +29,7 @@
 
 #pragma once
 #include "QueryHandlerExample.h"
+#include "QueryHandlerNeo4j.h"
 #include "QueryHandlerPMGD.h"
 
 namespace VDMS {
@@ -37,6 +38,18 @@ class QueryHandlerPMGDTester {
 
  public:
   QueryHandlerPMGDTester(QueryHandlerPMGD &qh) : _qh(qh) {}
+
+  void pq(protobufs::queryMessage &proto_query,
+          protobufs::queryMessage &response) {
+    _qh.process_query(proto_query, response);
+  }
+};
+
+class QueryHandlerNeo4jTester {
+  QueryHandlerNeo4j &_qh;
+
+ public:
+  QueryHandlerNeo4jTester(QueryHandlerNeo4j &qh) : _qh(qh) {}
 
   void pq(protobufs::queryMessage &proto_query,
           protobufs::queryMessage &response) {

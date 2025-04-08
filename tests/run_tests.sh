@@ -37,7 +37,8 @@ function execute_commands() {
     # Using the flag "-n YOUR_TEST_NAME"
     # for specifying the GTest filter. In case that this flag is not specified
     # then it will use the default filter pattern
-    test_filter="-RemoteConnectionTest.*:Neo4jBackendTest.*:OpsIOCoordinatorTest.*:Neo4JE2ETest.*"
+    test_filter="-RemoteConnectionTest.*:Neo4jBackendTest.*:OpsIOCoordinatorTest.*:Neo4JE2ETest.*:Neo4JHandlerTest.*"
+
     if [ "$testname_was_set" = true ]; then
         test_filter=$testname
         echo 'Using test filter: '$test_filter

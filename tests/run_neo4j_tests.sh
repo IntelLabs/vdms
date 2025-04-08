@@ -6,7 +6,7 @@
 #         docker run --rm -d --env NEO4J_AUTH=$NEO4J_USER/$NEO4J_PASSWORD --publish=$NEO_TEST_PORT:7687 neo4j:5.17.0
 #
 # SYNTAX:
-# ./run_neo4j_tests.sh -t TEST -a MINIO_API_PORT -c MINIO_CONSOLE_PORT -p YOUR_MINIO_PASSWORD -u YOUR_MINIO_USERNAME \
+# ./run_neo4j_tests.sh -t TEST -a MINIO_PORT -c MINIO_CONSOLE_PORT -p YOUR_MINIO_PASSWORD -u YOUR_MINIO_USERNAME \
 #                      -e NEO4J_ENDPOINT -v NEO_TEST_PORT -w NEO4J_PASSWORD -n NEO4J_USER
 #######################################################################################################################
 # USAGE
@@ -15,40 +15,40 @@ script_usage()
     cat <<EOF
     This script is used to run the Neo4J Tests.
 
-    Usage: $0 [ -h ] [ -t TEST ] [ -a MINIO_API_PORT ] [ -c MINIO_CONSOLE_PORT ] [ -p YOUR_MINIO_PASSWORD ]
+    Usage: $0 [ -h ] [ -t TEST ] [ -a MINIO_PORT ] [ -c MINIO_CONSOLE_PORT ] [ -p YOUR_MINIO_PASSWORD ]
               [ -u YOUR_MINIO_USERNAME ] [ -e NEO4J_ENDPOINT ] [ -v NEO_TEST_PORT ] [ -w NEO4J_PASSWORD ]
               [ -n NEO4J_USER ]
 
     Options:
         -h or --help                Print this help message
-        -a or --minio_api_port      API Port for Minio server
+        -a or --minio_port      API Port for Minio server
         -c or --minio_console_port  Console Port for Minio server
-        -p or --minio_pswd          Password for Minio server
+        -p or --minio_password          Password for Minio server
         -u or --minio_user          Username for Minio server
         -e or --neo4j_endpoint      Neo4j endpoint
         -v or --neo4j_port          Port for Neo4j container
-        -w or --neo4j_pswd          Password for Neo4j container
-        -n or --neo4j_user          Username for Neo4j container
-        -t or --test_name           Name of test to run [OpsIOCoordinatorTest, Neo4jBackendTest, or Neo4JE2ETest]
+        -w or --neo4j_password          Password for Neo4j container
+        -n or --neo4j_username          Username for Neo4j container
+        -t or --test_name           Name of test to run [OpsIOCoordinatorTest, Neo4JHandlerTest, Neo4jBackendTest, or Neo4JE2ETest]
 EOF
 }
 
 LONG_LIST=(
     "help"
-    "minio_api_port"
+    "minio_port"
     "minio_console_port"
-    "minio_pswd"
-    "minio_user"
+    "minio_password"
+    "minio_username"
     "neo4j_endpoint"
     "neo4j_port"
-    "neo4j_pswd"
-    "neo4j_user"
+    "neo4j_password"
+    "neo4j_username"
     "test_name"
 )
 
 OPTS=$(getopt \
     --options "ha:c:p:u:e:v:w:n:t:" \
-    --long help,minio_api_port:,minio_console_port:,minio_pswd:,minio_user:,neo4j_endpoint:,neo4j_port:,neo4j_pswd:,neo4j_user:,test_name: \
+    --long help,minio_port:,minio_console_port:,minio_password:,minio_username:,neo4j_endpoint:,neo4j_port:,neo4j_password:,neo4j_username:,test_name: \
     --name "$(basename "$0")" \
     -- "$@"
 )
@@ -85,14 +85,14 @@ function execute_commands() {
     while true; do
         case "$1" in
             -h | --help) script_usage; exit 0 ;;
-            -a | --minio_api_port) shift; api_port=$1; api_port_was_set=true; shift ;;
+            -a | --minio_port) shift; api_port=$1; api_port_was_set=true; shift ;;
             -c | --minio_console_port) shift; console_port=$1; console_port_was_set=true; shift ;;
-            -p | --minio_pswd) shift; minio_password=$1; minio_password_was_set=true; shift ;;
-            -u | --minio_user) shift; minio_username=$1; minio_username_was_set=true; shift ;;
+            -p | --minio_password) shift; minio_password=$1; minio_password_was_set=true; shift ;;
+            -u | --minio_username) shift; minio_username=$1; minio_username_was_set=true; shift ;;
             -e | --neo4j_endpoint) shift; neo4j_endpoint=$1; neo4j_endpoint_was_set=true; shift ;;
             -v | --neo4j_port) shift; neo4j_port=$1; neo4j_port_was_set=true; shift ;;
-            -w | --neo4j_pswd) shift; neo4j_password=$1; neo4j_password_was_set=true; shift ;;
-            -n | --neo4j_user) shift; neo4j_username=$1; neo4j_username_was_set=true; shift ;;
+            -w | --neo4j_password) shift; neo4j_password=$1; neo4j_password_was_set=true; shift ;;
+            -n | --neo4j_username) shift; neo4j_username=$1; neo4j_username_was_set=true; shift ;;
             -t | --test_name) shift; test=$1; test_was_set=true; shift ;;
             --) shift; break ;;
             *) script_usage; exit 0 ;;
@@ -105,7 +105,7 @@ function execute_commands() {
         exit 1;
     fi
 
-    if [ "$test" = "OpsIOCoordinatorTest" ] || [ "$test" = "Neo4JE2ETest" ]; then
+    if [ "$test" = "OpsIOCoordinatorTest" ] || [ "$test" = "Neo4JE2ETest" ] || [ "$test" = "Neo4JHandlerTest" ]; then
         #Test requires MinIO & Neo4J Container
         if [ "$minio_username_was_set" = false ] || [ "$minio_password_was_set" = false ] || [ "$neo4j_username_was_set" = false ] || [ "$neo4j_password_was_set" = false ] || [ "$neo4j_endpoint_was_set" = false ]; then
             echo 'Missing MinIO or Neo4j arguments for "run_neo4j_tests.sh" script'
@@ -122,6 +122,8 @@ function execute_commands() {
             minio_name=opsio_tester
         elif [ "$test" = "Neo4JE2ETest" ]; then
             minio_name=e2e_tester
+        elif [ "$test" = "Neo4JHandlerTest" ]; then
+            minio_name=Neo4JHandlerTest
         fi
 
     elif [ "$test" = "Neo4jBackendTest" ]; then
@@ -133,7 +135,7 @@ function execute_commands() {
         fi
 
     else
-        echo 'Unknown test. Acceptable test names: OpsIOCoordinatorTest, Neo4jBackendTest, or Neo4JE2ETest'
+        echo 'Unknown test. Acceptable test names: OpsIOCoordinatorTest, Neo4JHandlerTest, Neo4jBackendTest, or Neo4JE2ETest'
         exit 1;
     fi
 
@@ -176,7 +178,7 @@ function execute_commands() {
     # For OpsIOCoordinatorTest tests
     cp unit_tests/config-aws-tests.json /tmp/tests_output_dir/config-aws-tests.json
 
-    if [ "$test" = "OpsIOCoordinatorTest" ] || [ "$test" = "Neo4JE2ETest" ]; then
+    if [ "$test" = "OpsIOCoordinatorTest" ] || [ "$test" = "Neo4JE2ETest" ] || [ "$test" = "Neo4JHandlerTest" ]; then
         #start the minio server
         ./../minio server /tmp/tests_output_dir/minio_files --address :${api_port} --console-address :${console_port} &
         py_minio_pid=$!

@@ -105,7 +105,22 @@ neo4j_result_stream_t *BackendNeo4j::run_in_tx(char *cypher_string,
 }
 int BackendNeo4j::commit_tx(neo4j_transaction_t *tx) {
   int rc = 0;
+  char buf[128];
+  const char *err_msg;
+  const char *fail_code;
   rc = neo4j_commit(tx);
+
+
+  if(rc != 0){
+      err_msg = neo4j_tx_failure_message(tx);
+      rc =  neo4j_tx_failure(tx);
+      fail_code = neo4j_tx_failure_code(tx);
+
+      printf("TX Failure: %d\n", rc);
+      printf("Fail Code: %s\n", fail_code);
+      printf("Neo4j Transaction Failure: %s\n", err_msg);
+  }
+
   neo4j_free_tx(tx);
 
   return rc;

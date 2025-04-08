@@ -196,17 +196,20 @@ Json::Value Neo4jNeoFind::construct_responses(
   };
 
   std::vector<std::string> img_paths;
-  for (int i = 0; i < neo4j_responses["metadata_res"].size(); i++) {
-    Json::Value res_row = neo4j_responses["metadata_res"][i];
-    std::string img_loc = res_row["VDMSNODE.img_loc"].asString();
-
-    img_paths.push_back(img_loc);
-  }
-
   Json::Value results = get_value<Json::Value>(cmd, "results");
 
+    std::string tgt_data_type =
+            cmd.get("target_data_type", "tgt_type_not_specified").asString();
+
   // Check if blob (image) must be returned
-  if (get_value<bool>(results, "blob", true)) {
+  if (get_value<bool>(results, "blob", true) && (tgt_data_type != "md_only")) {
+
+      for (int i = 0; i < neo4j_responses["metadata_res"].size(); i++) {
+          Json::Value res_row = neo4j_responses["metadata_res"][i];
+          std::string img_loc = res_row["VDMSNODE.img_loc"].asString();
+
+          img_paths.push_back(img_loc);
+      }
 
     for (int img_idx = 0; img_idx < img_paths.size(); img_idx++) {
       std::vector<unsigned char> raw_data;

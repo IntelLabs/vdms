@@ -37,6 +37,7 @@ add_executable(unit_tests
     unit_tests/TLSTest.cc
     unit_tests/Comm_tests.cc
     server/json_queries.cc
+    server/neo4j_handler_tests.cc
     unit_tests/pmgd_queries.cc
     unit_tests/helpers.cc
     unit_tests/TDBImage_test.cc

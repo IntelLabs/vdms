@@ -67,7 +67,13 @@
       { "$ref": "#/definitions/FindBlobTop" },
 
       { "$ref": "#/definitions/NeoAddTop" },
-      { "$ref": "#/definitions/NeoFindTop" }
+      { "$ref": "#/definitions/NeoFindTop" },
+
+      { "$ref": "#/definitions/NeoAddDescriptorSetTop" },
+      { "$ref": "#/definitions/NeoFindDescriptorSetTop" },
+      { "$ref": "#/definitions/NeoAddDescriptorTop" },
+      { "$ref": "#/definitions/NeoClassifyDescriptorTop" },
+      { "$ref": "#/definitions/NeoFindDescriptorTop" }
     ]
   },
   "uniqueItems": false,
@@ -130,7 +136,7 @@
 
     "engineFormatString": {
       "type": "string",
-      "enum": ["FaissFlat", "FaissHNSWFlat", "FaissIVFFlat", "TileDBDense", "TileDBSparse", "Flinng"]
+      "enum": ["FaissFlat", "FaissHNSWFlat","FaissIVFFlat", "TileDBDense", "TileDBSparse", "Flinng"]
     },
 
     "vidCodecString": {
@@ -452,6 +458,14 @@
       "additionalProperties": false
     },
 
+    "NeoAddDescriptorTop": {
+      "properties": {
+        "NeoAddDescriptor" : { "type": "object",
+          "$ref": "#/definitions/NeoAddDescriptor" }
+      },
+      "additionalProperties": false
+    },
+
     "AddDescriptorSetTop": {
       "properties": {
         "AddDescriptorSet" : { "type": "object",
@@ -459,6 +473,15 @@
       },
       "additionalProperties": false
     },
+
+    "NeoAddDescriptorSetTop": {
+      "properties": {
+        "NeoAddDescriptorSet" : { "type": "object",
+          "$ref": "#/definitions/NeoAddDescriptorSet" }
+      },
+      "additionalProperties": false
+    },
+
     "FindDescriptorSetTop": {
       "properties": {
         "FindDescriptorSet" : { "type": "object",
@@ -466,6 +489,15 @@
       },
       "additionalProperties": false
     },
+
+    "NeoFindDescriptorSetTop": {
+      "properties": {
+        "NeoFindDescriptorSet" : { "type": "object",
+          "$ref": "#/definitions/NeoFindDescriptorSet" }
+      },
+      "additionalProperties": false
+    },
+
     "DeleteExpiredTop": {
       "properties": {
         "DeleteExpired" : { "type": "object", "$ref": "#/definitions/DeleteExpired" }
@@ -481,9 +513,23 @@
       "additionalProperties": false
     },
 
+    "NeoClassifyDescriptorTop": {
+      "properties": {
+        "NeoClassifyDescriptor" : { "type": "object", "$ref": "#/definitions/NeoClassifyDescriptor" }
+      },
+      "additionalProperties": false
+    },
+
     "FindDescriptorTop": {
       "properties": {
         "FindDescriptor" : { "type": "object", "$ref": "#/definitions/FindDescriptor" }
+      },
+      "additionalProperties": false
+    },
+
+    "NeoFindDescriptorTop": {
+      "properties": {
+        "NeoFindDescriptor" : { "type": "object", "$ref": "#/definitions/NeoFindDescriptor" }
       },
       "additionalProperties": false
     },
@@ -535,9 +581,6 @@
       },
       "additionalProperties": false
     },
-
-
-
 
     "UpdateVideoTop": {
       "properties": {
@@ -728,6 +771,26 @@
       "required": ["name", "dimensions"],
       "additionalProperties": false
     },
+
+    "NeoAddDescriptorSet": {
+      "properties": {
+        "name":       { "type": "string" },
+        "dimensions": { "$ref": "#/definitions/refInt" },
+        "metric":     { "$ref": "#/definitions/metricFormatString" },
+        "engine":     { "$ref": "#/definitions/engineFormatString" },
+        "link":       { "$ref": "#/definitions/blockLink" },
+        "properties": { "type": "object" },
+        "flinng_num_rows":{ "$ref": "#/definitions/refInt" },
+        "flinng_cells_per_row":{ "$ref": "#/definitions/refInt" },
+        "flinng_num_hash_tables":{ "$ref": "#/definitions/refInt" },
+        "flinng_hashes_per_table":{ "$ref": "#/definitions/refInt" },
+        "flinng_sub_hash_bits":{ "$ref": "#/definitions/refInt" },
+        "flinng_cut_off":{ "$ref": "#/definitions/refInt" }
+      },
+      "required": ["name", "dimensions"],
+      "additionalProperties": false
+    },
+
     "FindDescriptorSet": {
       "properties": {
         "_ref":        { "$ref": "#/definitions/refInt" },
@@ -739,6 +802,21 @@
 
         },
         "required": ["set"],
+
+      "additionalProperties": false
+    },
+
+    "NeoFindDescriptorSet": {
+      "properties": {
+        "_ref":        { "$ref": "#/definitions/refInt" },
+        "results":     { "$ref": "#/definitions/blockResults" },
+        "set":       { "type": "string" },
+        "storeIndex" : { "type": "boolean" },
+        "constraints": { "type": "object" },
+        "link":       { "$ref": "#/definitions/blockLink" }
+
+      },
+      "required": ["set"],
 
       "additionalProperties": false
     },
@@ -756,10 +834,30 @@
       "additionalProperties": false
     },
 
+    "NeoAddDescriptor": {
+      "properties": {
+        "set":        { "type": "string" },
+        "label":      { "type": "string" },
+        "properties": { "type": "object" },
+        "batch_properties": {"$ref": "#/definitions/propertyArray"}
+      },
+      "required": ["set"],
+      "additionalProperties": false
+    },
+
     "ClassifyDescriptor": {
       "properties": {
         "set":         { "type": "string" },
         "_ref":        { "$ref": "#/definitions/refInt" },
+        "k_neighbors": { "$ref": "#/definitions/positiveInt" }
+      },
+      "required": ["set"],
+      "additionalProperties": false
+    },
+
+    "NeoClassifyDescriptor": {
+      "properties": {
+        "set":         { "type": "string" },
         "k_neighbors": { "$ref": "#/definitions/positiveInt" }
       },
       "required": ["set"],
@@ -779,6 +877,19 @@
       "required": ["set"],
       "additionalProperties": false
     },
+
+    "NeoFindDescriptor": {
+      "properties": {
+        "set":         { "type": "string" },
+        "_ref":        { "$ref": "#/definitions/refInt" },
+        "k_neighbors": { "$ref": "#/definitions/positiveInt" },
+        "results":     { "$ref": "#/definitions/blockResults" },
+        "constraints": { "type": "object" }
+      },
+      "required": ["set"],
+      "additionalProperties": false
+    },
+
 
     "AddBoundingBox": {
       "properties": {
