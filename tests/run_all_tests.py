@@ -1636,6 +1636,11 @@ class NonRemoteTest(AbstractTest):
                 + str(e)
             )
 
+    def setup_k8s_test_files(self):
+        if not os.path.exists('/tmp/kubeconfig'):
+            os.mkdir('/tmp/kubeconfig')
+        shutil.copy2(os.path.join(DEFAULT_DIR_REPO, 'kubernetes/kubeConfig.json'), '/tmp/kubeconfig')
+
     def fill_default_arguments(self, testingArgs: TestingArgs) -> TestingArgs:
         """
         Fills in default arguments for the NonRemoteTest object.
@@ -1786,6 +1791,9 @@ class NonRemoteTest(AbstractTest):
 
             # Prepare the TLS environment for testing
             self.run_prep_certs_script(tlsStderrFD, tlsStdoutFD)
+
+            # Copy K8s test files
+            self.setup_k8s_test_files()
 
             # Start an instance of the VDMS server per each config file given as argument
             self.run_vdms_server(testingArgs, vdmsStderrFD, vdmsStdoutFD)
