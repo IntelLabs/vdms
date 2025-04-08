@@ -35,7 +35,7 @@ def setup(tmp_path):
     currentDir = os.path.realpath(os.path.dirname(__file__))
 
     if tmp_path is None:
-        tmp_path = os.path.join(currentDir, "tmp")
+        tmp_path = currentDir
         print("Warning: Using temporary dir:", tmp_path, " as default.")
 
     if not os.path.exists(tmp_path):
@@ -220,7 +220,8 @@ def main():
         print(
             "Warning: Path to the temporary directory is missing\nBy default the path will be the current directory"
         )
-        print("Correct Usage: python3 udf_server.py <port> [tmp_path]")
+        setup(None)
+        app.run(host="0.0.0.0", port=int(sys.argv[1]))
     else:
         setup(sys.argv[2])
         app.run(host="0.0.0.0", port=int(sys.argv[1]))

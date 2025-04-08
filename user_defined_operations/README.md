@@ -8,7 +8,7 @@ This submodule is required to execute user defined operations (UDF) in VDMS usin
     - pyzmq
 
 ## UDF Definition
-Any operation can be added to the module by creating a python file and adding it to the `functions` folder. All related files for the UDF should be stored in the folder `functions/files`. The operaion file should follow the following setup to define a `run` function that the interface file for VDMS will use;
+Any operation can be added to the module by creating a python file and adding it to the `functions` folder. All related files for the UDF should be stored in the folder `resources`. The operation file should follow the following setup to define a `run` function that the interface file for VDMS will use;
 ```
 def run(settings, message, input_params):
 
@@ -86,8 +86,8 @@ The client query should contain the following two parameters:
 
 ## Detailed Instructions for new UDF
 We now provide an example to add a new UDF `cardetect`. The `cardetect` operation detects cars in an image and creates a rectangle around all cars. This operation requires a pretrained model available in the form of `xml` file online.
-
-1. Copy `user_defined_operations` directory to anywhere you want but on the same server that is running VDMS. Say you copy the folder in the `home` directory. The folder structure you have now will look something like this;
+1. Copy `user_defined_operations` directory to anywhere you want but on the same server that is running VDMS. Say you copy the folder in the `home` directory.
+2. Copy `resources` directory (located at the root of the repository) into the `user_defined_operations` directory. The folder structure you have now will look something like this;
 ```
 ~/
 |__user_defined_operations
@@ -98,17 +98,18 @@ We now provide an example to add a new UDF `cardetect`. The `cardetect` operatio
    |__requirements.txt
    |__settings.json
    |__udf_local.py
+   |__resources
+      |__haarcascade_frontalface_default.xml
 ```
-2. Copy the `resources` directory (located at the root of the repo) next to the `user_defined_operations` directory
-2. Download/Copy the `cars.xml` file to the `~/user_defined_operations/functions/files`.
-3. Create the `cardetect.py` file in `~/user_defined_operations/functions`.
+3. Download/Copy the `cars.xml` file to the `~/user_defined_operations/resources` directory.
+4. Create the `cardetect.py` file in `~/user_defined_operations/functions`.
 ```
 import time
 import cv2
 from PIL import Image
 import numpy as np
 
-car_cascade_src = 'functions/files/cars.xml'
+car_cascade_src = '~/user_defined_operations/resources/cars.xml'
 
 def run(settings, message, input_params):
 
@@ -131,13 +132,11 @@ def run(settings, message, input_params):
 
     return (time.time() - t1), opfilename
 ```
-4. The final directory structure would be as follows;
+5. The final directory structure would be as follows;
 ```
 ~/
 |__user_defined_operations
    |__functions
-   |  |__files
-   |  |  |__cars.xml
    |  |__facedetect.py
    |  |__flip.py
    |  |__cardetect.py
@@ -145,10 +144,11 @@ def run(settings, message, input_params):
    |__requirements.txt
    |__settings.json
    |__udf_local.py
-|__resources
-   |__haarcascade_frontalface_default.xml
+   |__resources
+      |__haarcascade_frontalface_default.xml
+      |__cars.xml
 ```
-5. Update the settings file with the new UDF information.
+6. Update the settings file with the new UDF information.
 ```
 {
     "opfile": "/tmp/tmp_op_file",
@@ -160,11 +160,11 @@ def run(settings, message, input_params):
     }
 }
 ```
-6. Now start the `udf_local.py` file to initiate the message queue;
+7. Now start the `udf_local.py` file to initiate the message queue;
 ```
 python3 udf_local.py
 ```
-7. Say VDMS has a database of car images that have the property `category` set as `cars`. Then you can run the `cardetect` operation on these images using the following query;
+8. Say VDMS has a database of car images that have the property `category` set as `cars`. Then you can run the `cardetect` operation on these images using the following query;
 ```
 "FindImage": {
     "format": "png",
