@@ -20,7 +20,7 @@ face_cascade = cv2.CascadeClassifier(
 )
 
 
-def run(ipfilename, format, options, tmp_dir_path):
+def run(ipfilename, format, options, tmp_dir_path=""):
     global face_cascade
 
     if not os.path.exists(ipfilename):
