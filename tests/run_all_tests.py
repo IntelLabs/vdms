@@ -1639,7 +1639,8 @@ class NonRemoteTest(AbstractTest):
     def setup_k8s_test_files(self):
         if not os.path.exists('/tmp/kubeconfig'):
             os.mkdir('/tmp/kubeconfig')
-        shutil.copy2(os.path.join(DEFAULT_DIR_REPO, 'kubernetes/kubeConfig.json'), '/tmp/kubeconfig')
+        global DEFAULT_DIR_REPO
+        shutil.copy2('../kubernetes/kubeConfig.json', '/tmp/kubeconfig')
 
     def fill_default_arguments(self, testingArgs: TestingArgs) -> TestingArgs:
         """
