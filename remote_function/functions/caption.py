@@ -3,7 +3,7 @@ import uuid
 import os
 
 
-def run(ipfilename, format, options, tmp_dir_path):
+def run(ipfilename, format, options, tmp_dir_path=""):
     opfilename = os.path.join(
         tmp_dir_path, "tmpfile" + uuid.uuid1().hex + "." + str(format)
     )
