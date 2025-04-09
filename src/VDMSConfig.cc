@@ -63,6 +63,7 @@ const std::string KEY_NOT_FOUND = "KEY_NOT_FOUND";
 const std::string DEFAULT_ENDPOINT = "http://127.0.0.1:9000";
 const std::string DEFAULT_AWS_LOG_LEVEL = "off";
 const bool DEFAULT_USE_ENDPOINT = false;
+const bool DEFAULT_KUBERNETES_CONTAINER = false;
 
 using namespace VDMS;
 
@@ -113,6 +114,7 @@ VDMSConfig::VDMSConfig(std::string config_file) {
   cfg = nullptr;
   storage_type = StorageType::LOCAL;
   aws_flag = false;
+  k8s_flag = false;
   use_endpoint = false;
   aws_log_level = Aws::Utils::Logging::LogLevel::Off;
   endpoint_override = std::nullopt;
@@ -140,6 +142,7 @@ VDMSConfig::VDMSConfig(std::string config_file) {
   }
 
   build_dirs();
+  set_kubernetes_config();
 }
 
 int VDMSConfig::get_int_value(std::string val, int def) {
@@ -450,6 +453,10 @@ void VDMSConfig::build_dirs() {
   }
 
 
+}
+
+void VDMSConfig::set_kubernetes_config() {
+  k8s_flag = get_bool_value(PARAM_KUBERNETES_CONTAINER, DEFAULT_KUBERNETES_CONTAINER);
 }
 
 bool VDMSConfig::exists_key(const std::string &key) {

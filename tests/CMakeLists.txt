@@ -2,13 +2,11 @@ cmake_minimum_required (VERSION 3.17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 set(CMAKE_CXX_STANDARD 17)
 
-option(CODE_COVERAGE "Collect coverage" OFF)
 IF(CODE_COVERAGE)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -Wall -coverage -fprofile-abs-path")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -Wall -coverage -fprofile-abs-path")
     enable_testing()
 ENDIF()
-message("Coverage:" ${CODE_COVERAGE})
 
 project(tests
     LANGUAGES "CXX"
@@ -16,6 +14,10 @@ project(tests
 find_package( OpenCV REQUIRED )
 find_package( Threads REQUIRED )
 find_package(AWSSDK REQUIRED COMPONENTS core s3)
+
+if(USE_K8S)
+    add_definitions("-D HAS_KUBERNETES_CLIENT")
+endif()
 
 link_directories(/usr/local/lib/ /usr/lib/x86_64-linux-gnu/)
 include_directories(
@@ -90,3 +92,4 @@ target_link_libraries(unit_tests
     ${AWSSDK_LINK_LIBRARIES}
     neo4j-client
 )
+

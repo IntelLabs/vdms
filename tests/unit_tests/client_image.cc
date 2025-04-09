@@ -2,6 +2,11 @@
 
 #include "meta_data_helper.h"
 
+#ifdef HAS_KUBERNETES_CLIENT
+#include "kubernetes/KubeHelper.h"
+using namespace kubernetes;
+#endif
+
 void add_image_util(Meta_Data *meta_obj) {
   EXPECT_TRUE(nullptr != meta_obj);
 
@@ -206,7 +211,6 @@ TEST(CLIENT_CPP, add_image_dynamic_metadata) {
       meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple), blobs);
   Json::Value result;
   meta_obj->_reader.parse(response.json.c_str(), result);
-
   int status1 = result[0]["AddImage"]["status"].asInt();
   EXPECT_EQ(status1, 0);
   delete meta_obj;
@@ -235,7 +239,6 @@ TEST(CLIENT_CPP, add_image_dynamic_metadata_remote) {
       meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple), blobs);
   Json::Value result;
   meta_obj->_reader.parse(response.json.c_str(), result);
-
   int status1 = result[0]["AddImage"]["status"].asInt();
   EXPECT_EQ(status1, 0);
   delete meta_obj;
@@ -281,4 +284,14 @@ TEST(CLIENT_CPP, find_image_dynamic_metadata) {
   EXPECT_EQ(status_b, 0);
   EXPECT_STREQ(objectId.data(), "face");
   delete meta_obj;
+}
+
+TEST(CLIENT_CPP, kubehelper_url) {
+  #ifdef HAS_KUBERNETES_CLIENT
+    static kubernetes::KubeHelper kubernetes_get_url;
+    kubernetes_get_url.query_counter++;
+    std::string url_k8s = kubernetes_get_url.query_scheduler("image");
+
+    EXPECT_STREQ(url_k8s.data(), "rudf0svc:5050/image");
+  #endif
 }

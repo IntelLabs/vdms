@@ -6,3 +6,4 @@ rm -rf test_db_1 || true
 rm -rf db || true
 rm -rf db_backup || true
 rm -rf /tmp/rpathimage.jpg || true
+rm -rf /tmp/kubeconfig || true

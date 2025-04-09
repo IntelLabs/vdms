@@ -275,7 +275,28 @@ cd $VDMS_DEP_DIR/libomni
 make clean check
 sudo make install -w --debug
 ```
+
 <br>
+
+#### **Kubernetes Client**
+Installation required only if you plan to use the kubernetes environment
+Follow [[Kubernetes README](kubernetes/README.md)] for how to set up the environment.
+```bash
+git clone --depth 1 https://github.com/yaml/libyaml.git /dependencies/libyaml
+cd $VDMS_DEP_DIR/libyaml
+mkdir build && cd build
+cmake -DCMAKE_INSTALL_PREFIX=/usr/local/ -DBUILD_TESTING=OFF  -DBUILD_SHARED_LIBS=ON ..
+make
+sudo make install
+
+CLIENT_REPO_ROOT=$VDMS_DEP_DIR/k8s
+git clone https://github.com/kubernetes-client/c.git ${CLIENT_REPO_ROOT}
+cd ${CLIENT_REPO_ROOT}/kubernetes
+mkdir build && cd build
+cmake ..
+make
+sudo make install
+```
 
 ## Install VDMS
 This version of VDMS treats PMGD as a submodule so both libraries are compiled at one time. After entering the vdms directory, the command `git submodule update --init --recursive` will pull pmgd into the appropriate directory. Furthermore, Cmake is used to compile all directories.
@@ -297,7 +318,7 @@ sed -i "s|#include <libavcodec/avcodec.h>||" include/vcl/KeyFrame.h
 sed -i "s|#include <libavcodec/bsf.h>||" include/vcl/KeyFrame.h
 ```
 
-When compiling on a target without Optane persistent memory, use the following:
+When compiling on a target without Optane persistent memory and without Kubernetes, use the following:
 ```bash
 mkdir build && cd build
 cmake ..
@@ -309,6 +330,14 @@ When compiling on a target with Optane persistent memory, use the following:
 ```bash
 mkdir build && cd build
 cmake -DCMAKE_CXX_FLAGS='-DPM' ..
+make ${BUILD_THREADS}
+cp ../config-vdms.json .
+```
+
+If you plan on setting up the Kubernetes environment with VDMS and remote operations (experimental), use the following:
+```bash
+mkdir build && cd build
+cmake -DUSE_K8S=ON ..
 make ${BUILD_THREADS}
 cp ../config-vdms.json .
 ```

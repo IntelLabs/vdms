@@ -65,6 +65,8 @@ function execute_commands() {
     # set in the test files in unit_test dir
     cp unit_tests/config-tests.json /tmp/tests_output_dir/config-tests.json
     cp unit_tests/config-client-tests.json /tmp/tests_output_dir/config-client-tests.json
+    mkdir /tmp/kubeconfig || true
+    cp ../kubernetes/kubeConfig.json /tmp/kubeconfig
 
     # Stop UDF Queue and Remote Server if already running
     pkill -9 -f udf_server.py || true

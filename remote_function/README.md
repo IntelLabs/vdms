@@ -148,3 +148,6 @@ python3 udf_server.py 5010 [path_tmp_dir]
     ]
 }
 ```
+## To compile Docker Image of Remote UDF
+1. Use the command given below
+```sudo docker build -t rudf:latest --build-arg=http_proxy --build-arg=https_proxy --file=Dockerfile.txt .```

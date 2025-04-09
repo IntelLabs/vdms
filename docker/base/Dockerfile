@@ -15,6 +15,7 @@ ARG NEO4J_PASS=""
 ARG NEO4J_ENDPOINT=""
 ARG AWS_API_PORT=9000
 ARG AWS_CONSOLE_PORT=9001
+ARG USE_K8S="OFF"
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBCONF_NOWARNINGS="yes"
@@ -32,6 +33,11 @@ ENV NEO4J_ENDPOINT="${NEO4J_ENDPOINT}"
 ENV AWS_API_PORT="${AWS_API_PORT}"
 ENV AWS_CONSOLE_PORT="${AWS_CONSOLE_PORT}"
 
+# Convert ARG value to uppercase and set ENV
+RUN export USE_K8S=$(echo "${USE_K8S^^}") && \
+    echo "export USE_K8S=${USE_K8S}" >> /etc/profile.d/envvars.sh
+ENV USE_K8S="${USE_K8S}"
+
 ############################################################
 # BUILD DEPENDENCIES
 FROM base AS build
@@ -42,14 +48,14 @@ RUN apt-get update -y && apt-get upgrade -y && \
     apt-get install -o 'Acquire::Retries=3' -y --no-install-suggests \
         --no-install-recommends --fix-broken --fix-missing \
         apt-transport-https automake bison build-essential bzip2 ca-certificates \
-        cppzmq-dev curl ed flex g++ gcc git gnupg-agent javacc libarchive-tools libatlas-base-dev \
-        libavcodec-dev libavformat-dev libavutil-dev libboost-all-dev libbz2-dev libc-ares-dev \
+        cppzmq-dev curl ed flex g++ bazel-bootstrap gcc git gnupg-agent javacc libarchive-tools libatlas-base-dev \
+        libavcodec-dev libavformat-dev libavutil-dev libbison-dev libboost-all-dev libbz2-dev libc-ares-dev \
         libcurl4-openssl-dev libdc1394-dev libgflags-dev libgoogle-glog-dev \
         libgtk-3-dev libgtk2.0-dev libhdf5-dev libjpeg-dev libjpeg62-turbo-dev libjsoncpp-dev \
         libleveldb-dev liblmdb-dev liblz4-dev libncurses5-dev libopenblas-dev libopenmpi-dev \
         libpng-dev librdkafka-dev libsnappy-dev libssl-dev libswscale-dev libtbb-dev libtbbmalloc2 \
-        libtiff-dev libtiff5-dev libtool linux-libc-dev mpich openjdk-17-jdk-headless \
-        pkg-config procps software-properties-common swig unzip uuid-dev && \
+        libtiff-dev libtiff5-dev libtool libwebsockets-dev linux-libc-dev mpich openjdk-17-jdk-headless \
+        pkg-config procps software-properties-common swig uncrustify unzip uuid-dev && \
     apt-get --purge remove -y python3.11 && apt-get autoremove -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
@@ -163,6 +169,29 @@ RUN curl -L -O https://github.com/gpakosz/peg/releases/download/${PEG_VERSION}/p
         ./configure --disable-werror --prefix=/opt/dist/usr && \
         make clean check && make install -w --debug
 
+RUN if [ "${USE_K8S}" = "ON" ]; then \
+        git clone --depth 1 https://github.com/yaml/libyaml.git /dependencies/libyaml && \
+        cd /dependencies/libyaml && \
+        mkdir build && \
+        cd build && \
+        cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON .. && \
+        make ${BUILD_THREADS} && \
+        make install; \
+    fi
+
+#Kubernetes
+RUN if [ "${USE_K8S}" = "ON" ]; then \
+        git clone https://github.com/kubernetes-client/c.git /dependencies/k8s && \
+        ls /dependencies/k8s && \
+        CLIENT_REPO_ROOT=/dependencies/k8s && \
+        cd ${CLIENT_REPO_ROOT}/kubernetes && \
+        mkdir build && \
+        cd build && \
+        cmake -DCMAKE_PREFIX_PATH=/usr/local -DCMAKE_INSTALL_PREFIX=/usr/local .. && \
+        make ${BUILD_THREADS} && \
+        make install; \
+    fi
+
 # CLEANUP
 RUN rm -rf /dependencies /usr/local/share/doc /usr/local/share/man && \
     mkdir -p /opt/dist/usr/include/x86_64-linux-gnu && \
@@ -176,17 +205,22 @@ COPY --from=build /opt/dist /
 COPY --from=build /usr/local/bin/python${PYTHON_BASE} /usr/local/bin/python${PYTHON_BASE}
 COPY --from=build /usr/local/lib/python${PYTHON_BASE} /usr/local/lib/python${PYTHON_BASE}
 COPY --from=build ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+COPY --from=build /usr/local/include/kubernete[s] /usr/local/include/kubernetes
+COPY --from=build /usr/include/libwebsocket[s] /usr/include/libwebsockets
+COPY --from=build /usr/local/lib/libkubernetes.s[o] /usr/local/lib/libkubernetes.so
+COPY --from=build /usr/local/lib/libyaml.s[o] /usr/local/lib/libyaml.so
+COPY --from=build /usr/lib/x86_64-linux-gnu/libwebsockets.s[o] /usr/lib/x86_64-linux-gnu/libwebsockets.so
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # hadolint ignore=DL3008,SC2086
 RUN apt-get update -y && apt-get upgrade -y && \
     apt-get install -o 'Acquire::Retries=3' -y --no-install-suggests \
         --no-install-recommends --fix-broken --fix-missing \
-        build-essential bzip2 cppzmq-dev curl g++ gcc git javacc libarchive-tools libavcodec-dev \
+        build-essential bzip2 cppzmq-dev curl g++ gcc git javacc libarchive-tools libavcodec-dev bazel-bootstrap \
         libavformat-dev libcurl4-openssl-dev libdc1394-dev libgoogle-glog-dev libgtk-3-dev \
         libhdf5-dev libjpeg62-turbo-dev libjsoncpp-dev libopenblas-dev libpng-dev librdkafka-dev \
-        libssl-dev libswscale-dev libtbb-dev libtbbmalloc2 libtiff5-dev libzip-dev openjdk-17-jdk-headless \
-        procps && \
+        libssl-dev libswscale-dev libtbb-dev libtbbmalloc2 libtiff5-dev libwebsockets-dev libzip-dev \
+        openjdk-17-jdk-headless procps uncrustify && \
     apt-get --purge remove -y python3.11 && apt-get autoremove -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
     echo "/usr/local/lib" >> /etc/ld.so.conf.d/all-libs.conf && ldconfig && \
@@ -200,13 +234,14 @@ RUN git clone -b master --recurse-submodules https://github.com/IntelLabs/vdms.g
     sed -i "s|java-11-openjdk|java-17-openjdk|g" /vdms/src/pmgd/java/CMakeLists.txt && \
     sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/test/neighbortest.cc && \
     sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" /vdms/src/pmgd/tools/mkgraph.cc && \
-	cp /vdms/docker/override_default_config.py /vdms/override_default_config.py && \
+    cp /vdms/docker/override_default_config.py /vdms/override_default_config.py && \
     mkdir -p /vdms/build && cd /vdms/build && \
-    cmake .. && make ${BUILD_THREADS} && \
+    cmake -DUSE_K8S="${USE_K8S}" .. && make ${BUILD_THREADS} VERBOSE=1 && \
     echo '#!/bin/bash' > /start.sh && echo 'cd /vdms/build' >> /start.sh && \
-    echo 'python /vdms/override_default_config.py -i /vdms/config-vdms.json -o /vdms/build/config-vdms.json' >> /start.sh && \
+    echo 'python3 /vdms/override_default_config.py -i /vdms/config-vdms.json -o /vdms/build/config-vdms.json' >> /start.sh && \
     echo './vdms' >> /start.sh && chmod 755 /start.sh
 
-ENV PYTHONPATH=/vdms/client/python:${PYTHONPATH}
+ENV PYTHONPATH=/vdms/client/python
+
 HEALTHCHECK CMD echo "This is a healthcheck test." || exit 1
 CMD ["/start.sh"]
