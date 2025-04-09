@@ -105,9 +105,7 @@ DEFAULT_NON_REMOTE_PYTHON_CONFIG_FILES = [
 DEFAULT_PYTHON_TEST_FILTER = "discover -s ./python/ --pattern=Test*.py"
 DEFAULT_NON_REMOTE_PYTHON_TEST_FILTER = DEFAULT_PYTHON_TEST_FILTER
 
-DEFAULT_NON_REMOTE_UNIT_TEST_FILTER = (
-    "-RemoteConnectionTest.*:Neo4jBackendTest.*:OpsIOCoordinatorTest.*:Neo4JE2ETest.*"
-)
+DEFAULT_NON_REMOTE_UNIT_TEST_FILTER = "-RemoteConnectionTest.*:Neo4jBackendTest.*:OpsIOCoordinatorTest.*:Neo4JE2ETest.*:Neo4JHandlerTest.*"
 DEFAULT_NON_REMOTE_UNIT_TEST_CONFIG_FILES = [
     "unit_tests/config-tests.json",
     "unit_tests/config-client-tests.json",

@@ -48,12 +48,24 @@ using namespace VDMS;
 
 std::unordered_map<std::string, Neo4jCommand *> QueryHandlerNeo4j::_rs_cmds;
 BackendNeo4j *QueryHandlerNeo4j::neoconn_pool;
-// VCL::RemoteConnection *global_s3_connection;
+
+// Static globals for use in looking up descriptor set locations, defined in
+// DescriptorCommand.h
+tbb::concurrent_unordered_map<std::string, std::string>
+        NeoDescriptorsCommand::_desc_set_locator;
+tbb::concurrent_unordered_map<std::string, int> NeoDescriptorsCommand::_desc_set_dims;
+
 
 void QueryHandlerNeo4j::init() {
+  DescriptorsManager::init();
 
   _rs_cmds["NeoAdd"] = new Neo4jNeoAdd();
   _rs_cmds["NeoFind"] = new Neo4jNeoFind();
+  _rs_cmds["NeoAddDescriptorSet"] = new Neo4jNeoAddDescSet();
+  _rs_cmds["NeoFindDescriptorSet"] = new Neo4jNeoFindDescSet();
+  _rs_cmds["NeoAddDescriptor"] = new Neo4jNeoAddDesc();
+  _rs_cmds["NeoFindDescriptor"] = new Neo4jNeoFindDesc();
+
   // seed random time
   srand((unsigned)time(NULL));
 
@@ -62,7 +74,7 @@ void QueryHandlerNeo4j::init() {
   char *pass = getenv("NEO4J_PASS");
 
   uint_fast32_t flags = NEO4J_INSECURE;
-  int nr_conns = 16;
+  int nr_conns = 32; //TODO update to be configurable
 
   neoconn_pool = new BackendNeo4j(nr_conns, (char *)tgtdb, user, pass, flags);
 
@@ -94,7 +106,6 @@ bool QueryHandlerNeo4j::syntax_checker(const Json::Value &root,
                                        Json::Value &error) {
   valijson::ValidationResults results;
   valijson::adapters::JsonCppAdapter user_query(root);
-  std::cerr << root.toStyledString() << std::endl; // TEMPORARY
   if (!_validator.validate(*_schema, user_query, &results)) {
     std::cerr << "API validation failed for:" << std::endl;
     std::cerr << root.toStyledString() << std::endl;
@@ -170,7 +181,7 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
   int rc;
 
   Json::FastWriter fastWriter;
-  Json::Value hello_res;
+  Json::Value final_resp;
   Json::Value json_responses;
   Json::Value cmd_result;
 
@@ -179,48 +190,55 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
   bool error = false;
 
   rc = parse_commands(proto_query, root);
-
   // begin neo4j transaction
   tx = neoconn_pool->open_tx(conn, 10000, "w");
   for (int j = 0; j < root.size(); j++) {
     Json::Value neo4j_resp;
     std::string cypher;
 
-    const Json::Value &query = root[j];
+    Json::Value &query = root[j];
     std::string cmd = query.getMemberNames()[0];
 
-    Neo4jCommand *rscmd = _rs_cmds[cmd];
 
+    if (_rs_cmds.count(cmd) == 0) {
+        std::cout<<"Command: " << cmd << "Does not exist!" << std::endl;
+    }
+
+    Neo4jCommand *rscmd = _rs_cmds[cmd];
     cypher = query[cmd]["cypher"].asString();
 
     const std::string &blob =
         rscmd->need_blob(query) ? proto_query.blobs(blob_count++) : "";
 
     rc = rscmd->data_processing(cypher, query, blob, 0, cmd_result);
-
     if (rc != 0) {
-      printf("Data Processing failed, aborting transaction...\n");
       error = true;
+      proto_res.set_json(fastWriter.write(cmd_result));
       break;
     }
-
     res_stream = neoconn_pool->run_in_tx((char *)cypher.c_str(), tx);
     neo4j_resp = neoconn_pool->results_to_json(res_stream);
-
-    rscmd->construct_responses(neo4j_resp, query, proto_res, blob);
-
-    if (neo4j_resp.isMember("metadata_res")) {
-      hello_res["metadata_res"] = neo4j_resp["metadata_res"];
+    query["cp_result"] = cmd_result;
+    Json::Value resp_retval = rscmd->construct_responses(neo4j_resp, query, proto_res, blob);
+    //THIS IS VERY CLUNKY and confusing, NEEDS TO BE REFACTORED
+    if (neo4j_resp.isMember("metadata_res") && (cmd == "NeoAdd" || cmd == "NeoFind")) {
+        resp_retval["metadata_res"] = neo4j_resp["metadata_res"];
     }
+    json_responses.append(resp_retval);
 
-    json_responses.append(hello_res);
 
-    proto_res.set_json(fastWriter.write(json_responses));
   }
+    proto_res.set_json(fastWriter.write(json_responses));
   // commit neo4j transaction, needs to be updated in future to account for
   // errors on response construction
   if (error == false) {
-    neoconn_pool->commit_tx(tx);
+    rc = neoconn_pool->commit_tx(tx);
+
+    if(rc != 0){
+        printf("Warning! Transaction Error: %d\n", rc);
+        exit(1);
+    }
+
   }
 
   neoconn_pool->put_conn(conn);
@@ -265,6 +283,7 @@ int QueryHandlerNeo4j::parse_commands(
           ". Received blobs: " + std::to_string(proto_query.blobs().size()));
       root["status"] = Neo4jCommand::Error;
       std::cerr << "Number of Blobs Mismatch!" << std::endl;
+      std::cerr << "Expected: " << blob_counter << " Received: " << proto_query.blobs().size()<<std::endl;
       return -1;
     }
 
