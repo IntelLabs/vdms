@@ -34,6 +34,7 @@ ENV AWS_API_PORT="${AWS_API_PORT}"
 ENV AWS_CONSOLE_PORT="${AWS_CONSOLE_PORT}"
 
 # Convert ARG value to uppercase and set ENV
+# hadolint ignore=SC3059
 RUN export USE_K8S=$(echo "${USE_K8S^^}") && \
     echo "export USE_K8S=${USE_K8S}" >> /etc/profile.d/envvars.sh
 ENV USE_K8S="${USE_K8S}"
@@ -47,8 +48,8 @@ FROM base AS build
 RUN apt-get update -y && apt-get upgrade -y && \
     apt-get install -o 'Acquire::Retries=3' -y --no-install-suggests \
         --no-install-recommends --fix-broken --fix-missing \
-        apt-transport-https automake bison build-essential bzip2 ca-certificates \
-        cppzmq-dev curl ed flex g++ bazel-bootstrap gcc git gnupg-agent javacc libarchive-tools libatlas-base-dev \
+        apt-transport-https automake bazel-bootstrap bison build-essential bzip2 ca-certificates \
+        cppzmq-dev curl ed flex g++ gcc git gnupg-agent javacc libarchive-tools libatlas-base-dev \
         libavcodec-dev libavformat-dev libavutil-dev libbison-dev libboost-all-dev libbz2-dev libc-ares-dev \
         libcurl4-openssl-dev libdc1394-dev libgflags-dev libgoogle-glog-dev \
         libgtk-3-dev libgtk2.0-dev libhdf5-dev libjpeg-dev libjpeg62-turbo-dev libjsoncpp-dev \
@@ -169,6 +170,8 @@ RUN curl -L -O https://github.com/gpakosz/peg/releases/download/${PEG_VERSION}/p
         ./configure --disable-werror --prefix=/opt/dist/usr && \
         make clean check && make install -w --debug
 
+# FOR KUBERNETES ORCHESTRATION
+# hadolint ignore=DL3003,SC2086
 RUN if [ "${USE_K8S}" = "ON" ]; then \
         git clone --depth 1 https://github.com/yaml/libyaml.git /dependencies/libyaml && \
         cd /dependencies/libyaml && \
@@ -179,7 +182,7 @@ RUN if [ "${USE_K8S}" = "ON" ]; then \
         make install; \
     fi
 
-#Kubernetes
+# hadolint ignore=DL3003,SC2086
 RUN if [ "${USE_K8S}" = "ON" ]; then \
         git clone https://github.com/kubernetes-client/c.git /dependencies/k8s && \
         ls /dependencies/k8s && \
