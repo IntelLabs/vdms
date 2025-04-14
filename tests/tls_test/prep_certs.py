@@ -5,15 +5,13 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.serialization import (
     Encoding,
     PrivateFormat,
-    BestAvailableEncryption,
     NoEncryption,
 )
 from cryptography.hazmat.backends import default_backend
 import datetime
 import os
-import socket
-import ssl
-import time
+
+TEMPORARY_DIR = "/tmp"
 
 
 def generate_private_key():
@@ -33,17 +31,18 @@ def generate_ca_certificate(subject_name, private_key):
         ]
     )
 
+    current_time = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+
     certificate = (
         x509.CertificateBuilder()
         .subject_name(subject)
         .issuer_name(issuer)
         .public_key(private_key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.datetime.utcnow())
+        .not_valid_before(current_time)
         .not_valid_after(
             # Our certificate will be valid for 10 days
-            datetime.datetime.utcnow()
-            + datetime.timedelta(days=10)
+            current_time + datetime.timedelta(days=10)
         )
         .add_extension(
             x509.BasicConstraints(ca=True, path_length=None),
@@ -70,17 +69,18 @@ def generate_signed_certificate(
 
     issuer = issuer_certificate.subject
 
+    current_time = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
+
     certificate = (
         x509.CertificateBuilder()
         .subject_name(subject)
         .issuer_name(issuer)
         .public_key(subject_private_key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.datetime.utcnow())
+        .not_valid_before(current_time)
         .not_valid_after(
             # Our certificate will be valid for 10 days
-            datetime.datetime.utcnow()
-            + datetime.timedelta(days=10)
+            current_time + datetime.timedelta(days=10)
         )
         .add_extension(
             x509.BasicConstraints(ca=False, path_length=None),
@@ -105,6 +105,8 @@ def write_to_disk(directory, name, key, cert):
 
 
 if __name__ == "__main__":
+    if not os.path.exists(TEMPORARY_DIR):
+        raise Exception("Error in prep_certs.py: " + TEMPORARY_DIR + " does not exist")
 
     #####################################################################################
     # GENERATE TRUSTED CERTS AND KEYS
@@ -126,9 +128,11 @@ if __name__ == "__main__":
     )
 
     # Write keys and certificates to disk
-    write_to_disk("/tmp", "trusted_ca", trusted_ca_key, trusted_ca_cert)
-    write_to_disk("/tmp", "trusted_server", server_key, server_cert)
-    write_to_disk("/tmp", "trusted_client", trusted_client_key, trusted_client_cert)
+    write_to_disk(TEMPORARY_DIR, "trusted_ca", trusted_ca_key, trusted_ca_cert)
+    write_to_disk(TEMPORARY_DIR, "trusted_server", server_key, server_cert)
+    write_to_disk(
+        TEMPORARY_DIR, "trusted_client", trusted_client_key, trusted_client_cert
+    )
 
     #####################################################################################
     # GENERATE UNTRUSTED CERTS AND KEYS TO ENSURE UNTRUSTED CLIENT CERTS AREN'T ACCEPTED
@@ -144,7 +148,7 @@ if __name__ == "__main__":
     )
 
     # Write keys and certificates to disk
-    write_to_disk("/tmp", "untrusted_ca", untrusted_ca_key, untrusted_ca_cert)
+    write_to_disk(TEMPORARY_DIR, "untrusted_ca", untrusted_ca_key, untrusted_ca_cert)
     write_to_disk(
-        "/tmp", "untrusted_client", untrusted_client_key, untrusted_client_cert
+        TEMPORARY_DIR, "untrusted_client", untrusted_client_key, untrusted_client_cert
     )

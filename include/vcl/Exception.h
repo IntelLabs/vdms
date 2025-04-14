@@ -65,16 +65,16 @@ enum ExceptionType {
 
 struct Exception {
   // Which exception
-  int num;          ///< Exception number
-  const char *name; ///< Exception name
+  int num;           ///< Exception number
+  const char *name;  ///< Exception name
 
   // Additional information
   std::string msg;
   int errno_val;
 
   // Where it was thrown
-  const char *file; ///< Source file name
-  int line;         ///< Source line number
+  const char *file;  ///< Source file name
+  int line;          ///< Source line number
 
   Exception(int exc, const char *exc_name, const char *f, int l)
       : num(exc), name(exc_name), msg(), errno_val(0), file(f), line(l) {}
@@ -88,8 +88,8 @@ struct Exception {
       : num(exc), name(exc_name), msg(m), errno_val(err), file(f), line(l) {}
 };
 
-#define VCLException(name, ...)                                                \
+#define VCLException(name, ...) \
   VCL::Exception(VCL::name, #name, ##__VA_ARGS__, __FILE__, __LINE__)
-}; // namespace VCL
+};  // namespace VCL
 
 extern void print_exception(const VCL::Exception &e, FILE *f = stdout);

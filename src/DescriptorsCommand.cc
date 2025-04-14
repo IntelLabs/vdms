@@ -56,7 +56,6 @@ DescriptorsCommand::DescriptorsCommand(const std::string &cmd_name)
 std::string DescriptorsCommand::get_set_path(PMGDQuery &query_tx,
                                              const std::string &set_name,
                                              int &dim) {
-
   // Check cache for descriptor set, if its found set dimensions and return
   // path,
   // otherwise we go forward and query PMGD to locate the descriptor set
@@ -67,7 +66,6 @@ std::string DescriptorsCommand::get_set_path(PMGDQuery &query_tx,
     dim = _desc_set_dims[set_name];
     return mapped_path;
   }
-
   // Will issue a read-only transaction to check
   // if the Set exists
   PMGDQuery query(query_tx.get_pmgd_qh());
@@ -87,7 +85,6 @@ std::string DescriptorsCommand::get_set_path(PMGDQuery &query_tx,
   results["list"] = list_arr;
 
   bool unique = true;
-
   // Query set node
   query.add_group();
   query.QueryNode(-1, VDMS_DESC_SET_TAG, link, constraints, results, unique,
@@ -110,8 +107,10 @@ std::string DescriptorsCommand::get_set_path(PMGDQuery &query_tx,
     dim = ent[VDMS_DESC_SET_DIM_PROP].asInt();
     _desc_set_dims[set_name] = dim;
     _desc_set_locator[set_name] = set_path;
+
     return set_path;
   }
+
   return "";
 }
 
@@ -201,14 +200,25 @@ Json::Value FindDescriptorSet::construct_responses(
 
 AddDescriptorSet::AddDescriptorSet() : DescriptorsCommand("AddDescriptorSet") {
   _storage_sets = VDMSConfig::instance()->get_path_descriptors();
-  _flinng_num_rows = 3; // set based on the default values of Flinng
-  _flinng_cells_per_row = 1000;
-  _flinng_num_hash_tables = 10;
-  _flinng_hashes_per_table = 12;
-  _flinng_sub_hash_bits = 2;
-  _flinng_cut_off = 6;
+
+  //Flinng params
+  _flinng_num_rows = static_cast<uint64_t>(VDMSConfig::instance()->get_flinng_num_rows().value_or(3));
+  _flinng_cells_per_row = static_cast<uint64_t>(VDMSConfig::instance()->get_flinng_cells_per_row().value_or(1000));
+  _flinng_num_hash_tables = static_cast<uint64_t>(VDMSConfig::instance()->get_flinng_num_hash_tables().value_or(10));
+  _flinng_hashes_per_table = static_cast<uint64_t>(VDMSConfig::instance()->get_flinng_hashes_per_table().value_or(12));
+  _flinng_sub_hash_bits = static_cast<uint64_t>(VDMSConfig::instance()->get_flinng_sub_hash_bits().value_or(2));
+  _flinng_cut_off = static_cast<uint64_t>(VDMSConfig::instance()->get_flinng_cut_off().value_or(6));
+
+  //IVF params
+  _ivf_nlist = static_cast<uint64_t>(VDMSConfig::instance()->get_ivf_nlist().value_or(16));
+
+  //HNSW params
+  _hnsw_efsearch = static_cast<uint64_t>(VDMSConfig::instance()->get_hnsw_efsearch().value_or(64));
+  _hnsw_efConstruction = static_cast<uint64_t>(VDMSConfig::instance()->get_hnsw_efConstruction().value_or(96));
+  _hnsw_M = static_cast<uint64_t>(VDMSConfig::instance()->get_hnsw_M().value_or(48));
 
   //_use_aws_storage = VDMSConfig::instance()->get_aws_flag();
+
 }
 
 int AddDescriptorSet::construct_protobuf(PMGDQuery &query,
@@ -228,6 +238,7 @@ int AddDescriptorSet::construct_protobuf(PMGDQuery &query,
   props[VDMS_DESC_SET_DIM_PROP] = cmd["dimensions"].asInt();
   props[VDMS_DESC_SET_PATH_PROP] = desc_set_path;
   props[VDMS_DESC_SET_ENGIN_PROP] = cmd["engine"].asString();
+
   if (props[VDMS_DESC_SET_ENGIN_PROP] == "Flinng") {
     if (cmd.isMember("flinng_num_rows"))
       _flinng_num_rows = cmd["flinng_num_rows"].asInt();
@@ -241,6 +252,20 @@ int AddDescriptorSet::construct_protobuf(PMGDQuery &query,
       _flinng_sub_hash_bits = cmd["flinng_sub_hash_bits"].asInt();
     if (cmd.isMember("flinng_cut_off"))
       _flinng_cut_off = cmd["flinng_cut_off"].asInt();
+  }
+
+  if (props[VDMS_DESC_SET_ENGIN_PROP] == "FaissIVFFlat"){
+    if (cmd.isMember("ivf_nlist"))
+       _ivf_nlist = cmd["ivf_nlist"].asInt();
+  }
+
+  if (props[VDMS_DESC_SET_ENGIN_PROP] == "FaissHNSWFlat"){
+    if (cmd.isMember("hnsw_efsearch"))
+      _hnsw_efsearch = cmd["hnsw_efsearch"].asInt();
+    if (cmd.isMember("hnsw_efConstruction"))
+      _hnsw_efConstruction = cmd["_hnsw_efConstruction"].asInt();
+    if (cmd.isMember("hnsw_M"))
+      _hnsw_M = cmd["hnsw_M"].asInt();
   }
 
   Json::Value constraints;
@@ -312,10 +337,18 @@ Json::Value AddDescriptorSet::construct_responses(
   // We can probably set up a mechanism
   // to fix a broken link when detected later, same with images.
   VCL::DescriptorParams *param = nullptr;
+
   try {
     param = new VCL::DescriptorParams(_flinng_num_rows, _flinng_cells_per_row,
                                       _flinng_num_hash_tables,
-                                      _flinng_hashes_per_table);
+                                      _flinng_hashes_per_table,
+                                      _flinng_sub_hash_bits,
+                                      _flinng_cut_off,
+                                      _ivf_nlist,
+                                      _hnsw_efsearch,
+                                      _hnsw_efConstruction,
+                                      _hnsw_M);
+
     VCL::DescriptorSet desc_set(desc_set_path, dimensions, _eng, metric, param);
 
     if (_use_aws_storage) {
@@ -326,10 +359,6 @@ Json::Value AddDescriptorSet::construct_responses(
     }
 
     desc_set.store();
-    if (output_vcl_timing) {
-      desc_set.timers.print_map_runtimes();
-    }
-    desc_set.timers.clear_all_timers();
 
     delete (param);
   } catch (VCL::Exception e) {
@@ -373,10 +402,6 @@ long AddDescriptor::insert_descriptor(const std::string &blob,
       id_first = desc_set->add((float *)blob.data(), nr_desc);
     }
 
-    if (output_vcl_timing) {
-      desc_set->timers.print_map_runtimes();
-    }
-    desc_set->timers.clear_all_timers();
   } catch (VCL::Exception e) {
     print_exception(e);
     error["info"] = "VCL Descriptors Exception";
@@ -1007,10 +1032,6 @@ void FindDescriptor::populate_blobs(const std::string &set_path,
       desc_blob->resize(sizeof(float) * dim);
 
       set->get_descriptors(&id, 1, (float *)(*desc_blob).data());
-      if (output_vcl_timing) {
-        set->timers.print_map_runtimes();
-      }
-      set->timers.clear_all_timers();
     }
   }
 }

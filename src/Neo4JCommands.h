@@ -31,15 +31,20 @@
 
 #pragma once
 
+#include <jsoncpp/json/value.h>
+
+#include "DescriptorsManager.h"
 #include "queryMessage.pb.h"
+#include "tbb/concurrent_unordered_map.h"
 #include "vcl/Image.h"
 #include "vcl/VCL.h"
-#include <jsoncpp/json/value.h>
 
 namespace VDMS {
 
+typedef std::pair<std::vector<long>, std::vector<float>> IDDistancePair;
+
 class Neo4jCommand {
-protected:
+ protected:
   const std::string _cmd_name;
   std::map<std::string, int> _valid_params_map;
 
@@ -50,7 +55,7 @@ protected:
   virtual Json::Value check_responses(Json::Value &responses);
   bool _use_aws_storage;
 
-public:
+ public:
   enum ErrorCode {
     Success = 0,
     Error = -1,
@@ -77,7 +82,7 @@ class Neo4jNeoAdd : public Neo4jCommand {
   std::string _storage_jpg;
   std::string _storage_bin;
 
-public:
+ public:
   Neo4jNeoAdd();
   bool need_blob(const Json::Value &cmd);
   int data_processing(std::string &tx, const Json::Value &root,
@@ -89,8 +94,7 @@ public:
 };
 
 class Neo4jNeoFind : public Neo4jCommand {
-
-public:
+ public:
   Neo4jNeoFind();
   bool need_blob(const Json::Value &cmd) { return false; }
   int data_processing(std::string &tx, const Json::Value &root,
@@ -101,4 +105,124 @@ public:
                                   const std::string &blob);
 };
 
-} // namespace VDMS
+class NeoDescriptorsCommand : public Neo4jCommand {
+ protected:
+  DescriptorsManager *_dm;
+  VCL::DescriptorSetEngine _eng;
+  bool output_vcl_timing;
+
+  // IDDistancePair is a pointer so that we can free its content
+  // without having to use erase methods, which are not lock free
+  // for this data structure in tbb
+  tbb::concurrent_unordered_map<long, IDDistancePair *> _cache_map;
+
+  static tbb::concurrent_unordered_map<std::string, std::string>
+      _desc_set_locator;
+  static tbb::concurrent_unordered_map<std::string, int> _desc_set_dims;
+
+  // Will return the path to the set and the dimensions
+  std::string get_set_path(const std::string &set, int &dim);
+
+  void add_vec_id_idx(const std::string &setname);
+
+  bool check_blob_size(const std::string &blob, const int dimensions,
+                       const long n_desc);
+
+ public:
+  NeoDescriptorsCommand(const std::string &cmd_name);
+
+  virtual bool need_blob(const Json::Value &cmd) { return false; }
+
+  int data_processing(std::string &tx, const Json::Value &root,
+                      const std::string &blob, int grp_id,
+                      Json::Value &error) = 0;
+
+  virtual Json::Value construct_responses(Json::Value &json_responses,
+                                          const Json::Value &json,
+                                          protobufs::queryMessage &response,
+                                          const std::string &blob) = 0;
+};
+
+class Neo4jNeoAddDescSet : public NeoDescriptorsCommand {
+  std::string _storage_sets;
+  uint64_t _flinng_num_rows;
+  uint64_t _flinng_cells_per_row;
+  uint64_t _flinng_num_hash_tables;
+  uint64_t _flinng_hashes_per_table;
+  uint64_t _flinng_sub_hash_bits;  // sub_hash_bits * hashes_per_table must be
+  // less than 32, otherwise segfault will happen
+  uint64_t _flinng_cut_off;
+  uint64_t _ivf_nlist;            // Nlist for IVF Index
+  uint64_t _hnsw_efsearch;        // Efsearch for the search width of hnsw
+  uint64_t _hnsw_efConstruction;  // Efconstruction for the width of hnsw build
+  uint64_t _hnsw_M;               // typically Efconstruction=2*M
+
+ public:
+  Neo4jNeoAddDescSet();
+  bool need_blob(const Json::Value &cmd) { return false; };
+  int data_processing(std::string &tx, const Json::Value &root,
+                      const std::string &blob, int grp_id, Json::Value &error);
+  Json::Value construct_responses(Json::Value &json_responses,
+                                  const Json::Value &json,
+                                  protobufs::queryMessage &response,
+                                  const std::string &blob);
+};
+
+class Neo4jNeoFindDescSet : public NeoDescriptorsCommand {
+  std::string _storage_sets;
+
+ public:
+  Neo4jNeoFindDescSet();
+  bool need_blob(const Json::Value &cmd) { return false; };
+  int data_processing(std::string &tx, const Json::Value &root,
+                      const std::string &blob, int grp_id, Json::Value &error);
+  Json::Value construct_responses(Json::Value &json_responses,
+                                  const Json::Value &json,
+                                  protobufs::queryMessage &response,
+                                  const std::string &blob);
+};
+
+class Neo4jNeoAddDesc : public NeoDescriptorsCommand {
+  int add_single_descriptor(std::string &tx, const Json::Value &root,
+                            const std::string &blob, int grp_id,
+                            Json::Value &error);
+
+  int add_descriptor_batch(std::string &tx, const Json::Value &root,
+                           const std::string &blob, int grp_id,
+                           Json::Value &error);
+
+  long insert_descriptor(const std::string &blob, const std::string &set_path,
+                         int nr_desc, const std::string &label,
+                         Json::Value &error);
+
+ public:
+  Neo4jNeoAddDesc();
+  bool need_blob(const Json::Value &cmd) { return true; };
+  int data_processing(std::string &tx, const Json::Value &root,
+                      const std::string &blob, int grp_id, Json::Value &error);
+  Json::Value construct_responses(Json::Value &json_responses,
+                                  const Json::Value &json,
+                                  protobufs::queryMessage &response,
+                                  const std::string &blob);
+};
+
+class Neo4jNeoFindDesc : public NeoDescriptorsCommand {
+ private:
+  void convert_properties(Json::Value &entities, Json::Value &list,
+                          std::string set_name);
+  void populate_blobs(const std::string &set_path, std::string set_name,
+                      const Json::Value &results, Json::Value &entities,
+                      protobufs::queryMessage &query_res);
+
+ public:
+  Neo4jNeoFindDesc();
+  bool need_blob(const Json::Value &cmd);
+  int data_processing(std::string &tx, const Json::Value &root,
+                      const std::string &blob, int grp_id, Json::Value &error);
+  Json::Value construct_responses(Json::Value &json_responses,
+                                  const Json::Value &json,
+                                  protobufs::queryMessage &response,
+                                  const std::string &blob);
+};
+
+}  // namespace VDMS

@@ -30,16 +30,16 @@
  */
 
 #pragma once
+#include <jsoncpp/json/json.h>
+#include <jsoncpp/json/value.h>
+
 #include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include <jsoncpp/json/json.h>
-#include <jsoncpp/json/value.h>
-
 #include "DescriptorsManager.h"
-#include "QueryHandlerPMGD.h" // to provide the database connection
+#include "QueryHandlerPMGD.h"  // to provide the database connection
 #include "tbb/concurrent_unordered_map.h"
 
 namespace VDMS {
@@ -48,7 +48,7 @@ typedef std::pair<std::vector<long>, std::vector<float>> IDDistancePair;
 
 // This class encapsulates common behavior of Descriptors-related cmds.
 class DescriptorsCommand : public RSCommand {
-protected:
+ protected:
   DescriptorsManager *_dm;
   VCL::DescriptorSetEngine _eng;
   bool output_vcl_timing;
@@ -69,7 +69,7 @@ protected:
   bool check_blob_size(const std::string &blob, const int dimensions,
                        const long n_desc);
 
-public:
+ public:
   DescriptorsCommand(const std::string &cmd_name);
 
   virtual bool need_blob(const Json::Value &cmd) { return false; }
@@ -87,7 +87,7 @@ public:
 class FindDescriptorSet : public DescriptorsCommand {
   std::string _storage_sets;
 
-public:
+ public:
   FindDescriptorSet();
   int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
                          const std::string &blob, int grp_id,
@@ -106,12 +106,16 @@ class AddDescriptorSet : public DescriptorsCommand {
   uint64_t _flinng_num_hash_tables;
   uint64_t _flinng_hashes_per_table;
   uint64_t
-      _flinng_sub_hash_bits; // sub_hash_bits * hashes_per_table must be
-                             // less than 32, otherwise segfault will happen
+      _flinng_sub_hash_bits;  // sub_hash_bits * hashes_per_table must be
+                              // less than 32, otherwise segfault will happen
   uint64_t _flinng_cut_off;
-  // bool _use_aws_storage;
+  uint64_t _ivf_nlist;            // Nlist for IVF Index
+  uint64_t _hnsw_efsearch;        // Efsearch for the search width of hnsw
+  uint64_t _hnsw_efConstruction;  // Efconstruction for the width of hnsw build
+  uint64_t _hnsw_M;               // typically Efconstruction=2*M
 
-public:
+  // bool _use_aws_storage;
+ public:
   AddDescriptorSet();
 
   int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
@@ -140,7 +144,7 @@ class AddDescriptor : public DescriptorsCommand {
                            const std::string &blob, int grp_id,
                            Json::Value &error);
 
-public:
+ public:
   AddDescriptor();
 
   int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
@@ -156,8 +160,7 @@ public:
 };
 
 class ClassifyDescriptor : public DescriptorsCommand {
-
-public:
+ public:
   ClassifyDescriptor();
 
   int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
@@ -173,15 +176,14 @@ public:
 };
 
 class FindDescriptor : public DescriptorsCommand {
-
-private:
+ private:
   void convert_properties(Json::Value &entities, Json::Value &list,
                           std::string set_name);
   void populate_blobs(const std::string &set_path, std::string set_name,
                       const Json::Value &results, Json::Value &entities,
                       protobufs::queryMessage &query_res);
 
-public:
+ public:
   FindDescriptor();
 
   int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
@@ -195,4 +197,4 @@ public:
                                   protobufs::queryMessage &response,
                                   const std::string &blob);
 };
-} // namespace VDMS
+}  // namespace VDMS

@@ -24,15 +24,7 @@
 # THE SOFTWARE.
 #
 
-from threading import Thread
-import sys
-import os
-import urllib
-import time
-import json
 import unittest
-import numpy as np
-import vdms
 
 if __name__ == "__main__":
     unittest.main()

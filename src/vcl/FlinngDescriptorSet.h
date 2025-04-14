@@ -34,28 +34,28 @@
 
 #pragma once
 
+#include <stdlib.h>
+
 #include <map>
 #include <mutex>
-#include <stdlib.h>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "DescriptorSetData.h"
-//#include "../../../FLINNG/include/lib_flinng.h" //todo update make files for
-// flinng lib include directory
+// #include "../../../FLINNG/include/lib_flinng.h" //todo update make files for
+//  flinng lib include directory
 #include "DescriptorParams.h"
 #include "lib_flinng.h"
 
 namespace VCL {
 
 class FlinngDescriptorSet : public DescriptorSet::DescriptorSetData {
-
-protected:
+ protected:
   std::string _flinng_file;
   bool is_finalized;
 
-  flinng::BaseDenseFlinng32 *_index; // FLinng have a base class by this name
+  flinng::BaseDenseFlinng32 *_index;  // FLinng have a base class by this name
   // depending on metric to be used will point to the right index
   flinng::FlinngBuilder *_builder;
 
@@ -69,7 +69,7 @@ protected:
   void getFlinngParams(VCL::DescriptorParams *par,
                        flinng::FlinngBuilder *builder);
 
-public:
+ public:
   FlinngDescriptorSet(const std::string &set_path);
   FlinngDescriptorSet(const std::string &set_path, unsigned dim,
                       DistanceMetric metric, VCL::DescriptorParams *par = NULL);
@@ -104,4 +104,4 @@ public:
   void store();
   void store(std::string set_path);
 };
-}; // namespace VCL
+};  // namespace VCL

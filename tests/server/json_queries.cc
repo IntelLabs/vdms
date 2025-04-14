@@ -27,6 +27,7 @@
  *
  */
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <mutex>
@@ -46,6 +47,8 @@
 using namespace VDMS;
 using namespace PMGD;
 using namespace std;
+
+const std::string TMP_DIRNAME = "/tmp/tests_output_dir/";
 
 std::string singleAddImage(" \
         { \
@@ -75,16 +78,34 @@ std::string singleAddImage_SameFormat(" \
         } \
     ");
 
+void _pmgd_generate_desc_linear_increase(int d, int nb, float *xb, float init) {
+    float val = init;
+    for (int i = 1; i <= nb * d; ++i) {
+        xb[i - 1] = val;
+        if (i % d == 0)
+            val++;
+    }
+}
+
+//num of dimensions
+//number of unique descriptors
+//initial value (generally hand in zero)
+float *pmgd_generate_desc_linear_increase(int d, int nb, float init) {
+    float *xb = new float[d * nb];
+    _pmgd_generate_desc_linear_increase(d, nb, xb, init);
+    return xb;
+}
+
 TEST(AutoReplicate, default_replicate) {
 
   std::string path = "server/config-auto-replicate-tests.json";
-  std::cout << path << std::endl;
+
   VDMSConfig::init(path);
   PMGDQueryHandler::init();
   QueryHandlerPMGD::init();
 
   ReplicationConfig replication_test;
-  replication_test.backup_path = "backups";
+  replication_test.backup_path = TMP_DIRNAME + "backups";
   replication_test.db_path = "db_backup";
   replication_test.autoreplicate_interval = 5;
   replication_test.autoreplication_unit = "s";
@@ -94,6 +115,9 @@ TEST(AutoReplicate, default_replicate) {
   qh_base.regular_run_autoreplicate(
       replication_test); // set flag to show autodelete queue has been
                          // initialized
+
+  PMGDQueryHandler::destroy();
+  VDMSConfig::destroy();
 }
 
 TEST(ExampleHandler, simplePing) {
@@ -121,6 +145,8 @@ TEST(ExampleHandler, simplePing) {
   Json::Value json_response;
   json_reader.parse(response.json(), json_response);
 
+  PMGDQueryHandler::destroy();
+  VDMSConfig::destroy();
   EXPECT_EQ(json_response[0]["HiThere"].asString(), "Hello, world!");
 }
 
@@ -160,8 +186,11 @@ TEST(AddImage, simpleAdd) {
   json_reader.parse(response.json(), json_response);
 
   EXPECT_EQ(json_response[0]["AddImage"]["status"].asString(), "0");
-  VDMSConfig::destroy();
+
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(UpdateEntity, simpleAddUpdate) {
@@ -201,7 +230,6 @@ TEST(UpdateEntity, simpleAddUpdate) {
   query_handler.pq(proto_query, response);
 
   reader.parse(response.json().c_str(), parsed);
-  // std::cout << writer.write(parsed) << std::endl;
 
   // Verify results returned.
   for (int j = 0; j < parsed.size(); j++) {
@@ -218,8 +246,10 @@ TEST(UpdateEntity, simpleAddUpdate) {
     }
   }
 
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(AddImage, simpleAddx10) {
@@ -265,14 +295,15 @@ TEST(AddImage, simpleAddx10) {
   Json::Reader json_reader;
   Json::Value json_response;
 
-  // std::cout << response.json() << std::endl;
   json_reader.parse(response.json(), json_response);
 
   for (int i = 0; i < total_images; ++i) {
     EXPECT_EQ(json_response[i]["AddImage"]["status"].asString(), "0");
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
 TEST(AddImage, simpleAddSameFormat) {
@@ -323,11 +354,13 @@ TEST(AddImage, simpleAddSameFormat) {
   for (int i = 0; i < total_images; ++i) {
     EXPECT_EQ(json_response[i]["AddImage"]["status"].asString(), "0");
   }
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
-TEST(QueryHandler, AddAndFind) {
+TEST(PMGDQueryHandler, AddAndFind) {
   Json::StyledWriter writer;
 
   std::ifstream ifile;
@@ -410,7 +443,6 @@ TEST(QueryHandler, AddAndFind) {
   query_handler.pq(proto_query, response);
 
   reader.parse(response.json().c_str(), parsed);
-  // std::cout << writer.write(parsed) << std::endl;
 
   for (int j = 0; j < parsed.size(); j++) {
     const Json::Value &query = parsed[j];
@@ -478,11 +510,13 @@ TEST(QueryHandler, AddAndFind) {
   EXPECT_EQ(average_found_before, average_found_after);
   EXPECT_EQ(sum_found_before, sum_found_after);
   EXPECT_EQ(count_found_before, count_found_after);
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
-TEST(QueryHandler, EmptyResultCheck) {
+TEST(PMGDQueryHandler, EmptyResultCheck) {
   Json::Reader reader;
   Json::StyledWriter writer;
 
@@ -533,11 +567,13 @@ TEST(QueryHandler, EmptyResultCheck) {
     }
   }
 
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
-TEST(QueryHandler, DataTypeChecks) {
+TEST(PMGDQueryHandler, DataTypeChecks) {
   Json::Reader reader;
   Json::StyledWriter writer;
 
@@ -572,7 +608,6 @@ TEST(QueryHandler, DataTypeChecks) {
   Json::Value parsed;
   reader.parse(response.json().c_str(), parsed);
 
-  // std::cout << writer.write(parsed) << std::endl;
   const Json::Value &query = parsed[3];
   EXPECT_EQ(query["FindEntity"]["entities"][0]["Birthday"].asString(),
             "1936-10-01T17:59:24.001-07:00");
@@ -581,16 +616,59 @@ TEST(QueryHandler, DataTypeChecks) {
   EXPECT_EQ(query["FindEntity"]["entities"][1]["Birthday"].asString(),
             "1946-10-01T17:49:24.009010-07:00");
 
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
 
-TEST(QueryHandler, AutoDeleteNode) {
+
+TEST(PMGDQueryHandler, AutoDeleteNode) {
+
   Json::Reader reader;
+  Json::StyledWriter writer;
 
   std::ifstream ifile;
+
   int fsize;
   char *inBuf;
+  ifile.open("server/DataTypeChecks.json", std::ifstream::in);
+  ifile.seekg(0, std::ios::end);
+  fsize = (int)ifile.tellg();
+  ifile.seekg(0, std::ios::beg);
+  inBuf = new char[fsize];
+  ifile.read(inBuf, fsize);
+  std::string json_query = std::string(inBuf);
+  ifile.close();
+  delete[] inBuf;
+  inBuf = nullptr;
+
+  VDMSConfig::init("server/config-datatype-tests.json");
+  PMGDQueryHandler::init();
+  QueryHandlerPMGD::init();
+
+  QueryHandlerPMGD qh_base;
+  qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has
+                                        // been initialized
+  QueryHandlerPMGDTester query_handler(qh_base);
+
+  VDMS::protobufs::queryMessage proto_query;
+  proto_query.set_json(json_query);
+  VDMS::protobufs::queryMessage response;
+
+  query_handler.pq(proto_query, response);
+
+  Json::Value parsed;
+  reader.parse(response.json().c_str(), parsed);
+
+  const Json::Value &query = parsed[3];
+  EXPECT_EQ(query["FindEntity"]["entities"][0]["Birthday"].asString(),
+            "1936-10-01T17:59:24.001-07:00");
+  EXPECT_EQ(query["FindEntity"]["entities"][0]["timestamp"].asInt64(),
+            1544069566053);
+  EXPECT_EQ(query["FindEntity"]["entities"][1]["Birthday"].asString(),
+            "1946-10-01T17:49:24.009010-07:00");
+
   ifile.open("server/AutoDeleteNodeInit.json", std::ifstream::in);
   ifile.seekg(0, std::ios::end);
   fsize = (int)ifile.tellg();
@@ -600,6 +678,7 @@ TEST(QueryHandler, AutoDeleteNode) {
   std::string json_query_init = std::string(inBuf);
   ifile.close();
   delete[] inBuf;
+  inBuf = nullptr;
 
   ifile.open("server/AutoDeleteNodeTest.json", std::ifstream::in);
   ifile.seekg(0, std::ios::end);
@@ -610,6 +689,7 @@ TEST(QueryHandler, AutoDeleteNode) {
   std::string json_query_test = std::string(inBuf);
   ifile.close();
   delete[] inBuf;
+  inBuf = nullptr;
 
   std::string image;
   std::ifstream image_file("test_images/brain.png",
@@ -631,14 +711,8 @@ TEST(QueryHandler, AutoDeleteNode) {
   if (!video_file.read(&video[0], video.size()))
     std::cout << "error" << std::endl;
 
-  VDMSConfig::init("server/config-datatype-tests.json");
-  PMGDQueryHandler::init();
-  QueryHandlerPMGD::init();
-
-  QueryHandlerPMGD qh_base;
   qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has
                                         // been initialized
-  QueryHandlerPMGDTester query_handler(qh_base);
 
   VDMS::protobufs::queryMessage proto_query_init;
   proto_query_init.set_json(json_query_init);
@@ -666,7 +740,7 @@ TEST(QueryHandler, AutoDeleteNode) {
   proto_query_test.set_json(json_query_test);
   VDMS::protobufs::queryMessage response_test;
   query_handler.pq(proto_query_test, response_test);
-  Json::Value parsed;
+
   reader.parse(response_test.json().c_str(), parsed);
 
   const Json::Value &query_1 = parsed[0];
@@ -678,58 +752,12 @@ TEST(QueryHandler, AutoDeleteNode) {
   const Json::Value &query_3 = parsed[2];
   EXPECT_EQ(query_3["FindVideo"]["returned"], 1);
   EXPECT_EQ(query_3["FindVideo"]["status"], 0);
+
   PMGDQueryHandler::destroy();
   VDMSConfig::destroy();
 }
 
-TEST(QueryHandler, CustomFunctionNoProcess) {
-  Json::Reader reader;
-  std::ifstream ifile;
-  int fsize;
-  char *inBuf;
-  ifile.open("server/CustomFunctionNoProcess.json", std::ifstream::in);
-  ifile.seekg(0, std::ios::end);
-  fsize = (int)ifile.tellg();
-  ifile.seekg(0, std::ios::beg);
-  inBuf = new char[fsize];
-  ifile.read(inBuf, fsize);
-  std::string json_query = std::string(inBuf);
-  ifile.close();
-  delete[] inBuf;
-  std::string image;
-  std::ifstream image_file("test_images/brain.png",
-                           std::ios::in | std::ios::binary | std::ios::ate);
-
-  image.resize(image_file.tellg());
-
-  image_file.seekg(0, std::ios::beg);
-  if (!image_file.read(&image[0], image.size()))
-    std::cout << "error" << std::endl;
-
-  VDMSConfig::init("server/config-datatype-tests.json");
-  PMGDQueryHandler::init();
-  QueryHandlerPMGD::init();
-
-  QueryHandlerPMGD qh_base;
-  qh_base.reset_autodelete_init_flag(); // set flag to show autodelete queue has
-                                        // been initialized
-  QueryHandlerPMGDTester query_handler(qh_base);
-  VDMS::protobufs::queryMessage proto_query;
-  proto_query.set_json(json_query);
-  proto_query.add_blobs(image);
-  VDMS::protobufs::queryMessage response;
-  query_handler.pq(proto_query, response);
-  Json::Value parsed;
-
-  reader.parse(response.json().c_str(), parsed);
-  const Json::Value &query = parsed[0];
-  EXPECT_EQ(query["info"], "custom function process not found");
-  EXPECT_EQ(query["status"], -1);
-  VDMSConfig::destroy();
-  PMGDQueryHandler::destroy();
-}
-
-TEST(QueryHandler, AddUpdateFind_Blob) {
+TEST(PMGDQueryHandler, AddUpdateFind_Blob) {
 
   Json::StyledWriter writer;
 
@@ -778,7 +806,6 @@ TEST(QueryHandler, AddUpdateFind_Blob) {
   query_handler.pq(proto_query, response);
 
   reader.parse(response.json().c_str(), parsed);
-  // std::cout << writer.write(parsed) << std::endl;
 
   // Verify results returned.
   for (int j = 0; j < parsed.size(); j++) {
@@ -788,10 +815,14 @@ TEST(QueryHandler, AddUpdateFind_Blob) {
     EXPECT_EQ(query[cmd]["status"].asInt(), 0);
   }
 
-  VDMSConfig::destroy();
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
-TEST(QueryHandler, AddFind_DescriptorSet) {
+TEST(PMGDQueryHandler, AddFind_DescriptorSet) {
+
+  filesystem::remove_all("test_db_1");
 
   Json::StyledWriter writer;
 
@@ -829,7 +860,6 @@ TEST(QueryHandler, AddFind_DescriptorSet) {
   query_handler.pq(proto_query, response);
 
   reader.parse(response.json().c_str(), parsed);
-  // std::cout << writer.write(parsed) << std::endl;
 
   // Verify results returned.
   for (int j = 0; j < parsed.size(); j++) {
@@ -839,6 +869,293 @@ TEST(QueryHandler, AddFind_DescriptorSet) {
     EXPECT_EQ(query[cmd]["status"].asInt(), 0);
   }
 
-  VDMSConfig::destroy();
+  filesystem::remove_all("test_db_1");
+
   PMGDQueryHandler::destroy();
+  std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+  std::filesystem::remove_all(dbname.c_str());
+  VDMSConfig::destroy();
 }
+
+TEST(PMGDQueryHandler, AddFind_Descriptor) {
+
+Json::FastWriter fastWriter;
+
+
+Json::Value add_set_q;
+Json::Value add_set_trans;
+
+Json::Value find_desc_q;
+Json::Value find_desc_trans;
+Json::Value find_desc_constraints;
+Json::Value constraints_vals;
+
+Json::Value add_desc_q;
+Json::Value add_desc_trans;
+Json::Value add_desc_props;
+float *vec_val;
+int dims;
+int nr_vecs;
+
+Json::Value results;
+Json::Value results_list;
+
+//Add Descriptor Set Query
+dims = 128;
+add_set_q["engine"] = "FaissFlat";
+add_set_q["metric"] = "L2";
+add_set_q["name"] = "test_set_standalone";
+add_set_q["dimensions"] = dims;
+add_set_trans["AddDescriptorSet"] = add_set_q;
+
+std::string add_set_str = fastWriter.write(add_set_trans);
+std::string final_add_set_str = "[" + add_set_str + "]";
+//Add Descriptor Query
+nr_vecs = 1;
+vec_val = pmgd_generate_desc_linear_increase(dims, nr_vecs,0);
+
+std::string vec_bytes_str;
+vec_bytes_str.resize(nr_vecs * dims *sizeof(float));
+std::memcpy((void *)vec_bytes_str.data(), vec_val,
+        nr_vecs * sizeof(float) * dims);
+
+add_desc_props["prop_1"] = 10;
+add_desc_props["prop_2"] = "str_prop";
+
+add_desc_q["set"] = "test_set_standalone";
+add_desc_q["properties"] = add_desc_props;
+add_desc_trans["AddDescriptor"] = add_desc_q;
+
+std::string add_desc_str = fastWriter.write(add_desc_trans);
+std::string final_add_desc_str = "[" + add_desc_str + "]";
+//Find Descriptor Query
+results_list["list"].append("prop_1");
+results_list["list"].append("prop_2");
+
+constraints_vals.append("==");
+constraints_vals.append(10);
+
+find_desc_constraints["prop_1"] = constraints_vals;
+
+find_desc_q["set"] = "test_set_standalone";
+find_desc_q["constraints"] = find_desc_constraints;
+find_desc_q["results"] = results_list;
+find_desc_trans["FindDescriptor"] = find_desc_q;
+
+std::string find_desc_str = fastWriter.write(find_desc_trans);
+std::string final_find_desc_str = "[" + find_desc_str + "]";
+//State initialization
+Json::Reader reader;
+Json::Value root;
+Json::Value parsed;
+Json::Value parsed_addset;
+Json::Value parsed_finddesc;
+
+VDMS::VDMSConfig::init("unit_tests/config-tests.json");
+VDMS::PMGDQueryHandler::init();
+VDMS::QueryHandlerPMGD::init();
+VDMS::QueryHandlerPMGD qh_base;
+VDMS::QueryHandlerPMGDTester query_handler(qh_base);
+
+VDMS::protobufs::queryMessage proto_query_add_set;
+VDMS::protobufs::queryMessage proto_query_add_desc;
+VDMS::protobufs::queryMessage proto_query_find_desc;
+VDMS::protobufs::queryMessage addset_response;
+VDMS::protobufs::queryMessage adddesc_response;
+VDMS::protobufs::queryMessage finddesc_response;
+
+//Adding and verifying set was created correctly
+//Issue AddSet Query
+Json::Value resp_obj_addset;
+Json::Value status_obj_addset;
+
+proto_query_add_set.set_json(final_add_set_str);
+query_handler.pq(proto_query_add_set, addset_response);
+reader.parse(addset_response.json().c_str(), parsed);
+resp_obj_addset = parsed[0];
+status_obj_addset = resp_obj_addset["AddDescriptorSet"];
+ASSERT_EQ(status_obj_addset["status"], 0);
+
+// Adding a descriptor
+Json::Value resp_obj_adddesc;
+Json::Value status_obj_adddesc;
+
+proto_query_add_desc.add_blobs(vec_bytes_str);
+proto_query_add_desc.set_json(final_add_desc_str);
+
+query_handler.pq(proto_query_add_desc, adddesc_response);
+
+reader.parse(adddesc_response.json().c_str(), parsed);
+resp_obj_adddesc = parsed[0];
+
+//Finding a descriptor
+Json::Value resp_obj_finddesc;
+Json::Value status_obj_finddesc;
+proto_query_find_desc.set_json(final_find_desc_str);
+//proto_query_find_desc.add_blobs(vec_val);
+query_handler.pq(proto_query_find_desc, finddesc_response);
+
+reader.parse(finddesc_response.json().c_str(), parsed);
+resp_obj_adddesc = parsed[0];
+
+Json::Value find_desc_base = resp_obj_adddesc["FindDescriptor"];
+Json::Value find_desc_entities = find_desc_base["entities"];
+Json::Value ind_entity = find_desc_entities[0];
+ASSERT_EQ(ind_entity["prop_1"], 10);
+
+}
+
+TEST(PMGDQueryHandler, AddFind_DescriptorBatch_KNN) {
+
+Json::FastWriter fastWriter;
+
+Json::Value add_set_q;
+Json::Value add_set_trans;
+
+Json::Value find_desc_q;
+Json::Value find_desc_trans;
+Json::Value find_desc_constraints;
+Json::Value constraints_vals;
+
+Json::Value add_desc_q;
+Json::Value add_desc_trans;
+Json::Value add_desc_props_1;
+Json::Value add_desc_props_2;
+Json::Value add_desc_props_3;
+
+float *vec_val;
+int dims;
+int nr_vecs;
+
+Json::Value results;
+Json::Value results_list;
+
+//Add Descriptor Set Query
+dims = 128;
+add_set_q["engine"] = "FaissFlat";
+add_set_q["metric"] = "L2";
+add_set_q["name"] = "test_set_batch_knn";
+add_set_q["dimensions"] = dims;
+add_set_trans["AddDescriptorSet"] = add_set_q;
+
+std::string add_set_str = fastWriter.write(add_set_trans);
+std::string final_add_set_str = "[" + add_set_str + "]";
+
+//Add Descriptor Batch Query
+Json::Value props_list;
+nr_vecs = 3;
+vec_val = pmgd_generate_desc_linear_increase(dims, nr_vecs,0);
+
+std::string vec_bytes_str;
+vec_bytes_str.resize(nr_vecs * dims *sizeof(float));
+std::memcpy((void *)vec_bytes_str.data(), vec_val,
+        nr_vecs * sizeof(float) * dims);
+
+add_desc_props_1["prop_1"] = 10;
+add_desc_props_1["prop_2"] = "str_prop_1";
+
+add_desc_props_2["prop_1"] = 20;
+add_desc_props_2["prop_2"] = "str_prop_2";
+
+add_desc_props_3["prop_1"] = 30;
+add_desc_props_3["prop_2"] = "str_prop_3";
+
+props_list.append(add_desc_props_1);
+props_list.append(add_desc_props_2);
+props_list.append(add_desc_props_3);
+
+
+add_desc_q["set"] = "test_set_batch_knn";
+add_desc_q["batch_properties"] = props_list;
+add_desc_trans["AddDescriptor"] = add_desc_q;
+
+std::string add_desc_str = fastWriter.write(add_desc_trans);
+std::string final_add_desc_str = "[" + add_desc_str + "]";
+
+//Find Descriptor Query + KNN
+results_list["list"].append("prop_1");
+results_list["list"].append("prop_2");
+
+constraints_vals.append("==");
+constraints_vals.append(10);
+
+find_desc_q["set"] = "test_set_batch_knn";
+find_desc_q["results"] = results_list;
+find_desc_q["k_neighbors"] = 2;
+find_desc_trans["FindDescriptor"] = find_desc_q;
+
+std::string find_desc_str = fastWriter.write(find_desc_trans);
+std::string final_find_desc_str = "[" + find_desc_str + "]";
+
+//State initialization
+Json::Reader reader;
+Json::Value root;
+Json::Value parsed;
+Json::Value parsed_addset;
+Json::Value parsed_finddesc;
+
+VDMS::VDMSConfig::init("unit_tests/config-tests.json");
+VDMS::PMGDQueryHandler::init();
+VDMS::QueryHandlerPMGD::init();
+VDMS::QueryHandlerPMGD qh_base;
+VDMS::QueryHandlerPMGDTester query_handler(qh_base);
+
+
+VDMS::protobufs::queryMessage proto_query_add_set;
+VDMS::protobufs::queryMessage proto_query_add_desc;
+VDMS::protobufs::queryMessage proto_query_find_desc;
+VDMS::protobufs::queryMessage addset_response;
+VDMS::protobufs::queryMessage adddesc_response;
+VDMS::protobufs::queryMessage finddesc_response;
+
+//Adding and verifying set was created correctly
+//Issue AddSet Query
+Json::Value resp_obj_addset;
+Json::Value status_obj_addset;
+proto_query_add_set.set_json(final_add_set_str);
+query_handler.pq(proto_query_add_set, addset_response);
+
+reader.parse(addset_response.json().c_str(), parsed);
+resp_obj_addset = parsed[0];
+status_obj_addset = resp_obj_addset["AddDescriptorSet"];
+ASSERT_EQ(status_obj_addset["status"], 0);
+
+// Adding a descriptor
+Json::Value resp_obj_adddesc;
+Json::Value status_obj_adddesc;
+
+proto_query_add_desc.add_blobs(vec_bytes_str);
+proto_query_add_desc.set_json(final_add_desc_str);
+
+query_handler.pq(proto_query_add_desc, adddesc_response);
+
+reader.parse(adddesc_response.json().c_str(), parsed);
+resp_obj_adddesc = parsed[0];
+
+//Finding a descriptor
+Json::Value resp_obj_finddesc;
+Json::Value status_obj_finddesc;
+
+vec_val = pmgd_generate_desc_linear_increase(dims, 1,0);
+
+vec_bytes_str.resize(dims *sizeof(float));
+std::memcpy((void *)vec_bytes_str.data(), vec_val,
+128 * sizeof(float));
+
+proto_query_find_desc.set_json(final_find_desc_str);
+proto_query_find_desc.add_blobs(vec_bytes_str);
+query_handler.pq(proto_query_find_desc, finddesc_response);
+
+reader.parse(finddesc_response.json().c_str(), parsed);
+resp_obj_adddesc = parsed[0];
+
+Json::Value find_desc_base = resp_obj_adddesc["FindDescriptor"];
+Json::Value find_desc_entities = find_desc_base["entities"];
+int nr_entities = find_desc_entities.size();
+Json::Value ind_entity = find_desc_entities[1];
+ASSERT_EQ(ind_entity["prop_1"], 20);
+ASSERT_EQ(nr_entities,2);
+
+}
+
+

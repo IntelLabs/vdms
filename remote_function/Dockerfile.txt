@@ -1,0 +1,9 @@
+FROM python:3.10
+RUN /bin/bash -c "python3 -m venv venv"
+RUN /bin/bash -c "source venv/bin/activate"
+WORKDIR /remoteUDF
+COPY . .
+RUN /bin/bash -c "python3 -m pip install pip --upgrade"
+RUN pip install -r requirements.txt
+
+CMD ["python3","udf_server.py","5030"]

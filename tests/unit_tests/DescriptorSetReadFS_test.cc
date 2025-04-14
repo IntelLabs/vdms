@@ -41,6 +41,8 @@
 #include "vcl/VCL.h"
 #include "gtest/gtest.h"
 
+const std::string TMP_DIRNAME = "/tmp/tests_output_dir/";
+
 TEST(Descriptors_ReadFS, read_and_search_10k) {
   int nb = 10000;
   auto dimensions_list = get_dimensions_list();
@@ -51,11 +53,12 @@ TEST(Descriptors_ReadFS, read_and_search_10k) {
 
     for (auto eng : get_engines()) {
 
-      std::string index_filename = "dbs/read_and_search_10k" +
+      std::string index_filename = TMP_DIRNAME + "dbs/read_and_search_10k" +
                                    std::to_string(d) + "_" +
                                    std::to_string(eng);
       {
-        VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+        VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
+        VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
         index.add(xb, nb);
         index.store();
       }
@@ -92,13 +95,14 @@ TEST(Descriptors_ReadFS, read_and_classify_10k) {
     float *xb = generate_desc_linear_increase(d, nb);
 
     for (auto eng : get_engines()) {
-      std::string index_filename = "dbs/read_and_classify_10k" +
+      std::string index_filename = TMP_DIRNAME + "dbs/read_and_classify_10k" +
                                    std::to_string(d) + "_" +
                                    std::to_string(eng);
       int offset = 10;
 
       {
-        VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+        VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
+        VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
 
         std::vector<long> classes = classes_increasing_offset(nb, offset);
 
@@ -113,7 +117,6 @@ TEST(Descriptors_ReadFS, read_and_classify_10k) {
       int exp = 0;
       int i = 0;
       for (auto &id : ret_ids) {
-        // printf("%ld - %ld \n", id, exp);
         EXPECT_EQ(id, exp);
         if (++i % offset == 0)
           ++exp;

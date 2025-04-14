@@ -1,9 +1,4 @@
 import cv2
-import numpy as np
-from datetime import datetime
-from collections import deque
-import skvideo.io
-import imutils
 import time
 
 
@@ -13,17 +8,22 @@ def run(settings, message, input_params):
 
     t1 = time.time()
     opfilename = settings["opfile"] + str(t1) + "." + format
-    print(opfilename)
-    vs = cv2.VideoCapture(ipfilename)
+    vc = cv2.VideoCapture(ipfilename)
+    frame_width = int(vc.get(cv2.CAP_PROP_FRAME_WIDTH))
+    frame_height = int(vc.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    video_fps = vc.get(cv2.CAP_PROP_FPS)
 
-    video = skvideo.io.FFmpegWriter(opfilename, {"-pix_fmt": "bgr24"})
-    i = 0
+    video = cv2.VideoWriter(
+        opfilename,
+        cv2.VideoWriter_fourcc(*"mp4v"),
+        video_fps,
+        (frame_width, frame_height),
+    )
+
     while True:
-        (grabbed, frame) = vs.read()
+        (grabbed, frame) = vc.read()
         if not grabbed:
             print("[INFO] no frame read from stream - exiting")
-            video.close()
-            # sys.exit(0)
             break
 
         label = input_params["text"]
@@ -31,6 +31,8 @@ def run(settings, message, input_params):
             frame, label, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2
         )
 
-        video.writeFrame(frame)
+        video.write(frame)
+    vc.release()
+    video.release()
 
     return opfilename

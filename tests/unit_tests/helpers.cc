@@ -31,6 +31,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <string.h> // memcmp
@@ -173,6 +174,10 @@ void copy_video_to_temp(std::string source_path, std::string dest_path,
   int width = static_cast<int>(inputVideo.get(cv::CAP_PROP_FRAME_WIDTH));
   int height = static_cast<int>(inputVideo.get(cv::CAP_PROP_FRAME_HEIGHT));
 
+  // Videowriter requires the directory exists
+  std::string parent_dir =
+      std::filesystem::path(dest_path.data()).parent_path();
+  std::filesystem::create_directories(parent_dir);
   cv::VideoWriter outputVideo(dest_path, fourcc, _fps, cv::Size(width, height));
 
   while (true) {
@@ -213,6 +218,37 @@ float *generate_desc_linear_increase(int d, int nb, float init) {
   return xb;
 }
 
+// Functions to generate descriptors close in inner product metric
+// for example for d=3, nb=5 and init=1.0f
+// the generated vectors will be
+//  Vector 0: [1.00, 1.00, 1.00]
+//  Vector 1: [1.11, 1.11, 1.11]
+//  Vector 2: [1.23, 1.23, 1.23]
+//  Vector 3: [1.36, 1.36, 1.36]
+//  Vector 4: [1.50, 1.50, 1.50]
+//  in the IP domain, closest vector to descriptor K is (K+1)
+
+void generate_desc_inner_product_increase(int d, int nb, float *xb,
+                                          float init) {
+  float val = init;
+  for (int i = 0; i < nb; ++i) {
+    for (int j = 0; j < d; ++j) {
+      xb[i * d + j] = val;
+    }
+    val += 0.1f + (i * 0.01f); // Increase increment as index increases
+  }
+}
+
+float *generate_desc_inner_product_increase(int d, int nb, float init) {
+  float *xb = new float[d * nb];
+  generate_desc_inner_product_increase(d, nb, xb, init);
+  return xb;
+}
+
+// Functions to create a distribution of descriptors
+//  resulting descriptors are clustered around cluster heads
+//  nearest neighbors when the cluster head is used for query should be
+//  the remaining descriptors within the cluster (with no strict order)
 void generate_desc_normal_cluster(int d, int nb, float *xb, float init,
                                   int cluster_size, float clusterhead_std,
                                   float cluster_std) {

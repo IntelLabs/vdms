@@ -25,6 +25,7 @@
 #
 
 import TestCommand
+from os import path
 
 
 class TestBoundingBox(TestCommand.TestCommand):
@@ -45,7 +46,7 @@ class TestBoundingBox(TestCommand.TestCommand):
         bb["rectangle"] = bb_coords
 
         # adds some prop
-        if not props is None:
+        if props is not None:
             bb["properties"] = props
 
         query = {}
@@ -61,7 +62,7 @@ class TestBoundingBox(TestCommand.TestCommand):
         all_queries = []
         imgs_arr = []
 
-        fd = open("../test_images/brain.png", "rb")
+        fd = open(path.join(self.find_tests_dir(), "test_images/brain.png"), "rb")
         imgs_arr.append(fd.read())
         fd.close()
 
@@ -227,7 +228,7 @@ class TestBoundingBox(TestCommand.TestCommand):
         all_queries = []
         imgs_arr = []
 
-        fd = open("../test_images/brain.png", "rb")
+        fd = open(path.join(self.find_tests_dir(), "test_images/brain.png"), "rb")
         imgs_arr.append(fd.read())
         fd.close()
 
@@ -419,7 +420,6 @@ class TestBoundingBox(TestCommand.TestCommand):
 
         self.assertEqual(len(img_array), self.number_of_inserts)
         for i in range(0, self.number_of_inserts):
-            coord = self.number_of_inserts - i - 1
             self.assertEqual(response[i]["FindBoundingBox"]["status"], 0)
             self.assertEqual(
                 response[i]["FindBoundingBox"]["entities"][0]["name"],

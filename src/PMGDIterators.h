@@ -39,9 +39,10 @@
 
 namespace VDMS {
 
-template <typename T, typename Ti> class PMGDQueryHandler::ReusableIterator {
+template <typename T, typename Ti>
+class PMGDQueryHandler::ReusableIterator {
   // Iterator for the starting nodes.
-  Ti _ti; // Type Iterator
+  Ti _ti;  // Type Iterator
 
   // TODO Is list the best data structure
   // if we could potentially sort?
@@ -55,8 +56,7 @@ template <typename T, typename Ti> class PMGDQueryHandler::ReusableIterator {
   bool _next() {
     if (_it != _traversed.end()) {
       ++_it;
-      if (_it != _traversed.end())
-        return true;
+      if (_it != _traversed.end()) return true;
     }
     if (bool(_ti)) {
       _it = _traversed.insert(_traversed.end(), &static_cast<T &>(*_ti));
@@ -67,8 +67,7 @@ template <typename T, typename Ti> class PMGDQueryHandler::ReusableIterator {
   }
 
   T *ref() {
-    if (!bool(*this))
-      throw PMGDException(NullIterator, "Null impl");
+    if (!bool(*this)) throw PMGDException(NullIterator, "Null impl");
     return *_it;
   }
 
@@ -87,7 +86,7 @@ template <typename T, typename Ti> class PMGDQueryHandler::ReusableIterator {
     }
   };
 
-public:
+ public:
   // Make sure this is not auto-declared. The move one won't be.
   ReusableIterator(const ReusableIterator &) = delete;
   ReusableIterator(Ti ti) : _ti(ti), _it(_traversed.begin()) { _next(); }
@@ -152,12 +151,15 @@ class PMGDQueryHandler::MultiNeighborIteratorImpl
 
   bool _next();
 
-public:
+ public:
   MultiNeighborIteratorImpl(ReusableNodeIterator *start_ni,
                             SearchExpression search_neighbors,
                             PMGD::Direction dir, PMGD::StringID edge_tag)
-      : _start_ni(start_ni), _search_neighbors(search_neighbors),
-        _neighb_i(NULL), _dir(dir), _edge_tag(edge_tag) {
+      : _start_ni(start_ni),
+        _search_neighbors(search_neighbors),
+        _neighb_i(NULL),
+        _dir(dir),
+        _edge_tag(edge_tag) {
     _next();
   }
 
@@ -224,19 +226,22 @@ class PMGDQueryHandler::NodeEdgeIteratorImpl
     }
   }
 
-public:
+ public:
   NodeEdgeIteratorImpl(const SearchExpression &expr,
                        ReusableNodeIterator *src_ni = NULL,
                        ReusableNodeIterator *dest_ni = NULL)
-      : _expr(expr), _num_predicates(_expr.num_node_predicates()),
-        _src_ni(src_ni), _dest_ni(dest_ni), _pred_start(0), _check_dest(false)
+      : _expr(expr),
+        _num_predicates(_expr.num_node_predicates()),
+        _src_ni(src_ni),
+        _dest_ni(dest_ni),
+        _pred_start(0),
+        _check_dest(false)
 
   {
     _edge_it.reset(new PMGD::EdgeIterator(return_iterator()));
     // If the first criteria did not return any edges,
     // there is no node checking on either side.
-    if (!bool(*_edge_it))
-      return;
+    if (!bool(*_edge_it)) return;
     if (_dest_ni != NULL) {
       for (; bool(*_dest_ni); _dest_ni->next())
         _dest_nodes.insert(&(**_dest_ni));
@@ -244,8 +249,7 @@ public:
       _dest_ni = NULL;
       _check_dest = true;
     }
-    if (!check_predicates())
-      next();
+    if (!check_predicates()) next();
   }
 
   operator bool() const { return bool(*_edge_it); }
@@ -259,4 +263,4 @@ public:
     return &static_cast<PMGD::Edge &>(**_edge_it);
   }
 };
-} // namespace VDMS
+}  // namespace VDMS

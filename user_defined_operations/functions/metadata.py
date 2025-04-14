@@ -1,16 +1,23 @@
 import cv2
-import numpy as np
-from datetime import datetime
-from collections import deque
-import skvideo.io
-import imutils
-import time
 import json
+import os
+
+# Get the real directory where this Python file is
+currentDir = os.path.realpath(os.path.dirname(__file__))
+
+haarcascade_frontalface_default_path = os.path.join(
+    currentDir, "../../resources/haarcascade_frontalface_default.xml"
+)
+
+if not os.path.exists(haarcascade_frontalface_default_path):
+    raise Exception(
+        f"{haarcascade_frontalface_default_path}: path is invalid in metadata for the user defined operations"
+    )
 
 face_cascade = cv2.CascadeClassifier(
     # This file is available from OpenCV 'data' directory at
     # https://github.com/opencv/opencv/blob/4.x/data/haarcascades/haarcascade_frontalface_default.xml
-    "functions/files/haarcascade_frontalface_default.xml"
+    haarcascade_frontalface_default_path
 )
 
 
@@ -23,11 +30,9 @@ def facedetectbbox(frame):
 
 def run(settings, message, input_params):
     ipfilename = message
-    format = message.strip().split(".")[-1]
 
     # Extract metadata for video files
     if input_params["media_type"] == "video":
-
         vs = cv2.VideoCapture(ipfilename)
         frameNum = 1
         metadata = {}
@@ -78,12 +83,16 @@ def run(settings, message, input_params):
 
         response = {"opFile": ipfilename, "metadata": metadata}
         r = json.dumps(response)
-        print(response)
-        print(r)
+
         return r
     # Extract metadata for image files
     else:
         tdict = {}
+        if not os.path.exists(ipfilename):
+            raise Exception(
+                f"Metadata error: File ipfilename {ipfilename} does not exist"
+            )
+
         img = cv2.imread(ipfilename)
         if input_params["otype"] == "face":
             faces = facedetectbbox(img)
@@ -115,7 +124,4 @@ def run(settings, message, input_params):
         response = {"opFile": ipfilename, "metadata": tdict}
 
         r = json.dumps(response)
-        print(response)
-        print(r)
-
         return r

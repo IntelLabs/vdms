@@ -29,12 +29,13 @@
 
 #pragma once
 
-#include <iostream>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <string>
 #include <time.h>
+
+#include <iostream>
+#include <string>
 
 #include "sys/sysinfo.h"
 
@@ -143,7 +144,7 @@ struct ClocksInfo {
 // ***************************************************************************
 
 class SystemStats {
-public:
+ public:
   SystemStats();
   virtual ~SystemStats();
 
@@ -164,7 +165,7 @@ public:
   virtual void log_stats(std::string pName);
   virtual bool query_sufficient_memory(int size_requested);
 
-protected:
+ protected:
   virtual FILE *get_stats_fd();
   virtual FILE *get_cpu_info_fd();
   virtual std::string get_filename_prefix();
@@ -181,9 +182,8 @@ protected:
   virtual bool is_overflow_in_time_detected(clock_t now,
                                             struct tms time_sample);
 
-  virtual bool
-  is_overflow_in_totals_detected(const TotalsInfo &current_total_info,
-                                 const TotalsInfo &last_totals_info);
+  virtual bool is_overflow_in_totals_detected(
+      const TotalsInfo &current_total_info, const TotalsInfo &last_totals_info);
 
   virtual void set_memory_stats(const MemoryStats &memory_stats);
   virtual void set_cpu_stats(const CPUStats &cpu_stats);
@@ -201,6 +201,6 @@ protected:
   ClocksInfo m_last_clocks_info;
   int m_numProcessors;
 
-private:
+ private:
   virtual int parse_line(char *line);
 };

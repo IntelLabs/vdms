@@ -1,16 +1,24 @@
 import cv2
-import numpy as np
-from datetime import datetime
-from collections import deque
-import skvideo.io
-import imutils
 import uuid
 import json
+import os
+
+# Get the real directory where this Python file is
+currentDir = os.path.realpath(os.path.dirname(__file__))
+
+haarcascade_frontalface_default_path = os.path.join(
+    currentDir, "../../resources/haarcascade_frontalface_default.xml"
+)
+
+if not os.path.exists(haarcascade_frontalface_default_path):
+    raise Exception(
+        f"{haarcascade_frontalface_default_path}: path is invalid in metadata for the remote function"
+    )
 
 face_cascade = cv2.CascadeClassifier(
     # This file is available from OpenCV 'data' directory at
     # https://github.com/opencv/opencv/blob/4.x/data/haarcascades/haarcascade_frontalface_default.xml
-    "functions/files/haarcascade_frontalface_default.xml"
+    haarcascade_frontalface_default_path
 )
 
 
@@ -21,11 +29,9 @@ def facedetectbbox(frame):
     return faces
 
 
-def run(ipfilename, format, options):
-
+def run(ipfilename, format, options, tmp_dir_path=""):
     # Extract metadata for video files
     if options["media_type"] == "video":
-
         vs = cv2.VideoCapture(ipfilename)
         frameNum = 1
         metadata = {}
@@ -76,13 +82,18 @@ def run(ipfilename, format, options):
 
         response = {"opFile": ipfilename, "metadata": metadata}
 
-        jsonfile = "jsonfile" + uuid.uuid1().hex + ".json"
+        jsonfile = os.path.join(tmp_dir_path, "jsonfile" + uuid.uuid1().hex + ".json")
         with open(jsonfile, "w") as f:
             json.dump(response, f, indent=4)
         return ipfilename, jsonfile
     # Extract metadata for image files
     else:
         tdict = {}
+        if not os.path.exists(ipfilename):
+            raise Exception(
+                f"Metadata error: File ipfilename {ipfilename} does not exist"
+            )
+
         img = cv2.imread(ipfilename)
         if options["otype"] == "face":
             faces = facedetectbbox(img)

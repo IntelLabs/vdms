@@ -49,13 +49,6 @@ function execute_commands() {
         esac
     done
 
-    # Print variables
-    echo "AWS Parameters used:"
-    echo -e "\tapi_port:\t$api_port"
-    echo -e "\tpassword:\t$password"
-    echo -e "\tusername:\t$username"
-    echo -e "\ttestname:\t$testname"
-
     if [ $username_was_set = false ] || [ $password_was_set = false ]; then
         echo 'Missing arguments for "run_aws_tests.sh" script'
         echo 'Usage: sh ./run_aws_tests.sh -u YOUR_MINIO_USERNAME -p YOUR_MINIO_PASSWORD [-n "RemoteConnectionTest.*"] [-s]'
@@ -80,20 +73,36 @@ function execute_commands() {
         echo 'Using test filter: '$test_filter
     fi
 
+    if [ "$api_port" = ' ' ] || [ "$api_port" = '' ]; then
+        api_port=9000
+        echo 'Default api_port'
+    fi
+
+    # Print variables
+    echo "AWS Parameters used:"
+    echo -e "\tapi_port:\t$api_port"
+    echo -e "\tpassword:\t$password"
+    echo -e "\tusername:\t$username"
+    echo -e "\ttestname:\t$test_filter"
+
     # Kill current instances of minio
     echo 'Killing current instances of minio'
     pkill -9 minio || true
     sleep 2
 
     sh cleandbs.sh || true
-    mkdir test_db_client || true
-    mkdir dbs || true # necessary for Descriptors
-    mkdir temp || true # necessary for Videos
-    mkdir videos_tests || true
-    mkdir backups || true
+    mkdir -p /tmp/tests_output_dir
+    mkdir -p /tmp/tests_output_dir/test_db_client || true
+    mkdir -p /tmp/tests_output_dir/dbs || true # necessary for Descriptors
+    mkdir -p /tmp/tests_output_dir/temp || true # necessary for Videos
+    mkdir -p /tmp/tests_output_dir/videos_tests || true
+    mkdir -p /tmp/tests_output_dir/backups || true
+    # Copy the config file to the temporary directory so it matches with the path
+    # set in the test files in unit_test dir
+    cp unit_tests/config-aws-tests.json /tmp/tests_output_dir/config-aws-tests.json
 
     #start the minio server
-    ./../minio server ./../minio_files &
+    ./../minio server /tmp/tests_output_dir/minio_files --address :${api_port} &
     py_minio_pid=$!
 
     sleep 2
@@ -122,10 +131,8 @@ function cleanup() {
     kill -9 $py_minio_pid || true
 
     echo 'Removing temporary files'
-    rm -rf ../minio_files/ || true
-    rm -rf test_db/ || true
-    rm -rf test_db_aws/ || true
-    rm -rf tdb/ || true
+    rm -rf /tmp/tests_output_dir || true
+    rm -rf test_db_1 || true
     exit $exit_value
 }
 

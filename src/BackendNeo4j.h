@@ -4,23 +4,23 @@
 
 #pragma once
 
-#include <cstdint>
 #include <jsoncpp/json/writer.h>
 #include <neo4j-client.h>
-#include <string>
 #include <tbb/concurrent_queue.h>
 #include <transaction.h>
+
+#include <cstdint>
+#include <string>
 
 void print_val(neo4j_value_t val, int val_type);
 int val_check(neo4j_value_t val);
 
 class BackendNeo4j {
-
   tbb::concurrent_bounded_queue<neo4j_connection_t *> conn_pool;
   neo4j_config_t *config;
   std::string tgt_db;
 
-public:
+ public:
   // constructor
   BackendNeo4j(unsigned int nr_conns, char *tgt_url, char *user, char *pass,
                uint_fast32_t flags);

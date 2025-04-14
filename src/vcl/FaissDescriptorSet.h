@@ -34,24 +34,23 @@
 
 #pragma once
 
+#include <faiss/IndexFlat.h>
+#include <faiss/IndexHNSW.h>
+#include <faiss/IndexIVFFlat.h>
+#include <stdlib.h>
+
 #include <map>
 #include <mutex>
-#include <stdlib.h>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "DescriptorSetData.h"
 
-#include <faiss/IndexFlat.h>
-#include <faiss/IndexHNSW.h>
-#include <faiss/IndexIVFFlat.h>
-
 namespace VCL {
 
 class FaissDescriptorSet : public DescriptorSet::DescriptorSetData {
-
-protected:
+ protected:
   std::string _faiss_file;
 
   faiss::Index *_index;
@@ -64,7 +63,7 @@ protected:
 
   void train_core(float *descriptors, unsigned n);
 
-public:
+ public:
   FaissDescriptorSet(const std::string &set_path);
   FaissDescriptorSet(const std::string &set_path, unsigned dim);
 
@@ -94,32 +93,33 @@ public:
 };
 
 class FaissFlatDescriptorSet : public FaissDescriptorSet {
-
-public:
+ public:
   FaissFlatDescriptorSet(const std::string &set_path);
   FaissFlatDescriptorSet(const std::string &set_path, unsigned dim,
                          DistanceMetric metric);
 };
 
 class FaissIVFFlatDescriptorSet : public FaissDescriptorSet {
-
-public:
+ public:
   FaissIVFFlatDescriptorSet(const std::string &set_path);
+  // FaissIVFFlatDescriptorSet(const std::string &set_path, unsigned dim,
+  // DistanceMetric metric);
   FaissIVFFlatDescriptorSet(const std::string &set_path, unsigned dim,
-                            DistanceMetric metric);
+                            DistanceMetric metric, VCL::DescriptorParams *par);
 
   long add(float *descriptors, unsigned n_descriptors, long *classes);
 };
 
 class FaissHNSWFlatDescriptorSet : public FaissDescriptorSet {
-
-public:
+ public:
   FaissHNSWFlatDescriptorSet(const std::string &set_path);
+  // FaissHNSWFlatDescriptorSet(const std::string &set_path, unsigned
+  // dim,DistanceMetric metric);
   FaissHNSWFlatDescriptorSet(const std::string &set_path, unsigned dim,
-                             DistanceMetric metric);
+                             DistanceMetric metric, VCL::DescriptorParams *par);
 
   void search(float *query, unsigned n_queries, unsigned k, long *descriptors,
               float *distances);
 };
 
-}; // namespace VCL
+};  // namespace VCL

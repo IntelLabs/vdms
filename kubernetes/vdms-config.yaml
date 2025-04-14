@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vdms-deployment
+  labels:
+    app: vdms
+spec:
+  selector:
+    matchLabels:
+      app: vdms
+  template:
+    metadata:
+      labels:
+        app: vdms
+    spec:
+      containers:
+      - name: vdms-container
+        image: localhost:5000/vdms
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/config
+        imagePullPolicy: Always
+        command: ["/start.sh"]
+        ports:
+        - containerPort: 55555
+        env:
+        - name: no_proxy
+          value: "kubernetes.default.svc,.svc,.cluster.local,127.0.0.1,localhost,docker.io"
+      volumes:
+        - name: config-volume
+          configMap:
+            name: node-map
+      nodeSelector:
+        vdmstype : vdmsmaster

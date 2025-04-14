@@ -33,6 +33,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <list>
@@ -41,13 +42,15 @@
 #include "vcl/VCL.h"
 #include "gtest/gtest.h"
 
+const std::string TMP_DIRNAME = "/tmp/tests_output_dir/";
+
 TEST(Descriptors_Add, add_flatl2_100d) {
   int d = 100;
   int nb = 10000;
 
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/add_flatl2_100d";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_flatl2_100d";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissFlat);
 
   index.add(xb, nb);
@@ -57,21 +60,16 @@ TEST(Descriptors_Add, add_flatl2_100d) {
   index.search(xb, 1, 4, desc_ids, distances);
 
   int exp = 0;
-  // std::cout << "DescriptorSet: " << std::endl;
   for (auto &desc : desc_ids) {
-    // std::cout << desc << " ";
     EXPECT_EQ(desc, exp++);
   }
 
-  // std::cout << "Distances: " << std::endl;
   float results[] = {float(std::pow(0, 2) * d), float(std::pow(1, 2) * d),
                      float(std::pow(2, 2) * d), float(std::pow(3, 2) * d)};
 
   for (int i = 0; i < 4; ++i) {
-    // std::cout << distances[i] <<  " ";
     EXPECT_EQ(distances[i], results[i]);
   }
-  // std::cout << std::endl;
 
   index.store();
 
@@ -84,7 +82,8 @@ TEST(Descriptors_Add, add_and_radius_search_flatl2_100d) {
 
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/add_and_radius_search_flatl2_100d";
+  std::string index_filename =
+      TMP_DIRNAME + "dbs/add_and_radius_search_flatl2_100d";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissFlat);
 
   index.add(xb, nb);
@@ -99,10 +98,8 @@ TEST(Descriptors_Add, add_and_radius_search_flatl2_100d) {
                      float(std::pow(2, 2) * d), float(std::pow(3, 2) * d)};
 
   for (int i = 0; i < 4; ++i) {
-    // std::cout << distances[i] <<  " ";
     EXPECT_EQ(distances[i], results[i]);
   }
-  // std::cout << std::endl;
 
   index.store();
 
@@ -115,7 +112,9 @@ TEST(Descriptors_Add, add_ivfflatl2_100d) {
   float *xb = generate_desc_linear_increase(d, nb);
 
   std::string index_filename = "dbs/add_ivfflatl2_100d";
-  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissIVFFlat);
+  VCL::DescriptorParams *param = new VCL::DescriptorParams();
+  param->ivf_nlist=16;
+  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissIVFFlat,VCL::DistanceMetric::L2, param);
 
   std::vector<long> classes(nb);
 
@@ -130,21 +129,15 @@ TEST(Descriptors_Add, add_ivfflatl2_100d) {
   index.search(xb, 1, 4, desc_ids, distances);
 
   int exp = 0;
-  // std::cout << "DescriptorSet: " << std::endl;
   for (auto &desc : desc_ids) {
-    // std::cout << desc << " ";
     EXPECT_EQ(desc, exp++);
   }
-  // std::cout << std::endl;
 
-  // std::cout << "Distances: " << std::endl;
   float results[] = {float(std::pow(0, 2) * d), float(std::pow(1, 2) * d),
                      float(std::pow(2, 2) * d), float(std::pow(3, 2) * d)};
   for (int i = 0; i < 4; ++i) {
-    // std::cout << distances[i] <<  " ";
     EXPECT_EQ(distances[i], results[i]);
   }
-  // std::cout << std::endl;
 
   index.store();
 
@@ -156,7 +149,7 @@ TEST(Descriptors_Add, add_recons_flatl2_100d) {
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/add_recons_flatl2_100d";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_recons_flatl2_100d";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissFlat);
 
   std::vector<long> classes(nb);
@@ -193,7 +186,7 @@ TEST(Descriptors_Add, add_flatl2_100d_2add) {
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/add_flatl2_100d_2add";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_flatl2_100d_2add";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissFlat);
 
   index.add(xb, nb);
@@ -235,7 +228,11 @@ TEST(Descriptors_Add, add_hnswflatl2_100d) {
   float *xb = generate_desc_linear_increase(d, nb);
 
   std::string index_filename = "dbs/add_hnswflatl2_100d";
-  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat);
+  VCL::DescriptorParams *param = new VCL::DescriptorParams();
+  param->hnsw_efConstruction=96;
+  param->hnsw_efsearch=64;
+  param->hnsw_M=48;
+  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat,VCL::DistanceMetric::L2, param);
 
   std::vector<long> classes(nb);
 
@@ -275,8 +272,12 @@ TEST(Descriptors_Add, add_recons_hnswflatl2_100d) {
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/add_recons_hnswflatl2_100d";
-  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat);
+  std::string index_filename = TMP_DIRNAME + "dbs/add_recons_hnswflatl2_100d";
+  VCL::DescriptorParams *param = new VCL::DescriptorParams();
+  param->hnsw_efConstruction=96;
+  param->hnsw_efsearch=64;
+  param->hnsw_M=48;
+  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat,VCL::DistanceMetric::L2, param);
 
   std::vector<long> classes(nb);
 
@@ -318,8 +319,12 @@ TEST(Descriptors_Add, add_hnswflatl2_100d_2add) {
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/add_hnswflatl2_100d_2add";
-  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat);
+  std::string index_filename = TMP_DIRNAME + "dbs/add_hnswflatl2_100d_2add";
+  VCL::DescriptorParams *param = new VCL::DescriptorParams();
+  param->hnsw_efConstruction=96;
+  param->hnsw_efsearch=64;
+  param->hnsw_M=48;
+  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat,VCL::DistanceMetric::L2, param);
 
   index.add(xb, nb);
 
@@ -343,6 +348,55 @@ TEST(Descriptors_Add, add_hnswflatl2_100d_2add) {
   delete[] xb;
 }
 
+TEST(Descriptors_Add, add_hnswflatip_100d) {
+
+  // test to add 100 descriptors of 100D each
+  //  descriptors are created by varying an init with a cyclic value
+  //  init       init      ...   init      (D times)
+  //  init.11     init.11    ...   init.11    (D times)
+  //  ...
+  //  init.nb-1  init.nb-1 ...   init.nb-1 (D times)
+  //  hence, nearest neigbor of any query descriptor are the IDs that is next to
+  //  the query ID
+
+  int d = 100;
+  int nb = 100; // we are using 2 decimal points for I.P. nb is maximum 100
+  float *xb = generate_desc_inner_product_increase(d, nb);
+
+  std::string index_filename = "dbs/add_hnswflatip_100d";
+  VCL::DescriptorParams *param = new VCL::DescriptorParams();
+  param->hnsw_efConstruction=96;
+  param->hnsw_efsearch=64;
+  param->hnsw_M=48;
+  VCL::DescriptorSet index(index_filename, unsigned(d), VCL::FaissHNSWFlat,VCL::DistanceMetric::IP, param);
+
+  std::vector<long> classes(nb);
+
+  for (auto &str : classes) {
+    str = 1;
+  }
+
+  index.add(xb, nb, classes);
+
+  std::vector<float> distances;
+  std::vector<long> desc_ids;
+  index.search(xb, 1, 4, desc_ids, distances);
+
+  int exp = 99;
+  for (auto &desc : desc_ids) {
+    EXPECT_EQ(desc, exp--);
+  }
+
+  // Check that the distance of k neighbor is always less than k+1 neighbor
+  for (int i = 0; i < distances.size() - 1; ++i) {
+    EXPECT_GT(distances[i], distances[i + 1]);
+  }
+
+  index.store();
+
+  delete[] xb;
+}
+
 // Flinng Tests
 
 TEST(Descriptors_Add, add_flinngIP_100d) {
@@ -357,7 +411,7 @@ TEST(Descriptors_Add, add_flinngIP_100d) {
 
   float *xb = generate_desc_normal_cluster(d, nb, init, cluster_size,
                                            clusterhead_std, cluster_std);
-  std::string index_filename = "dbs/add_flinngIP_100d";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_flinngIP_100d";
 
   VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12);
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::Flinng,
@@ -393,7 +447,6 @@ TEST(Descriptors_Add, add_flinngIP_100d) {
     }
   }
   recall = static_cast<float>(correct) / (n_clusters * cluster_size);
-  // std::cout << "\n Recall (Angular Similarity) = " << recall  << std::endl;
   EXPECT_GE(recall, 0.7);
 
   // search without returning distances
@@ -419,7 +472,7 @@ TEST(Descriptors_Add, add_flinngL2_100d) {
 
   float *xb = generate_desc_normal_cluster(d, nb, init, cluster_size,
                                            clusterhead_std, cluster_std);
-  std::string index_filename = "dbs/add_flinngL2_100d";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_flinngL2_100d";
 
   VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12);
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::Flinng,
@@ -478,7 +531,7 @@ TEST(Descriptors_Add, add_recons_flinngIP_100d) {
 
   float *xb = generate_desc_normal_cluster(d, nb, init, cluster_size,
                                            clusterhead_std, cluster_std);
-  std::string index_filename = "dbs/add_recons_flinngIP_100d";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_recons_flinngIP_100d";
 
   VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12);
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::Flinng,
@@ -540,7 +593,7 @@ TEST(Descriptors_Add, add_flinngIP_100d_2add) {
 
   float *xb = generate_desc_normal_cluster(d, nb, init, cluster_size,
                                            clusterhead_std, cluster_std);
-  std::string index_filename = "dbs/add_flingIP_100d_2add";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_flingIP_100d_2add";
 
   VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12);
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::Flinng,
@@ -592,7 +645,6 @@ TEST(Descriptors_Add, add_flinngIP_100d_2add) {
     }
   }
   recall = static_cast<float>(correct) / (n_clusters * cluster_size);
-  // std::cout <<"2 adds Recall = " << recall <<std::endl;
   EXPECT_GE(recall, 0.7);
 
   index.store();
@@ -611,7 +663,7 @@ TEST(Descriptors_Add, add_flinngIP_same) {
 
   float *xb = generate_desc_normal_cluster(d, nb, init, cluster_size,
                                            clusterhead_std, cluster_std);
-  std::string index_filename = "dbs/add_flinngIP_same";
+  std::string index_filename = TMP_DIRNAME + "dbs/add_flinngIP_same";
 
   VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12);
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::Flinng,
@@ -632,8 +684,7 @@ TEST(Descriptors_Add, add_flinngIP_same) {
 
   index.add_and_store(xb, nb); // adding same vectors again
   index.finalize_index();
-  // std::cout << "\n Total number of elements = " << index.get_n_descriptors()
-  // << std::endl;
+
 
   std::vector<long> descriptors(n_clusters * cluster_size * 2);
 
@@ -656,7 +707,6 @@ TEST(Descriptors_Add, add_flinngIP_same) {
     }
   }
   recall = static_cast<float>(correct) / (n_clusters * cluster_size * 2);
-  // std::cout << "\n Recall (Angular Similarity) = " << recall  << std::endl;
   EXPECT_GE(recall, 0.7);
 
   index.store();
@@ -671,7 +721,13 @@ TEST(Descriptors_Add, add_tiledbdense_100d) {
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/add_tiledbdense_100d_tdb";
+  std::string dir_path = TMP_DIRNAME + "dbs";
+  if (!std::filesystem::exists(dir_path)) {
+    std::filesystem::create_directories(dir_path);
+  }
+
+  std::string index_filename = dir_path + "/add_tiledbdense_100d_tdb";
+
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::TileDBDense);
 
   index.add(xb, nb);
@@ -681,20 +737,17 @@ TEST(Descriptors_Add, add_tiledbdense_100d) {
   index.search(xb, 1, 4, desc_ids, distances);
 
   int exp = 0;
-  // std::cout << "DescriptorSet: " << std::endl;
+
   for (auto &desc : desc_ids) {
-    // std::cout << desc << " ";
     EXPECT_EQ(desc, exp++);
   }
 
-  // std::cout << "Distances: " << std::endl;
+
   float results[] = {float(std::pow(0, 2) * d), float(std::pow(1, 2) * d),
                      float(std::pow(2, 2) * d), float(std::pow(3, 2) * d)};
   for (int i = 0; i < 4; ++i) {
-    // std::cout << distances[i] <<  " ";
     EXPECT_EQ(distances[i], results[i]);
   }
-  // std::cout << std::endl;
 
   index.store();
 
@@ -706,7 +759,12 @@ TEST(Descriptors_Add, add_tiledbdense_100d_2add) {
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
 
-  std::string index_filename = "dbs/add_tiledbdense_100d_2add";
+  std::string dir_path = TMP_DIRNAME + "dbs";
+  if (!std::filesystem::exists(dir_path)) {
+    std::filesystem::create_directories(dir_path);
+  }
+
+  std::string index_filename = dir_path + "/add_tiledbdense_100d_2add";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::TileDBDense);
 
   index.add(xb, nb);
@@ -731,7 +789,6 @@ TEST(Descriptors_Add, add_tiledbdense_100d_2add) {
 
   for (int i = 0; i < 4; ++i) {
     EXPECT_EQ(std::round(distances[i]), std::round(results[i]));
-    // printf(" %f, %f \n", float(distances[i]), float(results[i]));
   }
 
   index.store();
@@ -747,9 +804,14 @@ TEST(Descriptors_Add, add_tiledbsparse_100d_2add) {
   int d = 100;
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
-  // generate_desc_linear_increase(d, nb, xb, .1);
 
-  std::string index_filename = "dbs/add_tiledbsparse_100d_2add";
+
+  std::string dir_path = TMP_DIRNAME + "dbs";
+  if (!std::filesystem::exists(dir_path)) {
+    std::filesystem::create_directories(dir_path);
+  }
+
+  std::string index_filename = dir_path + "/add_tiledbsparse_100d_2add";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::TileDBSparse);
 
   index.add(xb, nb);
@@ -779,9 +841,14 @@ TEST(Descriptors_Add, add_tiledbsparse_100d) {
   int d = 100;
   int nb = 10000;
   float *xb = generate_desc_linear_increase(d, nb);
-  // generate_desc_linear_increase(d, nb, xb, .1);
 
-  std::string index_filename = "dbs/add_tiledbsparse_100d";
+
+  std::string dir_path = TMP_DIRNAME + "dbs";
+  if (!std::filesystem::exists(dir_path)) {
+    std::filesystem::create_directories(dir_path);
+  }
+
+  std::string index_filename = dir_path + "/add_tiledbsparse_100d";
   VCL::DescriptorSet index(index_filename, unsigned(d), VCL::TileDBSparse);
 
   index.add(xb, nb);
@@ -812,7 +879,12 @@ TEST(Descriptors_Add, add_2_times_same_tdbsparse) {
 
     auto eng = VCL::TileDBSparse;
 
-    std::string index_filename = "dbs/add_2_times_same_tdbsparse_" +
+    std::string dir_path = TMP_DIRNAME + "dbs";
+    if (!std::filesystem::exists(dir_path)) {
+      std::filesystem::create_directories(dir_path);
+    }
+
+    std::string index_filename = dir_path + "/add_2_times_same_tdbsparse_" +
                                  std::to_string(d) + "_" + std::to_string(eng);
 
     VCL::DescriptorSet index(index_filename, unsigned(d), eng);
@@ -851,7 +923,12 @@ TEST(Descriptors_Add, add_2_times_tdbsparse) {
 
     auto eng = VCL::TileDBSparse;
 
-    std::string index_filename = "dbs/add_2_times_tdbsparse_" +
+    std::string dir_path = TMP_DIRNAME + "dbs";
+    if (!std::filesystem::exists(dir_path)) {
+      std::filesystem::create_directories(dir_path);
+    }
+
+    std::string index_filename = dir_path + "/add_2_times_tdbsparse_" +
                                  std::to_string(d) + "_" + std::to_string(eng);
 
     VCL::DescriptorSet index(index_filename, unsigned(d), eng);
@@ -892,7 +969,7 @@ TEST(Descriptors_Add, add_and_search_10k) {
     float *xb = generate_desc_linear_increase(d, nb);
 
     for (auto eng : get_engines()) {
-      std::string index_filename = "dbs/add_and_search_10k" +
+      std::string index_filename = TMP_DIRNAME + "dbs/add_and_search_10k" +
                                    std::to_string(d) + "_" +
                                    std::to_string(eng);
 
@@ -907,7 +984,10 @@ TEST(Descriptors_Add, add_and_search_10k) {
       VCL::DescriptorSet index(index_filename, unsigned(d), eng,
       VCL::DistanceMetric::L2, param);
       */
-      VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+
+      VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
+      VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
+
 
       /*
       if (eng == VCL::Flinng){
@@ -926,20 +1006,16 @@ TEST(Descriptors_Add, add_and_search_10k) {
       index.search(xb, 1, 4, desc_ids, distances);
 
       int exp = 0;
-      // std::cout << "DescriptorSet: " << std::endl;
       for (auto &desc : desc_ids) {
-        // std::cout << desc << " ";
         EXPECT_EQ(desc, exp++);
       }
 
-      // std::cout << "Distances: " << std::endl;
       float results[] = {float(std::pow(0, 2) * d), float(std::pow(1, 2) * d),
                          float(std::pow(2, 2) * d), float(std::pow(3, 2) * d)};
       for (int i = 0; i < 4; ++i) {
-        // std::cout << distances[i] <<  " ";
         EXPECT_EQ(distances[i], results[i]);
       }
-      // std::cout << std::endl;
+
 
       index.store();
     }
@@ -957,11 +1033,12 @@ TEST(Descriptors_Add, add_and_search_10k_negative) {
     float *xb = generate_desc_linear_increase(d, nb, -900);
 
     for (auto eng : get_engines()) {
-      std::string index_filename = "dbs/add_and_search_10k_negative" +
-                                   std::to_string(d) + "_" +
-                                   std::to_string(eng);
+      std::string index_filename =
+          TMP_DIRNAME + "dbs/add_and_search_10k_negative" + std::to_string(d) +
+          "_" + std::to_string(eng);
 
-      VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+      VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
+      VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
 
       index.add(xb, nb);
 
@@ -1001,11 +1078,12 @@ TEST(Descriptors_Add, add_1by1_and_search_1k) {
       if (eng == VCL::FaissIVFFlat)
         continue;
 
-      std::string index_filename = "dbs/add_1by1_and_search_1k_" +
+      std::string index_filename = TMP_DIRNAME + "dbs/add_1by1_and_search_1k_" +
                                    std::to_string(d) + "_" +
                                    std::to_string(eng);
 
-      VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+      VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
+      VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
 
       printf("eng: %d \n", eng);
       for (int i = 0; i < nb; ++i) {
@@ -1047,11 +1125,12 @@ TEST(Descriptors_Add, add_and_search_2_neigh_10k) {
     float *xb = generate_desc_linear_increase(d, nb);
 
     for (auto eng : get_engines()) {
-      std::string index_filename = "dbs/add_and_search_2_neigh_10k" +
-                                   std::to_string(d) + "_" +
-                                   std::to_string(eng);
+      std::string index_filename =
+          TMP_DIRNAME + "dbs/add_and_search_2_neigh_10k" + std::to_string(d) +
+          "_" + std::to_string(eng);
 
-      VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+      VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
+      VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
 
       index.add(xb, nb);
 
@@ -1059,20 +1138,10 @@ TEST(Descriptors_Add, add_and_search_2_neigh_10k) {
       std::vector<long> desc_ids;
       index.search(xb, 2, 4, desc_ids, distances);
 
-      // Does not matter much, but good to test
-      // int exp[] = {0, 1, 2, 3, 1, 2, 0, 3};
-      // int idx = 0;
-      // // std::cout << "DescriptorSet: " << std::endl;
-      // for (auto& desc : desc_ids) {
-      //     // std::cout << desc << " ";
-      //     EXPECT_EQ(desc, exp[idx++]);
-      // }
 
-      // std::cout << "Distances: " << std::endl;
       float results[] = {float(std::pow(0, 2) * d), float(std::pow(1, 2) * d),
                          float(std::pow(2, 2) * d), float(std::pow(3, 2) * d)};
       for (int i = 0; i < 4; ++i) {
-        // std::cout << distances[i] <<  " ";
         EXPECT_EQ(distances[i], results[i]);
       }
 
@@ -1081,10 +1150,8 @@ TEST(Descriptors_Add, add_and_search_2_neigh_10k) {
                            float(std::pow(2, 2) * d)};
 
       for (int i = 4; i < 8; ++i) {
-        // std::cout << distances[i] <<  " ";
         EXPECT_EQ(distances[i], results_2[i - 4]);
       }
-      // std::cout << std::endl;
 
       index.store();
     }
@@ -1094,7 +1161,6 @@ TEST(Descriptors_Add, add_and_search_2_neigh_10k) {
 }
 
 TEST(Descriptors_Add, add_2_times) {
-  // int d = 100;
   int nb = 10000;
 
   auto dimensions_list = get_dimensions_list();
@@ -1109,10 +1175,17 @@ TEST(Descriptors_Add, add_2_times) {
       if (eng == VCL::TileDBSparse)
         continue;
 
-      std::string index_filename =
-          "dbs/add_2_times_" + std::to_string(d) + "_" + std::to_string(eng);
+      std::string dir_path = TMP_DIRNAME + "dbs";
+      if (!std::filesystem::exists(dir_path)) {
+        std::filesystem::create_directories(dir_path);
+      }
 
-      VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+      std::string index_filename = dir_path + "/add_2_times_" +
+                                   std::to_string(d) + "_" +
+                                   std::to_string(eng);
+
+      VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
+      VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
 
       index.add(xb, nb);
 
@@ -1156,11 +1229,12 @@ TEST(Descriptors_Add, add_and_get_descriptors) {
     }
 
     for (auto eng : get_engines()) {
-      std::string index_filename = "dbs/add_and_get_descriptors_10k" +
-                                   std::to_string(d) + "_" +
-                                   std::to_string(eng);
+      std::string index_filename =
+          TMP_DIRNAME + "dbs/add_and_get_descriptors_10k" + std::to_string(d) +
+          "_" + std::to_string(eng);
 
-      VCL::DescriptorSet index(index_filename, unsigned(d), eng);
+      VCL::DescriptorParams *param = new VCL::DescriptorParams(3, nb / 10, 10, 12,2,6,16,64,96,48);
+      VCL::DescriptorSet index(index_filename, unsigned(d), eng, VCL::DistanceMetric::L2, param);
 
       index.add(xb, nb);
 
@@ -1170,7 +1244,6 @@ TEST(Descriptors_Add, add_and_get_descriptors) {
       for (int i = 0; i < recons_n * d; ++i) {
         EXPECT_NEAR(xb[i], recons[i], .01f);
       }
-      // printf("%d\n", eng);
 
       delete[] recons;
 

@@ -5,20 +5,21 @@
 #ifndef VDMS_QUERYHANDLERBASE_H
 #define VDMS_QUERYHANDLERBASE_H
 
-#include "QueryMessage.h" // Protobuff implementation
 #include <string>
 #include <vector>
 
+#include "QueryMessage.h"  // Protobuff implementation
+
 // Json parsing files
 #include <jsoncpp/json/value.h>
+
 #include <valijson/schema.hpp>
 #include <valijson/validator.hpp>
 
 namespace VDMS {
 
 class QueryHandlerBase {
-
-protected:
+ protected:
   // valijson
   valijson::Validator _validator;
   static valijson::Schema *_schema;
@@ -40,11 +41,11 @@ protected:
   void virtual process_query(protobufs::queryMessage &proto_query,
                              protobufs::queryMessage &response) = 0;
 
-public:
+ public:
   QueryHandlerBase();
 
   void virtual process_connection(comm::Connection *c);
 };
-} // namespace VDMS
+}  // namespace VDMS
 
-#endif // VDMS_QUERYHANDLERBASE_H
+#endif  // VDMS_QUERYHANDLERBASE_H

@@ -30,12 +30,22 @@
  */
 
 #include <iostream>
-
+#include <string>
 #include "ImageCommand.h"
 #include "VDMSConfig.h"
 #include "defines.h"
 
+#include <opencv2/core/types.hpp>
+#include <vector>
+#include <chrono>
+
 #include "ImageLoop.h"
+
+#ifdef HAS_KUBERNETES_CLIENT
+#include "../utils/include/kubernetes/KubeHelper.h"
+using namespace kubernetes;
+static kubernetes::KubeHelper kubernetes_get_url;
+#endif
 
 using namespace VDMS;
 
@@ -75,26 +85,26 @@ int ImageCommand::enqueue_operations(VCL::Image &img, const Json::Value &ops,
         options["ingestion"] = 1;
         img.syncremoteOperation(get_value<std::string>(op, "url"), options);
       } else {
-        img.remoteOperation(get_value<std::string>(op, "url"), options);
+        #ifdef HAS_KUBERNETES_CLIENT
+          bool kube_cfg = VDMS::VDMSConfig::instance()->get_k8s_flag();
+          if(kube_cfg){
+            // Use the url generator from the utils path by creating the object
+            std::string url_k8s = kubernetes_get_url.query_scheduler("image");
+            img.remoteOperation(url_k8s, get_value<Json::Value>(op, "options"));
+          }
+          else{
+            // In case of absence of Kubernetes Infrastructure
+            img.remoteOperation(get_value<std::string>(op, "url"),
+                              get_value<Json::Value>(op, "options"));
+          }
+        #else
+          img.remoteOperation(get_value<std::string>(op, "url"),
+                              get_value<Json::Value>(op, "options"));
+        #endif
+
       }
     } else if (type == "userOp") {
       img.userOperation(get_value<Json::Value>(op, "options"));
-    } else if (type == "custom") {
-      VCL::Image *tmp_image = new VCL::Image(img, true);
-      try {
-        if (custom_vcl_function(img, op) != 0) {
-          img.deep_copy_cv(tmp_image->get_cvmat(
-              true)); // function completed but error detected
-          delete tmp_image;
-          return -1;
-        }
-      } catch (...) {
-        img.deep_copy_cv(
-            tmp_image->get_cvmat(true)); // function threw exception
-        delete tmp_image;
-        return -1;
-      }
-      delete tmp_image;
     } else {
       throw ExceptionCommand(ImageError, "Operation not defined");
       return -1;

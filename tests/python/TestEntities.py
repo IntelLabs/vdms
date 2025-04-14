@@ -26,6 +26,7 @@
 
 from threading import Thread
 import TestCommand
+from os import path
 
 
 class TestEntities(TestCommand.TestCommand):
@@ -42,7 +43,7 @@ class TestEntities(TestCommand.TestCommand):
 
         try:
             self.assertEqual(response[0]["AddEntity"]["status"], 0)
-        except:
+        except Exception:
             results[thID] = -1
 
         results[thID] = 0
@@ -70,7 +71,7 @@ class TestEntities(TestCommand.TestCommand):
                 response[0]["FindEntity"]["entities"][0]["lastname"], "Ferro"
             )
             self.assertEqual(response[0]["FindEntity"]["entities"][0]["threadid"], thID)
-        except:
+        except Exception:
             results[thID] = -1
 
         results[thID] = 0
@@ -360,7 +361,7 @@ class TestEntities(TestCommand.TestCommand):
         all_queries.append(query)
 
         blob_arr = []
-        fd = open("../test_images/brain.png", "rb")
+        fd = open(path.join(self.find_tests_dir(), "test_images/brain.png"), "rb")
         blob_arr.append(fd.read())
         fd.close()
 
@@ -406,7 +407,7 @@ class TestEntities(TestCommand.TestCommand):
         all_queries.append(query)
 
         blob_arr = []
-        fd = open("../test_images/brain.png", "rb")
+        fd = open(path.join(self.find_tests_dir(), "test_images/brain.png"), "rb")
         blob_arr.append(fd.read())
         fd.close()
 

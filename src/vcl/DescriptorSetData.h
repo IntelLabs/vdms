@@ -34,24 +34,24 @@
 
 #pragma once
 
+#include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include <filesystem>
 #include <fstream>
 #include <map>
 #include <mutex>
 #include <string>
 #include <vector>
 
-#include <dirent.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-
 #include "vcl/DescriptorSet.h"
 
 namespace VCL {
 
 class DescriptorSet::DescriptorSetData {
-
-protected:
+ protected:
   std::string _set_path;
   unsigned _dimensions;
   uint64_t _n_total;
@@ -91,7 +91,9 @@ protected:
           return EEXIST;
       else if (errno != ENOENT)
         return errno;
-      else if (mkdir(path, 0777) == 0)
+      // In case of the path requires to create the whole hierarchy of the
+      // parent directories
+      else if (std::filesystem::create_directories(path))
         return 0;
       else if (errno != EEXIST)
         return errno;
@@ -100,7 +102,7 @@ protected:
   void write_labels_map();
   void read_labels_map();
 
-public:
+ public:
   /**
    *  Loads an existing collection located at collection_path
    *  or created a new collection if it does not exist
@@ -275,4 +277,4 @@ public:
   void set_labels_map(std::map<long, std::string> &labels);
 };
 
-}; // namespace VCL
+};  // namespace VCL

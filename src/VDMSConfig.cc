@@ -29,6 +29,7 @@
  *
  */
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -62,6 +63,7 @@ const std::string KEY_NOT_FOUND = "KEY_NOT_FOUND";
 const std::string DEFAULT_ENDPOINT = "http://127.0.0.1:9000";
 const std::string DEFAULT_AWS_LOG_LEVEL = "off";
 const bool DEFAULT_USE_ENDPOINT = false;
+const bool DEFAULT_KUBERNETES_CONTAINER = false;
 
 using namespace VDMS;
 
@@ -100,17 +102,35 @@ VDMSConfig *VDMSConfig::instance() {
 
 VDMSConfig::VDMSConfig(std::string config_file) {
   Json::Reader reader;
-  std::ifstream file(config_file);
+  std::ifstream file;
+  if (std::filesystem::exists(config_file)) {
+    file.open(config_file);
+  } else {
+    std::string errorMessage =
+        "VDMSConfig error: Invalid config file \"" + config_file + "\"";
+    throw std::runtime_error(errorMessage);
+  }
 
   cfg = nullptr;
   storage_type = StorageType::LOCAL;
   aws_flag = false;
+  k8s_flag = false;
   use_endpoint = false;
   aws_log_level = Aws::Utils::Logging::LogLevel::Off;
   endpoint_override = std::nullopt;
   proxy_host = std::nullopt;
   proxy_port = std::nullopt;
   proxy_scheme = std::nullopt;
+
+  flinng_num_rows = std::nullopt;
+  flinng_cells_per_row = std::nullopt;
+  flinng_num_hash_tables = std::nullopt;
+  flinng_hashes_per_table = std::nullopt;
+  ivf_nlist = std::nullopt;
+  hnsw_efsearch = std::nullopt;
+  hnsw_efConstruction = std::nullopt;
+  hnsw_M = std::nullopt;
+
 
   bool parsingSuccessful = reader.parse(file, json_config);
 
@@ -122,6 +142,7 @@ VDMSConfig::VDMSConfig(std::string config_file) {
   }
 
   build_dirs();
+  set_kubernetes_config();
 }
 
 int VDMSConfig::get_int_value(std::string val, int def) {
@@ -364,6 +385,78 @@ void VDMSConfig::build_dirs() {
   if (aws_log_level_map.find(aws_log_level_value) != aws_log_level_map.end()) {
     aws_log_level = aws_log_level_map.at(aws_log_level_value);
   }
+
+//Descriptor parameters
+
+  // flinng_num_rows
+  if (exists_key(PARAM_FLINNG_NUM_ROWS)) {
+    value = get_string_value(PARAM_FLINNG_NUM_ROWS, KEY_NOT_FOUND);
+    flinng_num_rows = std::optional<int>{stoi(value)};
+  } else {
+    flinng_num_rows = std::optional<int>{3};
+  }
+
+  // flinng_cells_per_row
+  if (exists_key(PARAM_FLINNG_CELLS_PER_ROW)) {
+    value = get_string_value(PARAM_FLINNG_CELLS_PER_ROW, KEY_NOT_FOUND);
+    flinng_cells_per_row = std::optional<int>{stoi(value)};
+  } else {
+    flinng_cells_per_row = std::optional<int>{1000};
+  }
+
+  // flinng_num_hash_tables
+  if (exists_key(PARAM_FLINNG_NUM_HASH_TABLES)) {
+    value = get_string_value(PARAM_FLINNG_NUM_HASH_TABLES, KEY_NOT_FOUND);
+    flinng_num_hash_tables = std::optional<int>{stoi(value)};
+  } else {
+    flinng_num_hash_tables = std::optional<int>{10};
+  }
+
+  // flinng_hashes_per_table
+  if (exists_key(PARAM_FLINNG_HASHES_PER_TABLE)) {
+    value = get_string_value(PARAM_FLINNG_HASHES_PER_TABLE, KEY_NOT_FOUND);
+    flinng_hashes_per_table = std::optional<int>{stoi(value)};
+  } else {
+    flinng_hashes_per_table = std::optional<int>{12};
+  }
+
+  // ivf_nlist
+  if (exists_key(PARAM_IVF_NLIST)) {
+    value = get_string_value(PARAM_IVF_NLIST, KEY_NOT_FOUND);
+    ivf_nlist = std::optional<int>{stoi(value)};
+  } else {
+    ivf_nlist = std::optional<int>{16};
+  }
+
+// hnsw_efsearch
+  if (exists_key(PARAM_HNSW_EFSEARCH)) {
+    value = get_string_value(PARAM_HNSW_EFSEARCH, KEY_NOT_FOUND);
+    hnsw_efsearch = std::optional<int>{stoi(value)};
+  } else {
+    hnsw_efsearch = std::optional<int>{64};
+  }
+
+  // hnsw_efConstruction
+  if (exists_key(PARAM_HNSW_EFCONSTRUCTION)) {
+    value = get_string_value(PARAM_HNSW_EFCONSTRUCTION, KEY_NOT_FOUND);
+    hnsw_efConstruction = std::optional<int>{stoi(value)};
+  } else {
+    hnsw_efConstruction = std::optional<int>{96};
+  }
+
+  // hnsw_M
+  if (exists_key(PARAM_HNSW_M)) {
+    value = get_string_value(PARAM_HNSW_M, KEY_NOT_FOUND);
+    hnsw_M = std::optional<int>{stoi(value)};
+  } else {
+    hnsw_M = std::optional<int>{48};
+  }
+
+
+}
+
+void VDMSConfig::set_kubernetes_config() {
+  k8s_flag = get_bool_value(PARAM_KUBERNETES_CONTAINER, DEFAULT_KUBERNETES_CONTAINER);
 }
 
 bool VDMSConfig::exists_key(const std::string &key) {

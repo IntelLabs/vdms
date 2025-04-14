@@ -10,15 +10,15 @@ Here we will install the Debian/Ubuntu packages.
 sudo apt-get update -y  --fix-missing
 sudo apt-get upgrade -y
 sudo apt-get install -y --no-install-suggests --no-install-recommends \
-    apt-transport-https automake bison build-essential bzip2 ca-certificates \
+    apt-transport-https automake bazel-bootstrap bison build-essential bzip2 ca-certificates \
     curl ed flex g++ gcc git gnupg-agent javacc libarchive-tools libatlas-base-dev \
-    libavcodec-dev libavformat-dev libavutil-dev libboost-all-dev libbz2-dev libc-ares-dev \
+    libavcodec-dev libavformat-dev libavutil-dev libbison-dev libboost-all-dev libbz2-dev libc-ares-dev \
     libcurl4-openssl-dev libdc1394-dev libgflags-dev libgoogle-glog-dev \
     libgtk-3-dev libgtk2.0-dev libhdf5-dev libjpeg-dev libjsoncpp-dev \
     libleveldb-dev liblmdb-dev liblz4-dev libncurses5-dev libopenblas-dev libopenmpi-dev \
     libpng-dev librdkafka-dev libsnappy-dev libssl-dev libswscale-dev libtbb-dev \
-    libtiff-dev libtiff5-dev libtool libzip-dev linux-libc-dev mpich \
-    pkg-config procps software-properties-common swig unzip uuid-dev
+    libtiff-dev libtiff5-dev libtool libwebsockets-dev libzip-dev linux-libc-dev mpich \
+    pkg-config procps software-properties-common swig uncrustify unzip uuid-dev
 ```
 
 #### **Install JPEG package**
@@ -84,7 +84,7 @@ alias python3=/usr/bin/python3.x
 Now that python is setup, now install Numpy and also install the coverage and cryptography packages if interested in running the Python unit tests.
 ```bash
 python3 -m pip install --upgrade pip
-python3 -m pip install --no-cache-dir "numpy>=1.26.0" "coverage>=7.3.1" "cryptography>=42.0.7"
+python3 -m pip install --no-cache-dir "numpy>=1.26.0,<2.0.0" "coverage>=7.3.1" "cryptography>=44.0.1"
 ```
 
 
@@ -174,10 +174,10 @@ sudo cp -r include/* /usr/local/include/
 ```
 
 
-#### **Faiss v1.7.4**
+#### **Faiss v1.9.0**
 Install the Faiss library for similarity search.
 ```bash
-FAISS_VERSION="v1.7.4"
+FAISS_VERSION="v1.9.0"
 git clone --branch ${FAISS_VERSION} https://github.com/facebookresearch/faiss.git $VDMS_DEP_DIR/faiss
 cd $VDMS_DEP_DIR/faiss
 mkdir build && cd build
@@ -275,12 +275,33 @@ cd $VDMS_DEP_DIR/libomni
 make clean check
 sudo make install -w --debug
 ```
+
 <br>
+
+#### **Kubernetes Client**
+Installation required only if you plan to use the kubernetes environment
+Follow [[Kubernetes README](kubernetes/README.md)] for how to set up the environment.
+```bash
+git clone --depth 1 https://github.com/yaml/libyaml.git /dependencies/libyaml
+cd $VDMS_DEP_DIR/libyaml
+mkdir build && cd build
+cmake -DCMAKE_INSTALL_PREFIX=/usr/local/ -DBUILD_TESTING=OFF  -DBUILD_SHARED_LIBS=ON ..
+make
+sudo make install
+
+CLIENT_REPO_ROOT=$VDMS_DEP_DIR/k8s
+git clone https://github.com/kubernetes-client/c.git ${CLIENT_REPO_ROOT}
+cd ${CLIENT_REPO_ROOT}/kubernetes
+mkdir build && cd build
+cmake ..
+make
+sudo make install
+```
 
 ## Install VDMS
 This version of VDMS treats PMGD as a submodule so both libraries are compiled at one time. After entering the vdms directory, the command `git submodule update --init --recursive` will pull pmgd into the appropriate directory. Furthermore, Cmake is used to compile all directories.
 ```bash
-git clone -b develop --recurse-submodules https://github.com/IntelLabs/vdms.git
+git clone -b master --recurse-submodules https://github.com/IntelLabs/vdms.git
 cd vdms
 ```
 
@@ -297,9 +318,9 @@ sed -i "s|#include <libavcodec/avcodec.h>||" include/vcl/KeyFrame.h
 sed -i "s|#include <libavcodec/bsf.h>||" include/vcl/KeyFrame.h
 ```
 
-When compiling on a target without Optane persistent memory, use the following:
+When compiling on a target without Optane persistent memory and without Kubernetes, use the following:
 ```bash
-mkdir build && cd build
+mkdir -p build && cd build
 cmake ..
 make ${BUILD_THREADS}
 cp ../config-vdms.json .
@@ -313,6 +334,14 @@ make ${BUILD_THREADS}
 cp ../config-vdms.json .
 ```
 
+If you plan on setting up the Kubernetes environment with VDMS and remote operations (experimental), use the following:
+```bash
+mkdir build && cd build
+cmake -DUSE_K8S=ON ..
+make ${BUILD_THREADS}
+cp ../config-vdms.json .
+```
+
 ***NOTE:*** If error similar to `cannot open shared object file: No such file or directory` obtained during loading shared libraries, such as `libpmgd.so` or `libvcl.so`, add the correct directories to `LD_LIBRARY_PATH`. This may occur for non-root users. To find the correct directory, run `find` command for missing object file. An example solution for missing `libpmgd.so` and `libvcl.so` is:
 ```bash
 find / -name "libpmgd*so*" # <Path_to_VDMS_directory>/build/src/pmgd/src
@@ -320,3 +349,9 @@ find / -name "libvcl*so*"  # <Path_to_VDMS_directory>/build/src/vcl
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:<Path_to_VDMS_directory>/build/src/pmgd/src:<Path_to_VDMS_directory>/build/src/vcl
 ```
 
+## Start VDMS Server
+To start the server, run the following from the main VDMS directory:
+```bash
+cd build
+./vdms
+```

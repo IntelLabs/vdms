@@ -5,7 +5,7 @@
  *
  * The MIT License
  *
- * @copyright Copyright (c) 2017 Intel Corporation
+ * @copyright Copyright (c) 2024 Intel Corporation
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,9 @@
 #pragma once
 
 #include <time.h>
+
+#include <cstdint>
+#include <string>
 #include <vector>
 
 namespace VCL {
@@ -104,4 +107,4 @@ std::string create_unique(const std::string &path,
  * value of PNG and JPG format
  */
 Format read_image_format(void *buffer, long size);
-}; // namespace VCL
+};  // namespace VCL
