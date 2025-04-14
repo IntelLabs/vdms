@@ -6,7 +6,8 @@
 #            - Ubuntu: 20.04(focal), 22.04(jammy),        23.10(mantic), 24.04(noble)
 #######################################################################################################################
 
-BUILD_COVERAGE="off"
+BUILD_COVERAGE="OFF"
+USE_K8S="OFF"
 BUILD_THREADS="-j16"
 DEBIAN_FRONTEND=noninteractive
 CUR_DIR=$(dirname $(realpath  "$0"))
@@ -24,14 +25,15 @@ LONG_LIST=(
     "help"
     "coverage"
     "dep_dir"
+    "k8"
     "make"
     "python_version"
     "workspace"
 )
 
 OPTS=$(getopt \
-    --options "hd:w:p:mc" \
-    --long help,coverage,dep_dir:,make,python_version:,workspace: \
+    --options "hd:w:p:mck" \
+    --long help,coverage,k8,dep_dir:,make,python_version:,workspace: \
     --name "$(basename "$0")" \
     -- "$@"
 )
@@ -43,30 +45,32 @@ script_usage()
     cat <<EOF
     This script installs OS packages, installs dependencies, and builds VDMS.
 
-    Usage: $0 [ -h ] [ -o OS_NAME ] [ -w WORKSPACE ] [ -d VDMS_DEP_DIR ] [ -m ] [ -c ]
+    Usage: $0 [ -h ] [ OPTIONS ]
 
     Options:
-        -h or --help        Print this help message
-        -w or --workspace   Path to vdms repository
-        -d or --dep_dir     Path to directory to store dependencies
-        -m or --make        Flag to build VDMS after dependency installation
+        -h or --help            Print this help message
         -c or --coverage        Flag to build VDMS with a test capabilities
+        -d or --dep_dir         Path to directory to store dependencies
+        -k or --k8              Flag to build VDMS with kubernetes orchestration capabilities
+        -m or --make            Flag to build VDMS after dependency installation
         -p or --python_version  Python version to install [default: 3.12.3]
+        -w or --workspace       Path to vdms repository
 EOF
 }
 
 while true; do
     case "$1" in
         -h | --help) script_usage; exit 0 ;;
-        -w | --workspace) shift; WORKSPACE=$1; shift ;;
-        -c | --coverage) BUILD_COVERAGE="on"; shift ;;
+        -c | --coverage) BUILD_COVERAGE="ON"; shift ;;
         -d | --dep_dir) shift; VDMS_DEP_DIR=$1; shift ;;
+        -k | --k8) USE_K8S="ON"; shift ;;
+        -m | --make) BUILD_VDMS=true; shift ;;
         -p | --python_version) shift;
                                PYTHON_VERSION=$1;
                                PYTHON_BASE=$(echo ${PYTHON_VERSION} | cut -d. -f-2);
                                shift
                                ;;
-        -m | --make) BUILD_VDMS=true; shift ;;
+        -w | --workspace) shift; WORKSPACE=$1; shift ;;
         --) shift; break ;;
         *) script_usage; exit 0 ;;
     esac
@@ -82,6 +86,7 @@ echo -e "\tOS_VERSION:\t${OS_VERSION}"
 echo -e "\tWORKSPACE:\t${WORKSPACE}"
 echo -e "\tVDMS_DEP_DIR:\t${VDMS_DEP_DIR}"
 echo -e "\tBUILD_COVERAGE:\t${BUILD_COVERAGE}"
+echo -e "\tUSE_K8S:\t${USE_K8S}"
 echo -e "\tBUILD_VDMS:\t${BUILD_VDMS}"
 echo -e "\tPYTHON_BASE:\t${PYTHON_BASE}"
 echo -e "\tPYTHON_VERSION:\t${PYTHON_VERSION}"
@@ -96,15 +101,15 @@ mkdir -p $VDMS_DEP_DIR
 apt-get update -y && apt-get upgrade -y
 apt-get install -o 'Acquire::Retries=3' -y --no-install-suggests \
         --no-install-recommends --fix-broken --fix-missing \
-    apt-transport-https automake bison build-essential bzip2 ca-certificates \
+    apt-transport-https automake bazel-bootstrap bison build-essential bzip2 ca-certificates \
     curl ed flex g++ gcc git gnupg-agent javacc libarchive-tools libatlas-base-dev \
-    libavcodec-dev libavformat-dev libavutil-dev libboost-all-dev libbz2-dev libc-ares-dev \
+    libavcodec-dev libavformat-dev libavutil-dev libbison-dev libboost-all-dev libbz2-dev libc-ares-dev \
     libcurl4-openssl-dev libdc1394-dev libgflags-dev libgoogle-glog-dev \
     libgtk-3-dev libgtk2.0-dev libhdf5-dev libjpeg-dev libjsoncpp-dev \
     libleveldb-dev liblmdb-dev liblz4-dev libncurses5-dev libopenblas-dev libopenmpi-dev \
     libpng-dev librdkafka-dev libsnappy-dev libssl-dev libswscale-dev libtbb-dev \
-    libtiff-dev libtiff5-dev libtool libzip-dev linux-libc-dev mpich \
-    pkg-config procps software-properties-common swig unzip uuid-dev
+    libtiff-dev libtiff5-dev libtool libwebsockets-dev libzip-dev linux-libc-dev mpich \
+    pkg-config procps software-properties-common swig uncrustify unzip uuid-dev
 
 if [ ${OS_NAME} = "debian" ]; then
     apt-get install -y --no-install-suggests --no-install-recommends libjpeg62-turbo-dev
@@ -169,7 +174,7 @@ python${version_used_base} -m venv ${VIRTUAL_ENV}
 export PATH="$VIRTUAL_ENV/bin:$PATH"
 
 
-if [ "${BUILD_COVERAGE}" = "on" ]; then
+if [ "${BUILD_COVERAGE}" = "ON" ]; then
     apt-get install -y --no-install-suggests --no-install-recommends gdb
     python -m pip install --no-cache-dir "gcovr>=7.0"
     curl -L -o ${WORKSPACE}/minio https://dl.min.io/server/minio/release/linux-amd64/minio
@@ -188,7 +193,7 @@ fi
 AUTOCONF_VERSION="2.71"
 AWS_SDK_VERSION="1.11.336"
 CMAKE_VERSION="v3.28.5"
-FAISS_VERSION="v1.7.4"
+FAISS_VERSION="v1.9.0"
 LIBEDIT_VERSION="20230828-3.1"
 NUMPY_MIN_VERSION="1.26.0"
 OPENCV_VERSION="4.9.0"
@@ -337,6 +342,25 @@ make clean check
 make install -w --debug
 
 
+# FOR KUBERNETES ORCHESTRATION
+if [ "${USE_K8S}" = "ON" ]; then
+    git clone --depth 1 https://github.com/yaml/libyaml.git $VDMS_DEP_DIR/libyaml
+    mkdir -p $VDMS_DEP_DIR/libyaml/build
+    cd $VDMS_DEP_DIR/libyaml/build
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON ..
+    make ${BUILD_THREADS}
+    make install
+
+    git clone https://github.com/kubernetes-client/c.git $VDMS_DEP_DIR/k8s
+    CLIENT_REPO_ROOT=$VDMS_DEP_DIR/k8s
+    mkdir -p ${CLIENT_REPO_ROOT}/kubernetes/build
+    cd ${CLIENT_REPO_ROOT}/kubernetes/build
+    cmake -DCMAKE_PREFIX_PATH=/usr/local -DCMAKE_INSTALL_PREFIX=/usr/local ..
+    make ${BUILD_THREADS}
+    make install
+fi
+
+
 # CLEANUP
 rm -rf $VDMS_DEP_DIR
 
@@ -359,7 +383,7 @@ fi
 
 mkdir -p ${WORKSPACE}/build && cd ${WORKSPACE}/build
 
-cmake -DCODE_COVERAGE="${BUILD_COVERAGE}" ..
+cmake -DUSE_K8S="${USE_K8S}" -DCODE_COVERAGE="${BUILD_COVERAGE}" ..
 
 if [ $BUILD_VDMS == true ]; then
     make ${BUILD_THREADS}
