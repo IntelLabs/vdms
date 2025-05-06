@@ -17,7 +17,7 @@ Sample kubeConfig file that can be used to add details of Master and Worker node
 
 ```json
 {
-    "MasterNodeDetail": {
+    "ControlPlaneNodeDetail": {
 		"_HOST-NAME-OF-MASTER-NODE_": "_IPADDRESS-OF-MASTER-NODE_"
 	},
     "WorkerNodeDetail": [

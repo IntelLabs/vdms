@@ -221,7 +221,7 @@ jsonparserFunction_setup()
 jsonparserFunction_master()
 {
    json_data=$(cat $1)
-   masternode=$(echo $json_data | jq ".MasterNodeDetail")
+   masternode=$(echo $json_data | jq ".ControlPlaneNodeDetail")
    dict_string="${masternode#\{}"
    dict_string="${dict_string%\}}"
    MASTER=$(echo "$dict_string" | grep -o '[^:,]*:' | tr -d ':' | tr ',' '\n')
