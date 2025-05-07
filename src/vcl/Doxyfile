@@ -95,7 +95,7 @@ OUTPUT_LANGUAGE        = English
 
 # If the BRIEF_MEMBER_DESC tag is set to YES, doxygen will include brief member
 # descriptions after the members that are listed in the file and class
-# documentation (similar to Javadoc). Set to NO to disable this.
+# documentation (similar to Javadoc). Set to NO to deactivate this.
 # The default value is: YES.
 
 BRIEF_MEMBER_DESC      = YES
@@ -297,7 +297,7 @@ EXTENSION_MAPPING      =
 # according to the Markdown format, which allows for more readable
 # documentation. See http://daringfireball.net/projects/markdown/ for details.
 # The output of markdown processing is further processed by doxygen, so you can
-# mix doxygen, HTML, and XML commands with Markdown formatting. Disable only in
+# mix doxygen, HTML, and XML commands with Markdown formatting. Deactivate only in
 # case of backward compatibilities issues.
 # The default value is: YES.
 
@@ -364,7 +364,7 @@ DISTRIBUTE_GROUP_DOC   = NO
 
 # If one adds a struct or class to a group and this option is enabled, then also
 # any nested class or struct is added to the same group. By default this option
-# is disabled and one has to add nested compounds explicitly via \ingroup.
+# is deactivated and one has to add nested compounds explicitly via \ingroup.
 # The default value is: NO.
 
 GROUP_NESTED_COMPOUNDS = NO
@@ -402,7 +402,7 @@ INLINE_SIMPLE_STRUCTS  = NO
 # When TYPEDEF_HIDES_STRUCT tag is enabled, a typedef of a struct, union, or
 # enum is documented as struct, union, or enum with the name of the typedef. So
 # typedef struct TypeS {} TypeT, will appear in the documentation as a struct
-# with name TypeT. When disabled the typedef will appear as a member of a file,
+# with name TypeT. When deactivated the typedef will appear as a member of a file,
 # namespace, or class. And the struct will be named TypeS. This can typically be
 # useful for C code in case the coding convention dictates that all compound
 # types are typedef'ed and only the typedef is referenced, never the tag name.
@@ -431,7 +431,7 @@ LOOKUP_CACHE_SIZE      = 0
 # documentation are documented, even if no documentation was available. Private
 # class members and static file members will be hidden unless the
 # EXTRACT_PRIVATE respectively EXTRACT_STATIC tags are set to YES.
-# Note: This will also disable the warnings about undocumented members that are
+# Note: This will also deactivate the warnings about undocumented members that are
 # normally produced when WARNINGS is set to YES.
 # The default value is: NO.
 
@@ -619,25 +619,25 @@ SORT_BY_SCOPE_NAME     = NO
 
 STRICT_PROTO_MATCHING  = NO
 
-# The GENERATE_TODOLIST tag can be used to enable (YES) or disable (NO) the todo
+# The GENERATE_TODOLIST tag can be used to enable (YES) or deactivate (NO) the todo
 # list. This list is created by putting \todo commands in the documentation.
 # The default value is: YES.
 
 GENERATE_TODOLIST      = YES
 
-# The GENERATE_TESTLIST tag can be used to enable (YES) or disable (NO) the test
+# The GENERATE_TESTLIST tag can be used to enable (YES) or deactivate (NO) the test
 # list. This list is created by putting \test commands in the documentation.
 # The default value is: YES.
 
 GENERATE_TESTLIST      = YES
 
-# The GENERATE_BUGLIST tag can be used to enable (YES) or disable (NO) the bug
+# The GENERATE_BUGLIST tag can be used to enable (YES) or deactivate (NO) the bug
 # list. This list is created by putting \bug commands in the documentation.
 # The default value is: YES.
 
 GENERATE_BUGLIST       = YES
 
-# The GENERATE_DEPRECATEDLIST tag can be used to enable (YES) or disable (NO)
+# The GENERATE_DEPRECATEDLIST tag can be used to enable (YES) or deactivate (NO)
 # the deprecated list. This list is created by putting \deprecated commands in
 # the documentation.
 # The default value is: YES.
@@ -661,21 +661,21 @@ ENABLED_SECTIONS       =
 
 MAX_INITIALIZER_LINES  = 30
 
-# Set the SHOW_USED_FILES tag to NO to disable the list of files generated at
+# Set the SHOW_USED_FILES tag to NO to deactivate the list of files generated at
 # the bottom of the documentation of classes and structs. If set to YES, the
 # list will mention the files that were used to generate the documentation.
 # The default value is: YES.
 
 SHOW_USED_FILES        = YES
 
-# Set the SHOW_FILES tag to NO to disable the generation of the Files page. This
+# Set the SHOW_FILES tag to NO to deactivate the generation of the Files page. This
 # will remove the Files entry from the Quick Index and from the Folder Tree View
 # (if specified).
 # The default value is: YES.
 
 SHOW_FILES             = YES
 
-# Set the SHOW_NAMESPACES tag to NO to disable the generation of the Namespaces
+# Set the SHOW_NAMESPACES tag to NO to deactivate the generation of the Namespaces
 # page. This will remove the Namespaces entry from the Quick Index and from the
 # Folder Tree View (if specified).
 # The default value is: YES.
@@ -737,7 +737,7 @@ WARNINGS               = YES
 
 # If the WARN_IF_UNDOCUMENTED tag is set to YES then doxygen will generate
 # warnings for undocumented members. If EXTRACT_ALL is set to YES then this flag
-# will automatically be disabled.
+# will automatically be deactivated.
 # The default value is: YES.
 
 WARN_IF_UNDOCUMENTED   = YES
@@ -971,7 +971,7 @@ FILTER_SOURCE_FILES    = NO
 
 # The FILTER_SOURCE_PATTERNS tag can be used to specify source filters per file
 # pattern. A pattern will override the setting for FILTER_PATTERN (if any) and
-# it is also possible to disable source filtering for a specific pattern using
+# it is also possible to deactivate source filtering for a specific pattern using
 # *.ext= (so without naming a filter).
 # This tag requires that the tag FILTER_SOURCE_FILES is set to YES.
 
@@ -1034,7 +1034,7 @@ REFERENCES_LINK_SOURCE = YES
 # source code will show a tooltip with additional information such as prototype,
 # brief description and links to the definition and documentation. Since this
 # will make the HTML file larger and loading of large files a bit slower, you
-# can opt to disable this feature.
+# can opt to deactivate this feature.
 # The default value is: YES.
 # This tag requires that the tag SOURCE_BROWSER is set to YES.
 
@@ -1064,7 +1064,7 @@ USE_HTAGS              = NO
 
 # If the VERBATIM_HEADERS tag is set the YES then doxygen will generate a
 # verbatim copy of the header file for each class for which an include is
-# specified. Set to NO to disable this.
+# specified. Set to NO to deactivate this.
 # See also: Section \class.
 # The default value is: YES.
 
@@ -1226,9 +1226,9 @@ HTML_TIMESTAMP         = NO
 
 # If the HTML_DYNAMIC_MENUS tag is set to YES then the generated HTML
 # documentation will contain a main index with vertical navigation menus that
-# are dynamically created via Javascript. If disabled, the navigation index will
+# are dynamically created via Javascript. If deactivated, the navigation index will
 # consists of multiple levels of tabs that are statically embedded in every HTML
-# page. Disable this option to support browsers that do not have Javascript,
+# page. Deactivate this option to support browsers that do not have Javascript,
 # like the Qt help browser.
 # The default value is: YES.
 # This tag requires that the tag GENERATE_HTML is set to YES.
@@ -1442,9 +1442,9 @@ GENERATE_ECLIPSEHELP   = NO
 ECLIPSE_DOC_ID         = org.doxygen.Project
 
 # If you want full control over the layout of the generated HTML pages it might
-# be necessary to disable the index and replace it with your own. The
+# be necessary to deactivate the index and replace it with your own. The
 # DISABLE_INDEX tag can be used to turn on/off the condensed index (tabs) at top
-# of each HTML page. A value of NO enables the index and the value YES disables
+# of each HTML page. A value of NO enables the index and the value YES deactivates
 # it. Since the tabs in the index contain the same information as the navigation
 # tree, you can set this option to YES if you also set GENERATE_TREEVIEW to YES.
 # The default value is: NO.
@@ -1566,7 +1566,7 @@ MATHJAX_CODEFILE       =
 # the HTML output. The underlying search engine uses javascript and DHTML and
 # should work on any modern browser. Note that when using HTML help
 # (GENERATE_HTMLHELP), Qt help (GENERATE_QHP), or docsets (GENERATE_DOCSET)
-# there is already a search function so this one should typically be disabled.
+# there is already a search function so this one should typically be deactivated.
 # For large projects the javascript based search engine can be slow, then
 # enabling SERVER_BASED_SEARCH may provide a better solution. It is possible to
 # search using the keyboard; to jump to the search box use <access key> + S
@@ -1586,7 +1586,7 @@ SEARCHENGINE           = YES
 # When the SERVER_BASED_SEARCH tag is enabled the search engine will be
 # implemented using a web server instead of a web client using Javascript. There
 # are two flavors of web server based searching depending on the EXTERNAL_SEARCH
-# setting. When disabled, doxygen will generate a PHP script for searching and
+# setting. When deactivated, doxygen will generate a PHP script for searching and
 # an index file used by the script. When EXTERNAL_SEARCH is enabled the indexing
 # and searching needs to be provided by external tools. See the section
 # "External Indexing and Searching" for details.
@@ -2168,7 +2168,7 @@ PERL_PATH              = /usr/bin/perl
 # If the CLASS_DIAGRAMS tag is set to YES, doxygen will generate a class diagram
 # (in HTML and LaTeX) for classes with base or super classes. Setting the tag to
 # NO turns the diagrams off. Note that this option also works with HAVE_DOT
-# disabled, but it is recommended to install and use dot, since it yields more
+# deactivated, but it is recommended to install and use dot, since it yields more
 # powerful graphs.
 # The default value is: YES.
 
@@ -2445,7 +2445,7 @@ DOT_GRAPH_MAX_NODES    = 50
 MAX_DOT_GRAPH_DEPTH    = 0
 
 # Set the DOT_TRANSPARENT tag to YES to generate images with a transparent
-# background. This is disabled by default, because dot on Windows does not seem
+# background. This is deactivated by default, because dot on Windows does not seem
 # to support this out of the box.
 #
 # Warning: Depending on the platform used, enabling this option may lead to
@@ -2459,7 +2459,7 @@ DOT_TRANSPARENT        = NO
 # Set the DOT_MULTI_TARGETS tag to YES to allow dot to generate multiple output
 # files in one run (i.e. multiple -o and -T options on the command line). This
 # makes dot run faster, but since only newer versions of dot (>1.8.10) support
-# this, this feature is disabled by default.
+# this, this feature is deactivated by default.
 # The default value is: NO.
 # This tag requires that the tag HAVE_DOT is set to YES.
 

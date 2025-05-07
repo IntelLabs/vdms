@@ -166,7 +166,7 @@ int main(int argc, char **argv) {
 
     if (!ca_set && (cert_set || key_set)) {
       std::cerr
-          << "Warning: -ca not set. Client authentication will be disabled.\n";
+          << "Warning: -ca not set. Client authentication will be deactivated.\n";
     }
 
     if (restore_set) {
