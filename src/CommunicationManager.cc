@@ -91,7 +91,7 @@ void CommunicationManager::process_queue() {
 }
 
 CommunicationManager::~CommunicationManager() {
-  // Kill all connections by closing the sockets
+  // Stop all connections by closing the sockets
   // If not, QueryHandler will be blocked on process_connection()
   for (auto connection : _conn_list) {
     connection->shutdown();

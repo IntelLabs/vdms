@@ -120,7 +120,7 @@ class TestKillProcessesByObject(unittest.TestCase):
     @patch("os.system")
     @patch("run_all_tests.print")
     def test_kill_processes_by_object(self, mock_print, mock_system):
-        # The function kill_processes_by_object() kills the list of pids
+        # The function kill_processes_by_object() stops the list of pids
         # (process id) once the process is not needed anymore.
 
         # Setup
@@ -150,10 +150,10 @@ class TestKillProcessesByObject(unittest.TestCase):
         # Verify the results
         # Check if the correct print statements were made
         expected_print_calls = []
-        expected_print_calls.append(unittest.mock.call("Killing 3 processes"))
+        expected_print_calls.append(unittest.mock.call("Stopping 3 processes"))
         for index in range(0, number_of_random_pids):
             pid = random_value_list[index]
-            expected_print_calls.append(unittest.mock.call(f"Killing pid: {pid}"))
+            expected_print_calls.append(unittest.mock.call(f"Stopping pid: {pid}"))
 
         # Check if debug messages were printed
         mock_print.assert_has_calls(expected_print_calls, any_order=False)
