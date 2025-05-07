@@ -81,7 +81,7 @@ class VideoLoop {
   bool is_loop_running();
 
   /**
-   * If no operations are to be executed then create a dummy entry
+   * If no operations are to be executed then create a placeholder entry
    * in the event loop and destroy it.
    */
   void close_no_operation_loop(std::string videoId);
