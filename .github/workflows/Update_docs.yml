@@ -1,11 +1,12 @@
 name: Update Docs
-# on:
-#   push:
-#     branches:
-#       - develop
 
 on:
-  workflow_call:
+  push:
+    branches:
+      - develop
+
+# on:
+#   workflow_call:
 
 permissions: {}
 jobs:
