@@ -67,12 +67,19 @@ jobs:
         source_py_coverage: ${{ needs.Testing.outputs.source_py_coverage }}
     secrets: inherit
 
+  UpdateDocs:
+    permissions:
+        contents: write
+        pull-requests: write
+    needs: [Testing, Results]
+    uses: ./.github/workflows/_CI_update_docs.yml
+    secrets: inherit
+
   Update:
     permissions:
         contents: write
         pull-requests: write
-    # name: Lint & Update Reports
-    needs: [Testing, Results]
+    needs: [Testing, Results, UpdateDocs]
     uses: ./.github/workflows/_CI_update.yml
     with:
         coverage_value_updated: ${{ needs.Testing.outputs.coverage_value_updated }}
