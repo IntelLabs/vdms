@@ -1,15 +1,36 @@
 # site_name: Visual Data Management System (VDMS) Doc
 site_name: VDMS Documentation
 repo_url: http://github.com/IntelLabs/vdms
-copyright: Copyright © 2025 Intel Corporation
+copyright: Copyright &copy; 2025 Intel Corporation
 theme:
-  name: readthedocs
-  # name: material
+  # name: readthedocs
+  name: material
   palette:
-    primary: blue
+    - primary: light blue
+
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to system preference
   # logo: images/IL_logo.png
   icon:
     logo: material/database
+    repo: fontawesome/brands/github
   features:
     - navigation.tabs
 plugins:

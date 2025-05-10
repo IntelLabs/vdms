@@ -6,8 +6,9 @@ on:
       - develop
       - cwl-docs
 
-# on:
-#   workflow_call:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions: {}
 jobs:
@@ -33,5 +34,5 @@ jobs:
           path: .cache
           restore-keys: |
             mkdocs-
-      - run: pip install mkdocs
+      - run: pip install mkdocs-material
       - run: mkdocs gh-deploy --force
