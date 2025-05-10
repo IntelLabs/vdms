@@ -1,0 +1,72 @@
+# site_name: Visual Data Management System (VDMS) Doc
+site_name: VDMS Documentation
+repo_url: http://github.com/IntelLabs/vdms
+copyright: Copyright © 2025 Intel Corporation
+theme:
+  name: readthedocs
+  # name: material
+  palette:
+    primary: blue
+  # logo: images/IL_logo.png
+  icon:
+    logo: material/database
+  features:
+    - navigation.tabs
+plugins:
+  - search
+markdown_extensions:
+  - attr_list
+  - toc:
+      permalink: true
+nav:
+  - Home: "index.md"
+  - Getting Started:
+      - Install: "Install.md"
+      - Docker: "Docker.md"
+      - VDMS Mutual TLS Support: "guides/VDMS-mTLS-Support.md"
+  - API (v2.0.0++):
+      - Description: "API-Description.md"
+      - ConfigFile: "ConfigFile.md"
+      - Keywords: "Keywords.md"
+      - Returned Status: "Returned-Status.md"
+      - Schema Definition: "Schema.md"
+      - Commands:
+          - Basic Building Blocks: "commands/basic_building_blocks_index.md"
+          - Insert: "commands/insert_index.md"
+          - Query: "commands/query_index.md"
+          - Update: "commands/update_index.md"
+  - Guides:
+      - Examples: "guides/example_index.md"
+      - Capability Guides: "guides/capability_guide_index.md"
+  - Contribute:
+      - Developer Guide: "guides/Developer-Guide.md"
+      - VDMS Test Suite: "guides/VDMS-Test-Suite.md"
+not_in_nav: |
+  blocks/*
+  commands/Add*.md
+  commands/Classify*.md
+  commands/Find*.md
+  commands/Neo*.md
+  commands/Update*.md
+  guides/Archive-a-VDMS-Database.md
+  guides/Auto-Deletion-of-Expired-Data.md
+  guides/CSV-Plugin-for-C++-Client.md
+  guides/Custom-VCL-Image-Manipulation-Functions.md
+  guides/Deletion-Capabilities.md
+  guides/Descriptor-Memory-Usage.md
+  guides/Descriptors-Tutorial.md
+  guides/Dynamic-Metadata.md
+  guides/FLINNG-Library-and-Performance.md
+  guides/Images-Example.md
+  guides/Kubernetes-Orchestration.md
+  guides/Neo4J-Based-Scale-Out-VDMS.md
+  guides/Query-Handler-Development.md
+  guides/Read-Only-Docker-Container.md
+  guides/Remote-Operations.md
+  guides/Remote-Storage-in-VDMS.md
+  guides/Run-Kafka-VDMS-Example.md
+  guides/Simple-Example.md
+  guides/Timing-Capability.md
+  guides/User-Defined-Operations.md
+  guides/VDMS-Backup-and-Restoring-Options.md
+  guides/VDMS-Test-Script.md
