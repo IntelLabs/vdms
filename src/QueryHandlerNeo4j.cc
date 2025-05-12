@@ -58,6 +58,7 @@ tbb::concurrent_unordered_map<std::string, int> NeoDescriptorsCommand::_desc_set
 
 void QueryHandlerNeo4j::init() {
   DescriptorsManager::init();
+  VDMSConfig *cfg = VDMSConfig::instance();
 
   _rs_cmds["NeoAdd"] = new Neo4jNeoAdd();
   _rs_cmds["NeoFind"] = new Neo4jNeoFind();
@@ -74,7 +75,7 @@ void QueryHandlerNeo4j::init() {
   char *pass = getenv("NEO4J_PASS");
 
   uint_fast32_t flags = NEO4J_INSECURE;
-  int nr_conns = 32; //TODO update to be configurable
+  int nr_conns = cfg->get_int_value("neo4j_num_client_conn", 32);
 
   neoconn_pool = new BackendNeo4j(nr_conns, (char *)tgtdb, user, pass, flags);
 
