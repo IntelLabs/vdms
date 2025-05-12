@@ -75,7 +75,7 @@ void QueryHandlerNeo4j::init() {
   char *pass = getenv("NEO4J_PASS");
 
   uint_fast32_t flags = NEO4J_INSECURE;
-  int nr_conns = cfg->get_int_value("neo4j_num_client_conn", 32);
+  int nr_conns = cfg->get_int_value("neo4j_conn_pool_sz", 32);
 
   neoconn_pool = new BackendNeo4j(nr_conns, (char *)tgtdb, user, pass, flags);
 
