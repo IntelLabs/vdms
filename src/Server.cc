@@ -196,15 +196,15 @@ void Server::auto_replicate_interval() {
   }
   try {
     if (_autoreplicate_settings.autoreplicate_interval ==
-        Disable_Auto_Replicate) {
+        Deactivate_Auto_Replicate) {
       replication_period =
-          -1; // this is defualt value of disableing auto-replicate feature
+          -1; // this is defualt value of deactivateing auto-replicate feature
     }
 
     if (_autoreplicate_settings.autoreplicate_interval <
-        Disable_Auto_Replicate) {
+        Deactivate_Auto_Replicate) {
       replication_period =
-          Disable_Auto_Replicate; // this is defualt value of disableing
+          Deactivate_Auto_Replicate; // this is defualt value of deactivateing
                                   // auto-replicate feature
       throw std::runtime_error(
           "Error: auto-replication interval must be a positive number.");

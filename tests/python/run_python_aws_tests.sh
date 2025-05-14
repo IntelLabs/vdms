@@ -106,8 +106,8 @@ function execute_commands() {
 
     cd ${TEST_DIR}
 
-    # Kill current instances of minio
-    echo 'Killing current instances of minio'
+    # Stop current instances of minio
+    echo 'Stopping current instances of minio'
     pkill -9 minio || true
     sleep 2
 
@@ -159,15 +159,15 @@ function execute_commands() {
     exit 0
 }
 
-# Cleanup function to kill those processes which were started by the script
+# Cleanup function to stop those processes which were started by the script
 # Also it deletes those directories created by the script (or its tests)
 function cleanup() {
     exit_value=$?
 
     unset VDMS_SKIP_REMOTE_PYTHON_TESTS
 
-    # Killing vdms and minio processes after finishing the testing
-    echo 'Killing vdms, tls, and minio processes after finishing the testing'
+    # Stopping vdms and minio processes after finishing the testing
+    echo 'Stopping vdms, tls, and minio processes after finishing the testing'
     kill -9 $py_unittest_pid || true
     kill -9 $py_tls_unittest_pid || true
     kill -9 $py_minio_pid || true
