@@ -93,7 +93,7 @@ function execute_commands() {
     exit 0
 }
 
-# Cleanup function to kill those processes which were started by the script
+# Cleanup function to stop those processes which were started by the script
 # Also it deletes those directories created by the script (or its tests)
 function cleanup() {
     exit_value=$?

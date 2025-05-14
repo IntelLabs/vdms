@@ -84,7 +84,7 @@ class Server {
   std::string DEFAULT_DB_ROOT = "db";
   std::string DEFAULT_AUTOREPLICATE_FLAG = "false";
   std::string DEFAULT_QUERY_HANDLER = "pmgd";
-  int Disable_Auto_Replicate = -1;
+  int Deactivate_Auto_Replicate = -1;
 
   CommunicationManager *_cm;
   ReplicationConfig _autoreplicate_settings;
