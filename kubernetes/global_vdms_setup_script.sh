@@ -4,12 +4,12 @@ helpFunction()
 {
    echo ""
    echo "Usage: $0 -m machinetype -i install -s setup_the_node -k k8s_setup -c clear_the_node -j local_kubeConfig"
-   echo "\t-m Input the machine type either 'remote' or 'master'"
+   echo "\t-m Input the machine type either 'remote' or 'primary' for worker or control plane nodes, respectively"
    echo "\t-i Input the installation task as 'yes' or 'no'"
    echo "\t-s Input the status for the Node setup as - 'yes' or 'no'"
    echo "\t-k Input the status for the Kubernetes setup on Node as - 'yes' or 'no'"
    echo "\t-c Input to clear the node of the Kubernetes setup on Node as - 'yes' or 'no'"
-   echo "\t-j Path to the master node kubeConfig.json"
+   echo "\t-j Path to the control plane (primary) node kubeConfig.json"
    exit 1 # Exit script after printing help
 }
 
@@ -17,6 +17,7 @@ jsonparserFunction()
 {
    echo "Now parsing the file KubeConfig.json to get worker node info"
 }
+
 remoteSetupFunction()
 {
    echo "Setup the docker images and registries will be created on the remote machine"
@@ -25,6 +26,7 @@ remoteSetupFunction()
    sudo docker tag rudf:latest  localhost:5000/remote-udf-1
    sudo docker push localhost:5000/remote-udf-1
 }
+
 remoteInstallFunction()
 {
    echo "Dependency Installations will now be done on the remote machine"
@@ -58,6 +60,7 @@ remoteInstallFunction()
 
    sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
    sudo apt-get install conntrack
+
    ## install kubeadm, kubelet, kubectl
    CNI_PLUGINS_VERSION="v1.3.0"
    ARCH="amd64"
@@ -82,16 +85,16 @@ remoteInstallFunction()
 }
 
 
-
-masterInstallFunction()
+controlplaneInstallFunction()
 {
-   echo "Dependency Installation will now be done on the VDMS Master node"
+   echo "Dependency Installation will now be done on the VDMS Control Plane (primary) node"
+
    ##install containerd
    curl -L https://github.com/containerd/containerd/releases/download/v1.6.2/containerd-1.6.2-linux-amd64.tar.gz -o containerd-1.6.2-linux-amd64.tar.gz
    sudo tar Cxzvf /usr/local containerd-1.6.2-linux-amd64.tar.gz
    curl -L https://github.com/opencontainers/runc/releases/download/v1.1.3/runc.amd64 -o runc.amd64
    sudo install -m 755 runc.amd64 /usr/local/sbin/runc
-   sudo mkdir /etc/containerd
+   sudo mkdir -p /etc/containerd
    containerd config default | sudo tee /etc/containerd/config.toml
    sudo sed -i 's/SystemdCgroup \= false/SystemdCgroup \= true/g' /etc/containerd/config.toml
    sudo curl -L https://raw.githubusercontent.com/containerd/containerd/main/containerd.service -o /etc/systemd/system/containerd.service
@@ -159,7 +162,7 @@ masterInstallFunction()
 
 }
 
-masterSetupFunction()
+controlplaneSetupFunction()
 {
    sudo kubeadm reset -f --cri-socket=unix:///var/run/cri-dockerd.sock
    sudo rm -rf $HOME/.kube
@@ -218,31 +221,31 @@ jsonparserFunction_setup()
    done
 }
 
-jsonparserFunction_master()
+jsonparserFunction_controlplane()
 {
    json_data=$(cat $1)
-   masternode=$(echo $json_data | jq ".MasterNodeDetail")
-   dict_string="${masternode#\{}"
+   controlplanenode=$(echo $json_data | jq ".ControlPlaneNodeDetail")
+   dict_string="${controlplanenode#\{}"
    dict_string="${dict_string%\}}"
-   MASTER=$(echo "$dict_string" | grep -o '[^:,]*:' | tr -d ':' | tr ',' '\n')
-   MASTER_IP=$(echo "$dict_string" | grep -o ':[^:,]*' | tr -d ':' | tr ',' '\n')
-   MASTER=$(echo "$MASTER" | sed 's/"//g')
-   MASTER_IP=$(echo "$MASTER_IP" | sed 's/"//g')
-   MASTER=${MASTER// /}
-   MASTER_IP=${MASTER_IP// /}
+   CONTROLPLANE=$(echo "$dict_string" | grep -o '[^:,]*:' | tr -d ':' | tr ',' '\n')
+   CONTROLPLANE_IP=$(echo "$dict_string" | grep -o ':[^:,]*' | tr -d ':' | tr ',' '\n')
+   CONTROLPLANE=$(echo "$CONTROLPLANE" | sed 's/"//g')
+   CONTROLPLANE_IP=$(echo "$CONTROLPLANE_IP" | sed 's/"//g')
+   CONTROLPLANE=${CONTROLPLANE// /}
+   CONTROLPLANE_IP=${CONTROLPLANE_IP// /}
 }
 
-masterVDMSk8setupFunction()
+controlplaneVDMSk8setupFunction()
 {
-   echo "Setup the VDMS on the master node and generate the keys"
+   echo "Setup the VDMS on the control plane node and generate the keys"
    ## use the json parser here
-   jsonparserFunction_master $1
-   kubectl label node ${MASTER} vdmstype=vdmsmaster
+   jsonparserFunction_controlplane $1
+   kubectl label node ${CONTROLPLANE} vdmstype=vdmscontrolplane
    kubectl create clusterrolebinding serviceaccounts-cluster-admin \
    --clusterrole=cluster-admin \
    --group=system:serviceaccounts
    kubectl create configmap node-map --from-file=kubeConfig.json
-   kubectl taint node ${MASTER} node-role.kubernetes.io/control-plane:NoSchedule-
+   kubectl taint node ${CONTROLPLANE} node-role.kubernetes.io/control-plane:NoSchedule-
    kubectl apply -f vdms-config.yaml
    kubectl apply -f service-config.yaml
    jsonparserFunction_remote $1
@@ -297,7 +300,7 @@ done
 
 if [ -z "$machinetype" ];
 then
-   echo "Please mention the type of machine - either remote or master";
+   echo "Please mention the type of machine - either remote or primary";
    helpFunction
 fi
 
@@ -306,20 +309,20 @@ if [ "$install_arg" == "yes" ]; then
       echo "Installing Dependencies on the remote Node"
       remoteInstallFunction
    fi
-   if [ "$machinetype" == "master" ]; then
-      echo "Installing Dependencies on the master Node"
-      masterInstallFunction
+   if [ "$machinetype" == "primary" ]; then
+      echo "Installing Dependencies on the Control Plane (Primary) Node"
+      controlplaneInstallFunction
    fi
 fi
 
 if [ "$setup_arg" == "yes" ]; then
    if [ "$machinetype" == "remote" ]; then
-      echo "setup the remote Node"
+      echo "Setup the Remote Node"
       remoteSetupFunction
    fi
-   if [ "$machinetype" == "master" ]; then
-      echo "setup the master Node"
-      masterSetupFunction
+   if [ "$machinetype" == "primary" ]; then
+      echo "Setup the Control Plane (Primary) Node"
+      controlplaneSetupFunction
       jsonparserFunction_setup $config_path
       echo "sudo $(kubeadm token create --print-join-command)" > join_vdms_cluster.sh
    fi
@@ -331,15 +334,15 @@ if [ "$k8s_setup_arg" == "yes" ]; then
       chmod +x join_vdms_cluster.sh
       ./join_vdms_cluster.sh
    fi
-   if [ "$machinetype" == "master" ]; then
-      echo "setup the k8s on master Node"
-      masterVDMSk8setupFunction $config_path
+   if [ "$machinetype" == "primary" ]; then
+      echo "Setup the k8s on Control Plane (Primary) Node"
+      controlplaneVDMSk8setupFunction $config_path
    fi
 fi
 
 if [ "$clean_up" == "yes" ]; then
    sudo kubeadm reset -f
-   if [ "$machinetype" == "master" ]; then
+   if [ "$machinetype" == "primary" ]; then
       sudo rm -rf $HOME/.kube
       sudo rm -f join_vdms_cluster.sh
    else

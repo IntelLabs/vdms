@@ -138,14 +138,14 @@ global_keep_tmp_tests_dir = False
 
 def kill_processes_by_object():
     """
-    Kills all processes in the global process list.
+    Stops all processes in the global process list.
 
     This function iterates over a global list of process objects,
-    reverses the list, and kills each process. It also handles exceptions
+    reverses the list, and stops each process. It also handles exceptions
     and prints debug information if DEBUG_MODE is enabled.
 
     Global Variables:
-    - processList (list): A global list containing process objects to be killed.
+    - processList (list): A global list containing process objects to be stopped.
     - DEBUG_MODE (bool): A global flag indicating whether debug
                          information should be printed.
 
@@ -156,11 +156,11 @@ def kill_processes_by_object():
     global processList
     try:
         if DEBUG_MODE:
-            print(f"Killing {str(len(processList))} processes")
+            print(f"Stopping {str(len(processList))} processes")
         processList.reverse()
         for processObject in processList:
             if DEBUG_MODE:
-                print(f"Killing pid: {processObject.pid}")
+                print(f"Stopping pid: {processObject.pid}")
             processObject.kill()
 
         # Clear the list once all the processes were killed
@@ -244,7 +244,7 @@ def signal_handler(sig, frame):
 
     This function handles signals such as SIGABRT, SIGINT, and SIGSEGV. When
     one of these signals is caught, it prints a debug message (if DEBUG_MODE
-    is enabled), closes log files, kills processes, and exits the program
+    is enabled), closes log files, stops processes, and exits the program
     gracefully. For other signals, it prints a debug message and exits.
 
     Parameters:
@@ -4232,7 +4232,7 @@ def main():
 
         # In case the user doesn't want to run the tests then it assumes
         # that this script is going to be used for debugging purposes
-        # therefore it is neither going to kill the running processes nor
+        # therefore it is neither going to stop the running processes nor
         # it is going to close the log files nor deleting the temporary files
         if testingArgs.run:
             if DEBUG_MODE:

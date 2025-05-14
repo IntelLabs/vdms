@@ -375,7 +375,7 @@ std::vector<VCL::DescriptorSetEngine> get_engines() {
   engs.push_back(VCL::TileDBSparse);
   // engs.push_back(VCL::Flinng);
   // FLINNG only supports normalized dataset
-  // disable general tests until support for arbitrary datasets is added
+  // deactivate general tests until support for arbitrary datasets is added
 
   return engs;
 }
