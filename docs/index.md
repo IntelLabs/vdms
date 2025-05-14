@@ -37,6 +37,9 @@ you will find instructions on how to install and run the server.
 Use this wiki to learn more about the VDMS API, and take a look at some of
 the examples/tutorials.
 
+
+Use [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/IntelLabs/vdms) for detailed information regarding VDMS codebase and/or as a powerful search tool of VDMS.
+
 ## Integrations
 - **Generative AI Component of Open Platform for Enterprise AI (OPEA):** VDMS is a component (retriever, dataprep, vectorstore) of OPEA and leveraged in the [VideoQnA Application](https://github.com/opea-project/GenAIExamples/tree/main/VideoQnA).
 
