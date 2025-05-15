@@ -22,7 +22,7 @@ nav:
           - Insert: "commands/insert_index.md"
           - Query: "commands/query_index.md"
           - Update: "commands/update_index.md"
-  - Guides:
+  - Tutorials & Guides:
       - Tutorials:
         - Simple Tutorial: "guides/Simple-Tutorial.md"
         - Image Tutorial: "guides/Image-Tutorial.md"
