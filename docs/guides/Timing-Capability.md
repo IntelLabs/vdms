@@ -1,3 +1,5 @@
+# Timing Capability
+
 VDMS has the ability to output a variety of timing information for use in tuning and optimization.
 
 There are 3 sets of timers that can be enabled via the server side configuration:

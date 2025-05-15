@@ -1,3 +1,5 @@
+# CSV Plugin
+
 Ease of usability is one important design goal of VDMS.
 We realize many users have data in CSV or tabular format and want to ingest this data into VDMS.
 Prior to VDMS v2.4.0, a user would create functions to parse their data and convert it to JSON queries for ingestion.

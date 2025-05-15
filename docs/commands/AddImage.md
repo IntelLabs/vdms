@@ -131,4 +131,4 @@ Note that no blob should be sent with this query option.
 }
 ```
 
-***Note:*** For full example, please see [Images Example](../guides/Images-Example.md), [C++ Test: add_image](https://github.com/IntelLabs/vdms/blob/master/tests/unit_tests/client_image.cc#L32), or [Python Test: insertImage](https://github.com/IntelLabs/vdms/blob/master/tests/python/TestImages.py#L79).
+***Note:*** For full example, please see [Images Example](../guides/Image-Tutorial.md), [C++ Test: add_image](https://github.com/IntelLabs/vdms/blob/master/tests/unit_tests/client_image.cc#L32), or [Python Test: insertImage](https://github.com/IntelLabs/vdms/blob/master/tests/python/TestImages.py#L79).

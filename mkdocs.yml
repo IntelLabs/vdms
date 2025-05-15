@@ -23,8 +23,31 @@ nav:
           - Query: "commands/query_index.md"
           - Update: "commands/update_index.md"
   - Guides:
-      - Examples: "guides/example_index.md"
-      - Capability Guides: "guides/capability_guide_index.md"
+      - Tutorials:
+        - Simple Tutorial: "guides/Simple-Tutorial.md"
+        - Image Tutorial: "guides/Image-Tutorial.md"
+        - Descriptor Tutorial: "guides/Descriptor-Tutorial.md"
+      - How-to Guides:
+        - Backends & Query Handlers:
+          - Neo4j based Scale Out: "guides/Neo4J-Based-Scale-Out-VDMS.md"
+          - Query Handler Development: "guides/Query-Handler-Development.md"
+        - Connectors & Orchestrations:
+          - Kafka Connectors for VDMS: "guides/Run-Kafka-VDMS-Example.md"
+          - Kubernetes Orchestration in VDMS: "guides/Kubernetes-Orchestration.md"
+        - CSV Plugin for C++ Client: "guides/CSV-Plugin-for-CPP-Client.md"
+        - Deletion, Backup, & Restore:
+          - Auto-Deletion of Expired Data: "guides/Auto-Deletion-of-Expired-Data.md"
+          - Backup and Restoring Options: "guides/VDMS-Backup-and-Restoring-Options.md"
+          - Deletion Capabilities: "guides/Deletion-Capabilities.md"
+        - Descriptors:
+          - Descriptors Memory Usage: "guides/Descriptor-Memory-Usage.md"
+          - FLINNG Library and Performance: "guides/FLINNG-Library-and-Performance.md"
+        - Remote & User Defined Operations:
+          - Remote Operations: "guides/Remote-Operations.md"
+          - User Defined Operations: "guides/User-Defined-Operations.md"
+          - Dynamically Add Metadata: "guides/Dynamic-Metadata.md"
+        - Remote Storage: "guides/Remote-Storage-in-VDMS.md"
+        - Timing Capability: "guides/Timing-Capability.md"
   - Interactive Guide:
       - DeepWiki: "https://deepwiki.com/IntelLabs/vdms"
   - Contribute:
@@ -43,10 +66,10 @@ not_in_nav: |
   guides/Custom-VCL-Image-Manipulation-Functions.md
   guides/Deletion-Capabilities.md
   guides/Descriptor-Memory-Usage.md
-  guides/Descriptors-Tutorial.md
+  guides/Descriptor-Tutorial.md
   guides/Dynamic-Metadata.md
   guides/FLINNG-Library-and-Performance.md
-  guides/Images-Example.md
+  guides/Image-Tutorial.md
   guides/Kubernetes-Orchestration.md
   guides/Neo4J-Based-Scale-Out-VDMS.md
   guides/Query-Handler-Development.md
@@ -54,7 +77,7 @@ not_in_nav: |
   guides/Remote-Operations.md
   guides/Remote-Storage-in-VDMS.md
   guides/Run-Kafka-VDMS-Example.md
-  guides/Simple-Example.md
+  guides/Simple-Tutorial.md
   guides/Timing-Capability.md
   guides/User-Defined-Operations.md
   guides/VDMS-Backup-and-Restoring-Options.md

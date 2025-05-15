@@ -1,3 +1,5 @@
+# Descriptor Tutorial
+
 Let's walk through an example on how VDMS would support visual descriptors for your application. In this tutorial, we will implement an VDMS instance for storing and matching faces. In this instance, we will store photos, descriptors, and metadata about a series of pictures that were taken at a party.
 
 We will start by storing the photos taken during the party. If a picture has a face on it, we will also store the descriptor of the faces, along with a label indicating which person that descriptor belongs to. That will allow us to later query for a face that was not previously labeled, and get the right label indicating who that person is, among other cool queries.
@@ -60,7 +62,7 @@ With all that metadata in place, we will proceed to store the information (image
             "year": 2015
         },
         "_ref": 1,                  // Assign a reference number for later use
-        "format": "jpg"             // Speficity a format to use (default is our TDB format)
+        "format": "jpg"             // Specify a format to use (default is our TDB format)
     }
 
 

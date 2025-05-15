@@ -1,6 +1,6 @@
-# Hike at Mt Rainier, Images
+# Image Tutorial
 
-Continuing the [Simple Example](Simple-Example.md), we will add some images to
+Continuing the [Simple Tutorial](Simple-Tutorial.md), we will add some images to
 VDMS using the [AddImage](../commands/AddDescriptorSet.md) command, and we will link
 those images to the "Hike" event and to the people that are part of that
 photo.

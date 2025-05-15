@@ -1,4 +1,4 @@
-# Hike at Mt Rainier
+# Simple Tutorial
 
 In this example, we will use VDMS to store all the photos and metadata
 taken during a hiking day at Mount Rainier, WA.
