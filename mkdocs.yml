@@ -1,46 +1,10 @@
-# site_name: Visual Data Management System (VDMS) Doc
+# PROJECT INFORMATION
 site_name: VDMS Documentation
+site_url: https://intellabs.github.io/vdms/
 repo_url: http://github.com/IntelLabs/vdms
 copyright: Copyright &copy; 2025 Intel Corporation
-theme:
-  name: readthedocs
-  # name: material
-  palette:
-    - primary: light blue
 
-    # Palette toggle for automatic mode
-    - media: "(prefers-color-scheme)"
-      toggle:
-        icon: material/brightness-auto
-        name: Switch to light mode
-
-    # Palette toggle for light mode
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      toggle:
-        icon: material/weather-night
-        name: Switch to dark mode
-
-    # Palette toggle for dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      toggle:
-        icon: material/weather-sunny
-        name: Switch to system preference
-  # logo: images/IL_logo.png
-  icon:
-    logo: material/database
-    repo: fontawesome/brands/github
-  features:
-    - navigation.tabs
-plugins:
-  - search
-markdown_extensions:
-  - attr_list
-  - toc:
-      permalink: true
-  - pymdownx.snippets:
-      url_download: true
+# DOCUMENTATION LAYOUT
 nav:
   - Home: "index.md"
   - Getting Started:
@@ -95,3 +59,46 @@ not_in_nav: |
   guides/User-Defined-Operations.md
   guides/VDMS-Backup-and-Restoring-Options.md
   guides/VDMS-Test-Script.md
+
+# BUILD DIRECTORIES
+theme:
+  name: readthedocs
+  # name: material
+  palette:
+    - primary: light blue
+
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to system preference
+  # logo: images/IL_logo.png
+  icon:
+    logo: material/database
+    repo: fontawesome/brands/github
+  features:
+    - navigation.tabs
+
+# FORMATTING OPTIONS
+markdown_extensions:
+  - attr_list
+  - toc:
+      permalink: true
+  - pymdownx.snippets:
+      url_download: true
+plugins:
+  - search

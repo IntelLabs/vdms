@@ -34,5 +34,5 @@ jobs:
           path: .cache
           restore-keys: |
             mkdocs-
-      - run: pip install mkdocs-material
+      - run: pip install .github/doc-requirements.txt
       - run: mkdocs gh-deploy --force
