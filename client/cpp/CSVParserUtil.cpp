@@ -519,7 +519,7 @@ void VDMS::CSVParserUtil::read_blob_image(const std::string &filename,
     // Assign the std::string pointer to the image_data_ptr
     *image_data_ptr = image_data;
   } else {
-    std::cerr << "Error: Failed to open file." << std::endl;
+    std::cerr << "Error: Failed to open file: " << filename << std::endl;
     *image_data_ptr = nullptr;
   }
 }
