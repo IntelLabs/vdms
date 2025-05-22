@@ -26,27 +26,27 @@ sudo apt-get install -y --no-install-suggests --no-install-recommends \
 <br>
 
 #### **Install JPEG package**
-Please install the JPEG package based on the OS platform being used:
-* ***Debian 10+:*** `sudo apt-get install -y libjpeg62-turbo-dev`
-* ***Ubuntu 20.04+:*** `sudo apt-get install -y libjpeg8-dev`
+Please install the JPEG package based on the OS platform being used:<br>
+* ***Debian 10+:*** `sudo apt-get install -y libjpeg62-turbo-dev`<br>
+* ***Ubuntu 20.04+:*** `sudo apt-get install -y libjpeg8-dev`<br>
 <br>
 
 #### **Install Package for C++ bindings**
-Please install the package for C++ bindings for libzmq (headers) based on the OS platform being used:
-* ***Debian 12+:*** `sudo apt-get install -y cppzmq-dev`
-* ***Debian 10-11, Ubuntu 20.04+:*** `sudo apt-get install -y libzmq3-dev`
+Please install the package for C++ bindings for libzmq (headers) based on the OS platform being used:<br>
+* ***Debian 12+:*** `sudo apt-get install -y cppzmq-dev`<br>
+* ***Debian 10-11, Ubuntu 20.04+:*** `sudo apt-get install -y libzmq3-dev`<br>
 <br>
 
 #### **Install OpenJDK Development Kit (JDK)**
-Please install the headless OpenJDK Development Kit (JDK) based on the OS platform being used:
-* ***Debian 12+, Ubuntu 22.04+:*** `sudo apt-get install -y openjdk-17-jdk-headless`
-* ***Debian 10-11, Ubuntu 20.04:*** `sudo apt-get install -y openjdk-11-jdk-headless`
+Please install the headless OpenJDK Development Kit (JDK) based on the OS platform being used:<br>
+* ***Debian 12+, Ubuntu 22.04+:*** `sudo apt-get install -y openjdk-17-jdk-headless`<br>
+* ***Debian 10-11, Ubuntu 20.04:*** `sudo apt-get install -y openjdk-11-jdk-headless`<br>
 <br>
 
 #### **Install Parallelism library for C++ - runtime files**
-Please install the package for parallelism library for C++ - runtime files based on the OS platform being used:
-* ***Debian 12+, Ubuntu 22.04+:*** `sudo apt-get install -y libtbbmalloc2`
-* ***Debian 10-11, Ubuntu 20.04:*** `sudo apt-get install -y libtbb2`
+Please install the package for parallelism library for C++ - runtime files based on the OS platform being used:<br>
+* ***Debian 12+, Ubuntu 22.04+:*** `sudo apt-get install -y libtbbmalloc2`<br>
+* ***Debian 10-11, Ubuntu 20.04:*** `sudo apt-get install -y libtbb2`<br>
 <br>
 
 
@@ -54,7 +54,7 @@ Please install the package for parallelism library for C++ - runtime files based
 Here we assume `$VDMS_DEP_DIR` is the directory for installing additional dependencies.
 This directory is user-defined but here we use `/dependencies`.
 These instructions assume you have full permissions to your system.
-***NOTE:*** If running as ***root***, remove `sudo` where applicable.
+If running as ***root***, remove `sudo` where applicable.
 ```bash
 VDMS_DEP_DIR=/dependencies  # Set to any directory
 BUILD_THREADS="-j`nproc`"
@@ -80,7 +80,7 @@ If you prefer, you can install the the Python 3 version available on the OS plat
 sudo apt-get install -y python3-dev python3-pip
 ```
 
-***NOTE:*** If multiple versions of Python 3 are present on your system, verify you are using Python3.9 or higher. You can specify the specific verison and set an alias for `python` and/or `python3` to easily use the desired python version. This can be done using the following:
+***NOTE:*** If multiple versions of Python 3 are present on your system, verify you are using Python3.9 or higher. You can specify the specific version and set an alias for `python` and/or `python3` to easily use the desired python version. This can be done using the following:
 ```bash
 alias python=/usr/bin/python3.x
 alias python3=/usr/bin/python3.x

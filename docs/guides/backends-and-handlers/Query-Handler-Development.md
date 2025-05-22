@@ -23,7 +23,7 @@ If none is specified, it will default to the PMGD based query handler.
 
 ### Query Handler Architecture
 
-![Query Handler Architecture](../images/query_handler_arch.png)
+![Query Handler Architecture](../../images/query_handler_arch.png)
 
 At an architectural level, the query handler takes in a connection object from the communication manager, extracts the message, and then proceeds to “process” it. This includes any operations with the VCL, writing to local storage, and interactions with any “backends” for operations such as metadata storage, and creating a response to send back.
 

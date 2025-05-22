@@ -1,4 +1,4 @@
-## AddDescriptorSet Command
+# AddDescriptorSet Command
 
 A DescriptorSet is a group of descriptors with a fixed number of dimensions that are
 the result of the same algorithm for feature extraction. For instance, we can
@@ -16,29 +16,28 @@ used for indexing and matching operations, as well as the underlying
 engine.
 
 Properties can be added to the DescriptorSet, as well as link block can be
-used to specify relationships in a similar way AddImage supports.
+used to specify relationships in a similar way `AddImage` supports.
 Link block can be used for creating connections between the inserted object
 (Image, Entity, etc) and other, previously referenced, object.
 
-### Parameters
 
-* name: name of the set.
-* dimensions: number of dimensions of the feature vector
-* [optional] engine: underlying implementation for indexing and computing distances (FaissFlat by Default)
-  * TileDBDense, TileDBSparse, FaissFlat, FaissIVFFlat, FaissHNSWFlat, Flinng
-* [optional] metric: method used to calculate distances (L2 by default)
-  * "L2" (euclidean distance), "IP" (inner product)
-* [optional] _ref: for reference.
+## Parameters
 
-### Blocks
-* [optional] properties
-* [optional] link
+* `name`: Name of the set.
+* `dimensions`: Number of dimensions of the feature vector
+* [optional] `engine`: Underlying implementation for indexing and computing distances. Accepted engines: `FaissFlat`(Default), `FaissHNSWFlat`, `FaissIVFFlat`, `TileDBDense`, `TileDBSparse`, `Flinng`.
+* [optional] `metric`: Method used to calculate distances. Accepted metrics: `L2` (euclidean distance; Default), `IP` (inner product).
+* [optional] [`_ref`](../Keywords.md#keywords): for reference
 
 
-### Examples
+## Blocks
+* [optional] [`properties`](../blocks/Block-properties.md)
+* [optional] [`link`](../blocks/Block-link.md)
 
-Insert a DescriptorSet for doing face matching
-```json
+
+## Examples
+Insert a DescriptorSet with dimension size of 128 for face matching using `FaissFlat` and `L2`.
+```JSON
 {
     "AddDescriptorSet": {
         "engine": "FaissFlat",

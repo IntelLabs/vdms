@@ -1,19 +1,27 @@
-### rectangle
+# rectangle
 
-This is used to set the coordinates for a bounding box. A rectangle has the following form:
+This is used to set the coordinates for a bounding box.
+A rectangle has the following form:
+```JSON
+"rectangle": {
+    "x": value,
+    "y": value,
+    "w": value,
+    "h": value
+}
+```
 
-    "rectangle": {"x":, "y":, "w":, "h":}
+where `x` and `y` are the coordinates of the *upper left* corner of the
+region of interest and `w` and `h` are the width and height (respectively) of the region.
+<br>
 
-where x and y are the coordinates of the upper left corner of the
-region of interest and w and h are the width and height (respectively)
-of the region.
 
-#### Example
-
-    "rectangle": {
-        "x": 100,
-        "y": 200,
-        "height": 1024,
-        "width": 640,
-    }
-
+## Example
+```JSON
+"rectangle": {
+    "x": 100,
+    "y": 200,
+    "w": 1024,
+    "h": 640,
+}
+```

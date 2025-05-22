@@ -1,6 +1,6 @@
 # NeoAddDescriptorSet Command
 
-***Note:*** This is largely the same as the legacy DescriptorSet, however we do not support metadata links for Neo4J as of yet.
+***Note:*** This is largely the same as the legacy `AddDescriptorSet`, however we do not support metadata links for Neo4J as of yet.
 
 A DescriptorSet is a group of descriptors with a fixed number of dimensions that are
 the result of the same algorithm for feature extraction. For instance, we can
@@ -20,22 +20,21 @@ engine.
 
 Properties can be added to the DescriptorSet.
 
-### Parameters
 
-* name: name of the set.
-* dimensions: number of dimensions of the feature vector
-* [optional] engine: underlying implementation for indexing and computing distances (FaissFlat by Default)
-  * TileDBDense, TileDBSparse, FaissFlat, FaissIVFFlat, FaissHNSWFlat, Flinng
-* [optional] metric: method used to calculate distances (L2 by default)
-  * "L2" (euclidean distance), "IP" (inner product)
+## Parameters
 
-### Blocks
-* [optional] properties
+* `name`: Name of the set.
+* `dimensions`: Number of dimensions of the feature vector
+* [optional] `engine`: Underlying implementation for indexing and computing distances. Accepted engines: `FaissFlat`(Default), `FaissHNSWFlat`, `FaissIVFFlat`, `TileDBDense`, `TileDBSparse`, `Flinng`.
+* [optional] `metric`: Method used to calculate distances. Accepted metrics: `L2` (euclidean distance; Default), `IP` (inner product).
 
 
-### Examples
+## Blocks
+* [optional] [`properties`](../blocks/Block-properties.md)
 
-Insert a DescriptorSet for doing face matching
+
+## Examples
+Insert a DescriptorSet with dimension size of 128 for face matching using `FaissFlat` and `L2`.
 ```json
 {
     "NeoAddDescriptorSet": {

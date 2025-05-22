@@ -1,12 +1,12 @@
-# The tests/run_all_tests.py script file
+# VDMS Test Script
 
-The run_all_tests.py script oversees the distinct types of tests located at the “tests” directory of the VDMS repo.
+The `run_all_tests.py` script oversees the distinct types of tests located at the `tests` directory of the VDMS repo.
 
 It manages some signals so in case of any segmentation fault or any error, then this script will delete all the temporary files created (except when the -k flag is specified for keeping the temporary files when the testing finished) and it will kill all the processes started.
 
-# Architecture of the run_all_tests.py script file
+## Architecture of the run_all_tests.py script file
 
-## Classes
+### Classes
 
 The classes found in this script file are:
 
@@ -58,7 +58,7 @@ If you just need to add new arguments to the current classes, then please update
 Also add the new arguments in the TestingArgs class and add the corresponding parsing of those new arguments in the TestingParser class.
 
 
-## Constant values
+### Constant values
 
 These are some constant values defined at the beginning of the script file:
 
@@ -250,11 +250,10 @@ Path to the configuration files used by the remote Python tests
     `"python/config-aws-tests.json",`
     `"python/config-tls-aws-tests.json",`
 `]`
+<br>
 
 
-
-
-### Running the tests
+## Running the tests
 
 The basic commands for running all the tests are the following:
 
@@ -291,5 +290,5 @@ The basic commands for running all the tests are the following:
 > YOUR_MINIO_ROOT_PASSWORD corresponds to your Neo4j password.
 
 
-You can find an explanation of the rest of arguments accepted by the run_all_tests.py in the https://github.com/IntelLabs/vdms/wiki/VDMS-Test-Suite wiki page
+You can find an explanation of the rest of arguments accepted by the run_all_tests.py in [VDMS Test Suite Overview](VDMS-Test-Suite.md)
 

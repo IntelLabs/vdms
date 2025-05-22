@@ -1,7 +1,7 @@
-### AddVideo Command
+# AddVideo Command
 
 This call allows an application to add (and preprocess) a video in VDMS.
-**The minimum requirement for this call is the video blob or a path to a video file on disk or a mounted device**.
+**The minimum requirement for this call is the video blob, a path to a video file on disk, or a mounted device**.
 The video blob is an encoded binary array using any of the supported containers
 or encodings.
 While the application can choose
@@ -12,65 +12,59 @@ metadata database. If the information is provided to link this video with some
 previously searched or added entity through a user/application specified id,
 then such a link is also added to the metadata database.
 
-### Parameters
-* [optional] [[_ref|Keywords]]: for reference
-* [optional] codec: indicates the codec to be transcoded.
-* [optional] container: indicates the container used for the video file
-* [optional] from_file_path: add video using a file path on a local or mounted device.
-* [optional] is_local_file: set this as true if a local copy of the file is required to be stored in VDMS data store.
-* [optional] index_frames: triggers key-frame index extraction on the video. This information will be used by [[FindFrames|FindFrames]] command to perform partial decoding rather than full decoding, which results in reduced memory consumption and faster command execution. More details will be available under [[FindFrames|FindFrames]] once the feature is complete.
 
-### Blocks
-* [optional] [[properties|Block-properties]]
-* [optional] [[operations|Block-operations]]
-* [optional] [[link|Block-link]]
+## Parameters
+* [optional] [`_ref`](../Keywords.md#keywords): for reference
+* [optional] `codec`: Indicates the codec to be transcoded.
+* [optional] `container`: Indicates the container used for the video file
+* [optional] `from_file_path`: Add video using a file path on a local or mounted device.
+* [optional] `is_local_file`: sSet this as true if a local copy of the file is required to be stored in VDMS data store.
+* [optional] `index_frames`: Triggers key-frame index extraction on the video. This information will be used by [`FindFrames`](FindFrames.md) command to perform partial decoding rather than full decoding, which results in reduced memory consumption and faster command execution.
 
 
-### Codec and Containers
+## Blocks
+* [optional] [`properties`](../blocks/Block-properties.md)
+* [optional] [`operations`](../blocks/Block-operations.md)
+* [optional] [`link`](../blocks/Block-link.md)
+
+
+## Codec and Containers
 
 VDMS allows user to do transcoding at insertion and query time.
-When inserting a new video (using the AddVideo command), the user can
+When inserting a new video (using the `AddVideo` command), the user can
 choose to change the codec and/or container that will be used to store the
 video in VDMS. If the user wants to keep the same encoder and containers
-as passed in the video blob, the "coder" and "container" parameters must be skipped.
-
-VDMS supports the following codecs:
-
-* xvid
-* h264
-* h263
-
-VDMS supports the following video containers:
-
-* mp4
-* avi
-* mov
+as passed in the video blob, the `codec` and `container` parameters must be skipped.
 
 
-VDMS uses OpenCV/ffmpeg to operate on videos, so any codec/container available
-in those libraries can be easily included.
+VDMS supports the following codecs: `xvid`, `h264`, and `h263`
 
-### Operations
+VDMS supports the following video containers: `mp4`, `avi`, and `mov`
+
+
+VDMS uses OpenCV/ffmpeg to operate on videos, so any codec/container available in those libraries can be easily included.
+
+
+## Operations
 
 VDMS allows for operations to be performed to a Video at insertion and/or
-query time. The supported operations are detailed in the
-[[operations|Block-operations]], and are [threshold, resize, crop, interval].
-These operations were chosen as samples or that were needed for some of the applications we were building. But given that we wrap around OpenCV for performing operations to videos, any operation supported by OpenCV can be
+query time. The supported operations are detailed in the [operations](../blocks/Block-operations.md), and are [`threshold`, `resize`, `crop`, `interval`].
+These operations were chosen as samples or were needed for some of the applications we were building. Given that we wrap around OpenCV for performing operations to videos, any operation supported by OpenCV can be
 easily added.
 
 At least one operation must be defined in the array.
 
 All the parameters are required for each operation.
-The parameters for the various operations supported are:
 
-#### Examples
 
-Insert a video, use mp4 as container for storage, and apply
+### Examples
+
+Insert a video using mp4 as container for storage, and apply
 a resize and threshold operation:
 ```json
 {
     "AddVideo": {
-        "container” : "mp4",  // will convert the video to mp4
+        "container" : "mp4",  // will convert the video to mp4
         "properties" : {
             "name" : "The God Father",
             "length" : 120
@@ -91,7 +85,7 @@ a resize and threshold operation:
 +blob // the actual encoded video file as a blob
 ```
 
-Insert a video after applying an "interval" operation.
+Insert a video after applying an `interval` operation.
 The interval operation can be used to store only a part of the video (using
 the start and end parameters), and/or to reduced change the number of frames per second (using the step parameters).
 ```json

@@ -3,6 +3,7 @@ site_name: VDMS Documentation
 site_url: https://intellabs.github.io/vdms/
 repo_url: http://github.com/IntelLabs/vdms
 copyright: Copyright &copy; 2025 Intel Corporation
+edit_uri: http://github.com/IntelLabs/vdms/blob/develop/docs/
 
 # DOCUMENTATION LAYOUT
 nav:
@@ -24,35 +25,37 @@ nav:
           - Update: "commands/update_index.md"
   - Tutorials & Guides:
       - Tutorials:
-        - Simple Tutorial: "guides/Simple-Tutorial.md"
-        - Image Tutorial: "guides/Image-Tutorial.md"
-        - Descriptor Tutorial: "guides/Descriptor-Tutorial.md"
+        - Simple Tutorial: "tutorials/Simple-Tutorial.md"
+        - Image Tutorial: "tutorials/Image-Tutorial.md"
+        - Descriptor Tutorial: "tutorials/Descriptor-Tutorial.md"
       - How-to Guides:
         - Backends & Query Handlers:
-          - Neo4j based Scale Out: "guides/Neo4J-Based-Scale-Out-VDMS.md"
-          - Query Handler Development: "guides/Query-Handler-Development.md"
+          - Neo4j based Scale Out: "guides/backends-and-handlers/Neo4J-Based-Scale-Out-VDMS.md"
+          - Query Handler Development: "guides/backends-and-handlers/Query-Handler-Development.md"
         - Connectors & Orchestrations:
-          - Kafka Connectors for VDMS: "guides/Run-Kafka-VDMS-Example.md"
-          - Kubernetes Orchestration in VDMS: "guides/Kubernetes-Orchestration.md"
+          - Kafka Connectors for VDMS: "guides/connectors-and-orchestrations/Run-Kafka-VDMS-Example.md"
+          - Kubernetes Orchestration in VDMS: "guides/connectors-and-orchestrations/Kubernetes-Orchestration.md"
         - CSV Plugin for C++ Client: "guides/CSV-Plugin-for-CPP-Client.md"
         - Deletion, Backup, & Restore:
-          - Auto-Deletion of Expired Data: "guides/Auto-Deletion-of-Expired-Data.md"
-          - Backup and Restoring Options: "guides/VDMS-Backup-and-Restoring-Options.md"
-          - Deletion Capabilities: "guides/Deletion-Capabilities.md"
+          - Auto-Deletion of Expired Data: "guides/deletion-backup-and-restore/Auto-Deletion-of-Expired-Data.md"
+          - Backup and Restoring Options: "guides/deletion-backup-and-restore/VDMS-Backup-and-Restoring-Options.md"
+          - Deletion Capabilities: "guides/deletion-backup-and-restore/Deletion-Capabilities.md"
         - Descriptors:
-          - Descriptors Memory Usage: "guides/Descriptor-Memory-Usage.md"
-          - FLINNG Library and Performance: "guides/FLINNG-Library-and-Performance.md"
+          - Descriptors Memory Usage: "guides/descriptors/Descriptor-Memory-Usage.md"
+          - FLINNG Library and Performance: "guides/descriptors/FLINNG-Library-and-Performance.md"
         - Remote & User Defined Operations:
-          - Remote Operations: "guides/Remote-Operations.md"
-          - User Defined Operations: "guides/User-Defined-Operations.md"
-          - Dynamically Add Metadata: "guides/Dynamic-Metadata.md"
+          - Remote Operations: "guides/remote-and-udf-operations/Remote-Operations.md"
+          - User Defined Operations: "guides/remote-and-udf-operations/User-Defined-Operations.md"
+          - Dynamically Add Metadata: "guides/remote-and-udf-operations/Dynamic-Metadata.md"
         - Remote Storage: "guides/Remote-Storage-in-VDMS.md"
         - Timing Capability: "guides/Timing-Capability.md"
   - Interactive Guide:
       - DeepWiki: "https://deepwiki.com/IntelLabs/vdms"
   - Contribute:
-      - Developer Guide: "guides/Developer-Guide.md"
-      - VDMS Test Suite: "guides/VDMS-Test-Suite.md"
+      - Developer Guide: "contribute/Developer-Guide.md"
+      - Test Suite:
+        - VDMS Test Suite Overview: "contribute/VDMS-Test-Suite.md"
+        - VDMS Test Script: "contribute/VDMS-Test-Script.md"
 not_in_nav: |
   blocks/*
   commands/Add*.md
@@ -60,28 +63,7 @@ not_in_nav: |
   commands/Find*.md
   commands/Neo*.md
   commands/Update*.md
-  guides/Archive-a-VDMS-Database.md
-  guides/Auto-Deletion-of-Expired-Data.md
-  guides/CSV-Plugin-for-C++-Client.md
-  guides/Custom-VCL-Image-Manipulation-Functions.md
-  guides/Deletion-Capabilities.md
-  guides/Descriptor-Memory-Usage.md
-  guides/Descriptor-Tutorial.md
-  guides/Dynamic-Metadata.md
-  guides/FLINNG-Library-and-Performance.md
-  guides/Image-Tutorial.md
-  guides/Kubernetes-Orchestration.md
-  guides/Neo4J-Based-Scale-Out-VDMS.md
-  guides/Query-Handler-Development.md
-  guides/Read-Only-Docker-Container.md
-  guides/Remote-Operations.md
-  guides/Remote-Storage-in-VDMS.md
-  guides/Run-Kafka-VDMS-Example.md
-  guides/Simple-Tutorial.md
-  guides/Timing-Capability.md
-  guides/User-Defined-Operations.md
-  guides/VDMS-Backup-and-Restoring-Options.md
-  guides/VDMS-Test-Script.md
+  guides/*
 
 # BUILD DIRECTORIES
 theme:
@@ -123,5 +105,6 @@ markdown_extensions:
       permalink: true
   - pymdownx.snippets:
       url_download: true
+  - pymdownx.superfences:
 plugins:
   - search

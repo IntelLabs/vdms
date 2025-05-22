@@ -29,7 +29,7 @@ Currently, the code produces the following output:
 
 
 ### Manual Archiving
-To manually copy/archive a VDMS database ***only***, please see [Archive a VDMS Database](Archive-a-VDMS-Database.md).
+To manually copy/archive a VDMS database ***only***, please see [Archive a VDMS Database](../Archive-a-VDMS-Database.md).
 
 
 ## Restoring the backup DB

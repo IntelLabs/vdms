@@ -1,4 +1,4 @@
-## VDMS Server Docker Image
+# Docker Image
 
 To download the latest docker image and run the VDMS Server:
 ```bash
@@ -9,11 +9,14 @@ docker run --net=host -d intellabs/vdms:latest
 docker run -p 55555:55555 -d intellabs/vdms:latest
 ```
 
-The VDMS server will be listening to connection
-on its default TCP port (55555).
+The VDMS server will be listening to connection on its default TCP port (55555).
+
+Please visit DockerHub to see available [tags](https://hub.docker.com/r/intellabs/vdms/tags).
+<br>
 
 ## Persisting Data using Docker Image
-In some cases, user may need for data to persist if docker container is shutdown.  In this case, use the following to run the VDMS Server:
+In some cases, user may need for data to persist if docker container is shutdown.
+In this case, use the following to run the VDMS Server:
 ```bash
 mkdir -p db
 docker run -p 55555:55555 -d --mount type=bind,source=${PWD}/db,target=/db \
@@ -45,7 +48,7 @@ To start a new VDMS server, using the persisted data, use the same command as be
 docker run -p 55555:55555 -d --mount type=bind,source=${PWD}/db,target=/db \
 -e OVERRIDE_db_root_path=/db intellabs/vdms:latest
 ```
-
+<br>
 
 ## Environment Variable in Docker Containers
 As of v2.8.0, users now have the ability to override the default parameters in config-vdms.json.
@@ -54,6 +57,7 @@ For example, to override the `autodelete_interval_s` parameter, you can use the 
 ```bash
 docker run -d --net=host -e OVERRIDE_autodelete_interval_s=60 intellabs/vdms:v2.8.0
 ```
+<br>
 
 <!-- ## VDMS Server + Jupyter Notebook Image
 
@@ -96,9 +100,15 @@ to the notebook. Password: vdmstest
     # connect to localhost:8888
     # Password: vdmstest -->
 
-## Other Images
 
-VDMS Server Version 2.7.0:
+## Read-Only Docker Image
 
-    docker run --net=host -d intellabs/vdms:v2.7.0
+To run VDMS in a read-only container, first create a volume
+```bash
+docker volume create vdms_db
+```
 
+Now create a VDMS container that uses this volume as the storage location for db's
+```bash
+docker run -d -p 55555:55555 --read-only --mount source=vdms_db,destination=/vdms/build/db intellabs/vdms:latest
+```

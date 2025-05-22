@@ -3,26 +3,27 @@ After you are ready for commit, run the tests from the tests folder.
 Make sure all the tests passes, if not, please fix the code, or the failing tests, or contact the person who wrote the test for help.
 Make sure that when running the tests, nothing else is printed on the screen other than test information.
 
-# Running the VDMS tests
+## Running the VDMS tests
 
 There are two ways for running the current tests found in the tests directory of the VDMS repo:
-1. Running the Python script called "tests/run_all_tests.py". This script file can run 4 of the 5 types of existing tests:
 
-   1. Remote C++ tests
-   2. Local C++ tests
-   3. Remote Python tests
-   4. Local Python tests
+1. Running the Python script called `tests/run_all_tests.py`. This script file can run 4 of the 5 types of existing tests:
+      * Remote C++ tests
+      * Local C++ tests
+      * Remote Python tests
+      * Local Python tests
+2. Running the specific Shell script file for each type of tests:
+      * Remote C++ tests: `tests/run_aws_tests.sh`
+      * Local C++ tests: `tests/run_tests.sh`
+      * Remote Python tests: `tests/python/run_python_aws_tests.sh`
+      * Local Python tests: `tests/python/run_python_tests.sh`
+      * Neo4j tests: `tests/run_neo4j_tests.sh`
+<br>
 
-2. The second way is running the specific Shell script file for each type of tests:
-   1. Remote C++ tests, by running the script file located at tests/run_aws_tests.sh
-   2. Local C++ tests, by running the script file located at tests/run_tests.sh
-   3. Remote Python tests, by running the script file located at tests/python/run_python_aws_tests.sh
-   4. Local Python tests, by running the script file located at tests/python/run_python_tests.sh
-   5. Neo4j tests, by running the script file located at tests/run_neo4j_tests.sh
 
-# Running the tests by using the run_all_tests.py
+## Run Tests Using run_all_tests.py
 
-## Description
+### Description
 This script provides the commands for running and managing various types of tests, including the local C++ unit tests, remote C++ unit tests, local Python tests, remote Python tests, and Neo4j tests.
 Details on the script are available in [VDMS Test Script](VDMS-Test-Script.md).
 The script file uses the argparse library to handle command-line arguments and supports configuration through JSON files.
@@ -37,7 +38,8 @@ To run the tests, use the following command-line arguments:
 python run_all_tests.py [options]
 ```
 
-### Options
+The following options are available:
+
 | Flag                                                                | Description                                                                                          |
 | ------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------- |
 | -a, --minio_port<br>(type: int)                                     | The port number to connect to the MinIO server.<br><br>*Example:* `python3 run_all_tests.py -a 9000` |
@@ -64,13 +66,13 @@ python run_all_tests.py [options]
 <br>
 
 
-# Running the tests by using the Shell script files
+## Run Tests Using the Shell script files
 In case you are interested in running the specific Shell script file for a specific type of test suite
 
-## Local Storage Tests
+### Local Storage Tests
 There are some Shell scripts used to run the C++, Neo4j, and Python tests for local storage.
 
-### Local C++ Tests
+#### Local C++ Tests
 
 Run `sh run_tests.sh` from the `tests` directory for the C++ tests.
 There are two special flags that you may use when calling `sh run_tests.sh`:
@@ -157,78 +159,7 @@ Failed to open file: ../tests/test_videos/Megamind_invalid.avi
 
 <br>
 
-### C++ Neo4j Tests
-Run `sh run_neo4j_tests.sh` from the `tests` directory for the C++ Neo4j tests.
-There are a few flags available to run `sh run_neo4j_tests.sh`:
-| Flag                     | Description |
-| ------------------------ | ----------- |
-| -h, --help               | Print this help message |
-| -a, --minio_port         | API Port for S3/Minio server. Default is 9000 |
-| -c, --minio_console_port | Console Port for S3/Minio server. Default is 9001 |
-| -p, --minio_password     | Password for S3/Minio server |
-| -u, --minio_username     | Username for S3/Minio server |
-| -e, --neo4j_endpoint     | Neo4j endpoint |
-| -v, --neo4j_port         | Port for Neo4j container. Default is 7687 |
-| -w, --neo4j_password     | Password for Neo4j container |
-| -n, --neo4j_username     | Username for Neo4j container |
-| -t, --test_name          | Name of test to run [OpsIOCoordinatorTest, Neo4JE2ETest, Neo4jBackendTest, NeoHandlerTest] |
-
-<br>
-
-You should see results similar to:
-```
-Starting OpsIOCoordinatorTest...
-Note: Google Test filter = OpsIOCoordinatorTest.*
-[==========] Running 4 tests from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 4 tests from OpsIOCoordinatorTest
-[ RUN      ] OpsIOCoordinatorTest.PutObjTest
-Warning: Using default endpoint_override
-Instantiating global S3 Connection...
-Global S3 Connection Started!
-Added object 'test_obj' to bucket: minio-bucket
-[       OK ] OpsIOCoordinatorTest.PutObjTest (6352 ms)
-[ RUN      ] OpsIOCoordinatorTest.GetObjTest
-Instantiating global S3 Connection...
-Global S3 Connection Started!
-Successfully retrieved 'test_obj' from 'minio-bucket'.
-[       OK ] OpsIOCoordinatorTest.GetObjTest (6138 ms)
-[ RUN      ] OpsIOCoordinatorTest.GetConnTest
-Instantiating global S3 Connection...
-Global S3 Connection Started!
-[       OK ] OpsIOCoordinatorTest.GetConnTest (6040 ms)
-[ RUN      ] OpsIOCoordinatorTest.DoOpsTest
-Instantiating global S3 Connection...
-Global S3 Connection Started!
-14617
-[       OK ] OpsIOCoordinatorTest.DoOpsTest (6103 ms)
-[----------] 4 tests from OpsIOCoordinatorTest (24636 ms total)
-
-[----------] Global test environment tear-down
-[==========] 4 tests from 1 test suite ran. (24636 ms total)
-[  PASSED  ] 4 tests.
-
-Starting Neo4JE2ETest...
-Note: Google Test filter = Neo4JE2ETest.*
-[==========] Running 2 tests from 1 test suite.
-[----------] Global test environment set-up.
-[----------] 2 tests from Neo4JE2ETest
-[ RUN      ] Neo4JE2ETest.E2E_Neo4j_Add_Find_Img
-Warning: Using default endpoint_override
-[       OK ] Neo4JE2ETest.E2E_Neo4j_Add_Find_Img (1677 ms)
-[ RUN      ] Neo4JE2ETest.E2E_Neo4j_Add_Find_Metadata
-Warning: Using default endpoint_override
-[       OK ] Neo4JE2ETest.E2E_Neo4j_Add_Find_Metadata (210 ms)
-[----------] 2 tests from Neo4JE2ETest (1887 ms total)
-
-[----------] Global test environment tear-down
-[==========] 2 tests from 1 test suite ran. (1888 ms total)
-[  PASSED  ] 2 tests.
-```
-
-<br>
-
-### Local Python Tests
+#### Local Python Tests
 Run `sh run_python_tests.sh` from the `tests/python` directory for the Python tests.
 There is one special flag that you may use when calling `sh run_python_tests.sh`:
 | Flag | Description |
@@ -323,7 +254,78 @@ Ran 75 tests in 58.802s
 <br>
 
 
-## S3 Storage (Remote) Tests
+#### C++ Neo4j Tests
+Run `sh run_neo4j_tests.sh` from the `tests` directory for the C++ Neo4j tests.
+There are a few flags available to run `sh run_neo4j_tests.sh`:
+| Flag                     | Description |
+| ------------------------ | ----------- |
+| -h, --help               | Print this help message |
+| -a, --minio_port         | API Port for S3/Minio server. Default is 9000 |
+| -c, --minio_console_port | Console Port for S3/Minio server. Default is 9001 |
+| -p, --minio_password     | Password for S3/Minio server |
+| -u, --minio_username     | Username for S3/Minio server |
+| -e, --neo4j_endpoint     | Neo4j endpoint |
+| -v, --neo4j_port         | Port for Neo4j container. Default is 7687 |
+| -w, --neo4j_password     | Password for Neo4j container |
+| -n, --neo4j_username     | Username for Neo4j container |
+| -t, --test_name          | Name of test to run [OpsIOCoordinatorTest, Neo4JE2ETest, Neo4jBackendTest, NeoHandlerTest] |
+
+<br>
+
+You should see results similar to:
+```
+Starting OpsIOCoordinatorTest...
+Note: Google Test filter = OpsIOCoordinatorTest.*
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from OpsIOCoordinatorTest
+[ RUN      ] OpsIOCoordinatorTest.PutObjTest
+Warning: Using default endpoint_override
+Instantiating global S3 Connection...
+Global S3 Connection Started!
+Added object 'test_obj' to bucket: minio-bucket
+[       OK ] OpsIOCoordinatorTest.PutObjTest (6352 ms)
+[ RUN      ] OpsIOCoordinatorTest.GetObjTest
+Instantiating global S3 Connection...
+Global S3 Connection Started!
+Successfully retrieved 'test_obj' from 'minio-bucket'.
+[       OK ] OpsIOCoordinatorTest.GetObjTest (6138 ms)
+[ RUN      ] OpsIOCoordinatorTest.GetConnTest
+Instantiating global S3 Connection...
+Global S3 Connection Started!
+[       OK ] OpsIOCoordinatorTest.GetConnTest (6040 ms)
+[ RUN      ] OpsIOCoordinatorTest.DoOpsTest
+Instantiating global S3 Connection...
+Global S3 Connection Started!
+14617
+[       OK ] OpsIOCoordinatorTest.DoOpsTest (6103 ms)
+[----------] 4 tests from OpsIOCoordinatorTest (24636 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (24636 ms total)
+[  PASSED  ] 4 tests.
+
+Starting Neo4JE2ETest...
+Note: Google Test filter = Neo4JE2ETest.*
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from Neo4JE2ETest
+[ RUN      ] Neo4JE2ETest.E2E_Neo4j_Add_Find_Img
+Warning: Using default endpoint_override
+[       OK ] Neo4JE2ETest.E2E_Neo4j_Add_Find_Img (1677 ms)
+[ RUN      ] Neo4JE2ETest.E2E_Neo4j_Add_Find_Metadata
+Warning: Using default endpoint_override
+[       OK ] Neo4JE2ETest.E2E_Neo4j_Add_Find_Metadata (210 ms)
+[----------] 2 tests from Neo4JE2ETest (1887 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (1888 ms total)
+[  PASSED  ] 2 tests.
+```
+
+<br>
+
+### Remote (S3 Storage) Tests
 There are also scripts to run the C++ and Python tests for S3 storage.
 For testing the S3 storage, we use MinIO and MinIO Client.
 Prior to running this test, when using MinIO, it is necessary to install the MinIO components.
@@ -343,7 +345,7 @@ chmod +x /usr/local/bin/mc
 To properly run the testing scripts, we require the username for your S3/MinIO storage.
 It is okay to use the default username (`AWS_ACCESS_KEY_ID`) and password (`AWS_SECRET_ACCESS_KEY`) for MinIO but we need these values for the test.
 
-### Remote C++ Tests
+#### Remote C++ Tests
 Run `sh run_aws_tests.sh -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY}` from the `tests` directory for the C++ tests.
 There are a few special flags that you may use when calling `sh run_aws_tests.sh`:
 | Flag | Description |
@@ -429,7 +431,7 @@ READ_Video: The RemoteConnection has not been started
 
 <br>
 
-### Remote Python Tests
+#### Remote Python Tests
 Run `sh run_python_aws_tests.sh -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY}` from the `tests/python` directory for the Python tests.
 There is a few special flag that you may use when calling `sh run_python_aws_tests.sh`:
 | Flag | Description |

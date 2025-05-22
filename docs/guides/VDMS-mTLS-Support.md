@@ -1,8 +1,9 @@
+# VDMS mTLS Support
+
 By default, VDMS deploys in an insecure mode which allows the client to connect to the server without any authentication (user, password, or keys).
 In some use-cases, a user may need some authentication to limit who can access the data in the VDMS server.
 For such cases, VDMS has mutual TLS (mTLS) support to the server and client while retaining support for running in a TLS only (transport security only, no client authentication) or an insecure mode.
 
-## mTLS Support
 In mTLS, both client and server authenticate each other.
 From the client's perspective, it verifies the server certificate's validity (i.e., it's not expired) and its endorsement by a trusted authority.
 In the context of VDMS, this implies that we need to provide the client the CA certificate, which is the certificate authority responsible for creating the server's certificate.
@@ -12,7 +13,7 @@ Hence, on the client side, the CA certificate establishes trust, while on the se
 This is why both entities need to have the CA Certificate, as well as their respective certificates for identity verification.
 
 
-### Generation of CA Certificates and keys
+## Generation of CA Certificates and keys
 It's crucial to ensure that the CA certificate and key are present wherever the commands are executed.
 If you decide to generate the client and server certificate and key separately at the client and the server, the CA certificate and key need to be present in both locations.
 Please note that it should be the same CA certificate and key as both the server and client need to be signed by the same CA.
@@ -20,7 +21,7 @@ Please note that it should be the same CA certificate and key as both the server
 Below are steps to generate all CA certificates and keys.
 In this case, these steps are performed on the system hosting the VDMS server.
 
-1. ***Specify names for CA, Server and Client:*** Any value can be used for the CA certificate, but the client and server names should match the hostname or IP you use to connect. When testing with both client and server on the same system, you can simply use `localhost`. If you do not have DNS setup and prefer not to use an IP address, you can add entries to the hosts files, such as `client.vdms.local` and `server.vdms.local`, and use those in the certificates.  For the purpose of an example, we are assumming two systems are used: `systemA.domain` as the hostname hosting the VDMS server, and `systemB.domain` as the hostname hosting the VDMS client.
+1. ***Specify names for CA, Server and Client:*** Any value can be used for the CA certificate, but the client and server names should match the hostname or IP you use to connect. When testing with both client and server on the same system, you can simply use `localhost`. If you do not have DNS setup and prefer not to use an IP address, you can add entries to the hosts files, such as `client.vdms.local` and `server.vdms.local`, and use those in the certificates.  For the purpose of an example, we are assumming two systems are used: `systemA.domain` as the hostname hosting the VDMS server, and `systemB.domain` as the hostname hosting the VDMS client.<br>
     ```bash
     CA_NAME="ca.vdms.local"
     SERVER_NAME="systemA.domain"
@@ -85,9 +86,10 @@ In this case, these steps are performed on the system hosting the VDMS server.
     ```
 <br>
 
-### Deploy VDMS using CA and Keys
+## Deploy VDMS using CA and Keys
 To deploy VDMS with the proper credentials, we must update the `config-vdms.json`.
 There are a few parameters needed to use this capability.
+
 | Parameter   | Description                                 |
 | ----------- | ------------------------------------------- |
 | `ca_file`   | File for CA certificate                     |
@@ -106,9 +108,10 @@ docker run -d --net=host -v <path_to_parent_key_directory>/auth_files:/auth_file
 If using a VDMS Server installed natively, simply update the `config-vdms.json` file prior to deploying the server.
 <br>
 
-### Client Authentication
+## Client Authentication
 To properly connect to the server, you must use the updated VDMS Client (v0.0.21+) and the CA certificate, client key, and client certificates must be on the system hosting the client.
 There are a few additional parameters that should be provided to the client.
+
 | Parameter        | Description                                                   |
 | ---------------- | ------------------------------------------------------------- |
 | `use_tls`          | Flag indicating whether to use TLS. Set this to True          |
@@ -116,7 +119,8 @@ There are a few additional parameters that should be provided to the client.
 | `client_cert_file` | Local path to the client CSR for secure communication         |
 | `client_key_file`  | Local path to the client private key for secure communication |
 
-With the mTLS support, there are a few limitations.
+With the mTLS support, there are a few limitations:
+
 * If `ca_cert_file` is not set, client authentication will be disabled.
 * Both `client_cert_file` and `client_key_file` must be specified together, not one and not the other.
 

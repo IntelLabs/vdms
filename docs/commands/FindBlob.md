@@ -1,25 +1,26 @@
-### FindBlob Command
+# FindBlob Command
 
-Works in a similar manner as FindEntity with the exception of returning blobs.
+Works in a similar manner as `FindEntity` with the exception of returning blobs.
 
-### Parameters
+## Parameters
 
-* [optional] _ref: local id to be used as reference for a given entity.
-* [optional] unique: [True or False]. Indicates whether a single element is expected to match that condition.
+* [optional] `_ref`: Local id to be used as reference for a given entity.
+* [optional] `unique`: [True or False]. Indicates whether a single element is expected to match that condition.
 
-### Blocks
-* [optional] results
-* [optional] constraints
-* [optional] link
+
+## Blocks
+* [optional] [`results`](../blocks/Block-results.md)
+* [optional] [`constraints`](../blocks/Block-constraints.md)
+* [optional] [`link`](../blocks/Block-link.md)
 
 
 If limit (m) is provided, the number of entries returned will be n <= m (which is
 the actually matched quantity)
 
 
-### Examples
+## Examples
 
-Find a blob based on some of its properties (patient_id)
+Find a blob based on its property `patient_id`.
 ```python
 query = {
     "FindBlob": {

@@ -6,10 +6,10 @@ Our solution is to leverage our modular handler design to incorporate a new hand
 
 If more operations throughput is needed, we can simply add a new VDMS server that “points” to the S3 and Neo4J clusters and the new server will automatically have access to all data and metadata that’s already been pushed. Similarly, if we need more data or metadata capabilities the S3 and Neo4J clusters can be independently scaled.
 
-![Neo4j Scale-Out](../images/Neo4j_Scale_Out.png)
+![Neo4j Scale-Out](../../images/Neo4j_Scale_Out.png)
 
 # Caveats
-The Neo4J based VDMS is an experimental feature. Its calls ([NeoAdd](../commands/NeoAdd.md) and [NeoFind](../commands/NeoFind.md)) while functional, are limited in scope to metadata and image operations. The API calls and feature itself should be treated as unstable, and there may be bugs and instabilities as a part of using this feature.
+The Neo4J based VDMS is an experimental feature. Its calls ([NeoAdd](../../commands/NeoAdd.md) and [NeoFind](../../commands/NeoFind.md)) while functional, are limited in scope to metadata and image operations. The API calls and feature itself should be treated as unstable, and there may be bugs and instabilities as a part of using this feature.
 
 
 # Configuring and Running distributed VDMS
@@ -43,7 +43,7 @@ export AWS_ACCESS_KEY_ID=my_acc_key
 export AWS_SECRET_ACCESS_KEY=my_sec_key
 ```
 
-Or you can use AWS credentials as [specified here:](Remote-Storage-in-VDMS.md)
+Or you can use AWS credentials as [specified here:](../Remote-Storage-in-VDMS.md)
 
 # Deploying Neo4J and MinIO for testing
 

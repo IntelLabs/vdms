@@ -1,4 +1,4 @@
-### AddBlob Command
+# AddBlob Command
 
 This call allows the application to write different file formats in VDMS. The bare minimum
 requirement for this call is the blob of data. While the application can choose
@@ -8,15 +8,16 @@ If information is provided to link this blob with some
 previously searched or added entity through a user/application specified id,
 then such a link is also added in the metadata database.
 
-### Parameters
-* [optional] _ref: for reference.
+## Parameters
+* [optional] [`_ref`](../Keywords.md#keywords): for reference.
 
-### Blocks
-* [optional] properties
-* [optional] link
+## Blocks
+* [optional] [`properties`](../blocks/Block-properties.md)
+* [optional] [`link`](../blocks/Block-link.md)
 
-### Examples
-Example of inserting audio data into VDMS using AddBlob command.
+
+## Examples
+Example of inserting audio data into VDMS using `AddBlob` command.
 ```python
 all_queries = [
     {
@@ -37,7 +38,7 @@ fd.close()
 response, response_arr = db.query(all_queries, audio_blobs)
 ```
 
-Insert an audio blob linked to a patient found using FindEntity
+Insert an audio blob linked to a patient found using `FindEntity`:
 ```python
 [
     {

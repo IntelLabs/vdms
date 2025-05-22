@@ -1,8 +1,9 @@
-## VDMS Configuration File
+# VDMS Configuration File
 
 VDMS uses a configuration file (written in JSON) that can be specified when starting the server by using the -cfg flag:
-
-    ./vdms -cfg config-vdms.json
+```bash
+./vdms -cfg config-vdms.json
+```
 
 If no configuration file is specified, VDMS will try to open the default file (config-vdms.json), and will fail to initiate if the file is not found.
 
@@ -56,9 +57,9 @@ All the parameters in the configuration file are optional, as VDMS has default v
 // Sets database paths and other parameters
 {
     "port": 55555,
-   "cert_file": "cert.pem",
-   "key_file": "key.pem",
-   "ca_file": "ca.pem",
+    "cert_file": "cert.pem",
+    "key_file": "key.pem",
+    "ca_file": "ca.pem",
     "autoreplicate_interval":-1, // it should be > 0
     "unit":"s",
     "max_simultaneous_clients": 100,
@@ -78,6 +79,7 @@ All the parameters in the configuration file are optional, as VDMS has default v
     "tmp_path": "/tmp/tmp"
 }
 ```
+<br>
 
 
 ## Default Directories Structure

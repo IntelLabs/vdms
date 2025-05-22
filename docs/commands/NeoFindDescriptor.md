@@ -1,27 +1,30 @@
 # NeoFindDescriptor Command
 
-***Note:*** This is largely the same as the legacy FindDescriptor call however does not currently support links through the _ref block.
+***Note:*** This is largely the same as the legacy `FindDescriptor` call however does not currently support links through the `_ref` block.
 
-We can perform queries to find descriptors that have some specific properties. We can also perform queries to find descriptors that are similar to some "query" descriptor. Descriptor blob(s) are returned unless "blob" is explicitly set to false in the "results" block (please see "results" block).
+We can perform queries to find descriptors that have some specific properties. We can also perform queries to find descriptors that are similar to some "query" descriptor. Descriptor blob(s) are returned unless `blob` is explicitly set to false in the "results" block (please see [results](../blocks/Block-results.md) block).
 
-### Parameters
 
-* set: name of the set.
-* [optional] k_neighbors: number of neighbors to be returned.
+## Parameters
 
-### Blocks
-* [optional] constraints
-* [optional] results
+* `set`: Name of the set.
+* [optional] `k_neighbors`: Number of neighbors to be returned.
+
+
+## Blocks
+* [optional] [`constraints`](../blocks/Block-constraints.md)
+* [optional] [`results`](../blocks/Block-results.md)
 
 **Note**: A Visual Descriptor search can be constraint by either a query blob
 and k_neighbors, OR by constraints, not both.
 This functionality is not implemented yet.
 
-### Examples
-For instance, suppose that we want to get all the descriptors from people that have certain age, as we are interested in studying some particular characteristics of those descriptors.
+
+## Examples
+Suppose that we want to get all the descriptors from people that have certain age, as we are interested in studying some particular characteristics of those descriptors.
 
 We can run that query by doing:
-
+```JSON
     "NeoFindDescriptor ": {
         "set": "party_faces",           // Specify the descriptor set
         "constraints": {
@@ -31,9 +34,10 @@ We can run that query by doing:
             "list": ["age", "gender"]   // We want some properties to be returned
         }
     }
+```
 
 In this case, VDMS will return:
-
+```JSON
     "NeoFindDescriptor ": {
         "status": "success",
         "entities": [
@@ -51,13 +55,14 @@ In this case, VDMS will return:
                                     // In this case, it will be an array with the values :
                                     // [2.12, 3.4, 56.3, ...](Ricky) and
                                     // [16.5, 4.7, 28.1, ...](Regina)
+```
 
 Suppose that we want to get all the descriptors that are most similar to:
 
     [16.6, 4.9, 27.8, ...] (query descriptor)
 
 We can run the following query:
-
+```JSON
     "NeoFindDescriptor ": {
         "set": "party_faces",  // Specify the descriptor set
 
@@ -81,11 +86,12 @@ We can run the following query:
     + blob          // The blob is passed using the client library.
                     // In this case, it will be an array with the values :
                     // [16.6, 4.9, 27.8, ...] (the query descriptor)
+```
 
 Naturally, the closest neighbor to that query descriptor will be the one that corresponds to Regina George's face.
 
 In this case, VDMS will return:
-
+```JSON
     "NeoFindDescriptor ": {
         "status": "success",
         "entities": [
@@ -101,4 +107,4 @@ In this case, VDMS will return:
             }
         ]
     }
-
+```
