@@ -42,6 +42,7 @@ All the parameters in the configuration file are optional, as VDMS has default v
 | proxy_port | Port number of the proxy. This parameter is needed when "proxy_host" parameter is set | |
 | proxy_scheme | Scheme used by the proxy, accepted values are "http" and "https". This parameter is needed when "proxy_host" and "proxy_port" parameters are set | |
 | query_handler | Specifies the query handler to use. Accepted values: `pmgd` (PMGD), or `neo4j` (Neo4j) | pmgd |
+| neo4j_conn_pool_sz | Sets the pool size of neo4j client connections. This parameter is only used when "query_handler" is set to `neo4j` | 32 |
 | replication_time |  | -1 |
 | storage_type | Database storage type. Accepted values: `local` (local storage), or `aws` (AWS S3) | local |
 | tmp_path| Path to the temporary directory (optional) | `/tmp/tmp` |
