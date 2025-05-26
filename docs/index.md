@@ -31,7 +31,7 @@ how it enables efficient vision analytics.
 
 ## Get Started
 
-To get started, take a look at the [INSTALL.md](Install.md) file, where
+To get started, take a look at the [Install.md](Install.md) file, where
 you will find instructions on how to install and run the server.
 
 Use this wiki to learn more about the VDMS API, and take a look at some of
