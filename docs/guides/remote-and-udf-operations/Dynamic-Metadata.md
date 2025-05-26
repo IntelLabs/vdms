@@ -1,6 +1,6 @@
 # Dynamic Metadata Addition for Images/Videos
 
-In addition to adding metadata as properties to Images and Videos, user-defined functions can also be used to add metadata dynamically. These metadata information will be added as entities to the image/video along with any regions of interest and related information. Note that metadata can only be added with an AddImage/AddVideo query.
+In addition to adding metadata as properties to Images and Videos, user-defined functions can also be used to add metadata dynamically. These metadata information will be added as entities to the image/video along with any regions of interest and related information. Note that metadata can only be added with an `AddImage`/`AddVideo` query.
 
 Assume a use-case where a user wants to add videos to VDMS and add two types of metadata. One is the metadata that they already know, which are included in the `properties`. The other category of metadata are the ones that need to be extracted by running some operations on the videos. For this example, we assume the user wants to extract bounding box for faces and bounding boxes for red cars in the videos. Then the user would expect a data store graph as shown in the figure below. The video, which has its own properties is linked with an edge to all the frames that have relevant metadata and each frame is linked with an edge to bounding boxes.
 
@@ -12,8 +12,8 @@ Note that the return is different than the standard user-defined operations for 
 
 Once the user-defined operations are running, the user can run the following query to add the video and dynamically add the metadata to VDMS.
 
-```
-AddVideo {
+```json
+"AddVideo": {
     "properties": {
         "name": "video_activity",
         "category": "example"
@@ -40,7 +40,7 @@ AddVideo {
 
 The find query for the image/video works normally, unless the user also requires the metadata information in the response. In order to receive metadata information, a three level query should be made as shown below.
 
-```
+```python
 query = [
         {
             "FindVideo": {

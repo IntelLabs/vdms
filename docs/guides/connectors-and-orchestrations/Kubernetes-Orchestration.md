@@ -1,10 +1,11 @@
 # Kubernetes Orchestration in VDMS
+
 We provide an experimental feature of orchestration in VDMS with Kubernetes for easier setup of user-defined function environments both locally and on remote servers. Currently supported for images. This orchestration environment enables the following ease of use capabilities:
 - automatically spawns the required number of remote servers for parallel execution of remote operations.
 - support to plug a scheduling algorithm to optimally schedule operations to remote servers. Note that this would require code changes.
 - easy setup script and config file to spin up the cluster with the least effort from the VDMS user/administrator.
 
-# Prerequisites:
+## Prerequisites:
 
 Use the following steps to create the VDMS tar file.
 
@@ -18,7 +19,7 @@ Use the following steps to create the remote UDF tar file.
 + Follow the README to generate the remote UDF docker image
 + Run the following command to create the tar file `sudo docker save -o remote_segment.tar rudf`
 
-# Configure kubeConfig.json #
+## Configure kubeConfig.json
 Sample kubeConfig file that can be used to add details of Primary and Worker nodes.
 
 ```json
@@ -34,7 +35,7 @@ Sample kubeConfig file that can be used to add details of Primary and Worker nod
 }
 ```
 
-# Proxy setting for running containerd behind a proxy #
+## Proxy setting for running containerd behind a proxy
 
 Follow the steps below for containerd
 
@@ -83,7 +84,7 @@ Restart the services as mentioned below
     sudo systemctl daemon-reload
     sudo systemctl restart docker
 ```
-# Bringing up your cluster to run Multi-node Cluster for VDMS application #
+## Bringing up your cluster to run Multi-node Cluster for VDMS application #
 
 Clone the VDMS github repository on the Primary and Worker nodes.
 
@@ -109,7 +110,7 @@ On the Worker Node follow the steps below to load the remote UDF image locally
     ./global_vdms_setup_script.sh -m remote -s yes
 ```
 
-## Setting up the Multinode Cluster and running VDMS Application ##
+### Setting up the Multinode Cluster and running VDMS Application ##
 
 On the Primary Node execute the following command
 ```bash

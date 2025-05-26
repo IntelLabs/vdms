@@ -1,6 +1,6 @@
 # Archive a VDMS Database
 
-Since VDMS uses PMGD (which uses mmap to a large virtual memory space but maps physical pages
+Since VDMS uses PMGD (which uses `mmap` to a large virtual memory space but maps physical pages
 only when needed) the size on disk shown for the database by some utilities can be quite large.
 Similarly, copying a database can take a long time, so we use a different method of copying/archiving a VDMS database.
 

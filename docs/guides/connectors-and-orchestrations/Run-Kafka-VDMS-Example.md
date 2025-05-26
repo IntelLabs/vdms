@@ -3,6 +3,7 @@
 **All the sample files of these instructions are in the distributed folder in VDMS.**<br>
 
 The folder contains the following files:
+
 1. `docker-compose.yml` runs one kafka-broker (`broker:19092`), one zookeeper server (`2181`) and two VDMS servers (`localhost:55560`, `localhost:55561`).
 If you are under proxy, use this command to run the file:
 `docker-compose build --build-arg "HTTP_PROXY=$HTTP_PROXY" --build-arg "HTTPS_PROXY=$HTTPS_PROXY" --build-arg "http_proxy=$HTTP_PROXY" --build-arg "https_proxy=$HTTPS_PROXY"

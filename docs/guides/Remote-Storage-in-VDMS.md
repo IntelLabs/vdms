@@ -9,9 +9,7 @@ VDMS allows data files (images, videos, etc) to be stored in 2 locations: either
 
 ## Configuration
 
-The decision to use local or remote storage is determined from the `config-tests.json` upon server startup.
-
-`./vdms -cfg config-tests.json`
+The decision to use local or remote storage is determined from the `config-tests.json` upon server startup (`./vdms -cfg config-tests.json`).
 
 In order to use AWS S3 storage, two lines must be specified in the config file as below: **storage_type** and **bucket_name**
 ```JSON
@@ -24,6 +22,8 @@ In order to use AWS S3 storage, two lines must be specified in the config file a
     "more-info": "github.com/IntelLabs/vdms"
 }
 ```
+<br>
+
 
 ## Setup
 
@@ -53,5 +53,6 @@ $ ./minio server ./minio_files &
 ## Switch from MinIO to AWS
 
 In order to switch between using MinIO and actual AWS S3, only a single line of code needs to be changed.  For MinIO, override the endpoint URL to the correct value (this will be printed to stdout when launching MinIO).  Otherwise, to use AWS S3, comment this line out in `src/vcl/RemoteConnection.cc`:
-
-`clientConfig.endpointOverride = "http://127.0.0.1:9000"; //override the endpoint to use MinIO`
+```cpp
+clientConfig.endpointOverride = "http://127.0.0.1:9000"; //override the endpoint to use MinIO
+```

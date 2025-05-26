@@ -1,6 +1,8 @@
-**Filters to Identify Near-Neighbor Groups (FLINNG)** is a near neighbor search algorithm, for more detailed description and results please refer to the paper [Practical Near Neighbor Search via Group Testing](https://arxiv.org/pdf/2106.11565.pdf). <br><br>
-
 # FLINNG Library and VDMS
+
+**Filters to Identify Near-Neighbor Groups (FLINNG)** is a near neighbor search algorithm, for more detailed description and results please refer to the paper [Practical Near Neighbor Search via Group Testing](https://arxiv.org/pdf/2106.11565.pdf).
+
+
 FLINNG is an indexing Library for feature vectors of D dimensions each. It provides functionality to add vectors, search and retrieve vectors and similarity search (return nearest neighbors) to a given query vector. It provides similar functionality to [FAISS library](https://github.com/facebookresearch/faiss) supported by VDMS.
 
 ## When To Use FLINNG Library as Opposed to Other Libraries Supported by VDMS
@@ -8,14 +10,14 @@ FLINNG is an indexing Library for feature vectors of D dimensions each. It provi
 FLINNG should be used when the number of dimensions in the dataset is huge (curse of dimensionality) (e.g., >1000 dimension). In this case, dimension-reduction can hurt the accuracy of the returned result for near-neighbor search performance. FLINNG will have lower accuracy compared to other libraries when the number of dimensions is small.
 The library is also attractive when the expected total number of items in the index is huge (e.g., billions of vectors).
 
-## FLINNG Library Limitations:
+## FLINNG Library Limitations
 1. FLINNG works best on high-dimensional search tasks where the neighbors are all above a (relatively high) similarity threshold. It is not the best choice for problems such as k-NN classification, where low-similarity results may be important.
 2. Current implementation of the library expects the dataset to be **normalized** (i.e., dataset ranges between 0 and 1),
 
-## Distance Metrics Supported by FLINNG Library:
+## Distance Metrics Supported by FLINNG Library
 FLINNG currently supports two distance metrics: Inner Product (cosine similarity) and Euclidean (L2) distance metric.<br><br>
 
-# VDMS and FLINNG Library API
+## VDMS and FLINNG Library API
 FLINNG supports the same standard API for indexing, searching, and retrieving feature vectors similar to other libraries in VDMS. The entire list of API is defined in DescriptorSet.cc and DescriptorSet.h.
 
 1) **`VCL::DescriptorParams* param = new VCL:: DescriptorParams(numrows, cellsperrow,  numhashtables, hashespertable,  subhashbits, cutoff=6)`:**
@@ -52,7 +54,7 @@ Stores the index to a file.
 Reads an index from a file.
 <br><br>
 
-# FLINNG Library Parameters
+## FLINNG Library Parameters
 FLINNG library parameters are defined in `DescriptorParams.h`. They can be set by the user before creating the index as we defined in the previous section. The default parameters are set for feature vectors of 4K dimensions and 10M total number of items in the index.  Users can refer to implementation details section (Section 6) in the paper [Practical Near Neighbor Search via Group Testing](https://arxiv.org/pdf/2106.11565.pdf) for a discussion of the library parameters.
 
 The most important parameter to tune given a dataset is `num_rows`. The query time (and similarly indexing time) is linearly proportional to this parameter. The returned query accuracy is asymptotically increasing with  `num_rows`. Due to the nature of the algorithm that depends on hashing, it is not strictly increasing. Sometimes increasing `num_rows` can decrease the accuracy for that value, but if `num_rows` increased further it will regain back the accuracy.
@@ -60,7 +62,7 @@ The most important parameter to tune given a dataset is `num_rows`. The query ti
 The `cells_per_row`, `num_hash_tables` and `hashes_per_table` will all affect the accuracy but the default parameters should work with most use cases.
 We are also working on a standalone VDMS autotune tool (will be released in the future) that can help guide users on how to set the parameters of the different libraries supported by VDMS (FAISS, FLINNG, etc.) given a dataset of certain dimensions and probability distribution. <br><br>
 
-# Sample of Performance
+## Sample of Performance
 ![FLINNG Sample Performance](../../images/FLINNG/performance.png){: .center style="height:250px"}
 <!-- <p align="center"><img src="../images/FLINNG/performance.png"></p> -->
 <!-- [[/images/FLINNG/performance.png|FLINNG Sample Performance]] -->
@@ -68,7 +70,7 @@ We are also working on a standalone VDMS autotune tool (will be released in the 
 
 Testing on YFCC100M dataset with 4K dimension each, the figure shows a typical query time for R1@1 accuracy for FLINNG compared to other algorithms. FLINNG was 3.4 times faster than FAISS (IVF Flat Index) at the 0.99 recall level on YFCC100M with an order of magnitude faster indexing time for the dataset.<br><br>
 
-# FLINNG Algorithm Overview
+## FLINNG Algorithm Overview
 Since our goal is to perform an approximate search, dimensionality reduction is a reasonable strategy. However, dimensionality reduction is costly for ultra-high dimensional data. Dimensionality reduction can incur a performance penalty, so we may wish to perform the near neighbor search over the original metric space.
 
 FLINNG addresses the computational challenges of high-dimensional similarity search by presenting an index with fast construction time, low memory requirement, and zero query-time distance computations. The approach is to transform a near neighbor search problem into a group testing problem by designing a test that outputs “positive” when a group of points contains a near neighbor to a query. That is, each test answers an approximate membership query over its group.
@@ -106,7 +108,7 @@ Kirsch et. al. ([“Distance-sensitive bloom filters”. In ALENEX'06](https://e
 The idea of Group Testing (GT) is to identify the set of defective items in a set of objects. Typically, the number of defective items is << than the total set of objects. The aim is to perform detection with the fewest possible number of tests without the need to test each object by itself. GT will randomly group all N objects into P pools and then test at the pool level with one test “Does the pool contain at least one defective?”. A pool test corresponds to an OR function among the variables of the group, i.e., it returns 1 if any of the pool members is 1 and returns 0 when all pool members are 0. As shown in the figure, all members of a defective pool are suspected as defective. Repeating the random pooling of objects multiple times and taking the intersection of defective pools, the defective items can be identified. The testing stops when the required size of the defective set is achieved or it remains constant without shrinking for a threshold of subsequent pooled tests.
 <br><br>
 
-## FLINNG Toy Example:
+## FLINNG Toy Example
 
 FLINNG combined the ideas of distance-sensitive bloom filter with group testing to answer the  KNN problem. It uses a distance-sensitive bloom filter to identify a set of M neighbors and then use group testing to shrink the M down to K. To explain the high-level idea of the FLINNG algorithm, we can use a toy example for a KNN query on a very small dataset.
 

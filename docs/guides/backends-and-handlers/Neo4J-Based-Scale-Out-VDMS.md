@@ -1,4 +1,4 @@
-# Overview
+# Neo4j based Scale Out
 
 One of the challenges with prior incarnations of VDMS was requiring external coordination for distributed capabilities. While this did make it so certain operations could scale, it was brittle in its resiliency, required careful monitoring of VDMS nodes, client-side coordination, limited data and metadata sharing, and it was difficult to expand the cluster at runtime.
 
@@ -8,14 +8,15 @@ If more operations throughput is needed, we can simply add a new VDMS server tha
 
 ![Neo4j Scale-Out](../../images/Neo4j_Scale_Out.png)
 
-# Caveats
+
+**Caveats**:
 The Neo4J based VDMS is an experimental feature. Its calls ([NeoAdd](../../commands/NeoAdd.md) and [NeoFind](../../commands/NeoFind.md)) while functional, are limited in scope to metadata and image operations. The API calls and feature itself should be treated as unstable, and there may be bugs and instabilities as a part of using this feature.
 
 
-# Configuring and Running distributed VDMS
+## Configuring and Running Distributed VDMS
 
 Note that these instructions apply to every server you start.
-For configuration, make sure your config file specifies the query_handler as `neo4j`”` and that you specify the use of AWS as the storage type, as well as the target bucket. E.g.
+For configuration, make sure your config file specifies the query_handler as `neo4j` and that you specify the use of AWS as the storage type, as well as the target bucket. E.g.
 ```json
 {
     "port": 55555,
@@ -45,7 +46,7 @@ export AWS_SECRET_ACCESS_KEY=my_sec_key
 
 Or you can use AWS credentials as [specified here:](../Remote-Storage-in-VDMS.md)
 
-# Deploying Neo4J and MinIO for testing
+## Deploying Neo4J and MinIO for Testing
 
 If you have access to docker, you can deploy MinIO and Neo4J containers to connect your VDMS deployments to, e.g
 
@@ -55,8 +56,8 @@ docker run \
 -p 9000:9000 \
 -p 9001:9001 \
 --name minio_tester \
--e "MINIO_ROOT_USER="minio_username \
--e "MINIO_ROOT_PASSWORD="minio_password \
+-e MINIO_ROOT_USER=minio_username \
+-e MINIO_ROOT_PASSWORD=minio_password \
 quay.io/minio/minio server /data --console-address ":9001"
 
 
@@ -68,7 +69,7 @@ docker run \
 neo4j:5.17.0 \
 ```
 
-# Deploying Multiple VDMS servers
+## Deploying Multiple VDMS Servers
 
 Its possible to deploy multiple VDMS servers sharing the same backend infrastructure, however note that if you are using a load balancer along with descriptor set functionality you may have unpredictable behavior as descriptor sets are currently restricted to local filesystem access. If you wish to use descriptor sets with multiple distinct VDMS servers you must track which server is responsible for each descriptor set.
 

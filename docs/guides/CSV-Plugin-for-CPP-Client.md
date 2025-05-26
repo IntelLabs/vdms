@@ -6,15 +6,18 @@ Prior to VDMS v2.4.0, a user would create functions to parse their data and conv
 Now, a user can use the CSV Plug-in to ingest their data into VDMS using the C++ Client.
 Currently, this capability is not available with the Python client.
 
-This document provides details for using the CSV Plugin for C++ Client. This document includes:<br>
-* [Basic Building Blocks](#basic-building-blocks)
-  * [constraints](#constraints)
-  * [operations](#operations)
-  * [properties](#properties)
-  * [rectangle](#rectangle)
+This document provides details for using the CSV Plugin for C++ Client. This document includes:
 
-* [Insert Commands](#insert-commands)
-  <!-- * [AddBlob](AddBlob) -->
+[Basic Building Blocks](#basic-building-blocks)
+
+   * [constraints](#constraints)
+   * [operations](#operations)
+   * [properties](#properties)
+   * [rectangle](#rectangle)
+<br>
+
+[Insert Commands](#insert-commands)
+
   * [AddBoundingBox](#addboundingbox)
   * [AddConnection](#addconnection)
   * [AddDescriptor](#adddescriptor)
@@ -54,6 +57,7 @@ The table will result in the following constraints block:
 ### Operations
 In a CSV file, operations are provided as a column.  The column name is case-sensitive and are specified using `ops_` prefix followed by the operation type.
 Examples of each operation are in the following table:
+
 | Operation | Column Name | Example Value | Description |
 | --------- | ----------- | ------------- | ----------- |
 | Threshold | ops_threshold | 150 | Threshold value where all pixels above provided value are returned; Otherwise pixel values are zero |
@@ -112,6 +116,7 @@ prop_propertyname specifies that it represents a property with `propertyname` as
 Only date/time is written in a specific format that is YYYY-MM-DDThh:mm:ssTZD. Currently all values in the date format should be specified.
 
 Examples of different types of properties are :
+
 | prop_name | prop_age | prop_date:DoB | prop_hasdog | prop_gender | prop_weight | prop_email  | prop_address |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Poonam | 26 | 1995-01-29T18:45:12-08:00 | TRUE | F | 55.9 | mydummymail@gmail.com | 90 kings land, Jodhpur |
@@ -188,6 +193,7 @@ In this CSV, the first row provides the column names needed for the AddBoundingB
 The first column is mandatory while the remaining columns are based on the other information needed for the entries.
 
 The following table provides details for the CSV format:
+
 | Column Name | Description | Has Position Constraint? | Column Position | Is field mandatory? |
 | ----------- | ----------- | ------------------------ | --------------- | ------------------- |
 | RectangleBound | This column is required and provides a rectangular region of interest in the format `x,y,w,h` | Yes | 1 | Yes |
@@ -258,6 +264,7 @@ In this CSV, the first row provides the column names needed for the AddConnectio
 The first column is mandatory while the remaining columns are based on the other information needed for the entries.
 
 The following table provides details for the CSV format:
+
 | Column Name | Description | Has Position Constraint? | Column Position | Is field mandatory? |
 | ----------- | ----------- | ------------------------ | --------------- | ------------------- |
 | ConnectionClass | This column is required and provides a class for the connection | Yes | 1 | Yes |
@@ -314,6 +321,7 @@ In this CSV, the first row provides the column names needed for the AddDescripto
 The first column is mandatory while the remaining columns are based on the other information needed for the descriptors.
 
 The following table provides details for the CSV format:
+
 | Column Name | Description | Has Position Constraint? | Column Position | Is field mandatory? |
 | ----------- | ----------- | ------------------------ | --------------- | ------------------- |
 | DescriptorClass | This column is required and provides the name of the DescriptorSet to add the descriptor | Yes | 1 | Yes |
@@ -375,6 +383,7 @@ In this CSV, the first row provides the column names needed for the AddDescripto
 The first column is mandatory while the remaining columns are based on the other information needed for the descriptors.
 
 The following table provides details for the CSV format:
+
 | Column Name | Description | Has Position Constraint? | Column Position | Is field mandatory? |
 | ----------- | ----------- | ------------------------ | --------------- | ------------------- |
 | DescriptorType | This column is required and provides the name of the DescriptorSet | Yes | 1 | Yes |
@@ -460,6 +469,7 @@ In this CSV, the first row provides the column names needed for the AddEntity co
 The first column is mandatory while the remaining columns are based on the other information needed for the entities.
 
 The following table provides details for the CSV format:
+
 | Column Name | Description | Has Position Constraint? | Column Position | Is field mandatory? |
 | ----------- | ----------- | ------------------------ | --------------- | ------------------- |
 | EntityClass | This column is required and provides the class for the entity | Yes | 1 | Yes |
@@ -512,6 +522,7 @@ In this CSV, the first row provides the column names needed for the AddImage com
 The first column is mandatory while the remaining columns are based on the other information needed for the images.
 
 The following table provides details for the CSV format:
+
 | Column Name | Description | Has Position Constraint? | Column Position | Is field mandatory? |
 | ----------- | ----------- | ------------------------ | --------------- | ------------------- |
 | ImagePath | This column is required and provides the file path which contains the actual blob for the image | Yes | 1 | Yes |
@@ -562,6 +573,7 @@ In this CSV, the first row provides the column names needed for the AddVideo com
 The first column is mandatory while the remaining columns are based on the other information needed for the descriptors.
 
 The following table provides details for the CSV format:
+
 | Column Name | Description | Has Position Constraint? | Column Position | Is field mandatory? |
 | ----------- | ----------- | ------------------------ | --------------- | ------------------- |
 | VideoPath | This column is required and provides the file path which contains the actual video | Yes | 1 | Yes |
