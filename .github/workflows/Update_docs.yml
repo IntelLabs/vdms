@@ -21,12 +21,12 @@ jobs:
       - id: check_changed_files
         run: |
           # Diff HEAD
-          $diff = git diff --name-only ${{ github.event.before }} ${{ github.event.after }}
+          $diff= git diff --name-only ${{ github.event.before }} ${{ github.event.after }}
           # git diff --name-only HEAD^ HEAD
 
           # Check for changes in docs/
-          $srcDiff = $diff | Where-Object { $_ -match '^docs/'}
-          $hasDiff = $srcDiff.Length -gt 0
+          $srcDiff= $diff | Where-Object { $_ -match '^docs/'}
+          $hasDiff= $srcDiff.Length -gt 0
 
           # Set output
           # Write-Host "::set-output name=docs_changed::$hasDiff"
