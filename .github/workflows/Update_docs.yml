@@ -21,16 +21,18 @@ jobs:
       - id: check_changed_files
         run: |
           # Diff HEAD
-          $diff= git diff --name-only ${{ github.event.before }} ${{ github.event.after }}
-          # git diff --name-only HEAD^ HEAD
+          diff=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})
 
           # Check for changes in docs/
-          $srcDiff= $diff | Where-Object { $_ -match '^docs/'}
-          $hasDiff= $srcDiff.Length -gt 0
+          docs_changed=false
+          for FILE in $diff; do
+            if [[ "$FILE" == docs/* ]]; then
+              docs_changed=true
+            fi
+          done
 
           # Set output
-          # Write-Host "::set-output name=docs_changed::$hasDiff"
-          "docs_changed=$hasDiff" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          echo "docs_changed=$docs_changed" >> $GITHUB_OUTPUT
 
 
   # Run job only if changes occurred in docs/
