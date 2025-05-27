@@ -18,8 +18,7 @@ jobs:
       docs_changed: ${{ steps.check_changed_files.outputs.docs_changed }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.1.7
-      - shell: pwsh
-        id: check_changed_files
+      - id: check_changed_files
         run: |
           # Diff HEAD
           $diff = git diff --name-only ${{ github.event.before }} ${{ github.event.after }}
@@ -30,7 +29,8 @@ jobs:
           $hasDiff = $srcDiff.Length -gt 0
 
           # Set output
-          Write-Host "::set-output name=docs_changed::$hasDiff"
+          # Write-Host "::set-output name=docs_changed::$hasDiff"
+          "docs_changed=$hasDiff" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
 
   # Run job only if changes occurred in docs/
