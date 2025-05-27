@@ -18,7 +18,8 @@ jobs:
       docs_changed: ${{ steps.check_changed_files.outputs.docs_changed }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.1.7
-        fetch-depth: 0
+        with:
+          fetch-depth: 0
       - id: check_changed_files
         run: |
           # Diff HEAD
