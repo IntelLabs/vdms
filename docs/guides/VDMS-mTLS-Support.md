@@ -21,7 +21,7 @@ Please note that it should be the same CA certificate and key as both the server
 Below are steps to generate all CA certificates and keys.
 In this case, these steps are performed on the system hosting the VDMS server.
 
-1. ***Specify names for CA, Server and Client:*** Any value can be used for the CA certificate, but the client and server names should match the hostname or IP you use to connect. When testing with both client and server on the same system, you can simply use `localhost`. If you do not have DNS setup and prefer not to use an IP address, you can add entries to the hosts files, such as `client.vdms.local` and `server.vdms.local`, and use those in the certificates.  For the purpose of an example, we are assumming two systems are used: `systemA.domain` as the hostname hosting the VDMS server, and `systemB.domain` as the hostname hosting the VDMS client.<br>
+1. ***Specify names for CA, Server and Client:*** Any value can be used for the CA certificate, but the client and server names should match the hostname or IP you use to connect. When testing with both client and server on the same system, you can simply use `localhost`. If you do not have DNS setup and prefer not to use an IP address, you can add entries to the hosts files, such as `client.vdms.local` and `server.vdms.local`, and use those in the certificates.  For the purpose of an example, we are assuming two systems are used: `systemA.domain` as the hostname hosting the VDMS server, and `systemB.domain` as the hostname hosting the VDMS client.<br>
     ```bash
     CA_NAME="ca.vdms.local"
     SERVER_NAME="systemA.domain"

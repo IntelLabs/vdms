@@ -268,8 +268,8 @@ The following table provides details for the CSV format:
 | Column Name | Description | Has Position Constraint? | Column Position | Is field mandatory? |
 | ----------- | ----------- | ------------------------ | --------------- | ------------------- |
 | ConnectionClass | This column is required and provides a class for the connection | Yes | 1 | Yes |
-| Person@id | This column is user-defined. It specifies the contraints to find the first entity for a connection. In this example, the first entity must have class `Person` with property `id` equal to 1  | No | - | No |
-| Person@id | This column is user-defined. It specifies the contraints to find the second entity for a connection. In this example, the second entity must have class `Person` with property `id` equal to 2 | No | - | No |
+| Person@id | This column is user-defined. It specifies the constraints to find the first entity for a connection. In this example, the first entity must have class `Person` with property `id` equal to 1  | No | - | No |
+| Person@id | This column is user-defined. It specifies the constraints to find the second entity for a connection. In this example, the second entity must have class `Person` with property `id` equal to 2 | No | - | No |
 | prop_type| This column is user-defined. It specifies the value for property named `type` | No | - | No |
 
 **Note:** If cell value is empty it means that column name is not applicable for that connection.
