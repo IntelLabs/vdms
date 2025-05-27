@@ -134,5 +134,3 @@ db = vdms.vdms(use_tls=True, ca_cert_file="<local_path_to_parent_dir>/auth_files
                client_key_file="<local_path_to_parent_dir>/auth_files/client_key.pem")
 db.connect("systemA.domain", 55555)
 ```
-
-Test change
