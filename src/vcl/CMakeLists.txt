@@ -25,6 +25,7 @@ add_library(vcl SHARED
     Video.cc
     RemoteConnection.cc
     ../../utils/src/timers/TimerMap.cc
+    Filter.cc
 )
 link_directories( /usr/local/lib )
 target_link_libraries(vcl lapack faiss tiledb flinng avformat avcodec swscale ${OpenCV_LIBS})
