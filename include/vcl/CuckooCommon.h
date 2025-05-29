@@ -29,7 +29,8 @@
  *
  * @section DESCRIPTION
  *
- * This file declares common data structures and constants for Cuckoo-based filters.
+ * This file declares common data structures and constants for Cuckoo-based
+ * filters.
  *
  */
 
@@ -37,16 +38,16 @@
 #define CUCKOO_COMMON_H
 #pragma once
 
-#include "vcl/Filter.h" 
+#include "vcl/Filter.h"
 
 namespace VCL {
 
-// The bucket struct for Hash Table filters common to CuckooHTFilter and CuckooCacheFilter.
-// common header to centralize definition.
+// The bucket struct for Hash Table filters common to CuckooHTFilter and
+// CuckooCacheFilter. common header to centralize definition.
 struct CACHE_ALIGNED filter_ht_bucket {
-    filter_sig_t sigs[FILTER_BUCKET_ENTRIES];   /* 2-byte signature */
-    filter_set_t sets[FILTER_BUCKET_ENTRIES];   /* 2-byte set */
+  filter_sig_t sigs[FILTER_BUCKET_ENTRIES]; /* 2-byte signature */
+  filter_set_t sets[FILTER_BUCKET_ENTRIES]; /* 2-byte set */
 };
-} // namespace VCL
+}  // namespace VCL
 
-#endif // CUCKOO_COMMON_H
+#endif  // CUCKOO_COMMON_H

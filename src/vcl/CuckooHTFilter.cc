@@ -31,7 +31,7 @@
 
 #include "vcl/CuckooHTFilter.h"
 #include <iostream>
-#include <stdlib.h> 
+#include <stdlib.h>
 #include <cstring>
 #include <cstdlib>
 

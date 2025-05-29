@@ -31,8 +31,8 @@
 
 #include "vcl/CuckooCacheFilter.h"
 #include <iostream>
-#include <stdlib.h> 
-#include <cstring>  
+#include <stdlib.h>
+#include <cstring>
 #include <cstdlib>
 
 namespace VCL {
