@@ -58,14 +58,20 @@
  * |          |                     | not overwrite  |                         |
  * |          |                     | existing key.  |                         |
  * +----------+---------------------+----------------+-------------------------+
- 
+ *
+ *
+ *
+ * This file declares the C++ API for the base Filter class and its management.
+ * It defines the abstract interface for different filter implementations
+ * (e.g., CuckooFilter, CuckooCacheFilter, VBF_Filter).
  * 
  */
+#ifndef FILTER_H
+#define FILTER_H
 
 #pragma once
 
 #include <VDMSConfigHelper.h>
-
 #include <map>
 #include <string>
 #include <vector>
@@ -73,31 +79,30 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include <errno.h>
+#include <memory>
+#include <unordered_map>
+#include <cmath>
+#include <zlib.h>        // Required for crc32
+//place holder for CRC implementation for now
 
-#include <memory>    //Required for unique_ptr
-#include <unordered_map> 
-#include <zlib.h> // Required for crc32
-//placeholder until an AVX-enabled standalone library is implemented
-
+// Assuming these are internal dependencies
 #include "Exception.h"
 #include "RemoteConnection.h"
 #include "timers/TimerMap.h"
 #include "utils.h"
 
-
 namespace VCL {
 
-typedef uint16_t filter_sig_t;			/* signature size is 16 bit */
-typedef uint16_t filter_set_t;  /*set ID type stored internally in hash table based filter*/
-
+typedef uint16_t filter_sig_t;   /* signature size is 16 bit */
+typedef uint16_t filter_set_t;   /* set ID type stored internally in hash table based filter */
 
 /** Maximum number of pushes for cuckoo insert path in CuckooFilter HT mode. **/
 #define FILTER_MAX_PUSHES 50
 /** Invalid set ID used to mean no match found. */
 #define FILTER_NO_MATCH 0
 /** Maximum size of hash table that can be created. */
-#define FILTER_ENTRIES_MAX (1 << 20) //1 Million 
-/** Maximum number of keys that can be searched as a bulk */
+#define FILTER_ENTRIES_MAX (1 << 20) //1 Million
+/** Maximum number of keys that can be looked up as a bulk */
 #define FILTER_LOOKUP_BULK_MAX 64
 /** Entry count per bucket in hash table based mode. */
 #define FILTER_BUCKET_ENTRIES 8
@@ -112,183 +117,176 @@ typedef uint16_t filter_set_t;  /*set ID type stored internally in hash table ba
 
 
 enum FilterEngine {
-  CuckooHT, //Cuckoo Hash Table, No deletes alowed
-  CuckooCache, //Cuckoo Hash Table, Deletes are alowed with overwriting
-  VBF //Vector Bloom Filter
-};
-
-
-/** @internal filter structure. */
-struct CACHE_ALIGNED filter {
-	enum FilterEngine engine; /* Type of the set summary. */
-	uint32_t key_len;		/* Length of key. */
-	uint32_t prim_hash_seed;	/* Primary hash function seed. */
-	uint32_t sec_hash_seed;		/* Secondary hash function seed. */
-
-	/* Hash table based. */
-	uint32_t bucket_cnt;		/* Number of buckets. */
-	uint32_t bucket_mask;		/* Bit mask to get bucket index. */		
-	void *table;	/* This is the handler of hash table. */
-	char name[FILTER_NAMESIZE]; /* Name of this set summary. */
-};
-
-
-/* The bucket struct for Hash Table filters */
-struct CACHE_ALIGNED filter_ht_bucket {
-	filter_sig_t sigs[FILTER_BUCKET_ENTRIES];	/* 2-byte signature */
-	filter_set_t sets[FILTER_BUCKET_ENTRIES];	/* 2-byte set */
+    CuckooHT,      // Cuckoo Hash Table, No deletes allowed (corresponds to CuckooHTFilter class)
+    CuckooCache,   // Cuckoo Hash Table, Deletes are allowed with overwriting (corresponds to CuckooCacheFilter class)
+    VBF            // Vector Bloom Filter (corresponds to VBF_Filter class)
 };
 
 
 /**
- * Parameter struct used to create filter
+ * Parameter struct used to create filter instances.
  */
-struct filter_parameters {
+struct FilterParameters {
+    const char *name;        /** Name of the filter. */
+    enum FilterEngine engine;    /** Type of the filter. */
+    uint32_t num_keys;        /** Expected number of keys (e.g., for sizing). */
+    uint32_t key_len;         /** Length of key for hash calculation. */
+    uint32_t prim_hash_seed;    /** Primary hash function seed. */
+    uint32_t sec_hash_seed;     /** Secondary hash function seed. */
+    uint32_t extra_flag;      /** Extra flags. */
 
-	const char *name;			/**Name of the filter. */
-
-	/**
-	 * User to specify the type of the filter from one of
-	 * FilterEngine types.
-	 *
-	 * CuckooHT and CuckooCache are implemented as a hash table. User should use
-	 * this type when there are many sets.
-	 * CuckooHT does not support deletes, it is a non-cache mode, 
-	 * keys cannot be evicted out of the filter. So for
-	 * this mode the filter can become full eventually. if number of Keys inserted is close 
-	 * to the maximum to be inserted in a filter FILTER_ENTRIES_MAX 
-	 * Keys with the same signature but map to the same bucket will occupy multiple
-	 * entries. This mode does not give false-negative result. 
-	 * But has only false positive probability
-	 * false positive probability is in the order of:
-	 * false_pos = (1/bucket_count)*(1/2^16), since we use 16-bit signature.
-	 * This is because two keys needs to map to same bucket and same
-	 * signature to have a collision (false positive). bucket_count is equal
-	 * to number of entries (num_keys) divided by entry count per bucket
-	 * (FILTER_BUCKET_ENTRIES). 
-	 * 
-	 * CuckooCache support deletes and entries will be overwritten
-	 * It is a hash table with cache mode, keys can be evicted out of the HT filter.
-	 * Keys with the same signature and map to the same bucket
-	 * will overwrite each other in the setsummary table,
-	 * if total number of inserts in a bucket exceeds FILTER_BUCKET_ENTRIES 
-	 * This mode is useful for the case that the filter only
-	 * needs to keep record of the recently inserted keys. Both
-	 * false-negative and false-positive could happen.
-	 *
-	 *    
-	 * vBF filter is a vector of bloom filters. It is used when number
-	 * of sets is not big (less than 32)- To BE implemented later
-	 */
-	enum FilterEngine engine;
-
-	/**
-	 * For HT filter, num_keys equals to the number of entries of the
-	 * table. When the number of keys inserted in the HT filter
-	 * approaches this number, eviction could happen. For CuckooCache,
-	 * keys could be evicted out of the table. For CuckooFilter, keys will
-	 * be evicted to other secondry like a typical cuckoo hash table.
-	 * The table will likely to become full before
-	 * the number of inserted keys equal to the total
-	 * number of entries, however for Cuckoo Hash Tables this happens
-	 * typically at very high load (>95% of allocated hashtable memory) 
-	 *
-	 */
-	uint32_t num_keys;
-
-	/**
-	 * The length of key is used for hash calculation. Since key is not
-	 * stored in filter, large key does not require more memory space.
-	 */
-	uint32_t key_len;
-
-	/**
-	 * We use two seeds to calculate two independent hashes for each key.
-	 *
-	 * For HT type, one hash is used as signature, and the other is used
-	 * for bucket location.
-	 */
-	uint32_t prim_hash_seed;
-
-	/**
-	 * The secondary seed should be a different value from the primary seed.
-	 */
-	uint32_t sec_hash_seed;
-
-	/**
-	 * Extra flags that may passed in by user
-	 */
-	uint32_t extra_flag;
+    // Constructor for convenience
+    FilterParameters(const char* n = nullptr, FilterEngine e = CuckooHT, uint32_t nk = static_cast<uint32_t>(std::pow(2, 17)),
+                     uint32_t kl = 16, uint32_t phs =10, uint32_t shs = 50, uint32_t ef = 0)
+        : name(n), engine(e), num_keys(nk), key_len(kl), prim_hash_seed(phs), sec_hash_seed(shs), extra_flag(ef) {}
 };
 
-//internal memory deallocation function.
+// FORWARD DECLARATION of Filter class, needed for UniqueFilterPtr
+class Filter; 
 
-void internal_filter_destroy(struct VCL::filter *f);
-
-
-/**
- * De-allocate memory used by filter.
- *
- * @param filter
- *   Pointer to the filter data structure.
- *   If filter is NULL, no operation is performed.
- */
-void
-filter_free(struct filter *filter);
-
-
-/***
-* Some Bit Manipulation Helper Functions
-***/
-
-static inline uint32_t align32pow2(uint32_t x) {
-    if (x == 0) {
-        return 1;
-		}
-    x--;
-    x |= x >> 1;
-    x |= x >> 2;
-    x |= x >> 4;
-    x |= x >> 8;
-    x |= x >> 16;
-    return x + 1;
-}
-
-static inline bool is_power_of_2(uint32_t n) { return n > 0 && (n & (n - 1)) == 0; }
-
-
+// Helper struct for std::unique_ptr to manage VCL::Filter objects.
+// This deleter will call the C++ `delete` operator, which correctly invokes
+// the virtual destructor of the `Filter` class (and subsequently, the derived class).
 struct FilterDeleter {
-    void operator()(struct filter* f) const {
+    void operator()(VCL::Filter* f) const {
         if (f) {
-            //std::cout << "DEBUG: Calling VCL::filter_free for filter: " << f->name << std::endl;
-            VCL::internal_filter_destroy(f); // Call the helper free function
+            // std::cout << "DEBUG: Calling delete for filter: " << f->get_name() << std::endl;
+            delete f; // Calls the virtual destructor
         }
     }
 };
 
-// Type alias for our smart pointer that correctly calls filter_free
-// This makes the unique_ptr usage cleaner and explicitly ties it to the custom deleter.
-using UniqueFilterPtr = std::unique_ptr<struct filter, FilterDeleter>;
+// Type alias for our smart pointer that correctly calls the C++ delete
+using UniqueFilterPtr = std::unique_ptr<VCL::Filter, FilterDeleter>;
+
+/**
+ * @class Filter
+ * @brief Abstract base class for all filter implementations.
+ *
+ * Defines the common interface (pure virtual functions) for filter operations
+ * (lookup, add, delete, reset). Specific filter types (e.g., Cuckoo, VBF)
+ * will derive from this class and provide concrete implementations.
+ */
+class Filter {
+protected:
+    char name_[FILTER_NAMESIZE];   // Name of this filter instance
+    enum FilterEngine engine_;     // Type of the filter
+    uint32_t num_keys_;             // expected number of keys
+    uint32_t key_len_;             // Length of key used for hash calculation
+    uint32_t prim_hash_seed_;      // Primary hash function seed
+    uint32_t sec_hash_seed_;       // Secondary hash function seed
+    uint32_t extra_flag_;          // Extra flags if needed
+
+public:
+    //constructor
+    Filter(const FilterParameters& params);
+
+    // Virtual destructor to ensure proper cleanup
+    virtual ~Filter();
+
+    // --- virtual functions define the common filter interface ---
+    // Derived classes MUST implement these.
+
+    /**
+     * @brief Lookup key in filter. Single key lookup.
+     * @param key Pointer to the key to be looked up.
+     * @param set_id Output: set id matches the key. 
+     * @return 1 for found a match, 0 for not found.
+     */
+    virtual int lookup(const void *key, filter_set_t *set_id) const = 0;
+
+    /**
+     * @brief Lookup bulk of keys in filter.
+     * @param keys Pointer to array of keys.
+     * @param num_keys Number of keys.
+     * @param set_ids Output: array to store set IDs for all keys.
+     * @return The number of keys that found a match.
+     */
+    virtual int lookup_bulk(const void **keys, uint32_t num_keys, filter_set_t *set_ids) const = 0;
+
+    /**
+     * @brief Lookup a key for multiple matches.
+     * @param key Pointer to the key.
+     * @param max_match_per_key User specified maximum number of matches.
+     * @param set_id Output: array to store set IDs for all matches of the key.
+     * @return The number of matches found for the key.
+     */
+    virtual int lookup_multi(const void *key, uint32_t max_match_per_key, filter_set_t *set_id) const = 0;
+
+    /**
+     * @brief Lookup a bulk of keys for multiple matches each key.
+     * @param keys Pointer to array of keys.
+     * @param num_keys Number of keys.
+     * @param max_match_per_key The possible maximum number of matches for each key.
+     * @param match_count Output: array storing number of matches for each key.
+     * @param set_ids Output: 2D array to store set IDs (set_ids[key_idx][match_idx]).
+     * @return The number of keys that found one or more matches.
+     */
+    virtual int lookup_multi_bulk(const void **keys, uint32_t num_keys, uint32_t max_match_per_key, uint32_t *match_count, filter_set_t *set_ids) const = 0;
+
+    /**
+     * @brief Insert key into filter.
+     * @param key Pointer to the key to be added.
+     * @param set_id The set ID associated with the key. (0 is reserved for NO_MATCH).
+     * @return Status code (0 for success, negative for error, 1 for eviction/cuckoo move).
+     */
+    virtual int add(const void *key, filter_set_t set_id) = 0;
+
+    /**
+     * @brief Reset the filter tables (e.g., clear all entries).
+     */
+    virtual void reset() = 0;
+
+    /**
+     * @brief Delete items from the filter.
+     * @param key Pointer to the key to be deleted.
+     * @param set_id The set ID corresponding to the key to be deleted.
+     * @return 0 for success, negative for error (e.g., -ENOENT if not found).
+     */
+    virtual int delete_key(const void *key, filter_set_t set_id) = 0; 
+
+    // --- Accessor methods ---
+    const char* get_name() const { return name_; }
+    FilterEngine get_engine_type() const { return engine_; }
+    uint32_t get_key_len() const { return key_len_; }
+    uint32_t get_num_keys() const { return num_keys_; }
+    uint32_t get_ef() const { return extra_flag_; }
+
+    // --- create instances of derived classes based on FilterParameters::engine  ---
+     static UniqueFilterPtr create_filter_instance(const FilterParameters* params);
+};
+
 
 
 // =============================================================
 // Internal Filter Collection Management Class
 // This class is responsible for owning and managing the lifecycle
-// of the 'struct filter' objects. 
+// of Filter objects. It acts as a registry for all active filters.
 // =============================================================
 class FilterCollectionManager {
 public:
-    // Adds a filter to the collection. Takes ownership of the unique_ptr.
-    // The 'std::move' is critical when calling this function.
+    /**
+     * @brief Adds a filter to the collection. Takes ownership of the unique_ptr.
+     * @param filter_ptr A std::unique_ptr to the filter object. Ownership is transferred.
+     * @return true if added successfully, false if a filter with the same name already exists or pointer is null.
+     */
     bool collection_add_filter(UniqueFilterPtr filter_ptr);
 
-    // Retrieves a raw pointer to an existing filter. Does not transfer ownership.
-    // The caller of this function should NOT delete the returned pointer.
-    struct filter* collection_get_filter(const std::string& name);
+    /**
+     * @brief Retrieves a raw pointer to an existing filter by name. Does not transfer ownership.
+     * @warning The caller of this function should NOT delete the returned pointer.
+     * @param name The name of the filter to retrieve.
+     * @return Pointer to the filter, or nullptr if not found.
+     */
+    Filter* collection_get_filter(const std::string& name);
 
-    // Removes a filter from the collection and triggers its deallocation.
-    // When an entry is erased from the map, the UniqueFilterPtr's destructor
-    // is called, which in turn invokes our FilterDeleter.
+    /**
+     * @brief Removes a filter from the collection and triggers its deallocation.
+     * When an entry is erased from the map, the UniqueFilterPtr's destructor
+     * is called, which in turn invokes our FilterDeleter.
+     * @param name The name of the filter to remove.
+     * @return true if the filter was found and removed, false otherwise.
+     */
     bool collection_remove_filter(const std::string& name);
 
     // Default constructor and destructor are sufficient as unique_ptr
@@ -308,194 +306,63 @@ private:
 };
 
 // Global accessor for the single instance of FilterCollectionManager.
-// The actual instance is defined in the .cc file (often in an unnamed namespace)
-// to ensure it's a true singleton and its lifetime is correctly managed
-// across the entire program.
 FilterCollectionManager& get_global_filter_manager();
 
-//Filter Functions
+
+// --- Public API Filter external interface ---
 
 /**
- * Find an existing filter and return a pointer to it.
- *
- * @param name
- *   Name of the filter
- * @return
- *   Pointer to the filter or NULL if object not found
+ * @brief Find an existing filter and return a pointer to it.
+ * @param name Name of the filter.
+ * @return Pointer to the filter or NULL if object not found.
  */
-struct filter *
-filter_find_existing(const char *name);
+VCL::Filter* filter_find_existing(const char *name);
 
 /**
- * Create fileter of certain type
- *
- * @param params
- *   Parameters to initialize the filter
- * @return
- *   Return the pointer to the filter.
- *   Return value is NULL if the creation failed.
+ * @brief Create filter of certain type.
+ * @param params Parameters to initialize the filter.
+ * @return Return the pointer to the filter. Return value is NULL if the creation failed.
  */
-struct filter *
-filter_create(const struct filter_parameters *params);
-
-//Lookup Functions
+VCL::Filter* filter_create(const VCL::FilterParameters *params);
 
 /**
- * Lookup key in filter.
- * Single key lookup and return as soon as the first match found
- *
- * @param filter
- *   Pointer of a filter.
- * @param key
- *   Pointer of the key to be looked up.
- * @param set_id
- *   Output the set id matches the key.
- * @return
- *   Return 1 for found a match and 0 for not found a match.
+ * @brief De-allocate memory used by filter.
+ * @param filter Pointer to the filter data structure. If filter is NULL, no operation is performed.
  */
-int
-filter_lookup(const struct filter *filter, const void *key,
-			filter_set_t *set_id);
+void filter_free(VCL::Filter *filter);
 
-/**
- * Lookup bulk of keys in filter 
- * Each key lookup returns as soon as the first match found
- *
- * @param filter
- *   Pointer of a filter.
- * @param keys
- *   Pointer of the bulk of keys to be looked up.
- * @param num_keys
- *   Number of keys that will be lookup.
- * @param set_ids
- *   Output set ids for all the keys to this array.
- *   User should preallocate array that can contain all results, which size is
- *   the num_keys.
- * @return
- *   The number of keys that found a match.
- */
-int
-filter_lookup_bulk(const struct filter *filter,
-			const void **keys, uint32_t num_keys,
-			filter_set_t *set_ids);
+// Lookup Functions (external API wrappers)
+int filter_lookup(const VCL::Filter *filter, const void *key, filter_set_t *set_id);
+int filter_lookup_bulk(const VCL::Filter *filter, const void **keys, uint32_t num_keys, filter_set_t *set_ids);
+int filter_lookup_multi(const VCL::Filter *filter, const void *key, uint32_t max_match_per_key, filter_set_t *set_id);
+int filter_lookup_multi_bulk(const VCL::Filter *filter, const void **keys, uint32_t num_keys, uint32_t max_match_per_key, uint32_t *match_count, filter_set_t *set_ids);
 
-/**
- * Lookup a key in filter for multiple matches.
- * The key lookup will find all matched entries (multiple match).
- * Note that for CuckooCache, each key can have at most one match. This is
- * because keys with same signature that maps to same bucket will overwrite
- * each other. So multi-match lookup should be used for CuckooFilter
- *
- * @param filter
- *   Pointer of a filter.
- * @param key
- *   Pointer of the key that to be looked up.
- * @param max_match_per_key
- *   User specified maximum number of matches for each key. The function returns
- *   as soon as this number of matches found for the key.
- * @param set_id
- *   Output set ids for all the matches of the key. User needs to preallocate
- *   the array that can contain max_match_per_key number of results.
- * @return
- *   The number of matches that found for the key.
- *   For CuckooCache filter, the number should be at most 1.
- */
-int
-filter_lookup_multi(const struct filter *filter,
-		const void *key, uint32_t max_match_per_key,
-		filter_set_t *set_id);
+// Insert Function (external API wrapper)
+int filter_add(VCL::Filter *filter, const void *key, filter_set_t set_id);
 
-/**
- * Lookup a bulk of keys in a filter for multiple matches each key.
- * Each key lookup will find all matched entries (multiple match).
- * Note that for CuckooCache mode, each key can have at most one match. So
- * multi-match function is mainly used for CuckooFilter.
- *
- * @param filter
- *   Pointer of a filter.
- * @param keys
- *   Pointer of the keys to be looked up.
- * @param num_keys
- *   The number of keys that will be lookup.
- * @param max_match_per_key
- *   The possible maximum number of matches for each key.
- * @param match_count
- *   Output the number of matches for each key in an array.
- * @param set_ids
- *   Return set ids for all the matches of all keys. Users pass in a
- *   preallocated 2D array with first dimension as key index and second
- *   dimension as match index. For example set_ids[bulk_size][max_match_per_key]
- * @return
- *   The number of keys that found one or more matches in the filter.
- */
-int
-filter_lookup_multi_bulk(const struct filter *filter,
-		const void **keys, uint32_t num_keys,
-		uint32_t max_match_per_key,
-		uint32_t *match_count,
-		filter_set_t *set_ids);
+// Reset Function (external API wrapper)
+void filter_reset(VCL::Filter *filter);
+
+// Delete Function (external API wrapper)
+int filter_delete_key(VCL::Filter *filter, const void *key, filter_set_t set_id);
 
 
+// Some Bit Manipulation Helper Functions 
+static inline uint32_t align32pow2(uint32_t x) {
+    if (x == 0) {
+        return 1;
+    }
+    x--;
+    x |= x >> 1;
+    x |= x >> 2;
+    x |= x >> 4;
+    x |= x >> 8;
+    x |= x >> 16;
+    return x + 1;
+}
 
-//Insert Functions
+static inline bool is_power_of_2(uint32_t n) { return n > 0 && (n & (n - 1)) == 0; }
 
-/**
- * Insert key into filter.
- *
- * @param filter
- *   Pointer of a filter
- * @param key
- *   Pointer of the key to be added.
- * @param set_id
- *   The set id associated with the key that needs to be added.
- *   0 cannot be used as set_id since 
- *   FILTER_NO_MATCH by default is set as 0. 
- *   For HT filters, the set_id has range as [1, 0x7FFF], MSB is reserved.
- * @return
- *   CuckooCache insert should never fail unless the set_id is not in the
- *   valid range. In such case -EINVAL is returned.
- *   For CuckooFilter (non-cache mode) it could fail with -ENOSPC error code when 
- *   hash table is full.
- *   For success it returns different values for different modes to provide
- *   extra information for users.
- *   Return 0 for CuckooCache if the add does not cause
- *   eviction, return 1 otherwise. Return 0 for CuckooFilter mode if success,
- *   -ENOSPC for full, and 1 if the insert caused cuckoo eviction happens.
- */
+} // namespace VCL
 
-int
-filter_add(const struct filter *filter, const void *key,
-			filter_set_t set_id);
-
-
-
-/**
- * Reset the filter tables. 
- * e.g. reset set_id in each entry to be FILTER_NO_MATCH
- *
- * @param filter
- *   Pointer to the filter.
- */
-void
-filter_reset(const struct filter *filter);
-
-/**
- * Delete items from the filter. 
- *
- * @param filter
- *   Pointer to the filter
- * @param key
- *   Pointer of the key to be deleted.
- * @param set_id
- *   For HT mode, we need both key and its corresponding set_id to
- *   properly delete the key. Without set_id, we may delete other keys with the
- *   same signature.
- * @return
- *   If no entry found to delete, an error code of -ENOENT could be returned.
- */
-int
-filter_delete(const struct filter *filter, const void *key,
-			filter_set_t set_id);
-
-
-}; //namespace VCL
+#endif // FILTER_H
