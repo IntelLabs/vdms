@@ -36,6 +36,7 @@
 #include "ExceptionsCommand.h"
 #include "VDMSConfig.h"
 #include "defines.h"
+#include "OpsIOCoordinator.h"
 
 #include "vcl/utils.h"
 
@@ -352,9 +353,7 @@ Json::Value AddDescriptorSet::construct_responses(
     VCL::DescriptorSet desc_set(desc_set_path, dimensions, _eng, metric, param);
 
     if (_use_aws_storage) {
-      VCL::RemoteConnection *connection = new VCL::RemoteConnection();
-      std::string bucket = VDMSConfig::instance()->get_bucket_name();
-      connection->_bucket_name = bucket;
+      VCL::RemoteConnection *connection = get_existing_connection();
       desc_set.set_connection(connection);
     }
 

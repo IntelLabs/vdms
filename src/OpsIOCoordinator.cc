@@ -32,6 +32,7 @@
 #include "VDMSConfig.h"
 #include "vcl/Image.h"
 #include "vcl/VCL.h"
+#include "OpsIOCoordinator.h"
 
 #include <chrono>
 
