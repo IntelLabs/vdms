@@ -30,12 +30,41 @@
  */
 
 #include "vcl/CuckooCacheFilter.h"
+#include "vcl/CuckooCommon.h"
 #include <iostream>
-#include <stdlib.h>
-#include <cstring>
+#include <stdlib.h> 
+#include <cstring>  
 #include <cstdlib>
+#include <random> // For std::mt19937 and std::uniform_int_distribution
+#include <chrono> // For seeding the random number generator
+
 
 namespace VCL {
+
+// random engine for CuckooCacheFilter's eviction
+std::mt19937 cache_rand_engine(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+
+// Helper function private to CuckooCacheFilter for eviction
+static inline int evict_from_bucket_internal() {
+    // For now, we randomly pick one entry to evict
+    std::uniform_int_distribution<unsigned int> dist(0, FILTER_BUCKET_ENTRIES - 1);
+    return dist(cache_rand_engine);
+}
+
+
+void CuckooCacheFilter::get_cache_bucket_info(const void *key,
+                                               uint32_t *out_prim_bucket, uint32_t *out_sec_bucket, filter_sig_t *out_signature) const {
+    // DPDK's approach: first hash, then hash of first hash
+    uint32_t first_hash = crc32(prim_hash_seed_, static_cast<const Bytef*>(key), key_len_);
+    uint32_t sec_hash = crc32(sec_hash_seed_, reinterpret_cast<const Bytef*>(&first_hash), sizeof(uint32_t));
+
+    *out_signature = static_cast<filter_sig_t>(first_hash & 0xFFFF); // 16-bit signature
+
+    // Cache mode: independent bucket derivations from sec_hash
+    *out_prim_bucket = sec_hash & bucket_mask_;
+    *out_sec_bucket = (sec_hash >> 16) & bucket_mask_;
+}
+
 
 CuckooCacheFilter::CuckooCacheFilter(const FilterParameters& params)
     : Filter(params), // Call base class constructor
@@ -117,12 +146,45 @@ int CuckooCacheFilter::lookup_multi_bulk(const void **keys, uint32_t num_keys, u
 }
 
 int CuckooCacheFilter::add(const void *key, filter_set_t set_id) {
-    std::cout << "CuckooCacheFilter::add - STUB (key: " << reinterpret_cast<const char*>(key) << ", set_id: " << set_id << ")" << std::endl;
-    if (set_id == FILTER_NO_MATCH) {
+    
+    filter_set_t flag_mask = 1U << (sizeof(filter_set_t) * 8 - 1); 
+
+    if (set_id == FILTER_NO_MATCH || (set_id & flag_mask) != 0) {
+        std::cerr << "ERROR: CuckooCacheFilter:add invalid set_id used or  MSB is set" << std::endl;
         return -EINVAL; // Invalid set_id
     }
-    // Placeholder logic for adding to HT. Would involve hash calculations and insertion with overwrite.
-    return 0; // Success, returns 0 if no eviction, 1 if eviction
+
+    
+    uint32_t prim_bucket, sec_bucket;
+    filter_sig_t signature;
+
+    get_cache_bucket_info (key, &prim_bucket, &sec_bucket, &signature);
+
+    /*
+     * If it is cache based filter, we try overwriting (updating)
+     * existing entry with the same signature first. In cache mode, we allow
+     * false negatives and only cache the most recent keys.
+     */
+    if (update_entry_search(prim_bucket, signature, table_, set_id) ||
+        update_entry_search(sec_bucket, signature, table_, set_id)) {
+        return 0; // Updated an existing entry, return 0 for success (no eviction implied)
+    }
+
+    /* If not full then insert into one slot */
+    int ret = try_insert(table_, prim_bucket, sec_bucket, signature, set_id);
+    if (ret != -1) {
+        return 0; // Inserted successfully into an empty slot
+    }
+
+    /* Randomly pick prim or sec for eviction (since no empty slot) */
+    uint32_t select_bucket = (signature & 1U) ? prim_bucket : sec_bucket; // Use signature LSB for random choice
+    int evicted_slot = evict_from_bucket_internal(); // Get a random slot within the chosen bucket
+
+    // Overwrite the selected entry in the chosen bucket
+    table_[select_bucket].sigs[evicted_slot] = signature;
+    table_[select_bucket].sets[evicted_slot] = set_id;
+
+    return 1; // Successfully added with an eviction (overwritten an existing entry)
 }
 
 void CuckooCacheFilter::reset() {

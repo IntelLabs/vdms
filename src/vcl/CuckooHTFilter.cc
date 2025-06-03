@@ -31,12 +31,32 @@
 
 #include "vcl/CuckooHTFilter.h"
 #include <iostream>
-#include <stdlib.h>
+#include <stdlib.h> 
 #include <cstring>
 #include <cstdlib>
-
+#include <random> // For std::mt19937 and std::uniform_int_distribution
+#include <chrono> // For seeding the random number generator
 
 namespace VCL {
+
+// Static random engine for make_space_bucket's internal use (passed as ref)
+extern std::mt19937 cuckoo_rand_engine; // Declared in CuckooCommon.cc
+
+
+void CuckooHTFilter::get_ht_bucket_info(const void *key,
+                                         uint32_t *out_prim_bucket, uint32_t *out_sec_bucket, filter_sig_t *out_signature) const {
+    
+    uint32_t first_hash = crc32(prim_hash_seed_, static_cast<const Bytef*>(key), key_len_);
+    uint32_t sec_hash = crc32(sec_hash_seed_, reinterpret_cast<const Bytef*>(&first_hash), sizeof(uint32_t));
+
+    *out_signature = static_cast<filter_sig_t>(first_hash & 0xFFFF); // 16-bit signature
+
+    // HT Non-cache mode: XOR derivation
+    *out_prim_bucket = sec_hash & bucket_mask_;
+    // get_alt_bucket_idx is (signature ^ current_bucket_idx) & bucket_mask
+    *out_sec_bucket = get_alt_bucket_idx(*out_prim_bucket, *out_signature, bucket_mask_);
+}
+
 
 CuckooHTFilter::CuckooHTFilter(const FilterParameters& params)
     : Filter(params), // Call base class constructor
@@ -52,7 +72,7 @@ CuckooHTFilter::CuckooHTFilter(const FilterParameters& params)
         num_entries < FILTER_BUCKET_ENTRIES) {
         std::cerr << "ERROR: CuckooHTFilter: Invalid parameters for HT creation (num_entries or bucket_entries)." << std::endl;
         // In a real scenario, you might throw an exception or set an internal error flag
-        return; // Constructor cannot return an error directly, consider throwing or a factory method
+        return; // Constructor cannot return an error directly, consider throwing an error
     }
 
     bucket_cnt_ = num_entries / FILTER_BUCKET_ENTRIES;
@@ -124,12 +144,47 @@ int CuckooHTFilter::lookup_multi_bulk(const void **keys, uint32_t num_keys, uint
 }
 
 int CuckooHTFilter::add(const void *key, filter_set_t set_id) {
-    std::cout << "CuckooHTFilter::add - STUB (key: " << reinterpret_cast<const char*>(key) << ", set_id: " << set_id << ")" << std::endl;
-    if (set_id == FILTER_NO_MATCH) {
+
+    //Most Significant Bit of Set_ID is reserved, it is used internally as a flag
+    //to indicate that this entry has been pushed before or not  
+    filter_set_t flag_mask = 1U << (sizeof(filter_set_t) * 8 - 1); 
+
+    if (set_id == FILTER_NO_MATCH || (set_id & flag_mask) != 0) {
+        std::cerr << "ERROR: CuckooHTFilter:add invalid set_id used or  MSB is set" << std::endl;
         return -EINVAL; // Invalid set_id
     }
-    // Placeholder logic for adding to HT. Would involve hash calculations and insertion attempts.
-    return 0; // Success, no cuckoo eviction
+
+    uint32_t prim_bucket, sec_bucket;
+    filter_sig_t signature;
+
+    get_ht_bucket_info(key, &prim_bucket, &sec_bucket, &signature);
+
+    /*
+     * For HT non-cache mode, we do not update existing entry with the same
+     * signature. This is because if two keys with same signature update
+     * each other, false negative may happen, which is not the expected
+     * behavior for non-cache setsummary.
+     */
+    // No try_update for HTFilter
+
+    /* If not full then insert into one slot */
+    int ret = try_insert(table_, prim_bucket, sec_bucket, signature, set_id);
+    if (ret != -1) {
+        return 0; // Inserted successfully into an empty slot
+    }
+
+    /* Random pick prim or sec for recursive displacement */
+    uint32_t select_bucket = (signature & 1U) ? prim_bucket : sec_bucket; // Use signature LSB for random choice
+
+    unsigned int nr_pushes = 0;
+    ret = make_space_bucket(table_, bucket_mask_, select_bucket, &nr_pushes, cuckoo_rand_engine); // Pass the global random engine
+    if (ret >= 0) { // ret is the index in select_bucket that became free
+        table_[select_bucket].sigs[ret] = signature;
+        table_[select_bucket].sets[ret] = set_id;
+        return 1; // Successfully added after push(es)
+    }
+
+    return ret; // Return -ENOSPC or other error from make_space_bucket
 }
 
 void CuckooHTFilter::reset() {

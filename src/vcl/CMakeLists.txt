@@ -26,6 +26,7 @@ add_library(vcl SHARED
     RemoteConnection.cc
     ../../utils/src/timers/TimerMap.cc
     Filter.cc
+    CuckooCommon.cc
     CuckooHTFilter.cc
     CuckooCacheFilter.cc
     VBFFilter.cc
