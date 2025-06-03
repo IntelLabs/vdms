@@ -32,8 +32,8 @@
 #include "vcl/CuckooCacheFilter.h"
 #include "vcl/CuckooCommon.h"
 #include <iostream>
-#include <stdlib.h> 
-#include <cstring>  
+#include <stdlib.h>
+#include <cstring>
 #include <cstdlib>
 #include <random> // For std::mt19937 and std::uniform_int_distribution
 #include <chrono> // For seeding the random number generator
@@ -146,15 +146,15 @@ int CuckooCacheFilter::lookup_multi_bulk(const void **keys, uint32_t num_keys, u
 }
 
 int CuckooCacheFilter::add(const void *key, filter_set_t set_id) {
-    
-    filter_set_t flag_mask = 1U << (sizeof(filter_set_t) * 8 - 1); 
+
+    filter_set_t flag_mask = 1U << (sizeof(filter_set_t) * 8 - 1);
 
     if (set_id == FILTER_NO_MATCH || (set_id & flag_mask) != 0) {
         std::cerr << "ERROR: CuckooCacheFilter:add invalid set_id used or  MSB is set" << std::endl;
         return -EINVAL; // Invalid set_id
     }
 
-    
+
     uint32_t prim_bucket, sec_bucket;
     filter_sig_t signature;
 

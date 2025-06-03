@@ -31,7 +31,7 @@
 
 #include "vcl/CuckooHTFilter.h"
 #include <iostream>
-#include <stdlib.h> 
+#include <stdlib.h>
 #include <cstring>
 #include <cstdlib>
 #include <random> // For std::mt19937 and std::uniform_int_distribution
@@ -45,7 +45,7 @@ extern std::mt19937 cuckoo_rand_engine; // Declared in CuckooCommon.cc
 
 void CuckooHTFilter::get_ht_bucket_info(const void *key,
                                          uint32_t *out_prim_bucket, uint32_t *out_sec_bucket, filter_sig_t *out_signature) const {
-    
+
     uint32_t first_hash = crc32(prim_hash_seed_, static_cast<const Bytef*>(key), key_len_);
     uint32_t sec_hash = crc32(sec_hash_seed_, reinterpret_cast<const Bytef*>(&first_hash), sizeof(uint32_t));
 
@@ -146,8 +146,8 @@ int CuckooHTFilter::lookup_multi_bulk(const void **keys, uint32_t num_keys, uint
 int CuckooHTFilter::add(const void *key, filter_set_t set_id) {
 
     //Most Significant Bit of Set_ID is reserved, it is used internally as a flag
-    //to indicate that this entry has been pushed before or not  
-    filter_set_t flag_mask = 1U << (sizeof(filter_set_t) * 8 - 1); 
+    //to indicate that this entry has been pushed before or not
+    filter_set_t flag_mask = 1U << (sizeof(filter_set_t) * 8 - 1);
 
     if (set_id == FILTER_NO_MATCH || (set_id & flag_mask) != 0) {
         std::cerr << "ERROR: CuckooHTFilter:add invalid set_id used or  MSB is set" << std::endl;

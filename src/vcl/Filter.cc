@@ -30,13 +30,13 @@
  */
 
 #include "vcl/Filter.h"
-#include "vcl/CuckooHTFilter.h" 
-#include "vcl/CuckooCacheFilter.h" 
-#include "vcl/VBFFilter.h" 
+#include "vcl/CuckooHTFilter.h"
+#include "vcl/CuckooCacheFilter.h"
+#include "vcl/VBFFilter.h"
 
 #include <iostream>
 #include <string>
-#include <cstring> 
+#include <cstring>
 
 namespace VCL {
 
@@ -188,7 +188,7 @@ void filter_free(Filter *filter) {
 // Delegating external API calls to the virtual methods of the Filter object
 int filter_lookup(const Filter *filter, const void *key, filter_set_t *set_id) {
     if (!filter) {
-        return -EINVAL; 
+        return -EINVAL;
     }
     return filter->lookup(key, set_id);
 }
