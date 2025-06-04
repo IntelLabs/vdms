@@ -20,8 +20,10 @@ jsonparserFunction()
 
 remoteSetupFunction()
 {
+   json_data=`cat installConfig.json`
+   rudf_tar=$(echo $json_data | jq ".remote_udf_tar")
    echo "Setup the docker images and registries will be created on the remote machine"
-   sudo docker image load < remote_segment.tar
+   sudo docker image load < $rudf_tar
    sudo docker run -d -p 5000:5000 --name registry registry:2
    sudo docker tag rudf:latest  localhost:5000/remote-udf-1
    sudo docker push localhost:5000/remote-udf-1
@@ -30,11 +32,18 @@ remoteSetupFunction()
 remoteInstallFunction()
 {
    echo "Dependency Installations will now be done on the remote machine"
+   
+   sudo apt-get update
+   sudo apt-get install ca-certificates curl jq
+   
+   json_data=`cat installConfig.json`
 
    ##install containerd
-   curl -L https://github.com/containerd/containerd/releases/download/v1.6.2/containerd-1.6.2-linux-amd64.tar.gz -o containerd-1.6.2-linux-amd64.tar.gz
-   sudo tar Cxzvf /usr/local containerd-1.6.2-linux-amd64.tar.gz
-   curl -L https://github.com/opencontainers/runc/releases/download/v1.1.3/runc.amd64 -o runc.amd64
+   CONTAINERD_VERSION=$(echo $json_data | jq ".CONTAINERD_VERSION")
+   RUNC_VERSION=$(echo $json_data | jq ".RUNC_VERSION")
+   curl -L "https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}-linux-amd64.tar.g"z -o containerd-$CONTAINERD_VERSION-linux-amd64.tar.gz
+   sudo tar Cxzvf /usr/local containerd-$CONTAINERD_VERSION-linux-amd64.tar.gz
+   curl -L "https://github.com/opencontainers/runc/releases/download/v${RUNC_VERSION}/runc.amd64" -o runc.amd64
    sudo install -m 755 runc.amd64 /usr/local/sbin/runc
    sudo mkdir -p /etc/containerd
    containerd config default | sudo tee /etc/containerd/config.toml
@@ -44,9 +53,7 @@ remoteInstallFunction()
    sudo systemctl enable --now containerd
 
    #install docker engine
-   # Add Docker's official GPG key:
-   sudo apt-get update
-   sudo apt-get install ca-certificates curl jq
+   # Add Docker's official GPG key:   
    sudo install -m 0755 -d /etc/apt/keyrings
    sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
    sudo chmod a+r /etc/apt/keyrings/docker.asc
@@ -62,21 +69,24 @@ remoteInstallFunction()
    sudo apt-get install conntrack
 
    ## install kubeadm, kubelet, kubectl
-   CNI_PLUGINS_VERSION="v1.3.0"
-   ARCH="amd64"
-   DEST="/opt/cni/bin"
+   CNI_PLUGINS_VERSION=$(echo $json_data | jq ".CNI_PLUGINS_VERSION")
+   ARCH=$(echo $json_data | jq ".ARCH")
+   DEST=$(echo $json_data | jq ".DEST")
+   DOWNLOAD_DIR=$(echo $json_data | jq ".DOWNLOAD_DIR")
+   CRICTL_VERSION=$(echo $json_data | jq ".CRICTL_VERSION")
+   RELEASE_VERSION=$(echo $json_data | jq ".RELEASE_VERSION")
+   
    sudo mkdir -p "$DEST"
-   curl -L "https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGINS_VERSION}/cni-plugins-linux-${ARCH}-${CNI_PLUGINS_VERSION}.tgz" | sudo tar -C "$DEST" -xz
-   DOWNLOAD_DIR="/usr/local/bin"
-   sudo mkdir -p "$DOWNLOAD_DIR"
-   CRICTL_VERSION="v1.31.0"
+   curl -L "https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGINS_VERSION}/cni-plugins-linux-${ARCH}-${CNI_PLUGINS_VERSION}.tgz" | sudo tar -C "$DEST" -xz   
+   
+   sudo mkdir -p "$DOWNLOAD_DIR"   
    curl -L "https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/crictl-${CRICTL_VERSION}-linux-${ARCH}.tar.gz" | sudo tar -C $DOWNLOAD_DIR -xz
+   
    RELEASE="$(curl -sSL https://dl.k8s.io/release/stable.txt)"
    CDIR=$(pwd)
    cd $DOWNLOAD_DIR
    sudo curl -L --remote-name-all https://dl.k8s.io/release/${RELEASE}/bin/linux/${ARCH}/{kubeadm,kubelet}
-   sudo chmod +x {kubeadm,kubelet}
-   RELEASE_VERSION="v0.16.2"
+   sudo chmod +x {kubeadm,kubelet}   
    curl -sSL "https://raw.githubusercontent.com/kubernetes/release/${RELEASE_VERSION}/cmd/krel/templates/latest/kubelet/kubelet.service" | sed "s:/usr/bin:${DOWNLOAD_DIR}:g" | sudo tee /usr/lib/systemd/system/kubelet.service
    sudo mkdir -p /usr/lib/systemd/system/kubelet.service.d
    curl -sSL "https://raw.githubusercontent.com/kubernetes/release/${RELEASE_VERSION}/cmd/krel/templates/latest/kubeadm/10-kubeadm.conf" | sed "s:/usr/bin:${DOWNLOAD_DIR}:g" | sudo tee /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
@@ -88,11 +98,18 @@ remoteInstallFunction()
 controlplaneInstallFunction()
 {
    echo "Dependency Installation will now be done on the VDMS Control Plane (primary) node"
+   
+   sudo apt-get update
+   sudo apt-get install ca-certificates curl jq
+   
+   json_data=`cat installConfig.json`
 
    ##install containerd
-   curl -L https://github.com/containerd/containerd/releases/download/v1.6.2/containerd-1.6.2-linux-amd64.tar.gz -o containerd-1.6.2-linux-amd64.tar.gz
-   sudo tar Cxzvf /usr/local containerd-1.6.2-linux-amd64.tar.gz
-   curl -L https://github.com/opencontainers/runc/releases/download/v1.1.3/runc.amd64 -o runc.amd64
+   CONTAINERD_VERSION=$(echo $json_data | jq ".CONTAINERD_VERSION")
+   RUNC_VERSION=$(echo $json_data | jq ".RUNC_VERSION")
+   curl -L "https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz" -o containerd-$CONTAINERD_VERSION-linux-amd64.tar.gz
+   sudo tar Cxzvf /usr/local containerd-$CONTAINERD_VERSION-linux-amd64.tar.gz
+   curl -L "https://github.com/opencontainers/runc/releases/download/v${RUNC_VERSION}/runc.amd64" -o runc.amd64
    sudo install -m 755 runc.amd64 /usr/local/sbin/runc
    sudo mkdir -p /etc/containerd
    containerd config default | sudo tee /etc/containerd/config.toml
@@ -103,8 +120,6 @@ controlplaneInstallFunction()
 
    #install docker engine
    # Add Docker's official GPG key:
-   sudo apt-get update
-   sudo apt-get install ca-certificates curl
    sudo install -m 0755 -d /etc/apt/keyrings
    sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
    sudo chmod a+r /etc/apt/keyrings/docker.asc
@@ -120,19 +135,21 @@ controlplaneInstallFunction()
    sudo apt-get install conntrack
 
    ## install kubeadm, kubelet, kubectl
-   CNI_PLUGINS_VERSION="v1.3.0"
-   ARCH="amd64"
-   DEST="/opt/cni/bin"
+   CNI_PLUGINS_VERSION=$(echo $json_data | jq ".CNI_PLUGINS_VERSION")
+   ARCH=$(echo $json_data | jq ".ARCH")
+   DEST=$(echo $json_data | jq ".DEST")
+   DOWNLOAD_DIR=$(echo $json_data | jq ".DOWNLOAD_DIR")
+   CRICTL_VERSION=$(echo $json_data | jq ".CRICTL_VERSION")
+   RELEASE_VERSION=$(echo $json_data | jq ".RELEASE_VERSION")
+   CLI_ARCH=$(echo $json_data | jq ".CLI_ARCH")
+
    sudo mkdir -p "$DEST"
    curl -L "https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGINS_VERSION}/cni-plugins-linux-${ARCH}-${CNI_PLUGINS_VERSION}.tgz" | sudo tar -C "$DEST" -xz
 
-   DOWNLOAD_DIR="/usr/local/bin"
    sudo mkdir -p "$DOWNLOAD_DIR"
 
-   CRICTL_VERSION="v1.31.0"
    curl -L "https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/crictl-${CRICTL_VERSION}-linux-${ARCH}.tar.gz" | sudo tar -C $DOWNLOAD_DIR -xz
 
-   RELEASE="$(curl -sSL https://dl.k8s.io/release/stable.txt)"
    CDIR=$(pwd)
    cd $DOWNLOAD_DIR
    sudo curl -L --remote-name-all https://dl.k8s.io/release/${RELEASE}/bin/linux/${ARCH}/{kubeadm,kubelet}
@@ -146,15 +163,15 @@ controlplaneInstallFunction()
 
    #Install Cillium
    cd $CDIR
-   CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
-   CLI_ARCH=amd64
+   CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)   
    if [ "$(uname -m)" = "aarch64" ]; then CLI_ARCH=arm64; fi
    curl -L --fail --remote-name-all https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
    sha256sum --check cilium-linux-${CLI_ARCH}.tar.gz.sha256sum
    sudo tar xzvfC cilium-linux-${CLI_ARCH}.tar.gz /usr/local/bin
    rm cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
 
-   sudo docker image load < vdms.tar
+   vdms_tar=$(echo $json_data | jq ".vdms_tar")
+   sudo docker image load < $vdms_tar
    sudo docker run -d -p 5000:5000 --name registry registry:2
    sudo docker tag vdms localhost:5000/vdms
    sudo docker push localhost:5000/vdms
@@ -164,17 +181,21 @@ controlplaneInstallFunction()
 
 controlplaneSetupFunction()
 {
-   sudo kubeadm reset -f --cri-socket=unix:///var/run/cri-dockerd.sock
+   json_data=`cat installConfig.json`
+   cri_socket=$(echo $json_data | jq ".cri_socket")
+   CILIUM_VERSION=$(echo $json_data | jq ".CILIUM_VERSION")
+
+   sudo kubeadm reset -f --cri-socket=$cri_socket
    sudo rm -rf $HOME/.kube
    sudo rm -rf /etc/cni/net.d
-   sudo kubeadm init --cri-socket=unix:///var/run/cri-dockerd.sock
+   sudo kubeadm init --cri-socket=$cri_socket
 
    mkdir -p $HOME/.kube
    export KUBECONFIG=$HOME/.kube/config
    sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
    sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-   cilium install --version 1.16.0
+   cilium install --version $CILIUM_VERSION
 }
 
 jsonparserFunction_remote()
@@ -238,13 +259,15 @@ jsonparserFunction_controlplane()
 controlplaneVDMSk8setupFunction()
 {
    echo "Setup the VDMS on the control plane node and generate the keys"
+   json_data=`cat installConfig.json`
+   configmap=$(echo $json_data | jq ".configmap")
    ## use the json parser here
    jsonparserFunction_controlplane $1
    kubectl label node ${CONTROLPLANE} vdmstype=vdmscontrolplane
    kubectl create clusterrolebinding serviceaccounts-cluster-admin \
    --clusterrole=cluster-admin \
    --group=system:serviceaccounts
-   kubectl create configmap node-map --from-file=kubeConfig.json
+   kubectl create configmap node-map --from-file=$configmap
    kubectl taint node ${CONTROLPLANE} node-role.kubernetes.io/control-plane:NoSchedule-
    kubectl apply -f vdms-config.yaml
    kubectl apply -f service-config.yaml

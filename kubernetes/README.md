@@ -1,19 +1,46 @@
 # Prerequisites:
 
+### Setup Installation Config
+Create/Modify the `installConfig.json` file with necessary values. It should have the following details. Use the below values if not sure what to update. The installation config should be in the same parent directory as the `global_vdms_setup_script.sh` file.
+
+```json
+{
+    "cri_socket": "unix:///var/run/containerd/containerd.sock",
+    "remote_udf_tar": "remote_segment.tar",
+    "vdms_tar": "vdms.tar",
+    "CONTAINERD_VERSION": "1.6.2",
+    "RUNC_VERSION": "1.1.3",
+    "CNI_PLUGINS_VERSION": "v1.3.0",
+    "ARCH": "amd64",
+    "CLI_ARCH": "amd64",
+    "DEST": "/opt/cni/bin",
+    "DOWNLOAD_DIR": "/usr/local/bin",
+    "CRICTL_VERSION": "v1.31.0",
+    "RELEASE_VERSION": "v0.16.2",
+    "CILIUM_VERSION": "1.16.0",
+    "configmap": "kubeConfig.json"
+}
+```
+
+
+### Setup VDMS tar file
 Use the following steps to create the VDMS tar file.
 
 + Change to the docker/base/ directory
 + Follow the README to generate the VDMS docker image
 + Run the following command to create the tar file `sudo docker save -o vdms.tar vdms`
++ Update the `vdms_tar` entry in `installConfig.json` if using a different tar file name.
 
 
+### Setup Remote UDF tar file
 Use the following steps to create the remote UDF tar file.
 
 + Change to the remote_function directory
 + Follow the README to generate the remote UDF docker image
 + Run the following command to create the tar file `sudo docker save -o remote_segment.tar rudf`
++ Update the `remote_udf_tar` entry in `installConfig.json` if using a different tar file name.
 
-# Configure kubeConfig.json #
+# Configure kubeConfig.json
 Sample kubeConfig file that can be used to add details for the Control Plane (primary) and Worker nodes, respectively.
 
 ```json
@@ -29,7 +56,7 @@ Sample kubeConfig file that can be used to add details for the Control Plane (pr
 }
 ```
 
-# Proxy setting for running containerd behind a proxy #
+# Proxy setting for running containerd behind a proxy
 
 Follow the steps below for containerd:
 ```bash
@@ -108,7 +135,11 @@ On the Control Plane (Primary) Node execute the following command
 ./global_vdms_setup_script.sh -m primary -s yes -j <path to kubeConfig.json>
 ```
 
-The file named join_vdms_cluster.sh will be created in <mark>kubernetes/</mark> folder, copy/transfer that to the <mark>kubernetes/</mark> folder at the Worker nodes
+The file named `join_vdms_cluster.sh` will be created in <mark>kubernetes/</mark> folder, copy/transfer that to the <mark>kubernetes/</mark> folder at the Worker nodes. If you see a `cri-socket error` add the `cri-socket` argument at the end of the `kubeadm join` command in the `join_vdms_cluster.sh` file. Modify the cri-socket value to be same as the installation config.
+
+```bash
+--cri-socket=unix:///var/run/containerd/containerd.sock
+```
 
 On the Worker Node execute the following command
 ```bash
