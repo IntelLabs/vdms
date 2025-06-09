@@ -284,7 +284,7 @@ sudo make install -w --debug
 
 #### **Kubernetes Client**
 Installation required only if you plan to use the kubernetes environment
-Follow [Kubernetes README](../kubernetes/README.md) for how to set up the environment.
+Follow [Kubernetes Orchestration in VDMS](./guides/connectors-and-orchestrations/Kubernetes-Orchestration.md) for how to set up the environment.
 ```bash
 git clone --depth 1 https://github.com/yaml/libyaml.git /dependencies/libyaml
 cd $VDMS_DEP_DIR/libyaml

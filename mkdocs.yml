@@ -19,10 +19,46 @@ nav:
       - Returned Status: "Returned-Status.md"
       - Schema Definition: "Schema.md"
       - Commands:
-          - Basic Building Blocks: "commands/basic_building_blocks_index.md"
-          - Insert: "commands/insert_index.md"
-          - Query: "commands/query_index.md"
-          - Update: "commands/update_index.md"
+        - Basic Building Blocks: # "commands/basic_building_blocks_index.md"
+            - Constraints: "blocks/Block-constraints.md"
+            - Link: "blocks/Block-link.md"
+            - Operations: "blocks/Block-operations.md"
+            - Properties: "blocks/Block-properties.md"
+            - Rectangle: "blocks/Block-rectangle.md"
+            - Results: "blocks/Block-results.md"
+        - Insert:   #"commands/insert_index.md"
+            - AddBlob: "commands/AddBlob.md"
+            - AddBoundingBox: "commands/AddBoundingBox.md"
+            - AddConnection: "commands/AddConnection.md"
+            - AddDescriptor: "commands/AddDescriptor.md"
+            - AddDescriptorSet: "commands/AddDescriptorSet.md"
+            - AddEntity: "commands/AddEntity.md"
+            - AddImage: "commands/AddImage.md"
+            - AddVideo: "commands/AddVideo.md"
+            - NeoAdd: "commands/NeoAdd.md"
+            - NeoAddDescriptor: "commands/NeoAddDescriptor.md"
+            - NeoAddDescriptorSet: "commands/NeoAddDescriptorSet.md"
+        - Query: #"commands/query_index.md"
+            - ClassifyDescriptor: "commands/ClassifyDescriptor.md"
+            - FindBlob: "commands/FindBlob.md"
+            - FindBoundingBox: "commands/FindBoundingBox.md"
+            - FindConnection: "commands/FindConnection.md"
+            - FindDescriptor: "commands/FindDescriptor.md"
+            - FindDescriptorSet: "commands/FindDescriptorSet.md"
+            - FindEntity: "commands/FindEntity.md"
+            - FindFrames: "commands/FindFrames.md"
+            - FindImage: "commands/FindImage.md"
+            - FindVideo: "commands/FindVideo.md"
+            - NeoFind: "commands/NeoFind.md"
+            - NeoFindDescriptor: "commands/NeoFindDescriptor.md"
+            - NeoFindDescriptorSet: "commands/NeoFindDescriptorSet.md"
+        - Update: # "commands/update_index.md"
+            - UpdateBlob: "commands/UpdateBlob.md"
+            - UpdateBoundingBox: "commands/UpdateBoundingBox.md"
+            - UpdateConnection: "commands/UpdateConnection.md"
+            - UpdateEntity: "commands/UpdateEntity.md"
+            - UpdateImage: "commands/UpdateImage.md"
+            - UpdateVideo: "commands/UpdateVideo.md"
   - Tutorials & Guides:
       - Tutorials:
         - Simple Tutorial: "tutorials/Simple-Tutorial.md"
@@ -58,11 +94,12 @@ nav:
         - VDMS Test Script: "contribute/VDMS-Test-Script.md"
 not_in_nav: |
   blocks/*
-  commands/Add*.md
+  # commands/Add*.md
   commands/Classify*.md
-  commands/Find*.md
-  commands/Neo*.md
-  commands/Update*.md
+  # commands/Find*.md
+  # commands/Neo*.md
+  commands/NeoClassifyDescriptor.md
+  # commands/Update*.md
   guides/*
 
 # BUILD DIRECTORIES
