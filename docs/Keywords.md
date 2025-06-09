@@ -21,4 +21,4 @@ appropriate.
 
 * **`_blob`**: Similar to `_date`, we want to distinguish between regular strings and blobs. This is to specify a property that goes in the metadata database. In case of images etc, we will talk about blobs but those would be provided as or returned along with the string json.
 
-* **`_globalid`**: All entities including images, and collections have a global system id associated with them.
+* **`_globalid`**: All entities including images have a global system id associated with them.

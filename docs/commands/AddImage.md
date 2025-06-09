@@ -4,12 +4,15 @@ This call allows the application to add an image in VDMS. The bare minimum
 requirement for this call is the image blob, a path to an image file on disk, or a mounted device.
 The binary image blob should follow the json string.
 While the application can choose
-to associate no properties or no collections with this image, it will make it
+to associate no properties, it will make it
+<!-- to associate no properties or no collections with this image, it will make it -->
 harder to find the image later in such situations. In all scenarios, this call
 will also lead to an addition of an entity with class "Image" into the
 metadata database. If an operation is specified, the operation is performed
-before storing the image. If a collection is defined, it will link the image
-with that collection. If information is provided to link this image with some
+before storing the image.
+<!-- If a collection is defined, it will link the image
+with that collection.  -->
+If information is provided to link this image with some
 previously searched or added entity through a user/application specified id,
 then such a link is also added in the metadata database.
 <br>

@@ -1,5 +1,5 @@
 ## Basic Building Blocks
-* [collections](../blocks/Block-collections.md)
+<!-- * [collections](../blocks/Block-collections.md) -->
 * [constraints](../blocks/Block-constraints.md)
 * [link](../blocks/Block-link.md)
 * [operations](../blocks/Block-operations.md)

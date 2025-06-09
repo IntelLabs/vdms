@@ -13,7 +13,7 @@ the `blob` keyword can be set to true in the [results](../blocks/Block-results.m
 ## Blocks
 * [required] [`rectangle`](../blocks/Block-rectangle.md)
 * [required] [`constraints`](../blocks/Block-constraints.md)
-* [required] [collections](../blocks/Block-collections.md)
+<!-- * [required] [collections](../blocks/Block-collections.md) -->
 * [required] [results](../blocks/Block-results.md)
 
 

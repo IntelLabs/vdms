@@ -5,7 +5,8 @@ This call allows an application to add (and preprocess) a video in VDMS.
 The video blob is an encoded binary array using any of the supported containers
 or encodings.
 While the application can choose
-to associate no properties or no collections with this video, it will make it
+to associate no properties, it will make it
+<!-- to associate no properties or no collections with this video, it will make it -->
 harder to find the video later in such situations. In all scenarios, this call
 will also lead to an addition of an entity into the
 metadata database. If the information is provided to link this video with some

@@ -11,7 +11,7 @@ to VDMS, where the entity added has a preset class of BoundingBox.
 ## Blocks
 * [required] [`rectangle`](../blocks/Block-rectangle.md)
 * [optional] [`properties`](../blocks/Block-properties.md)
-* [optional] [`collections`](../blocks/Block-collections.md)
+<!-- * [optional] [`collections`](../blocks/Block-collections.md) -->
 
 
 The `image` parameter allows VDMS to create a connection between the image or frame
