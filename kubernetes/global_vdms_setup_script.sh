@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 helpFunction()
 {
    echo ""
@@ -21,7 +23,7 @@ jsonparserFunction()
 remoteSetupFunction()
 {
    json_data=`cat installConfig.json`
-   rudf_tar=$(echo $json_data | jq ".remote_udf_tar")
+   rudf_tar=$(echo $json_data | jq -r ".remote_udf_tar")
    echo "Setup the docker images and registries will be created on the remote machine"
    sudo docker image load < $rudf_tar
    sudo docker run -d -p 5000:5000 --name registry registry:2
@@ -39,8 +41,8 @@ remoteInstallFunction()
    json_data=`cat installConfig.json`
 
    ##install containerd
-   CONTAINERD_VERSION=$(echo $json_data | jq ".CONTAINERD_VERSION")
-   RUNC_VERSION=$(echo $json_data | jq ".RUNC_VERSION")
+   CONTAINERD_VERSION=$(echo $json_data | jq -r ".CONTAINERD_VERSION")
+   RUNC_VERSION=$(echo $json_data | jq -r ".RUNC_VERSION")
    curl -L "https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}-linux-amd64.tar.g"z -o containerd-$CONTAINERD_VERSION-linux-amd64.tar.gz
    sudo tar Cxzvf /usr/local containerd-$CONTAINERD_VERSION-linux-amd64.tar.gz
    curl -L "https://github.com/opencontainers/runc/releases/download/v${RUNC_VERSION}/runc.amd64" -o runc.amd64
@@ -69,12 +71,12 @@ remoteInstallFunction()
    sudo apt-get install conntrack
 
    ## install kubeadm, kubelet, kubectl
-   CNI_PLUGINS_VERSION=$(echo $json_data | jq ".CNI_PLUGINS_VERSION")
-   ARCH=$(echo $json_data | jq ".ARCH")
-   DEST=$(echo $json_data | jq ".DEST")
-   DOWNLOAD_DIR=$(echo $json_data | jq ".DOWNLOAD_DIR")
-   CRICTL_VERSION=$(echo $json_data | jq ".CRICTL_VERSION")
-   RELEASE_VERSION=$(echo $json_data | jq ".RELEASE_VERSION")
+   CNI_PLUGINS_VERSION=$(echo $json_data | jq -r ".CNI_PLUGINS_VERSION")
+   ARCH=$(echo $json_data | jq -r ".ARCH")
+   DEST=$(echo $json_data | jq -r ".DEST")
+   DOWNLOAD_DIR=$(echo $json_data | jq -r ".DOWNLOAD_DIR")
+   CRICTL_VERSION=$(echo $json_data | jq -r ".CRICTL_VERSION")
+   RELEASE_VERSION=$(echo $json_data | jq -r ".RELEASE_VERSION")
    
    sudo mkdir -p "$DEST"
    curl -L "https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGINS_VERSION}/cni-plugins-linux-${ARCH}-${CNI_PLUGINS_VERSION}.tgz" | sudo tar -C "$DEST" -xz   
@@ -105,8 +107,8 @@ controlplaneInstallFunction()
    json_data=`cat installConfig.json`
 
    ##install containerd
-   CONTAINERD_VERSION=$(echo $json_data | jq ".CONTAINERD_VERSION")
-   RUNC_VERSION=$(echo $json_data | jq ".RUNC_VERSION")
+   CONTAINERD_VERSION=$(echo $json_data | jq -r ".CONTAINERD_VERSION")
+   RUNC_VERSION=$(echo $json_data | jq -r ".RUNC_VERSION")
    curl -L "https://github.com/containerd/containerd/releases/download/v${CONTAINERD_VERSION}/containerd-${CONTAINERD_VERSION}-linux-amd64.tar.gz" -o containerd-$CONTAINERD_VERSION-linux-amd64.tar.gz
    sudo tar Cxzvf /usr/local containerd-$CONTAINERD_VERSION-linux-amd64.tar.gz
    curl -L "https://github.com/opencontainers/runc/releases/download/v${RUNC_VERSION}/runc.amd64" -o runc.amd64
@@ -135,13 +137,13 @@ controlplaneInstallFunction()
    sudo apt-get install conntrack
 
    ## install kubeadm, kubelet, kubectl
-   CNI_PLUGINS_VERSION=$(echo $json_data | jq ".CNI_PLUGINS_VERSION")
-   ARCH=$(echo $json_data | jq ".ARCH")
-   DEST=$(echo $json_data | jq ".DEST")
-   DOWNLOAD_DIR=$(echo $json_data | jq ".DOWNLOAD_DIR")
-   CRICTL_VERSION=$(echo $json_data | jq ".CRICTL_VERSION")
-   RELEASE_VERSION=$(echo $json_data | jq ".RELEASE_VERSION")
-   CLI_ARCH=$(echo $json_data | jq ".CLI_ARCH")
+   CNI_PLUGINS_VERSION=$(echo $json_data | jq -r ".CNI_PLUGINS_VERSION")
+   ARCH=$(echo $json_data | jq -r ".ARCH")
+   DEST=$(echo $json_data | jq -r ".DEST")
+   DOWNLOAD_DIR=$(echo $json_data | jq -r ".DOWNLOAD_DIR")
+   CRICTL_VERSION=$(echo $json_data | jq -r ".CRICTL_VERSION")
+   RELEASE_VERSION=$(echo $json_data | jq -r ".RELEASE_VERSION")
+   CLI_ARCH=$(echo $json_data | jq -r ".CLI_ARCH")
 
    sudo mkdir -p "$DEST"
    curl -L "https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGINS_VERSION}/cni-plugins-linux-${ARCH}-${CNI_PLUGINS_VERSION}.tgz" | sudo tar -C "$DEST" -xz
@@ -170,7 +172,7 @@ controlplaneInstallFunction()
    sudo tar xzvfC cilium-linux-${CLI_ARCH}.tar.gz /usr/local/bin
    rm cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
 
-   vdms_tar=$(echo $json_data | jq ".vdms_tar")
+   vdms_tar=$(echo $json_data | jq -r ".vdms_tar")
    sudo docker image load < $vdms_tar
    sudo docker run -d -p 5000:5000 --name registry registry:2
    sudo docker tag vdms localhost:5000/vdms
@@ -182,8 +184,8 @@ controlplaneInstallFunction()
 controlplaneSetupFunction()
 {
    json_data=`cat installConfig.json`
-   cri_socket=$(echo $json_data | jq ".cri_socket")
-   CILIUM_VERSION=$(echo $json_data | jq ".CILIUM_VERSION")
+   cri_socket=$(echo $json_data | jq -r ".cri_socket")
+   CILIUM_VERSION=$(echo $json_data | jq -r ".CILIUM_VERSION")
 
    sudo kubeadm reset -f --cri-socket=$cri_socket
    sudo rm -rf $HOME/.kube
