@@ -51,6 +51,9 @@
 #include "vcl/Image.h"
 #include "zip.h"
 
+#include <fcntl.h>
+#include <unistd.h>
+
 namespace VCL {
 
 typedef cv::Rect Rectangle;  // specify an ROI inside a video

@@ -1104,6 +1104,12 @@ void Video::SyncRemoteOperation::operator()(Video *video, cv::Mat &frame,
 
       if (curl) {
 
+        int fd = open(fname.c_str(), O_RDONLY);
+        if (fd != -1) {
+            fsync(fd);
+            close(fd);
+        }
+
         form = curl_mime_init(curl);
 
         field = curl_mime_addpart(form);
