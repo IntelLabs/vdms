@@ -179,7 +179,7 @@ bool RemoteConnection::RetrieveFile(const std::string &filename) {
     if (_remote_connected) {
       return retrieve_file(filename);
     } else {
-      std::cerr << "WRITE: The RemoteConnection has not been started"
+      std::cerr << "READ: The RemoteConnection has not been started"
                 << std::endl;
       return false;
     }
@@ -197,7 +197,7 @@ RemoteConnection::ListFilesInFolder(const std::string &folder_name) {
     if (_remote_connected) {
       return get_file_list(folder_name);
     } else {
-      std::cerr << "WRITE: The RemoteConnection has not been started"
+      std::cerr << "READ: The RemoteConnection has not been started"
                 << std::endl;
       return std::vector<std::string>();
     }
