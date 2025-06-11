@@ -40,6 +40,7 @@
 #include <chrono>
 
 #include "ImageLoop.h"
+#include "OpsIOCoordinator.h"
 
 #ifdef HAS_KUBERNETES_CLIENT
 #include "../utils/include/kubernetes/KubeHelper.h"
@@ -189,9 +190,7 @@ int AddImage::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
     }
 
     if (_use_aws_storage) {
-      VCL::RemoteConnection *connection = new VCL::RemoteConnection();
-      std::string bucket = VDMSConfig::instance()->get_bucket_name();
-      connection->_bucket_name = bucket;
+      VCL::RemoteConnection *connection = get_existing_connection();
       img.set_connection(connection);
     }
     img.save_image(file_name, blob);
@@ -210,9 +209,7 @@ int AddImage::construct_protobuf(PMGDQuery &query, const Json::Value &jsoncmd,
     }
 
     if (_use_aws_storage) {
-      VCL::RemoteConnection *connection = new VCL::RemoteConnection();
-      std::string bucket = VDMSConfig::instance()->get_bucket_name();
-      connection->_bucket_name = bucket;
+      VCL::RemoteConnection *connection = get_existing_connection();
       img.set_connection(connection);
     }
     if (cmd.isMember("operations")) {
@@ -440,9 +437,7 @@ Json::Value FindImage::construct_responses(Json::Value &responses,
       try {
         VCL::Image img(im_path);
         if (_use_aws_storage) {
-          VCL::RemoteConnection *connection = new VCL::RemoteConnection();
-          std::string bucket = VDMSConfig::instance()->get_bucket_name();
-          connection->_bucket_name = bucket;
+          VCL::RemoteConnection *connection = get_existing_connection();
           img.set_connection(connection);
         }
 
