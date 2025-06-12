@@ -46,6 +46,7 @@
 #include "QueryMessage.h"
 #include "pmgd.h"
 #include "util.h"
+#include "PmgdFilter.h"
 
 #include "APISchema.h"
 #include <jsoncpp/json/writer.h>
@@ -100,6 +101,9 @@ void QueryHandlerPMGD::init() {
   _rs_cmds["AddBlob"] = new AddBlob();
   _rs_cmds["UpdateBlob"] = new UpdateBlob();
   _rs_cmds["FindBlob"] = new FindBlob();
+
+  _rs_cmds["AddFilter"] = new AddFilter();
+  _rs_cmds["FindFilter"]= new FindFilter();
 
   // Load the string containing the schema (api_schema/APISchema.h)
   Json::Reader reader;
