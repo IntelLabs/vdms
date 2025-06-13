@@ -22,6 +22,8 @@ find_package( OpenCV REQUIRED )
 find_package(Protobuf CONFIG REQUIRED)
 find_package( CURL REQUIRED )
 find_package(AWSSDK REQUIRED COMPONENTS core s3)
+find_package(gRPC CONFIG REQUIRED)
+find_package(absl CONFIG REQUIRED)
 
 include_directories(${Protobuf_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -35,8 +37,9 @@ add_library(vdms_protobuf OBJECT
   ${CMAKE_CURRENT_SOURCE_DIR}/utils/src/protobuf/partitionerMessages.proto
   ${CMAKE_CURRENT_SOURCE_DIR}/utils/src/protobuf/pmgdMessages.proto
   ${CMAKE_CURRENT_SOURCE_DIR}/utils/src/protobuf/queryMessage.proto
+  ${CMAKE_CURRENT_SOURCE_DIR}/utils/src/protobuf/entity.proto
 )
-target_link_libraries(vdms_protobuf PUBLIC protobuf::libprotobuf)
+target_link_libraries(vdms_protobuf PUBLIC protobuf::libprotobuf gRPC::grpc++)
 set(PROTO_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 target_include_directories(vdms_protobuf PUBLIC "$<BUILD_INTERFACE:${PROTO_BINARY_DIR}>")
 protobuf_generate(
@@ -45,6 +48,14 @@ protobuf_generate(
   IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/utils/src/protobuf"
   PROTOC_OUT_DIR "${PROTO_BINARY_DIR}"
 )
+
+protobuf_generate(
+    TARGET vdms_protobuf
+    LANGUAGE grpc
+    GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc
+    PLUGIN "protoc-gen-grpc=\$<TARGET_FILE:gRPC::grpc_cpp_plugin>"
+    IMPORT_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/utils/src/protobuf"
+    PROTOC_OUT_DIR "${PROTO_BINARY_DIR}")
 
 if (CLIENT)
   add_definitions("-D CLIENT")
@@ -102,11 +113,11 @@ else()
     src/VideoLoop.cc
   )
 
-  target_link_libraries(dms vcl pmgd pmgd-util protobuf tbb tiledb vdms-utils pthread -lcurl -lzmq -lzip ${AWSSDK_LINK_LIBRARIES} neo4j-client)
+  target_link_libraries(dms vcl pmgd pmgd-util protobuf tbb tiledb vdms-utils pthread -lcurl -lzmq -lzip ${AWSSDK_LINK_LIBRARIES} neo4j-client gRPC::grpc++)
 
   add_executable(vdms src/vdms.cc)
 
-  target_link_libraries(vdms dms vdms_protobuf vcl tiledb faiss flinng jsoncpp ${OpenCV_LIBS} ${AWSSDK_LINK_LIBRARIES})
+  target_link_libraries(vdms dms vdms_protobuf vcl tiledb faiss flinng jsoncpp ${OpenCV_LIBS} ${AWSSDK_LINK_LIBRARIES} ${Protobuf_LIBRARIES} ${_REFLECTION} ${_GRPC_GRPCPP} ${_PROTOBUF_LIBPROTOBUF} gRPC::grpc++)
 endif ()
 
 message("Coverage:" ${CODE_COVERAGE})

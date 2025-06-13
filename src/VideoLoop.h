@@ -39,8 +39,13 @@
 #include <thread>
 #include <vector>
 
+#include <jsoncpp/json/reader.h>
+#include <jsoncpp/json/value.h>
+#include <jsoncpp/json/writer.h>
+
 #include "vcl/Image.h"
 #include "vcl/Video.h"
+#include "vcl/GRPCEntityClient.cc"
 
 class VideoLoop {
  public:
@@ -129,7 +134,7 @@ class VideoLoop {
    * @param response_filepath Path to the local file where the remote response
    * file will be stored
    */
-  CURL *get_easy_handle(VCL::Video video, std::string response_filepath);
+  // CURL *get_easy_handle(VCL::Video video, std::string response_filepath);
 
   /**
    * Execute the remote operation using multi-curl

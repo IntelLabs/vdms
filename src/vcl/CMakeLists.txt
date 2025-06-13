@@ -23,6 +23,8 @@ add_library(vcl SHARED
     TDBSparseDescriptorSet.cc
     utils.cc
     Video.cc
+    EntityClient.cc
+    GRPCEntityClient.cc
     RemoteConnection.cc
     ../../utils/src/timers/TimerMap.cc
 )

@@ -35,7 +35,11 @@
 #include <thread>
 #include <vector>
 
+#include <fcntl.h>
+#include <unistd.h>
+
 #include "vcl/Image.h"
+#include "vcl/GRPCEntityClient.cc"
 
 class ImageLoop {
  public:
@@ -78,6 +82,5 @@ class ImageLoop {
   std::thread r_thread{&ImageLoop::remoteOperationThread, this};
   void remoteOperationThread() noexcept;
 
-  CURL *get_easy_handle(VCL::Image *img, std::string &readBuffer);
   void execute_remote_operations(std::vector<VCL::Image *> &readBuffer);
 };
