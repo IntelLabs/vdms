@@ -43,31 +43,31 @@ protected:
         params_ht_small.num_keys = SMALL_NUM_KEYS;
         params_ht_small.key_len = TEST_KEY_LEN;
         params_ht_small.name = "TestHTFilterSmall";
-        params_ht_small.engine = VCL::CuckooHT; 
+        params_ht_small.engine = VCL::CuckooHT;
         params_ht_small.prim_hash_seed = 0xDEADC0DE;
         params_ht_small.sec_hash_seed = 0xBADF00D;
 
-        params_cache_small = params_ht_small; 
+        params_cache_small = params_ht_small;
         params_cache_small.name = "TestCacheFilterSmall";
-        params_cache_small.engine = VCL::CuckooCache; 
+        params_cache_small.engine = VCL::CuckooCache;
 
         // Common parameters for medium filters
         params_ht_medium.num_keys = MEDIUM_NUM_KEYS;
         params_ht_medium.key_len = TEST_KEY_LEN;
         params_ht_medium.name = "TestHTFilterMedium";
-        params_ht_medium.engine = VCL::CuckooHT; 
+        params_ht_medium.engine = VCL::CuckooHT;
         params_ht_medium.prim_hash_seed = 0xDEADC0DE;
         params_ht_medium.sec_hash_seed = 0xBADF00D;
 
-        params_cache_medium = params_ht_medium; 
+        params_cache_medium = params_ht_medium;
         params_cache_medium.name = "TestCacheFilterMedium";
-        params_cache_medium.engine = VCL::CuckooCache; 
+        params_cache_medium.engine = VCL::CuckooCache;
 
         // Parameters for max capacity filters
         params_ht_max.num_keys = FILTER_MAX_CAPACITY;
         params_ht_max.key_len = TEST_KEY_LEN;
         params_ht_max.name = "TestHTFilterMax";
-        params_ht_max.engine = VCL::CuckooHT; 
+        params_ht_max.engine = VCL::CuckooHT;
         params_ht_max.prim_hash_seed = 0xDEADC0DE;
         params_ht_max.sec_hash_seed = 0xBADF00D;
 
@@ -169,7 +169,7 @@ protected:
     std::unique_ptr<VCL::CuckooCacheFilter> cache_filter;
 
     void SetUp() override {
-        FilterTest::SetUp(); 
+        FilterTest::SetUp();
         ht_filter = std::make_unique<VCL::CuckooHTFilter>(params_ht_medium);
         cache_filter = std::make_unique<VCL::CuckooCacheFilter>(params_cache_medium);
         ASSERT_TRUE(ht_filter->is_valid());
@@ -232,7 +232,7 @@ TEST_F(FilterCommonTest, Add_DuplicateKey_MultipleEntries_HT) {
     // Add first entry
     ASSERT_EQ(ht_filter->add(key.data(), set_id1), 0);
 
-    // Now try to add the same key with a different set_id.    
+    // Now try to add the same key with a different set_id.
     // this will attempt to add a new entry if space is available.
     int ret_second_add = ht_filter->add(key.data(), set_id2);
     EXPECT_TRUE(ret_second_add == 0 || ret_second_add == 1) << "Adding duplicate key (HT) with different set_id should succeed or cause eviction.";

@@ -33,8 +33,8 @@
 #include <iostream>           // For potential debugging/error output if needed
 #include <string.h>           // For memcpy or other byte-level operations
 #include <random>
-#include <chrono>              
-#include <functional>     
+#include <chrono>
+#include <functional>
 
 namespace VCL {
 
@@ -83,7 +83,7 @@ int try_insert(filter_ht_bucket *buckets, uint32_t prim, uint32_t sec,
     }
     // No empty slot found in both primary and secondary
     //add function will have to go next through the cuckoo path
-    return -1; 
+    return -1;
 }
 
 
@@ -143,7 +143,7 @@ int make_space_bucket(filter_ht_bucket *buckets, uint32_t bucket_mask,
     if (i == FILTER_BUCKET_ENTRIES || ++(*nr_pushes) > FILTER_MAX_PUSHES)
         return -ENOSPC;
 
-    
+
     // Store the signature and set_id of the entry to be pushed *before* modifying sets[i]
     filter_sig_t pushed_sig = bkt->sigs[i];
     filter_set_t pushed_set = bkt->sets[i];
