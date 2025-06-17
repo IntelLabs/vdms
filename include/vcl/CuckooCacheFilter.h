@@ -37,50 +37,59 @@
 
 #pragma once
 
-#include "vcl/Filter.h" // Include the base Filter class header
 #include "vcl/CuckooCommon.h"  // Include the common Cuckoo structs
+#include "vcl/Filter.h"        // Include the base Filter class header
 
 namespace VCL {
 
 /**
  * @class CuckooCacheFilter
- * @brief Implements a cuckoo hash table filter with deletion and overwriting support.
+ * @brief Implements a cuckoo hash table filter with deletion and overwriting
+ * support.
  *
  * This corresponds to the CuckooCache engine type. It's designed for caching
  * recent keys, allowing new keys to overwrite older ones.
  */
 class CuckooCacheFilter : public Filter {
-private:
-    uint32_t bucket_cnt_;   /* Number of buckets. */
-    uint32_t bucket_mask_;  /* Bit mask to get bucket index. */
-    filter_ht_bucket* table_; /* Pointer to the hash table data. */
+ private:
+  uint32_t bucket_cnt_;     /* Number of buckets. */
+  uint32_t bucket_mask_;    /* Bit mask to get bucket index. */
+  filter_ht_bucket *table_; /* Pointer to the hash table data. */
 
-    inline void get_cache_bucket_info(const void *key,
-                                      uint32_t *out_prim_bucket, uint32_t *out_sec_bucket, filter_sig_t *out_signature) const;
+  inline void get_cache_bucket_info(const void *key, uint32_t *out_prim_bucket,
+                                    uint32_t *out_sec_bucket,
+                                    filter_sig_t *out_signature) const;
 
-public:
-    /**
-     * @brief Constructor for CuckooCacheFilter.
-     * @param params Filter creation parameters.
-     */
-    CuckooCacheFilter(const FilterParameters& params);
+ public:
+  /**
+   * @brief Constructor for CuckooCacheFilter.
+   * @param params Filter creation parameters.
+   */
+  CuckooCacheFilter(const FilterParameters &params);
 
-    /**
-     * @brief Destructor for CuckooCacheFilter.
-     * Frees the allocated hash table memory.
-     */
-    virtual ~CuckooCacheFilter() override;
+  /**
+   * @brief Destructor for CuckooCacheFilter.
+   * Frees the allocated hash table memory.
+   */
+  virtual ~CuckooCacheFilter() override;
 
-    // --- Implementations of pure virtual functions from VCL::Filter ---
-    // Note: Some lookup/multi-lookup behavior might differ from CuckooHT due to cache nature.
+  // --- Implementations of pure virtual functions from VCL::Filter ---
+  // Note: Some lookup/multi-lookup behavior might differ from CuckooHT due to
+  // cache nature.
 
-    virtual int lookup(const void *key, filter_set_t *set_id) const override;
-    virtual int lookup_bulk(const void **keys, uint32_t num_keys, filter_set_t *set_ids) const override;
-    virtual int lookup_multi(const void *key, uint32_t max_match_per_key, filter_set_t *set_id) const override; // Expected to return at most 1 match
-    virtual int lookup_multi_bulk(const void **keys, uint32_t num_keys, uint32_t max_match_per_key, uint32_t *match_count, filter_set_t *set_ids) const override; // Expected to return at most 1 match per key
-    virtual int add(const void *key, filter_set_t set_id) override;
-    virtual void reset() override;
-    virtual int delete_key(const void *key, filter_set_t set_id) override;
+  virtual int lookup(const void *key, filter_set_t *set_id) const override;
+  virtual int lookup_bulk(const void **keys, uint32_t num_keys,
+                          filter_set_t *set_ids) const override;
+  virtual int lookup_multi(const void *key, uint32_t max_match_per_key,
+                           filter_set_t *set_id)
+      const override;  // Expected to return at most 1 match
+  virtual int lookup_multi_bulk(const void **keys, uint32_t num_keys,
+                                uint32_t max_match_per_key,
+                                uint32_t *match_count, filter_set_t *set_ids)
+      const override;  // Expected to return at most 1 match per key
+  virtual int add(const void *key, filter_set_t set_id) override;
+  virtual void reset() override;
+  virtual int delete_key(const void *key, filter_set_t set_id) override;
 };
 
-} // namespace VCL
+}  // namespace VCL

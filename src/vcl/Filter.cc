@@ -30,13 +30,13 @@
  */
 
 #include "vcl/Filter.h"
-#include "vcl/CuckooHTFilter.h" 
-#include "vcl/CuckooCacheFilter.h" 
-#include "vcl/VBFFilter.h" 
+#include "vcl/CuckooHTFilter.h"
+#include "vcl/CuckooCacheFilter.h"
+#include "vcl/VBFFilter.h"
 
 #include <iostream>
 #include <string>
-#include <cstring> 
+#include <cstring>
 
 namespace VCL {
 
@@ -48,7 +48,7 @@ FilterCollectionManager s_global_filter_manager;
 static const uint32_t DEFAULT_PRIM_HASH_SEED = 0xDEADBEEF; // Example default primary seed
 static const uint32_t DEFAULT_SEC_HASH_SEED  = 0xCAFEBABE; // Example default secondary seed
 
-// Define the FilterDeleter::operator() to delete a filter 
+// Define the FilterDeleter::operator() to delete a filter
 void FilterDeleter::operator()(VCL::Filter* f) const {
     if (f) {
         // std::cout << "DEBUG: Calling delete for filter: " << f->get_name() << std::endl;
@@ -62,7 +62,7 @@ void FilterDeleter::operator()(VCL::Filter* f) const {
 Filter::Filter(const FilterParameters& params)
     : engine_(params.engine),
     num_keys_(params.num_keys),
-    key_len_(params.key_len),      
+    key_len_(params.key_len),
     prim_hash_seed_(0),
     sec_hash_seed_(0),
     extra_flag_(params.extra_flag) {
@@ -157,7 +157,7 @@ bool FilterCollectionManager::collection_remove_filter(const std::string& name) 
 
 std::vector<std::string> FilterCollectionManager::collection_get_all_filter_names() const {
     std::vector<std::string> names;
-    names.reserve(filters_.size()); 
+    names.reserve(filters_.size());
     for (const auto& pair : filters_) {
         names.push_back(pair.first); // The key in the map is the filter name
     }
@@ -227,7 +227,7 @@ void filter_free(Filter *filter) {
 // Delegating external API calls to the virtual methods of the Filter object
 int filter_lookup(const Filter *filter, const void *key, filter_set_t *set_id) {
     if (!filter) {
-        return -EINVAL; 
+        return -EINVAL;
     }
     return filter->lookup(key, set_id);
 }

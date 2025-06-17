@@ -36,7 +36,7 @@
 
 #pragma once
 
-#include "vcl/Filter.h" // Include the base Filter class header
+#include "vcl/Filter.h"  // Include the base Filter class header
 
 namespace VCL {
 
@@ -49,7 +49,6 @@ namespace VCL {
 //    // e.g., double false_positive_rate;
 // };
 
-
 /**
  * @class VBF_Filter
  * @brief Implements a Vector Bloom Filter.
@@ -58,33 +57,39 @@ namespace VCL {
  * and does not support deletions.
  */
 class VBF_Filter : public Filter {
-private:
-    // VBF-specific data members would go here.
-    // void* vbf_data_; // Placeholder for the actual VBF structure
+ private:
+  // VBF-specific data members would go here.
+  // void* vbf_data_; // Placeholder for the actual VBF structure
 
-public:
-    /**
-     * @brief Constructor for VBF_Filter.
-     * @param params Filter creation parameters.
-     */
-    VBF_Filter(const FilterParameters& params);
+ public:
+  /**
+   * @brief Constructor for VBF_Filter.
+   * @param params Filter creation parameters.
+   */
+  VBF_Filter(const FilterParameters &params);
 
-    /**
-     * @brief Destructor for VBF_Filter.
-     * Frees any VBF-specific allocated memory.
-     */
-    virtual ~VBF_Filter() override;
+  /**
+   * @brief Destructor for VBF_Filter.
+   * Frees any VBF-specific allocated memory.
+   */
+  virtual ~VBF_Filter() override;
 
-    // --- Implementations of pure virtual functions from VCL::Filter ---
-    // These will initially be stubs, similar to the original filter.cc for VBF.
+  // --- Implementations of pure virtual functions from VCL::Filter ---
+  // These will initially be stubs, similar to the original filter.cc for VBF.
 
-    virtual int lookup(const void *key, filter_set_t *set_id) const override;
-    virtual int lookup_bulk(const void **keys, uint32_t num_keys, filter_set_t *set_ids) const override;
-    virtual int lookup_multi(const void *key, uint32_t max_match_per_key, filter_set_t *set_id) const override;
-    virtual int lookup_multi_bulk(const void **keys, uint32_t num_keys, uint32_t max_match_per_key, uint32_t *match_count, filter_set_t *set_ids) const override;
-    virtual int add(const void *key, filter_set_t set_id) override;
-    virtual void reset() override;
-    virtual int delete_key(const void *key, filter_set_t set_id) override; // Deletion not supported for VBF, but must be implemented
+  virtual int lookup(const void *key, filter_set_t *set_id) const override;
+  virtual int lookup_bulk(const void **keys, uint32_t num_keys,
+                          filter_set_t *set_ids) const override;
+  virtual int lookup_multi(const void *key, uint32_t max_match_per_key,
+                           filter_set_t *set_id) const override;
+  virtual int lookup_multi_bulk(const void **keys, uint32_t num_keys,
+                                uint32_t max_match_per_key,
+                                uint32_t *match_count,
+                                filter_set_t *set_ids) const override;
+  virtual int add(const void *key, filter_set_t set_id) override;
+  virtual void reset() override;
+  virtual int delete_key(const void *key, filter_set_t set_id)
+      override;  // Deletion not supported for VBF, but must be implemented
 };
 
-} // namespace VCL
+}  // namespace VCL
