@@ -1,13 +1,20 @@
 import cv2
 import os
+import numpy as np
 
 
-def run(ipfilename, format, options, tmp_dir_path):
-    if not os.path.exists(ipfilename):
-        raise Exception(f"Flip error: File ipfilename: {ipfilename} does not exist")
+def run(entity, options):
+    image_array = np.frombuffer(entity, dtype=np.uint8)
 
-    img = cv2.imread(ipfilename)
+    img = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
 
     img = cv2.flip(img, 0)
 
-    return img, None
+    success, encoded_img = cv2.imencode(".jpg", img)
+    if not success:
+        raise ValueError("Failed to encode image.")
+    ebytes = encoded_img.tobytes()
+    
+    rdict = {'metadata': 'None'}
+
+    return ebytes, rdict

@@ -1,16 +1,21 @@
-from flask import Flask, request, jsonify, send_file, after_this_request
-import cv2
-import json
-from datetime import datetime, timezone
-import os
 import sys
-import uuid
-from zipfile import ZipFile, is_zipfile
+import grpc
+import entity_pb2
+import entity_pb2_grpc
+import json
+import os
 import importlib.util
-from werkzeug.utils import secure_filename
+import asyncio
+import signal
+from concurrent.futures import ProcessPoolExecutor
+import multiprocessing
 
 tmp_dir_path = None
+UDF_MAP = {}
 
+cpu_cores = multiprocessing.cpu_count()
+max_workers = max(cpu_cores - 1, 1)
+executor = ProcessPoolExecutor(max_workers=max_workers)
 
 # Function to dynamically import a module given its full path
 def import_module_from_path(module_name, path):
@@ -57,143 +62,66 @@ def setup(tmp_path):
                 raise Exception(
                     "setup() error: module '" + entry + "' could not be loaded"
                 )
-            globals()[module_name] = module
+            UDF_MAP[module_name] = module
 
+def run_udf(module_name, result, options):
+    udf = UDF_MAP[module_name]
+    return udf.run(result, options)
 
-app = Flask(__name__)
+# gRPC Servicer
+class OperatorServicer(entity_pb2_grpc.OperatorServicer):
 
-
-def get_current_timestamp():
-    dt = datetime.now(timezone.utc)
-
-    utc_time = dt.replace(tzinfo=timezone.utc)
-    utc_timestamp = utc_time.timestamp()
-
-    return utc_timestamp
-
-
-@app.route("/hello", methods=["GET"])
-def hello():
-    return jsonify({"response": "true"})
-
-
-@app.route("/image", methods=["POST"])
-def image_api():
-    json_data = json.loads(request.form["jsonData"])
-    image_data = request.files["imageData"]
-
-    format = json_data["format"] if "format" in json_data else "jpg"
-
-    tmpfile = secure_filename(
-        os.path.join(tmp_dir_path, "tmpfile" + uuid.uuid1().hex + "." + str(format))
-    )
-
-    image_data.save(tmpfile)
-
-    r_img, r_meta = "", ""
-
-    udf = globals()[json_data["id"]]
-    if "ingestion" in json_data:
-        r_img, r_meta = udf.run(tmpfile, format, json_data, tmp_dir_path)
-    else:
-        r_img, _ = udf.run(tmpfile, format, json_data, tmp_dir_path)
-
-    return_string = cv2.imencode("." + str(format), r_img)[1].tostring()
-
-    if r_meta != "":
-        return_string += ":metadata:".encode("utf-8")
-        return_string += r_meta.encode("utf-8")
-
-    os.remove(tmpfile)
-    return return_string
-
-
-@app.route("/video", methods=["POST"])
-def video_api():
-    json_data = json.loads(request.form["jsonData"])
-    video_data = request.files["videoData"]
-    format = json_data["format"] if "format" in json_data else "mp4"
-
-    tmpfile = secure_filename(
-        os.path.join(tmp_dir_path, "tmpfile" + uuid.uuid1().hex + "." + str(format))
-    )
-    video_data.save(tmpfile)
-
-    video_file, metadata_file = "", ""
-
-    udf = globals()[json_data["id"]]
-    if "ingestion" in json_data:
-        video_file, metadata_file = udf.run(tmpfile, format, json_data, tmp_dir_path)
-    else:
-        video_file, metadata_file = udf.run(tmpfile, format, json_data, tmp_dir_path)
-
-    response_file = os.path.join(tmp_dir_path, "tmpfile" + uuid.uuid1().hex + ".zip")
-
-    try:
-        with ZipFile(response_file, "w") as zip_object:
-            zip_object.write(video_file, os.path.basename(video_file))
-            if metadata_file is not None and metadata_file != "":
-                zip_object.write(metadata_file, os.path.basename(metadata_file))
-            zip_object.close()
-            if not is_zipfile(response_file):
-                raise Exception("response_file is invalid: " + response_file)
-    except Exception:
-        error_message = "An internal error has occurred."
-        return error_message, 500
-
-    @after_this_request
-    def remove_tempfile(response):
-        try:
-            os.remove(tmpfile)
-            os.remove(response_file)
-            os.remove(video_file)
-            os.remove(metadata_file)
-        except Exception as e:
-            print(
-                "Some files cannot be deleted or are not present:",
-                str(e),
-                file=sys.stderr,
-            )
-        return response
-
-    try:
-        return send_file(
-            response_file,
-            as_attachment=True,
-            download_name=os.path.basename(response_file),
+    async def Operate(self, request, context):
+        result = request.entity
+        options = json.loads(request.options.decode('utf-8'))
+        loop = asyncio.get_running_loop()
+        ebytes, rdict = await loop.run_in_executor(executor, run_udf, options["id"], result, options)
+        return entity_pb2.Entity(
+            entity=ebytes,
+            options=json.dumps(rdict).encode('utf-8')
         )
-    except Exception:
-        return "Error in file read"
+
+# Graceful shutdown handler
+async def shutdown(server, executor):
+    print("\nShutting down...")
+    await server.stop(5)  # Allow 5 seconds to finish active RPCs
+    server.wait_for_termination()
+    executor.shutdown(wait=True)
+    print("Shutdown complete.")
+
+async def main(port):
+    server = grpc.aio.server()
+    entity_pb2_grpc.add_OperatorServicer_to_server(OperatorServicer(), server)
+    server.add_insecure_port('[::]:{}'.format(port))
+    await server.start()
+    print("Async gRPC server (multiprocessing) started on port 50051")
+
+    stop_event = asyncio.Event()
+
+    # Handle SIGINT and SIGTERM
+    loop = asyncio.get_running_loop()
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        loop.add_signal_handler(sig, stop_event.set)
+
+    await stop_event.wait()
+    await shutdown(server, executor)
 
 
-@app.errorhandler(400)
-def handle_bad_request(e):
-    response = e.get_response()
-    response.data = json.dumps(
-        {
-            "code": e.code,
-            "name": e.name,
-            "description": e.description,
-        }
-    )
-    response.content_type = "application/json"
-    print("400 error:", response, file=sys.stderr)
-    return response
-
-
-def main():
+if __name__ == "__main__":
     if sys.argv[1] is None:
         print("Port missing\n Correct Usage: python3 udf_server.py <port> [tmp_path]")
-    elif sys.argv[2] is None:
+    elif len(sys.argv) < 3:
         print(
             "Warning: Path to the temporary directory is missing\nBy default the path will be the current directory"
         )
         setup(None)
-        app.run(host="0.0.0.0", port=int(sys.argv[1]))
+        try:
+            asyncio.run(main(int(sys.argv[1])))
+        except KeyboardInterrupt:
+            pass
     else:
-        setup(sys.argv[2])
-        app.run(host="0.0.0.0", port=int(sys.argv[1]))
-
-
-if __name__ == "__main__":
-    main()
+        setup(sys.argv[2])     
+        try:   
+            asyncio.run(main(int(sys.argv[1])))
+        except KeyboardInterrupt:
+            pass

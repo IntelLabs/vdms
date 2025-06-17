@@ -123,7 +123,7 @@ TEST(CLIENT_CPP, find_image_remote) {
   Json::Value tuple;
   Json::Value op;
   op["type"] = "remoteOp";
-  op["url"] = "http://localhost:5010/image";
+  op["url"] = "localhost:5010";
   op["options"]["id"] = "flip";
   op["options"]["format"] = "jpg";
   tuple = meta_obj->construct_find_image_withop(op);
@@ -148,7 +148,7 @@ TEST(CLIENT_CPP, find_image_syncremote) {
   Json::Value tuple;
   Json::Value op;
   op["type"] = "syncremoteOp";
-  op["url"] = "http://localhost:5010/image";
+  op["url"] = "localhost:5010";
   op["options"]["id"] = "flip";
   op["options"]["format"] = "jpg";
   tuple = meta_obj->construct_find_image_withop(op);
@@ -227,7 +227,7 @@ TEST(CLIENT_CPP, add_image_dynamic_metadata_remote) {
   op["options"]["format"] = "jpg";
   op["options"]["media_type"] = "image";
   op["options"]["otype"] = "face";
-  op["url"] = "http://localhost:5010/image";
+  op["url"] = "localhost:5010";
   Meta_Data *meta_obj = new Meta_Data();
   blobs.push_back(meta_obj->read_blob(filename));
   meta_obj->_aclient.reset(
