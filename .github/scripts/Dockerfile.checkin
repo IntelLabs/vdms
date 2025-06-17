@@ -101,14 +101,16 @@ RUN git clone -b ${GRPC_VERSION} https://github.com/grpc/grpc && \
 # hadolint ignore=DL3003,SC2086
 
 # googletest
-RUN git clone https://github.com/google/googletest.git -b v1.17.0 && mkdir build && cd build/ && \
+RUN git clone https://github.com/google/googletest.git -b v1.17.0 /dependencies/googletest && \
+            cd /dependencies/googletest && mkdir build && cd build && \
             cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
                 -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
                 -DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 .. && \
             make ${BUILD_THREADS} && make install
 
 # Abseil-CPP
-RUN git clone https://github.com/abseil/abseil-cpp.git /dependencies/abseil && && mkdir build && cd build && \
+RUN git clone https://github.com/abseil/abseil-cpp.git /dependencies/abseil && \
+            cd /dependencies/abseil && mkdir build && cd build && \
             cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
                 -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local -DABSL_BUILD_TESTING=ON \
                 -DABSL_USE_EXTERNAL_GOOGLETEST=ON \
