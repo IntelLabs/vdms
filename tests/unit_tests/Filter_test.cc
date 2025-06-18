@@ -43,31 +43,31 @@ protected:
         params_ht_small.num_keys = SMALL_NUM_KEYS;
         params_ht_small.key_len = TEST_KEY_LEN;
         params_ht_small.name = "TestHTFilterSmall";
-        params_ht_small.engine = VCL::CuckooHT; 
+        params_ht_small.engine = VCL::CuckooHT;
         params_ht_small.prim_hash_seed = 0xDEADC0DE;
         params_ht_small.sec_hash_seed = 0xBADF00D;
 
-        params_cache_small = params_ht_small; 
+        params_cache_small = params_ht_small;
         params_cache_small.name = "TestCacheFilterSmall";
-        params_cache_small.engine = VCL::CuckooCache; 
+        params_cache_small.engine = VCL::CuckooCache;
 
         // Common parameters for medium filters
         params_ht_medium.num_keys = MEDIUM_NUM_KEYS;
         params_ht_medium.key_len = TEST_KEY_LEN;
         params_ht_medium.name = "TestHTFilterMedium";
-        params_ht_medium.engine = VCL::CuckooHT; 
+        params_ht_medium.engine = VCL::CuckooHT;
         params_ht_medium.prim_hash_seed = 0xDEADC0DE;
         params_ht_medium.sec_hash_seed = 0xBADF00D;
 
-        params_cache_medium = params_ht_medium; 
+        params_cache_medium = params_ht_medium;
         params_cache_medium.name = "TestCacheFilterMedium";
-        params_cache_medium.engine = VCL::CuckooCache; 
+        params_cache_medium.engine = VCL::CuckooCache;
 
         // Parameters for max capacity filters
         params_ht_max.num_keys = FILTER_MAX_CAPACITY;
         params_ht_max.key_len = TEST_KEY_LEN;
         params_ht_max.name = "TestHTFilterMax";
-        params_ht_max.engine = VCL::CuckooHT; 
+        params_ht_max.engine = VCL::CuckooHT;
         params_ht_max.prim_hash_seed = 0xDEADC0DE;
         params_ht_max.sec_hash_seed = 0xBADF00D;
 
@@ -204,7 +204,7 @@ protected:
     std::unique_ptr<VCL::CuckooCacheFilter> cache_filter;
 
     void SetUp() override {
-        FilterTest::SetUp(); 
+        FilterTest::SetUp();
         ht_filter = std::make_unique<VCL::CuckooHTFilter>(params_ht_medium);
         cache_filter = std::make_unique<VCL::CuckooCacheFilter>(params_cache_medium);
         ASSERT_TRUE(ht_filter->is_valid());
@@ -267,7 +267,7 @@ TEST_F(FilterCommonTest, Add_DuplicateKey_MultipleEntries_HT) {
     // Add first entry
     ASSERT_EQ(ht_filter->add(key.data(), set_id1), 0);
 
-    // Now try to add the same key with a different set_id.    
+    // Now try to add the same key with a different set_id.
     // this will attempt to add a new entry if space is available.
     int ret_second_add = ht_filter->add(key.data(), set_id2);
     EXPECT_TRUE(ret_second_add == 0 || ret_second_add == 1) << "Adding duplicate key (HT) with different set_id should succeed or cause eviction.";
@@ -983,7 +983,7 @@ TEST_F(FilterCommonTest, AddDeleteAdd_Sequence_HT) {
     // Phase 2: Deletions
     ASSERT_EQ(ht_filter->delete_key(keys1[2].data(), 3), 0) << "Failed to delete K2"; // Delete K2 (set_id 3)
     ASSERT_EQ(ht_filter->delete_key(keys1[5].data(), 6), 0) << "Failed to delete K5"; // Delete K5 (set_id 6)
-    
+
     // Verify deletions
     VCL::filter_set_t found_set_id_deleted = FILTER_NO_MATCH;
     EXPECT_EQ(ht_filter->lookup(keys1[2].data(), &found_set_id_deleted), 0) << "Deleted key K2 unexpectedly found";
@@ -997,7 +997,7 @@ TEST_F(FilterCommonTest, AddDeleteAdd_Sequence_HT) {
     keys2.push_back(generate_key(100, TEST_KEY_LEN)); // New K100
     keys2.push_back(generate_key(101, TEST_KEY_LEN)); // New K101
     keys2.push_back(keys1[2]); // Re-add K2, but with a new set_id to distinguish
-    
+
     ASSERT_EQ(ht_filter->add(keys2[0].data(), 11), 0) << "Failed to add new key K100";
     ASSERT_EQ(ht_filter->add(keys2[1].data(), 12), 0) << "Failed to add new key K101";
     ASSERT_EQ(ht_filter->add(keys2[2].data(), 13), 0) << "Failed to re-add K2 with new set_id"; // K2 re-added with set_id 13
@@ -1033,7 +1033,7 @@ TEST_F(FilterCommonTest, AddDeleteAdd_Sequence_Cache) {
     // Phase 2: Deletions
     ASSERT_EQ(cache_filter->delete_key(keys1[2].data(), 1003), 0) << "Failed to delete K2"; // Delete K2 (set_id 1003)
     ASSERT_EQ(cache_filter->delete_key(keys1[5].data(), 1006), 0) << "Failed to delete K5"; // Delete K5 (set_id 1006)
-    
+
     // Verify deletions
     VCL::filter_set_t found_set_id_deleted = FILTER_NO_MATCH;
     EXPECT_EQ(cache_filter->lookup(keys1[2].data(), &found_set_id_deleted), 0) << "Deleted key K2 unexpectedly found";
@@ -1046,8 +1046,8 @@ TEST_F(FilterCommonTest, AddDeleteAdd_Sequence_Cache) {
     std::vector<std::vector<char>> keys2;
     keys2.push_back(generate_key(1010, TEST_KEY_LEN)); // New K1010
     keys2.push_back(generate_key(1011, TEST_KEY_LEN)); // New K1011
-    keys2.push_back(keys1[2]); // Re-add K2, with a new set_id 
-    
+    keys2.push_back(keys1[2]); // Re-add K2, with a new set_id
+
     ASSERT_TRUE(cache_filter->add(keys2[0].data(), 1011) >= 0) << "Failed to add new key K1010";
     ASSERT_TRUE(cache_filter->add(keys2[1].data(), 1012) >= 0) << "Failed to add new key K1011";
     ASSERT_TRUE(cache_filter->add(keys2[2].data(), 1013) >= 0) << "Failed to re-add K2 with new set_id"; // K2 re-added with set_id 1013 (should update)
@@ -1066,7 +1066,7 @@ TEST_F(FilterCommonTest, AddDeleteAdd_Sequence_Cache) {
 
 TEST_F(FilterCommonTest, ResetAndReuse_HT) {
     // Add some keys
-    for (int i = 0; i < 20; ++i) { 
+    for (int i = 0; i < 20; ++i) {
         auto key = generate_key(i, TEST_KEY_LEN);
         ASSERT_EQ(ht_filter->add(key.data(), static_cast<VCL::filter_set_t>(i + 1)), 0);
     }
@@ -1177,7 +1177,7 @@ TEST_F(FilterCommonTest, CuckooHTFilter_ExactCapacityBoundary_ENOSPC) {
     ht_filter = std::make_unique<VCL::CuckooHTFilter>(tiny_params); // Overwrite fixture's filter
     ASSERT_TRUE(ht_filter->is_valid());
 
-    // Cuckoo filters typically achieve a load factor of ~0.95 
+    // Cuckoo filters typically achieve a load factor of ~0.95
     // For 32 'num_keys' (meaning ~32*0.95 = 30 entries), we expect to insert roughly 30 keys
     // before hitting ENOSPC consistently. We will attempt to add a bit more than this.
     // The exact number of successful adds can vary due to hash collisions and cuckoo pathfinding,
@@ -1209,7 +1209,7 @@ TEST_F(FilterCommonTest, CuckooHTFilter_ExactCapacityBoundary_ENOSPC) {
 
     // Assert that we successfully added a high percentage of keys, and *did* encounter ENOSPC.
     EXPECT_GE(successful_adds_count, expected_min_successful_adds)
-        << "Lower than expected number of successful insertions (" << successful_adds_count 
+        << "Lower than expected number of successful insertions (" << successful_adds_count
         << ") before hitting ENOSPC for CuckooHTFilter (expected min: " << expected_min_successful_adds << ").";
     EXPECT_GT(enospc_errors_count, 0)
         << "Expected to hit -ENOSPC when overfilling CuckooHTFilter, but no ENOSPC errors occurred.";
@@ -1261,7 +1261,7 @@ TEST_F(FilterCommonTest, CuckooCacheFilter_PersistentEviction) {
     // We expect very few (ideally close to zero) of these very first keys to remain.
     // This threshold can be adjusted, but >50% missing is a good sign of eviction.
     EXPECT_LT(old_keys_found, num_old_keys_to_check / 2)
-        << "Too many old keys (" << old_keys_found << " out of " << num_old_keys_to_check 
+        << "Too many old keys (" << old_keys_found << " out of " << num_old_keys_to_check
         << ") are still found. Eviction might not be working as expected or filter capacity is too large.";
 
 
