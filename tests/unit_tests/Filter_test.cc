@@ -43,31 +43,31 @@ protected:
         params_ht_small.num_keys = SMALL_NUM_KEYS;
         params_ht_small.key_len = TEST_KEY_LEN;
         params_ht_small.name = "TestHTFilterSmall";
-        params_ht_small.engine = VCL::CuckooHT;
+        params_ht_small.engine = VCL::CuckooHT; 
         params_ht_small.prim_hash_seed = 0xDEADC0DE;
         params_ht_small.sec_hash_seed = 0xBADF00D;
 
-        params_cache_small = params_ht_small;
+        params_cache_small = params_ht_small; 
         params_cache_small.name = "TestCacheFilterSmall";
-        params_cache_small.engine = VCL::CuckooCache;
+        params_cache_small.engine = VCL::CuckooCache; 
 
         // Common parameters for medium filters
         params_ht_medium.num_keys = MEDIUM_NUM_KEYS;
         params_ht_medium.key_len = TEST_KEY_LEN;
         params_ht_medium.name = "TestHTFilterMedium";
-        params_ht_medium.engine = VCL::CuckooHT;
+        params_ht_medium.engine = VCL::CuckooHT; 
         params_ht_medium.prim_hash_seed = 0xDEADC0DE;
         params_ht_medium.sec_hash_seed = 0xBADF00D;
 
-        params_cache_medium = params_ht_medium;
+        params_cache_medium = params_ht_medium; 
         params_cache_medium.name = "TestCacheFilterMedium";
-        params_cache_medium.engine = VCL::CuckooCache;
+        params_cache_medium.engine = VCL::CuckooCache; 
 
         // Parameters for max capacity filters
         params_ht_max.num_keys = FILTER_MAX_CAPACITY;
         params_ht_max.key_len = TEST_KEY_LEN;
         params_ht_max.name = "TestHTFilterMax";
-        params_ht_max.engine = VCL::CuckooHT;
+        params_ht_max.engine = VCL::CuckooHT; 
         params_ht_max.prim_hash_seed = 0xDEADC0DE;
         params_ht_max.sec_hash_seed = 0xBADF00D;
 
@@ -157,6 +157,41 @@ TEST_F(FilterTest, CuckooCacheFilter_Creation_BadParams_NumKeysTooLarge) {
     EXPECT_FALSE(filter->is_valid());
 }
 
+TEST_F(FilterTest, Filter_DestructionAndRecreation_Cache) {
+    // Create, use, and destroy the first filter instance within its own scope
+    {
+        std::unique_ptr<VCL::CuckooCacheFilter> first_filter =
+            std::make_unique<VCL::CuckooCacheFilter>(params_cache_medium);
+        ASSERT_TRUE(first_filter->is_valid());
+
+        auto key1 = generate_key(1000, TEST_KEY_LEN);
+        VCL::filter_set_t set_id1 = 100;
+        ASSERT_TRUE(first_filter->add(key1.data(), set_id1) >= 0);
+
+        VCL::filter_set_t found_set_id = FILTER_NO_MATCH;
+        EXPECT_EQ(first_filter->lookup(key1.data(), &found_set_id), 1);
+        EXPECT_EQ(found_set_id, set_id1);
+    } // `first_filter` goes out of scope here and is destroyed
+
+    // Create a new filter instance with the exact same parameters
+    std::unique_ptr<VCL::CuckooCacheFilter> second_filter =
+        std::make_unique<VCL::CuckooCacheFilter>(params_cache_medium);
+    ASSERT_TRUE(second_filter->is_valid());
+
+    // Verify it's empty and fully functional (no lingering state from the first filter)
+    auto key1 = generate_key(1000, TEST_KEY_LEN); // The old key from the first filter
+    VCL::filter_set_t found_set_id = FILTER_NO_MATCH;
+    EXPECT_EQ(second_filter->lookup(key1.data(), &found_set_id), 0) << "Old key found in newly created cache filter instance";
+    EXPECT_EQ(found_set_id, FILTER_NO_MATCH);
+
+    auto key2 = generate_key(2000, TEST_KEY_LEN); // A new key for the second filter
+    VCL::filter_set_t set_id2 = 200;
+    ASSERT_TRUE(second_filter->add(key2.data(), set_id2) >= 0);
+    EXPECT_EQ(second_filter->lookup(key2.data(), &found_set_id), 1);
+    EXPECT_EQ(found_set_id, set_id2);
+}
+
+
 /*
  ********************************************
  * II.    Add/Lookup/Delete/Reset Tests     *
@@ -169,7 +204,7 @@ protected:
     std::unique_ptr<VCL::CuckooCacheFilter> cache_filter;
 
     void SetUp() override {
-        FilterTest::SetUp();
+        FilterTest::SetUp(); 
         ht_filter = std::make_unique<VCL::CuckooHTFilter>(params_ht_medium);
         cache_filter = std::make_unique<VCL::CuckooCacheFilter>(params_cache_medium);
         ASSERT_TRUE(ht_filter->is_valid());
@@ -232,7 +267,7 @@ TEST_F(FilterCommonTest, Add_DuplicateKey_MultipleEntries_HT) {
     // Add first entry
     ASSERT_EQ(ht_filter->add(key.data(), set_id1), 0);
 
-    // Now try to add the same key with a different set_id.
+    // Now try to add the same key with a different set_id.    
     // this will attempt to add a new entry if space is available.
     int ret_second_add = ht_filter->add(key.data(), set_id2);
     EXPECT_TRUE(ret_second_add == 0 || ret_second_add == 1) << "Adding duplicate key (HT) with different set_id should succeed or cause eviction.";
@@ -720,7 +755,7 @@ TEST_F(FilterCommonTest, CuckooCacheFilter_Stress_FillAndLookup) {
     EXPECT_GE(successful_lookups, num_to_add * 90 / 100) << "Low lookup recall for CuckooCacheFilter. Evictions might be too aggressive.";
 }
 
-// New fixture for max capacity tests
+// max capacity tests
 class FilterCapacityTest : public FilterTest {
 protected:
     std::unique_ptr<VCL::CuckooHTFilter> ht_filter_max;
@@ -929,3 +964,327 @@ TEST_F(FilterCommonTest, CuckooHTFilter_Add_FullFilter_ENOSPC) {
     // We expect at least some -ENOSPC errors if we truly overfill and the filter can't accommodate.
     EXPECT_GT(enospc_count, 0) << "Expected to hit -ENOSPC when overfilling CuckooHTFilter, but did not.";
 }
+
+TEST_F(FilterCommonTest, AddDeleteAdd_Sequence_HT) {
+    // Phase 1: Initial Additions
+    std::vector<std::vector<char>> keys1;
+    for (int i = 0; i < 10; ++i) {
+        keys1.push_back(generate_key(i, TEST_KEY_LEN));
+        ASSERT_EQ(ht_filter->add(keys1[i].data(), static_cast<VCL::filter_set_t>(i + 1)), 0)
+            << "Initial add failed for key " << i;
+    }
+    // Verify initial additions
+    for (int i = 0; i < 10; ++i) {
+        VCL::filter_set_t found_set_id = FILTER_NO_MATCH;
+        EXPECT_EQ(ht_filter->lookup(keys1[i].data(), &found_set_id), 1) << "Key " << i << " not found after initial add";
+        EXPECT_EQ(found_set_id, static_cast<VCL::filter_set_t>(i + 1)) << "Incorrect set_id for key " << i;
+    }
+
+    // Phase 2: Deletions
+    ASSERT_EQ(ht_filter->delete_key(keys1[2].data(), 3), 0) << "Failed to delete K2"; // Delete K2 (set_id 3)
+    ASSERT_EQ(ht_filter->delete_key(keys1[5].data(), 6), 0) << "Failed to delete K5"; // Delete K5 (set_id 6)
+    
+    // Verify deletions
+    VCL::filter_set_t found_set_id_deleted = FILTER_NO_MATCH;
+    EXPECT_EQ(ht_filter->lookup(keys1[2].data(), &found_set_id_deleted), 0) << "Deleted key K2 unexpectedly found";
+    EXPECT_EQ(ht_filter->lookup(keys1[5].data(), &found_set_id_deleted), 0) << "Deleted key K5 unexpectedly found";
+    // Verify remaining keys
+    EXPECT_EQ(ht_filter->lookup(keys1[0].data(), &found_set_id_deleted), 1) << "K0 unexpectedly not found after deletions";
+    EXPECT_EQ(ht_filter->lookup(keys1[9].data(), &found_set_id_deleted), 1) << "K9 unexpectedly not found after deletions";
+
+    // Phase 3: New Additions (including a re-added key)
+    std::vector<std::vector<char>> keys2;
+    keys2.push_back(generate_key(100, TEST_KEY_LEN)); // New K100
+    keys2.push_back(generate_key(101, TEST_KEY_LEN)); // New K101
+    keys2.push_back(keys1[2]); // Re-add K2, but with a new set_id to distinguish
+    
+    ASSERT_EQ(ht_filter->add(keys2[0].data(), 11), 0) << "Failed to add new key K100";
+    ASSERT_EQ(ht_filter->add(keys2[1].data(), 12), 0) << "Failed to add new key K101";
+    ASSERT_EQ(ht_filter->add(keys2[2].data(), 13), 0) << "Failed to re-add K2 with new set_id"; // K2 re-added with set_id 13
+
+    // Verify all expected keys (original survivors + new + re-added)
+    EXPECT_EQ(ht_filter->lookup(keys1[0].data(), &found_set_id_deleted), 1) << "K0 missing"; // K0
+    VCL::filter_set_t found_k2_set_id = FILTER_NO_MATCH;
+    EXPECT_EQ(ht_filter->lookup(keys1[2].data(), &found_k2_set_id), 1) << "Re-added K2 missing"; // K2 (re-added)
+    EXPECT_EQ(found_k2_set_id, 13) << "Re-added K2 found with incorrect set_id";
+    EXPECT_EQ(ht_filter->lookup(keys1[5].data(), &found_set_id_deleted), 0) << "Deleted K5 unexpectedly found again"; // K5 still deleted
+    EXPECT_EQ(ht_filter->lookup(keys2[0].data(), &found_set_id_deleted), 1) << "New K100 missing"; // New K100
+    EXPECT_EQ(found_set_id_deleted, 11) << "New K100 found with incorrect set_id";
+    EXPECT_EQ(ht_filter->lookup(keys2[1].data(), &found_set_id_deleted), 1) << "New K101 missing"; // New K101
+    EXPECT_EQ(found_set_id_deleted, 12) << "New K101 found with incorrect set_id";
+}
+
+TEST_F(FilterCommonTest, AddDeleteAdd_Sequence_Cache) {
+    // Phase 1: Initial Additions
+    std::vector<std::vector<char>> keys1;
+    for (int i = 0; i < 10; ++i) {
+        keys1.push_back(generate_key(i + 1000, TEST_KEY_LEN));
+        // Cache add can return 0 (inserted) or 1 (inserted after eviction)
+        ASSERT_TRUE(cache_filter->add(keys1[i].data(), static_cast<VCL::filter_set_t>(i + 1001)) >= 0)
+            << "Initial add failed for key " << i;
+    }
+    // Verify initial additions
+    for (int i = 0; i < 10; ++i) {
+        VCL::filter_set_t found_set_id = FILTER_NO_MATCH;
+        EXPECT_EQ(cache_filter->lookup(keys1[i].data(), &found_set_id), 1) << "Key " << i << " not found after initial add";
+        EXPECT_EQ(found_set_id, static_cast<VCL::filter_set_t>(i + 1001)) << "Incorrect set_id for key " << i;
+    }
+
+    // Phase 2: Deletions
+    ASSERT_EQ(cache_filter->delete_key(keys1[2].data(), 1003), 0) << "Failed to delete K2"; // Delete K2 (set_id 1003)
+    ASSERT_EQ(cache_filter->delete_key(keys1[5].data(), 1006), 0) << "Failed to delete K5"; // Delete K5 (set_id 1006)
+    
+    // Verify deletions
+    VCL::filter_set_t found_set_id_deleted = FILTER_NO_MATCH;
+    EXPECT_EQ(cache_filter->lookup(keys1[2].data(), &found_set_id_deleted), 0) << "Deleted key K2 unexpectedly found";
+    EXPECT_EQ(cache_filter->lookup(keys1[5].data(), &found_set_id_deleted), 0) << "Deleted key K5 unexpectedly found";
+    // Verify remaining keys (a sample)
+    EXPECT_EQ(cache_filter->lookup(keys1[0].data(), &found_set_id_deleted), 1) << "K0 unexpectedly not found after deletions";
+    EXPECT_EQ(cache_filter->lookup(keys1[9].data(), &found_set_id_deleted), 1) << "K9 unexpectedly not found after deletions";
+
+    // Phase 3: New Additions (re-adding K2 should update its set_id)
+    std::vector<std::vector<char>> keys2;
+    keys2.push_back(generate_key(1010, TEST_KEY_LEN)); // New K1010
+    keys2.push_back(generate_key(1011, TEST_KEY_LEN)); // New K1011
+    keys2.push_back(keys1[2]); // Re-add K2, with a new set_id 
+    
+    ASSERT_TRUE(cache_filter->add(keys2[0].data(), 1011) >= 0) << "Failed to add new key K1010";
+    ASSERT_TRUE(cache_filter->add(keys2[1].data(), 1012) >= 0) << "Failed to add new key K1011";
+    ASSERT_TRUE(cache_filter->add(keys2[2].data(), 1013) >= 0) << "Failed to re-add K2 with new set_id"; // K2 re-added with set_id 1013 (should update)
+
+    // Verify all expected keys (original survivors + new + re-added)
+    EXPECT_EQ(cache_filter->lookup(keys1[0].data(), &found_set_id_deleted), 1) << "K0 missing"; // K0
+    VCL::filter_set_t found_k2_set_id = FILTER_NO_MATCH;
+    EXPECT_EQ(cache_filter->lookup(keys1[2].data(), &found_k2_set_id), 1) << "Re-added K2 missing"; // K2 (re-added)
+    EXPECT_EQ(found_k2_set_id, 1013) << "Re-added K2 found with incorrect set_id";
+    EXPECT_EQ(cache_filter->lookup(keys1[5].data(), &found_set_id_deleted), 0) << "Deleted K5 unexpectedly found again"; // K5 still deleted
+    EXPECT_EQ(cache_filter->lookup(keys2[0].data(), &found_set_id_deleted), 1) << "New K1010 missing"; // New K1010
+    EXPECT_EQ(found_set_id_deleted, 1011) << "New K1010 found with incorrect set_id";
+    EXPECT_EQ(cache_filter->lookup(keys2[1].data(), &found_set_id_deleted), 1) << "New K1011 missing"; // New K1011
+    EXPECT_EQ(found_set_id_deleted, 1012) << "New K1011 found with incorrect set_id";
+}
+
+TEST_F(FilterCommonTest, ResetAndReuse_HT) {
+    // Add some keys
+    for (int i = 0; i < 20; ++i) { 
+        auto key = generate_key(i, TEST_KEY_LEN);
+        ASSERT_EQ(ht_filter->add(key.data(), static_cast<VCL::filter_set_t>(i + 1)), 0);
+    }
+    // Verify some keys are present
+    VCL::filter_set_t found_set_id = FILTER_NO_MATCH;
+    EXPECT_EQ(ht_filter->lookup(generate_key(15, TEST_KEY_LEN).data(), &found_set_id), 1);
+    EXPECT_EQ(found_set_id, 16); // Key 15 has set_id 16
+
+    ht_filter->reset();
+
+    // Verify no keys are found after reset
+    for (int i = 0; i < 20; ++i) {
+        auto key = generate_key(i, TEST_KEY_LEN);
+        found_set_id = FILTER_NO_MATCH;
+        EXPECT_EQ(ht_filter->lookup(key.data(), &found_set_id), 0) << "Key " << i << " found after reset in HT filter";
+        EXPECT_EQ(found_set_id, FILTER_NO_MATCH);
+    }
+
+    // Now, add a NEW set of keys and verify reuse
+    for (int i = 200; i < 220; ++i) {
+        auto key = generate_key(i, TEST_KEY_LEN);
+        ASSERT_EQ(ht_filter->add(key.data(), static_cast<VCL::filter_set_t>(i - 199)), 0);
+    }
+    // Verify new keys are present
+    EXPECT_EQ(ht_filter->lookup(generate_key(205, TEST_KEY_LEN).data(), &found_set_id), 1);
+    EXPECT_EQ(found_set_id, 6); // 205 - 199 = 6
+    // Verify old keys are still not present
+    EXPECT_EQ(ht_filter->lookup(generate_key(15, TEST_KEY_LEN).data(), &found_set_id), 0);
+}
+
+TEST_F(FilterCommonTest, ResetAndReuse_Cache) {
+    // Add some keys
+    for (int i = 0; i < 20; ++i) { // Add more keys
+        auto key = generate_key(i, TEST_KEY_LEN);
+        ASSERT_TRUE(cache_filter->add(key.data(), static_cast<VCL::filter_set_t>(i + 1)) >= 0);
+    }
+    // Verify some keys are present
+    VCL::filter_set_t found_set_id = FILTER_NO_MATCH;
+    EXPECT_EQ(cache_filter->lookup(generate_key(15, TEST_KEY_LEN).data(), &found_set_id), 1);
+    EXPECT_EQ(found_set_id, 16);
+
+    cache_filter->reset();
+
+    // Verify no keys are found after reset
+    for (int i = 0; i < 20; ++i) {
+        auto key = generate_key(i, TEST_KEY_LEN);
+        found_set_id = FILTER_NO_MATCH;
+        EXPECT_EQ(cache_filter->lookup(key.data(), &found_set_id), 0) << "Key " << i << " found after reset in Cache filter";
+        EXPECT_EQ(found_set_id, FILTER_NO_MATCH);
+    }
+
+    // Now, add a NEW set of keys and verify reuse
+    for (int i = 200; i < 220; ++i) {
+        auto key = generate_key(i, TEST_KEY_LEN);
+        ASSERT_TRUE(cache_filter->add(key.data(), static_cast<VCL::filter_set_t>(i - 199)) >= 0);
+    }
+    // Verify new keys are present
+    EXPECT_EQ(cache_filter->lookup(generate_key(205, TEST_KEY_LEN).data(), &found_set_id), 1);
+    EXPECT_EQ(found_set_id, 6);
+    // Verify old keys are still not present
+    EXPECT_EQ(cache_filter->lookup(generate_key(15, TEST_KEY_LEN).data(), &found_set_id), 0);
+}
+
+TEST_F(FilterTest, Filter_DestructionAndRecreation_HT) {
+    // Create, use, and destroy the first filter instance within its own scope
+    {
+        std::unique_ptr<VCL::CuckooHTFilter> first_filter =
+            std::make_unique<VCL::CuckooHTFilter>(params_ht_medium);
+        ASSERT_TRUE(first_filter->is_valid());
+
+        auto key1 = generate_key(100, TEST_KEY_LEN);
+        VCL::filter_set_t set_id1 = 10;
+        ASSERT_EQ(first_filter->add(key1.data(), set_id1), 0);
+
+        VCL::filter_set_t found_set_id = FILTER_NO_MATCH;
+        EXPECT_EQ(first_filter->lookup(key1.data(), &found_set_id), 1);
+        EXPECT_EQ(found_set_id, set_id1);
+    } // `first_filter` goes out of scope here and is destroyed
+
+    // Create a new filter instance with the exact same parameters
+    std::unique_ptr<VCL::CuckooHTFilter> second_filter =
+        std::make_unique<VCL::CuckooHTFilter>(params_ht_medium);
+    ASSERT_TRUE(second_filter->is_valid());
+
+    // Verify it's empty and fully functional (no lingering state from the first filter)
+    auto key1 = generate_key(100, TEST_KEY_LEN); // The old key from the first filter
+    VCL::filter_set_t found_set_id = FILTER_NO_MATCH;
+    EXPECT_EQ(second_filter->lookup(key1.data(), &found_set_id), 0) << "Old key found in newly created filter instance";
+    EXPECT_EQ(found_set_id, FILTER_NO_MATCH);
+
+    auto key2 = generate_key(200, TEST_KEY_LEN); // A new key for the second filter
+    VCL::filter_set_t set_id2 = 20;
+    ASSERT_EQ(second_filter->add(key2.data(), set_id2), 0);
+    EXPECT_EQ(second_filter->lookup(key2.data(), &found_set_id), 1);
+    EXPECT_EQ(found_set_id, set_id2);
+}
+
+TEST_F(FilterCommonTest, CuckooHTFilter_ExactCapacityBoundary_ENOSPC) {
+    // This test aims to hit the probabilistic saturation point more explicitly for HTFilter.
+    // Re-initialize a very small HT filter for this test to more easily observe saturation.
+    VCL::FilterParameters tiny_params;
+    tiny_params.num_keys = 32; // ensure saturation
+    tiny_params.key_len = TEST_KEY_LEN;
+    tiny_params.name = "TinyHTFilterForSaturation";
+    tiny_params.engine = VCL::CuckooHT;
+    tiny_params.prim_hash_seed = 0x12345678;
+    tiny_params.sec_hash_seed = 0x87654321;
+    ht_filter = std::make_unique<VCL::CuckooHTFilter>(tiny_params); // Overwrite fixture's filter
+    ASSERT_TRUE(ht_filter->is_valid());
+
+    // Cuckoo filters typically achieve a load factor of ~0.95 
+    // For 32 'num_keys' (meaning ~32*0.95 = 30 entries), we expect to insert roughly 30 keys
+    // before hitting ENOSPC consistently. We will attempt to add a bit more than this.
+    // The exact number of successful adds can vary due to hash collisions and cuckoo pathfinding,
+    // so we assert on the range of successful adds and the presence of ENOSPC.
+
+    uint32_t expected_min_successful_adds = static_cast<uint32_t>(tiny_params.num_keys * 0.9); // Expect at least 90% load factor
+    uint32_t keys_to_attempt_add = tiny_params.num_keys + 10; // Try to add slightly more than nominal capacity
+
+    std::vector<std::vector<char>> keys_data(keys_to_attempt_add);
+    std::vector<VCL::filter_set_t> set_ids_added(keys_to_attempt_add); // Store set_id; 0 if add failed
+    int successful_adds_count = 0;
+    int enospc_errors_count = 0;
+
+    // Fill the filter until ENOSPC is consistently returned
+    for (uint32_t i = 0; i < keys_to_attempt_add; ++i) {
+        keys_data[i] = generate_key(i, TEST_KEY_LEN);
+        set_ids_added[i] = static_cast<VCL::filter_set_t>((i % 0x7FFF) + 1);
+
+        int ret = ht_filter->add(keys_data[i].data(), set_ids_added[i]);
+        if (ret == 0 || ret == 1) { // 0 for inserted into empty slot, 1 for inserted after kick-out
+            successful_adds_count++;
+        } else if (ret == -ENOSPC) {
+            enospc_errors_count++;
+            set_ids_added[i] = 0; // Mark as failed to add for lookup verification
+        } else {
+            FAIL() << "Unexpected error " << ret << " when adding key " << i << " during saturation test.";
+        }
+    }
+
+    // Assert that we successfully added a high percentage of keys, and *did* encounter ENOSPC.
+    EXPECT_GE(successful_adds_count, expected_min_successful_adds)
+        << "Lower than expected number of successful insertions (" << successful_adds_count 
+        << ") before hitting ENOSPC for CuckooHTFilter (expected min: " << expected_min_successful_adds << ").";
+    EXPECT_GT(enospc_errors_count, 0)
+        << "Expected to hit -ENOSPC when overfilling CuckooHTFilter, but no ENOSPC errors occurred.";
+
+    // Verify lookups for keys that were *successfully* added
+    int recall_count = 0;
+    for (uint32_t i = 0; i < keys_to_attempt_add; ++i) {
+        if (set_ids_added[i] != 0) { // Only check keys that were marked as successfully added
+            VCL::filter_set_t found_set_id = FILTER_NO_MATCH;
+            int ret = ht_filter->lookup(keys_data[i].data(), &found_set_id);
+            if (ret == 1 && found_set_id == set_ids_added[i]) {
+                recall_count++;
+            }
+        }
+    }
+    EXPECT_EQ(recall_count, successful_adds_count)
+        << "Not all successfully added keys could be looked up in HT filter after saturation. Some might have been overwritten unexpectedly or lookup is faulty.";
+}
+
+
+TEST_F(FilterCommonTest, CuckooCacheFilter_PersistentEviction) {
+    // Fill the cache well beyond its nominal capacity to force evictions
+    // params_cache_medium.num_keys is 1024. Let's add 2x its 'num_keys' capacity.
+    const uint32_t keys_to_add = params_cache_medium.num_keys * 2;
+    if (keys_to_add == 0) GTEST_SKIP() << "Test requires non-zero filter capacity.";
+
+    std::vector<std::vector<char>> all_keys_data(keys_to_add);
+    std::vector<VCL::filter_set_t> all_set_ids(keys_to_add);
+
+    for (uint32_t i = 0; i < keys_to_add; ++i) {
+        all_keys_data[i] = generate_key(i, TEST_KEY_LEN);
+        all_set_ids[i] = static_cast<VCL::filter_set_t>((i % 0x7FFF) + 1);
+        int ret = cache_filter->add(all_keys_data[i].data(), all_set_ids[i]);
+        // Cache add should always return 0 (inserted) or 1 (inserted after eviction), never -ENOSPC
+        EXPECT_TRUE(ret == 0 || ret == 1) << "CuckooCacheFilter::add failed unexpectedly for key " << i << " with error " << ret;
+    }
+
+    // Verify some of the oldest keys are now evicted (not found)
+    // The exact number of evicted keys is probabilistic. If we added 2x capacity,
+    // a significant portion of the *oldest* keys should be gone.
+    const uint32_t num_old_keys_to_check = params_cache_medium.num_keys / 4; // Check a sample of the first 25% of the original capacity
+    int old_keys_found = 0;
+    for (uint32_t i = 0; i < num_old_keys_to_check; ++i) {
+        VCL::filter_set_t found_set_id = FILTER_NO_MATCH;
+        if (cache_filter->lookup(all_keys_data[i].data(), &found_set_id) == 1) {
+            old_keys_found++;
+        }
+    }
+    // We expect very few (ideally close to zero) of these very first keys to remain.
+    // This threshold can be adjusted, but >50% missing is a good sign of eviction.
+    EXPECT_LT(old_keys_found, num_old_keys_to_check / 2)
+        << "Too many old keys (" << old_keys_found << " out of " << num_old_keys_to_check 
+        << ") are still found. Eviction might not be working as expected or filter capacity is too large.";
+
+
+    // Verify some of the newest keys are still present
+    const uint32_t num_new_keys_to_check = params_cache_medium.num_keys / 4; // Check a sample of the last 25% of keys added
+    int new_keys_found = 0;
+    for (uint32_t i = 0; i < num_new_keys_to_check; ++i) {
+        uint32_t key_idx = keys_to_add - 1 - i; // Check from the end of the added keys backwards
+        VCL::filter_set_t found_set_id = FILTER_NO_MATCH;
+        if (cache_filter->lookup(all_keys_data[key_idx].data(), &found_set_id) == 1 &&
+            found_set_id == all_set_ids[key_idx]) {
+            new_keys_found++;
+        }
+    }
+    // Expect a high recall rate for recently added keys
+    EXPECT_GE(new_keys_found, num_new_keys_to_check * 70 / 100)
+        << "Low recall for recent keys (" << new_keys_found << " out of " << num_new_keys_to_check
+        << "). Cache might be evicting too aggressively or lookups are faulty.";
+}
+
+
+
+
+
+
+
