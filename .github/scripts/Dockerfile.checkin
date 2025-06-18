@@ -90,13 +90,6 @@ RUN git clone --branch ${CMAKE_VERSION} https://github.com/Kitware/CMake.git /de
         cd /dependencies/CMake && ./bootstrap && make ${BUILD_THREADS} && \
             make install DESTDIR=/opt/dist && make install
 
-# gRPC
-RUN git clone -b ${GRPC_VERSION} https://github.com/grpc/grpc && \
-        cd grpc && \
-        git submodule update --init && mkdir -p cmake/build && cd cmake/build && \
-        cmake -DCMAKE_CXX_STANDARD=17 -DgRPC_INSTALL=ON ../.. && \
-        make ${BUILD_THREADS} && make install
-
 # PROTOBUF & ITS DEPENDENCIES
 # hadolint ignore=DL3003,SC2086
 
@@ -146,6 +139,13 @@ RUN git clone -b "v${PROTOBUF_VERSION}" --recurse-submodules https://github.com/
 #                 -Dprotobuf_BUILD_TESTS=ON \
 #                 -Dabsl_DIR=/opt/dist/usr/local/lib/cmake/absl . && \
 #             make ${BUILD_THREADS} && make install
+
+# gRPC
+RUN git clone -b ${GRPC_VERSION} https://github.com/grpc/grpc && \
+        cd grpc && \
+        git submodule update --init && mkdir -p cmake/build && cd cmake/build && \
+        cmake -DCMAKE_CXX_STANDARD=17 -DgRPC_INSTALL=ON ../.. && \
+        make ${BUILD_THREADS} && make install
 
 # OPENCV
 # hadolint ignore=DL3003,SC2086
@@ -275,6 +275,9 @@ COPY --from=build /usr/include/libwebsocket[s] /usr/include/libwebsockets
 COPY --from=build /usr/local/lib/libkubernetes.s[o] /usr/local/lib/libkubernetes.so
 COPY --from=build /usr/local/lib/libyaml.s[o] /usr/local/lib/libyaml.so
 COPY --from=build /usr/lib/x86_64-linux-gnu/libwebsockets.s[o] /usr/lib/x86_64-linux-gnu/libwebsockets.so
+COPY --from=build /usr/local/include/ /usr/local/include/
+COPY --from=build /usr/local/bin /usr/local/bin
+COPY --from=build /usr/local/lib/ /usr/local/lib/
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # hadolint ignore=DL3008,SC2086
@@ -289,7 +292,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
     apt-get --purge remove -y python3.11 && apt-get autoremove -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
     echo "/usr/local/lib" >> /etc/ld.so.conf.d/all-libs.conf && ldconfig && \
-    python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "protobuf==4.${PROTOBUF_VERSION}" \
+    python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "protobuf==6.${PROTOBUF_VERSION}" \
         "coverage>=7.3.1" "cryptography>=44.0.1"
 
 # COVERAGE TESTING
