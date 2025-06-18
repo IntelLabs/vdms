@@ -46,7 +46,7 @@ DescriptorsManager *DescriptorsManager::instance() {
   if (_dm)
     return _dm;
 
-  std::cerr << "ERROR: DescriptorsManager not init" << std::endl;
+  std::cerr << "ERROR: DescriptorsManager not initialized" << std::endl;
   return NULL;
 }
 
