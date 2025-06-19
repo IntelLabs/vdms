@@ -32,8 +32,8 @@
 #include "vcl/CuckooCacheFilter.h"
 #include "vcl/CuckooCommon.h"
 #include <iostream>
-#include <stdlib.h> 
-#include <cstring>  
+#include <stdlib.h>
+#include <cstring>
 #include <cstdlib>
 #include <random> // For std::mt19937 and std::uniform_int_distribution
 #include <chrono> // For seeding the random number generator
@@ -67,7 +67,7 @@ void CuckooCacheFilter::get_cache_bucket_info(const void *key,
     // Cache mode: independent bucket derivations from sec_hash
     *out_prim_bucket = sec_hash & bucket_mask_;
     *out_sec_bucket = (sec_hash >> 16) & bucket_mask_;
-    
+
 }
 
 
@@ -80,7 +80,7 @@ CuckooCacheFilter::CuckooCacheFilter(const FilterParameters& params)
     uint32_t size_bucket_t = sizeof(filter_ht_bucket);
     uint32_t num_entries = align32pow2(params.num_keys);
 
-    if (!this->_valid) { 
+    if (!this->_valid) {
         return;
     }
 
@@ -135,15 +135,15 @@ int CuckooCacheFilter::lookup(const void *key, filter_set_t *set_id) const {
 
     get_cache_bucket_info(key, &prim_bucket, &sec_bucket, &signature);
 
-    // Future optimization: Add check AVX support 
+    // Future optimization: Add check AVX support
     // and AVX/SIMD comparison logic here
     // switch (support) { case AVX, AVX256, AVX512: ... default: ... }
-    
+
     // Search in primary bucket
     if (search_bucket_single(prim_bucket, signature, table_, set_id)) {
         return 1; // Found
     }
-    
+
     // Search in secondary bucket
     if (search_bucket_single(sec_bucket, signature, table_, set_id)) {
         return 1; // Found
@@ -178,8 +178,8 @@ int CuckooCacheFilter::lookup_bulk(const void **keys, uint32_t num_keys, filter_
     for (uint32_t i = 0; i < num_keys; i++) {
         filter_set_t current_set_id = FILTER_NO_MATCH;
 
-        
-        // Future optimization: Add check AVX support 
+
+        // Future optimization: Add check AVX support
         // and AVX/SIMD comparison logic here
         // switch (support) { case AVX, AVX256, AVX512: ... default: ... }
 
@@ -195,10 +195,10 @@ int CuckooCacheFilter::lookup_bulk(const void **keys, uint32_t num_keys, filter_
 }
 
 
-// lookup_multi refers to a lookup operation designed to find all 
-// (or a specified maximum number of) matching entries for a given key, 
+// lookup_multi refers to a lookup operation designed to find all
+// (or a specified maximum number of) matching entries for a given key,
 // rather than just the first one found.
-//However, for the cache mode, by design, it is expected at most 1 match 
+//However, for the cache mode, by design, it is expected at most 1 match
 // The max_match_per_key parameter is ignored as only one match is ever returned.
 
 int CuckooCacheFilter::lookup_multi(const void *key, uint32_t max_match_per_key, filter_set_t *set_id) const {
@@ -209,10 +209,10 @@ int CuckooCacheFilter::lookup_multi(const void *key, uint32_t max_match_per_key,
 
     uint32_t prim_bucket, sec_bucket;
     filter_sig_t signature;
-    
+
     get_cache_bucket_info(key, &prim_bucket, &sec_bucket, &signature);
 
-    // Future optimization: Add check AVX support 
+    // Future optimization: Add check AVX support
     // and AVX/SIMD comparison logic here
     // switch (support) { case AVX, AVX256, AVX512: ... default: ... }
 
@@ -221,16 +221,16 @@ int CuckooCacheFilter::lookup_multi(const void *key, uint32_t max_match_per_key,
     if (search_bucket_single(prim_bucket, signature, table_, set_id) == 1) {
         return 1; // Match found in primary bucket
     }
-    
+
     // If no match found in primary, search secondary bucket.
     // If a match is found, populate set_id and return 1.
     if (search_bucket_single(sec_bucket, signature, table_, set_id) == 1) {
         return 1; // Match found in secondary bucket
     }
-    
+
     // If no match found in either bucket, return 0.
     return 0;
-    
+
 }
 
 
@@ -252,7 +252,7 @@ int CuckooCacheFilter::lookup_multi_bulk(const void **keys, uint32_t num_keys, u
 
     for (uint32_t i = 0; i < num_keys; i++) {
         get_cache_bucket_info(keys[i], &prim_buckets[i], &sec_buckets[i], &tmp_sig[i]);
-        
+
         // Future optimization: Add check Intel platform and Prefetch support
         // Future optimization: add prefetch to all cache levels LLC,L2, L1 prefetch0(&buckets[prim_buckets[i]]);
         // Future optimization: add prefetch to all cache levels LLC,L2, L1 prefetch0(&buckets[sec_buckets[i]]);
@@ -262,7 +262,7 @@ int CuckooCacheFilter::lookup_multi_bulk(const void **keys, uint32_t num_keys, u
         uint32_t current_key_match_count = 0;
         filter_set_t found_set_id = FILTER_NO_MATCH;
 
-        // Future optimization: Add check AVX support 
+        // Future optimization: Add check AVX support
         // and AVX/SIMD comparison logic here
         // switch (support) { case AVX, AVX256, AVX512: ... default: ... }
 
@@ -275,7 +275,7 @@ int CuckooCacheFilter::lookup_multi_bulk(const void **keys, uint32_t num_keys, u
                 current_key_match_count = 1;
             }
         }
-        
+
         // Store the match count for the current key
         match_count[i] = current_key_match_count;
 
@@ -289,20 +289,20 @@ int CuckooCacheFilter::lookup_multi_bulk(const void **keys, uint32_t num_keys, u
             set_ids[i * max_match_per_key] = FILTER_NO_MATCH;
         }
     }
-    return total_num_keys_with_matches;    
+    return total_num_keys_with_matches;
 }
 
 
 int CuckooCacheFilter::add(const void *key, filter_set_t set_id) {
-    
-    filter_set_t flag_mask = 1U << (sizeof(filter_set_t) * 8 - 1); 
+
+    filter_set_t flag_mask = 1U << (sizeof(filter_set_t) * 8 - 1);
 
     if (set_id == FILTER_NO_MATCH || (set_id & flag_mask) != 0) {
         std::cerr << "ERROR: CuckooCacheFilter:add invalid set_id used or  MSB is set" << std::endl;
         return -EINVAL; // Invalid set_id
     }
 
-    
+
     uint32_t prim_bucket, sec_bucket;
     filter_sig_t signature;
 
@@ -372,7 +372,7 @@ int CuckooCacheFilter::delete_key(const void *key, filter_set_t set_id) {
             table_[sec_bucket].sets[i] = FILTER_NO_MATCH;
             return 0; // Successfully deleted from secondary bucket
         }
-        
+
     }
 
     // If the key with the given set_id was not found in either bucket

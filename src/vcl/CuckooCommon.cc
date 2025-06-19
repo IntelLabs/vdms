@@ -33,7 +33,7 @@
 #include <iostream>           // For potential debugging/error output if needed
 #include <string.h>           // For memcpy or other byte-level operations
 #include <random>
-#include <chrono>              
+#include <chrono>
 #include <functional>
 
 #include <iomanip> // For std::hex, std::dec, std::setw, std::setfill
@@ -85,7 +85,7 @@ int try_insert(filter_ht_bucket *buckets, uint32_t prim, uint32_t sec,
     }
     // No empty slot found in both primary and secondary
     //add function will have to go next through the cuckoo path
-    return -1; 
+    return -1;
 }
 
 
@@ -145,7 +145,7 @@ int make_space_bucket(filter_ht_bucket *buckets, uint32_t bucket_mask,
     if (i == FILTER_BUCKET_ENTRIES || ++(*nr_pushes) > FILTER_MAX_PUSHES)
         return -ENOSPC;
 
-    
+
     // Store the signature and set_id of the entry to be pushed *before* modifying sets[i]
     filter_sig_t pushed_sig = bkt->sigs[i];
     filter_set_t pushed_set = bkt->sets[i];
@@ -179,14 +179,14 @@ int make_space_bucket(filter_ht_bucket *buckets, uint32_t bucket_mask,
 
 
 int search_bucket_single(uint32_t bucket_id, filter_sig_t signature,
-                         filter_ht_bucket *buckets, filter_set_t *set_id) {   
-    
+                         filter_ht_bucket *buckets, filter_set_t *set_id) {
+
 
     for (uint32_t iter = 0; iter < FILTER_BUCKET_ENTRIES; ++iter) {
-        
+
         if (signature == buckets[bucket_id].sigs[iter] &&
             buckets[bucket_id].sets[iter] != FILTER_NO_MATCH) {
-            *set_id = buckets[bucket_id].sets[iter];            
+            *set_id = buckets[bucket_id].sets[iter];
             return 1; // Found a match
         }
     }
