@@ -31,11 +31,11 @@
 
 #include "vcl/CuckooHTFilter.h"
 #include <iostream>
-#include <stdlib.h>
+#include <stdlib.h> 
 #include <cstring>
 #include <cstdlib>
 #include <random> // For std::mt19937 and std::uniform_int_distribution
-#include <chrono> // For seeding the random number generator
+#include <chrono> 
 
 namespace VCL {
 
@@ -45,11 +45,15 @@ extern std::mt19937 cuckoo_rand_engine; // Declared in CuckooCommon.cc
 
 void CuckooHTFilter::get_ht_bucket_info(const void *key,
                                          uint32_t *out_prim_bucket, uint32_t *out_sec_bucket, filter_sig_t *out_signature) const {
-
+    
     uint32_t first_hash = crc32(prim_hash_seed_, static_cast<const Bytef*>(key), key_len_);
     uint32_t sec_hash = crc32(sec_hash_seed_, reinterpret_cast<const Bytef*>(&first_hash), sizeof(uint32_t));
 
-    *out_signature = static_cast<filter_sig_t>(first_hash & 0xFFFF); // 16-bit signature
+    //*out_signature = static_cast<filter_sig_t>(first_hash & 0xFFFF); // 16-bit signature
+
+    // increased the signature to 32-bit hash because of collisions 
+    // No truncation needed to 16 bit
+    *out_signature = first_hash;
 
     // HT Non-cache mode: XOR derivation
     *out_prim_bucket = sec_hash & bucket_mask_;
@@ -67,7 +71,7 @@ CuckooHTFilter::CuckooHTFilter(const FilterParameters& params)
     uint32_t size_bucket_t = sizeof(filter_ht_bucket);
     uint32_t num_entries = align32pow2(params.num_keys);
 
-    if (!this->_valid) {
+    if (!this->_valid) { 
         return;
     }
 
@@ -76,7 +80,7 @@ CuckooHTFilter::CuckooHTFilter(const FilterParameters& params)
         num_entries < FILTER_BUCKET_ENTRIES) {
         std::cerr << "ERROR: CuckooHTFilter: Invalid parameters for HT creation (num_entries or bucket_entries)." << std::endl;
         this->_valid = false;
-        return;
+        return; 
     }
 
     bucket_cnt_ = num_entries / FILTER_BUCKET_ENTRIES;
@@ -98,7 +102,6 @@ CuckooHTFilter::CuckooHTFilter(const FilterParameters& params)
             table_[i].sets[j] = FILTER_NO_MATCH; // Initialize set IDs to NO_MATCH
         }
     }
-    //std::cout << "DEBUG: CuckooHTFilter '" << name_ << "' constructed and table allocated." << std::endl;
     this->_valid = true;
 }
 
@@ -107,7 +110,6 @@ CuckooHTFilter::~CuckooHTFilter() {
         std::free(table_);
         table_ = nullptr;
     }
-    //std::cout << "DEBUG: CuckooHTFilter '" << name_ << "' destructor called and table freed." << std::endl;
 }
 
 // --- Implementations of pure virtual functions ---
@@ -122,15 +124,15 @@ int CuckooHTFilter::lookup(const void *key, filter_set_t *set_id) const {
 
     get_ht_bucket_info(key, &prim_bucket, &sec_bucket, &signature);
 
-    // Future optimization: Add check AVX support
+    // Future optimization: Add check AVX support 
     // and AVX/SIMD comparison logic here
     // switch (support) { case AVX, AVX256, AVX512: ... default: ... }
-
+    
     // Search in primary bucket
     if (search_bucket_single(prim_bucket, signature, table_, set_id)) {
         return 1; // Found
     }
-
+    
     // Search in secondary bucket
     if (search_bucket_single(sec_bucket, signature, table_, set_id)) {
         return 1; // Found
@@ -155,24 +157,27 @@ int CuckooHTFilter::lookup_bulk(const void **keys, uint32_t num_keys, filter_set
     uint32_t prim_buckets[FILTER_LOOKUP_BULK_MAX];
     uint32_t sec_buckets[FILTER_LOOKUP_BULK_MAX];
 
+    
     for (uint32_t i = 0; i < num_keys; i++) {
+        
         get_ht_bucket_info(keys[i], &prim_buckets[i], &sec_buckets[i], &tmp_sig[i]);
         // Future optimization: Add check Intel platform and Prefetch support
         // Future optimization: add prefetch to all cache levels LLC,L2, L1 prefetch0(&buckets[prim_buckets[i]]);
         // Future optimization: add prefetch to all cache levels LLC,L2, L1 prefetch0(&buckets[sec_buckets[i]]);
+        
     }
 
     for (uint32_t i = 0; i < num_keys; i++) {
         filter_set_t current_set_id = FILTER_NO_MATCH;
-
-        // Future optimization: Add check AVX support
+        
+        // Future optimization: Add check AVX support 
         // and AVX/SIMD comparison logic here
         // switch (support) { case AVX, AVX256, AVX512: ... default: ... }
 
         if (search_bucket_single(prim_buckets[i], tmp_sig[i], table_, &current_set_id) ||
             search_bucket_single(sec_buckets[i], tmp_sig[i], table_, &current_set_id)) {
             num_matches++;
-            set_ids[i] = current_set_id;
+            set_ids[i] = current_set_id;            
         } else {
             set_ids[i] = FILTER_NO_MATCH;
         }
@@ -180,8 +185,8 @@ int CuckooHTFilter::lookup_bulk(const void **keys, uint32_t num_keys, filter_set
     return num_matches;
 }
 
-// lookup_multi refers to a lookup operation designed to find all
-// (or a specified maximum number of) matching entries for a given key,
+// lookup_multi refers to a lookup operation designed to find all 
+// (or a specified maximum number of) matching entries for a given key, 
 // rather than just the first one found.
 
 int CuckooHTFilter::lookup_multi(const void *key, uint32_t max_match_per_key, filter_set_t *set_id) const {
@@ -192,22 +197,22 @@ int CuckooHTFilter::lookup_multi(const void *key, uint32_t max_match_per_key, fi
     uint32_t num_matches = 0;
     uint32_t prim_bucket, sec_bucket;
     filter_sig_t signature;
-
+    
     get_ht_bucket_info(key, &prim_bucket, &sec_bucket, &signature);
 
-    // Future optimization: Add check AVX support
+    // Future optimization: Add check AVX support 
     // and AVX/SIMD comparison logic here
     // switch (support) { case AVX, AVX256, AVX512: ... default: ... }
 
 
     // Search primary bucket and populate matches
     search_bucket_multi(prim_bucket, signature, table_, &num_matches, max_match_per_key, set_id);
-
+    
     // If not all desired matches found, search secondary bucket
     if (num_matches < max_match_per_key) {
         search_bucket_multi(sec_bucket, signature, table_, &num_matches, max_match_per_key, set_id);
     }
-
+    
     return num_matches;
 }
 
@@ -236,21 +241,21 @@ int CuckooHTFilter::lookup_multi_bulk(const void **keys, uint32_t num_keys, uint
     for (uint32_t i = 0; i < num_keys; i++) {
         uint32_t current_key_match_count = 0;
 
-
-        // Future optimization: Add check AVX support
+        
+        // Future optimization: Add check AVX support 
         // and AVX/SIMD comparison logic here
         // switch (support) { case AVX, AVX256, AVX512: ... default: ... }
 
         search_bucket_multi(prim_buckets[i], tmp_sig[i], table_,
                             &current_key_match_count, max_match_per_key,
                             &set_ids[i * max_match_per_key]);
-
+        
         if (current_key_match_count < max_match_per_key) {
             search_bucket_multi(sec_buckets[i], tmp_sig[i], table_,
                                 &current_key_match_count, max_match_per_key,
                                 &set_ids[i * max_match_per_key]);
         }
-
+        
         match_count[i] = current_key_match_count;
         if (current_key_match_count != 0) {
             total_num_keys_with_matches++;
@@ -265,8 +270,8 @@ int CuckooHTFilter::lookup_multi_bulk(const void **keys, uint32_t num_keys, uint
 int CuckooHTFilter::add(const void *key, filter_set_t set_id) {
 
     //Most Significant Bit of Set_ID is reserved, it is used internally as a flag
-    //to indicate that this entry has been pushed before or not
-    filter_set_t flag_mask = 1U << (sizeof(filter_set_t) * 8 - 1);
+    //to indicate that this entry has been pushed before or not  
+    filter_set_t flag_mask = 1U << (sizeof(filter_set_t) * 8 - 1); 
 
     if (set_id == FILTER_NO_MATCH || (set_id & flag_mask) != 0) {
         std::cerr << "ERROR: CuckooHTFilter:add invalid set_id used or  MSB is set" << std::endl;

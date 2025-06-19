@@ -30,13 +30,13 @@
  */
 
 #include "vcl/Filter.h"
-#include "vcl/CuckooHTFilter.h"
-#include "vcl/CuckooCacheFilter.h"
-#include "vcl/VBFFilter.h"
+#include "vcl/CuckooHTFilter.h" 
+#include "vcl/CuckooCacheFilter.h" 
+#include "vcl/VBFFilter.h" 
 
 #include <iostream>
 #include <string>
-#include <cstring>
+#include <cstring> 
 
 namespace VCL {
 
@@ -48,10 +48,9 @@ FilterCollectionManager s_global_filter_manager;
 static const uint32_t DEFAULT_PRIM_HASH_SEED = 0xDEADBEEF; // Example default primary seed
 static const uint32_t DEFAULT_SEC_HASH_SEED  = 0xCAFEBABE; // Example default secondary seed
 
-// Define the FilterDeleter::operator() to delete a filter
+// Define the FilterDeleter::operator() to delete a filter 
 void FilterDeleter::operator()(VCL::Filter* f) const {
     if (f) {
-        // std::cout << "DEBUG: Calling delete for filter: " << f->get_name() << std::endl;
         delete f; // Calls the virtual destructor
     }
 }
@@ -62,10 +61,10 @@ void FilterDeleter::operator()(VCL::Filter* f) const {
 Filter::Filter(const FilterParameters& params)
     : engine_(params.engine),
     num_keys_(params.num_keys),
-    key_len_(params.key_len),
+    key_len_(params.key_len),      
     prim_hash_seed_(0),
     sec_hash_seed_(0),
-    extra_flag_(params.extra_flag),
+    extra_flag_(params.extra_flag), 
     _valid(false){
 
     std::strncpy(name_, params.name, FILTER_NAMESIZE - 1);
@@ -85,13 +84,13 @@ Filter::Filter(const FilterParameters& params)
 
     if (key_len_ == 0) {
         std::cerr << "ERROR: Filter '" << name_ << "': Key length cannot be zero." << std::endl;
-        // _valid is already false
-        return;
+        // _valid is already false 
+        return; 
     }
-
+    
     if (num_keys_ == 0) {
-        std::cerr << "ERROR: Filter '" << name_ << "': Number of keys (num_keys) cannot be zero." << std::endl;
-        return;
+        std::cerr << "ERROR: Filter '" << name_ << "': Number of keys (num_keys) cannot be zero." << std::endl; 
+        return; 
         }
 
     _valid = true;
@@ -100,7 +99,6 @@ Filter::Filter(const FilterParameters& params)
 
 Filter::~Filter() {
     // Base class destructor. Derived classes will handle their specific cleanup.
-    // std::cout << "DEBUG: Base Filter destructor called for: " << name_ << std::endl;
 }
 
 
@@ -151,7 +149,6 @@ bool FilterCollectionManager::collection_add_filter(UniqueFilterPtr filter_ptr) 
     }
 
     filters_.emplace(name_str, std::move(filter_ptr));
-    //std::cout << "DEBUG: Added filter '" << name_str << "' to collection." << std::endl;
     return true;
 }
 
@@ -171,7 +168,7 @@ bool FilterCollectionManager::collection_remove_filter(const std::string& name) 
 
 std::vector<std::string> FilterCollectionManager::collection_get_all_filter_names() const {
     std::vector<std::string> names;
-    names.reserve(filters_.size());
+    names.reserve(filters_.size()); 
     for (const auto& pair : filters_) {
         names.push_back(pair.first); // The key in the map is the filter name
     }
@@ -212,7 +209,6 @@ Filter* filter_create(const FilterParameters *params) {
     if (get_global_filter_manager().collection_add_filter(std::move(new_filter_ptr))) {
         // If successfully added, return the raw pointer to the filter
         // now owned by the manager. This is safe.
-        //std::cout << "DEBUG: Successfully created and added filter '" << params->name << "'." << std::endl;
         return get_global_filter_manager().collection_get_filter(params->name);
     } else {
         // If collection_add_filter failed, the new_filter_ptr (which was moved)
@@ -241,7 +237,7 @@ void filter_free(Filter *filter) {
 // Delegating external API calls to the virtual methods of the Filter object
 int filter_lookup(const Filter *filter, const void *key, filter_set_t *set_id) {
     if (!filter) {
-        return -EINVAL;
+        return -EINVAL; 
     }
     return filter->lookup(key, set_id);
 }
