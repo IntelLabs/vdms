@@ -28,7 +28,7 @@
  */
 
 #include "VideoLoop.h"
-#include "vcl/Video.h"
+// #include "vcl/Video.h"
 #include "gtest/gtest.h"
 
 #include <opencv2/core.hpp>

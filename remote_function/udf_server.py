@@ -94,7 +94,7 @@ async def main(port):
     entity_pb2_grpc.add_OperatorServicer_to_server(OperatorServicer(), server)
     server.add_insecure_port('[::]:{}'.format(port))
     await server.start()
-    print("Async gRPC server (multiprocessing) started on port 50051")
+    print("Async gRPC server (multiprocessing) started on port",port)
 
     stop_event = asyncio.Event()
 

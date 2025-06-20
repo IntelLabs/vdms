@@ -30,7 +30,7 @@
 #include "ImageLoop.h"
 #include "VDMSConfig.h"
 #include "stats/SystemStats.h"
-#include "vcl/Image.h"
+// #include "vcl/Image.h"
 #include "gtest/gtest.h"
 
 #include <filesystem>

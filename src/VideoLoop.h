@@ -43,9 +43,7 @@
 #include <jsoncpp/json/value.h>
 #include <jsoncpp/json/writer.h>
 
-#include "vcl/Image.h"
 #include "vcl/Video.h"
-#include "vcl/GRPCEntityClient.cc"
 
 class VideoLoop {
  public:

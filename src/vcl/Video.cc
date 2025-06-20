@@ -34,7 +34,6 @@
 #include "../VDMSConfig.h"
 #include "VDMSConfigHelper.h"
 #include "vcl/Video.h"
-#include "GRPCEntityClient.cc"
 
 using namespace VCL;
 

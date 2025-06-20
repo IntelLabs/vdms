@@ -51,6 +51,10 @@
 #include "vcl/Image.h"
 #include "zip.h"
 
+#include <jsoncpp/json/reader.h>
+#include <jsoncpp/json/value.h>
+#include <jsoncpp/json/writer.h>
+
 namespace VCL {
 
 typedef cv::Rect Rectangle;  // specify an ROI inside a video

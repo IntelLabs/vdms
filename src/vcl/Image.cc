@@ -41,7 +41,6 @@
 #include "vcl/Image.h"
 
 #include "../VDMSConfig.h"
-#include "GRPCEntityClient.cc"
 
 using namespace VCL;
 

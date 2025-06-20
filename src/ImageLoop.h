@@ -39,7 +39,6 @@
 #include <unistd.h>
 
 #include "vcl/Image.h"
-#include "vcl/GRPCEntityClient.cc"
 
 class ImageLoop {
  public:
