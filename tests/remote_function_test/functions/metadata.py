@@ -29,12 +29,11 @@ def facedetectbbox(frame):
     return faces
 
 
-def run(entity, options):    
+def run(entity, options):
     if options["media_type"] == "video":
-        frameNum = 1        
+        frameNum = 1
         metadata = {}
-        for frame in iio.imiter(entity, format_hint=".mp4"): 
-
+        for frame in iio.imiter(entity, format_hint=".mp4"):
             if options["otype"] == "face":
                 faces = facedetectbbox(frame)
                 if len(faces) > 0:
@@ -105,7 +104,7 @@ def run(entity, options):
                     "object": "car",
                     "object_det": {"color": "red"},
                 }
-    
+
     response = {"opFile": "", "metadata": tdict}
     print(response)
 
