@@ -29,14 +29,14 @@
  *
  */
 
+#include <fcntl.h>
+#include <unistd.h>
+
 #include <condition_variable>
 #include <functional>
 #include <future>
 #include <thread>
 #include <vector>
-
-#include <fcntl.h>
-#include <unistd.h>
 
 #include "vcl/Image.h"
 

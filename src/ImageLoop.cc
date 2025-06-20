@@ -149,7 +149,7 @@ void clear_temp_files(std::vector<std::string> tempfiles) {
 }
 
 void ImageLoop::execute_remote_operations(
-    std::vector<VCL::Image *> &readBuffer) {  
+    std::vector<VCL::Image *> &readBuffer) {
   try {
     std::map<std::string, std::string> input_paths;
     std::map<std::string, std::string> output_paths;

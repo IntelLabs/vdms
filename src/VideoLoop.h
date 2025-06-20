@@ -29,6 +29,10 @@
  *
  */
 
+#include <jsoncpp/json/reader.h>
+#include <jsoncpp/json/value.h>
+#include <jsoncpp/json/writer.h>
+
 #include <condition_variable>
 #include <functional>
 #include <future>
@@ -38,10 +42,6 @@
 #include <opencv2/videoio.hpp>
 #include <thread>
 #include <vector>
-
-#include <jsoncpp/json/reader.h>
-#include <jsoncpp/json/value.h>
-#include <jsoncpp/json/writer.h>
 
 #include "vcl/Video.h"
 

@@ -397,7 +397,7 @@ void Image::SyncRemoteOperation::operator()(Image *img) {
         cv::imwrite(filePath, img->get_cvmat(false, false));
 
         std::string imageId = img->get_image_id().data();
-        
+
         Json::StreamWriterBuilder builder;
         std::string output = Json::writeString(builder, _options);
 

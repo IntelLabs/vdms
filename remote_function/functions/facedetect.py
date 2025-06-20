@@ -37,7 +37,7 @@ def run(entity, options):
     if not success:
         raise ValueError("Failed to encode image.")
     ebytes = encoded_img.tobytes()
-    
-    rdict = {'metadata': 'None'}
+
+    rdict = {"metadata": "None"}
 
     return ebytes, rdict

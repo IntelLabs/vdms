@@ -94,9 +94,9 @@ target_link_libraries(unit_tests
     ${AWSSDK_LINK_LIBRARIES}
     neo4j-client
     ${Protobuf_LIBRARIES}
-    ${_REFLECTION} 
-    ${_GRPC_GRPCPP} 
-    ${_PROTOBUF_LIBPROTOBUF} 
+    ${_REFLECTION}
+    ${_GRPC_GRPCPP}
+    ${_PROTOBUF_LIBPROTOBUF}
     gRPC::grpc++
 )
 

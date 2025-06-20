@@ -1,31 +1,19 @@
-import imageio.v3 as iio
-import skvideo.io
 import cv2
-import os
-import uuid
+import numpy as np
 
-def run(entity, options, tmp_dir_path=""):
-    fname = os.path.join(
-        tmp_dir_path, "tmpfile" + uuid.uuid1().hex + ".mp4"
-    )
 
-    label = options['text']
-    video = skvideo.io.FFmpegWriter(fname)        
-    for frame in iio.imiter(entity, format_hint=".mp4"):            
-        cv2.putText(frame, label, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
-        video.writeFrame(frame)            
-    
-    video.close()
-    
-    ebytes = ''
-    with open(fname, 'rb') as f:
-        ebytes = f.read()
-    
-    # with open('bytefile.mp4', "wb") as out_file:
-    #     out_file.write(ebytes)
+def run(entity, options):
+    image_array = np.frombuffer(entity, dtype=np.uint8)
 
-    os.remove(fname)
+    img = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
 
-    rdict = {'metadata': 'None'}
+    img = cv2.flip(img, 0)
+
+    success, encoded_img = cv2.imencode(".jpg", img)
+    if not success:
+        raise ValueError("Failed to encode image.")
+    ebytes = encoded_img.tobytes()
+
+    rdict = {"metadata": "None"}
 
     return ebytes, rdict

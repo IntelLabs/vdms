@@ -17,6 +17,7 @@ cpu_cores = multiprocessing.cpu_count()
 max_workers = max(cpu_cores - 1, 1)
 executor = ProcessPoolExecutor(max_workers=max_workers)
 
+
 # Function to dynamically import a module given its full path
 def import_module_from_path(module_name, path):
     try:
@@ -64,22 +65,25 @@ def setup(tmp_path):
                 )
             UDF_MAP[module_name] = module
 
+
 def run_udf(module_name, result, options):
     udf = UDF_MAP[module_name]
     return udf.run(result, options)
 
+
 # gRPC Servicer
 class OperatorServicer(entity_pb2_grpc.OperatorServicer):
-
     async def Operate(self, request, context):
         result = request.entity
-        options = json.loads(request.options.decode('utf-8'))
+        options = json.loads(request.options.decode("utf-8"))
         loop = asyncio.get_running_loop()
-        ebytes, rdict = await loop.run_in_executor(executor, run_udf, options["id"], result, options)
-        return entity_pb2.Entity(
-            entity=ebytes,
-            options=json.dumps(rdict).encode('utf-8')
+        ebytes, rdict = await loop.run_in_executor(
+            executor, run_udf, options["id"], result, options
         )
+        return entity_pb2.Entity(
+            entity=ebytes, options=json.dumps(rdict).encode("utf-8")
+        )
+
 
 # Graceful shutdown handler
 async def shutdown(server, executor):
@@ -89,12 +93,13 @@ async def shutdown(server, executor):
     executor.shutdown(wait=True)
     print("Shutdown complete.")
 
+
 async def main(port):
     server = grpc.aio.server()
     entity_pb2_grpc.add_OperatorServicer_to_server(OperatorServicer(), server)
-    server.add_insecure_port('[::]:{}'.format(port))
+    server.add_insecure_port("[::]:{}".format(port))
     await server.start()
-    print("Async gRPC server (multiprocessing) started on port",port)
+    print("Async gRPC server (multiprocessing) started on port", port)
 
     stop_event = asyncio.Event()
 
@@ -120,8 +125,8 @@ if __name__ == "__main__":
         except KeyboardInterrupt:
             pass
     else:
-        setup(sys.argv[2])     
-        try:   
+        setup(sys.argv[2])
+        try:
             asyncio.run(main(int(sys.argv[1])))
         except KeyboardInterrupt:
             pass

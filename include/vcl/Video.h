@@ -32,6 +32,8 @@
 #pragma once
 
 #include <jsoncpp/json/reader.h>
+#include <jsoncpp/json/value.h>
+#include <jsoncpp/json/writer.h>
 
 #include <fstream>
 #include <list>
@@ -50,10 +52,6 @@
 #include "utils.h"
 #include "vcl/Image.h"
 #include "zip.h"
-
-#include <jsoncpp/json/reader.h>
-#include <jsoncpp/json/value.h>
-#include <jsoncpp/json/writer.h>
 
 namespace VCL {
 

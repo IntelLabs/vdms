@@ -1071,7 +1071,7 @@ void Video::SyncRemoteOperation::operator()(Video *video, cv::Mat &frame,
           }
       }
 
-      std::cout<< video->get_ingest_metadata()[0].toStyledString() << std::endl;  
+      std::cout<< video->get_ingest_metadata()[0].toStyledString() << std::endl;
 
       if (std::remove(fname.data()) != 0) {
         throw VCLException(ObjectEmpty,

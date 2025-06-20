@@ -136,7 +136,7 @@ void VideoLoop::operationThread() noexcept {
 }
 
 void VideoLoop::execute_remote_operations(std::vector<VCL::Video> &readBuffer) {
-  try {    
+  try {
     // Finalize the remote operation and enqueue video on local queue
     std::map<std::string, std::string> input_paths;
     std::map<std::string, std::string> output_paths;
@@ -184,7 +184,7 @@ void VideoLoop::execute_remote_operations(std::vector<VCL::Video> &readBuffer) {
     GRPCEntityClient client(grpc::CreateChannel(url.data(), grpc::InsecureChannelCredentials()));
     client.ProcessEntities(input_paths, output_paths, input_metadata, output_metadata);
 
-    
+
     for (VCL::Video video : readBuffer) {
       std::string video_id = video.get_operated_video_id();
       video.set_operated_video_id(output_paths[video_id]);

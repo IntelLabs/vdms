@@ -36,6 +36,7 @@
 #include <curl/curl.h>
 #include <jsoncpp/json/reader.h>
 #include <jsoncpp/json/value.h>
+#include <jsoncpp/json/writer.h>
 #include <stdio.h>
 
 #include <fstream>
@@ -48,17 +49,12 @@
 #include <zmq.hpp>
 
 #include "Exception.h"
+#include "GRPCEntityClient.h"
 #include "RemoteConnection.h"
 #include "TDBImage.h"
 #include "VDMSConfigHelper.h"
 #include "timers/TimerMap.h"
 #include "utils.h"
-
-#include <jsoncpp/json/reader.h>
-#include <jsoncpp/json/value.h>
-#include <jsoncpp/json/writer.h>
-
-#include "GRPCEntityClient.h"
 
 namespace VCL {
 
