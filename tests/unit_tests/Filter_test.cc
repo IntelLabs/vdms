@@ -1,7 +1,7 @@
 #include "gtest/gtest.h"
 #include "vcl/CuckooHTFilter.h"
 #include "vcl/CuckooCacheFilter.h"
-#include "vcl/VBFFilter.h"
+#include "vcl/VBFFilter.h" 
 #include "vcl/Filter.h"
 #include <vector>
 #include <string>
@@ -39,36 +39,51 @@ protected:
     VCL::FilterParameters params_ht_max;
     VCL::FilterParameters params_cache_max;
 
+    
+    static int filter_name_counter;
+    std::vector<std::string> filter_names;
+
+
     void SetUp() override {
+
+        // Clear any filters from previous tests to ensure clean state
+        // since filter_create adds to a global manager
+        std::vector<std::string> existing_filter_names = VCL::filter_list_all_names();
+        for (const std::string& name : existing_filter_names) {
+            VCL::filter_free(VCL::filter_find_existing(name.c_str()));
+        }
+
+        filter_names.clear();
+
         // Common parameters for small filters
         params_ht_small.num_keys = SMALL_NUM_KEYS;
         params_ht_small.key_len = TEST_KEY_LEN;
         params_ht_small.name = "TestHTFilterSmall";
-        params_ht_small.engine = VCL::CuckooHT;
+        params_ht_small.engine = VCL::CuckooHT; 
         params_ht_small.prim_hash_seed = 0xDEADC0DE;
         params_ht_small.sec_hash_seed = 0xBADF00D;
 
-        params_cache_small = params_ht_small;
+        params_cache_small = params_ht_small; 
         params_cache_small.name = "TestCacheFilterSmall";
-        params_cache_small.engine = VCL::CuckooCache;
+        params_cache_small.engine = VCL::CuckooCache; 
 
         // Common parameters for medium filters
         params_ht_medium.num_keys = MEDIUM_NUM_KEYS;
         params_ht_medium.key_len = TEST_KEY_LEN;
         params_ht_medium.name = "TestHTFilterMedium";
-        params_ht_medium.engine = VCL::CuckooHT;
+        params_ht_medium.engine = VCL::CuckooHT; 
         params_ht_medium.prim_hash_seed = 0xDEADC0DE;
         params_ht_medium.sec_hash_seed = 0xBADF00D;
 
-        params_cache_medium = params_ht_medium;
+        params_cache_medium = params_ht_medium; 
         params_cache_medium.name = "TestCacheFilterMedium";
-        params_cache_medium.engine = VCL::CuckooCache;
+        params_cache_medium.engine = VCL::CuckooCache; 
 
         // Parameters for max capacity filters
         params_ht_max.num_keys = FILTER_MAX_CAPACITY;
         params_ht_max.key_len = TEST_KEY_LEN;
         params_ht_max.name = "TestHTFilterMax";
-        params_ht_max.engine = VCL::CuckooHT;
+        params_ht_max.engine = VCL::CuckooHT; 
         params_ht_max.prim_hash_seed = 0xDEADC0DE;
         params_ht_max.sec_hash_seed = 0xBADF00D;
 
@@ -78,16 +93,156 @@ protected:
     }
 
     void TearDown() override {
-        // No explicit teardown needed for unique_ptr or stack objects
+        // Free filters after test to prevent duplicate names
+        std::vector<std::string> existing_filter_names = VCL::filter_list_all_names();
+        for (const std::string& name : existing_filter_names) {
+            VCL::filter_free(VCL::filter_find_existing(name.c_str()));
+        }
+
+        filter_names.clear();
     }
 };
 
+int FilterTest::filter_name_counter = 0;
 
 /*
  ********************************
  * I. Filter Creation Tests     *
  ********************************
 */
+
+// Test cases for filter listing and finding
+TEST_F(FilterTest, Filter_list_all_names_Empty) {
+    std::vector<std::string> names = VCL::filter_list_all_names();
+    EXPECT_TRUE(names.empty()) << "Expected no filters initially, but found " << names.size();
+}
+
+TEST_F(FilterTest, Filter_list_all_names_MultipleFilters) {
+    filter_name_counter = 0;
+
+    filter_names.emplace_back("TestCacheFilterMedium_" + std::to_string(filter_name_counter++)); 
+    filter_names.emplace_back("TestCacheFilterMedium_" + std::to_string(filter_name_counter++)); 
+    filter_names.emplace_back("TestCacheFilterMedium_" + std::to_string(filter_name_counter++)); 
+    
+    VCL::FilterParameters p0 = params_cache_medium;
+    p0.name = filter_names[0].c_str();
+    VCL::Filter* filter0 = VCL::filter_create(&p0);
+
+    VCL::FilterParameters p1 = params_cache_medium;
+    p1.name = filter_names[1].c_str();
+    VCL::Filter* filter1 = VCL::filter_create(&p1);
+
+    VCL::FilterParameters p2 = params_cache_medium;
+    p2.name = filter_names[2].c_str();
+    VCL::Filter* filter2 = VCL::filter_create(&p2);
+
+    ASSERT_NE(filter0, nullptr);
+    ASSERT_NE(filter1, nullptr);
+    ASSERT_NE(filter2, nullptr);
+
+    std::vector<std::string> names = VCL::filter_list_all_names();
+    EXPECT_EQ(names.size(), 3) << "Expected 3 filters, but found " << names.size();
+
+    std::vector<std::string> expected_names;
+    expected_names.push_back(p0.name);
+    expected_names.push_back(p1.name);
+    expected_names.push_back(p2.name);
+
+    std::sort(names.begin(), names.end());
+    std::sort(expected_names.begin(), expected_names.end());
+
+    // Compare the sorted lists
+    for (size_t i = 0; i < expected_names.size(); ++i) {
+        EXPECT_EQ(names[i], expected_names[i])
+            << "Mismatch at index " << i << ". Expected: " << expected_names[i] << ", Actual: " << names[i];
+    } 
+}
+
+TEST_F(FilterTest, Filter_list_all_names_AfterFree) {
+    VCL::FilterParameters p1 = params_ht_small;
+    filter_names.emplace_back("TestHTFilterSmall_" + std::to_string(filter_name_counter++));
+    p1.name = filter_names.back().c_str();
+    VCL::Filter* filter1 = VCL::filter_create(&p1);
+
+    VCL::FilterParameters p2 = params_cache_medium;
+    filter_names.emplace_back("TestCacheFilterMedium_" + std::to_string(filter_name_counter++));
+    p2.name = filter_names.back().c_str();
+    VCL::Filter* filter2 = VCL::filter_create(&p2);
+
+    ASSERT_NE(filter1, nullptr);
+    ASSERT_NE(filter2, nullptr);
+
+    std::vector<std::string> names_before_free = VCL::filter_list_all_names();
+    EXPECT_EQ(names_before_free.size(), 2);
+
+    VCL::filter_free(filter1); // Free filter1
+
+    std::vector<std::string> names_after_free_1 = VCL::filter_list_all_names();
+    EXPECT_EQ(names_after_free_1.size(), 1);
+    EXPECT_EQ(names_after_free_1[0], p2.name); // Only p2.name should remain
+
+    VCL::filter_free(filter2); // Free filter2
+
+    std::vector<std::string> names_after_free_2 = VCL::filter_list_all_names();
+    EXPECT_TRUE(names_after_free_2.empty());
+    
+}
+
+TEST_F(FilterTest, Filter_find_existing_Success) {
+    VCL::FilterParameters p1 = params_ht_small;
+    filter_names.emplace_back("TestHTFilterSmall_" + std::to_string(filter_name_counter++));
+    p1.name = filter_names.back().c_str();
+    VCL::Filter* filter1 = VCL::filter_create(&p1);
+    ASSERT_NE(filter1, nullptr);
+
+    VCL::Filter* found_filter = VCL::filter_find_existing(p1.name); 
+    ASSERT_NE(found_filter, nullptr);
+    EXPECT_EQ(found_filter, filter1);
+    EXPECT_STREQ(found_filter->get_name(), p1.name);
+
+    // Test a different filter type
+    VCL::FilterParameters p2 = params_cache_medium;
+    filter_names.emplace_back("TestCacheFilterMedium_" + std::to_string(filter_name_counter++));
+    p2.name = filter_names.back().c_str();
+    VCL::Filter* filter2 = VCL::filter_create(&p2);
+    ASSERT_NE(filter2, nullptr);
+    VCL::Filter* found_filter2 = VCL::filter_find_existing(p2.name);
+    ASSERT_NE(found_filter2, nullptr);
+    EXPECT_EQ(found_filter2, filter2);
+}
+
+TEST_F(FilterTest, Filter_find_existing_NotFound) {
+    // No filters created yet (or existing ones cleared by SetUp)
+    std::string non_existent_name = "NonExistentFilter_" + std::to_string(filter_name_counter++);
+    VCL::Filter* found_filter = VCL::filter_find_existing(non_existent_name.c_str());
+    EXPECT_EQ(found_filter, nullptr);
+
+    // Create one filter, then search for a different non-existent one
+    VCL::FilterParameters p_temp = params_ht_small;
+    filter_names.emplace_back("TempFilter_" + std::to_string(filter_name_counter++));
+    p_temp.name = filter_names.back().c_str();
+    VCL::filter_create(&p_temp);
+
+    std::string another_non_existent_name = "AnotherNonExistentFilter_" + std::to_string(filter_name_counter++);
+    found_filter = VCL::filter_find_existing(another_non_existent_name.c_str());
+    EXPECT_EQ(found_filter, nullptr);
+}
+
+TEST_F(FilterTest, Filter_find_existing_NullName) {
+    VCL::Filter* found_filter = VCL::filter_find_existing(nullptr);
+    EXPECT_EQ(found_filter, nullptr);
+}
+
+ 
+TEST_F(FilterTest, Filter_GetName) {
+    VCL::Filter* ht_filter = VCL::filter_create(&params_ht_small);
+    ASSERT_NE(ht_filter, nullptr);
+    ASSERT_TRUE(ht_filter->is_valid());
+    EXPECT_STREQ(ht_filter->get_name(), params_ht_small.name);
+    VCL::filter_free(ht_filter); // Clean up explicitly
+
+}
+
 
 TEST_F(FilterTest, CuckooHTFilter_Creation_Success) {
     std::unique_ptr<VCL::CuckooHTFilter> filter;
@@ -302,7 +457,7 @@ TEST_F(FilterTest, FilterLookupMultiBulk_CuckooHT) {
     }
 
     EXPECT_EQ(filter_lookup_multi_bulk(filter, keys_ptrs.data(), 3, max_matches_per_key,
-                                      match_counts.data(), all_found_set_ids.data()), 2);
+                                      match_counts.data(), all_found_set_ids.data()), 2); 
                                       //Expect 2, as Key 1 & Key 2 should match
 
     // Verify results for Key 1
@@ -356,7 +511,7 @@ TEST_F(FilterTest, FilterLookupMulti_CuckooCache) {
     filter_add(filter, key1.data(), 2); // Add same key with different set_id
 
     VCL::filter_set_t found_set_ids[2]; // Max 2 matches for this test, but expect only 1
-    uint32_t max_matches = 2;
+    uint32_t max_matches = 2; 
 
     // Cache should return at most 1 match.
     // because the filter will overwrite and keep only one of the set_ids.
@@ -385,7 +540,7 @@ TEST_F(FilterTest, FilterLookupMultiBulk_CuckooCache) {
     // Key 1: 2 additions. Expect 1 match in lookup (the last one, or an arbitrary one).
     keys_data[0] = generate_key(1, TEST_KEY_LEN);
     filter_add(filter, keys_data[0].data(), 10);
-    filter_add(filter, keys_data[0].data(), 11); // This will likely overwrite
+    filter_add(filter, keys_data[0].data(), 11); // This will likely overwrite 
 
     // Key 2: 1 match
     keys_data[1] = generate_key(2, TEST_KEY_LEN);
@@ -432,7 +587,7 @@ protected:
     std::unique_ptr<VCL::CuckooCacheFilter> cache_filter;
 
     void SetUp() override {
-        FilterTest::SetUp();
+        FilterTest::SetUp(); 
         ht_filter = std::make_unique<VCL::CuckooHTFilter>(params_ht_medium);
         cache_filter = std::make_unique<VCL::CuckooCacheFilter>(params_cache_medium);
         ASSERT_TRUE(ht_filter->is_valid());
@@ -495,7 +650,7 @@ TEST_F(FilterCommonTest, Add_DuplicateKey_MultipleEntries_HT) {
     // Add first entry
     ASSERT_EQ(ht_filter->add(key.data(), set_id1), 0);
 
-    // Now try to add the same key with a different set_id.
+    // Now try to add the same key with a different set_id.    
     // this will attempt to add a new entry if space is available.
     int ret_second_add = ht_filter->add(key.data(), set_id2);
     EXPECT_TRUE(ret_second_add == 0 || ret_second_add == 1) << "Adding duplicate key (HT) with different set_id should succeed or cause eviction.";
@@ -1211,7 +1366,7 @@ TEST_F(FilterCommonTest, AddDeleteAdd_Sequence_HT) {
     // Phase 2: Deletions
     ASSERT_EQ(ht_filter->delete_key(keys1[2].data(), 3), 0) << "Failed to delete K2"; // Delete K2 (set_id 3)
     ASSERT_EQ(ht_filter->delete_key(keys1[5].data(), 6), 0) << "Failed to delete K5"; // Delete K5 (set_id 6)
-
+    
     // Verify deletions
     VCL::filter_set_t found_set_id_deleted = FILTER_NO_MATCH;
     EXPECT_EQ(ht_filter->lookup(keys1[2].data(), &found_set_id_deleted), 0) << "Deleted key K2 unexpectedly found";
@@ -1225,7 +1380,7 @@ TEST_F(FilterCommonTest, AddDeleteAdd_Sequence_HT) {
     keys2.push_back(generate_key(100, TEST_KEY_LEN)); // New K100
     keys2.push_back(generate_key(101, TEST_KEY_LEN)); // New K101
     keys2.push_back(keys1[2]); // Re-add K2, but with a new set_id to distinguish
-
+    
     ASSERT_EQ(ht_filter->add(keys2[0].data(), 11), 0) << "Failed to add new key K100";
     ASSERT_EQ(ht_filter->add(keys2[1].data(), 12), 0) << "Failed to add new key K101";
     ASSERT_EQ(ht_filter->add(keys2[2].data(), 13), 0) << "Failed to re-add K2 with new set_id"; // K2 re-added with set_id 13
@@ -1261,7 +1416,7 @@ TEST_F(FilterCommonTest, AddDeleteAdd_Sequence_Cache) {
     // Phase 2: Deletions
     ASSERT_EQ(cache_filter->delete_key(keys1[2].data(), 1003), 0) << "Failed to delete K2"; // Delete K2 (set_id 1003)
     ASSERT_EQ(cache_filter->delete_key(keys1[5].data(), 1006), 0) << "Failed to delete K5"; // Delete K5 (set_id 1006)
-
+    
     // Verify deletions
     VCL::filter_set_t found_set_id_deleted = FILTER_NO_MATCH;
     EXPECT_EQ(cache_filter->lookup(keys1[2].data(), &found_set_id_deleted), 0) << "Deleted key K2 unexpectedly found";
@@ -1274,8 +1429,8 @@ TEST_F(FilterCommonTest, AddDeleteAdd_Sequence_Cache) {
     std::vector<std::vector<char>> keys2;
     keys2.push_back(generate_key(1010, TEST_KEY_LEN)); // New K1010
     keys2.push_back(generate_key(1011, TEST_KEY_LEN)); // New K1011
-    keys2.push_back(keys1[2]); // Re-add K2, with a new set_id
-
+    keys2.push_back(keys1[2]); // Re-add K2, with a new set_id 
+    
     ASSERT_TRUE(cache_filter->add(keys2[0].data(), 1011) >= 0) << "Failed to add new key K1010";
     ASSERT_TRUE(cache_filter->add(keys2[1].data(), 1012) >= 0) << "Failed to add new key K1011";
     ASSERT_TRUE(cache_filter->add(keys2[2].data(), 1013) >= 0) << "Failed to re-add K2 with new set_id"; // K2 re-added with set_id 1013 (should update)
@@ -1294,7 +1449,7 @@ TEST_F(FilterCommonTest, AddDeleteAdd_Sequence_Cache) {
 
 TEST_F(FilterCommonTest, ResetAndReuse_HT) {
     // Add some keys
-    for (int i = 0; i < 20; ++i) {
+    for (int i = 0; i < 20; ++i) { 
         auto key = generate_key(i, TEST_KEY_LEN);
         ASSERT_EQ(ht_filter->add(key.data(), static_cast<VCL::filter_set_t>(i + 1)), 0);
     }
@@ -1405,7 +1560,7 @@ TEST_F(FilterCommonTest, CuckooHTFilter_ExactCapacityBoundary_ENOSPC) {
     ht_filter = std::make_unique<VCL::CuckooHTFilter>(tiny_params); // Overwrite fixture's filter
     ASSERT_TRUE(ht_filter->is_valid());
 
-    // Cuckoo filters typically achieve a load factor of ~0.95
+    // Cuckoo filters typically achieve a load factor of ~0.95 
     // For 32 'num_keys' (meaning ~32*0.95 = 30 entries), we expect to insert roughly 30 keys
     // before hitting ENOSPC consistently. We will attempt to add a bit more than this.
     // The exact number of successful adds can vary due to hash collisions and cuckoo pathfinding,
@@ -1437,7 +1592,7 @@ TEST_F(FilterCommonTest, CuckooHTFilter_ExactCapacityBoundary_ENOSPC) {
 
     // Assert that we successfully added a high percentage of keys, and *did* encounter ENOSPC.
     EXPECT_GE(successful_adds_count, expected_min_successful_adds)
-        << "Lower than expected number of successful insertions (" << successful_adds_count
+        << "Lower than expected number of successful insertions (" << successful_adds_count 
         << ") before hitting ENOSPC for CuckooHTFilter (expected min: " << expected_min_successful_adds << ").";
     EXPECT_GT(enospc_errors_count, 0)
         << "Expected to hit -ENOSPC when overfilling CuckooHTFilter, but no ENOSPC errors occurred.";
@@ -1489,7 +1644,7 @@ TEST_F(FilterCommonTest, CuckooCacheFilter_PersistentEviction) {
     // We expect very few (ideally close to zero) of these very first keys to remain.
     // This threshold can be adjusted, but >50% missing is a good sign of eviction.
     EXPECT_LT(old_keys_found, num_old_keys_to_check / 2)
-        << "Too many old keys (" << old_keys_found << " out of " << num_old_keys_to_check
+        << "Too many old keys (" << old_keys_found << " out of " << num_old_keys_to_check 
         << ") are still found. Eviction might not be working as expected or filter capacity is too large.";
 
 
@@ -1514,7 +1669,7 @@ TEST_F(FilterCommonTest, CuckooCacheFilter_PersistentEviction) {
 
 /*
  ***************************************
- ** These test cases are placeholder ***
+ ** These test cases are placeholder *** 
  ** VBF is just stub to be completed ***
  * Added for passing coverage threshold*
  ***************************************
@@ -1523,7 +1678,7 @@ TEST_F(FilterCommonTest, CuckooCacheFilter_PersistentEviction) {
 // --- Test Cases for VBFFilter.cc (Placeholder Coverage) ---
 
 TEST_F(FilterTest, VBFFilter_Creation_Success) {
-    VCL::FilterParameters params_vbf_small = params_ht_small;
+    VCL::FilterParameters params_vbf_small = params_ht_small; 
     params_vbf_small.name = "TestVBFFilterSmall";
     params_vbf_small.engine = VCL::VBF;
 
@@ -1574,7 +1729,7 @@ TEST_F(FilterTest, VBFFilter_LookupBulk_StubBehavior) {
 
     std::vector<std::vector<char>> keys(5);
     std::vector<const void*> key_ptrs(5);
-    std::vector<VCL::filter_set_t> set_ids(5);
+    std::vector<VCL::filter_set_t> set_ids(5); 
 
     for (int i = 0; i < 5; ++i) {
         keys[i] = generate_key(i + 1, TEST_KEY_LEN);
@@ -1603,7 +1758,7 @@ TEST_F(FilterTest, VBFFilter_LookupMulti_StubBehavior) {
     ASSERT_TRUE(filter->is_valid());
 
     auto key = generate_key(200, TEST_KEY_LEN);
-    VCL::filter_set_t found_set_ids[3];
+    VCL::filter_set_t found_set_ids[3]; 
     uint32_t max_matches = 3;
 
     // Expect 0 (no matches found) and the first set_id to be FILTER_NO_MATCH
@@ -1627,7 +1782,7 @@ TEST_F(FilterTest, VBFFilter_LookupMultiBulk_StubBehavior) {
     std::vector<std::vector<char>> keys(2);
     std::vector<const void*> key_ptrs(2);
     uint32_t max_matches_per_key = 2;
-    std::vector<uint32_t> match_counts(2);
+    std::vector<uint32_t> match_counts(2); 
     std::vector<VCL::filter_set_t> all_found_set_ids(2 * max_matches_per_key);
 
     keys[0] = generate_key(300, TEST_KEY_LEN);
