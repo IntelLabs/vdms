@@ -650,6 +650,8 @@ void Video::perform_operations(bool is_store, std::string store_id) {
                      VCL::Video::OperationType::USEROPERATION) {
             (*op)(this, mat, fname);
           }
+          if (!get_query_error_response().empty())
+            throw VCLException(OpenCVError, get_query_error_response());
           op_count++;
           id = fname;
           timers.add_timestamp(fname + "_" + opname);
