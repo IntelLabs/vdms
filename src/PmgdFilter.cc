@@ -33,8 +33,9 @@
 
 using namespace VDMS;
 FilterCommand::FilterCommand(const std::string &cmd_name) : RSCommand(cmd_name) {
-
+    _fm = get_global_filter_manager();
 }
+
 //========= AddFilter definitions =========
 AddFilter::AddFilter() : FilterCommand("AddFilter") {
 
@@ -46,6 +47,63 @@ int AddFilter::construct_protobuf(PMGDQuery &tx, const Json::Value &root,
 
     error["skip_pmgd"] = true;
 
+    const Json::Value &cmd = jsoncmd[_cmd_name];
+
+    //Check if filter already exists
+
+    //create filter if it does not
+    //note filter names must be mapped to known property names
+    //note also checks and retrievals of argument values
+
+    /*"name":   { "type": "string" },
+    "engine": {"$ref": "#/definitions/filterEngineFormatString" },
+    "nr_keys": {"$ref": "#/definitions/refInt"},
+    "key_len": { "$ref": "#/definitions/refInt"},
+    "prim_hash_seed": { "$ref": "#/definitions/refInt"},
+    "sec_hash_seed": { "$ref": "#/definitions/refInt"}*/
+
+    //these should be gauranteed to exist based on API definitions
+    std::string filtername = get_value<std::string>(cmd, "name","");
+    std::string engine = get_value<std::string>(cmd, "engine","");
+    uint32_t nr_keys = get_value<int>(cmd,"nr_keys",0);
+    uint32_t key_len = get_value<int>(cmd, "key_len",0);
+    uint32_t prim_hash = 0;
+    uint32_t sec_hash = 0;
+
+    //check for optional hash seeds
+    if (cmd.isMember("prim_hash_seed")){
+        prim_hash = get_value<int>(cmd, "prim_hash_seed",0);
+    }
+
+    if (cmd.isMember("sec_hash_seed")){
+        sec_hash = get_value<int>(cmd, "sec_hash_seed",0);
+    }
+
+    //convert engine choice to enum val
+    FilterEngine eng_val;
+
+    if(filtername == "CuckooHT"){
+        eng_val = CuckooHT;
+    } else if(filtername == "CuckooCache"){
+        eng_val = CuckooCache;
+    } else if(filtername == "VBF"){
+        eng_val = VBF;
+    }
+
+    //If neither hash seed is set, use defaults
+    //otherwise specify
+    if (prim_hash==0 && sec_hash == 0){
+
+    }else if(prim_hash != 0 && sec_hash== 0 ){
+
+    } else if(prim_hash == 0 && sec_hash != 0 ){
+
+    } else {
+
+    }
+
+
+
     return 0;
 
 }
@@ -55,6 +113,7 @@ Json::Value AddFilter::construct_responses(Json::Value &json_responses,
                                           protobufs::queryMessage &response,
                                           const std::string &blob){
 
+    //at this point should just be a filter add success message
     Json::Value ret;
     ret["stub_val"] = "AddFilter E2E Works";
 
@@ -75,7 +134,7 @@ int FindFilter::construct_protobuf(PMGDQuery &tx, const Json::Value &root,
 
     error["skip_pmgd"] = true;
 
-    return 0;
+       return 0;
 
 
 }
@@ -87,7 +146,44 @@ Json::Value FindFilter::construct_responses(Json::Value &json_responses,
 
     Json::Value ret;
 
+    //attempt to retrieve filter
+
+    //if filter is found, return available stats and what not in return JSON
+
     ret["stub_val"] = "FindFilter E2E Works";
+
+    return ret;
+
+}
+
+//======== ListFilter definitions ========
+FindFilter::FindFilter() : FilterCommand("ListFilter") {
+
+}
+
+int ListFilter::construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                                   const std::string &blob, int grp_id,
+                                   Json::Value &error) {
+
+    error["skip_pmgd"] = true;
+
+    return 0;
+
+
+}
+
+Json::Value ListFilter::construct_responses(Json::Value &json_responses,
+                                            const Json::Value &json,
+                                            protobufs::queryMessage &response,
+                                            const std::string &blob){
+
+    Json::Value ret;
+
+    //retrieve list of all filters by name
+
+    //return in JSON val
+
+    ret["stub_val"] = "ListFilter E2E Works";
 
     return ret;
 

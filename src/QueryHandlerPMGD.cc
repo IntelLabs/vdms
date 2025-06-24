@@ -104,6 +104,7 @@ void QueryHandlerPMGD::init() {
 
   _rs_cmds["AddFilter"] = new AddFilter();
   _rs_cmds["FindFilter"]= new FindFilter();
+  _rs_cmds["ListFilter"] = new ListFilter();
 
   // Load the string containing the schema (api_schema/APISchema.h)
   Json::Reader reader;

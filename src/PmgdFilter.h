@@ -39,6 +39,7 @@
 
 #include "QueryHandlerPMGD.h"  // to provide the database connection
 #include "RSCommand.h"
+#include "vcl/Filter.h"
 
 namespace VDMS {
 
@@ -53,8 +54,8 @@ namespace VDMS {
 
         virtual bool need_blob(const Json::Value &cmd) { return false; }
 
-    //protected:
-    //    FilterManager *_dm;
+    protected:
+        FilterManager *_fm;
 
     };
 
@@ -86,6 +87,22 @@ namespace VDMS {
                                             const Json::Value &json,
                                             protobufs::queryMessage &response,
                                             const std::string &blob);
+
+    };
+
+
+    class ListFilter : public FilterCommand {
+    public:
+        ListFilter();
+
+        int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                               const std::string &blob, int grp_id,
+                               Json::Value &error);
+
+        Json::Value construct_responses(Json::Value &json_responses,
+                                        const Json::Value &json,
+                                        protobufs::queryMessage &response,
+                                        const std::string &blob);
 
     };
 
