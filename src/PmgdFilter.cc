@@ -32,16 +32,16 @@
 #include "PmgdFilter.h"
 
 using namespace VDMS;
+using namespace VCL;
 FilterCommand::FilterCommand(const std::string &cmd_name) : RSCommand(cmd_name) {
-    _fm = get_global_filter_manager();
 }
 
 //========= AddFilter definitions =========
 AddFilter::AddFilter() : FilterCommand("AddFilter") {
-
+    _fmgr = &get_global_filter_manager();
 }
 
-int AddFilter::construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+int AddFilter::construct_protobuf(PMGDQuery &tx, const Json::Value &jsoncmd,
                                   const std::string &blob, int grp_id,
                                   Json::Value &error) {
 
@@ -69,6 +69,8 @@ int AddFilter::construct_protobuf(PMGDQuery &tx, const Json::Value &root,
     uint32_t key_len = get_value<int>(cmd, "key_len",0);
     uint32_t prim_hash = 0;
     uint32_t sec_hash = 0;
+    FilterEngine eng_val;
+    struct FilterParameters fparams = FilterParameters();
 
     //check for optional hash seeds
     if (cmd.isMember("prim_hash_seed")){
@@ -80,8 +82,6 @@ int AddFilter::construct_protobuf(PMGDQuery &tx, const Json::Value &root,
     }
 
     //convert engine choice to enum val
-    FilterEngine eng_val;
-
     if(filtername == "CuckooHT"){
         eng_val = CuckooHT;
     } else if(filtername == "CuckooCache"){
@@ -90,17 +90,24 @@ int AddFilter::construct_protobuf(PMGDQuery &tx, const Json::Value &root,
         eng_val = VBF;
     }
 
-    //If neither hash seed is set, use defaults
-    //otherwise specify
-    if (prim_hash==0 && sec_hash == 0){
+    //load up filter paramter structure
+    fparams.name = filtername.c_str();
+    fparams.engine = eng_val;
+    fparams.num_keys = nr_keys;
+    fparams.key_len = key_len;
 
-    }else if(prim_hash != 0 && sec_hash== 0 ){
-
-    } else if(prim_hash == 0 && sec_hash != 0 ){
-
-    } else {
-
+    //if hash seeds are specified, use them, otherwise leave as defaults from
+    //constructor
+    if(prim_hash != 0) {
+        fparams.prim_hash_seed = prim_hash;
     }
+
+    if(sec_hash != 0 ){
+        fparams.sec_hash_seed = sec_hash;
+    }
+
+    UniqueFilterPtr fp = Filter::create_filter_instance(&fparams);
+
 
 
 
@@ -115,7 +122,9 @@ Json::Value AddFilter::construct_responses(Json::Value &json_responses,
 
     //at this point should just be a filter add success message
     Json::Value ret;
-    ret["stub_val"] = "AddFilter E2E Works";
+
+    ret["status"] = RSCommand::Success;
+    ret["Info"] = "New Filter Added";
 
     return ret;
 }
@@ -150,14 +159,14 @@ Json::Value FindFilter::construct_responses(Json::Value &json_responses,
 
     //if filter is found, return available stats and what not in return JSON
 
-    ret["stub_val"] = "FindFilter E2E Works";
+    ret["status"] = "FindFilter E2E Works";
 
     return ret;
 
 }
 
 //======== ListFilter definitions ========
-FindFilter::FindFilter() : FilterCommand("ListFilter") {
+ListFilter::ListFilter() : FilterCommand("ListFilter") {
 
 }
 

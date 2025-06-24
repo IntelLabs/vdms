@@ -40,7 +40,7 @@
 #include "QueryHandlerPMGD.h"  // to provide the database connection
 #include "RSCommand.h"
 #include "vcl/Filter.h"
-
+using namespace VCL;
 namespace VDMS {
 
     //SuperClass for all Filter Commands
@@ -55,7 +55,7 @@ namespace VDMS {
         virtual bool need_blob(const Json::Value &cmd) { return false; }
 
     protected:
-        FilterManager *_fm;
+        FilterCollectionManager *_fmgr;
 
     };
 
