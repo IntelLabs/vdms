@@ -302,18 +302,18 @@ class Filter {
   uint32_t get_num_keys() const { return num_keys_; }
   uint32_t get_ef() const { return extra_flag_; }
 
-  /**
-   * @brief Lists the names of all currently managed filters.
-   * @return A vector of strings, where each string is the name of an active
-   * filter.
-   * * Returns an empty vector if no filters are currently defined.
-   * */
-  std::vector<std::string> filter_list_all_names();
-
   // --- create instances of derived classes based on FilterParameters::engine
   // ---
   static UniqueFilterPtr create_filter_instance(const FilterParameters *params);
 };
+
+/**
+ * @brief Lists the names of all currently managed filters.
+ * @return A vector of strings, where each string is the name of an active
+ * filter.
+ * * Returns an empty vector if no filters are currently defined.
+ * */
+std::vector<std::string> filter_list_all_names();
 
 // =============================================================
 // Internal Filter Collection Management Class

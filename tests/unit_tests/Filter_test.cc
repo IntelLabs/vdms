@@ -39,7 +39,22 @@ protected:
     VCL::FilterParameters params_ht_max;
     VCL::FilterParameters params_cache_max;
 
+
+    static int filter_name_counter;
+    std::vector<std::string> filter_names;
+
+
     void SetUp() override {
+
+        // Clear any filters from previous tests to ensure clean state
+        // since filter_create adds to a global manager
+        std::vector<std::string> existing_filter_names = VCL::filter_list_all_names();
+        for (const std::string& name : existing_filter_names) {
+            VCL::filter_free(VCL::filter_find_existing(name.c_str()));
+        }
+
+        filter_names.clear();
+
         // Common parameters for small filters
         params_ht_small.num_keys = SMALL_NUM_KEYS;
         params_ht_small.key_len = TEST_KEY_LEN;
@@ -78,16 +93,156 @@ protected:
     }
 
     void TearDown() override {
-        // No explicit teardown needed for unique_ptr or stack objects
+        // Free filters after test to prevent duplicate names
+        std::vector<std::string> existing_filter_names = VCL::filter_list_all_names();
+        for (const std::string& name : existing_filter_names) {
+            VCL::filter_free(VCL::filter_find_existing(name.c_str()));
+        }
+
+        filter_names.clear();
     }
 };
 
+int FilterTest::filter_name_counter = 0;
 
 /*
  ********************************
  * I. Filter Creation Tests     *
  ********************************
 */
+
+// Test cases for filter listing and finding
+TEST_F(FilterTest, Filter_list_all_names_Empty) {
+    std::vector<std::string> names = VCL::filter_list_all_names();
+    EXPECT_TRUE(names.empty()) << "Expected no filters initially, but found " << names.size();
+}
+
+TEST_F(FilterTest, Filter_list_all_names_MultipleFilters) {
+    filter_name_counter = 0;
+
+    filter_names.emplace_back("TestCacheFilterMedium_" + std::to_string(filter_name_counter++));
+    filter_names.emplace_back("TestCacheFilterMedium_" + std::to_string(filter_name_counter++));
+    filter_names.emplace_back("TestCacheFilterMedium_" + std::to_string(filter_name_counter++));
+
+    VCL::FilterParameters p0 = params_cache_medium;
+    p0.name = filter_names[0].c_str();
+    VCL::Filter* filter0 = VCL::filter_create(&p0);
+
+    VCL::FilterParameters p1 = params_cache_medium;
+    p1.name = filter_names[1].c_str();
+    VCL::Filter* filter1 = VCL::filter_create(&p1);
+
+    VCL::FilterParameters p2 = params_cache_medium;
+    p2.name = filter_names[2].c_str();
+    VCL::Filter* filter2 = VCL::filter_create(&p2);
+
+    ASSERT_NE(filter0, nullptr);
+    ASSERT_NE(filter1, nullptr);
+    ASSERT_NE(filter2, nullptr);
+
+    std::vector<std::string> names = VCL::filter_list_all_names();
+    EXPECT_EQ(names.size(), 3) << "Expected 3 filters, but found " << names.size();
+
+    std::vector<std::string> expected_names;
+    expected_names.push_back(p0.name);
+    expected_names.push_back(p1.name);
+    expected_names.push_back(p2.name);
+
+    std::sort(names.begin(), names.end());
+    std::sort(expected_names.begin(), expected_names.end());
+
+    // Compare the sorted lists
+    for (size_t i = 0; i < expected_names.size(); ++i) {
+        EXPECT_EQ(names[i], expected_names[i])
+            << "Mismatch at index " << i << ". Expected: " << expected_names[i] << ", Actual: " << names[i];
+    }
+}
+
+TEST_F(FilterTest, Filter_list_all_names_AfterFree) {
+    VCL::FilterParameters p1 = params_ht_small;
+    filter_names.emplace_back("TestHTFilterSmall_" + std::to_string(filter_name_counter++));
+    p1.name = filter_names.back().c_str();
+    VCL::Filter* filter1 = VCL::filter_create(&p1);
+
+    VCL::FilterParameters p2 = params_cache_medium;
+    filter_names.emplace_back("TestCacheFilterMedium_" + std::to_string(filter_name_counter++));
+    p2.name = filter_names.back().c_str();
+    VCL::Filter* filter2 = VCL::filter_create(&p2);
+
+    ASSERT_NE(filter1, nullptr);
+    ASSERT_NE(filter2, nullptr);
+
+    std::vector<std::string> names_before_free = VCL::filter_list_all_names();
+    EXPECT_EQ(names_before_free.size(), 2);
+
+    VCL::filter_free(filter1); // Free filter1
+
+    std::vector<std::string> names_after_free_1 = VCL::filter_list_all_names();
+    EXPECT_EQ(names_after_free_1.size(), 1);
+    EXPECT_EQ(names_after_free_1[0], p2.name); // Only p2.name should remain
+
+    VCL::filter_free(filter2); // Free filter2
+
+    std::vector<std::string> names_after_free_2 = VCL::filter_list_all_names();
+    EXPECT_TRUE(names_after_free_2.empty());
+
+}
+
+TEST_F(FilterTest, Filter_find_existing_Success) {
+    VCL::FilterParameters p1 = params_ht_small;
+    filter_names.emplace_back("TestHTFilterSmall_" + std::to_string(filter_name_counter++));
+    p1.name = filter_names.back().c_str();
+    VCL::Filter* filter1 = VCL::filter_create(&p1);
+    ASSERT_NE(filter1, nullptr);
+
+    VCL::Filter* found_filter = VCL::filter_find_existing(p1.name);
+    ASSERT_NE(found_filter, nullptr);
+    EXPECT_EQ(found_filter, filter1);
+    EXPECT_STREQ(found_filter->get_name(), p1.name);
+
+    // Test a different filter type
+    VCL::FilterParameters p2 = params_cache_medium;
+    filter_names.emplace_back("TestCacheFilterMedium_" + std::to_string(filter_name_counter++));
+    p2.name = filter_names.back().c_str();
+    VCL::Filter* filter2 = VCL::filter_create(&p2);
+    ASSERT_NE(filter2, nullptr);
+    VCL::Filter* found_filter2 = VCL::filter_find_existing(p2.name);
+    ASSERT_NE(found_filter2, nullptr);
+    EXPECT_EQ(found_filter2, filter2);
+}
+
+TEST_F(FilterTest, Filter_find_existing_NotFound) {
+    // No filters created yet (or existing ones cleared by SetUp)
+    std::string non_existent_name = "NonExistentFilter_" + std::to_string(filter_name_counter++);
+    VCL::Filter* found_filter = VCL::filter_find_existing(non_existent_name.c_str());
+    EXPECT_EQ(found_filter, nullptr);
+
+    // Create one filter, then search for a different non-existent one
+    VCL::FilterParameters p_temp = params_ht_small;
+    filter_names.emplace_back("TempFilter_" + std::to_string(filter_name_counter++));
+    p_temp.name = filter_names.back().c_str();
+    VCL::filter_create(&p_temp);
+
+    std::string another_non_existent_name = "AnotherNonExistentFilter_" + std::to_string(filter_name_counter++);
+    found_filter = VCL::filter_find_existing(another_non_existent_name.c_str());
+    EXPECT_EQ(found_filter, nullptr);
+}
+
+TEST_F(FilterTest, Filter_find_existing_NullName) {
+    VCL::Filter* found_filter = VCL::filter_find_existing(nullptr);
+    EXPECT_EQ(found_filter, nullptr);
+}
+
+
+TEST_F(FilterTest, Filter_GetName) {
+    VCL::Filter* ht_filter = VCL::filter_create(&params_ht_small);
+    ASSERT_NE(ht_filter, nullptr);
+    ASSERT_TRUE(ht_filter->is_valid());
+    EXPECT_STREQ(ht_filter->get_name(), params_ht_small.name);
+    VCL::filter_free(ht_filter); // Clean up explicitly
+
+}
+
 
 TEST_F(FilterTest, CuckooHTFilter_Creation_Success) {
     std::unique_ptr<VCL::CuckooHTFilter> filter;
