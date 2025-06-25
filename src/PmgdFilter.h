@@ -53,10 +53,6 @@ namespace VDMS {
                                        Json::Value &error) = 0;
 
         virtual bool need_blob(const Json::Value &cmd) { return false; }
-
-    protected:
-        FilterCollectionManager *_fmgr;
-
     };
 
 

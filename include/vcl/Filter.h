@@ -422,6 +422,9 @@ void filter_reset(VCL::Filter *filter);
 int filter_delete_key(VCL::Filter *filter, const void *key,
                       filter_set_t set_id);
 
+//List all filters from filter manager (external API wrapper0
+std::vector<std::string> filter_list_all_names();
+
 // Some Bit Manipulation Helper Functions
 static inline uint32_t align32pow2(uint32_t x) {
   if (x == 0) {

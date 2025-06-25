@@ -38,7 +38,6 @@ FilterCommand::FilterCommand(const std::string &cmd_name) : RSCommand(cmd_name) 
 
 //========= AddFilter definitions =========
 AddFilter::AddFilter() : FilterCommand("AddFilter") {
-    _fmgr = &get_global_filter_manager();
 }
 
 int AddFilter::construct_protobuf(PMGDQuery &tx, const Json::Value &jsoncmd,
@@ -106,10 +105,8 @@ int AddFilter::construct_protobuf(PMGDQuery &tx, const Json::Value &jsoncmd,
         fparams.sec_hash_seed = sec_hash;
     }
 
-    UniqueFilterPtr fp = Filter::create_filter_instance(&fparams);
-
-
-
+    Filter *fp = filter_create(&fparams);
+    //TODO check for return val and error
 
     return 0;
 
@@ -143,7 +140,7 @@ int FindFilter::construct_protobuf(PMGDQuery &tx, const Json::Value &root,
 
     error["skip_pmgd"] = true;
 
-       return 0;
+    return 0;
 
 
 }
@@ -154,12 +151,41 @@ Json::Value FindFilter::construct_responses(Json::Value &json_responses,
                                            const std::string &blob){
 
     Json::Value ret;
+    const Json::Value &cmd = json[_cmd_name];
+    std::string filtername = get_value<std::string>(cmd, "name","");
 
     //attempt to retrieve filter
+    Filter *filt_ptr;
+    //TODO Need error check for filter existence
+    filt_ptr = filter_find_existing(filtername.c_str());
 
     //if filter is found, return available stats and what not in return JSON
+    std::string name = filt_ptr->get_name();
+    FilterEngine eng = filt_ptr->get_engine_type();
+    uint32_t key_len = filt_ptr->get_key_len();
+    uint32_t nr_keys = filt_ptr->get_num_keys();
+    uint32_t flg = filt_ptr->get_ef();
+    std::string eng_name;
 
-    ret["status"] = "FindFilter E2E Works";
+    //convert engine to string
+    if(eng == CuckooHT){
+        eng_name = "CuckooHT";
+    } else if(eng == CuckooCache){
+        eng_name = "CuckooCache";
+    } else if(eng == VBF){
+        eng_name = "VBF";
+    }
+
+    Json::Value filter_info;
+
+    filter_info["name"] = name;
+    filter_info["engine"] = eng_name;
+    filter_info["key_len"] = key_len;
+    filter_info["nr_keys"] = nr_keys;
+    filter_info["flg"] = flg;
+
+    ret["status"] = RSCommand::Success;
+    ret["filter_info"] = filter_info;
 
     return ret;
 
@@ -189,10 +215,20 @@ Json::Value ListFilter::construct_responses(Json::Value &json_responses,
     Json::Value ret;
 
     //retrieve list of all filters by name
+    std::vector<std::string> filter_list;
+    filter_list = filter_list_all_names();
+    std::string cur_name;
+    Json::Value filters;
+
+    for(int i; i< filter_list.size(); i++){
+        cur_name = filter_list[i];
+        filters.append(cur_name.c_str());
+    }
+
 
     //return in JSON val
-
-    ret["stub_val"] = "ListFilter E2E Works";
+    ret["status"] = RSCommand::Success;
+    ret["filter_list"] = filters;
 
     return ret;
 
