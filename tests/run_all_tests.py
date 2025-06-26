@@ -1478,9 +1478,7 @@ class NonRemoteTest(AbstractTest):
             )
 
         except Exception as e:
-            raise Exception(
-                "setup_protobufs_for_remote_udf_server() error: " + str(e)
-            )
+            raise Exception("setup_protobufs_for_remote_udf_server() error: " + str(e))
 
     def run_remote_udf_server(self, tmp_dir, stderrFD, stdoutFD):
         """
