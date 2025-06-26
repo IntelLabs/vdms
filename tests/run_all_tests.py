@@ -1450,6 +1450,38 @@ class NonRemoteTest(AbstractTest):
                 "setup_requirements_for_remote_udf_server() error: " + str(e)
             )
 
+    def setup_protobufs_for_remote_udf_server(self, stderrFD, stdoutFD):
+        """
+        Sets up the protobufs for the remote UDF server.
+
+        This method installs the necessary Python packages for the remote UDF
+        server by running the `pip install` command with the requirements file.
+        It also handles exceptions and prints debug information if DEBUG_MODE
+        is enabled.
+
+        Parameters:
+        - stderrFD: The file descriptor for capturing stderr output.
+        - stdoutFD: The file descriptor for capturing stdout output.
+
+        Raises:
+        - Exception: If any error occurs during the setup process.
+        """
+
+        try:
+            subprocess.run(
+                f"python3 -m grpc_tools.protoc -I{DEFAULT_DIR_REPO}/tests/remote_function_test --python_out={DEFAULT_DIR_REPO}/tests/remote_function_test --grpc_python_out={DEFAULT_DIR_REPO}/tests/remote_function_test {DEFAULT_DIR_REPO}/tests/remote_function_test/entity.proto",
+                shell=True,
+                stderr=stderrFD,
+                stdout=stdoutFD,
+                text=True,
+                check=True,
+            )
+
+        except Exception as e:
+            raise Exception(
+                "setup_protobufs_for_remote_udf_server() error: " + str(e)
+            )
+
     def run_remote_udf_server(self, tmp_dir, stderrFD, stdoutFD):
         """
         Runs the remote UDF server.
@@ -1521,6 +1553,7 @@ class NonRemoteTest(AbstractTest):
             print("setup_for_remote_udf_server_tests...")
 
             self.setup_requirements_for_remote_udf_server(stderrFD, stdoutFD)
+            self.setup_protobufs_for_remote_udf_server(stderrFD, stdoutFD)
             self.run_remote_udf_server(tmp_dir, stderrFD, stdoutFD)
         except Exception as e:
             raise Exception(
