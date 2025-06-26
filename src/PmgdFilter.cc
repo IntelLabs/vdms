@@ -68,7 +68,7 @@ int AddFilter::construct_protobuf(PMGDQuery &tx, const Json::Value &jsoncmd,
     uint32_t key_len = get_value<int>(cmd, "key_len",0);
     uint32_t prim_hash = 0;
     uint32_t sec_hash = 0;
-    FilterEngine eng_val;
+    enum FilterEngine eng_val;
     struct FilterParameters fparams = FilterParameters();
 
     //check for optional hash seeds
@@ -81,12 +81,18 @@ int AddFilter::construct_protobuf(PMGDQuery &tx, const Json::Value &jsoncmd,
     }
 
     //convert engine choice to enum val
-    if(filtername == "CuckooHT"){
+    if(engine == "CuckooHT"){
+        printf("Cuckhoo Hash Table\n");
         eng_val = CuckooHT;
-    } else if(filtername == "CuckooCache"){
+    } else if(engine == "CuckooCache"){
+        printf("Cuckhoo Cache\n");
         eng_val = CuckooCache;
-    } else if(filtername == "VBF"){
+    } else if(engine == "VBF"){
+        printf("VBF\n");
         eng_val = VBF;
+    } else {
+        printf("Error! Unrecognized Engine type!\n");
+        //TODO handle this error
     }
 
     //load up filter paramter structure
@@ -225,11 +231,9 @@ Json::Value ListFilter::construct_responses(Json::Value &json_responses,
         filters.append(cur_name.c_str());
     }
 
-
     //return in JSON val
     ret["status"] = RSCommand::Success;
     ret["filter_list"] = filters;
 
     return ret;
-
 }

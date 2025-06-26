@@ -306,6 +306,7 @@ void QueryHandlerPMGD::process_query(
 
     if (parse_commands(proto_query, root) != 0) {
       cmd_current = "Transaction";
+        printf("Error 309\n");
       error(root, cmd_current);
       return;
     }
@@ -342,6 +343,7 @@ void QueryHandlerPMGD::process_query(
       }
 
       if (ret_code != 0) {
+          printf("Error 345\n");
         error(cmd_result, root[j]);
         return;
       }
@@ -367,6 +369,7 @@ void QueryHandlerPMGD::process_query(
       cmd_result["info"] = tx_error_msg;
 
       cmd_current = "Transaction";
+        printf("Error 372\n");
       error(cmd_result, cmd_current);
       return;
     } else {
@@ -393,8 +396,10 @@ void QueryHandlerPMGD::process_query(
         // This is for error handling
         if (cmd_result.isMember("status")) {
           int status = cmd_result["status"].asInt();
-          if (status != RSCommand::Success || status != RSCommand::Empty ||
+          std::cout << cmd_result["status"] << std::endl;
+          if (status != RSCommand::Success && status != RSCommand::Empty &&
               status != RSCommand::Exists) {
+              printf("Error 401\n");
             error(cmd_result, root[j]);
             return;
           }
