@@ -50,11 +50,12 @@ using namespace VDMS;
 using namespace PMGD;
 using namespace std;
 
-TEST(PMGDFilter, addAndFindFilter) {
+TEST(PMGDFilter, addAndListFilters) {
 
     Json::Reader reader;
     Json::FastWriter fastWriter;
 
+    //Adding filters
     Json::Value add_filter_q_cch;
     Json::Value add_filter_q_ccc;
     Json::Value add_filter_q_vbf;
@@ -135,11 +136,97 @@ TEST(PMGDFilter, addAndFindFilter) {
     ASSERT_EQ(ret_obj["Info"], "New Filter Added");
 
     //list added filters
+    Json::Value list_filters_q;
+    Json::Value base_list_q;
 
+    base_list_q["ListFilter"] = list_filters_q;
+    std::string list_filters_str = fastWriter.write(base_list_q);
+    std::string list_filters_final = "[" + list_filters_str + "]";
 
-    //check one of the filter details
+    Json::Value parsed_list;
+    VDMS::protobufs::queryMessage proto_query_list;
+    VDMS::protobufs::queryMessage list_response;
+    Json::Value json_filt_list;
 
+    proto_query_list.set_json(list_filters_final);
+    query_handler.pq(proto_query_list, list_response);
+    reader.parse(list_response.json().c_str(), parsed_list);
 
+    ret_obj = parsed_list[0];
+    json_filt_list = ret_obj["filter_list"];
 
+    ASSERT_EQ(json_filt_list.size(),3);
+
+    //get filter details
+    Json::Value filter_details;
+    Json::Value base_filter_details;
+
+    filter_details["name"] = "test_filt_cch";
+    base_filter_details["FindFilter"] = filter_details;
+
+    Json::Value find_filt_json;
+
+    std::string find_filt = fastWriter.write(base_filter_details);
+    std::string find_filt_final = "[" + find_filt + "]";
+
+    VDMS::protobufs::queryMessage proto_query_find_filt;
+    VDMS::protobufs::queryMessage find_filt_response;
+
+    proto_query_find_filt.set_json(find_filt_final);
+    query_handler.pq(proto_query_find_filt, find_filt_response);
+    reader.parse(find_filt_response.json().c_str(), parsed_list);
+
+    std::cout<< parsed_list[0] << std::endl;
+    ret_obj = parsed_list[0];
+
+    Json::Value filter_info;
+    filter_info = ret_obj["filter_info"];
+
+    ASSERT_EQ(filter_info["name"],"test_filt_cch");
+    ASSERT_EQ(filter_info["flg"], 0);
+    ASSERT_EQ(filter_info["key_len"], 8);
+    ASSERT_EQ(filter_info["nr_keys"], 100000);
+
+}
+
+TEST(PMGDFilter, addBadFilter) {
+
+    Json::Reader reader;
+    Json::FastWriter fastWriter;
+
+    //Adding filters
+    Json::Value add_filter_bad;
+
+    Json::Value base_q_bad;
+
+    add_filter_bad["name"] = "test_filt_bad";
+    add_filter_bad["nr_keys"] = 100000;
+    add_filter_bad["key_len"] = 8;
+    add_filter_bad["engine"] = "BadFilter";
+
+    base_q_bad["AddFilter"] = add_filter_bad;
+
+    Json::Value parsed_filt_bad;
+    Json::Value ret_obj;
+
+    PMGDQueryHandler::init();
+    QueryHandlerPMGD::init();
+
+    QueryHandlerPMGD qh_base;
+    qh_base.reset_autodelete_init_flag(); // set flag to show autodelete initialized
+    QueryHandlerPMGDTester query_handler(qh_base);
+
+    std::string add_bad = fastWriter.write(base_q_bad);
+    std::string add_bad_final = "[" + add_bad + "]";
+
+    VDMS::protobufs::queryMessage proto_query_add_bad;
+    VDMS::protobufs::queryMessage bad_response;
+
+    //test add cuckoo hash table
+    proto_query_add_bad.set_json(add_bad_final);
+    query_handler.pq(proto_query_add_bad, bad_response);
+    reader.parse(bad_response.json().c_str(), parsed_filt_bad);
+    ret_obj = parsed_filt_bad[0];
+    ASSERT_EQ(ret_obj["status"], -1);
 }
 

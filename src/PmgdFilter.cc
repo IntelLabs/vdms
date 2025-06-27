@@ -91,8 +91,9 @@ int AddFilter::construct_protobuf(PMGDQuery &tx, const Json::Value &jsoncmd,
         printf("VBF\n");
         eng_val = VBF;
     } else {
-        printf("Error! Unrecognized Engine type!\n");
-        //TODO handle this error
+        error["Status"] = RSCommand::Error;
+        error["Info"] = engine + " is not a recognized or supported filter type";
+        return -1;
     }
 
     //load up filter paramter structure
@@ -112,7 +113,11 @@ int AddFilter::construct_protobuf(PMGDQuery &tx, const Json::Value &jsoncmd,
     }
 
     Filter *fp = filter_create(&fparams);
-    //TODO check for return val and error
+    if(fp == NULL){
+        error["Status"] = RSCommand::Error;
+        error["Info"] = "Filter creation failed. Check for duplicate filter name and valid parameters.\n";
+        return -1;
+    }
 
     return 0;
 
@@ -162,8 +167,16 @@ Json::Value FindFilter::construct_responses(Json::Value &json_responses,
 
     //attempt to retrieve filter
     Filter *filt_ptr;
-    //TODO Need error check for filter existence
+
     filt_ptr = filter_find_existing(filtername.c_str());
+    if(filt_ptr == NULL){
+
+        ret["status"] = RSCommand::Success;
+        ret["filter_info"] = "Filter not found";
+
+        return ret;
+    }
+
 
     //if filter is found, return available stats and what not in return JSON
     std::string name = filt_ptr->get_name();
@@ -218,6 +231,7 @@ Json::Value ListFilter::construct_responses(Json::Value &json_responses,
                                             protobufs::queryMessage &response,
                                             const std::string &blob){
 
+
     Json::Value ret;
 
     //retrieve list of all filters by name
@@ -226,7 +240,8 @@ Json::Value ListFilter::construct_responses(Json::Value &json_responses,
     std::string cur_name;
     Json::Value filters;
 
-    for(int i; i< filter_list.size(); i++){
+
+    for(long unsigned int i = 0; i < filter_list.size(); i++){
         cur_name = filter_list[i];
         filters.append(cur_name.c_str());
     }
