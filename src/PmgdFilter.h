@@ -43,63 +43,57 @@
 using namespace VCL;
 namespace VDMS {
 
-    //SuperClass for all Filter Commands
-    class FilterCommand : public RSCommand {
+// SuperClass for all Filter Commands
+class FilterCommand : public RSCommand {
+ public:
+  FilterCommand(const std::string &cmd_name);
+  virtual int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                                 const std::string &blob, int grp_id,
+                                 Json::Value &error) = 0;
 
-    public:
-        FilterCommand(const std::string &cmd_name);
-        virtual int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
-                                       const std::string &blob, int grp_id,
-                                       Json::Value &error) = 0;
+  virtual bool need_blob(const Json::Value &cmd) { return false; }
+};
 
-        virtual bool need_blob(const Json::Value &cmd) { return false; }
-    };
+class AddFilter : public FilterCommand {
+ public:
+  AddFilter();
 
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
 
-    class AddFilter : public FilterCommand {
-        public:
-            AddFilter();
+  Json::Value construct_responses(Json::Value &json_responses,
+                                  const Json::Value &json,
+                                  protobufs::queryMessage &response,
+                                  const std::string &blob);
+};
 
-            int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
-                                   const std::string &blob, int grp_id,
-                                   Json::Value &error);
+class FindFilter : public FilterCommand {
+ public:
+  FindFilter();
 
-            Json::Value construct_responses(Json::Value &json_responses,
-                                            const Json::Value &json,
-                                            protobufs::queryMessage &response,
-                                            const std::string &blob);
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
 
-    };
+  Json::Value construct_responses(Json::Value &json_responses,
+                                  const Json::Value &json,
+                                  protobufs::queryMessage &response,
+                                  const std::string &blob);
+};
 
-    class FindFilter : public FilterCommand {
-        public:
-            FindFilter();
+class ListFilter : public FilterCommand {
+ public:
+  ListFilter();
 
-            int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
-                                   const std::string &blob, int grp_id,
-                                   Json::Value &error);
+  int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
+                         const std::string &blob, int grp_id,
+                         Json::Value &error);
 
-            Json::Value construct_responses(Json::Value &json_responses,
-                                            const Json::Value &json,
-                                            protobufs::queryMessage &response,
-                                            const std::string &blob);
+  Json::Value construct_responses(Json::Value &json_responses,
+                                  const Json::Value &json,
+                                  protobufs::queryMessage &response,
+                                  const std::string &blob);
+};
 
-    };
-
-
-    class ListFilter : public FilterCommand {
-    public:
-        ListFilter();
-
-        int construct_protobuf(PMGDQuery &tx, const Json::Value &root,
-                               const std::string &blob, int grp_id,
-                               Json::Value &error);
-
-        Json::Value construct_responses(Json::Value &json_responses,
-                                        const Json::Value &json,
-                                        protobufs::queryMessage &response,
-                                        const std::string &blob);
-
-    };
-
-}//end VDMS namespace
+}  // namespace VDMS
