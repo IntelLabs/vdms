@@ -230,3 +230,76 @@ TEST(PMGDFilter, addBadFilter) {
     ASSERT_EQ(ret_obj["status"], -1);
 }
 
+TEST(PMGDFilter, missingFilterFind){
+
+    Json::Reader reader;
+    Json::FastWriter fastWriter;
+
+    //Adding filters
+    Json::Value add_filter;
+
+    Json::Value base_q;
+
+    add_filter["name"] = "test_filt_not_this_one";
+    add_filter["nr_keys"] = 100000;
+    add_filter["key_len"] = 8;
+    add_filter["engine"] = "CuckooCache";
+
+    base_q["AddFilter"] = add_filter;
+
+    Json::Value parsed_filt;
+    Json::Value ret_obj;
+
+    PMGDQueryHandler::init();
+    QueryHandlerPMGD::init();
+
+    QueryHandlerPMGD qh_base;
+    qh_base.reset_autodelete_init_flag(); // set flag to show autodelete initialized
+    QueryHandlerPMGDTester query_handler(qh_base);
+
+    std::string add = fastWriter.write(base_q);
+    std::string add_final = "[" + add + "]";
+
+    VDMS::protobufs::queryMessage proto_query_add_filt;
+    VDMS::protobufs::queryMessage response;
+
+    //test add cuckoo hash table
+    proto_query_add_filt.set_json(add_final);
+    query_handler.pq(proto_query_add_filt, response);
+    reader.parse(response.json().c_str(), parsed_filt);
+    //ret_obj = parsed_filt[0];
+
+    //get filter details
+    Json::Value filter_details;
+    Json::Value base_filter_details;
+
+    filter_details["name"] = "missing_filter";
+    base_filter_details["FindFilter"] = filter_details;
+
+    Json::Value find_filt_json;
+
+    std::string find_filt = fastWriter.write(base_filter_details);
+    std::string find_filt_final = "[" + find_filt + "]";
+
+    VDMS::protobufs::queryMessage proto_query_find_filt;
+    VDMS::protobufs::queryMessage find_filt_response;
+
+    proto_query_find_filt.set_json(find_filt_final);
+    query_handler.pq(proto_query_find_filt, find_filt_response);
+    reader.parse(find_filt_response.json().c_str(), parsed_filt);
+
+    std::cout<< parsed_filt[0] << std::endl;
+    ret_obj = parsed_filt[0];
+
+    Json::Value filter_info;
+    filter_info = ret_obj["filter_info"];
+
+    std::cout<<filter_info<<std::endl;
+
+
+
+
+}
+
+
+

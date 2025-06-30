@@ -82,13 +82,10 @@ int AddFilter::construct_protobuf(PMGDQuery &tx, const Json::Value &jsoncmd,
 
     //convert engine choice to enum val
     if(engine == "CuckooHT"){
-        printf("Cuckhoo Hash Table\n");
         eng_val = CuckooHT;
     } else if(engine == "CuckooCache"){
-        printf("Cuckhoo Cache\n");
         eng_val = CuckooCache;
     } else if(engine == "VBF"){
-        printf("VBF\n");
         eng_val = VBF;
     } else {
         error["Status"] = RSCommand::Error;
@@ -231,7 +228,6 @@ Json::Value ListFilter::construct_responses(Json::Value &json_responses,
                                             protobufs::queryMessage &response,
                                             const std::string &blob){
 
-
     Json::Value ret;
 
     //retrieve list of all filters by name
@@ -239,7 +235,6 @@ Json::Value ListFilter::construct_responses(Json::Value &json_responses,
     filter_list = filter_list_all_names();
     std::string cur_name;
     Json::Value filters;
-
 
     for(long unsigned int i = 0; i < filter_list.size(); i++){
         cur_name = filter_list[i];
