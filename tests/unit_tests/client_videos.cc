@@ -54,6 +54,49 @@ TEST(CLIENT_CPP_Video, add_single_video) {
   EXPECT_EQ(status1, 0);
 }
 
+TEST(CLIENT_CPP_Video, add_video_interval_failure) {
+
+  // std::string video;
+  std::stringstream video;
+  std::vector<std::string *> blobs;
+
+  VDMS::VDMSConfig::init(TMP_DIRNAME + "config-client-tests.json");
+
+  std::string filename = "../tests/videos/Megamind.avi";
+
+  std::string temp_video_path(VDMS::VDMSConfig::instance()->get_path_tmp() +
+                              "/pathvideo.mp4");
+  copy_video_to_temp(filename, temp_video_path, get_fourcc());
+
+  Meta_Data *meta_obj = new Meta_Data();
+  meta_obj->_aclient.reset(
+      new VDMS::VDMSClient(meta_obj->get_server(), meta_obj->get_port()));
+
+  Json::Value op;
+  op["type"] = "interval";
+  op["start"] = 10;
+  op["stop"] = 270;
+  op["step"] = 5;
+
+  Json::Value tuple, tuple2;
+  tuple = meta_obj->constuct_video_by_path(1, temp_video_path, op);
+
+  VDMS::Response response =
+      meta_obj->_aclient->query(meta_obj->_fastwriter.write(tuple), blobs);
+  Json::Value json_response;
+  meta_obj->_reader.parse(response.json.c_str(), json_response);
+
+  EXPECT_EQ(json_response[0]["status"].asString(), "-1");
+  EXPECT_EQ(json_response[0]["info"].asString(), "Internal Server Error: VCL Exception at QH\n");
+
+  if (std::remove(temp_video_path.data()) != 0) {
+    throw VCLException(ObjectEmpty,
+                       "Error encountered while removing the file.");
+  }
+
+  delete meta_obj;
+}
+
 TEST(CLIENT_CPP_Video, add_single_video_multi_client) {
 
   // std::string video;

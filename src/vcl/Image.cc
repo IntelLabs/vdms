@@ -1324,6 +1324,8 @@ void Image::perform_operations() {
       if (op == NULL)
         throw VCLException(ObjectEmpty, "Nothing to be done");
       (*op)(this);
+      if (!get_query_error_response().empty())
+        throw VCLException(OpenCVError, get_query_error_response());
       timers.add_timestamp(op_name);
     }
 

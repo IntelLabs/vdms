@@ -28,6 +28,7 @@
  */
 
 #include <string>
+#include <filesystem>
 
 #include "gtest/gtest.h"
 #include <exception>
@@ -41,6 +42,12 @@
 #include "RemoteConnection.h"
 #include "VDMSConfig.h"
 #include "vcl/Exception.h"
+
+#include "QueryHandlerPMGD.h"
+
+using namespace VDMS;
+using namespace PMGD;
+using namespace std;
 
 const std::string TMP_DIRNAME = "/tmp/tests_output_dir/";
 
@@ -434,5 +441,67 @@ TEST_F(RemoteConnectionTest, RemoteDisconnectedReadVideoFilename) {
     EXPECT_FALSE(not_a_connection.Read_Video(video_));
   } catch (...) {
     printErrorMessage("RemoteDisconnectedReadVideoFilename");
+  }
+}
+
+TEST_F(RemoteConnectionTest, ImageAddCropFailure) {
+  try {
+    std::string string_query_add_image_failure("[");
+    string_query_add_image_failure += " \
+      { \
+          \"AddImage\": { \
+              \"operations\": [{ \
+                  \"type\": \"crop\", \
+                  \"x\": 250, \
+                  \"y\": 250, \
+                  \"width\": 100, \
+                  \"height\": 100  \
+              }], \
+              \"properties\": { \
+                  \"name\": \"simpleCropFailure_brain_sample_image\", \
+                  \"doctor\": \"Dr. Strange Love\" \
+              }, \
+              \"format\": \"png\" \
+          } \
+      } \
+    ";
+    string_query_add_image_failure += "]";
+
+    VDMS::Server VDMS_server("unit_tests/config-aws-tests.json", "", "", "");
+
+    QueryHandlerPMGD query_handler;
+    query_handler.reset_autodelete_init_flag(); // set flag to show autodelete queue has
+                                          // been initialized
+
+    VDMS::protobufs::queryMessage proto_query;
+    proto_query.set_json(string_query_add_image_failure);
+
+    std::string image;
+    std::ifstream file("test_images/brain.png",
+                       std::ios::in | std::ios::binary | std::ios::ate);
+
+    image.resize(file.tellg());
+
+    file.seekg(0, std::ios::beg);
+    if (!file.read(&image[0], image.size()))
+      std::cout << "error" << std::endl;
+
+    proto_query.add_blobs(image);
+
+    VDMS::protobufs::queryMessage response;
+    query_handler.process_query(proto_query, response);
+
+    Json::Reader json_reader;
+    Json::Value json_response;
+
+    json_reader.parse(response.json(), json_response);
+
+    EXPECT_EQ(json_response[0]["status"].asString(), "-1");
+    EXPECT_EQ(json_response[0]["info"].asString(), "Internal Server Error: VCL Exception at QH\n");
+
+    std::string dbname = VDMSConfig::instance()->get_path_pmgd();
+    std::filesystem::remove_all(dbname.c_str());
+  } catch (...) {
+    printErrorMessage("ImageAddCropFailure");
   }
 }
