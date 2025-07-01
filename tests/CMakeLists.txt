@@ -70,6 +70,7 @@ add_executable(unit_tests
     unit_tests/TimerMapTest.cc
     unit_tests/QueryHandlerTest.cc
     unit_tests/VCLUtilsTest.cc
+    unit_tests/Filter_test.cc
 )
 
 target_link_libraries(unit_tests

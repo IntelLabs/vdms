@@ -176,7 +176,6 @@ TEST(PMGDFilter, addAndListFilters) {
     query_handler.pq(proto_query_find_filt, find_filt_response);
     reader.parse(find_filt_response.json().c_str(), parsed_list);
 
-    std::cout<< parsed_list[0] << std::endl;
     ret_obj = parsed_list[0];
 
     Json::Value filter_info;
@@ -288,13 +287,12 @@ TEST(PMGDFilter, missingFilterFind){
     query_handler.pq(proto_query_find_filt, find_filt_response);
     reader.parse(find_filt_response.json().c_str(), parsed_filt);
 
-    std::cout<< parsed_filt[0] << std::endl;
     ret_obj = parsed_filt[0];
 
     Json::Value filter_info;
     filter_info = ret_obj["filter_info"];
 
-    std::cout<<filter_info<<std::endl;
+    ASSERT_EQ(filter_info,"Filter not found");
 
 
 
