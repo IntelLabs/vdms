@@ -87,6 +87,7 @@ else()
     src/PMGDIterators.cc
     src/PMGDQuery.cc
     src/PMGDQueryHandler.cc
+    src/PmgdFilter.cc
     src/QueryHandlerExample.cc
     src/QueryHandlerBase.cc
     src/QueryHandlerNeo4j.cc
