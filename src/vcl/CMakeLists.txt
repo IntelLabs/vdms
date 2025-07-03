@@ -26,6 +26,11 @@ add_library(vcl SHARED
     GRPCEntityClient.cc
     RemoteConnection.cc
     ../../utils/src/timers/TimerMap.cc
+    Filter.cc
+    CuckooCommon.cc
+    CuckooHTFilter.cc
+    CuckooCacheFilter.cc
+    VBFFilter.cc
 )
 link_directories( /usr/local/lib )
 target_link_libraries(vcl lapack faiss tiledb flinng avformat avcodec swscale ${OpenCV_LIBS})

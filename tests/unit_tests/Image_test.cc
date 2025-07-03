@@ -609,7 +609,7 @@ TEST_F(ImageTest, ResizeTDB) {
 TEST_F(ImageTest, CropMatThrow) {
   VCL::Image img(img_);
   img.crop(bad_rect_);
-  img.get_cvmat();
+  ASSERT_THROW(img.get_cvmat(), VCL::Exception);
   ASSERT_STREQ(img.get_query_error_response().data(),
                "Requested area is not within the image");
 }
@@ -756,7 +756,7 @@ TEST_F(ImageTest, TDBMatThrow) {
 
   VCL::Image img(tdb_img_);
   img.crop(bad_rect_);
-  img.get_cvmat();
+  ASSERT_THROW(img.get_cvmat(), VCL::Exception);
   ASSERT_STREQ(img.get_query_error_response().data(),
                "Requested area is not within the image");
 }
@@ -1028,7 +1028,7 @@ TEST_F(ImageTest, PipelineException) {
   img.resize(50, 80);
   img.crop(bad_rect_);
 
-  img.get_cvmat();
+  ASSERT_THROW(img.get_cvmat(), VCL::Exception);
   ASSERT_STREQ(img.get_query_error_response().data(),
                "Requested area is not within the image");
 }
