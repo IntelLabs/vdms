@@ -46,6 +46,7 @@
 #include "QueryMessage.h"
 #include "pmgd.h"
 #include "util.h"
+#include "PmgdFilter.h"
 
 #include "APISchema.h"
 #include <jsoncpp/json/writer.h>
@@ -100,6 +101,10 @@ void QueryHandlerPMGD::init() {
   _rs_cmds["AddBlob"] = new AddBlob();
   _rs_cmds["UpdateBlob"] = new UpdateBlob();
   _rs_cmds["FindBlob"] = new FindBlob();
+
+  _rs_cmds["AddFilter"] = new AddFilter();
+  _rs_cmds["FindFilter"]= new FindFilter();
+  _rs_cmds["ListFilter"] = new ListFilter();
 
   // Load the string containing the schema (api_schema/APISchema.h)
   Json::Reader reader;
@@ -388,7 +393,7 @@ void QueryHandlerPMGD::process_query(
         // This is for error handling
         if (cmd_result.isMember("status")) {
           int status = cmd_result["status"].asInt();
-          if (status != RSCommand::Success || status != RSCommand::Empty ||
+          if (status != RSCommand::Success && status != RSCommand::Empty &&
               status != RSCommand::Exists) {
             error(cmd_result, root[j]);
             return;

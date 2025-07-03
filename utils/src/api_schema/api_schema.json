@@ -73,7 +73,12 @@
       { "$ref": "#/definitions/NeoFindDescriptorSetTop" },
       { "$ref": "#/definitions/NeoAddDescriptorTop" },
       { "$ref": "#/definitions/NeoClassifyDescriptorTop" },
-      { "$ref": "#/definitions/NeoFindDescriptorTop" }
+      { "$ref": "#/definitions/NeoFindDescriptorTop" },
+
+      { "$ref": "#/definitions/AddFilterTop" },
+      { "$ref": "#/definitions/FindFilterTop"},
+      { "$ref": "#/definitions/ListFilterTop"}
+
     ]
   },
   "uniqueItems": false,
@@ -137,6 +142,11 @@
     "engineFormatString": {
       "type": "string",
       "enum": ["FaissFlat", "FaissHNSWFlat","FaissIVFFlat", "TileDBDense", "TileDBSparse", "Flinng"]
+    },
+
+    "filterEngineFormatString": {
+      "type": "string",
+      "enum": ["CuckooHT","CuckooCache","VBF"]
     },
 
     "vidCodecString": {
@@ -498,6 +508,30 @@
       "additionalProperties": false
     },
 
+    "AddFilterTop": {
+      "properties": {
+        "AddFilter" : { "type": "object",
+          "$ref": "#/definitions/AddFilter" }
+      },
+      "additionalProperties": false
+    },
+
+    "FindFilterTop": {
+      "properties": {
+        "FindFilter" : { "type": "object",
+          "$ref": "#/definitions/FindFilter" }
+      },
+      "additionalProperties": false
+    },
+
+    "ListFilterTop": {
+      "properties": {
+        "ListFilter" : { "type": "object",
+          "$ref": "#/definitions/ListFilter" }
+      },
+      "additionalProperties": false
+    },
+
     "DeleteExpiredTop": {
       "properties": {
         "DeleteExpired" : { "type": "object", "$ref": "#/definitions/DeleteExpired" }
@@ -791,6 +825,20 @@
       "additionalProperties": false
     },
 
+    "AddFilter": {
+      "properties": {
+        "name":   { "type": "string" },
+        "engine": {"$ref": "#/definitions/filterEngineFormatString" },
+        "nr_keys": {"$ref": "#/definitions/refInt"},
+        "key_len": { "$ref": "#/definitions/refInt"},
+        "prim_hash_seed": { "$ref": "#/definitions/refInt"},
+        "sec_hash_seed": { "$ref": "#/definitions/refInt"}
+      },
+
+      "required": ["name","engine", "nr_keys","key_len"],
+      "additionalProperties": false
+    },
+
     "FindDescriptorSet": {
       "properties": {
         "_ref":        { "$ref": "#/definitions/refInt" },
@@ -818,6 +866,18 @@
       },
       "required": ["set"],
 
+      "additionalProperties": false
+    },
+
+    "FindFilter": {
+      "properties": {
+        "name": {"type": "string"}
+      },
+      "required": ["name"],
+      "additionalProperties": false
+    },
+
+    "ListFilter": {
       "additionalProperties": false
     },
 
