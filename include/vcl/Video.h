@@ -51,7 +51,6 @@
 #include "timers/TimerMap.h"
 #include "utils.h"
 #include "vcl/Image.h"
-#include "zip.h"
 
 namespace VCL {
 
