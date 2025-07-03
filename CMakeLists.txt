@@ -24,6 +24,7 @@ find_package( CURL REQUIRED )
 find_package(AWSSDK REQUIRED COMPONENTS core s3)
 find_package(gRPC CONFIG REQUIRED)
 find_package(absl CONFIG REQUIRED)
+find_package(GTest REQUIRED)
 
 include_directories(${Protobuf_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -118,7 +119,7 @@ else()
 
   add_executable(vdms src/vdms.cc)
 
-  target_link_libraries(vdms dms vdms_protobuf vcl tiledb faiss flinng jsoncpp ${OpenCV_LIBS} ${AWSSDK_LINK_LIBRARIES} ${Protobuf_LIBRARIES} ${_REFLECTION} ${_GRPC_GRPCPP} ${_PROTOBUF_LIBPROTOBUF} gRPC::grpc++)
+  target_link_libraries(vdms dms vdms_protobuf vcl tiledb faiss flinng jsoncpp ${OpenCV_LIBS} ${AWSSDK_LINK_LIBRARIES} ${Protobuf_LIBRARIES} ${_REFLECTION} ${_GRPC_GRPCPP} ${_PROTOBUF_LIBPROTOBUF} gRPC::grpc++ GTest::gtest GTest::gtest_main)
 endif ()
 
 message("Coverage:" ${CODE_COVERAGE})

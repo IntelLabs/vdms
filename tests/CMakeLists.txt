@@ -16,6 +16,7 @@ find_package( Threads REQUIRED )
 find_package(AWSSDK REQUIRED COMPONENTS core s3)
 find_package(gRPC CONFIG REQUIRED)
 find_package(absl CONFIG REQUIRED)
+find_package(GTest REQUIRED)
 
 if(USE_K8S)
     add_definitions("-D HAS_KUBERNETES_CLIENT")
@@ -100,5 +101,7 @@ target_link_libraries(unit_tests
     ${_GRPC_GRPCPP}
     ${_PROTOBUF_LIBPROTOBUF}
     gRPC::grpc++
+    GTest::gtest
+    GTest::gtest_main
 )
 
