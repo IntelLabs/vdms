@@ -21,7 +21,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBCONF_NOWARNINGS="yes"
 ENV PYTHON_BASE="3.12"
 ENV PYTHON_VERSION="${PYTHON_BASE}.3"
-ENV PROTOBUF_VERSION="24.2"
+ENV PROTOBUF_VERSION="31.0"
 ENV NUMPY_MIN_VERSION="1.26.0"
 ENV VIRTUAL_ENV=/opt/venv
 
@@ -73,10 +73,13 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Pull and Install Dependencies
 WORKDIR /dependencies
-ENV AUTOCONF_VERSION="2.71" \
+ENV ABSEIL_VERSION="20250512.1" \
+    AUTOCONF_VERSION="2.71" \
     AWS_SDK_VERSION="1.11.336" \
     CMAKE_VERSION="v3.28.5"  \
     FAISS_VERSION="v1.9.0" \
+    GRPC_VERSION="v1.73.0" \
+    GTEST_VERSION="v1.12.0" \
     LIBEDIT_VERSION="20230828-3.1" \
     OPENCV_VERSION="4.9.0" \
     PEG_VERSION="0.1.19" \
@@ -89,27 +92,40 @@ RUN git clone --branch ${CMAKE_VERSION} https://github.com/Kitware/CMake.git /de
         cd /dependencies/CMake && ./bootstrap && make ${BUILD_THREADS} && \
             make install DESTDIR=/opt/dist && make install
 
-# PROTOBUF & ITS DEPENDENCIES
+# PROTOBUF & ITS DEPENDENCIES (GOOGLETEST, ABSEIL-CPP)
 # hadolint ignore=DL3003,SC2086
-RUN git clone -b "v${PROTOBUF_VERSION}" --recurse-submodules https://github.com/protocolbuffers/protobuf.git /dependencies/protobuf && \
-        cd /dependencies/protobuf/third_party/googletest && mkdir build && cd build/ && \
-            cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
-                -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
-                -DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 .. && \
-            make ${BUILD_THREADS} && make install && \
-        cd /dependencies/protobuf/third_party/abseil-cpp && mkdir build && cd build && \
-            cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
-                -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local -DABSL_BUILD_TESTING=ON \
-                -DABSL_USE_EXTERNAL_GOOGLETEST=ON \
-                -DABSL_FIND_GOOGLETEST=ON -DCMAKE_CXX_STANDARD=17 .. && \
-            make ${BUILD_THREADS} && make install && ldconfig /opt/dist/usr/local/lib && \
-        cd /dependencies/protobuf && \
-            cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
-                -DCMAKE_CXX_STANDARD=17 -Dprotobuf_BUILD_SHARED_LIBS=ON \
-                -Dprotobuf_ABSL_PROVIDER=package \
-                -Dprotobuf_BUILD_TESTS=ON \
-                -Dabsl_DIR=/opt/dist/usr/local/lib/cmake/absl . && \
-            make ${BUILD_THREADS} && make install
+RUN git clone -b ${GTEST_VERSION} https://github.com/google/googletest.git /dependencies/googletest && \
+		cd /dependencies/googletest && mkdir build && cd build && \
+			cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
+				-DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
+				-DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 .. && \
+			make ${BUILD_THREADS} && make install && \
+	git clone -b ${ABSEIL_VERSION} https://github.com/abseil/abseil-cpp.git /dependencies/abseil && \
+		cd /dependencies/abseil && mkdir build && cd build && \
+		cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
+			-DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local -DABSL_BUILD_TESTING=ON \
+			-DABSL_USE_EXTERNAL_GOOGLETEST=ON \
+			-DABSL_FIND_GOOGLETEST=ON -DCMAKE_CXX_STANDARD=17 .. && \
+		make ${BUILD_THREADS} && make install && ldconfig /opt/dist/usr/local/lib && \
+	git clone -b "v${PROTOBUF_VERSION}" --recurse-submodules https://github.com/protocolbuffers/protobuf.git /dependencies/protobuf && \
+		cd /dependencies/protobuf && \
+		cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
+			-DCMAKE_CXX_STANDARD=17 -Dprotobuf_BUILD_SHARED_LIBS=ON \
+			-Dprotobuf_ABSL_PROVIDER=package \
+			-Dprotobuf_BUILD_TESTS=ON \
+			-Dabsl_DIR=/opt/dist/usr/local/lib/cmake/absl . && \
+		make ${BUILD_THREADS} && make install
+
+# gRPC
+RUN git clone -b ${GRPC_VERSION} https://github.com/grpc/grpc /dependencies/grpc && \
+        cd /dependencies/grpc && \
+        git submodule update --init && mkdir -p cmake/build && cd cmake/build && \
+        cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
+            -DCMAKE_CXX_STANDARD=17 -DgRPC_INSTALL=ON \
+            -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
+            -DgRPC_ABSL_PROVIDER=package \
+            -DgRPC_PROTOBUF_PROVIDER=package ../.. && \
+        make ${BUILD_THREADS} && make install
 
 # OPENCV
 # hadolint ignore=DL3003,SC2086
@@ -204,6 +220,8 @@ RUN rm -rf /dependencies /usr/local/share/doc /usr/local/share/man && \
 ############################################################
 # FINAL IMAGE
 FROM base
+
+# COPY FILES
 COPY --from=build /opt/dist /
 COPY --from=build /usr/local/bin/python${PYTHON_BASE} /usr/local/bin/python${PYTHON_BASE}
 COPY --from=build /usr/local/lib/python${PYTHON_BASE} /usr/local/lib/python${PYTHON_BASE}
@@ -213,6 +231,9 @@ COPY --from=build /usr/include/libwebsocket[s] /usr/include/libwebsockets
 COPY --from=build /usr/local/lib/libkubernetes.s[o] /usr/local/lib/libkubernetes.so
 COPY --from=build /usr/local/lib/libyaml.s[o] /usr/local/lib/libyaml.so
 COPY --from=build /usr/lib/x86_64-linux-gnu/libwebsockets.s[o] /usr/lib/x86_64-linux-gnu/libwebsockets.so
+COPY --from=build /usr/local/include/ /usr/local/include/
+COPY --from=build /usr/local/bin /usr/local/bin
+COPY --from=build /usr/local/lib/ /usr/local/lib/
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # hadolint ignore=DL3008,SC2086
@@ -227,11 +248,12 @@ RUN apt-get update -y && apt-get upgrade -y && \
     apt-get --purge remove -y python3.11 && apt-get autoremove -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
     echo "/usr/local/lib" >> /etc/ld.so.conf.d/all-libs.conf && ldconfig && \
-    python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "protobuf==4.${PROTOBUF_VERSION}" \
+    python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "protobuf==6.${PROTOBUF_VERSION}" \
         "coverage>=7.3.1" "cryptography>=44.0.1"
 
-# VDMS
 WORKDIR /vdms
+
+# VDMS
 # hadolint ignore=DL3003,SC2086
 RUN git clone -b master --recurse-submodules https://github.com/IntelLabs/vdms.git /vdms && \
     sed -i "s|java-11-openjdk|java-17-openjdk|g" /vdms/src/pmgd/java/CMakeLists.txt && \
