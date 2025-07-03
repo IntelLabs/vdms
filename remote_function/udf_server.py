@@ -17,6 +17,8 @@ cpu_cores = multiprocessing.cpu_count()
 max_workers = max(cpu_cores - 1, 1)
 executor = ProcessPoolExecutor(max_workers=max_workers)
 
+MAX_MSG_SIZE = 500 * 1024 * 1024
+
 
 # Function to dynamically import a module given its full path
 def import_module_from_path(module_name, path):
@@ -89,13 +91,19 @@ class OperatorServicer(entity_pb2_grpc.OperatorServicer):
 async def shutdown(server, executor):
     print("\nShutting down...")
     await server.stop(5)  # Allow 5 seconds to finish active RPCs
-    server.wait_for_termination()
     executor.shutdown(wait=True)
     print("Shutdown complete.")
 
 
 async def main(port):
-    server = grpc.aio.server()
+    global MAX_MSG_SIZE
+    # server = grpc.aio.server()
+    server = grpc.aio.server(
+        options=[
+            ("grpc.max_receive_message_length", MAX_MSG_SIZE),
+            ("grpc.max_send_message_length", MAX_MSG_SIZE),
+        ]
+    )
     entity_pb2_grpc.add_OperatorServicer_to_server(OperatorServicer(), server)
     server.add_insecure_port("[::]:{}".format(port))
     await server.start()

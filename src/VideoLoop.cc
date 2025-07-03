@@ -181,7 +181,7 @@ void VideoLoop::execute_remote_operations(std::vector<VCL::Video> &readBuffer) {
 
     }
 
-    GRPCEntityClient client(grpc::CreateChannel(url.data(), grpc::InsecureChannelCredentials()));
+    GRPCEntityClient client(url);
     client.ProcessEntities(input_paths, output_paths, input_metadata, output_metadata);
 
 

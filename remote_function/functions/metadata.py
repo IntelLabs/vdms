@@ -72,6 +72,7 @@ def run(entity, options):
 
                     if frameNum == 3:
                         break
+        response = {"opFile": "", "metadata": metadata}
     else:
         tdict = {}
 
@@ -82,7 +83,7 @@ def run(entity, options):
             faces = facedetectbbox(img)
             if len(faces) > 0:
                 face = faces[0]
-                tdict = {
+                metadata = {
                     "x": int(face[0]),
                     "y": int(face[1]),
                     "height": int(face[2]),
@@ -96,7 +97,7 @@ def run(entity, options):
                 face = faces[0]
                 # We use placeholder values here as an example to showcase
                 # different values for car.
-                tdict = {
+                metadata = {
                     "x": int(face[0]) + 3,
                     "y": int(face[1]) + 5,
                     "height": int(face[2]) + 10,
@@ -105,7 +106,7 @@ def run(entity, options):
                     "object_det": {"color": "red"},
                 }
 
-    response = {"opFile": "", "metadata": tdict}
+        response = {"opFile": "", "metadata": tdict}
     print(response)
 
     return entity, response

@@ -14,7 +14,7 @@
 
 class GRPCEntityClient {
  public:
-  explicit GRPCEntityClient(std::shared_ptr<grpc::Channel> channel);
+  explicit GRPCEntityClient(std::string url);
 
   void ProcessEntities(const std::map<std::string, std::string>& input_paths,
                        const std::map<std::string, std::string>& output_paths,

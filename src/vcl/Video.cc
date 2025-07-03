@@ -1057,7 +1057,7 @@ void Video::SyncRemoteOperation::operator()(Video *video, cv::Mat &frame,
 
       std::map<std::string, std::string> output_metadata;
 
-      GRPCEntityClient client(grpc::CreateChannel(_url.data(), grpc::InsecureChannelCredentials()));
+      GRPCEntityClient client(_url);
       client.ProcessEntities(input_paths, output_paths, input_metadata, output_metadata);
 
       Json::CharReaderBuilder metabuilder;

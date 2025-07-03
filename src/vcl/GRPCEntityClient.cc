@@ -6,12 +6,20 @@
 #include <jsoncpp/json/value.h>
 #include <jsoncpp/json/writer.h>
 
+#include <grpcpp/channel.h>
+#include <grpcpp/create_channel.h>
+#include <grpcpp/client_context.h>
+#include <grpcpp/support/channel_arguments.h>
+
 using grpc::Channel;
 using grpc::ClientAsyncResponseReader;
 using grpc::ClientContext;
 using grpc::Status;
+using grpc::ChannelArguments;
 using entity::Entity;
 using entity::Operator;
+
+int MAX_SIZE_BYTES = 500*1024*1024;
 
 struct GRPCEntityClient::AsyncCall {
     Entity response;
@@ -22,11 +30,16 @@ struct GRPCEntityClient::AsyncCall {
     GRPCEntityClient* parent;
 };
 
-GRPCEntityClient::GRPCEntityClient(std::shared_ptr<Channel> channel)
-    : stub_(Operator::NewStub(channel)) {
+GRPCEntityClient::GRPCEntityClient(std::string url) {
     unsigned int concurrency = std::thread::hardware_concurrency();
     if (concurrency == 0) concurrency = 8;
     max_concurrent_tasks_ = std::min(64u, concurrency * 2);
+
+    grpc::ChannelArguments args;
+    args.SetMaxReceiveMessageSize(MAX_SIZE_BYTES);
+    args.SetMaxSendMessageSize(MAX_SIZE_BYTES);
+    // args.SetInt(GRPC_ARG_ENABLE_HTTP_PROXY, 0);
+    stub_ = Operator::NewStub(grpc::CreateCustomChannel(url.data(), grpc::InsecureChannelCredentials(), args));
 }
 
 void GRPCEntityClient::ProcessEntities(const std::map<std::string, std::string>& input_paths,
@@ -71,6 +84,9 @@ void GRPCEntityClient::SendRequest(const std::string& entity_id, const std::stri
     auto it = input_metadata_->find(entity_id);
     std::string json = (it != input_metadata_->end()) ? it->second : "{}";
     request.set_options(json);
+
+    // Set timeout
+    // call->context.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(30));
 
     call->reader = stub_->AsyncOperate(&call->context, request, &cq_);
     call->reader->Finish(&call->response, &call->status, (void*)call);

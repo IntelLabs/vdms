@@ -201,7 +201,7 @@ void ImageLoop::execute_remote_operations(
       output_paths[imageId] = filePath;
       input_metadata[imageId] = output;
     }
-    GRPCEntityClient client(grpc::CreateChannel(url.data(), grpc::InsecureChannelCredentials()));
+    GRPCEntityClient client(url);
     client.ProcessEntities(input_paths, output_paths, input_metadata, output_metadata);
 
     for (VCL::Image *img : readBuffer) {

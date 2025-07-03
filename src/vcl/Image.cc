@@ -405,7 +405,7 @@ void Image::SyncRemoteOperation::operator()(Image *img) {
         output_paths[imageId] = filePath;
         input_metadata[imageId] = output;
 
-        GRPCEntityClient client(grpc::CreateChannel(_url.data(), grpc::InsecureChannelCredentials()));
+        GRPCEntityClient client(_url);
         client.ProcessEntities(input_paths, output_paths, input_metadata, output_metadata);
 
         Json::CharReaderBuilder metabuilder;
