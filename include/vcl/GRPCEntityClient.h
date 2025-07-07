@@ -11,7 +11,6 @@
 #include <thread>
 
 #include "Exception.h"
-
 #include "entity.grpc.pb.h"
 
 class GRPCEntityClient {
@@ -43,7 +42,7 @@ class GRPCEntityClient {
   const std::map<std::string, std::string>* output_paths_;
   const std::map<std::string, std::string>* input_metadata_;
   std::map<std::string, std::string>* output_metadata_;
-  bool *success_;
+  bool* success_;
 
   std::mutex mutex_;
   std::condition_variable cond_;

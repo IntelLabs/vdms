@@ -1,6 +1,6 @@
 import cv2
-import os
 import numpy as np
+
 
 def run(entity, options):
     image_array = np.frombuffer(entity, dtype=np.uint8)

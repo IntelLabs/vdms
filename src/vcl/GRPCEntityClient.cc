@@ -76,7 +76,7 @@ void GRPCEntityClient::ProcessEntities(const std::map<std::string, std::string>&
 }
 
 void GRPCEntityClient::SendRequest(const std::string& entity_id, const std::string& input_path) {
-    
+
     InitStub();
     auto* call = new AsyncCall;
     call->entity_id = entity_id;
@@ -138,7 +138,7 @@ bool GRPCEntityClient::WriteFile(const std::string& path, const std::string& dat
     if (!file){
         *success_ = false;
         return false;
-    } 
+    }
     file.write(data.data(), data.size());
     return file.good();
 }
