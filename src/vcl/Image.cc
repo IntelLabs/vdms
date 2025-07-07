@@ -404,9 +404,14 @@ void Image::SyncRemoteOperation::operator()(Image *img) {
         input_paths[imageId] = filePath;
         output_paths[imageId] = filePath;
         input_metadata[imageId] = output;
-
+        bool success = true;
         GRPCEntityClient client(_url);
-        client.ProcessEntities(input_paths, output_paths, input_metadata, output_metadata);
+        client.ProcessEntities(input_paths, output_paths, input_metadata, output_metadata, success);
+
+        if (!success){
+          throw VCLException(ObjectEmpty,
+                              "Remote Server Error: RPC failed or connection error.");
+        }
 
         Json::CharReaderBuilder metabuilder;
         for (const auto& [id, metadata] : output_metadata) {

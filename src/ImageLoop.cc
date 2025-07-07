@@ -155,6 +155,7 @@ void ImageLoop::execute_remote_operations(
     std::map<std::string, std::string> output_paths;
     std::map<std::string, std::string> input_metadata;
     std::map<std::string, std::string> output_metadata;
+    bool success = true;
 
     std::string url;
 
@@ -200,9 +201,13 @@ void ImageLoop::execute_remote_operations(
       input_paths[imageId] = filePath;
       output_paths[imageId] = filePath;
       input_metadata[imageId] = output;
-    }
+    }    
     GRPCEntityClient client(url);
-    client.ProcessEntities(input_paths, output_paths, input_metadata, output_metadata);
+    client.ProcessEntities(input_paths, output_paths, input_metadata, output_metadata, success);
+    if (!success){
+      throw VCLException(ObjectEmpty,
+                           "Remote Server Error: RPC failed or connection error with url: " + url);
+    }
 
     for (VCL::Image *img : readBuffer) {
       std::string imageId = img->get_image_id().data();

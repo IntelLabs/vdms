@@ -10,6 +10,8 @@
 #include <string>
 #include <thread>
 
+#include "Exception.h"
+
 #include "entity.grpc.pb.h"
 
 class GRPCEntityClient {
@@ -19,11 +21,13 @@ class GRPCEntityClient {
   void ProcessEntities(const std::map<std::string, std::string>& input_paths,
                        const std::map<std::string, std::string>& output_paths,
                        const std::map<std::string, std::string>& input_metadata,
-                       std::map<std::string, std::string>& output_metadata);
+                       std::map<std::string, std::string>& output_metadata,
+                       bool& success);
 
  private:
   struct AsyncCall;
 
+  void InitStub();
   void SendRequest(const std::string& entity_id, const std::string& input_path);
   bool ReadFile(const std::string& path, std::string& out);
   bool WriteFile(const std::string& path, const std::string& data);
@@ -31,6 +35,7 @@ class GRPCEntityClient {
   void HandleRpcs();
 
   std::unique_ptr<entity::Operator::Stub> stub_;
+  std::string url_;
   grpc::CompletionQueue cq_;
   std::thread worker_;
   bool worker_started_ = false;
@@ -38,6 +43,7 @@ class GRPCEntityClient {
   const std::map<std::string, std::string>* output_paths_;
   const std::map<std::string, std::string>* input_metadata_;
   std::map<std::string, std::string>* output_metadata_;
+  bool *success_;
 
   std::mutex mutex_;
   std::condition_variable cond_;

@@ -7,7 +7,7 @@ import numpy as np
 currentDir = os.path.realpath(os.path.dirname(__file__))
 
 haarcascade_frontalface_default_path = os.path.join(
-    currentDir, "../../resources/haarcascade_frontalface_default.xml"
+    currentDir, "../../../resources/haarcascade_frontalface_default.xml"
 )
 
 if not os.path.exists(haarcascade_frontalface_default_path):

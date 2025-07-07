@@ -142,6 +142,7 @@ void VideoLoop::execute_remote_operations(std::vector<VCL::Video> &readBuffer) {
     std::map<std::string, std::string> output_paths;
     std::map<std::string, std::string> input_metadata;
     std::map<std::string, std::string> output_metadata;
+    bool success = true;
 
     std::string url;
 
@@ -182,7 +183,12 @@ void VideoLoop::execute_remote_operations(std::vector<VCL::Video> &readBuffer) {
     }
 
     GRPCEntityClient client(url);
-    client.ProcessEntities(input_paths, output_paths, input_metadata, output_metadata);
+    client.ProcessEntities(input_paths, output_paths, input_metadata, output_metadata, success);
+
+    if (!success){
+      throw VCLException(ObjectEmpty,
+                           "Remote Server Error: RPC failed or connection error.");
+    }
 
 
     for (VCL::Video video : readBuffer) {

@@ -14,9 +14,13 @@ project(tests
 find_package( OpenCV REQUIRED )
 find_package( Threads REQUIRED )
 find_package(AWSSDK REQUIRED COMPONENTS core s3)
-find_package(gRPC CONFIG REQUIRED)
-find_package(absl CONFIG REQUIRED)
+# find_package(gRPC CONFIG REQUIRED)
+# find_package(absl CONFIG REQUIRED)
 find_package(GTest REQUIRED)
+
+# set(_PROTOBUF_PROTOC $<TARGET_FILE:protobuf::protoc>)
+# set(_GRPC_GRPCPP gRPC::grpc++)
+# set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
 
 if(USE_K8S)
     add_definitions("-D HAS_KUBERNETES_CLIENT")
@@ -96,11 +100,11 @@ target_link_libraries(unit_tests
     ${OpenCV_LIBS}
     ${AWSSDK_LINK_LIBRARIES}
     neo4j-client
-    ${Protobuf_LIBRARIES}
-    ${_REFLECTION}
-    ${_GRPC_GRPCPP}
-    ${_PROTOBUF_LIBPROTOBUF}
-    gRPC::grpc++
+    # ${Protobuf_LIBRARIES}
+    # ${_REFLECTION}
+    # ${_GRPC_GRPCPP}
+    # ${_PROTOBUF_LIBPROTOBUF}
+    # gRPC::grpc++
     GTest::gtest
     GTest::gtest_main
 )

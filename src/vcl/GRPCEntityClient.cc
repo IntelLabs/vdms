@@ -30,25 +30,34 @@ struct GRPCEntityClient::AsyncCall {
     GRPCEntityClient* parent;
 };
 
-GRPCEntityClient::GRPCEntityClient(std::string url) {
+GRPCEntityClient::GRPCEntityClient(std::string url)
+    : url_(std::move(url)) {
     unsigned int concurrency = std::thread::hardware_concurrency();
     if (concurrency == 0) concurrency = 8;
     max_concurrent_tasks_ = std::min(64u, concurrency * 2);
+}
 
-    grpc::ChannelArguments args;
-    args.SetMaxReceiveMessageSize(MAX_SIZE_BYTES);
-    args.SetMaxSendMessageSize(MAX_SIZE_BYTES);
-    // args.SetInt(GRPC_ARG_ENABLE_HTTP_PROXY, 0);
-    stub_ = Operator::NewStub(grpc::CreateCustomChannel(url.data(), grpc::InsecureChannelCredentials(), args));
+void GRPCEntityClient::InitStub() {
+    if (!stub_) {
+        grpc::ChannelArguments args;
+        args.SetMaxReceiveMessageSize(MAX_SIZE_BYTES);
+        args.SetMaxSendMessageSize(MAX_SIZE_BYTES);
+        stub_ = Operator::NewStub(
+            grpc::CreateCustomChannel(url_, grpc::InsecureChannelCredentials(), args)
+        );
+        std::cerr << "Stub initialized for URL: " << url_ << "\n";
+    }
 }
 
 void GRPCEntityClient::ProcessEntities(const std::map<std::string, std::string>& input_paths,
                                        const std::map<std::string, std::string>& output_paths,
                                        const std::map<std::string, std::string>& input_metadata,
-                                       std::map<std::string, std::string>& output_metadata) {
+                                       std::map<std::string, std::string>& output_metadata,
+                                       bool& success) {
     output_metadata_ = &output_metadata;
     output_paths_ = &output_paths;
     input_metadata_ = &input_metadata;
+    success_ = &success;
 
     for (const auto& [entity_id, input_path] : input_paths) {
         WaitForSlot();
@@ -67,6 +76,8 @@ void GRPCEntityClient::ProcessEntities(const std::map<std::string, std::string>&
 }
 
 void GRPCEntityClient::SendRequest(const std::string& entity_id, const std::string& input_path) {
+    
+    InitStub();
     auto* call = new AsyncCall;
     call->entity_id = entity_id;
     call->parent = this;
@@ -75,6 +86,7 @@ void GRPCEntityClient::SendRequest(const std::string& entity_id, const std::stri
     std::string entity_data;
     if (!ReadFile(input_path, entity_data)) {
         std::cerr << "Failed to read " << input_path << "\n";
+        *success_ = false;
         delete call;
         return;
     }
@@ -106,6 +118,7 @@ bool GRPCEntityClient::ReadFile(const std::string& path, std::string& out) {
     file.seekg(0, std::ios::end);
     size_t size = file.tellg();
     if (size == 0) {
+        *success_ = false;
         std::cerr << "File is empty: " << path << "\n";
         return false;
     }
@@ -113,6 +126,7 @@ bool GRPCEntityClient::ReadFile(const std::string& path, std::string& out) {
     out.resize(size);
     file.read(&out[0], size);
     if (!file) {
+        *success_ = false;
         std::cerr << "Failed to read full file: " << path << "\n";
         return false;
     }
@@ -121,7 +135,10 @@ bool GRPCEntityClient::ReadFile(const std::string& path, std::string& out) {
 
 bool GRPCEntityClient::WriteFile(const std::string& path, const std::string& data) {
     std::ofstream file(path, std::ios::binary);
-    if (!file) return false;
+    if (!file){
+        *success_ = false;
+        return false;
+    } 
     file.write(data.data(), data.size());
     return file.good();
 }
@@ -146,13 +163,15 @@ void GRPCEntityClient::HandleRpcs() {
 
             std::string output_path = output_paths_->at(call->entity_id);
             if (!WriteFile(output_path, out_data)) {
+                *success_ = false;
                 std::cerr << "Failed to write entity: " << output_path << "\n";
             }
 
             (*output_metadata_)[call->entity_id] = out_json;
         } else {
+            *success_ = false;
             std::cerr << "RPC failed or connection error for: " << call->entity_id
-                      << " - status: " << call->status.error_message() << "\n";
+                      << " - status: " << call->status.error_message() << " " << int(*success_) << "\n";
         }
 
         {

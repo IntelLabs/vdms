@@ -1056,9 +1056,14 @@ void Video::SyncRemoteOperation::operator()(Video *video, cv::Mat &frame,
       };
 
       std::map<std::string, std::string> output_metadata;
+      bool success = true;
 
       GRPCEntityClient client(_url);
-      client.ProcessEntities(input_paths, output_paths, input_metadata, output_metadata);
+      client.ProcessEntities(input_paths, output_paths, input_metadata, output_metadata, success);
+      if (!success){
+        throw VCLException(ObjectEmpty,
+                            "Remote Server Error: RPC failed or connection error.");
+      }
 
       Json::CharReaderBuilder metabuilder;
       for (const auto& [id, metadata] : output_metadata) {
