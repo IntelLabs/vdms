@@ -466,6 +466,10 @@ void Image::UserOperation::operator()(Image *img) {
         zmq::context_t context(1);
         zmq::socket_t socket(context, zmq::socket_type::req);
 
+        int timeout_ms = 30000;
+        socket.setsockopt(ZMQ_RCVTIMEO, &timeout_ms, sizeof(timeout_ms));
+        socket.setsockopt(ZMQ_SNDTIMEO, &timeout_ms, sizeof(timeout_ms));
+
         std::string port = _options["port"].asString();
         std::string address = "tcp://127.0.0.1:" + port;
 
@@ -503,7 +507,10 @@ void Image::UserOperation::operator()(Image *img) {
         zmq::message_t ipfile(message_len);
         memcpy(ipfile.data(), message_to_send.data(), message_len);
 
-        socket.send(ipfile, 0);
+        // socket.send(ipfile, 0);
+        if (!socket.send(ipfile, zmq::send_flags::none)) {
+            throw VCLException(ObjectEmpty, "Failed to send message to receiver — connection timeout or error.");
+        }
         std::string response;
         while (true) {
           zmq::message_t reply;
