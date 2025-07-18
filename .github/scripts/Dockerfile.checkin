@@ -215,6 +215,8 @@ ENV BUILD_COVERAGE="${BUILD_COVERAGE}"
 # COPY FILES
 COPY .github/scripts/run_coverage_cpp.sh /run_coverage_cpp.sh
 COPY .github/scripts/run_coverage_py.sh /run_coverage_py.sh
+COPY .github/scripts/kubeConfig.json /vdms/.github/scripts/kubeConfig.json
+COPY .github/scripts/singlenode_vdms_setup_script.sh /vdms/.github/scripts/singlenode_vdms_setup_script.sh
 COPY .git /vdms/.git
 COPY client /vdms/client
 COPY distributed /vdms/distributed

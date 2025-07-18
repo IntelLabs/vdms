@@ -34,10 +34,10 @@ remoteSetupFunction()
 remoteInstallFunction()
 {
    echo "Dependency Installations will now be done on the remote machine"
-   
+
    sudo apt-get update
    sudo apt-get install ca-certificates curl jq
-   
+
    json_data=`cat installConfig.json`
 
    ##install containerd
@@ -55,7 +55,7 @@ remoteInstallFunction()
    sudo systemctl enable --now containerd
 
    #install docker engine
-   # Add Docker's official GPG key:   
+   # Add Docker's official GPG key:
    sudo install -m 0755 -d /etc/apt/keyrings
    sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
    sudo chmod a+r /etc/apt/keyrings/docker.asc
@@ -77,18 +77,18 @@ remoteInstallFunction()
    DOWNLOAD_DIR=$(echo $json_data | jq -r ".DOWNLOAD_DIR")
    CRICTL_VERSION=$(echo $json_data | jq -r ".CRICTL_VERSION")
    RELEASE_VERSION=$(echo $json_data | jq -r ".RELEASE_VERSION")
-   
+
    sudo mkdir -p "$DEST"
-   curl -L "https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGINS_VERSION}/cni-plugins-linux-${ARCH}-${CNI_PLUGINS_VERSION}.tgz" | sudo tar -C "$DEST" -xz   
-   
-   sudo mkdir -p "$DOWNLOAD_DIR"   
+   curl -L "https://github.com/containernetworking/plugins/releases/download/${CNI_PLUGINS_VERSION}/cni-plugins-linux-${ARCH}-${CNI_PLUGINS_VERSION}.tgz" | sudo tar -C "$DEST" -xz
+
+   sudo mkdir -p "$DOWNLOAD_DIR"
    curl -L "https://github.com/kubernetes-sigs/cri-tools/releases/download/${CRICTL_VERSION}/crictl-${CRICTL_VERSION}-linux-${ARCH}.tar.gz" | sudo tar -C $DOWNLOAD_DIR -xz
-   
+
    RELEASE="$(curl -sSL https://dl.k8s.io/release/stable.txt)"
    CDIR=$(pwd)
    cd $DOWNLOAD_DIR
    sudo curl -L --remote-name-all https://dl.k8s.io/release/${RELEASE}/bin/linux/${ARCH}/{kubeadm,kubelet}
-   sudo chmod +x {kubeadm,kubelet}   
+   sudo chmod +x {kubeadm,kubelet}
    curl -sSL "https://raw.githubusercontent.com/kubernetes/release/${RELEASE_VERSION}/cmd/krel/templates/latest/kubelet/kubelet.service" | sed "s:/usr/bin:${DOWNLOAD_DIR}:g" | sudo tee /usr/lib/systemd/system/kubelet.service
    sudo mkdir -p /usr/lib/systemd/system/kubelet.service.d
    curl -sSL "https://raw.githubusercontent.com/kubernetes/release/${RELEASE_VERSION}/cmd/krel/templates/latest/kubeadm/10-kubeadm.conf" | sed "s:/usr/bin:${DOWNLOAD_DIR}:g" | sudo tee /usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf
@@ -100,10 +100,10 @@ remoteInstallFunction()
 controlplaneInstallFunction()
 {
    echo "Dependency Installation will now be done on the VDMS Control Plane (primary) node"
-   
+
    sudo apt-get update
    sudo apt-get install ca-certificates curl jq
-   
+
    json_data=`cat installConfig.json`
 
    ##install containerd
@@ -165,7 +165,7 @@ controlplaneInstallFunction()
 
    #Install Cillium
    cd $CDIR
-   CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)   
+   CILIUM_CLI_VERSION=$(curl -s https://raw.githubusercontent.com/cilium/cilium-cli/main/stable.txt)
    if [ "$(uname -m)" = "aarch64" ]; then CLI_ARCH=arm64; fi
    curl -L --fail --remote-name-all https://github.com/cilium/cilium-cli/releases/download/${CILIUM_CLI_VERSION}/cilium-linux-${CLI_ARCH}.tar.gz{,.sha256sum}
    sha256sum --check cilium-linux-${CLI_ARCH}.tar.gz.sha256sum
