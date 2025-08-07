@@ -47,6 +47,7 @@
 #include "pmgd.h"
 #include "util.h"
 #include "PmgdFilter.h"
+#include "OpsIOCoordinator.h"
 
 #include "APISchema.h"
 #include <jsoncpp/json/writer.h>
@@ -276,6 +277,16 @@ void QueryHandlerPMGD::process_query(
     Json::Value response;
     response.append(exception_error);
     proto_res.set_json(fastWriter.write(response));
+
+    if (VDMSConfig::instance()->get_aws_flag()) {
+      VCL::RemoteConnection *connection = get_existing_connection();
+      for (const std::string image : images_log) {
+        connection->Remove_Object(image);
+      }
+      for (const std::string video : videos_log) {
+        connection->Remove_Object(video);
+      }
+    }
   };
 
   try {
