@@ -511,17 +511,6 @@ TEST_F(RemoteConnectionTest, ImageTransactionRollback) {
     std::array<char, 8> buffer;
     std::string result;
 
-    std::string string_query_simple_add_image("[ \
-       { \
-          \"AddImage\": { \
-              \"properties\": { \
-                  \"name\": \"SampleImage\" \
-              }, \
-              \"format\": \"png\" \
-          } \
-      } \
-    ]");
-
     std::string string_query_image_rollback("[");
     string_query_image_rollback += " \
       { \
@@ -557,7 +546,7 @@ TEST_F(RemoteConnectionTest, ImageTransactionRollback) {
                                                 // been initialized
 
     VDMS::protobufs::queryMessage proto_query;
-    proto_query.set_json(string_query_simple_add_image);
+    proto_query.set_json(string_query_image_rollback);
 
     std::string image;
     std::ifstream file("test_images/brain.png",
@@ -570,9 +559,7 @@ TEST_F(RemoteConnectionTest, ImageTransactionRollback) {
       std::cout << "error" << std::endl;
 
     proto_query.add_blobs(image);
-
-    VDMS::protobufs::queryMessage response;
-    query_handler.process_query(proto_query, response);
+    proto_query.add_blobs(image);
 
     // Get initial number of objects stored in S3
     std::unique_ptr<FILE, decltype(&pclose)> pipe1(popen(s3_num_objects_cmd, "r"), pclose);
@@ -583,12 +570,8 @@ TEST_F(RemoteConnectionTest, ImageTransactionRollback) {
       result += buffer.data();
     }
     s3_num_objects = stoi(result);
-    result.clear();
 
-    proto_query.clear_blobs();
-    proto_query.set_json(string_query_image_rollback);
-    proto_query.add_blobs(image);
-    proto_query.add_blobs(image);
+    VDMS::protobufs::queryMessage response;
     query_handler.process_query(proto_query, response);
 
     Json::Reader json_reader;
@@ -636,6 +619,7 @@ TEST_F(RemoteConnectionTest, ImageTransactionRollback) {
     EXPECT_EQ(json_response[1]["FindImage"]["info"], "No entities found");
 
     // Make sure number of objects in S3 is still the same
+    result.clear();
     std::unique_ptr<FILE, decltype(&pclose)> pipe2(popen(s3_num_objects_cmd, "r"), pclose);
     if (!pipe2) {
       throw std::runtime_error("popen() failed!");
@@ -648,5 +632,60 @@ TEST_F(RemoteConnectionTest, ImageTransactionRollback) {
 
   } catch (...) {
     printErrorMessage("ImageTransactionRollback");
+  }
+}
+
+TEST_F(RemoteConnectionTest, FindImageEmptyDB) {
+  try {
+    VDMS::Server VDMS_server("unit_tests/config-aws-tests.json", "", "", "");
+
+    QueryHandlerPMGD query_handler;
+    query_handler.reset_autodelete_init_flag(); // set flag to show autodelete queue has
+                                                // been initialized
+
+    VDMS::protobufs::queryMessage proto_query;
+    VDMS::protobufs::queryMessage response;
+
+    Json::Reader json_reader;
+    Json::Value json_response;
+
+    std::string string_query_image_lookup("[");
+    string_query_image_lookup += " \
+          { \
+              \"FindImage\": { \
+                  \"results\": { \
+                      \"list\": [\"name\"] \
+                  }, \
+                  \"constraints\": { \
+                      \"name\": [ \"==\", \"NonExistentImage1\" ] \
+                  } \
+              } \
+          }, \
+          { \
+              \"FindImage\": { \
+                  \"results\": { \
+                      \"list\": [\"name\"] \
+                  }, \
+                  \"constraints\": { \
+                      \"name\": [ \"==\", \"NonExistentImage2\" ] \
+                  } \
+              } \
+          } \
+      ";
+    string_query_image_lookup += "]";
+
+    proto_query.clear_blobs();
+    proto_query.set_json(string_query_image_lookup);
+
+    query_handler.process_query(proto_query, response);
+    json_reader.parse(response.json(), json_response);
+
+    EXPECT_EQ(json_response[0]["FindImage"]["status"].asString(), "0");
+    EXPECT_EQ(json_response[0]["FindImage"]["info"], "No entities found");
+    EXPECT_EQ(json_response[1]["FindImage"]["status"].asString(), "0");
+    EXPECT_EQ(json_response[1]["FindImage"]["info"], "No entities found");
+
+  } catch (...) {
+    printErrorMessage("FindImageEmptyDB");
   }
 }
