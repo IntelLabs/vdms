@@ -511,6 +511,17 @@ TEST_F(RemoteConnectionTest, ImageTransactionRollback) {
     std::array<char, 8> buffer;
     std::string result;
 
+    std::string string_query_simple_add_image("[ \
+       { \
+          \"AddImage\": { \
+              \"properties\": { \
+                  \"name\": \"SampleImage\" \
+              }, \
+              \"format\": \"png\" \
+          } \
+      } \
+    ]");
+
     std::string string_query_image_rollback("[");
     string_query_image_rollback += " \
       { \
@@ -546,7 +557,7 @@ TEST_F(RemoteConnectionTest, ImageTransactionRollback) {
                                                 // been initialized
 
     VDMS::protobufs::queryMessage proto_query;
-    proto_query.set_json(string_query_image_rollback);
+    proto_query.set_json(string_query_simple_add_image);
 
     std::string image;
     std::ifstream file("test_images/brain.png",
@@ -559,7 +570,9 @@ TEST_F(RemoteConnectionTest, ImageTransactionRollback) {
       std::cout << "error" << std::endl;
 
     proto_query.add_blobs(image);
-    proto_query.add_blobs(image);
+
+    VDMS::protobufs::queryMessage response;
+    query_handler.process_query(proto_query, response);
 
     // Get initial number of objects stored in S3
     std::unique_ptr<FILE, decltype(&pclose)> pipe1(popen(s3_num_objects_cmd, "r"), pclose);
@@ -570,8 +583,12 @@ TEST_F(RemoteConnectionTest, ImageTransactionRollback) {
       result += buffer.data();
     }
     s3_num_objects = stoi(result);
+    result.clear();
 
-    VDMS::protobufs::queryMessage response;
+    proto_query.clear_blobs();
+    proto_query.set_json(string_query_image_rollback);
+    proto_query.add_blobs(image);
+    proto_query.add_blobs(image);
     query_handler.process_query(proto_query, response);
 
     Json::Reader json_reader;
@@ -619,7 +636,6 @@ TEST_F(RemoteConnectionTest, ImageTransactionRollback) {
     EXPECT_EQ(json_response[1]["FindImage"]["info"], "No entities found");
 
     // Make sure number of objects in S3 is still the same
-    result.clear();
     std::unique_ptr<FILE, decltype(&pclose)> pipe2(popen(s3_num_objects_cmd, "r"), pclose);
     if (!pipe2) {
       throw std::runtime_error("popen() failed!");
