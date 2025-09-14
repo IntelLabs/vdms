@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package entity;
+
+service Operator {
+  rpc Operate (Entity) returns (Entity);
+}
+
+message Entity {
+  bytes entity = 1;
+  bytes options = 2;
+}

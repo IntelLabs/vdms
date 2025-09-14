@@ -1,7 +1,7 @@
 import cv2
-import uuid
-import json
 import os
+import imageio.v3 as iio
+import numpy as np
 
 # Get the real directory where this Python file is
 currentDir = os.path.realpath(os.path.dirname(__file__))
@@ -29,18 +29,11 @@ def facedetectbbox(frame):
     return faces
 
 
-def run(ipfilename, format, options, tmp_dir_path=""):
-    # Extract metadata for video files
+def run(entity, options):
     if options["media_type"] == "video":
-        vs = cv2.VideoCapture(ipfilename)
         frameNum = 1
         metadata = {}
-        while True:
-            (grabbed, frame) = vs.read()
-            if not grabbed:
-                print("[INFO] no frame read from stream - exiting")
-                break
-
+        for frame in iio.imiter(entity, format_hint=".mp4"):
             if options["otype"] == "face":
                 faces = facedetectbbox(frame)
                 if len(faces) > 0:
@@ -63,7 +56,7 @@ def run(ipfilename, format, options, tmp_dir_path=""):
                 faces = facedetectbbox(frame)
                 if len(faces) > 0:
                     face = faces[0]
-                    # We use placeholder values here as an example to showcase
+                    # We use dummy values here as an example to showcase
                     # different values for car.
                     tdict = {
                         "x": int(face[0]) + 3,
@@ -79,27 +72,18 @@ def run(ipfilename, format, options, tmp_dir_path=""):
 
                     if frameNum == 3:
                         break
-
-        response = {"opFile": ipfilename, "metadata": metadata}
-
-        jsonfile = os.path.join(tmp_dir_path, "jsonfile" + uuid.uuid1().hex + ".json")
-        with open(jsonfile, "w") as f:
-            json.dump(response, f, indent=4)
-        return ipfilename, jsonfile
-    # Extract metadata for image files
+        response = {"opFile": "", "metadata": metadata}
     else:
         tdict = {}
-        if not os.path.exists(ipfilename):
-            raise Exception(
-                f"Metadata error: File ipfilename {ipfilename} does not exist"
-            )
 
-        img = cv2.imread(ipfilename)
+        image_array = np.frombuffer(entity, dtype=np.uint8)
+
+        img = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
         if options["otype"] == "face":
             faces = facedetectbbox(img)
             if len(faces) > 0:
                 face = faces[0]
-                tdict = {
+                metadata = {
                     "x": int(face[0]),
                     "y": int(face[1]),
                     "height": int(face[2]),
@@ -113,7 +97,7 @@ def run(ipfilename, format, options, tmp_dir_path=""):
                 face = faces[0]
                 # We use placeholder values here as an example to showcase
                 # different values for car.
-                tdict = {
+                metadata = {
                     "x": int(face[0]) + 3,
                     "y": int(face[1]) + 5,
                     "height": int(face[2]) + 10,
@@ -122,7 +106,7 @@ def run(ipfilename, format, options, tmp_dir_path=""):
                     "object_det": {"color": "red"},
                 }
 
-        response = {"opFile": ipfilename, "metadata": tdict}
+        response = {"opFile": "", "metadata": tdict}
+    print(response)
 
-        r = json.dumps(response)
-        return img, r
+    return entity, response

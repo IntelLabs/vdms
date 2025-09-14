@@ -32,6 +32,8 @@
 #pragma once
 
 #include <jsoncpp/json/reader.h>
+#include <jsoncpp/json/value.h>
+#include <jsoncpp/json/writer.h>
 
 #include <fstream>
 #include <list>
@@ -49,7 +51,6 @@
 #include "timers/TimerMap.h"
 #include "utils.h"
 #include "vcl/Image.h"
-#include "zip.h"
 
 namespace VCL {
 

@@ -30,7 +30,6 @@
  */
 
 #include "ImageLoop.h"
-#include <curl/curl.h>
 
 #include "VDMSConfig.h"
 
@@ -141,80 +140,6 @@ void ImageLoop::operationThread() noexcept {
   }
 }
 
-size_t writeCallback(char *ip, size_t size, size_t nmemb, void *op) {
-  ((std::string *)op)->append((char *)ip, size * nmemb);
-  return size * nmemb;
-}
-
-cv::Mat write_image(std::string readBuffer) {
-  std::vector<unsigned char> vectordata(readBuffer.begin(), readBuffer.end());
-  cv::Mat data_mat(vectordata, true);
-  cv::Mat decoded_mat(cv::imdecode(data_mat, 1));
-  return decoded_mat;
-}
-
-CURL *ImageLoop::get_easy_handle(VCL::Image *img, std::string &readBuffer) {
-  CURL *curl = NULL;
-  CURLcode res;
-  struct curl_slist *headers = NULL;
-  curl_mime *form = NULL;
-  curl_mimepart *field = NULL;
-
-  Json::Value rParams = img->get_remoteOp_params();
-  std::string url = rParams["url"].toStyledString().data();
-  url.erase(std::remove(url.begin(), url.end(), '\n'), url.end());
-  url = url.substr(1, url.size() - 2);
-  Json::Value options = rParams["options"];
-
-  curl = curl_easy_init();
-
-  if (curl) {
-    std::string imageId = img->get_image_id().data();
-    form = curl_mime_init(curl);
-
-    auto time_now = std::chrono::system_clock::now();
-    std::chrono::duration<double> utc_time = time_now.time_since_epoch();
-
-    VCL::Format img_format = img->get_image_format();
-    std::string format = VCL::format_to_string(img_format);
-
-    if (format == "" && options.isMember("format")) {
-      format = options["format"].toStyledString().data();
-      format.erase(std::remove(format.begin(), format.end(), '\n'),
-                   format.end());
-      format = format.substr(1, format.size() - 2);
-    } else {
-      format = "jpg";
-    }
-
-    std::string filePath = VDMS::VDMSConfig::instance()->get_path_tmp() +
-                           "/tempfile" + std::to_string(utc_time.count()) +
-                           "." + format;
-    cv::imwrite(filePath, img->get_cvmat(false, false));
-    _tempfiles.push_back(filePath);
-
-    field = curl_mime_addpart(form);
-    curl_mime_name(field, "imageData");
-    curl_mime_filedata(field, filePath.data());
-
-    field = curl_mime_addpart(form);
-    curl_mime_name(field, "jsonData");
-    curl_mime_data(field, options.toStyledString().data(),
-                   options.toStyledString().length());
-
-    // Post data
-    url = url + "?id=" + imageId;
-    curl_easy_setopt(curl, CURLOPT_URL, url.data());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-    curl_easy_setopt(curl, CURLOPT_MIMEPOST, form);
-
-    return curl;
-  }
-
-  return NULL;
-}
-
 void clear_temp_files(std::vector<std::string> tempfiles) {
   for (std::string fPath : tempfiles) {
     if (std::remove(fPath.data()) != 0) {
@@ -225,117 +150,71 @@ void clear_temp_files(std::vector<std::string> tempfiles) {
 
 void ImageLoop::execute_remote_operations(
     std::vector<VCL::Image *> &readBuffer) {
-  int flag = 0;
-  int start_index = 0;
-  int step = 10;
-  int end_index = readBuffer.size() > step ? step : readBuffer.size();
-  std::vector<std::string> responseBuffer(readBuffer.size());
-  int rindex = 0;
-  std::vector<std::string> redoBuffer;
-  std::vector<VCL::Image *> pendingImages;
   try {
-    while (start_index != readBuffer.size()) {
-      CURLM *multi_handle;
-      CURLMsg *msg = NULL;
-      CURL *eh = NULL;
-      CURLcode return_code;
-      int still_running = 0, i = 0, msgs_left = 0;
-      int http_status_code;
-      char *szUrl;
+    std::map<std::string, std::string> input_paths;
+    std::map<std::string, std::string> output_paths;
+    std::map<std::string, std::string> input_metadata;
+    std::map<std::string, std::string> output_metadata;
+    bool success = true;
 
-      multi_handle = curl_multi_init();
+    std::string url;
 
-      auto start = readBuffer.begin() + start_index;
-      auto end = readBuffer.begin() + end_index;
-
-      std::vector<VCL::Image *> tempBuffer(start, end);
-
-      for (VCL::Image *img : tempBuffer) {
-        CURL *curl = get_easy_handle(img, responseBuffer[rindex]);
-        rindex++;
-        curl_multi_add_handle(multi_handle, curl);
-      }
-
-      do {
-        CURLMcode mc = curl_multi_perform(multi_handle, &still_running);
-        if (still_running)
-          mc = curl_multi_wait(multi_handle, NULL, 0, 1000, NULL);
-
-        if (mc) {
-          break;
-        }
-      } while (still_running);
-
-      while ((msg = curl_multi_info_read(multi_handle, &msgs_left))) {
-        if (msg->msg == CURLMSG_DONE) {
-          eh = msg->easy_handle;
-
-          return_code = msg->data.result;
-
-          szUrl = NULL;
-          long rsize = 0;
-
-          curl_easy_getinfo(eh, CURLINFO_RESPONSE_CODE, &http_status_code);
-          curl_easy_getinfo(eh, CURLINFO_EFFECTIVE_URL, &szUrl);
-          curl_easy_getinfo(eh, CURLINFO_REQUEST_SIZE, &rsize);
-
-          if (http_status_code != 200) {
-            // Throw specific exceptions if error codes received as response.
-            if (http_status_code == 0) {
-              throw VCLException(ObjectEmpty, "Remote server is not running.");
-            }
-            if (http_status_code == 400) {
-              throw VCLException(ObjectEmpty,
-                                 "Invalid Request to the Remote Server.");
-            } else if (http_status_code == 404) {
-              throw VCLException(ObjectEmpty,
-                                 "Invalid URL Request. Please check the URL.");
-            } else if (http_status_code == 500) {
-              throw VCLException(ObjectEmpty,
-                                 "Exception occurred at the remote server. "
-                                 "Please check your query.");
-            } else if (http_status_code == 503) {
-              throw VCLException(ObjectEmpty, "Unable to reach remote server");
-            } else {
-              throw VCLException(ObjectEmpty, "Remote Server error.");
-            }
-          }
-
-          curl_multi_remove_handle(multi_handle, eh);
-          curl_easy_cleanup(eh);
-        } else {
-          fprintf(stderr, "error: after curl_multi_info_read(), CURLMsg=%d\n",
-                  msg->msg);
-        }
-      }
-
-      tempBuffer.clear();
-      start_index = end_index;
-      end_index = readBuffer.size() > (end_index + step) ? (end_index + step)
-                                                         : readBuffer.size();
-    }
-    rindex = -1;
     for (VCL::Image *img : readBuffer) {
-      rindex++;
-      if (std::find(redoBuffer.begin(), redoBuffer.end(),
-                    img->get_image_id().data()) != redoBuffer.end()) {
-        pendingImages.push_back(img);
-        continue;
+      auto time_now = std::chrono::system_clock::now();
+      std::chrono::duration<double> utc_time = time_now.time_since_epoch();
+
+      Json::Value rParams = img->get_remoteOp_params();
+      url = rParams["url"].toStyledString().data();
+      url.erase(std::remove(url.begin(), url.end(), '\n'), url.end());
+      url = url.substr(1, url.size() - 2);
+
+      Json::Value options = rParams["options"];
+      Json::StreamWriterBuilder builder;
+      std::string output = Json::writeString(builder, options);
+
+      VCL::Format img_format = img->get_image_format();
+      std::string format = VCL::format_to_string(img_format);
+
+      if (format == "" && options.isMember("format")) {
+        format = options["format"].toStyledString().data();
+        format.erase(std::remove(format.begin(), format.end(), '\n'),
+                    format.end());
+        format = format.substr(1, format.size() - 2);
+      } else {
+        format = "jpg";
       }
 
-      int rthresh = 0;
-      auto t_start = std::chrono::high_resolution_clock::now();
-      bool rflag = false;
-      while (responseBuffer[rindex].size() == 0) {
-        continue;
+      std::string filePath = VDMS::VDMSConfig::instance()->get_path_tmp() +
+                            "/tempfile" + std::to_string(utc_time.count()) +
+                            "." + format;
+      cv::imwrite(filePath, img->get_cvmat(false, false));
+      // _tempfiles.push_back(filePath);
+
+      int fd = open(filePath.c_str(), O_RDONLY);
+      if (fd != -1) {
+          fsync(fd);
+          close(fd);
       }
-      cv::Mat dmat = write_image(responseBuffer[rindex]);
+
+      std::string imageId = img->get_image_id().data();
+
+      input_paths[imageId] = filePath;
+      output_paths[imageId] = filePath;
+      input_metadata[imageId] = output;
+    }
+    GRPCEntityClient client(url);
+    client.ProcessEntities(input_paths, output_paths, input_metadata, output_metadata, success);
+    if (!success){
+      throw VCLException(ObjectEmpty,
+                           "Remote Server Error: RPC failed or connection error with url: " + url);
+    }
+
+    for (VCL::Image *img : readBuffer) {
+      std::string imageId = img->get_image_id().data();
+      cv::Mat dmat = cv::imread(output_paths[imageId], cv::IMREAD_ANYCOLOR);
       if (dmat.rows == 0 || dmat.cols == 0) {
         throw VCLException(ObjectEmpty,
                            "Invalid response from the remote server.");
-      }
-      if (dmat.empty()) {
-        pendingImages.push_back(img);
       }
 
       img->shallow_copy_cv(dmat);
@@ -346,14 +225,10 @@ void ImageLoop::execute_remote_operations(
       if (not result.second) {
         result.first->second = img;
       }
-      if (rindex == readBuffer.size() - 1 && pendingImages.size() == 0) {
-        _remote_running = false;
-      }
-
       enqueue(img);
     }
+    _remote_running = false;
     readBuffer.clear();
-    std::swap(readBuffer, pendingImages);
   } catch (VCL::Exception e) {
     VCL::Image *img = readBuffer[0];
     img->set_query_error_response(e.msg);

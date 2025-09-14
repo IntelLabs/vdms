@@ -74,6 +74,7 @@ function execute_commands() {
 
     echo 'Start remote server for test'
     cd remote_function_test
+    python3 -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. entity.proto
     python3 -m pip install -r  ../../remote_function/requirements.txt
     python3 udf_server.py 5010 /tmp/tests_output_dir > /tmp/tests_output_dir/tests_remote_screen.log 2> /tmp/tests_output_dir/tests_remote_log.log &
 

@@ -371,142 +371,70 @@ void Image::SyncRemoteOperation::operator()(Image *img) {
     } else {
       if (!img->_cv_img.empty()) {
 
-        std::string readBuffer;
+        std::map<std::string, std::string> input_paths;
+        std::map<std::string, std::string> output_paths;
+        std::map<std::string, std::string> input_metadata;
+        std::map<std::string, std::string> output_metadata;
 
-        CURL *curl = NULL;
+        auto time_now = std::chrono::system_clock::now();
+        std::chrono::duration<double> utc_time = time_now.time_since_epoch();
 
-        CURLcode res;
-        struct curl_slist *headers = NULL;
-        curl_mime *form = NULL;
-        curl_mimepart *field = NULL;
+        VCL::Format img_format = img->get_image_format();
+        std::string format = VCL::format_to_string(img_format);
 
-        curl = curl_easy_init();
+        if (format == "" && _options.isMember("format")) {
+          format = _options["format"].toStyledString().data();
+          format.erase(std::remove(format.begin(), format.end(), '\n'),
+                      format.end());
+          format = format.substr(1, format.size() - 2);
+        } else {
+          format = "jpg";
+        }
 
-        if (curl) {
-          auto time_now = std::chrono::system_clock::now();
-          std::chrono::duration<double> utc_time = time_now.time_since_epoch();
+        std::string filePath = VDMS::VDMSConfig::instance()->get_path_tmp() +
+                              "/tempfile" + std::to_string(utc_time.count()) +
+                              "." + format;
+        cv::imwrite(filePath, img->get_cvmat(false, false));
 
-          VCL::Format img_format = img->get_image_format();
-          std::string format = VCL::format_to_string(img_format);
+        std::string imageId = img->get_image_id().data();
 
-          if (format == "" && _options.isMember("format")) {
-            format = _options["format"].toStyledString().data();
-            format.erase(std::remove(format.begin(), format.end(), '\n'),
-                         format.end());
-            format = format.substr(1, format.size() - 2);
-          } else {
-            format = "jpg";
-          }
+        Json::StreamWriterBuilder builder;
+        std::string output = Json::writeString(builder, _options);
 
-          std::string filePath =
-              VDMS::VDMSConfig::instance()->get_path_tmp() + "/tempfile" +
-              std::to_string(utc_time.count()) + "." + format;
-          cv::imwrite(filePath, img->_cv_img);
+        input_paths[imageId] = filePath;
+        output_paths[imageId] = filePath;
+        input_metadata[imageId] = output;
+        bool success = true;
+        GRPCEntityClient client(_url);
+        client.ProcessEntities(input_paths, output_paths, input_metadata, output_metadata, success);
 
-          std::ofstream tsfile;
+        if (!success){
+          throw VCLException(ObjectEmpty,
+                              "Remote Server Error: RPC failed or connection error.");
+        }
 
-          auto opstart = std::chrono::system_clock::now();
+        Json::CharReaderBuilder metabuilder;
+        for (const auto& [id, metadata] : output_metadata) {
+            Json::Value root;
+            std::string errs;
+            std::istringstream iss(metadata);
 
-          form = curl_mime_init(curl);
-
-          field = curl_mime_addpart(form);
-          curl_mime_name(field, "imageData");
-          if (curl_mime_filedata(field, filePath.data()) != CURLE_OK) {
-            if (std::remove(filePath.data()) != 0) {
-            }
-            throw VCLException(ObjectEmpty,
-                               "Unable to create file for remoting");
-          }
-
-          field = curl_mime_addpart(form);
-          curl_mime_name(field, "jsonData");
-          if (curl_mime_data(field, _options.toStyledString().data(),
-                             _options.toStyledString().length()) != CURLE_OK) {
-            if (std::remove(filePath.data()) != 0) {
-            }
-            throw VCLException(ObjectEmpty, "Unable to create curl mime data");
-          }
-
-          // Post data
-          if (curl_easy_setopt(curl, CURLOPT_URL, _url.data()) != CURLE_OK) {
-            throw VCLException(UndefinedException, "CURL setup error with URL");
-          }
-          if (curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback) !=
-              CURLE_OK) {
-            throw VCLException(UndefinedException,
-                               "CURL setup error with callback");
-          }
-          if (curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer) !=
-              CURLE_OK) {
-            throw VCLException(UndefinedException,
-                               "CURL setup error with read buffer");
-          }
-          if (curl_easy_setopt(curl, CURLOPT_MIMEPOST, form) != CURLE_OK) {
-            throw VCLException(UndefinedException,
-                               "CURL setup error with form");
-          }
-
-          res = curl_easy_perform(curl);
-
-          int http_status_code;
-          curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_status_code);
-
-          curl_easy_cleanup(curl);
-          curl_mime_free(form);
-
-          if (http_status_code != 200) {
-            if (http_status_code == 0) {
-              throw VCLException(ObjectEmpty, "Remote server is not running.");
-            }
-            if (http_status_code == 400) {
-              throw VCLException(ObjectEmpty,
-                                 "Invalid Request to the Remote Server.");
-            } else if (http_status_code == 404) {
-              throw VCLException(ObjectEmpty,
-                                 "Invalid URL Request. Please check the URL.");
-            } else if (http_status_code == 500) {
-              throw VCLException(ObjectEmpty,
-                                 "Exception occurred at the remote server. "
-                                 "Please check your query.");
-            } else if (http_status_code == 503) {
-              throw VCLException(ObjectEmpty, "Unable to reach remote server");
+            if (Json::parseFromStream(metabuilder, iss, &root, &errs)) {
+                img->set_ingest_metadata(root["metadata"]);
             } else {
-              throw VCLException(ObjectEmpty, "Remote Server error.");
+                throw VCLException(ObjectEmpty, "Metdata object is empty");
             }
-          }
+        }
 
-          std::string delimiter = ":metadata:";
+        cv::Mat dmat = cv::imread(output_paths[imageId], cv::IMREAD_ANYCOLOR);
+        if (dmat.rows == 0 || dmat.cols == 0) {
+          throw VCLException(ObjectEmpty,
+                            "Invalid response from the remote server.");
+        }
 
-          size_t pos = 0;
-          std::string token;
-          std::string tmpBuffer = readBuffer;
-          if ((pos = tmpBuffer.find(delimiter)) != std::string::npos) {
-            readBuffer = tmpBuffer.substr(0, pos);
-            tmpBuffer.erase(0, pos + delimiter.length());
-            Json::Value message;
-            Json::Reader reader;
-            bool parsingSuccessful = reader.parse(tmpBuffer, message);
-            if (!parsingSuccessful) {
-              throw VCLException(ObjectEmpty, "Error parsing string.");
-            }
-            img->set_ingest_metadata(message["metadata"]);
-          }
-          // Decode the response
-          std::vector<unsigned char> vectordata(readBuffer.begin(),
-                                                readBuffer.end());
-          cv::Mat data_mat(vectordata, true);
+        img->shallow_copy_cv(dmat);
 
-          if (data_mat.empty()) {
-            throw VCLException(ObjectEmpty,
-                               "Empty response from remote server");
-          }
-
-          cv::Mat decoded_mat(cv::imdecode(data_mat, 1));
-
-          img->shallow_copy_cv(decoded_mat);
-
-          if (std::remove(filePath.data()) != 0) {
-          }
+        if (std::remove(filePath.data()) != 0) {
         }
 
       } else
@@ -537,6 +465,10 @@ void Image::UserOperation::operator()(Image *img) {
 
         zmq::context_t context(1);
         zmq::socket_t socket(context, zmq::socket_type::req);
+
+        int timeout_ms = 30000;
+        socket.setsockopt(ZMQ_RCVTIMEO, &timeout_ms, sizeof(timeout_ms));
+        socket.setsockopt(ZMQ_SNDTIMEO, &timeout_ms, sizeof(timeout_ms));
 
         std::string port = _options["port"].asString();
         std::string address = "tcp://127.0.0.1:" + port;
@@ -575,7 +507,10 @@ void Image::UserOperation::operator()(Image *img) {
         zmq::message_t ipfile(message_len);
         memcpy(ipfile.data(), message_to_send.data(), message_len);
 
-        socket.send(ipfile, 0);
+        // socket.send(ipfile, 0);
+        if (!socket.send(ipfile, zmq::send_flags::none)) {
+            throw VCLException(ObjectEmpty, "Failed to send message to receiver — connection timeout or error.");
+        }
         std::string response;
         while (true) {
           zmq::message_t reply;

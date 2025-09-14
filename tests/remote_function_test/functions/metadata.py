@@ -1,7 +1,7 @@
 import cv2
-import uuid
-import json
 import os
+import imageio.v3 as iio
+import numpy as np
 
 # Get the real directory where this Python file is
 currentDir = os.path.realpath(os.path.dirname(__file__))
@@ -12,7 +12,7 @@ haarcascade_frontalface_default_path = os.path.join(
 
 if not os.path.exists(haarcascade_frontalface_default_path):
     raise Exception(
-        f"{haarcascade_frontalface_default_path}: path is invalid in metadata for the remote function tests"
+        f"{haarcascade_frontalface_default_path}: path is invalid in metadata for the remote function"
     )
 
 face_cascade = cv2.CascadeClassifier(
@@ -29,17 +29,11 @@ def facedetectbbox(frame):
     return faces
 
 
-def run(ipfilename, format, options, tmp_dir_path):
+def run(entity, options):
     if options["media_type"] == "video":
-        vs = cv2.VideoCapture(ipfilename)
         frameNum = 1
         metadata = {}
-        while True:
-            (grabbed, frame) = vs.read()
-            if not grabbed:
-                print("[INFO] no frame read from stream - exiting")
-                break
-
+        for frame in iio.imiter(entity, format_hint=".mp4"):
             if options["otype"] == "face":
                 faces = facedetectbbox(frame)
                 if len(faces) > 0:
@@ -62,6 +56,8 @@ def run(ipfilename, format, options, tmp_dir_path):
                 faces = facedetectbbox(frame)
                 if len(faces) > 0:
                     face = faces[0]
+                    # We use dummy values here as an example to showcase
+                    # different values for car.
                     tdict = {
                         "x": int(face[0]) + 3,
                         "y": int(face[1]) + 5,
@@ -76,17 +72,12 @@ def run(ipfilename, format, options, tmp_dir_path):
 
                     if frameNum == 3:
                         break
-
-        response = {"opFile": ipfilename, "metadata": metadata}
-
-        jsonfile = os.path.join(tmp_dir_path, "jsonfile" + uuid.uuid1().hex + ".json")
-        with open(jsonfile, "w") as f:
-            json.dump(response, f, indent=4)
-        return ipfilename, jsonfile
-
     else:
         tdict = {}
-        img = cv2.imread(ipfilename)
+
+        image_array = np.frombuffer(entity, dtype=np.uint8)
+
+        img = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
         if options["otype"] == "face":
             faces = facedetectbbox(img)
             if len(faces) > 0:
@@ -103,6 +94,8 @@ def run(ipfilename, format, options, tmp_dir_path):
             faces = facedetectbbox(img)
             if len(faces) > 0:
                 face = faces[0]
+                # We use placeholder values here as an example to showcase
+                # different values for car.
                 tdict = {
                     "x": int(face[0]) + 3,
                     "y": int(face[1]) + 5,
@@ -112,7 +105,7 @@ def run(ipfilename, format, options, tmp_dir_path):
                     "object_det": {"color": "red"},
                 }
 
-        response = {"opFile": ipfilename, "metadata": tdict}
+    response = {"opFile": "", "metadata": tdict}
+    print(response)
 
-        r = json.dumps(response)
-        return img, r
+    return entity, response

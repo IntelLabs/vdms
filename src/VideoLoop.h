@@ -29,6 +29,10 @@
  *
  */
 
+#include <jsoncpp/json/reader.h>
+#include <jsoncpp/json/value.h>
+#include <jsoncpp/json/writer.h>
+
 #include <condition_variable>
 #include <functional>
 #include <future>
@@ -39,7 +43,6 @@
 #include <thread>
 #include <vector>
 
-#include "vcl/Image.h"
 #include "vcl/Video.h"
 
 class VideoLoop {
@@ -129,7 +132,7 @@ class VideoLoop {
    * @param response_filepath Path to the local file where the remote response
    * file will be stored
    */
-  CURL *get_easy_handle(VCL::Video video, std::string response_filepath);
+  // CURL *get_easy_handle(VCL::Video video, std::string response_filepath);
 
   /**
    * Execute the remote operation using multi-curl

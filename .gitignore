@@ -13,3 +13,6 @@ tmp
 
 # Jetbrains Specific
 .idea
+
+# Remote UDF Temps
+remote_function/entity_pb2*
