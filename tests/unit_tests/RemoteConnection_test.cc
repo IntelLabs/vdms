@@ -650,3 +650,58 @@ TEST_F(RemoteConnectionTest, ImageTransactionRollback) {
     printErrorMessage("ImageTransactionRollback");
   }
 }
+
+TEST_F(RemoteConnectionTest, FindImageEmptyDB) {
+  try {
+    VDMS::Server VDMS_server("unit_tests/config-aws-tests.json", "", "", "");
+
+    QueryHandlerPMGD query_handler;
+    query_handler.reset_autodelete_init_flag(); // set flag to show autodelete queue has
+                                                // been initialized
+
+    VDMS::protobufs::queryMessage proto_query;
+    VDMS::protobufs::queryMessage response;
+
+    Json::Reader json_reader;
+    Json::Value json_response;
+
+    std::string string_query_image_lookup("[");
+    string_query_image_lookup += " \
+          { \
+              \"FindImage\": { \
+                  \"results\": { \
+                      \"list\": [\"name\"] \
+                  }, \
+                  \"constraints\": { \
+                      \"name\": [ \"==\", \"NonExistentImage1\" ] \
+                  } \
+              } \
+          }, \
+          { \
+              \"FindImage\": { \
+                  \"results\": { \
+                      \"list\": [\"name\"] \
+                  }, \
+                  \"constraints\": { \
+                      \"name\": [ \"==\", \"NonExistentImage2\" ] \
+                  } \
+              } \
+          } \
+      ";
+    string_query_image_lookup += "]";
+
+    proto_query.clear_blobs();
+    proto_query.set_json(string_query_image_lookup);
+
+    query_handler.process_query(proto_query, response);
+    json_reader.parse(response.json(), json_response);
+
+    EXPECT_EQ(json_response[0]["FindImage"]["status"].asString(), "0");
+    EXPECT_EQ(json_response[0]["FindImage"]["info"], "No entities found");
+    EXPECT_EQ(json_response[1]["FindImage"]["status"].asString(), "0");
+    EXPECT_EQ(json_response[1]["FindImage"]["info"], "No entities found");
+
+  } catch (...) {
+    printErrorMessage("FindImageEmptyDB");
+  }
+}
