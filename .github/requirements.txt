@@ -14,7 +14,7 @@ MarkupSafe==3.0.2
 numpy==1.26.4
 opencv-python-headless==4.11.0.86
 pillow==11.1.0
-protobuf==4.24.2
+protobuf==4.25.8
 pycparser==2.22
 Pygments==2.19.1
 pyzmq==26.4.0
