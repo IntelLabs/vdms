@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "develop" ]
   workflow_dispatch:
-  
+
 jobs:
   analyze-python:
     name: Analyze Python
@@ -54,7 +54,7 @@ jobs:
         with:
           submodules: recursive
 
-      
+
       - name: Install latest CMake
         run: |
           apt-get update
