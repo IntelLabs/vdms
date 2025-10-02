@@ -6,8 +6,32 @@ on:
   workflow_dispatch:
 
 jobs:
-  analyze:
-    name: Analyze with CodeQL
+  analyze-python:
+    name: Analyze Python
+    runs-on: ubuntu-latest
+
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL (Python)
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+
+      - name: Autobuild Python
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis (Python)
+        uses: github/codeql-action/analyze@v3
+
+  analyze-cpp:
+    name: Analyze CPP
     runs-on: ubuntu-latest
 
     # Run everything inside your Docker image
