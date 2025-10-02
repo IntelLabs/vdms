@@ -105,10 +105,10 @@ sudo make install
 ```
 <br>
 
-#### **Protobuf v24.2 (4.24.2)**
+#### **Protobuf v25.8 (4.25.8)**
 Install Protobuf (C++ and Python) which requires GoogleTest and Abseil C++ as dependencies.
 ```bash
-PROTOBUF_VERSION="24.2"
+PROTOBUF_VERSION="25.8"
 python3 -m pip install --no-cache-dir "protobuf==4.${PROTOBUF_VERSION}"
 
 git clone -b v${PROTOBUF_VERSION} --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
