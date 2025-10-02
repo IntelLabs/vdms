@@ -264,7 +264,7 @@ RUN if [ "${BUILD_COVERAGE}" = "ON" ]; then \
         apt-get install -y --no-install-suggests --no-install-recommends gdb ; \
         apt-get clean ; \
         rm -rf /var/lib/apt/lists/* ; \
-        python3 -m pip install --no-cache-dir "gcovr>=7.0" ; \
+        python3 -m pip install --no-cache-dir "gcovr==8.4" ; \
         curl -L -o /vdms/minio https://dl.min.io/server/minio/release/linux-amd64/minio ; \
         chmod +x /vdms/minio ; \
         mkdir -p /vdms/minio_files/minio-bucket ; \
