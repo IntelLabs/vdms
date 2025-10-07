@@ -93,5 +93,6 @@ target_link_libraries(unit_tests
     ${OpenCV_LIBS}
     ${AWSSDK_LINK_LIBRARIES}
     neo4j-client
+    -lgtest
 )
 

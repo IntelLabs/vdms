@@ -21,7 +21,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBCONF_NOWARNINGS="yes"
 ENV PYTHON_BASE="3.12"
 ENV PYTHON_VERSION="${PYTHON_BASE}.3"
-ENV PROTOBUF_VERSION="25.8"
+ENV PROTOBUF_VERSION="29.5"
 ENV NUMPY_MIN_VERSION="1.26.0"
 ENV VIRTUAL_ENV=/opt/venv
 
@@ -77,6 +77,7 @@ ENV AUTOCONF_VERSION="2.71" \
     AWS_SDK_VERSION="1.11.336" \
     CMAKE_VERSION="v3.28.5"  \
     FAISS_VERSION="v1.9.0" \
+    GOOGLETEST_VERSION="v1.17.0" \
     LIBEDIT_VERSION="20230828-3.1" \
     OPENCV_VERSION="4.9.0" \
     PEG_VERSION="0.1.19" \
@@ -89,27 +90,24 @@ RUN git clone --branch ${CMAKE_VERSION} https://github.com/Kitware/CMake.git /de
         cd /dependencies/CMake && ./bootstrap && make ${BUILD_THREADS} && \
             make install DESTDIR=/opt/dist && make install
 
+# GOOGLETEST
+# hadolint ignore=DL3003,SC2086
+RUN git clone -b "${GOOGLETEST_VERSION}" https://github.com/google/googletest.git /dependencies/googletest && \
+    cd /dependencies/googletest && mkdir build && cd build/ && \
+    cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
+        -DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 .. && \
+    make ${BUILD_THREADS} && make install
+
 # PROTOBUF & ITS DEPENDENCIES
 # hadolint ignore=DL3003,SC2086
 RUN git clone -b "v${PROTOBUF_VERSION}" --recurse-submodules https://github.com/protocolbuffers/protobuf.git /dependencies/protobuf && \
-        cd /dependencies/protobuf/third_party/googletest && mkdir build && cd build/ && \
-            cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
-                -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
-                -DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 .. && \
-            make ${BUILD_THREADS} && make install && \
-        cd /dependencies/protobuf/third_party/abseil-cpp && mkdir build && cd build && \
-            cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
-                -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local -DABSL_BUILD_TESTING=ON \
-                -DABSL_USE_EXTERNAL_GOOGLETEST=ON \
-                -DABSL_FIND_GOOGLETEST=ON -DCMAKE_CXX_STANDARD=17 .. && \
-            make ${BUILD_THREADS} && make install && ldconfig /opt/dist/usr/local/lib && \
         cd /dependencies/protobuf && \
-            cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
-                -DCMAKE_CXX_STANDARD=17 -Dprotobuf_BUILD_SHARED_LIBS=ON \
-                -Dprotobuf_ABSL_PROVIDER=package \
-                -Dprotobuf_BUILD_TESTS=ON \
-                -Dabsl_DIR=/opt/dist/usr/local/lib/cmake/absl . && \
-            make ${BUILD_THREADS} && make install
+        cmake -Dprotobuf_FORCE_FETCH_DEPENDENCIES=ON \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
+            -DCMAKE_CXX_STANDARD=17 -Dprotobuf_BUILD_SHARED_LIBS=ON \
+            -Dprotobuf_BUILD_TESTS=ON . && \
+        make ${BUILD_THREADS} && make install
 
 # OPENCV
 # hadolint ignore=DL3003,SC2086
@@ -227,7 +225,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
     apt-get --purge remove -y python3.11 && apt-get autoremove -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
     echo "/usr/local/lib" >> /etc/ld.so.conf.d/all-libs.conf && ldconfig && \
-    python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "protobuf==4.${PROTOBUF_VERSION}" \
+    python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "protobuf==5.${PROTOBUF_VERSION}" \
         "coverage>=7.3.1" "cryptography>=44.0.1"
 
 # VDMS

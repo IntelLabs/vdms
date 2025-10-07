@@ -5,11 +5,11 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="vdms",
-    version="0.0.21",
+    version="0.0.22",
     author="Chaunté W. Lacewell",
     author_email="chaunte.w.lacewell@intel.com",
     description="VDMS Client Module",
-    install_requires=["protobuf==4.25.8"],
+    install_requires=["protobuf==5.29.5"],
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/IntelLabs/vdms",
