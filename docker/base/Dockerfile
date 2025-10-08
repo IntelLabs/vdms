@@ -77,7 +77,7 @@ ENV AUTOCONF_VERSION="2.71" \
     AWS_SDK_VERSION="1.11.336" \
     CMAKE_VERSION="v3.28.5"  \
     FAISS_VERSION="v1.9.0" \
-    GOOGLETEST_VERSION="v1.17.0" \
+    GOOGLETEST_VERSION="v1.16.0" \
     LIBEDIT_VERSION="20230828-3.1" \
     OPENCV_VERSION="4.9.0" \
     PEG_VERSION="0.1.19" \
@@ -148,8 +148,8 @@ RUN curl -L -O https://github.com/TileDB-Inc/TileDB/archive/refs/tags/${TILEDB_V
 
 # AUTOCONF VERSION FOR NEO4J
 # hadolint ignore=DL3003,SC2086
-RUN curl -O  https://ftp.gnu.org/gnu/autoconf/autoconf-${AUTOCONF_VERSION}.tar.xz && \
-        tar -xf autoconf-${AUTOCONF_VERSION}.tar.xz && cd autoconf-${AUTOCONF_VERSION} && \
+RUN curl -L -O http://ftpmirror.gnu.org/autoconf/autoconf-${AUTOCONF_VERSION}.tar.gz && \
+        tar -xzf autoconf-${AUTOCONF_VERSION}.tar.gz && cd autoconf-${AUTOCONF_VERSION} && \
         ./configure && make ${BUILD_THREADS} && make install DESTDIR=/opt/dist && make install
 
 # LIB-OMNI FOR NEO4J QUERY HANDLER
