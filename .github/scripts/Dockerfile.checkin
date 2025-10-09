@@ -77,7 +77,7 @@ ENV AUTOCONF_VERSION="2.71" \
     AWS_SDK_VERSION="1.11.336" \
     CMAKE_VERSION="v3.28.5"  \
     FAISS_VERSION="v1.9.0" \
-    GOOGLETEST_VERSION="v1.13.0" \
+    GOOGLETEST_VERSION="4c9a3bb62bf3ba1f1010bf96f9c8ed767b363774" \
     LIBEDIT_VERSION="20230828-3.1" \
     OPENCV_VERSION="4.9.0" \
     PEG_VERSION="0.1.19" \
@@ -92,8 +92,9 @@ RUN git clone --branch ${CMAKE_VERSION} https://github.com/Kitware/CMake.git /de
 
 # GOOGLETEST
 # hadolint ignore=DL3003,SC2086
-RUN git clone -b "${GOOGLETEST_VERSION}" https://github.com/google/googletest.git /dependencies/googletest && \
-    cd /dependencies/googletest && mkdir build && cd build/ && \
+RUN git clone https://github.com/google/googletest.git /dependencies/googletest && \
+    cd /dependencies/googletest && git checkout "${GOOGLETEST_VERSION}" && \
+    mkdir build && cd build/ && \
     cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
         -DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 .. && \
