@@ -105,19 +105,20 @@ sudo make install
 ```
 <br>
 
-#### **Protobuf v31.0 (6.31.0)**
+#### **Protobuf v31.1 (6.31.1)**
 Install Protobuf (C++ and Python) which requires GoogleTest and Abseil C++ as dependencies.
 ```bash
 ABSEIL_VERSION="20250512.1"
-GTEST_VERSION="v1.12.0"
-PROTOBUF_VERSION="31.0"
-python3 -m pip install --no-cache-dir "protobuf==6.${PROTOBUF_VERSION}"
+GTEST_VERSION="52eb8108c5bdec04579160ae17225d66034bd723"
+PROTOBUF_VERSION="6.31.1"
+PROTOBUF_VERSION_COMMIT="74211c0dfc2777318ab53c2cd2c317a2ef9012de"
+python3 -m pip install --no-cache-dir "protobuf==${PROTOBUF_VERSION}"
 
-git clone -b ${GTEST_VERSION} https://github.com/google/googletest.git $VDMS_DEP_DIR/googletest
-cd $VDMS_DEP_DIR/googletest
+git clone https://github.com/google/googletest.git $VDMS_DEP_DIR/googletest
+cd $VDMS_DEP_DIR/googletest && git checkout ${GTEST_VERSION}
 mkdir build && cd build
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
     -DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 ..
 make ${BUILD_THREADS}
 sudo make install
@@ -133,34 +134,49 @@ make ${BUILD_THREADS}
 sudo make install
 sudo ldconfig /usr/local/lib
 
-git clone -b "v${PROTOBUF_VERSION}" --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
+git clone --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
 cd $VDMS_DEP_DIR/protobuf
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
     -DCMAKE_CXX_STANDARD=17 -Dprotobuf_BUILD_SHARED_LIBS=ON \
     -Dprotobuf_ABSL_PROVIDER=package \
+    -Dprotobuf_GTEST_PROVIDER=package \
     -Dprotobuf_BUILD_TESTS=ON \
-    -Dabsl_DIR=/usr/local/lib/cmake/absl .
+    -Dabsl_DIR=/opt/dist/usr/local/lib/cmake/absl .
 make ${BUILD_THREADS}
 sudo make install
 ```
 <br>
 
-#### **gRPC v1.73.0**
+#### **Autoconf v2.71**
+```bash
+AUTOCONF_VERSION="2.71"
+curl -L -o $VDMS_DEP_DIR/autoconf-${AUTOCONF_VERSION}.tar.xz https://ftp.gnu.org/gnu/autoconf/autoconf-${AUTOCONF_VERSION}.tar.xz
+cd $VDMS_DEP_DIR
+tar -xf autoconf-${AUTOCONF_VERSION}.tar.xz
+cd autoconf-${AUTOCONF_VERSION}
+./configure
+make ${BUILD_THREADS}
+sudo make install
+```
+<br>
+
+#### **gRPC v1.75.1**
 Install gRPC
 ```bash
+ldconfig
 GRPC_VERSION="v1.73.0"
-git clone -b ${GRPC_VERSION} https://github.com/grpc/grpc $VDMS_DEP_DIR/grpc
+git clone -b ${GRPC_VERSION} --depth 1 --recursive https://github.com/grpc/grpc $VDMS_DEP_DIR/grpc
 cd $VDMS_DEP_DIR/grpc
-git submodule update --init
 mkdir -p cmake/build
 cd cmake/build
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
-    -DCMAKE_CXX_STANDARD=17 -DgRPC_INSTALL=ON \
+    -DCMAKE_CXX_STANDARD=17 -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF \
     -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
     -DgRPC_ABSL_PROVIDER=package \
-    -DgRPC_PROTOBUF_PROVIDER=package ../..
-make ${BUILD_THREADS}
-make install
+    -DgRPC_PROTOBUF_PROVIDER=package \
+    ../..
+cmake --build . -- -j
+cmake --install .
 ```
 <br>
 
@@ -251,19 +267,6 @@ git clone -b ${AWS_SDK_VERSION} --recurse-submodules https://github.com/aws/aws-
 mkdir -p ${VDMS_DEP_DIR}/aws-sdk-cpp/build
 cd ${VDMS_DEP_DIR}/aws-sdk-cpp/build
 cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=/usr/local/ -DCMAKE_INSTALL_PREFIX=/usr/local/ -DBUILD_ONLY="s3" -DCUSTOM_MEMORY_MANAGEMENT=OFF
-make ${BUILD_THREADS}
-sudo make install
-```
-<br>
-
-#### **Autoconf v2.71**
-```bash
-AUTOCONF_VERSION="2.71"
-curl -L -o $VDMS_DEP_DIR/autoconf-${AUTOCONF_VERSION}.tar.xz https://ftp.gnu.org/gnu/autoconf/autoconf-${AUTOCONF_VERSION}.tar.xz
-cd $VDMS_DEP_DIR
-tar -xf autoconf-${AUTOCONF_VERSION}.tar.xz
-cd autoconf-${AUTOCONF_VERSION}
-./configure
 make ${BUILD_THREADS}
 sudo make install
 ```

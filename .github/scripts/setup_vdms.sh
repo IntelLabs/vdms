@@ -190,15 +190,19 @@ fi
 #######################################################################################################################
 # INSTALL DEPENDENCIES
 #######################################################################################################################
+ABSEIL_VERSION="20250512.1"
 AUTOCONF_VERSION="2.71"
 AWS_SDK_VERSION="1.11.336"
 CMAKE_VERSION="v3.28.5"
 FAISS_VERSION="v1.9.0"
+GRPC_VERSION="v1.75.1"
+GTEST_VERSION="52eb8108c5bdec04579160ae17225d66034bd723"
 LIBEDIT_VERSION="20230828-3.1"
 NUMPY_MIN_VERSION="1.26.0"
 OPENCV_VERSION="4.9.0"
 PEG_VERSION="0.1.19"
-PROTOBUF_VERSION="25.8"
+PROTOBUF_VERSION="6.31.1"
+PROTOBUF_VERSION_COMMIT="74211c0dfc2777318ab53c2cd2c317a2ef9012de"
 TILEDB_VERSION="2.14.1"
 VALIJSON_VERSION="v0.6"
 
@@ -213,34 +217,62 @@ make ${BUILD_THREADS}
 make install
 
 
-# INSTALL PROTOBUF & ITS DEPENDENCIES
-git clone -b "v${PROTOBUF_VERSION}" --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
-cd $VDMS_DEP_DIR/protobuf/third_party/googletest
+# INSTALL PROTOBUF & ITS DEPENDENCIES (GOOGLETEST, ABSEIL-CPP)
+git git clone https://github.com/google/googletest.git $VDMS_DEP_DIR/googletest
+cd $VDMS_DEP_DIR/googletest && git checkout ${GTEST_VERSION}
 mkdir build && cd build/
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
     -DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 ..
 make ${BUILD_THREADS}
 make install
 
-cd $VDMS_DEP_DIR/protobuf/third_party/abseil-cpp
+git clone -b ${ABSEIL_VERSION} https://github.com/abseil/abseil-cpp.git $VDMS_DEP_DIR/abseil-cpp
+cd $VDMS_DEP_DIR/abseil-cpp
 mkdir build && cd build
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
-    -DCMAKE_INSTALL_PREFIX=/usr/local -DABSL_BUILD_TESTING=ON \
+    -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local -DABSL_BUILD_TESTING=ON \
     -DABSL_USE_EXTERNAL_GOOGLETEST=ON \
     -DABSL_FIND_GOOGLETEST=ON -DCMAKE_CXX_STANDARD=17 ..
 make ${BUILD_THREADS}
 make install
 ldconfig /usr/local/lib
 
-cd $VDMS_DEP_DIR/protobuf
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
+git clone --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
+cd $VDMS_DEP_DIR/protobuf && git checkout ${PROTOBUF_VERSION_COMMIT}
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
     -DCMAKE_CXX_STANDARD=17 -Dprotobuf_BUILD_SHARED_LIBS=ON \
     -Dprotobuf_ABSL_PROVIDER=package \
+    -Dprotobuf_GTEST_PROVIDER=package \
     -Dprotobuf_BUILD_TESTS=ON \
-    -Dabsl_DIR=/usr/local/lib/cmake/absl .
+    -Dabsl_DIR=/opt/dist/usr/local/lib/cmake/absl .
 make ${BUILD_THREADS}
 make install
+
+
+# INSTALL AUTOCONF
+curl -L -o $VDMS_DEP_DIR/autoconf-${AUTOCONF_VERSION}.tar.gz http://ftpmirror.gnu.org/autoconf/autoconf-${AUTOCONF_VERSION}.tar.gz
+cd $VDMS_DEP_DIR
+tar -xzf autoconf-${AUTOCONF_VERSION}.tar.gz
+cd autoconf-${AUTOCONF_VERSION}
+./configure
+make ${BUILD_THREADS}
+make install
+
+
+# INSTALL gRPC
+ldconfig
+git clone -b ${GRPC_VERSION} --depth 1 --recursive https://github.com/grpc/grpc $VDMS_DEP_DIR/grpc
+cd $VDMS_DEP_DIR/grpc
+mkdir -p cmake/build && cd cmake/build
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
+    -DCMAKE_CXX_STANDARD=17 -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF \
+    -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
+    -DgRPC_ABSL_PROVIDER=package \
+    -DgRPC_PROTOBUF_PROVIDER=package \
+    ../..
+cmake --build . -- -j
+cmake --install .
 
 
 # INSTALL OPENCV
@@ -255,7 +287,7 @@ make install
 
 # INSTALL PYTHON PACKAGES
 python -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "coverage>=7.3.1" \
-    "protobuf==4.${PROTOBUF_VERSION}" "cryptography>=44.0.1"
+    "protobuf==${PROTOBUF_VERSION}" "cryptography>=44.0.1"
 
 
 # INSTALL VALIJSON
@@ -298,16 +330,6 @@ mkdir -p $VDMS_DEP_DIR/aws-sdk-cpp/build
 cd $VDMS_DEP_DIR/aws-sdk-cpp/build
 cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=/usr/local/ -DCMAKE_INSTALL_PREFIX=/usr/local/ \
     -DBUILD_ONLY="s3" -DCUSTOM_MEMORY_MANAGEMENT=OFF -DENABLE_TESTING=OFF
-make ${BUILD_THREADS}
-make install
-
-
-# INSTALL AUTOCONF
-curl -L -o $VDMS_DEP_DIR/autoconf-${AUTOCONF_VERSION}.tar.xz https://ftp.gnu.org/gnu/autoconf/autoconf-${AUTOCONF_VERSION}.tar.xz
-cd $VDMS_DEP_DIR
-tar -xf autoconf-${AUTOCONF_VERSION}.tar.xz
-cd autoconf-${AUTOCONF_VERSION}
-./configure
 make ${BUILD_THREADS}
 make install
 

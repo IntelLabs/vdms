@@ -21,7 +21,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBCONF_NOWARNINGS="yes"
 ENV PYTHON_BASE="3.12"
 ENV PYTHON_VERSION="${PYTHON_BASE}.3"
-ENV PROTOBUF_VERSION="31.0"
+ENV PROTOBUF_VERSION="6.31.1"
 ENV NUMPY_MIN_VERSION="1.26.0"
 ENV VIRTUAL_ENV=/opt/venv
 
@@ -78,11 +78,12 @@ ENV ABSEIL_VERSION="20250512.1" \
     AWS_SDK_VERSION="1.11.336" \
     CMAKE_VERSION="v3.28.5"  \
     FAISS_VERSION="v1.9.0" \
-    GRPC_VERSION="v1.73.0" \
-    GTEST_VERSION="v1.12.0" \
+    GRPC_VERSION="v1.75.1" \
+    GTEST_VERSION="52eb8108c5bdec04579160ae17225d66034bd723" \
     LIBEDIT_VERSION="20230828-3.1" \
     OPENCV_VERSION="4.9.0" \
     PEG_VERSION="0.1.19" \
+    PROTOBUF_VERSION_COMMIT="74211c0dfc2777318ab53c2cd2c317a2ef9012de" \
     TILEDB_VERSION="2.14.1" \
     VALIJSON_VERSION="v0.6"
 
@@ -94,8 +95,9 @@ RUN git clone --branch ${CMAKE_VERSION} https://github.com/Kitware/CMake.git /de
 
 # PROTOBUF & ITS DEPENDENCIES (GOOGLETEST, ABSEIL-CPP)
 # hadolint ignore=DL3003,SC2086
-RUN git clone -b ${GTEST_VERSION} https://github.com/google/googletest.git /dependencies/googletest && \
-		cd /dependencies/googletest && mkdir build && cd build && \
+RUN git clone https://github.com/google/googletest.git /dependencies/googletest && \
+		cd /dependencies/googletest && git checkout ${GTEST_VERSION} && \
+            mkdir build && cd build && \
 			cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
 				-DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
 				-DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 .. && \
@@ -107,25 +109,33 @@ RUN git clone -b ${GTEST_VERSION} https://github.com/google/googletest.git /depe
 			-DABSL_USE_EXTERNAL_GOOGLETEST=ON \
 			-DABSL_FIND_GOOGLETEST=ON -DCMAKE_CXX_STANDARD=17 .. && \
 		make ${BUILD_THREADS} && make install && ldconfig /opt/dist/usr/local/lib && \
-	git clone -b "v${PROTOBUF_VERSION}" --recurse-submodules https://github.com/protocolbuffers/protobuf.git /dependencies/protobuf && \
-		cd /dependencies/protobuf && \
+	git clone --recurse-submodules https://github.com/protocolbuffers/protobuf.git /dependencies/protobuf && \
+		cd /dependencies/protobuf && git checkout ${PROTOBUF_VERSION_COMMIT} && \
 		cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
 			-DCMAKE_CXX_STANDARD=17 -Dprotobuf_BUILD_SHARED_LIBS=ON \
 			-Dprotobuf_ABSL_PROVIDER=package \
+			-Dprotobuf_GTEST_PROVIDER=package \
 			-Dprotobuf_BUILD_TESTS=ON \
 			-Dabsl_DIR=/opt/dist/usr/local/lib/cmake/absl . && \
 		make ${BUILD_THREADS} && make install
 
+# AUTOCONF VERSION FOR NEO4J
+# hadolint ignore=DL3003,SC2086
+RUN curl -L -O http://ftpmirror.gnu.org/autoconf/autoconf-${AUTOCONF_VERSION}.tar.gz && \
+        tar -xzf autoconf-${AUTOCONF_VERSION}.tar.gz && cd autoconf-${AUTOCONF_VERSION} && \
+        ./configure && make ${BUILD_THREADS} && make install DESTDIR=/opt/dist && make install
+
 # gRPC
-RUN git clone -b ${GRPC_VERSION} https://github.com/grpc/grpc /dependencies/grpc && \
+RUN ldconfig && git clone -b ${GRPC_VERSION} --depth 1 --recursive https://github.com/grpc/grpc /dependencies/grpc && \
         cd /dependencies/grpc && \
-        git submodule update --init && mkdir -p cmake/build && cd cmake/build && \
+        mkdir -p cmake/build && cd cmake/build && \
         cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
-            -DCMAKE_CXX_STANDARD=17 -DgRPC_INSTALL=ON \
+            -DCMAKE_CXX_STANDARD=17 -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF \
             -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
             -DgRPC_ABSL_PROVIDER=package \
-            -DgRPC_PROTOBUF_PROVIDER=package ../.. && \
-        make ${BUILD_THREADS} && make install
+            -DgRPC_PROTOBUF_PROVIDER=package \
+            ../.. && \
+        cmake --build . -- -j && cmake --install .
 
 # OPENCV
 # hadolint ignore=DL3003,SC2086
@@ -163,12 +173,6 @@ RUN curl -L -O https://github.com/TileDB-Inc/TileDB/archive/refs/tags/${TILEDB_V
         cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=/usr/local/ -DCMAKE_INSTALL_PREFIX=/usr/local/ \
             -DBUILD_ONLY="s3" -DCUSTOM_MEMORY_MANAGEMENT=OFF -DENABLE_TESTING=OFF && \
         make ${BUILD_THREADS} && make install DESTDIR=/opt/dist && make install
-
-# AUTOCONF VERSION FOR NEO4J
-# hadolint ignore=DL3003,SC2086
-RUN curl -O  https://ftp.gnu.org/gnu/autoconf/autoconf-${AUTOCONF_VERSION}.tar.xz && \
-        tar -xf autoconf-${AUTOCONF_VERSION}.tar.xz && cd autoconf-${AUTOCONF_VERSION} && \
-        ./configure && make ${BUILD_THREADS} && make install DESTDIR=/opt/dist && make install
 
 # LIB-OMNI FOR NEO4J QUERY HANDLER
 # hadolint ignore=DL3003,SC2086
@@ -248,7 +252,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
     apt-get --purge remove -y python3.11 && apt-get autoremove -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
     echo "/usr/local/lib" >> /etc/ld.so.conf.d/all-libs.conf && ldconfig && \
-    python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "protobuf==6.${PROTOBUF_VERSION}" \
+    python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "protobuf==${PROTOBUF_VERSION}" \
         "coverage>=7.3.1" "cryptography>=44.0.1"
 
 WORKDIR /vdms
