@@ -105,15 +105,16 @@ sudo make install
 ```
 <br>
 
-#### **Protobuf v24.2 (4.24.2)**
+#### **Protobuf v31.0 (6.31.0)**
 Install Protobuf (C++ and Python) which requires GoogleTest and Abseil C++ as dependencies.
 ```bash
-PROTOBUF_VERSION="24.2"
-python3 -m pip install --no-cache-dir "protobuf==4.${PROTOBUF_VERSION}"
+ABSEIL_VERSION="20250512.1"
+GTEST_VERSION="v1.12.0"
+PROTOBUF_VERSION="31.0"
+python3 -m pip install --no-cache-dir "protobuf==6.${PROTOBUF_VERSION}"
 
-git clone -b v${PROTOBUF_VERSION} --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
-
-cd $VDMS_DEP_DIR/protobuf/third_party/googletest
+git clone -b ${GTEST_VERSION} https://github.com/google/googletest.git $VDMS_DEP_DIR/googletest
+cd $VDMS_DEP_DIR/googletest
 mkdir build && cd build
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
@@ -121,7 +122,8 @@ cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
 make ${BUILD_THREADS}
 sudo make install
 
-cd $VDMS_DEP_DIR/protobuf/third_party/abseil-cpp
+git clone -b ${ABSEIL_VERSION} https://github.com/abseil/abseil-cpp.git $VDMS_DEP_DIR/abseil
+cd $VDMS_DEP_DIR/abseil
 mkdir build && cd build
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
     -DCMAKE_INSTALL_PREFIX=/usr/local -DABSL_BUILD_TESTING=ON \
@@ -131,6 +133,7 @@ make ${BUILD_THREADS}
 sudo make install
 sudo ldconfig /usr/local/lib
 
+git clone -b "v${PROTOBUF_VERSION}" --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
 cd $VDMS_DEP_DIR/protobuf
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DCMAKE_CXX_STANDARD=17 -Dprotobuf_BUILD_SHARED_LIBS=ON \
@@ -139,6 +142,25 @@ cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
     -Dabsl_DIR=/usr/local/lib/cmake/absl .
 make ${BUILD_THREADS}
 sudo make install
+```
+<br>
+
+#### **gRPC v1.73.0**
+Install gRPC
+```bash
+GRPC_VERSION="v1.73.0"
+git clone -b ${GRPC_VERSION} https://github.com/grpc/grpc $VDMS_DEP_DIR/grpc
+cd $VDMS_DEP_DIR/grpc
+git submodule update --init
+mkdir -p cmake/build
+cd cmake/build
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
+    -DCMAKE_CXX_STANDARD=17 -DgRPC_INSTALL=ON \
+    -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
+    -DgRPC_ABSL_PROVIDER=package \
+    -DgRPC_PROTOBUF_PROVIDER=package ../..
+make ${BUILD_THREADS}
+make install
 ```
 <br>
 

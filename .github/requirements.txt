@@ -5,7 +5,7 @@ colorlog==6.9.0
 coverage==7.8.0
 cryptography==44.0.2
 Flask==3.1.1
-gcovr==8.3
+gcovr==8.4
 imutils==0.5.4
 itsdangerous==2.2.0
 Jinja2==3.1.6
@@ -14,7 +14,7 @@ MarkupSafe==3.0.2
 numpy==1.26.4
 opencv-python-headless==4.11.0.86
 pillow==11.1.0
-protobuf==4.24.2
+protobuf==4.25.8
 pycparser==2.22
 Pygments==2.19.1
 pyzmq==26.4.0
