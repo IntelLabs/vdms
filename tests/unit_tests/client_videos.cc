@@ -177,7 +177,7 @@ TEST(CLIENT_CPP_Video, add_dynamic_metadata) {
 
   Json::Value op;
   op["type"] = "syncremoteOp";
-  op["url"] = "http://localhost:5010/video";
+  op["url"] = "localhost:5010";
   op["options"]["id"] = "metadata";
   op["options"]["media_type"] = "video";
   op["options"]["otype"] = "face";
@@ -216,7 +216,7 @@ TEST(CLIENT_CPP_Video, find_dynamic_metadata) {
 
   Json::Value op;
   op["type"] = "syncremoteOp";
-  op["url"] = "http://localhost:5010/video";
+  op["url"] = "localhost:5010";
   op["options"]["id"] = "metadata";
   op["options"]["media_type"] = "video";
   op["options"]["otype"] = "face";

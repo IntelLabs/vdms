@@ -105,15 +105,17 @@ sudo make install
 ```
 <br>
 
-#### **Protobuf v25.8 (4.25.8)**
+#### **Protobuf v31.1 (6.31.1)**
 Install Protobuf (C++ and Python) which requires GoogleTest and Abseil C++ as dependencies.
 ```bash
-PROTOBUF_VERSION="25.8"
-python3 -m pip install --no-cache-dir "protobuf==4.${PROTOBUF_VERSION}"
+ABSEIL_VERSION="20250512.1"
+GTEST_VERSION="52eb8108c5bdec04579160ae17225d66034bd723"
+PROTOBUF_VERSION="6.31.1"
+PROTOBUF_VERSION_COMMIT="74211c0dfc2777318ab53c2cd2c317a2ef9012de"
+python3 -m pip install --no-cache-dir "protobuf==${PROTOBUF_VERSION}"
 
-git clone -b v${PROTOBUF_VERSION} --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
-
-cd $VDMS_DEP_DIR/protobuf/third_party/googletest
+git clone https://github.com/google/googletest.git $VDMS_DEP_DIR/googletest
+cd $VDMS_DEP_DIR/googletest && git checkout ${GTEST_VERSION}
 mkdir build && cd build
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
@@ -121,7 +123,8 @@ cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
 make ${BUILD_THREADS}
 sudo make install
 
-cd $VDMS_DEP_DIR/protobuf/third_party/abseil-cpp
+git clone -b ${ABSEIL_VERSION} https://github.com/abseil/abseil-cpp.git $VDMS_DEP_DIR/abseil
+cd $VDMS_DEP_DIR/abseil
 mkdir build && cd build
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
     -DCMAKE_INSTALL_PREFIX=/usr/local -DABSL_BUILD_TESTING=ON \
@@ -131,14 +134,49 @@ make ${BUILD_THREADS}
 sudo make install
 sudo ldconfig /usr/local/lib
 
+git clone --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
 cd $VDMS_DEP_DIR/protobuf
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DCMAKE_CXX_STANDARD=17 -Dprotobuf_BUILD_SHARED_LIBS=ON \
     -Dprotobuf_ABSL_PROVIDER=package \
+    -Dprotobuf_GTEST_PROVIDER=package \
     -Dprotobuf_BUILD_TESTS=ON \
     -Dabsl_DIR=/usr/local/lib/cmake/absl .
 make ${BUILD_THREADS}
 sudo make install
+```
+<br>
+
+#### **Autoconf v2.71**
+```bash
+AUTOCONF_VERSION="2.71"
+curl -L -o $VDMS_DEP_DIR/autoconf-${AUTOCONF_VERSION}.tar.gz http://ftpmirror.gnu.org/autoconf/autoconf-${AUTOCONF_VERSION}.tar.gz
+cd $VDMS_DEP_DIR
+tar -xzf autoconf-${AUTOCONF_VERSION}.tar.gz
+cd autoconf-${AUTOCONF_VERSION}
+./configure
+make ${BUILD_THREADS}
+sudo make install
+```
+<br>
+
+#### **gRPC v1.75.1**
+Install gRPC
+```bash
+ldconfig
+GRPC_VERSION="v1.75.1"
+git clone -b ${GRPC_VERSION} --depth 1 --recursive https://github.com/grpc/grpc $VDMS_DEP_DIR/grpc
+cd $VDMS_DEP_DIR/grpc
+mkdir -p cmake/build
+cd cmake/build
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
+    -DCMAKE_CXX_STANDARD=17 -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DgRPC_ABSL_PROVIDER=package \
+    -DgRPC_PROTOBUF_PROVIDER=package \
+    ../..
+cmake --build . -- -j
+cmake --install .
 ```
 <br>
 
@@ -229,19 +267,6 @@ git clone -b ${AWS_SDK_VERSION} --recurse-submodules https://github.com/aws/aws-
 mkdir -p ${VDMS_DEP_DIR}/aws-sdk-cpp/build
 cd ${VDMS_DEP_DIR}/aws-sdk-cpp/build
 cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=/usr/local/ -DCMAKE_INSTALL_PREFIX=/usr/local/ -DBUILD_ONLY="s3" -DCUSTOM_MEMORY_MANAGEMENT=OFF
-make ${BUILD_THREADS}
-sudo make install
-```
-<br>
-
-#### **Autoconf v2.71**
-```bash
-AUTOCONF_VERSION="2.71"
-curl -L -o $VDMS_DEP_DIR/autoconf-${AUTOCONF_VERSION}.tar.xz https://ftp.gnu.org/gnu/autoconf/autoconf-${AUTOCONF_VERSION}.tar.xz
-cd $VDMS_DEP_DIR
-tar -xf autoconf-${AUTOCONF_VERSION}.tar.xz
-cd autoconf-${AUTOCONF_VERSION}
-./configure
 make ${BUILD_THREADS}
 sudo make install
 ```

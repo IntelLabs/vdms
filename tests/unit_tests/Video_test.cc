@@ -28,7 +28,7 @@
  */
 
 #include "VideoLoop.h"
-#include "vcl/Video.h"
+// #include "vcl/Video.h"
 #include "gtest/gtest.h"
 
 #include <opencv2/core.hpp>
@@ -825,7 +825,7 @@ TEST_F(VideoTest, CropWrite) {
  * that undergoes a captioning operation.
  */
 TEST_F(VideoTest, SyncRemoteWrite) {
-  std::string _url = "http://localhost:5010/video";
+  std::string _url = "localhost:5010";
   Json::Value _options;
   _options["format"] = "mp4";
   _options["text"] = "Video";
@@ -991,7 +991,7 @@ TEST_F(VideoTest, UDFWrite) {
  * The resulting video being encoded should not be null.
  */
 TEST_F(VideoTest, VideoLoopTest) {
-  std::string _url = "http://localhost:5010/video";
+  std::string _url = "localhost:5010";
   Json::Value _options;
   _options["format"] = "mp4";
   _options["text"] = "Video";
@@ -1042,7 +1042,7 @@ TEST_F(VideoTest, VideoLoopTest) {
  * The resulting video being encoded should not be null.
  */
 TEST_F(VideoTest, VideoLoopPipelineTest) {
-  std::string _url = "http://localhost:5010/video";
+  std::string _url = "localhost:5010";
   Json::Value _options;
   _options["format"] = "mp4";
   _options["text"] = "Video";
@@ -1101,7 +1101,7 @@ TEST_F(VideoTest, VideoLoopPipelineTest) {
  * The resulting video object should have an error message.
  */
 TEST_F(VideoTest, VideoLoopTestError) {
-  std::string _url = "http://localhost:5010/vide";
+  std::string _url = "localhost:5015";
   Json::Value _options;
   _options["format"] = "mp4";
   _options["text"] = "Video";
@@ -1143,7 +1143,7 @@ TEST_F(VideoTest, VideoLoopTestError) {
  * The resulting video object should have an error message.
  */
 TEST_F(VideoTest, VideoLoopSyncRemoteTestError) {
-  std::string _url = "http://localhost:5010/vide";
+  std::string _url = "localhost:5015";
   Json::Value _options;
   _options["format"] = "mp4";
   _options["text"] = "Video";
@@ -1408,7 +1408,7 @@ TEST_F(VideoTest, FilePathAccessError) {
  * Metadata check is performed by this test.
  */
 TEST_F(VideoTest, SyncRemoteWriteWithMetadata) {
-  std::string _url = "http://localhost:5010/video";
+  std::string _url = "localhost:5010";
   Json::Value _options;
   _options["format"] = "mp4";
   _options["id"] = "metadata";

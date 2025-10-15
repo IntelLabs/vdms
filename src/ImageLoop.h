@@ -29,6 +29,9 @@
  *
  */
 
+#include <fcntl.h>
+#include <unistd.h>
+
 #include <condition_variable>
 #include <functional>
 #include <future>
@@ -78,6 +81,5 @@ class ImageLoop {
   std::thread r_thread{&ImageLoop::remoteOperationThread, this};
   void remoteOperationThread() noexcept;
 
-  CURL *get_easy_handle(VCL::Image *img, std::string &readBuffer);
   void execute_remote_operations(std::vector<VCL::Image *> &readBuffer);
 };

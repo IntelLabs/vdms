@@ -1,6 +1,10 @@
-flask>=3.0.2
+grpcio==1.75.1
+grpcio-tools==1.75.1
+imageio==2.31.1
+opencv-contrib-python==4.6.0.66
+opencv-python==4.10.0.82
+opencv-python-headless>=4.9.0.80
+protobuf==6.31.1
+sk-video>=1.1.10
 imutils>=0.5.4
 numpy<2.0.0
-opencv-python-headless>=4.9.0.80
-pillow>=11.1.0
-sk-video>=1.1.10

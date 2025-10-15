@@ -30,7 +30,7 @@
 #include "ImageLoop.h"
 #include "VDMSConfig.h"
 #include "stats/SystemStats.h"
-#include "vcl/Image.h"
+// #include "vcl/Image.h"
 #include "gtest/gtest.h"
 
 #include <filesystem>
@@ -869,7 +869,7 @@ TEST_F(ImageTest, SyncRemote) {
   ASSERT_TRUE(fs::exists(fs::path(inputFile)));
   cv::Mat cv_img_flipped = cv::imread(inputFile);
 
-  std::string _url = "http://localhost:5010/image";
+  std::string _url = "localhost:5010";
   Json::Value _options;
   _options["format"] = "jpg";
   _options["id"] = "flip";
@@ -916,7 +916,7 @@ TEST_F(ImageTest, ImageLoop) {
   VCL::Image img(img_);
   ImageLoop imageLoop;
 
-  std::string _url = "http://localhost:5010/image";
+  std::string _url = "localhost:5010";
   Json::Value _options;
   _options["format"] = "jpg";
   _options["id"] = "flip";
@@ -947,7 +947,7 @@ TEST_F(ImageTest, ImageLoopURLError) {
   VCL::Image img(img_);
   ImageLoop imageLoop;
 
-  std::string _url = "http://localhost:5010/imag";
+  std::string _url = "localhost:5015";
   Json::Value _options;
   _options["format"] = "jpg";
   _options["id"] = "flip";
@@ -973,7 +973,7 @@ TEST_F(ImageTest, ImageLoopRemoteFunctionError) {
   VCL::Image img(img_);
   ImageLoop imageLoop;
 
-  std::string _url = "http://localhost:5010/image";
+  std::string _url = "localhost:5010";
   Json::Value _options;
   _options["format"] = "jpg";
   _options["id"] = "gray";
@@ -998,7 +998,7 @@ TEST_F(ImageTest, ImageLoopSyncRemoteFunctionError) {
   VCL::Image img(img_);
   ImageLoop imageLoop;
 
-  std::string _url = "http://localhost:5010/imag";
+  std::string _url = "localhost:5015";
   Json::Value _options;
   _options["format"] = "jpg";
   _options["id"] = "gray";
@@ -1104,7 +1104,7 @@ TEST_F(ImageTest, RemoteMetadata) {
 
   VCL::Image img = VCL::Image(temp_image_path, true);
 
-  std::string _url = "http://localhost:5010/image";
+  std::string _url = "localhost:5010";
   Json::Value _options;
   _options["format"] = "jpg";
   _options["id"] = "metadata";
