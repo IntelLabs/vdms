@@ -218,11 +218,11 @@ make install
 
 
 # INSTALL PROTOBUF & ITS DEPENDENCIES (GOOGLETEST, ABSEIL-CPP)
-git git clone https://github.com/google/googletest.git $VDMS_DEP_DIR/googletest
+git clone https://github.com/google/googletest.git $VDMS_DEP_DIR/googletest
 cd $VDMS_DEP_DIR/googletest && git checkout ${GTEST_VERSION}
 mkdir build && cd build/
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
+    -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 ..
 make ${BUILD_THREADS}
 make install
@@ -231,7 +231,7 @@ git clone -b ${ABSEIL_VERSION} https://github.com/abseil/abseil-cpp.git $VDMS_DE
 cd $VDMS_DEP_DIR/abseil-cpp
 mkdir build && cd build
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
-    -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local -DABSL_BUILD_TESTING=ON \
+    -DCMAKE_INSTALL_PREFIX=/usr/local -DABSL_BUILD_TESTING=ON \
     -DABSL_USE_EXTERNAL_GOOGLETEST=ON \
     -DABSL_FIND_GOOGLETEST=ON -DCMAKE_CXX_STANDARD=17 ..
 make ${BUILD_THREADS}
@@ -240,12 +240,12 @@ ldconfig /usr/local/lib
 
 git clone --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
 cd $VDMS_DEP_DIR/protobuf && git checkout ${PROTOBUF_VERSION_COMMIT}
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DCMAKE_CXX_STANDARD=17 -Dprotobuf_BUILD_SHARED_LIBS=ON \
     -Dprotobuf_ABSL_PROVIDER=package \
     -Dprotobuf_GTEST_PROVIDER=package \
     -Dprotobuf_BUILD_TESTS=ON \
-    -Dabsl_DIR=/opt/dist/usr/local/lib/cmake/absl .
+    -Dabsl_DIR=/usr/local/lib/cmake/absl .
 make ${BUILD_THREADS}
 make install
 
@@ -267,7 +267,7 @@ cd $VDMS_DEP_DIR/grpc
 mkdir -p cmake/build && cd cmake/build
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
     -DCMAKE_CXX_STANDARD=17 -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF \
-    -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DgRPC_ABSL_PROVIDER=package \
     -DgRPC_PROTOBUF_PROVIDER=package \
     ../..

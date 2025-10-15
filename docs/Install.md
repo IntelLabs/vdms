@@ -118,7 +118,7 @@ git clone https://github.com/google/googletest.git $VDMS_DEP_DIR/googletest
 cd $VDMS_DEP_DIR/googletest && git checkout ${GTEST_VERSION}
 mkdir build && cd build
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
+    -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 ..
 make ${BUILD_THREADS}
 sudo make install
@@ -136,12 +136,12 @@ sudo ldconfig /usr/local/lib
 
 git clone --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
 cd $VDMS_DEP_DIR/protobuf
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
+cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DCMAKE_CXX_STANDARD=17 -Dprotobuf_BUILD_SHARED_LIBS=ON \
     -Dprotobuf_ABSL_PROVIDER=package \
     -Dprotobuf_GTEST_PROVIDER=package \
     -Dprotobuf_BUILD_TESTS=ON \
-    -Dabsl_DIR=/opt/dist/usr/local/lib/cmake/absl .
+    -Dabsl_DIR=/usr/local/lib/cmake/absl .
 make ${BUILD_THREADS}
 sudo make install
 ```
@@ -150,9 +150,9 @@ sudo make install
 #### **Autoconf v2.71**
 ```bash
 AUTOCONF_VERSION="2.71"
-curl -L -o $VDMS_DEP_DIR/autoconf-${AUTOCONF_VERSION}.tar.xz https://ftp.gnu.org/gnu/autoconf/autoconf-${AUTOCONF_VERSION}.tar.xz
+curl -L -o $VDMS_DEP_DIR/autoconf-${AUTOCONF_VERSION}.tar.gz http://ftpmirror.gnu.org/autoconf/autoconf-${AUTOCONF_VERSION}.tar.gz
 cd $VDMS_DEP_DIR
-tar -xf autoconf-${AUTOCONF_VERSION}.tar.xz
+tar -xzf autoconf-${AUTOCONF_VERSION}.tar.gz
 cd autoconf-${AUTOCONF_VERSION}
 ./configure
 make ${BUILD_THREADS}
@@ -164,14 +164,14 @@ sudo make install
 Install gRPC
 ```bash
 ldconfig
-GRPC_VERSION="v1.73.0"
+GRPC_VERSION="v1.75.1"
 git clone -b ${GRPC_VERSION} --depth 1 --recursive https://github.com/grpc/grpc $VDMS_DEP_DIR/grpc
 cd $VDMS_DEP_DIR/grpc
 mkdir -p cmake/build
 cd cmake/build
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
     -DCMAKE_CXX_STANDARD=17 -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF \
-    -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DgRPC_ABSL_PROVIDER=package \
     -DgRPC_PROTOBUF_PROVIDER=package \
     ../..
