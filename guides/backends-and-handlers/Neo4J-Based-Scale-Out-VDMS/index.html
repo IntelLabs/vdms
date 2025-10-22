@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://intellabs.github.io/vdms/guides/backends-and-handlers/Neo4J-Based-Scale-Out-VDMS/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Neo4j based Scale Out - VDMS Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Neo4j based Scale Out";
+        var mkdocs_page_input_path = "guides/backends-and-handlers/Neo4J-Based-Scale-Out-VDMS.md";
+        var mkdocs_page_url = "/vdms/guides/backends-and-handlers/Neo4J-Based-Scale-Out-VDMS/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> VDMS Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Install/">Install</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Docker/">Docker</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../VDMS-mTLS-Support/">VDMS Mutual TLS Support</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API (v2.0.0++)</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../API-Description/">Description</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../ConfigFile/">ConfigFile</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Keywords/">Keywords</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Returned-Status/">Returned Status</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Schema/">Schema Definition</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Commands</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Basic Building Blocks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-constraints/">Constraints</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-link/">Link</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-operations/">Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-properties/">Properties</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-rectangle/">Rectangle</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-results/">Results</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Insert</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddBlob/">AddBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddBoundingBox/">AddBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddConnection/">AddConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddDescriptor/">AddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddDescriptorSet/">AddDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddEntity/">AddEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddImage/">AddImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddVideo/">AddVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoAdd/">NeoAdd</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoAddDescriptor/">NeoAddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoAddDescriptorSet/">NeoAddDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Query</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/ClassifyDescriptor/">ClassifyDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindBlob/">FindBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindBoundingBox/">FindBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindConnection/">FindConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindDescriptor/">FindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindDescriptorSet/">FindDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindEntity/">FindEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindFrames/">FindFrames</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindImage/">FindImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindVideo/">FindVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoFind/">NeoFind</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoFindDescriptor/">NeoFindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoFindDescriptorSet/">NeoFindDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Update</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateBlob/">UpdateBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateBoundingBox/">UpdateBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateConnection/">UpdateConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateEntity/">UpdateEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateImage/">UpdateImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateVideo/">UpdateVideo</a>
+                </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials & Guides</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" >Tutorials</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Simple-Tutorial/">Simple Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Image-Tutorial/">Image Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Descriptor-Tutorial/">Descriptor Tutorial</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >How-to Guides</a>
+    <ul class="current">
+                <li class="toctree-l2 current"><a class="reference internal current" >Backends & Query Handlers</a>
+    <ul class="current">
+                <li class="toctree-l3 current"><a class="reference internal current" href="#">Neo4j based Scale Out</a>
+    <ul class="current">
+    <li class="toctree-l4"><a class="reference internal" href="#configuring-and-running-distributed-vdms">Configuring and Running Distributed VDMS</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#deploying-neo4j-and-minio-for-testing">Deploying Neo4J and MinIO for Testing</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#deploying-multiple-vdms-servers">Deploying Multiple VDMS Servers</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../Query-Handler-Development/">Query Handler Development</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Connectors & Orchestrations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../connectors-and-orchestrations/Run-Kafka-VDMS-Example/">Kafka Connectors for VDMS</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../connectors-and-orchestrations/Kubernetes-Orchestration/">Kubernetes Orchestration in VDMS</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../CSV-Plugin-for-CPP-Client/">CSV Plugin for C++ Client</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Deletion, Backup, & Restore</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../deletion-backup-and-restore/Auto-Deletion-of-Expired-Data/">Auto-Deletion of Expired Data</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../deletion-backup-and-restore/VDMS-Backup-and-Restoring-Options/">Backup and Restoring Options</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../deletion-backup-and-restore/Deletion-Capabilities/">Deletion Capabilities</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Descriptors</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../descriptors/Descriptor-Memory-Usage/">Descriptors Memory Usage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../descriptors/FLINNG-Library-and-Performance/">FLINNG Library and Performance</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Remote & User Defined Operations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../remote-and-udf-operations/Remote-Operations/">Remote Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../remote-and-udf-operations/User-Defined-Operations/">User Defined Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../remote-and-udf-operations/Dynamic-Metadata/">Dynamically Add Metadata</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Remote-Storage-in-VDMS/">Remote Storage</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Timing-Capability/">Timing Capability</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Interactive Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="https://deepwiki.com/IntelLabs/vdms">DeepWiki</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribute</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../contribute/Developer-Guide/">Developer Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Test Suite</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../contribute/VDMS-Test-Suite/">VDMS Test Suite Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../contribute/VDMS-Test-Script/">VDMS Test Script</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">VDMS Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Tutorials & Guides</li>
+          <li class="breadcrumb-item">How-to Guides</li>
+          <li class="breadcrumb-item">Backends & Query Handlers</li>
+      <li class="breadcrumb-item active">Neo4j based Scale Out</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="http://github.com/IntelLabs/vdms/blob/develop/docs/guides/backends-and-handlers/Neo4J-Based-Scale-Out-VDMS.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="neo4j-based-scale-out">Neo4j based Scale Out<a class="headerlink" href="#neo4j-based-scale-out" title="Permanent link">&para;</a></h1>
+<p>One of the challenges with prior incarnations of VDMS was requiring external coordination for distributed capabilities. While this did make it so certain operations could scale, it was brittle in its resiliency, required careful monitoring of VDMS nodes, client-side coordination, limited data and metadata sharing, and it was difficult to expand the cluster at runtime.</p>
+<p>Our solution is to leverage our modular handler design to incorporate a new handler that communicates with Neo4J for its metadata needs, and makes use of existing S3 capabilities for data storage. By decoupling data storage, metadata storage, and data transformations we can now scale these independently of one another. In effect, the VDMS server becomes an operations area for data transformations and coordinates the storage of data and metadata to S3 and Neo4J.</p>
+<p>If more operations throughput is needed, we can simply add a new VDMS server that “points” to the S3 and Neo4J clusters and the new server will automatically have access to all data and metadata that’s already been pushed. Similarly, if we need more data or metadata capabilities the S3 and Neo4J clusters can be independently scaled.</p>
+<p><img alt="Neo4j Scale-Out" src="../../../images/Neo4j_Scale_Out.png" /></p>
+<p><strong>Caveats</strong>:
+The Neo4J based VDMS is an experimental feature. Its calls (<a href="../../../commands/NeoAdd/">NeoAdd</a> and <a href="../../../commands/NeoFind/">NeoFind</a>) while functional, are limited in scope to metadata and image operations. The API calls and feature itself should be treated as unstable, and there may be bugs and instabilities as a part of using this feature.</p>
+<h2 id="configuring-and-running-distributed-vdms">Configuring and Running Distributed VDMS<a class="headerlink" href="#configuring-and-running-distributed-vdms" title="Permanent link">&para;</a></h2>
+<p>Note that these instructions apply to every server you start.
+For configuration, make sure your config file specifies the query_handler as <code>neo4j</code> and that you specify the use of AWS as the storage type, as well as the target bucket. E.g.
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">55555</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;storage_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;aws&quot;</span><span class="p">,</span><span class="w"> </span><span class="c1">//local, aws, etc</span>
+<span class="w">    </span><span class="nt">&quot;bucket_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;minio-bucket&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;query_handler&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;neo4j&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;use_endpoint&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;endpoint_override&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;http://&lt;target_ip&gt;:9000&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;more-info&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;github.com/IntelLabs/vdms&quot;</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<p>You must also specify the credentials and endpoint for neo4j with the following environment variables:</p>
+<div class="highlight"><pre><span></span><code>export NEO4J_USER=neo4j_user
+export NEO4J_PASS=neo4j_password
+export NEO4J_ENDPOINT=neo4j://&lt;target_ip&gt;:&lt;target_port&gt;
+</code></pre></div>
+<p>For MinIO connectivity, you can specify credentials using environment variables.</p>
+<div class="highlight"><pre><span></span><code>export AWS_ACCESS_KEY_ID=my_acc_key
+export AWS_SECRET_ACCESS_KEY=my_sec_key
+</code></pre></div>
+<p>Or you can use AWS credentials as <a href="../../Remote-Storage-in-VDMS/">specified here:</a></p>
+<h2 id="deploying-neo4j-and-minio-for-testing">Deploying Neo4J and MinIO for Testing<a class="headerlink" href="#deploying-neo4j-and-minio-for-testing" title="Permanent link">&para;</a></h2>
+<p>If you have access to docker, you can deploy MinIO and Neo4J containers to connect your VDMS deployments to, e.g</p>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span><span class="se">\</span>
+-d<span class="w"> </span><span class="se">\</span>
+-p<span class="w"> </span><span class="m">9000</span>:9000<span class="w"> </span><span class="se">\</span>
+-p<span class="w"> </span><span class="m">9001</span>:9001<span class="w"> </span><span class="se">\</span>
+--name<span class="w"> </span>minio_tester<span class="w"> </span><span class="se">\</span>
+-e<span class="w"> </span><span class="nv">MINIO_ROOT_USER</span><span class="o">=</span>minio_username<span class="w"> </span><span class="se">\</span>
+-e<span class="w"> </span><span class="nv">MINIO_ROOT_PASSWORD</span><span class="o">=</span>minio_password<span class="w"> </span><span class="se">\</span>
+quay.io/minio/minio<span class="w"> </span>server<span class="w"> </span>/data<span class="w"> </span>--console-address<span class="w"> </span><span class="s2">&quot;:9001&quot;</span>
+
+
+docker<span class="w"> </span>run<span class="w"> </span><span class="se">\</span>
+<span class="w"> </span>-d<span class="w"> </span><span class="se">\</span>
+--name<span class="o">=</span>4j_container<span class="w"> </span><span class="se">\</span>
+--env<span class="w"> </span><span class="nv">NEO4J_AUTH</span><span class="o">=</span>&lt;neo4j_user&gt;/&lt;neo4j_password&gt;<span class="w"> </span><span class="se">\</span>
+--publish<span class="o">=</span>&lt;neo4j_port&gt;:7687<span class="w"> </span><span class="se">\</span>
+neo4j:5.17.0<span class="w"> </span><span class="se">\</span>
+</code></pre></div>
+<h2 id="deploying-multiple-vdms-servers">Deploying Multiple VDMS Servers<a class="headerlink" href="#deploying-multiple-vdms-servers" title="Permanent link">&para;</a></h2>
+<p>Its possible to deploy multiple VDMS servers sharing the same backend infrastructure, however note that if you are using a load balancer along with descriptor set functionality you may have unpredictable behavior as descriptor sets are currently restricted to local filesystem access. If you wish to use descriptor sets with multiple distinct VDMS servers you must track which server is responsible for each descriptor set.</p>
+<p>Assuming the Neo4J and S3 object storage clusters are up and running, its simply a matter of making sure the configuration file and environment is correctly set and starting a new server. Once its up and running, it can share the same data/metadata environment as all other servers. The VDMS server, however, will not have any awareness of other servers natively (i.e. it is stateless), nor will it require any. Each server can be interacted with as though it were a standalone deployment, or they can be routed to via a load-balancer.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../../../tutorials/Descriptor-Tutorial/" class="btn btn-neutral float-left" title="Descriptor Tutorial"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../Query-Handler-Development/" class="btn btn-neutral float-right" title="Query Handler Development">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2025 Intel Corporation</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="http://github.com/IntelLabs/vdms" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../../../tutorials/Descriptor-Tutorial/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../Query-Handler-Development/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

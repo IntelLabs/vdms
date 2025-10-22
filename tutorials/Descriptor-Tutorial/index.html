@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://intellabs.github.io/vdms/tutorials/Descriptor-Tutorial/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Descriptor Tutorial - VDMS Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Descriptor Tutorial";
+        var mkdocs_page_input_path = "tutorials/Descriptor-Tutorial.md";
+        var mkdocs_page_url = "/vdms/tutorials/Descriptor-Tutorial/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> VDMS Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Install/">Install</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Docker/">Docker</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../guides/VDMS-mTLS-Support/">VDMS Mutual TLS Support</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API (v2.0.0++)</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../API-Description/">Description</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../ConfigFile/">ConfigFile</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Keywords/">Keywords</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Returned-Status/">Returned Status</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Schema/">Schema Definition</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Commands</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Basic Building Blocks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-constraints/">Constraints</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-link/">Link</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-operations/">Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-properties/">Properties</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-rectangle/">Rectangle</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-results/">Results</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Insert</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddBlob/">AddBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddBoundingBox/">AddBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddConnection/">AddConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddDescriptor/">AddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddDescriptorSet/">AddDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddEntity/">AddEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddImage/">AddImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddVideo/">AddVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoAdd/">NeoAdd</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoAddDescriptor/">NeoAddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoAddDescriptorSet/">NeoAddDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Query</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/ClassifyDescriptor/">ClassifyDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindBlob/">FindBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindBoundingBox/">FindBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindConnection/">FindConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindDescriptor/">FindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindDescriptorSet/">FindDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindEntity/">FindEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindFrames/">FindFrames</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindImage/">FindImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindVideo/">FindVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoFind/">NeoFind</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoFindDescriptor/">NeoFindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoFindDescriptorSet/">NeoFindDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Update</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateBlob/">UpdateBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateBoundingBox/">UpdateBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateConnection/">UpdateConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateEntity/">UpdateEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateImage/">UpdateImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateVideo/">UpdateVideo</a>
+                </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials & Guides</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" >Tutorials</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../Simple-Tutorial/">Simple Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../Image-Tutorial/">Image Tutorial</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">Descriptor Tutorial</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#descriptorset-creation">DescriptorSet Creation</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#insert-a-new-photo-with-associated-metadata-and-descriptors">Insert a new photo with associated metadata and descriptors</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#classify-a-new-face">Classify a New Face</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#query-using-user-defined-properties">Query Using User-defined Properties</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#query-using-a-descriptor">Query Using a Descriptor</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#complex-query-using-connections">Complex query using connections</a>
+    </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >How-to Guides</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Backends & Query Handlers</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/backends-and-handlers/Neo4J-Based-Scale-Out-VDMS/">Neo4j based Scale Out</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/backends-and-handlers/Query-Handler-Development/">Query Handler Development</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Connectors & Orchestrations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/connectors-and-orchestrations/Run-Kafka-VDMS-Example/">Kafka Connectors for VDMS</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/connectors-and-orchestrations/Kubernetes-Orchestration/">Kubernetes Orchestration in VDMS</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../guides/CSV-Plugin-for-CPP-Client/">CSV Plugin for C++ Client</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Deletion, Backup, & Restore</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/deletion-backup-and-restore/Auto-Deletion-of-Expired-Data/">Auto-Deletion of Expired Data</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/deletion-backup-and-restore/VDMS-Backup-and-Restoring-Options/">Backup and Restoring Options</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/deletion-backup-and-restore/Deletion-Capabilities/">Deletion Capabilities</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Descriptors</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/descriptors/Descriptor-Memory-Usage/">Descriptors Memory Usage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/descriptors/FLINNG-Library-and-Performance/">FLINNG Library and Performance</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Remote & User Defined Operations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/remote-and-udf-operations/Remote-Operations/">Remote Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/remote-and-udf-operations/User-Defined-Operations/">User Defined Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/remote-and-udf-operations/Dynamic-Metadata/">Dynamically Add Metadata</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../guides/Remote-Storage-in-VDMS/">Remote Storage</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../guides/Timing-Capability/">Timing Capability</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Interactive Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="https://deepwiki.com/IntelLabs/vdms">DeepWiki</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribute</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../contribute/Developer-Guide/">Developer Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Test Suite</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../contribute/VDMS-Test-Suite/">VDMS Test Suite Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../contribute/VDMS-Test-Script/">VDMS Test Script</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">VDMS Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Tutorials & Guides</li>
+          <li class="breadcrumb-item">Tutorials</li>
+      <li class="breadcrumb-item active">Descriptor Tutorial</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="http://github.com/IntelLabs/vdms/blob/develop/docs/tutorials/Descriptor-Tutorial.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="descriptor-tutorial">Descriptor Tutorial<a class="headerlink" href="#descriptor-tutorial" title="Permanent link">&para;</a></h1>
+<p>Let's walk through an example on how VDMS would support visual descriptors for your application. In this tutorial, we will implement an VDMS instance for storing and matching faces. In this instance, we will store photos, descriptors, and metadata about a series of pictures that were taken at a party.</p>
+<p>We will start by storing the photos taken during the party. If a picture has a face on it, we will also store the descriptor of the faces, along with a label indicating which person that descriptor belongs to. That will allow us to later query for a face that was not previously labeled, and get the right label indicating who that person is, among other cool queries.</p>
+<p>We will follow the use-case of face recognition as our example application, following Figure 1:</p>
+<!-- <p align="center">
+  <img src="images/descriptors-example.png"><br>
+  **Figure 1: Face Detection and recognition example.**
+</p><br> -->
+<p><img alt="Face Detection and recognition example" src="../../images/descriptors-example.png" /></p>
+<p>Here we details what happens on each step on Figure 1.</p>
+<ol>
+<li>
+<p>The application runs a descriptor extractor for faces over a photo with people, obtaining one descriptor for each person.</p>
+</li>
+<li>
+<p>The descriptors are sent to VDMS, along with the original photo, in a single transaction.</p>
+</li>
+<li>
+<p>VDMS stores the descriptors within a transaction placing them in the appropriate index, following statistical properties of the set of descriptors.</p>
+</li>
+<li>
+<p>VDMS acknowledges the transaction to the user application.</p>
+</li>
+<li>
+<p>Another user application want to query who is the person on a new photo. For that, the application use the same extractor to obtain a descriptor of the face.</p>
+</li>
+<li>
+<p>The query is sent to the data management system as a new transaction.</p>
+</li>
+<li>
+<p>VDMS preforms a neighbor search using the persistent index.</p>
+</li>
+<li>
+<p>VDMS returns the label corresponding to that descriptor as part of the transaction.</p>
+</li>
+</ol>
+<p>Note:
+In our example, Steps 1 through 4 will happen every time we want to insert a new image to VDMS, Steps 5 through 8 will happen every time we want to classify a new face.</p>
+<p>We will also cover other forms of searching over the descriptors, not shown in this Figure.</p>
+<h2 id="descriptorset-creation">DescriptorSet Creation<a class="headerlink" href="#descriptorset-creation" title="Permanent link">&para;</a></h2>
+<p>Before inserting any descriptor to VDMS, we will create the DescriptorSet. When creating a DescriptorSet, we specify the name that will be assigned to that set, the metric that will be used for searching, and the dimensions of the descriptors that will be inserted in the set:
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;AddDescriptorSet&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;party_faces&quot;</span><span class="p">,</span><span class="w">   </span><span class="c1">// User-defined name of the Set</span>
+<span class="w">    </span><span class="nt">&quot;metric&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;L2&quot;</span><span class="p">,</span><span class="w">          </span><span class="c1">// Specify the metric (Euclidean distance)</span>
+<span class="w">    </span><span class="nt">&quot;dimensions&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">128</span><span class="w">        </span><span class="c1">// Specify dimensionality (128 float)</span>
+<span class="p">}</span>
+</code></pre></div>
+<br></p>
+<h2 id="insert-a-new-photo-with-associated-metadata-and-descriptors">Insert a new photo with associated metadata and descriptors<a class="headerlink" href="#insert-a-new-photo-with-associated-metadata-and-descriptors" title="Permanent link">&para;</a></h2>
+<p>The user will run its favorite face detector over the photo and extract the location of the photos where there are faces. The user will then use its favorite descriptor extractor (details about the magic behind recognition and extraction here). This is Step 1 in Figure 1.</p>
+<p>Once each of the faces has its corresponding descriptor, we will assume that the user will label each of them and assign the name of the person for that face, along with some other metadata (like gender or age).</p>
+<p>With all that metadata in place, we will proceed to store the information (image, labels, metadata) into VDMS in a single transaction (Step 2 through 4 in Figure 1):
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;AddImage&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">             </span><span class="c1">// Specify user-defined properties</span>
+<span class="w">        </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;photo_party_01&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;location&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;John&#39;s House&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;year&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2015</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;_ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">                  </span><span class="c1">// Assign a reference number for later use</span>
+<span class="w">    </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;jpg&quot;</span><span class="w">             </span><span class="c1">// Specify a format to use (default is our TDB format)</span>
+<span class="p">},</span>
+
+
+<span class="nt">&quot;AddDescriptor&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;set&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;party_faces&quot;</span><span class="p">,</span><span class="w">       </span><span class="c1">// Specify the name of the Set</span>
+<span class="w">    </span><span class="nt">&quot;label&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Ricky Fort&quot;</span><span class="p">,</span><span class="w">       </span><span class="c1">// Assign a label to the descriptor</span>
+<span class="w">    </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">             </span><span class="c1">// Add application-specific properties</span>
+<span class="w">        </span><span class="nt">&quot;gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;age&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">45</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;link&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">                   </span><span class="c1">// We can create a connection between the image</span>
+<span class="w">        </span><span class="nt">&quot;ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w">                </span><span class="c1">// and the descriptor.</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">},</span>
+
+<span class="nt">&quot;AddDescriptor&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;set&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;party_faces&quot;</span><span class="p">,</span><span class="w">       </span><span class="c1">// Specify the name of the Set</span>
+<span class="w">    </span><span class="nt">&quot;label&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Karen Smith&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// Assign a label to the descriptor</span>
+<span class="w">    </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;F&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;age&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">24</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;link&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">},</span>
+
+<span class="nt">&quot;AddDescriptor&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;set&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;party_faces&quot;</span><span class="p">,</span><span class="w">       </span><span class="c1">// Specify the name of the Set</span>
+<span class="w">    </span><span class="nt">&quot;label&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Regina George&quot;</span><span class="p">,</span><span class="w">    </span><span class="c1">// Assign a label to the descriptor</span>
+<span class="w">    </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;F&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;age&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">32</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;link&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="err">+</span><span class="w"> </span><span class="err">Blob</span><span class="w">                          </span><span class="c1">// a blob with the image and descriptors</span>
+<span class="w">                                </span><span class="c1">// will be passed to our client library.</span>
+<span class="w">                                </span><span class="c1">// The blob in this case is an array of 4 objects:</span>
+<span class="w">                                </span><span class="c1">// The first is the encoded image</span>
+<span class="w">                                </span><span class="c1">// (using jpeg or png, for example)</span>
+<span class="w">                                </span><span class="c1">// The other 3 objects are the descriptors</span>
+<span class="w">                                </span><span class="c1">// (each one is an an array of 128 floats)</span>
+</code></pre></div></p>
+<p><strong><em>Note:</em></strong> Single vs Multiple Transactions</p>
+<blockquote>
+<p>In this example, we insert all the information of a photo (the faces on that photos, the descriptors of those faces, and other metada) within a single transaction. We could also insert the photo in a separate transaction, and still be able to link the descriptors with the photos. Check the full API to understand that case better.
+<br></p>
+</blockquote>
+<h2 id="classify-a-new-face">Classify a New Face<a class="headerlink" href="#classify-a-new-face" title="Permanent link">&para;</a></h2>
+<p>Suppose we have a photo of a person that was on the party, but we don't know who that person is (photo on the bottom of Figure 1).</p>
+<p>We can run the face detection over the photo, and run the descriptor extractor over the region of the photo that contains the face (Step 5 on Figure 1).</p>
+<p>Now that we have the descriptor for that person, we can ran a classification query to see if we have a close match based on the descriptor.
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;ClassifyDescriptor&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;set&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;party_faces&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;k_neighbors&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">          </span><span class="c1">// We specify that we want a classification</span>
+<span class="w">                            </span><span class="c1">// based on the nearest neighbor</span>
+<span class="p">}</span>
+<span class="err">+</span><span class="w"> </span><span class="err">blob</span><span class="w">                      </span><span class="c1">// The blob is passed using the client library.</span>
+<span class="w">                            </span><span class="c1">// In this case, it will be an array with the values :</span>
+<span class="w">                            </span><span class="c1">// [2.13, 3.3, 55.3, ...]</span>
+</code></pre></div></p>
+<p>VDMS will perform the similarity search, and classify the input descriptor based on the closest neighbor.</p>
+<p>Naturally, the closest neighbor will be the descriptor corresponding to "Ricky Fort", and the response will look like this:
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;ClassifyDescriptor&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;success&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;label&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Ricky Fort&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<br></p>
+<h2 id="query-using-user-defined-properties">Query Using User-defined Properties<a class="headerlink" href="#query-using-user-defined-properties" title="Permanent link">&para;</a></h2>
+<p>We can also perform queries to find descriptors that have some specific properties.</p>
+<p>For instance, suppose that we want to get all the descriptors from people that have certain age, as we are interested in studying some particular characteristics of those descriptors.</p>
+<p>We can run that query by doing:
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;FindDescriptor&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;set&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;party_faces&quot;</span><span class="p">,</span><span class="w">           </span><span class="c1">// Specify the descriptor set</span>
+<span class="w">    </span><span class="nt">&quot;constraints&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;age&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;30&quot;</span><span class="p">]</span><span class="w">          </span><span class="c1">// We want only those which correspond to people</span>
+<span class="w">    </span><span class="p">},</span><span class="w">                               </span><span class="c1">// 30 years or older.</span>
+<span class="w">    </span><span class="nt">&quot;results&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;list&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;age&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;gender&quot;</span><span class="p">]</span><span class="w">   </span><span class="c1">// We want some properties to be returned</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></p>
+<p>In this case, VDMS will return:
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;FindDescriptor&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;success&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;entities&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span><span class="w">                       </span><span class="c1">// Ricky Fort</span>
+<span class="w">            </span><span class="nt">&quot;age&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">45</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;M&quot;</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="w">                       </span><span class="c1">// Regina George</span>
+<span class="w">            </span><span class="nt">&quot;age&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">32</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;F&quot;</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="p">}</span>
+<span class="err">+</span><span class="w"> </span><span class="err">blob</span><span class="w">                          </span><span class="c1">// The blob is returned using the client library.</span>
+<span class="w">                                </span><span class="c1">// In this case, it will be an array with the values :</span>
+<span class="w">                                </span><span class="c1">// [2.12, 3.4, 56.3, ...](Ricky) and</span>
+<span class="w">                                </span><span class="c1">// [16.5, 4.7, 28.1, ...](Regina)</span>
+</code></pre></div>
+<br></p>
+<h2 id="query-using-a-descriptor">Query Using a Descriptor<a class="headerlink" href="#query-using-a-descriptor" title="Permanent link">&para;</a></h2>
+<p>We can also perform queries to find descriptors that are similar to some "query" descriptor.</p>
+<p>For instance, suppose that we want to get all the descriptor that is the most similar to:</p>
+<pre><code>[16.6, 4.9, 27.8, ...] (query descriptor)
+</code></pre>
+<p>We can run that query by doing:
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;FindDescriptor&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;set&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;party_faces&quot;</span><span class="p">,</span><span class="w">       </span><span class="c1">// Specify the descriptor set</span>
+<span class="w">    </span><span class="nt">&quot;k_neighbors&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">             </span><span class="c1">// We specify that we want only the two nearest neighbor</span>
+<span class="w">    </span><span class="nt">&quot;radius&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">243.434</span><span class="p">,</span><span class="w">          </span><span class="c1">// We specify max distance we want this</span>
+<span class="w">                                </span><span class="c1">// descriptor to be from the query</span>
+<span class="w">    </span><span class="nt">&quot;results&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;list&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;_label&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// We want the label assigned to that descriptor</span>
+<span class="w">                    </span><span class="s2">&quot;gender&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// its gender</span>
+<span class="w">                    </span><span class="s2">&quot;_distance&quot;</span><span class="p">],</span><span class="w">  </span><span class="c1">// and its distance to the query descriptor</span>
+<span class="w">        </span><span class="nt">&quot;blob&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">False</span><span class="w">           </span><span class="c1">// We specify that in this case,</span>
+<span class="w">                                </span><span class="c1">// we don&#39;t want the actual descriptor to be returned.</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="err">+</span><span class="w"> </span><span class="err">blob</span><span class="w">                          </span><span class="c1">// The blob is passed using the client library.</span>
+<span class="w">                                </span><span class="c1">// In this case, it will be an array with the values :</span>
+<span class="w">                                </span><span class="c1">// [16.6, 4.9, 27.8, ...] (the query descriptor)</span>
+</code></pre></div></p>
+<p>Naturally, the closest neighbor to that query descriptor will be the one that corresponds to Regina George's face.</p>
+<p>Assume that the descriptor for Karen Smith also falls within that radius range.</p>
+<p>In this case, VDMS will return:
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;FindDescriptor&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;success&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;entities&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;_label&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Regina George&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;F&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;_distance&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">34.342</span>
+<span class="w">        </span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;_label&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Karen Smith&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;F&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;_distance&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">287.345</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<br></p>
+<h2 id="complex-query-using-connections">Complex query using connections<a class="headerlink" href="#complex-query-using-connections" title="Permanent link">&para;</a></h2>
+<p>Assume we want all the photos that where taken in 2015 and that had a face with the following descriptor on it:</p>
+<pre><code>[16.6, 4.9, 27.8, ...] (query descriptor)
+</code></pre>
+<p>We can run that query by doing:
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;FindDescriptor&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;set&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;party_faces&quot;</span><span class="p">,</span><span class="w">       </span><span class="c1">// Specify the descriptor set</span>
+<span class="w">    </span><span class="nt">&quot;radius&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">243.434</span><span class="p">,</span><span class="w">          </span><span class="c1">// We specify max distance we want this</span>
+<span class="w">                                </span><span class="c1">// descriptor to be from the query</span>
+<span class="w">    </span><span class="nt">&quot;_ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">                  </span><span class="c1">// We will use this reference in the</span>
+<span class="w">                                </span><span class="c1">// FindImage call (see below)</span>
+<span class="w">    </span><span class="nt">&quot;results&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;list&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;_label&quot;</span><span class="p">,</span><span class="w">      </span><span class="c1">// We want the label assigned to that descriptor</span>
+<span class="w">                    </span><span class="s2">&quot;gender&quot;</span><span class="p">],</span><span class="w">     </span><span class="c1">// and the gender property</span>
+<span class="w">        </span><span class="nt">&quot;blob&quot;</span><span class="p">:</span><span class="w"> </span><span class="err">False</span><span class="w">    </span><span class="c1">// We specify that in this case,</span>
+<span class="w">                                </span><span class="c1">// we don&#39;t want the actual descriptor to be returned.</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+
+<span class="nt">&quot;FindImage&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;constraints&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;year&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;==&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">2015</span><span class="p">]</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;jpg&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;link&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">               </span><span class="c1">// We reference to the result of</span>
+<span class="w">                                </span><span class="c1">// the FindDescriptors call above</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+<span class="err">+</span><span class="w"> </span><span class="err">blob</span><span class="w">                          </span><span class="c1">// The blob is passed using the client library.</span>
+<span class="w">                                </span><span class="c1">// In this case, it will be an array with the values:</span>
+<span class="w">                                </span><span class="c1">// [16.6, 4.9, 27.8, ...] (the query descriptor)</span>
+</code></pre></div></p>
+<p>Naturally, the closest neighbor to that query descriptor will be the one that corresponds to Regina George's face.</p>
+<p>Assume that the descriptor for Karen Smith also falls within that radius range, but not the one associated with Ricky Fort.</p>
+<p>In this case, VDMS will return:
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;FindDescriptor&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;success&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;entities&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;_label&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Regina George&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;F&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;_label&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Karen Smith&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;F&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;FindImage&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Success&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+<span class="err">+</span><span class="w"> </span><span class="err">blob</span><span class="w">                      </span><span class="c1">// The blob is returned using the client library</span>
+<span class="w">                            </span><span class="c1">// In this case, the image named &quot;photo_party_01&quot;</span>
+<span class="w">                            </span><span class="c1">// will be returned as an encoded jpg.</span>
+</code></pre></div></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../Image-Tutorial/" class="btn btn-neutral float-left" title="Image Tutorial"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../guides/backends-and-handlers/Neo4J-Based-Scale-Out-VDMS/" class="btn btn-neutral float-right" title="Neo4j based Scale Out">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2025 Intel Corporation</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="http://github.com/IntelLabs/vdms" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../Image-Tutorial/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../../guides/backends-and-handlers/Neo4J-Based-Scale-Out-VDMS/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

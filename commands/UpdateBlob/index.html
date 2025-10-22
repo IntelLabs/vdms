@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://intellabs.github.io/vdms/commands/UpdateBlob/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>UpdateBlob - VDMS Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "UpdateBlob";
+        var mkdocs_page_input_path = "commands/UpdateBlob.md";
+        var mkdocs_page_url = "/vdms/commands/UpdateBlob/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> VDMS Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Install/">Install</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Docker/">Docker</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../guides/VDMS-mTLS-Support/">VDMS Mutual TLS Support</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API (v2.0.0++)</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../../API-Description/">Description</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../ConfigFile/">ConfigFile</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Keywords/">Keywords</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Returned-Status/">Returned Status</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Schema/">Schema Definition</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Commands</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" >Basic Building Blocks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-constraints/">Constraints</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-link/">Link</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-operations/">Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-properties/">Properties</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-rectangle/">Rectangle</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-results/">Results</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Insert</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../AddBlob/">AddBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../AddBoundingBox/">AddBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../AddConnection/">AddConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../AddDescriptor/">AddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../AddDescriptorSet/">AddDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../AddEntity/">AddEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../AddImage/">AddImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../AddVideo/">AddVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../NeoAdd/">NeoAdd</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../NeoAddDescriptor/">NeoAddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../NeoAddDescriptorSet/">NeoAddDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Query</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../ClassifyDescriptor/">ClassifyDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../FindBlob/">FindBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../FindBoundingBox/">FindBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../FindConnection/">FindConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../FindDescriptor/">FindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../FindDescriptorSet/">FindDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../FindEntity/">FindEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../FindFrames/">FindFrames</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../FindImage/">FindImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../FindVideo/">FindVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../NeoFind/">NeoFind</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../NeoFindDescriptor/">NeoFindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../NeoFindDescriptorSet/">NeoFindDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" >Update</a>
+    <ul class="current">
+                <li class="toctree-l3 current"><a class="reference internal current" href="#">UpdateBlob</a>
+    <ul class="current">
+    <li class="toctree-l4"><a class="reference internal" href="#parameters">Parameters</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#blocks">Blocks</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#examples">Examples</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../UpdateBoundingBox/">UpdateBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../UpdateConnection/">UpdateConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../UpdateEntity/">UpdateEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../UpdateImage/">UpdateImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../UpdateVideo/">UpdateVideo</a>
+                </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials & Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" >Tutorials</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../tutorials/Simple-Tutorial/">Simple Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../tutorials/Image-Tutorial/">Image Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../tutorials/Descriptor-Tutorial/">Descriptor Tutorial</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >How-to Guides</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Backends & Query Handlers</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/backends-and-handlers/Neo4J-Based-Scale-Out-VDMS/">Neo4j based Scale Out</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/backends-and-handlers/Query-Handler-Development/">Query Handler Development</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Connectors & Orchestrations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/connectors-and-orchestrations/Run-Kafka-VDMS-Example/">Kafka Connectors for VDMS</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/connectors-and-orchestrations/Kubernetes-Orchestration/">Kubernetes Orchestration in VDMS</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../guides/CSV-Plugin-for-CPP-Client/">CSV Plugin for C++ Client</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Deletion, Backup, & Restore</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/deletion-backup-and-restore/Auto-Deletion-of-Expired-Data/">Auto-Deletion of Expired Data</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/deletion-backup-and-restore/VDMS-Backup-and-Restoring-Options/">Backup and Restoring Options</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/deletion-backup-and-restore/Deletion-Capabilities/">Deletion Capabilities</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Descriptors</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/descriptors/Descriptor-Memory-Usage/">Descriptors Memory Usage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/descriptors/FLINNG-Library-and-Performance/">FLINNG Library and Performance</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Remote & User Defined Operations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/remote-and-udf-operations/Remote-Operations/">Remote Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/remote-and-udf-operations/User-Defined-Operations/">User Defined Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/remote-and-udf-operations/Dynamic-Metadata/">Dynamically Add Metadata</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../guides/Remote-Storage-in-VDMS/">Remote Storage</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../guides/Timing-Capability/">Timing Capability</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Interactive Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="https://deepwiki.com/IntelLabs/vdms">DeepWiki</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribute</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../contribute/Developer-Guide/">Developer Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Test Suite</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../contribute/VDMS-Test-Suite/">VDMS Test Suite Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../contribute/VDMS-Test-Script/">VDMS Test Script</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">VDMS Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">API (v2.0.0++)</li>
+          <li class="breadcrumb-item">Commands</li>
+          <li class="breadcrumb-item">Update</li>
+      <li class="breadcrumb-item active">UpdateBlob</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="http://github.com/IntelLabs/vdms/blob/develop/docs/commands/UpdateBlob.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="updateblob-command">UpdateBlob Command<a class="headerlink" href="#updateblob-command" title="Permanent link">&para;</a></h1>
+<p>This command provides ways to find one or more
+existing blob of data and then lets an application add, change or remove properties.
+The local id allows an application to chain this command with following operations
+or associate with a previous search.</p>
+<h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>
+<ul>
+<li>[optional] <a href="../../Keywords/#keywords"><code>_ref</code></a>: for reference</li>
+</ul>
+<h2 id="blocks">Blocks<a class="headerlink" href="#blocks" title="Permanent link">&para;</a></h2>
+<ul>
+<li>[optional] <a href="../../blocks/Block-properties/"><code>properties</code></a></li>
+<li>[optional] <a href="../../blocks/Block-properties/"><code>remove_props</code></a></li>
+<li>[optional] <a href="../../blocks/Block-constraints/"><code>constraints</code></a></li>
+</ul>
+<p><strong><em>NOTE:</em></strong> At least one of <code>_ref</code> or <code>constraints</code> are required for searching.</p>
+<p>If <code>_ref</code> is provided, it essentially refers to the search results of a previous
+<code>FindBlob</code> or <code>AddBlob</code>.
+Since the Update call just results in updating the
+property values inline within those entities, we keep the same <code>_ref</code> value.
+The call can result in an update to multiple entities depending on the search criteria.
+Unique is not assumed to be true in this case.</p>
+<p>Property keys are case sensitive and are matched exactly when updating properties.</p>
+<p>If search results are empty, this will cause an exception.</p>
+<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
+<p>The following Python example adds an audio file to VDMS and uses <code>UpdateBlob</code> to add the <code>length</code> property and remove the <code>color</code> property:
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">vdms</span>
+
+<span class="n">db</span><span class="o">=</span><span class="n">vdms</span><span class="o">.</span><span class="n">vdms</span>
+<span class="n">db</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+
+<span class="n">audio_blob</span> <span class="o">=</span> <span class="p">[</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;audio_file.m4a&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">read_bytes</span><span class="p">()]</span>
+
+<span class="n">all_queries</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;AddBlob&quot;</span><span class="p">:</span>
+        <span class="p">{</span>
+
+            <span class="s2">&quot;_ref&quot;</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;Name&quot;</span><span class="p">:</span><span class="s2">&quot;blob-sample-1&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;color&quot;</span><span class="p">:</span> <span class="s2">&quot;true&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;file&quot;</span><span class="p">:</span><span class="s2">&quot;audio&quot;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;UpdateBlob&quot;</span> <span class="p">:</span> <span class="p">{</span>
+
+            <span class="s2">&quot;constraints&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;Name&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;==&quot;</span><span class="p">,</span>  <span class="s2">&quot;blob-sample-1&quot;</span> <span class="p">]</span>
+            <span class="p">},</span>
+            <span class="s2">&quot;remove_props&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="s2">&quot;color&quot;</span> <span class="p">],</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;length&quot;</span> <span class="p">:</span> <span class="mi">200</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">]</span>
+
+<span class="n">response</span><span class="p">,</span> <span class="n">response_arr</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">all_queries</span><span class="p">,</span> <span class="n">audio_blob</span><span class="p">)</span>
+</code></pre></div></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../NeoFindDescriptorSet/" class="btn btn-neutral float-left" title="NeoFindDescriptorSet"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../UpdateBoundingBox/" class="btn btn-neutral float-right" title="UpdateBoundingBox">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2025 Intel Corporation</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="http://github.com/IntelLabs/vdms" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../NeoFindDescriptorSet/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../UpdateBoundingBox/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

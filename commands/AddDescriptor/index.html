@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://intellabs.github.io/vdms/commands/AddDescriptor/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>AddDescriptor - VDMS Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "AddDescriptor";
+        var mkdocs_page_input_path = "commands/AddDescriptor.md";
+        var mkdocs_page_url = "/vdms/commands/AddDescriptor/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> VDMS Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Install/">Install</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Docker/">Docker</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../guides/VDMS-mTLS-Support/">VDMS Mutual TLS Support</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API (v2.0.0++)</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../../API-Description/">Description</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../ConfigFile/">ConfigFile</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Keywords/">Keywords</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Returned-Status/">Returned Status</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Schema/">Schema Definition</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Commands</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" >Basic Building Blocks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-constraints/">Constraints</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-link/">Link</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-operations/">Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-properties/">Properties</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-rectangle/">Rectangle</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-results/">Results</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" >Insert</a>
+    <ul class="current">
+                <li class="toctree-l3"><a class="reference internal" href="../AddBlob/">AddBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../AddBoundingBox/">AddBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../AddConnection/">AddConnection</a>
+                </li>
+                <li class="toctree-l3 current"><a class="reference internal current" href="#">AddDescriptor</a>
+    <ul class="current">
+    <li class="toctree-l4"><a class="reference internal" href="#parameters">Parameters</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#blocks">Blocks</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#examples">Examples</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../AddDescriptorSet/">AddDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../AddEntity/">AddEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../AddImage/">AddImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../AddVideo/">AddVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../NeoAdd/">NeoAdd</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../NeoAddDescriptor/">NeoAddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../NeoAddDescriptorSet/">NeoAddDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Query</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../ClassifyDescriptor/">ClassifyDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../FindBlob/">FindBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../FindBoundingBox/">FindBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../FindConnection/">FindConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../FindDescriptor/">FindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../FindDescriptorSet/">FindDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../FindEntity/">FindEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../FindFrames/">FindFrames</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../FindImage/">FindImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../FindVideo/">FindVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../NeoFind/">NeoFind</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../NeoFindDescriptor/">NeoFindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../NeoFindDescriptorSet/">NeoFindDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Update</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../UpdateBlob/">UpdateBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../UpdateBoundingBox/">UpdateBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../UpdateConnection/">UpdateConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../UpdateEntity/">UpdateEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../UpdateImage/">UpdateImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../UpdateVideo/">UpdateVideo</a>
+                </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials & Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" >Tutorials</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../tutorials/Simple-Tutorial/">Simple Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../tutorials/Image-Tutorial/">Image Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../tutorials/Descriptor-Tutorial/">Descriptor Tutorial</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >How-to Guides</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Backends & Query Handlers</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/backends-and-handlers/Neo4J-Based-Scale-Out-VDMS/">Neo4j based Scale Out</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/backends-and-handlers/Query-Handler-Development/">Query Handler Development</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Connectors & Orchestrations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/connectors-and-orchestrations/Run-Kafka-VDMS-Example/">Kafka Connectors for VDMS</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/connectors-and-orchestrations/Kubernetes-Orchestration/">Kubernetes Orchestration in VDMS</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../guides/CSV-Plugin-for-CPP-Client/">CSV Plugin for C++ Client</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Deletion, Backup, & Restore</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/deletion-backup-and-restore/Auto-Deletion-of-Expired-Data/">Auto-Deletion of Expired Data</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/deletion-backup-and-restore/VDMS-Backup-and-Restoring-Options/">Backup and Restoring Options</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/deletion-backup-and-restore/Deletion-Capabilities/">Deletion Capabilities</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Descriptors</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/descriptors/Descriptor-Memory-Usage/">Descriptors Memory Usage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/descriptors/FLINNG-Library-and-Performance/">FLINNG Library and Performance</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Remote & User Defined Operations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/remote-and-udf-operations/Remote-Operations/">Remote Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/remote-and-udf-operations/User-Defined-Operations/">User Defined Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/remote-and-udf-operations/Dynamic-Metadata/">Dynamically Add Metadata</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../guides/Remote-Storage-in-VDMS/">Remote Storage</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../guides/Timing-Capability/">Timing Capability</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Interactive Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="https://deepwiki.com/IntelLabs/vdms">DeepWiki</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribute</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../contribute/Developer-Guide/">Developer Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Test Suite</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../contribute/VDMS-Test-Suite/">VDMS Test Suite Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../contribute/VDMS-Test-Script/">VDMS Test Script</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">VDMS Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">API (v2.0.0++)</li>
+          <li class="breadcrumb-item">Commands</li>
+          <li class="breadcrumb-item">Insert</li>
+      <li class="breadcrumb-item active">AddDescriptor</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="http://github.com/IntelLabs/vdms/blob/develop/docs/commands/AddDescriptor.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="adddescriptor-command">AddDescriptor Command<a class="headerlink" href="#adddescriptor-command" title="Permanent link">&para;</a></h1>
+<p>VDMS natively supports high-dimensional feature vector operations allowing efficient similarity searches, particularly useful in ML pipelines. Feature vectors or descriptors are intermediate results of various machine learning or computer vision algorithms when run on visual data. These vectors can be labeled and classified to build search indexes. VDMS does not extract descriptors but once they are available, it can store, index, and search for similarity.</p>
+<p>Before inserting any descriptor into VDMS, we need to create the DescriptorSet. When creating a DescriptorSet, we can specify the name that will be assigned to that set, the metric that will be used for searching, and the dimensions of the descriptors that will be inserted in the set (see <a href="../AddDescriptorSet/"><code>AddDescriptorSet</code></a> command).</p>
+<p>A descriptor, associated with a set, can then be added as below.
+The bare minimum requirement for this call is the name of the set and a descriptor blob of matching dimensions (to the set).</p>
+<p>Properties can be added to the Descriptor, as well as <code>link</code> block can be
+used to specify relationships in a similar way <code>AddImage</code> supports.
+Link block can be used for creating connections between the inserted object
+(Image, Entity, etc) and other, previously referenced, object.</p>
+<h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>set</code>: Name of the set.</li>
+<li>[optional] <code>label</code>: Label of the descriptor. If unspecified, the system will store it as "None"</li>
+<li>[optional] <a href="../../Keywords/#keywords"><code>_ref</code></a>: for reference</li>
+<li>[optional] <code>batch_properties</code>: List of properties for each descriptor being inserted using batches.<br><blockquote>
+<p><strong><em>NOTE:</em></strong> This is mutually exclusive with the use of the <code>properties</code> block. If you wish to encode a batch of descriptors into the associated blob, you must use the batch properties field. The server side will verify that the number of properties in the list correctly correlates to the size/length of the descriptor batch.</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="blocks">Blocks<a class="headerlink" href="#blocks" title="Permanent link">&para;</a></h2>
+<ul>
+<li>[optional] <a href="../../blocks/Block-properties/"><code>properties</code></a>.<br><blockquote>
+<p><strong><em>NOTE:</em></strong> This is mutually exclusive with the <code>batch_properties</code> field, and can only be used when uploading a single descriptor at a time.</p>
+</blockquote>
+</li>
+<li>[optional] <a href="../../blocks/Block-link/"><code>link</code></a></li>
+</ul>
+<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
+<h3 id="add-single-descriptor">Add Single Descriptor<a class="headerlink" href="#add-single-descriptor" title="Permanent link">&para;</a></h3>
+<p>Insert a Descriptor for someone's face and associate with a previously inserted image (<code>_ref</code> = 1)
+<div class="highlight"><pre><span></span><code><span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;AddDescriptor&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;set&quot;</span><span class="p">:</span> <span class="s2">&quot;party_faces&quot;</span><span class="p">,</span>       <span class="c1"># Specify the name of the DescriptorSet</span>
+            <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Ricky Fort&quot;</span>       <span class="c1"># Assign a label to the descriptor</span>
+            <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>             <span class="c1"># Add application-specific properties</span>
+                <span class="s2">&quot;gender&quot;</span><span class="p">:</span> <span class="s2">&quot;M&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="mi">45</span>
+            <span class="p">}</span>
+            <span class="s2">&quot;link&quot;</span><span class="p">:</span> <span class="p">{</span>                   <span class="c1"># We can create a connection between the image</span>
+                <span class="s2">&quot;ref&quot;</span><span class="p">:</span> <span class="mi">1</span>                <span class="c1"># and the descriptor.</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
+<br></p>
+<h3 id="add-batch-of-descriptors">Add Batch of Descriptors<a class="headerlink" href="#add-batch-of-descriptors" title="Permanent link">&para;</a></h3>
+<p>Insert Descriptors using batch size of 4
+<div class="highlight"><pre><span></span><code><span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;AddDescriptor&quot;</span><span class="p">:</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;set&quot;</span><span class="p">:</span> <span class="s2">&quot;party_faces_batch_set&quot;</span><span class="p">,</span>         <span class="c1"># Specify the name of the DescriptorSet</span>
+            <span class="s2">&quot;batch_properties&quot;</span><span class="p">:</span> <span class="p">[</span>                   <span class="c1"># Add properties for batch</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;faceID&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="s2">&quot;gender&quot;</span><span class="p">:</span> <span class="s2">&quot;M&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="mi">45</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;faceID&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                    <span class="s2">&quot;gender&quot;</span><span class="p">:</span> <span class="s2">&quot;F&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="mi">35</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;faceID&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+                    <span class="s2">&quot;gender&quot;</span><span class="p">:</span> <span class="s2">&quot;M&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="mi">20</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;faceID&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+                    <span class="s2">&quot;gender&quot;</span><span class="p">:</span> <span class="s2">&quot;F&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;age&quot;</span><span class="p">:</span> <span class="mi">20</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
+<br></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../AddConnection/" class="btn btn-neutral float-left" title="AddConnection"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../AddDescriptorSet/" class="btn btn-neutral float-right" title="AddDescriptorSet">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2025 Intel Corporation</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="http://github.com/IntelLabs/vdms" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../AddConnection/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../AddDescriptorSet/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

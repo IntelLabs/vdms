@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://intellabs.github.io/vdms/guides/CSV-Plugin-for-CPP-Client/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>CSV Plugin for C++ Client - VDMS Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "CSV Plugin for C++ Client";
+        var mkdocs_page_input_path = "guides/CSV-Plugin-for-CPP-Client.md";
+        var mkdocs_page_url = "/vdms/guides/CSV-Plugin-for-CPP-Client/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> VDMS Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Install/">Install</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Docker/">Docker</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../VDMS-mTLS-Support/">VDMS Mutual TLS Support</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API (v2.0.0++)</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../API-Description/">Description</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../ConfigFile/">ConfigFile</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Keywords/">Keywords</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Returned-Status/">Returned Status</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Schema/">Schema Definition</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Commands</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Basic Building Blocks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-constraints/">Constraints</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-link/">Link</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-operations/">Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-properties/">Properties</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-rectangle/">Rectangle</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-results/">Results</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Insert</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddBlob/">AddBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddBoundingBox/">AddBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddConnection/">AddConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddDescriptor/">AddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddDescriptorSet/">AddDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddEntity/">AddEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddImage/">AddImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddVideo/">AddVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoAdd/">NeoAdd</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoAddDescriptor/">NeoAddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoAddDescriptorSet/">NeoAddDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Query</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/ClassifyDescriptor/">ClassifyDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindBlob/">FindBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindBoundingBox/">FindBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindConnection/">FindConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindDescriptor/">FindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindDescriptorSet/">FindDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindEntity/">FindEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindFrames/">FindFrames</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindImage/">FindImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindVideo/">FindVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoFind/">NeoFind</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoFindDescriptor/">NeoFindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoFindDescriptorSet/">NeoFindDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Update</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateBlob/">UpdateBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateBoundingBox/">UpdateBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateConnection/">UpdateConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateEntity/">UpdateEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateImage/">UpdateImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateVideo/">UpdateVideo</a>
+                </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials & Guides</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" >Tutorials</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../tutorials/Simple-Tutorial/">Simple Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../tutorials/Image-Tutorial/">Image Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../tutorials/Descriptor-Tutorial/">Descriptor Tutorial</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >How-to Guides</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" >Backends & Query Handlers</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../backends-and-handlers/Neo4J-Based-Scale-Out-VDMS/">Neo4j based Scale Out</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../backends-and-handlers/Query-Handler-Development/">Query Handler Development</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Connectors & Orchestrations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../connectors-and-orchestrations/Run-Kafka-VDMS-Example/">Kafka Connectors for VDMS</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../connectors-and-orchestrations/Kubernetes-Orchestration/">Kubernetes Orchestration in VDMS</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">CSV Plugin for C++ Client</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#basic-building-blocks">Basic Building Blocks</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#constraints">Constraints</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#operations">Operations</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#properties">Properties</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#rectangle">Rectangle</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#insert-commands">Insert Commands</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#addboundingbox">AddBoundingBox</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#addconnection">AddConnection</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#adddescriptor">AddDescriptor</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#adddescriptorset">AddDescriptorSet</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#addentity">AddEntity</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#addimage">AddImage</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#addvideo">AddVideo</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Deletion, Backup, & Restore</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../deletion-backup-and-restore/Auto-Deletion-of-Expired-Data/">Auto-Deletion of Expired Data</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../deletion-backup-and-restore/VDMS-Backup-and-Restoring-Options/">Backup and Restoring Options</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../deletion-backup-and-restore/Deletion-Capabilities/">Deletion Capabilities</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Descriptors</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../descriptors/Descriptor-Memory-Usage/">Descriptors Memory Usage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../descriptors/FLINNG-Library-and-Performance/">FLINNG Library and Performance</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Remote & User Defined Operations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../remote-and-udf-operations/Remote-Operations/">Remote Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../remote-and-udf-operations/User-Defined-Operations/">User Defined Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../remote-and-udf-operations/Dynamic-Metadata/">Dynamically Add Metadata</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../Remote-Storage-in-VDMS/">Remote Storage</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../Timing-Capability/">Timing Capability</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Interactive Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="https://deepwiki.com/IntelLabs/vdms">DeepWiki</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribute</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../contribute/Developer-Guide/">Developer Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Test Suite</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../contribute/VDMS-Test-Suite/">VDMS Test Suite Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../contribute/VDMS-Test-Script/">VDMS Test Script</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">VDMS Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Tutorials & Guides</li>
+          <li class="breadcrumb-item">How-to Guides</li>
+      <li class="breadcrumb-item active">CSV Plugin for C++ Client</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="http://github.com/IntelLabs/vdms/blob/develop/docs/guides/CSV-Plugin-for-CPP-Client.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="csv-plugin">CSV Plugin<a class="headerlink" href="#csv-plugin" title="Permanent link">&para;</a></h1>
+<p>Ease of usability is one important design goal of VDMS.
+We realize many users have data in CSV or tabular format and want to ingest this data into VDMS.
+Prior to VDMS v2.4.0, a user would create functions to parse their data and convert it to JSON queries for ingestion.
+Now, a user can use the CSV Plug-in to ingest their data into VDMS using the C++ Client.
+Currently, this capability is not available with the Python client.</p>
+<p>This document provides details for using the CSV Plugin for C++ Client. This document includes:</p>
+<p><a href="#basic-building-blocks">Basic Building Blocks</a></p>
+<ul>
+<li><a href="#constraints">constraints</a></li>
+<li><a href="#operations">operations</a></li>
+<li><a href="#properties">properties</a></li>
+<li><a href="#rectangle">rectangle</a>
+<br></li>
+</ul>
+<p><a href="#insert-commands">Insert Commands</a></p>
+<ul>
+<li><a href="#addboundingbox">AddBoundingBox</a></li>
+<li><a href="#addconnection">AddConnection</a></li>
+<li><a href="#adddescriptor">AddDescriptor</a></li>
+<li><a href="#adddescriptorset">AddDescriptorSet</a></li>
+<li><a href="#addentity">AddEntity</a></li>
+<li><a href="#addimage">AddImage</a></li>
+<li><a href="#addvideo">AddVideo</a>
+<br></li>
+</ul>
+<h2 id="basic-building-blocks">Basic Building Blocks<a class="headerlink" href="#basic-building-blocks" title="Permanent link">&para;</a></h2>
+<h3 id="constraints">Constraints<a class="headerlink" href="#constraints" title="Permanent link">&para;</a></h3>
+<p>Building block constraints are specified using a prefix 'cons_' followed by am index. This prefix is case sensitive.</p>
+<p>cons_1 specifies the first constraint of the constraints json block.</p>
+<p>Examples of different types of properties are:</p>
+<table>
+<thead>
+<tr>
+<th>cons_1</th>
+<th>cons_2</th>
+<th>cons_3</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"age&gt;=20,&lt;=90"</td>
+<td>gender==M</td>
+<td>name==Poonam</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<p>The table will result in the following constraints block:
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;constraints&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">   </span><span class="nt">&quot;age&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">20</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">90</span><span class="w"> </span><span class="p">],</span>
+<span class="w">   </span><span class="nt">&quot;gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;==&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="w"> </span><span class="p">],</span>
+<span class="w">   </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;==&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Poonam&quot;</span><span class="w"> </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<br></p>
+<h3 id="operations">Operations<a class="headerlink" href="#operations" title="Permanent link">&para;</a></h3>
+<p>In a CSV file, operations are provided as a column.  The column name is case-sensitive and are specified using <code>ops_</code> prefix followed by the operation type.
+Examples of each operation are in the following table:</p>
+<table>
+<thead>
+<tr>
+<th>Operation</th>
+<th>Column Name</th>
+<th>Example Value</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Threshold</td>
+<td>ops_threshold</td>
+<td>150</td>
+<td>Threshold value where all pixels above provided value are returned; Otherwise pixel values are zero</td>
+</tr>
+<tr>
+<td>Crop</td>
+<td>ops_crop</td>
+<td>"255,224,15,10"</td>
+<td>Comma delimited values for <code>x</code>, <code>y</code>, <code>width</code>, <code>height</code>, respectively.</td>
+</tr>
+<tr>
+<td>Resize</td>
+<td>ops_resize</td>
+<td>"200,175"</td>
+<td>Comma delimited values for <code>width</code>, and <code>height</code>, respectively.</td>
+</tr>
+<tr>
+<td>Flip</td>
+<td>ops_flip</td>
+<td>1</td>
+<td>Follows OpenCV convention: 0 for Vertical flip, &gt;0 for Horizontal flip, &lt;0 for both.</td>
+</tr>
+<tr>
+<td>Rotate</td>
+<td>ops_rotate</td>
+<td>"30,TRUE"</td>
+<td>Comma delimited values for angle of rotation, and a flag indicating whether the image will be resized so that the rotated image fits (resize = true), or if the image will be kept the same size (resize = false).</td>
+</tr>
+<tr>
+<td>Interval</td>
+<td>ops_interval</td>
+<td>"10,50,2"</td>
+<td>Comma delimited values for first frame, last frame, and step size (frames in between), respectively.</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<p>If all above operations are provided in a single query, the JSON equivalent is:
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;operations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;crop&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;x&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">255</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;y&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">224</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;width&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">15</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;height&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;resize&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;width&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">200</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;height&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">175</span><span class="p">,</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;flip&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;rotate&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;angle&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;resize&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;interval&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;start&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;stop&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;step&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;threshold&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">150</span><span class="p">,</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
+<br></p>
+<h3 id="properties">Properties<a class="headerlink" href="#properties" title="Permanent link">&para;</a></h3>
+<p>Building block properties are specified using a prefix <code>prop_</code>. For any property with date as value is specified with a prefix <code>prop_date:</code>. This prefix is case sensitive.</p>
+<p>prop_propertyname specifies that it represents a property with <code>propertyname</code> as the key of the properties json block. Properties can have string, numeric, Boolean, and alphanumeric values.</p>
+<p>Only date/time is written in a specific format that is YYYY-MM-DDThh:mm:ssTZD. Currently all values in the date format should be specified.</p>
+<p>Examples of different types of properties are :</p>
+<table>
+<thead>
+<tr>
+<th>prop_name</th>
+<th>prop_age</th>
+<th>prop_date:DoB</th>
+<th>prop_hasdog</th>
+<th>prop_gender</th>
+<th>prop_weight</th>
+<th>prop_email</th>
+<th>prop_address</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Poonam</td>
+<td>26</td>
+<td>1995-01-29T18:45:12-08:00</td>
+<td>TRUE</td>
+<td>F</td>
+<td>55.9</td>
+<td>mydummymail@gmail.com</td>
+<td>90 kings land, Jodhpur</td>
+</tr>
+</tbody>
+</table>
+<p>The above table will result in the following json:
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;properties&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">   </span><span class="nt">&quot;DoB&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;_date&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1995-01-29T18:45:12-08:00&quot;</span><span class="p">},</span>
+<span class="w">   </span><span class="nt">&quot;age&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">26</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;gender&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;F&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;hasdog&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;name&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Poonam&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;weight&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mf">55.9</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;email&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;mydummymail@gmail.com&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;address&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;90 kings land, Jodhpur&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<br></p>
+<h3 id="rectangle">Rectangle<a class="headerlink" href="#rectangle" title="Permanent link">&para;</a></h3>
+<p>This is used to set the coordinates for a bounding box.
+To provide a rectangle value, in the cell provide 4 comma delimited numeric values representing x, y, w, and h respectively.
+<br></p>
+<h2 id="insert-commands">Insert Commands<a class="headerlink" href="#insert-commands" title="Permanent link">&para;</a></h2>
+<h3 id="addboundingbox">AddBoundingBox<a class="headerlink" href="#addboundingbox" title="Permanent link">&para;</a></h3>
+<p>Bounding Boxes are a special kind of entity, similar to images.
+The AddBoundingBox call allows applications to add a region of interest
+to VDMS, where the entity added has a preset class of BoundingBox.
+For more details about the command, see <a href="../../commands/AddBoundingBox/">AddBoundingBox</a>.</p>
+<p>Let's take the following JSON queries for ingesting two Bounding Boxes as an example:
+<div class="highlight"><pre><span></span><code><span class="p">[</span>
+   <span class="p">{</span>
+      <span class="s2">&quot;AddBoundingBox&quot;</span> <span class="p">:</span> <span class="p">{</span>
+         <span class="s2">&quot;rectangle&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;x&quot;</span> <span class="p">:</span><span class="mi">120</span> <span class="p">,</span><span class="s2">&quot;y&quot;</span> <span class="p">:</span><span class="mi">50</span> <span class="p">,</span><span class="s2">&quot;w&quot;</span> <span class="p">:</span><span class="mi">40</span> <span class="p">,</span><span class="s2">&quot;h&quot;</span> <span class="p">:</span><span class="mi">40</span>
+         <span class="p">},</span>
+         <span class="s2">&quot;properties&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;jowe&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">1</span>
+         <span class="p">}</span>
+      <span class="p">}</span>
+   <span class="p">},</span>
+   <span class="p">{</span>
+      <span class="s2">&quot;AddBoundingBox&quot;</span> <span class="p">:</span> <span class="p">{</span>
+         <span class="s2">&quot;rectangle&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;x&quot;</span> <span class="p">:</span><span class="mi">100</span> <span class="p">,</span><span class="s2">&quot;y&quot;</span> <span class="p">:</span><span class="mi">20</span> <span class="p">,</span><span class="s2">&quot;w&quot;</span> <span class="p">:</span><span class="mi">20</span> <span class="p">,</span><span class="s2">&quot;h&quot;</span> <span class="p">:</span><span class="mi">40</span>
+         <span class="p">},</span>
+         <span class="s2">&quot;properties&quot;</span> <span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span> <span class="p">:</span> <span class="s2">&quot;suitcase&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="mi">2</span>
+         <span class="p">}</span>
+      <span class="p">}</span>
+   <span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
+<br></p>
+<p>The equivalent CSV file is as follows:
+<div class="highlight"><pre><span></span><code>RectangleBound,prop_name,prop_id
+&quot;120,50,40,40&quot;,jowe,1
+&quot;100,20,20,40&quot;,suitcase,2
+</code></pre></div>
+<br></p>
+<p>In this CSV, the first row provides the column names needed for the AddBoundingBox command and each additional row represents details for one bounding box.
+The first column is mandatory while the remaining columns are based on the other information needed for the entries.</p>
+<p>The following table provides details for the CSV format:</p>
+<table>
+<thead>
+<tr>
+<th>Column Name</th>
+<th>Description</th>
+<th>Has Position Constraint?</th>
+<th>Column Position</th>
+<th>Is field mandatory?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>RectangleBound</td>
+<td>This column is required and provides a rectangular region of interest in the format <code>x,y,w,h</code></td>
+<td>Yes</td>
+<td>1</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>prop_name</td>
+<td>This column is user-defined. It specifies the value for property named <code>name</code></td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>prop_id</td>
+<td>This column is user-defined. It specifies the value for property named <code>id</code></td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>cons_1</td>
+<td>This column is user-defined. It specifies the first constraint needed to find the image to link to Bounding Box</td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note:</strong> If cell value is empty it means that column name is not applicable for that Bounding Box data.
+<br></p>
+<h3 id="addconnection">AddConnection<a class="headerlink" href="#addconnection" title="Permanent link">&para;</a></h3>
+<p>This command helps an application associate two entities
+with specific class on the relationship and properties if needed.
+The source and destination references (ref1 and ref2) corresponds to
+some references created with the AddEntity command or
+FindEntity command (using "_ref").
+For more details about the command, see <a href="../../commands/AddConnection/">AddConnection</a>.</p>
+<p>Let's take the following JSON queries for adding a connection between two entities as an example:
+<div class="highlight"><pre><span></span><code><span class="p">[</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;FindEntity&quot;</span><span class="w"> </span><span class="p">:</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;_ref&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;class&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Person&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;constraints&quot;</span><span class="w"> </span><span class="p">:</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;id&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;==&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">]</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;FindEntity&quot;</span><span class="w"> </span><span class="p">:</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;_ref&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;class&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Person&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;constraints&quot;</span><span class="w"> </span><span class="p">:</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;id&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;==&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">]</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;AddConnection&quot;</span><span class="w"> </span><span class="p">:</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;class&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;BloodRelation&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;ref1&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;ref2&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;brother&quot;</span>
+<span class="w">         </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
+<br></p>
+<p>The equivalent CSV file is as follows:
+<div class="highlight"><pre><span></span><code>ConnectionClass,Person@id,Person@id,prop_type
+BloodRelation,1,2,brother
+</code></pre></div>
+<br></p>
+<p>In this CSV, the first row provides the column names needed for the AddConnection command and each additional row represents a connection between two entities.
+The first column is mandatory while the remaining columns are based on the other information needed for the entries.</p>
+<p>The following table provides details for the CSV format:</p>
+<table>
+<thead>
+<tr>
+<th>Column Name</th>
+<th>Description</th>
+<th>Has Position Constraint?</th>
+<th>Column Position</th>
+<th>Is field mandatory?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ConnectionClass</td>
+<td>This column is required and provides a class for the connection</td>
+<td>Yes</td>
+<td>1</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Person@id</td>
+<td>This column is user-defined. It specifies the constraints to find the first entity for a connection. In this example, the first entity must have class <code>Person</code> with property <code>id</code> equal to 1</td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Person@id</td>
+<td>This column is user-defined. It specifies the constraints to find the second entity for a connection. In this example, the second entity must have class <code>Person</code> with property <code>id</code> equal to 2</td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>prop_type</td>
+<td>This column is user-defined. It specifies the value for property named <code>type</code></td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note:</strong> If cell value is empty it means that column name is not applicable for that connection.
+<br></p>
+<h3 id="adddescriptor">AddDescriptor<a class="headerlink" href="#adddescriptor" title="Permanent link">&para;</a></h3>
+<p>VDMS natively supports high-dimensional feature vector operations allowing efficient similarity searches, particularly useful in ML pipelines. Feature vectors or descriptors are intermediate results of various machine learning or computer vision algorithms when run on visual data. These vectors can be labeled and classified to build search indexes. VDMS does not extract descriptors but once they are available, it can store, index, and search for similarity.
+For more details about the command, see <a href="../../commands/AddDescriptor/">AddDescriptor</a>.</p>
+<p>Let's take the following JSON queries for ingesting a descriptor as an example:
+<div class="highlight"><pre><span></span><code><span class="p">[</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;AddDescriptor&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;set&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Test_14096&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;label&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Rocky&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;age&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">34</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;gender&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;M&quot;</span>
+<span class="w">         </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;AddDescriptor&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;set&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Test_14096&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;label&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Carolyn&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;age&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">67</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;gender&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;F&quot;</span>
+<span class="w">         </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="p">]</span>
+
+<span class="p">[</span><span class="err">descrip</span><span class="kc">t</span><span class="err">or</span><span class="mi">1</span><span class="p">,</span><span class="err">descrip</span><span class="kc">t</span><span class="err">or</span><span class="mi">2</span><span class="p">]</span>
+</code></pre></div>
+<br></p>
+<p>The equivalent CSV file is as follows:
+<div class="highlight"><pre><span></span><code>DescriptorClass,label,prop_age,prop_gender,inputdata
+Test_14096,Rocky,34,M,blob_1.txt
+Test_14096,Carolyn,67,F,blob_2.txt
+</code></pre></div>
+<br></p>
+<p>In this CSV, the first row provides the column names needed for the AddDescriptor command and each additional row represents details for one descriptor.
+The first column is mandatory while the remaining columns are based on the other information needed for the descriptors.</p>
+<p>The following table provides details for the CSV format:</p>
+<table>
+<thead>
+<tr>
+<th>Column Name</th>
+<th>Description</th>
+<th>Has Position Constraint?</th>
+<th>Column Position</th>
+<th>Is field mandatory?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DescriptorClass</td>
+<td>This column is required and provides the name of the DescriptorSet to add the descriptor</td>
+<td>Yes</td>
+<td>1</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>label</td>
+<td>This column specifies the label of the descriptor</td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>prop_age</td>
+<td>This column is user-defined. It specifies the value for property named <code>age</code></td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>prop_gender</td>
+<td>This column is user-defined. It specifies the value for property named <code>gender</code></td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>inputdata</td>
+<td>This column is required as it provides the file path which contains the actual blob for the descriptor/feature vector</td>
+<td>No</td>
+<td>-</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note:</strong> If cell value is empty it means the column is not applicable for that Descriptor.
+<br></p>
+<h3 id="adddescriptorset">AddDescriptorSet<a class="headerlink" href="#adddescriptorset" title="Permanent link">&para;</a></h3>
+<p>A DescriptorSet is a group of descriptors with a fixed number of dimensions that are
+the result of the same algorithm for feature extraction. For instance, we can
+create a DescriptorSet and insert multiple descriptors obtained by using
+OpenFace (128 dimensions), and then index and perform matching operations over
+those descriptors.
+For more details about the command, see <a href="../../commands/AddDescriptorSet/">AddDescriptorSet</a>.</p>
+<p>Let's take the following JSON queries for adding two descriptor sets as an example:
+<div class="highlight"><pre><span></span><code><span class="p">[</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;AddDescriptorSet&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;pretty_faces&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;dimensions&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">128</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;metric&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;L2&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;engine&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FaissFlat&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;algorithm&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;OpenFace&quot;</span>
+<span class="w">         </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;AddDescriptorSet&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Test_14096&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;dimensions&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1024</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;metric&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;IP&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;engine&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FaissIVFFlat&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;algorithm&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;random&quot;</span>
+<span class="w">         </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
+<br></p>
+<p>The equivalent CSV file is as follows:
+<div class="highlight"><pre><span></span><code>DescriptorType,dimensions,distancemetric,searchengine,prop_algorithm
+pretty_faces,128,L2,FaissFlat,OpenFace
+Test_14096,1024,IP,FaissIVFFlat,random
+</code></pre></div>
+<br></p>
+<p>In this CSV, the first row provides the column names needed for the AddDescriptorSet command and each additional row represents details for one descriptor set.
+The first column is mandatory while the remaining columns are based on the other information needed for the descriptors.</p>
+<p>The following table provides details for the CSV format:</p>
+<table>
+<thead>
+<tr>
+<th>Column Name</th>
+<th>Description</th>
+<th>Has Position Constraint?</th>
+<th>Column Position</th>
+<th>Is field mandatory?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DescriptorType</td>
+<td>This column is required and provides the name of the DescriptorSet</td>
+<td>Yes</td>
+<td>1</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>dimensions</td>
+<td>This column is required and specifies the number of dimensions of the feature vector</td>
+<td>No</td>
+<td>-</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>distancemetric</td>
+<td>This column is specifies the method used to calculate distances (IP or L2)</td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>searchengine</td>
+<td>This column specifies the underlying implementation for indexing and computing distances (TileDBDense, TileDBSparse, FaissFlat, or FaissIVFFlat)</td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>prop_algorithm</td>
+<td>This column is user-defined. It specifies the value for property named <code>algorithm</code></td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note:</strong> If cell value is empty it means the column is not applicable for that DescriptorSet.
+<br></p>
+<h3 id="addentity">AddEntity<a class="headerlink" href="#addentity" title="Permanent link">&para;</a></h3>
+<p>Adds a new entity to VDMS.
+For more details about the command, see <a href="../../commands/AddEntity/">AddEntity</a>.</p>
+<p>Let's take the following JSON queries for adding three entities as an example:
+<div class="highlight"><pre><span></span><code><span class="p">[</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;AddEntity&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;_ref&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;class&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Person&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;constraints&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;age&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">30</span><span class="p">],</span>
+<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;==&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Ali&quot;</span><span class="p">]</span>
+<span class="w">         </span><span class="p">},</span>
+<span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;DoB&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;_date&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2018-02-27T13:45:12-08:00&quot;</span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;age&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;gender&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;hasdog&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Ali&quot;</span>
+<span class="w">         </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;AddEntity&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;_ref&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;class&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Person&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;constraints&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;age&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span><span class="mi">10</span><span class="p">],</span>
+<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;==&quot;</span><span class="p">,</span><span class="s2">&quot;alex&quot;</span><span class="p">]</span>
+<span class="w">         </span><span class="p">},</span>
+<span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;age&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;gender&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;M&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;hasdog&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;alex&quot;</span>
+<span class="w">         </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;AddEntity&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;_ref&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;class&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Person&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;constraints&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;age&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span><span class="mi">10</span><span class="p">],</span>
+<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w"> </span><span class="s2">&quot;==&quot;</span><span class="p">,</span><span class="s2">&quot;Shri&quot;</span><span class="p">]</span>
+<span class="w">         </span><span class="p">},</span>
+<span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;DoB&quot;</span><span class="w"> </span><span class="p">:{</span><span class="nt">&quot;_date&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2018-02-27T13:45:12-08:00&quot;</span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;age&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">33</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;gender&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;F&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Shri&quot;</span>
+<span class="w">         </span><span class="p">}</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
+<br></p>
+<p>The equivalent CSV file is as follows:
+<div class="highlight"><pre><span></span><code>EntityClass,prop_name,prop_age,cons_1,prop_date:DoB,cons_2,prop_hasdog,prop_gender
+Person,Ali,30,&quot;age&gt;=10,&lt;=30&quot;,2018-02-27T13:45:12-08:00,name==Ali,TRUE,M
+Person,alex,10,age&lt;=10,,name==alex,FALSE,M
+Person,Shri,33,age&gt;=10,2018-02-27T13:45:12-08:00,name==Shri,,F
+</code></pre></div>
+<br></p>
+<p>In this CSV, the first row provides the column names needed for the AddEntity command and each additional row represents details for one entity.
+The first column is mandatory while the remaining columns are based on the other information needed for the entities.</p>
+<p>The following table provides details for the CSV format:</p>
+<table>
+<thead>
+<tr>
+<th>Column Name</th>
+<th>Description</th>
+<th>Has Position Constraint?</th>
+<th>Column Position</th>
+<th>Is field mandatory?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>EntityClass</td>
+<td>This column is required and provides the class for the entity</td>
+<td>Yes</td>
+<td>1</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>prop_name</td>
+<td>This column is user-defined. It specifies the value for property named <code>name</code></td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>prop_age</td>
+<td>This column is user-defined. It specifies the value for property named <code>age</code></td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>cons_1</td>
+<td>This column is user-defined and specifies a constraint for a conditional add</td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>prop_date:DoB</td>
+<td>This column is an user-defined date for property named <code>DoB</code></td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>cons_2</td>
+<td>This column specifies the second constraint to use for the conditional add</td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>prop_hasdog</td>
+<td>This column is user-defined. It specifies the value for property named <code>hasdog</code></td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>prop_gender</td>
+<td>This column is user-defined. It specifies the value for property named <code>gender</code></td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note:</strong> If cell value is empty it means the column is not applicable for that entity.
+<br></p>
+<h3 id="addimage">AddImage<a class="headerlink" href="#addimage" title="Permanent link">&para;</a></h3>
+<p>Adds a new image to VDMS.
+For more details about the command, see <a href="../../commands/AddImage/">AddImage</a>.</p>
+<p>The following JSON query adds an image and performs the threshold and resize operations:
+<div class="highlight"><pre><span></span><code><span class="p">[</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;AddImage&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;format&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;png&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;scan&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;part&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;brain&quot;</span>
+<span class="w">         </span><span class="p">},</span>
+<span class="w">         </span><span class="nt">&quot;operations&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;threshold&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;value&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">150</span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;resize&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;width&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">200</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;height&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">200</span><span class="p">}</span>
+<span class="w">         </span><span class="p">]</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="p">]</span>
+
+<span class="p">[</span><span class="err">imageblob</span><span class="p">]</span>
+</code></pre></div>
+<br></p>
+<p>The equivalent CSV file is as follows:
+<div class="highlight"><pre><span></span><code>ImagePath,prop_type,prop_part,format,ops_threshold,ops_resize
+/C:/Documents/images/click1.jpg,scan,brain,png,150,&quot;200,200&quot;
+</code></pre></div>
+<br></p>
+<p>In this CSV, the first row provides the column names needed for the AddImage command and each additional row represents details for one image.
+The first column is mandatory while the remaining columns are based on the other information needed for the images.</p>
+<p>The following table provides details for the CSV format:</p>
+<table>
+<thead>
+<tr>
+<th>Column Name</th>
+<th>Description</th>
+<th>Has Position Constraint?</th>
+<th>Column Position</th>
+<th>Is field mandatory?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ImagePath</td>
+<td>This column is required and provides the file path which contains the actual blob for the image</td>
+<td>Yes</td>
+<td>1</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>prop_type</td>
+<td>This column is user-defined. It specifies the value for property named <code>type</code></td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>prop_part</td>
+<td>This column is user-defined. It specifies the value for property named <code>part</code></td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>format</td>
+<td>This column specifies the format used to store the image [jpg, png, tdb, bin]</td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>ops_threshold</td>
+<td>This column is optional and specifies the value to use for the threshold operation</td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>ops_resize</td>
+<td>This column is optional and specifies the <code>width,height</code> to use for the resize operation</td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note:</strong> If cell value is empty it means the column is not applicable for that Image.
+<br></p>
+<h3 id="addvideo">AddVideo<a class="headerlink" href="#addvideo" title="Permanent link">&para;</a></h3>
+<p>This call allows an application to add (and preprocess) a video in VDMS.
+The video blob is an encoded binary array using any of the supported containers
+or encodings.
+For more details about the command, see <a href="../../commands/AddVideo/">AddVideo</a>.</p>
+<p>The following JSON query adds a Video to VDMS:
+<div class="highlight"><pre><span></span><code><span class="p">[</span>
+<span class="w">   </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;AddVideo&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;codec&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;h264&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;container&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;avi&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;name&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;memories&quot;</span>
+<span class="w">         </span><span class="p">},</span>
+<span class="w">         </span><span class="nt">&quot;index_frames&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;operations&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span><span class="nt">&quot;type&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;threshold&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;value&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="mi">200</span><span class="p">}</span>
+<span class="w">         </span><span class="p">]</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div>
+<br></p>
+<p>The equivalent CSV file is as follows:
+<div class="highlight"><pre><span></span><code>VideoPath,prop_name,format,compressto,ops_threshold,frameindex
+C:/Documents/Videos/v1.mp4,memories,avi,h264,200,TRUE
+</code></pre></div>
+<br></p>
+<p>In this CSV, the first row provides the column names needed for the AddVideo command and each additional row represents details for one video.
+The first column is mandatory while the remaining columns are based on the other information needed for the descriptors.</p>
+<p>The following table provides details for the CSV format:</p>
+<table>
+<thead>
+<tr>
+<th>Column Name</th>
+<th>Description</th>
+<th>Has Position Constraint?</th>
+<th>Column Position</th>
+<th>Is field mandatory?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>VideoPath</td>
+<td>This column is required and provides the file path which contains the actual video</td>
+<td>Yes</td>
+<td>1</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>prop_name</td>
+<td>This column is user-defined. It specifies the value for property named <code>name</code></td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>format</td>
+<td>This column specifies the container used for the video file [mp4, avi, mov]</td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>compressto</td>
+<td>This column specifies the codec to be transcoded [xvid, h264, h263]</td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>ops_threshold</td>
+<td>This column is optional and specifies the value to use for the threshold operation</td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>frameindex</td>
+<td>This column is optional and triggers key-frame index extraction on the video</td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+<tr>
+<td>fromserver</td>
+<td>This column is not in the example but can be used to read a file from the server</td>
+<td>No</td>
+<td>-</td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note:</strong> If cell value is empty it means the column is not applicable for that Video.
+<br></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../connectors-and-orchestrations/Kubernetes-Orchestration/" class="btn btn-neutral float-left" title="Kubernetes Orchestration in VDMS"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../deletion-backup-and-restore/Auto-Deletion-of-Expired-Data/" class="btn btn-neutral float-right" title="Auto-Deletion of Expired Data">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2025 Intel Corporation</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="http://github.com/IntelLabs/vdms" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../connectors-and-orchestrations/Kubernetes-Orchestration/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../deletion-backup-and-restore/Auto-Deletion-of-Expired-Data/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://intellabs.github.io/vdms/guides/remote-and-udf-operations/Remote-Operations/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Remote Operations - VDMS Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Remote Operations";
+        var mkdocs_page_input_path = "guides/remote-and-udf-operations/Remote-Operations.md";
+        var mkdocs_page_url = "/vdms/guides/remote-and-udf-operations/Remote-Operations/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> VDMS Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Install/">Install</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Docker/">Docker</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../VDMS-mTLS-Support/">VDMS Mutual TLS Support</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API (v2.0.0++)</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../API-Description/">Description</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../ConfigFile/">ConfigFile</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Keywords/">Keywords</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Returned-Status/">Returned Status</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Schema/">Schema Definition</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Commands</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Basic Building Blocks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-constraints/">Constraints</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-link/">Link</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-operations/">Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-properties/">Properties</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-rectangle/">Rectangle</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-results/">Results</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Insert</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddBlob/">AddBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddBoundingBox/">AddBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddConnection/">AddConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddDescriptor/">AddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddDescriptorSet/">AddDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddEntity/">AddEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddImage/">AddImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddVideo/">AddVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoAdd/">NeoAdd</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoAddDescriptor/">NeoAddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoAddDescriptorSet/">NeoAddDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Query</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/ClassifyDescriptor/">ClassifyDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindBlob/">FindBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindBoundingBox/">FindBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindConnection/">FindConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindDescriptor/">FindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindDescriptorSet/">FindDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindEntity/">FindEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindFrames/">FindFrames</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindImage/">FindImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindVideo/">FindVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoFind/">NeoFind</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoFindDescriptor/">NeoFindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoFindDescriptorSet/">NeoFindDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Update</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateBlob/">UpdateBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateBoundingBox/">UpdateBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateConnection/">UpdateConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateEntity/">UpdateEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateImage/">UpdateImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateVideo/">UpdateVideo</a>
+                </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials & Guides</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" >Tutorials</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Simple-Tutorial/">Simple Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Image-Tutorial/">Image Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Descriptor-Tutorial/">Descriptor Tutorial</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >How-to Guides</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" >Backends & Query Handlers</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../backends-and-handlers/Neo4J-Based-Scale-Out-VDMS/">Neo4j based Scale Out</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../backends-and-handlers/Query-Handler-Development/">Query Handler Development</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Connectors & Orchestrations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../connectors-and-orchestrations/Run-Kafka-VDMS-Example/">Kafka Connectors for VDMS</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../connectors-and-orchestrations/Kubernetes-Orchestration/">Kubernetes Orchestration in VDMS</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../CSV-Plugin-for-CPP-Client/">CSV Plugin for C++ Client</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Deletion, Backup, & Restore</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../deletion-backup-and-restore/Auto-Deletion-of-Expired-Data/">Auto-Deletion of Expired Data</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../deletion-backup-and-restore/VDMS-Backup-and-Restoring-Options/">Backup and Restoring Options</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../deletion-backup-and-restore/Deletion-Capabilities/">Deletion Capabilities</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Descriptors</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../descriptors/Descriptor-Memory-Usage/">Descriptors Memory Usage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../descriptors/FLINNG-Library-and-Performance/">FLINNG Library and Performance</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" >Remote & User Defined Operations</a>
+    <ul class="current">
+                <li class="toctree-l3 current"><a class="reference internal current" href="#">Remote Operations</a>
+    <ul class="current">
+    <li class="toctree-l4"><a class="reference internal" href="#requirements">Requirements</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#operation-definition">Operation Definition</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#setup">Setup</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#client-query">Client Query</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#detailed-instructions-for-new-remote-operation">Detailed Instructions for new remote operation</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#to-compile-docker-image-of-remote-udf">To compile Docker Image of Remote UDF</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../User-Defined-Operations/">User Defined Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../Dynamic-Metadata/">Dynamically Add Metadata</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Remote-Storage-in-VDMS/">Remote Storage</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Timing-Capability/">Timing Capability</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Interactive Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="https://deepwiki.com/IntelLabs/vdms">DeepWiki</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribute</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../contribute/Developer-Guide/">Developer Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Test Suite</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../contribute/VDMS-Test-Suite/">VDMS Test Suite Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../contribute/VDMS-Test-Script/">VDMS Test Script</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">VDMS Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Tutorials & Guides</li>
+          <li class="breadcrumb-item">How-to Guides</li>
+          <li class="breadcrumb-item">Remote & User Defined Operations</li>
+      <li class="breadcrumb-item active">Remote Operations</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="http://github.com/IntelLabs/vdms/blob/develop/docs/guides/remote-and-udf-operations/Remote-Operations.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="remote-operations-in-vdms">Remote Operations in VDMS<a class="headerlink" href="#remote-operations-in-vdms" title="Permanent link">&para;</a></h1>
+<p>This submodule is required to execute VDMS operation on a remote server using Flask APIs. Although shipped with VDMS, this submodule can be run independently and interacts with VDMS using http APIs.</p>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Python 3 or higher</li>
+<li>Following python libraries<ul>
+<li>flask</li>
+<li>cv2</li>
+<li>numpy</li>
+<li>skvideo.io</li>
+<li>imutils</li>
+</ul>
+</li>
+</ul>
+<h2 id="operation-definition">Operation Definition<a class="headerlink" href="#operation-definition" title="Permanent link">&para;</a></h2>
+<p>Any operation can be added to the module by creating a python file of the same name as the operation and adding it to the <code>functions</code> folder. Any operation file should follow the following setup to define a <code>run</code> function that the endpoint will use;
+<div class="highlight"><pre><span></span><code>def run(ipfilename, format, options, tmp_dir_path=&quot;&quot;):
+
+    # ipfilename: Name of the input file to be read from
+    # format: Format of the input file
+    # options: Any inputs that the UDF will require from the client
+    # tmp_dir_path: The optional temporary directory where the temporary files will be saved
+
+    ###
+    Operation logic here
+    ###
+
+    # Return OpenCV Matrix
+</code></pre></div></p>
+<h2 id="setup">Setup<a class="headerlink" href="#setup" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Copy the <code>remote_function</code> directory on the machine you want to run the remote server. Can be run on any location, independent of where VDMS is running. However, the location should be reachable from the machine that is running VDMS. You can also use <code>sparse-checkout</code> to only retrieve the <code>remote_function</code> directory from the VDMS repo.</li>
+<li>Copy <code>resources</code> directory (located at the root of the repository) into the <code>remote_function</code> directory.</li>
+<li>Create the operation scripts as python scripts and place them in the <code>remote_function/functions</code> directory.</li>
+<li>
+<p>Follow the following steps to run the remote on port <port_number> and it will create the temporary files in the directory specified by the optional parameter called <code>path_to_tmp_dir</code>.
+   Note: if you do not specify the <code>path_to_tmp_dir</code> parameter, then the temporary files will be created in the same directory where the <code>udf_server.py</code> file is located.</p>
+<p><div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>remote_function
+python3<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+<span class="nb">source</span><span class="w"> </span>venv/bin/activate
+python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>pip<span class="w"> </span>--upgrade
+python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>wheel
+python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+python3<span class="w"> </span>udf_server.py<span class="w"> </span>&lt;port_number&gt;<span class="w"> </span><span class="o">[</span>path_to_tmp_dir<span class="o">]</span>
+</code></pre></div>
+<br></p>
+</li>
+</ol>
+<h2 id="client-query">Client Query<a class="headerlink" href="#client-query" title="Permanent link">&para;</a></h2>
+<p>The client query should contain the following three parameters:</p>
+<ul>
+<li><code>type</code>: Should always be <code>remoteOp</code> for remote operation</li>
+<li><code>url</code>: URL for the API endpoint</li>
+<li><code>options</code>: Any parameter that is required by the operation. The following two parameters are important:<ul>
+<li><code>id</code>: A mandatory parameter. It specifies the operation to be executed and should be same as the file name used by the python script on the remote server. For instance, if the filename is <code>facedetect.py</code>, then the <code>id</code> should be <code>facedetect</code>.</li>
+<li><code>format</code>: Optional, but specifies the format in which the image is required. Default is <code>jpg</code>.</li>
+</ul>
+</li>
+</ul>
+<p><div class="highlight"><pre><span></span><code><span class="nt">&quot;FindImage&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;png&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;constraints&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;category&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;==&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;faces&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;operations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;remoteOp&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;http://&lt;ip&gt;/image&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;facedetect&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;png&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<br></p>
+<h2 id="detailed-instructions-for-new-remote-operation">Detailed Instructions for new remote operation<a class="headerlink" href="#detailed-instructions-for-new-remote-operation" title="Permanent link">&para;</a></h2>
+<p>We now provide an example to add a new operation <code>cardetect</code> as a remote operation that would work with VDMS. The <code>cardetect</code> operation detects cars in an image and creates a rectangle around all cars. This operation requires a pretrained model available in the form of <code>xml</code> file online.</p>
+<ol>
+<li>Copy <code>remote_function</code> directory to your remote server machine. Say the address is <code>my.remote.server</code> and you copy the folder in the <code>home</code> directory.</li>
+<li>
+<p>Copy <code>resources</code> directory (located at the root of the repository) into the <code>remote_function</code> directory. The folder structure you have now will look something like this:</p>
+<p><div class="highlight"><pre><span></span><code>~/
+|__remote_function
+|__functions
+|  |__facedetect.py
+|__README.md
+|__requirements.txt
+|__udf_server.py
+|__resources
+    |__haarcascade_frontalface_default.xml
+</code></pre></div>
+3. Download/Copy the <code>cars.xml</code> file to the <code>~/remote_function/resources</code> directory.
+4. Create the <code>cardetect.py</code> file in <code>~/remote_function/functions</code>.
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">car_cascade_src</span> <span class="o">=</span> <span class="s1">&#39;~/remote_function/resources/cars.xml&#39;</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="n">ipfilename</span><span class="p">,</span> <span class="nb">format</span><span class="p">,</span> <span class="n">options</span><span class="p">,</span> <span class="n">tmp_dir_path</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+
+    <span class="k">global</span> <span class="n">car_cascade_src</span>
+
+    <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">ipfilename</span><span class="p">)</span>
+
+    <span class="c1"># These lines</span>
+    <span class="c1"># represent the</span>
+    <span class="c1"># code logic</span>
+
+    <span class="k">return</span> <span class="n">img</span>
+</code></pre></div>
+5. The final directory structure would be as follows;
+<div class="highlight"><pre><span></span><code>~/
+|__remote_function
+|__functions
+|  |__facedetect.py
+|  |__cardetect.py
+|__README.md
+|__requirements.txt
+|__udf_server.py
+|__resources
+    |__haarcascade_frontalface_default.xml
+    |__cars.xml
+</code></pre></div>
+6. Now start the remote server at port <code>5010</code> and if you wish you could specify the path to the temporary directory where the temporary files will be created (if you don't specify the directory then it will be created in the same path where the udf_server.py file is located);
+<div class="highlight"><pre><span></span><code>python3 udf_server.py 5010 [path_tmp_dir]
+</code></pre></div>
+7. Say VDMS has a database of car images that have the property <code>category</code> set as <code>cars</code>. Then you can run the <code>cardetect</code> operation on these images using the following query;
+<div class="highlight"><pre><span></span><code>&quot;FindImage&quot;: {
+    &quot;format&quot;: &quot;png&quot;,
+    &quot;constraints&quot;: {
+        &quot;category&quot;: [&quot;==&quot;, &quot;cars&quot;]
+    },
+    &quot;operations&quot;: [
+        {
+            &quot;type&quot;: &quot;remoteOp&quot;,
+            &quot;url&quot;: &quot;http://my.remote.server:5010/image&quot;,
+            &quot;options&quot;: {
+                &quot;id&quot;: &quot;cardetect&quot;,
+                &quot;format&quot;: &quot;png&quot;
+            }
+        }
+    ]
+}
+</code></pre></div>
+<br></p>
+</li>
+</ol>
+<h2 id="to-compile-docker-image-of-remote-udf">To compile Docker Image of Remote UDF<a class="headerlink" href="#to-compile-docker-image-of-remote-udf" title="Permanent link">&para;</a></h2>
+<p>Use the command given below:</p>
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>rudf:latest<span class="w"> </span>--build-arg<span class="o">=</span>http_proxy<span class="w"> </span>--build-arg<span class="o">=</span>https_proxy<span class="w"> </span>--file<span class="o">=</span>Dockerfile.txt<span class="w"> </span>.
+</code></pre></div>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../../descriptors/FLINNG-Library-and-Performance/" class="btn btn-neutral float-left" title="FLINNG Library and Performance"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../User-Defined-Operations/" class="btn btn-neutral float-right" title="User Defined Operations">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2025 Intel Corporation</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="http://github.com/IntelLabs/vdms" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../../descriptors/FLINNG-Library-and-Performance/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../User-Defined-Operations/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

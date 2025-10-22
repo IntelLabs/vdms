@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://intellabs.github.io/vdms/guides/connectors-and-orchestrations/Kubernetes-Orchestration/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Kubernetes Orchestration in VDMS - VDMS Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Kubernetes Orchestration in VDMS";
+        var mkdocs_page_input_path = "guides/connectors-and-orchestrations/Kubernetes-Orchestration.md";
+        var mkdocs_page_url = "/vdms/guides/connectors-and-orchestrations/Kubernetes-Orchestration/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> VDMS Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Install/">Install</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Docker/">Docker</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../VDMS-mTLS-Support/">VDMS Mutual TLS Support</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API (v2.0.0++)</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../API-Description/">Description</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../ConfigFile/">ConfigFile</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Keywords/">Keywords</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Returned-Status/">Returned Status</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Schema/">Schema Definition</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Commands</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Basic Building Blocks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-constraints/">Constraints</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-link/">Link</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-operations/">Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-properties/">Properties</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-rectangle/">Rectangle</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-results/">Results</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Insert</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddBlob/">AddBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddBoundingBox/">AddBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddConnection/">AddConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddDescriptor/">AddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddDescriptorSet/">AddDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddEntity/">AddEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddImage/">AddImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddVideo/">AddVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoAdd/">NeoAdd</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoAddDescriptor/">NeoAddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoAddDescriptorSet/">NeoAddDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Query</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/ClassifyDescriptor/">ClassifyDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindBlob/">FindBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindBoundingBox/">FindBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindConnection/">FindConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindDescriptor/">FindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindDescriptorSet/">FindDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindEntity/">FindEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindFrames/">FindFrames</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindImage/">FindImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindVideo/">FindVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoFind/">NeoFind</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoFindDescriptor/">NeoFindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoFindDescriptorSet/">NeoFindDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Update</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateBlob/">UpdateBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateBoundingBox/">UpdateBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateConnection/">UpdateConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateEntity/">UpdateEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateImage/">UpdateImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateVideo/">UpdateVideo</a>
+                </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials & Guides</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" >Tutorials</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Simple-Tutorial/">Simple Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Image-Tutorial/">Image Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Descriptor-Tutorial/">Descriptor Tutorial</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >How-to Guides</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" >Backends & Query Handlers</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../backends-and-handlers/Neo4J-Based-Scale-Out-VDMS/">Neo4j based Scale Out</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../backends-and-handlers/Query-Handler-Development/">Query Handler Development</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" >Connectors & Orchestrations</a>
+    <ul class="current">
+                <li class="toctree-l3"><a class="reference internal" href="../Run-Kafka-VDMS-Example/">Kafka Connectors for VDMS</a>
+                </li>
+                <li class="toctree-l3 current"><a class="reference internal current" href="#">Kubernetes Orchestration in VDMS</a>
+    <ul class="current">
+    <li class="toctree-l4"><a class="reference internal" href="#prerequisites">Prerequisites:</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#configure-kubeconfigjson">Configure kubeConfig.json</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#proxy-setting-for-running-containerd-behind-a-proxy">Proxy setting for running containerd behind a proxy</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#bringing-up-your-cluster-to-run-multi-node-cluster-for-vdms-application">Bringing up your cluster to run Multi-node Cluster for VDMS application</a>
+    </li>
+    </ul>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../CSV-Plugin-for-CPP-Client/">CSV Plugin for C++ Client</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Deletion, Backup, & Restore</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../deletion-backup-and-restore/Auto-Deletion-of-Expired-Data/">Auto-Deletion of Expired Data</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../deletion-backup-and-restore/VDMS-Backup-and-Restoring-Options/">Backup and Restoring Options</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../deletion-backup-and-restore/Deletion-Capabilities/">Deletion Capabilities</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Descriptors</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../descriptors/Descriptor-Memory-Usage/">Descriptors Memory Usage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../descriptors/FLINNG-Library-and-Performance/">FLINNG Library and Performance</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Remote & User Defined Operations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../remote-and-udf-operations/Remote-Operations/">Remote Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../remote-and-udf-operations/User-Defined-Operations/">User Defined Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../remote-and-udf-operations/Dynamic-Metadata/">Dynamically Add Metadata</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Remote-Storage-in-VDMS/">Remote Storage</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Timing-Capability/">Timing Capability</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Interactive Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="https://deepwiki.com/IntelLabs/vdms">DeepWiki</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribute</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../contribute/Developer-Guide/">Developer Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Test Suite</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../contribute/VDMS-Test-Suite/">VDMS Test Suite Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../contribute/VDMS-Test-Script/">VDMS Test Script</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">VDMS Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Tutorials & Guides</li>
+          <li class="breadcrumb-item">How-to Guides</li>
+          <li class="breadcrumb-item">Connectors & Orchestrations</li>
+      <li class="breadcrumb-item active">Kubernetes Orchestration in VDMS</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="http://github.com/IntelLabs/vdms/blob/develop/docs/guides/connectors-and-orchestrations/Kubernetes-Orchestration.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="kubernetes-orchestration-in-vdms">Kubernetes Orchestration in VDMS<a class="headerlink" href="#kubernetes-orchestration-in-vdms" title="Permanent link">&para;</a></h1>
+<p>We provide an experimental feature of orchestration in VDMS with Kubernetes for easier setup of user-defined function environments both locally and on remote servers. Currently supported for images. This orchestration environment enables the following ease of use capabilities:
+- automatically spawns the required number of remote servers for parallel execution of remote operations.
+- support to plug a scheduling algorithm to optimally schedule operations to remote servers. Note that this would require code changes.
+- easy setup script and config file to spin up the cluster with the least effort from the VDMS user/administrator.</p>
+<h2 id="prerequisites">Prerequisites:<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<p>Use the following steps to create the VDMS tar file.</p>
+<ul>
+<li>Change to the docker/base/ directory</li>
+<li>Follow the README to generate the VDMS docker image</li>
+<li>Run the following command to create the tar file <code>sudo docker save -o vdms.tar vdms</code></li>
+</ul>
+<p>Use the following steps to create the remote UDF tar file.</p>
+<ul>
+<li>Change to the remote_function directory</li>
+<li>Follow the README to generate the remote UDF docker image</li>
+<li>Run the following command to create the tar file <code>sudo docker save -o remote_segment.tar rudf</code></li>
+</ul>
+<h2 id="configure-kubeconfigjson">Configure kubeConfig.json<a class="headerlink" href="#configure-kubeconfigjson" title="Permanent link">&para;</a></h2>
+<p>Sample kubeConfig file that can be used to add details of Primary and Worker nodes.</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;PrimaryNodeDetail&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;_HOST-NAME-OF-PRIMARY-NODE_&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;_IPADDRESS-OF-PRIMARY-NODE_&quot;</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;WorkerNodeDetail&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">&quot;_HOST-NAME-OF-WORKER-NODE_1&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;_IPADDRESS-OF-WORKER-NODE_1&quot;</span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="nt">&quot;_HOST-NAME-OF-WORKER-NODE_2&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;_IPADDRESS-OF-WORKER-NODE_2&quot;</span><span class="p">},</span>
+<span class="w">        </span><span class="p">{</span><span class="s2">&quot;_use-similar-blocks-to-add-more-node_&quot;</span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<h2 id="proxy-setting-for-running-containerd-behind-a-proxy">Proxy setting for running containerd behind a proxy<a class="headerlink" href="#proxy-setting-for-running-containerd-behind-a-proxy" title="Permanent link">&para;</a></h2>
+<p>Follow the steps below for containerd</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span>sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/etc/systemd/system/containerd.service.d
+<span class="w">    </span>sudo<span class="w"> </span>touch<span class="w"> </span>/etc/systemd/system/containerd.service.d/http-proxy.conf
+<span class="w">    </span>sudo<span class="w"> </span>nano<span class="w"> </span>/etc/systemd/system/containerd.service.d/http-proxy.conf
+</code></pre></div>
+<p>Edit the http-proxy.conf as below, add the proxy details as per your system for containerd</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="o">[</span>Service<span class="o">]</span>
+<span class="w">    </span><span class="nv">Environment</span><span class="o">=</span><span class="s2">&quot;HTTP_PROXY=http://proxy.example.com&quot;</span>
+<span class="w">    </span><span class="nv">Environment</span><span class="o">=</span><span class="s2">&quot;HTTPS_PROXY=http://proxy.example.com&quot;</span>
+<span class="w">    </span><span class="nv">Environment</span><span class="o">=</span><span class="s2">&quot;NO_PROXY=localhost&quot;</span>
+</code></pre></div>
+<p>Restart the services as mentioned below</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span>sudo<span class="w"> </span>systemctl<span class="w"> </span>daemon-reload
+<span class="w">    </span>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>containerd
+</code></pre></div>
+<p>Follow the steps below for Docker</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span>sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/etc/systemd/system/docker.service.d
+<span class="w">    </span>sudo<span class="w"> </span>touch<span class="w"> </span>/etc/systemd/system/docker.service.d/http-proxy.conf
+<span class="w">    </span>sudo<span class="w"> </span>nano<span class="w"> </span>/etc/systemd/system/docker.service.d/http-proxy.conf
+</code></pre></div>
+<p>Edit the http-proxy.conf as below, add the proxy details as per your system for containerd</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="o">[</span>Service<span class="o">]</span>
+<span class="w">    </span><span class="nv">Environment</span><span class="o">=</span><span class="s2">&quot;HTTP_PROXY=http://proxy.example.com&quot;</span>
+<span class="w">    </span><span class="nv">Environment</span><span class="o">=</span><span class="s2">&quot;HTTPS_PROXY=http://proxy.example.com&quot;</span>
+<span class="w">    </span><span class="nv">Environment</span><span class="o">=</span><span class="s2">&quot;NO_PROXY=localhost&quot;</span>
+</code></pre></div>
+<p>Restart the services as mentioned below</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span>sudo<span class="w"> </span>systemctl<span class="w"> </span>daemon-reload
+<span class="w">    </span>sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>docker
+</code></pre></div>
+<h2 id="bringing-up-your-cluster-to-run-multi-node-cluster-for-vdms-application">Bringing up your cluster to run Multi-node Cluster for VDMS application<a class="headerlink" href="#bringing-up-your-cluster-to-run-multi-node-cluster-for-vdms-application" title="Permanent link">&para;</a></h2>
+<p>Clone the VDMS github repository on the Primary and Worker nodes.</p>
+<p>On the Primary node follow the steps below after downloading the VDMS image -
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nb">cd</span><span class="w"> </span>kubernetes/
+<span class="w">    </span>chmod<span class="w"> </span>+x<span class="w"> </span>global_vdms_setup_script.sh
+<span class="w">    </span>./global_vdms_setup_script.sh<span class="w"> </span>-m<span class="w"> </span>master<span class="w"> </span>-i<span class="w"> </span>yes
+</code></pre></div>
+On the Worker Node follow the steps below after downloading/creating the remote UDF -</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span><span class="nb">cd</span><span class="w"> </span>kubernetes/
+<span class="w">    </span>chmod<span class="w"> </span>+x<span class="w"> </span>global_vdms_setup_script.sh
+<span class="w">    </span>./global_vdms_setup_script.sh<span class="w"> </span>-m<span class="w"> </span>remote<span class="w"> </span>-i<span class="w"> </span>yes
+</code></pre></div>
+<p>Now update the kubeConfig.json file to add the Primary and Worker Node details as per steps provided in first section</p>
+<p>On the Worker Node follow the steps below to load the remote UDF image locally</p>
+<div class="highlight"><pre><span></span><code><span class="w">    </span>./global_vdms_setup_script.sh<span class="w"> </span>-m<span class="w"> </span>remote<span class="w"> </span>-s<span class="w"> </span>yes
+</code></pre></div>
+<h3 id="setting-up-the-multinode-cluster-and-running-vdms-application">Setting up the Multinode Cluster and running VDMS Application<a class="headerlink" href="#setting-up-the-multinode-cluster-and-running-vdms-application" title="Permanent link">&para;</a></h3>
+<p>On the Primary Node execute the following command
+<div class="highlight"><pre><span></span><code><span class="w">    </span>./global_vdms_setup_script.sh<span class="w"> </span>-m<span class="w"> </span>master<span class="w"> </span>-s<span class="w"> </span>yes<span class="w"> </span>-j<span class="w"> </span>&lt;path<span class="w"> </span>to<span class="w"> </span>kubeConfig.json&gt;
+</code></pre></div></p>
+<p>The file named join_vdms_cluster.sh will be created in <mark>kubernetes/</mark> folder, copy/transfer that to the <mark>kubernetes/</mark> folder at the Worker nodes</p>
+<p>On the Worker Node execute the following command
+<div class="highlight"><pre><span></span><code><span class="w">    </span>./global_vdms_setup_script.sh<span class="w"> </span>-m<span class="w"> </span>remote<span class="w"> </span>-k<span class="w"> </span>yes
+</code></pre></div></p>
+<p>Final step, On the Primary Node execute the following command
+<div class="highlight"><pre><span></span><code><span class="w">    </span>./global_vdms_setup_script.sh<span class="w"> </span>-m<span class="w"> </span>master<span class="w"> </span>-k<span class="w"> </span>yes<span class="w"> </span>-j<span class="w"> </span>&lt;path<span class="w"> </span>to<span class="w"> </span>kubeConfig.json&gt;
+</code></pre></div></p>
+<p>Use ipconfig/ip addr to get the IP address of the Control plane.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../Run-Kafka-VDMS-Example/" class="btn btn-neutral float-left" title="Kafka Connectors for VDMS"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../CSV-Plugin-for-CPP-Client/" class="btn btn-neutral float-right" title="CSV Plugin for C++ Client">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2025 Intel Corporation</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="http://github.com/IntelLabs/vdms" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../Run-Kafka-VDMS-Example/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../../CSV-Plugin-for-CPP-Client/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

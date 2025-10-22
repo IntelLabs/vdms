@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://intellabs.github.io/vdms/Install/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Install - VDMS Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Install";
+        var mkdocs_page_input_path = "Install.md";
+        var mkdocs_page_url = "/vdms/Install/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> VDMS Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul class="current">
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Install</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#install-debianubuntu-packages">Install Debian/Ubuntu Packages</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#install-jpeg-package">Install JPEG package</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#install-package-for-c-bindings">Install Package for C++ bindings</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#install-openjdk-development-kit-jdk">Install OpenJDK Development Kit (JDK)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#install-parallelism-library-for-c-runtime-files">Install Parallelism library for C++ - runtime files</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#install-remaining-dependencies">Install Remaining Dependencies</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#python3-packages">Python3 Packages</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#cmake-v3285">CMAKE v3.28.5</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#googletest">GoogleTest</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#protobuf-v295-5295">Protobuf v29.5 (5.29.5)</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#opencv-490">OpenCV 4.9.0</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#valijson-v06">Valijson v0.6</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#faiss-v190">Faiss v1.9.0</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#flinng">FLINNG</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#tiledb-2141">TileDB 2.14.1</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#aws-sdk-cpp-111336">AWS SDK CPP 1.11.336</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#autoconf-v271">Autoconf v2.71</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#neo4j-client">Neo4j Client</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#kubernetes-client">Kubernetes Client</a>
+    </li>
+        </ul>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#install-vdms">Install VDMS</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#start-vdms-server">Start VDMS Server</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../Docker/">Docker</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../guides/VDMS-mTLS-Support/">VDMS Mutual TLS Support</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API (v2.0.0++)</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../API-Description/">Description</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../ConfigFile/">ConfigFile</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../Keywords/">Keywords</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../Returned-Status/">Returned Status</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../Schema/">Schema Definition</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Commands</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Basic Building Blocks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../blocks/Block-constraints/">Constraints</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../blocks/Block-link/">Link</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../blocks/Block-operations/">Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../blocks/Block-properties/">Properties</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../blocks/Block-rectangle/">Rectangle</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../blocks/Block-results/">Results</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Insert</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/AddBlob/">AddBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/AddBoundingBox/">AddBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/AddConnection/">AddConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/AddDescriptor/">AddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/AddDescriptorSet/">AddDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/AddEntity/">AddEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/AddImage/">AddImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/AddVideo/">AddVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/NeoAdd/">NeoAdd</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/NeoAddDescriptor/">NeoAddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/NeoAddDescriptorSet/">NeoAddDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Query</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/ClassifyDescriptor/">ClassifyDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/FindBlob/">FindBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/FindBoundingBox/">FindBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/FindConnection/">FindConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/FindDescriptor/">FindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/FindDescriptorSet/">FindDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/FindEntity/">FindEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/FindFrames/">FindFrames</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/FindImage/">FindImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/FindVideo/">FindVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/NeoFind/">NeoFind</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/NeoFindDescriptor/">NeoFindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/NeoFindDescriptorSet/">NeoFindDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Update</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/UpdateBlob/">UpdateBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/UpdateBoundingBox/">UpdateBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/UpdateConnection/">UpdateConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/UpdateEntity/">UpdateEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/UpdateImage/">UpdateImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/UpdateVideo/">UpdateVideo</a>
+                </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials & Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" >Tutorials</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../tutorials/Simple-Tutorial/">Simple Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tutorials/Image-Tutorial/">Image Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tutorials/Descriptor-Tutorial/">Descriptor Tutorial</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >How-to Guides</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Backends & Query Handlers</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/backends-and-handlers/Neo4J-Based-Scale-Out-VDMS/">Neo4j based Scale Out</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/backends-and-handlers/Query-Handler-Development/">Query Handler Development</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Connectors & Orchestrations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/connectors-and-orchestrations/Run-Kafka-VDMS-Example/">Kafka Connectors for VDMS</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/connectors-and-orchestrations/Kubernetes-Orchestration/">Kubernetes Orchestration in VDMS</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../guides/CSV-Plugin-for-CPP-Client/">CSV Plugin for C++ Client</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Deletion, Backup, & Restore</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/deletion-backup-and-restore/Auto-Deletion-of-Expired-Data/">Auto-Deletion of Expired Data</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/deletion-backup-and-restore/VDMS-Backup-and-Restoring-Options/">Backup and Restoring Options</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/deletion-backup-and-restore/Deletion-Capabilities/">Deletion Capabilities</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Descriptors</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/descriptors/Descriptor-Memory-Usage/">Descriptors Memory Usage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/descriptors/FLINNG-Library-and-Performance/">FLINNG Library and Performance</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Remote & User Defined Operations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/remote-and-udf-operations/Remote-Operations/">Remote Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/remote-and-udf-operations/User-Defined-Operations/">User Defined Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/remote-and-udf-operations/Dynamic-Metadata/">Dynamically Add Metadata</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../guides/Remote-Storage-in-VDMS/">Remote Storage</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../guides/Timing-Capability/">Timing Capability</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Interactive Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="https://deepwiki.com/IntelLabs/vdms">DeepWiki</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribute</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../contribute/Developer-Guide/">Developer Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Test Suite</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../contribute/VDMS-Test-Suite/">VDMS Test Suite Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../contribute/VDMS-Test-Script/">VDMS Test Script</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">VDMS Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Getting Started</li>
+      <li class="breadcrumb-item active">Install</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="http://github.com/IntelLabs/vdms/blob/develop/docs/Install.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h1>
+<p>Here is the detailed process of installation of VDMS dependencies.</p>
+<h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
+<p>To install VDMS, we must install the necessary dependencies via apt, github, and pip (Python 3.9+).
+<br></p>
+<h3 id="install-debianubuntu-packages">Install Debian/Ubuntu Packages<a class="headerlink" href="#install-debianubuntu-packages" title="Permanent link">&para;</a></h3>
+<p>Here we will install the Debian/Ubuntu packages.
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span>-y<span class="w">  </span>--fix-missing
+sudo<span class="w"> </span>apt-get<span class="w"> </span>upgrade<span class="w"> </span>-y
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>--no-install-suggests<span class="w"> </span>--no-install-recommends<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>apt-transport-https<span class="w"> </span>automake<span class="w"> </span>bazel-bootstrap<span class="w"> </span>bison<span class="w"> </span>build-essential<span class="w"> </span>bzip2<span class="w"> </span>ca-certificates<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>curl<span class="w"> </span>ed<span class="w"> </span>flex<span class="w"> </span>g++<span class="w"> </span>gcc<span class="w"> </span>git<span class="w"> </span>gnupg-agent<span class="w"> </span>javacc<span class="w"> </span>libarchive-tools<span class="w"> </span>libatlas-base-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libavcodec-dev<span class="w"> </span>libavformat-dev<span class="w"> </span>libavutil-dev<span class="w"> </span>libbison-dev<span class="w"> </span>libboost-all-dev<span class="w"> </span>libbz2-dev<span class="w"> </span>libc-ares-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libcurl4-openssl-dev<span class="w"> </span>libdc1394-dev<span class="w"> </span>libgflags-dev<span class="w"> </span>libgoogle-glog-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libgtk-3-dev<span class="w"> </span>libgtk2.0-dev<span class="w"> </span>libhdf5-dev<span class="w"> </span>libjpeg-dev<span class="w"> </span>libjsoncpp-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libleveldb-dev<span class="w"> </span>liblmdb-dev<span class="w"> </span>liblz4-dev<span class="w"> </span>libncurses5-dev<span class="w"> </span>libopenblas-dev<span class="w"> </span>libopenmpi-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libpng-dev<span class="w"> </span>librdkafka-dev<span class="w"> </span>libsnappy-dev<span class="w"> </span>libssl-dev<span class="w"> </span>libswscale-dev<span class="w"> </span>libtbb-dev<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>libtiff-dev<span class="w"> </span>libtiff5-dev<span class="w"> </span>libtool<span class="w"> </span>libwebsockets-dev<span class="w"> </span>libzip-dev<span class="w"> </span>linux-libc-dev<span class="w"> </span>mpich<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>pkg-config<span class="w"> </span>procps<span class="w"> </span>software-properties-common<span class="w"> </span>swig<span class="w"> </span>uncrustify<span class="w"> </span>unzip<span class="w"> </span>uuid-dev
+</code></pre></div>
+<br></p>
+<h4 id="install-jpeg-package"><strong>Install JPEG package</strong><a class="headerlink" href="#install-jpeg-package" title="Permanent link">&para;</a></h4>
+<p>Please install the JPEG package based on the OS platform being used:<br>
+* <strong><em>Debian 10+:</em></strong> <code>sudo apt-get install -y libjpeg62-turbo-dev</code><br>
+* <strong><em>Ubuntu 20.04+:</em></strong> <code>sudo apt-get install -y libjpeg8-dev</code><br>
+<br></p>
+<h4 id="install-package-for-c-bindings"><strong>Install Package for C++ bindings</strong><a class="headerlink" href="#install-package-for-c-bindings" title="Permanent link">&para;</a></h4>
+<p>Please install the package for C++ bindings for libzmq (headers) based on the OS platform being used:<br>
+* <strong><em>Debian 12+:</em></strong> <code>sudo apt-get install -y cppzmq-dev</code><br>
+* <strong><em>Debian 10-11, Ubuntu 20.04+:</em></strong> <code>sudo apt-get install -y libzmq3-dev</code><br>
+<br></p>
+<h4 id="install-openjdk-development-kit-jdk"><strong>Install OpenJDK Development Kit (JDK)</strong><a class="headerlink" href="#install-openjdk-development-kit-jdk" title="Permanent link">&para;</a></h4>
+<p>Please install the headless OpenJDK Development Kit (JDK) based on the OS platform being used:<br>
+* <strong><em>Debian 12+, Ubuntu 22.04+:</em></strong> <code>sudo apt-get install -y openjdk-17-jdk-headless</code><br>
+* <strong><em>Debian 10-11, Ubuntu 20.04:</em></strong> <code>sudo apt-get install -y openjdk-11-jdk-headless</code><br>
+<br></p>
+<h4 id="install-parallelism-library-for-c-runtime-files"><strong>Install Parallelism library for C++ - runtime files</strong><a class="headerlink" href="#install-parallelism-library-for-c-runtime-files" title="Permanent link">&para;</a></h4>
+<p>Please install the package for parallelism library for C++ - runtime files based on the OS platform being used:<br>
+* <strong><em>Debian 12+, Ubuntu 22.04+:</em></strong> <code>sudo apt-get install -y libtbbmalloc2</code><br>
+* <strong><em>Debian 10-11, Ubuntu 20.04:</em></strong> <code>sudo apt-get install -y libtbb2</code><br>
+<br></p>
+<h3 id="install-remaining-dependencies">Install Remaining Dependencies<a class="headerlink" href="#install-remaining-dependencies" title="Permanent link">&para;</a></h3>
+<p>Here we assume <code>$VDMS_DEP_DIR</code> is the directory for installing additional dependencies.
+This directory is user-defined but here we use <code>/dependencies</code>.
+These instructions assume you have full permissions to your system.
+If running as <strong><em>root</em></strong>, remove <code>sudo</code> where applicable.
+<div class="highlight"><pre><span></span><code><span class="nv">VDMS_DEP_DIR</span><span class="o">=</span>/dependencies<span class="w">  </span><span class="c1"># Set to any directory</span>
+<span class="nv">BUILD_THREADS</span><span class="o">=</span><span class="s2">&quot;-j`nproc`&quot;</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>
+</code></pre></div>
+<br></p>
+<h4 id="python3-packages">Python3 Packages<a class="headerlink" href="#python3-packages" title="Permanent link">&para;</a></h4>
+<p>It is expected that you have Python3.9 or higher installed on your system.
+All python calls will use Python3.9+; therefore you may find it convenient to set alias for python.
+Here we will install Python 3.12.3 from the Python website.
+<div class="highlight"><pre><span></span><code><span class="nv">PYTHON_VERSION</span><span class="o">=</span><span class="m">3</span>.12.3
+curl<span class="w"> </span>-O<span class="w"> </span>https://www.python.org/ftp/python/<span class="si">${</span><span class="nv">PYTHON_VERSION</span><span class="si">}</span>/Python-<span class="si">${</span><span class="nv">PYTHON_VERSION</span><span class="si">}</span>.tgz
+tar<span class="w"> </span>-xzf<span class="w"> </span>Python-<span class="si">${</span><span class="nv">PYTHON_VERSION</span><span class="si">}</span>.tgz
+<span class="nb">cd</span><span class="w"> </span>Python-<span class="si">${</span><span class="nv">PYTHON_VERSION</span><span class="si">}</span>
+./configure<span class="w"> </span>--enable-optimizations
+make<span class="w"> </span>altinstall
+</code></pre></div></p>
+<p>If you prefer, you can install the the Python 3 version available on the OS platform:
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>python3-dev<span class="w"> </span>python3-pip
+</code></pre></div></p>
+<p><strong><em>NOTE:</em></strong> If multiple versions of Python 3 are present on your system, verify you are using Python3.9 or higher. You can specify the specific version and set an alias for <code>python</code> and/or <code>python3</code> to easily use the desired python version. This can be done using the following:
+<div class="highlight"><pre><span></span><code><span class="nb">alias</span><span class="w"> </span><span class="nv">python</span><span class="o">=</span>/usr/bin/python3.x
+<span class="nb">alias</span><span class="w"> </span><span class="nv">python3</span><span class="o">=</span>/usr/bin/python3.x
+</code></pre></div></p>
+<p>Now that python is setup, now install Numpy and also install the coverage and cryptography packages if interested in running the Python unit tests.
+<div class="highlight"><pre><span></span><code>python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
+python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span><span class="s2">&quot;numpy&gt;=1.26.0,&lt;2.0.0&quot;</span><span class="w"> </span><span class="s2">&quot;coverage&gt;=7.3.1&quot;</span><span class="w"> </span><span class="s2">&quot;cryptography&gt;=44.0.1&quot;</span>
+</code></pre></div>
+<br></p>
+<h4 id="cmake-v3285"><strong>CMAKE v3.28.5</strong><a class="headerlink" href="#cmake-v3285" title="Permanent link">&para;</a></h4>
+<p>VDMS requires CMake v3.21+.  Here we install CMake v3.28.5.
+<div class="highlight"><pre><span></span><code><span class="nv">CMAKE_VERSION</span><span class="o">=</span><span class="s2">&quot;v3.28.5&quot;</span>
+git<span class="w"> </span>clone<span class="w"> </span>--branch<span class="w"> </span><span class="si">${</span><span class="nv">CMAKE_VERSION</span><span class="si">}</span><span class="w"> </span>https://github.com/Kitware/CMake.git<span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/CMake
+<span class="nb">cd</span><span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/CMake
+./bootstrap
+make<span class="w"> </span><span class="si">${</span><span class="nv">BUILD_THREADS</span><span class="si">}</span>
+sudo<span class="w"> </span>make<span class="w"> </span>install
+</code></pre></div>
+<br></p>
+<h4 id="googletest"><strong>GoogleTest</strong><a class="headerlink" href="#googletest" title="Permanent link">&para;</a></h4>
+<p>Install GoogleTest version used in Protobuf v29.5:
+<div class="highlight"><pre><span></span><code><span class="nv">GOOGLETEST_VERSION</span><span class="o">=</span><span class="s2">&quot;4c9a3bb62bf3ba1f1010bf96f9c8ed767b363774&quot;</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/google/googletest.git<span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/googletest<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+<span class="nb">cd</span><span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/googletest
+git<span class="w"> </span>checkout<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">GOOGLETEST_VERSION</span><span class="si">}</span><span class="s2">&quot;</span>
+mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build/
+cmake<span class="w"> </span>-DCMAKE_POSITION_INDEPENDENT_CODE<span class="o">=</span>ON<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Release<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-DBUILD_SHARED_LIBS<span class="o">=</span>ON<span class="w"> </span>-DCMAKE_INSTALL_PREFIX<span class="o">=</span>/usr/local<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-DBUILD_GMOCK<span class="o">=</span>ON<span class="w"> </span>-DCMAKE_CXX_STANDARD<span class="o">=</span><span class="m">17</span><span class="w"> </span>..
+make<span class="w"> </span><span class="si">${</span><span class="nv">BUILD_THREADS</span><span class="si">}</span>
+sudo<span class="w"> </span>make<span class="w"> </span>install
+</code></pre></div>
+<br></p>
+<h4 id="protobuf-v295-5295"><strong>Protobuf v29.5 (5.29.5)</strong><a class="headerlink" href="#protobuf-v295-5295" title="Permanent link">&para;</a></h4>
+<p>Install Protobuf (C++ and Python) with its dependencies.
+<div class="highlight"><pre><span></span><code><span class="nv">PROTOBUF_VERSION</span><span class="o">=</span><span class="s2">&quot;29.5&quot;</span>
+python3<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-cache-dir<span class="w"> </span><span class="s2">&quot;protobuf==5.</span><span class="si">${</span><span class="nv">PROTOBUF_VERSION</span><span class="si">}</span><span class="s2">&quot;</span>
+
+git<span class="w"> </span>clone<span class="w"> </span>-b<span class="w"> </span>v<span class="si">${</span><span class="nv">PROTOBUF_VERSION</span><span class="si">}</span><span class="w"> </span>--recurse-submodules<span class="w"> </span>https://github.com/protocolbuffers/protobuf.git<span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/protobuf
+<span class="nb">cd</span><span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/protobuf
+cmake<span class="w"> </span>-Dprotobuf_FORCE_FETCH_DEPENDENCIES<span class="o">=</span>ON<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-DCMAKE_POSITION_INDEPENDENT_CODE<span class="o">=</span>ON<span class="w"> </span>-DCMAKE_INSTALL_PREFIX<span class="o">=</span>/usr/local<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-DCMAKE_CXX_STANDARD<span class="o">=</span><span class="m">17</span><span class="w"> </span>-Dprotobuf_BUILD_SHARED_LIBS<span class="o">=</span>ON<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-Dprotobuf_BUILD_TESTS<span class="o">=</span>ON<span class="w"> </span>.
+make<span class="w"> </span><span class="si">${</span><span class="nv">BUILD_THREADS</span><span class="si">}</span>
+sudo<span class="w"> </span>make<span class="w"> </span>install
+</code></pre></div>
+<br></p>
+<h4 id="opencv-490"><strong><a href="https://opencv.org/">OpenCV</a> 4.9.0</strong><a class="headerlink" href="#opencv-490" title="Permanent link">&para;</a></h4>
+<p>Below are instructions for installing <strong><em>OpenCV v4.9.0</em></strong>.
+<div class="highlight"><pre><span></span><code><span class="nv">OPENCV_VERSION</span><span class="o">=</span><span class="s2">&quot;4.9.0&quot;</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/opencv/opencv.git<span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/opencv
+<span class="nb">cd</span><span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/opencv
+git<span class="w"> </span>checkout<span class="w"> </span>tags/<span class="si">${</span><span class="nv">OPENCV_VERSION</span><span class="si">}</span>
+mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>-D<span class="w"> </span><span class="nv">BUILD_PERF_TESTS</span><span class="o">=</span>OFF<span class="w"> </span>-D<span class="w"> </span><span class="nv">BUILD_TESTS</span><span class="o">=</span>OFF<span class="w"> </span>..
+make<span class="w"> </span><span class="si">${</span><span class="nv">BUILD_THREADS</span><span class="si">}</span>
+sudo<span class="w"> </span>make<span class="w"> </span>install
+</code></pre></div></p>
+<p><strong>Note</strong>: When using videos, and getting the following error: "Unable to stop the stream: Inappropriate ioctl for device", you may need to include more flags when compiling OpenCV. Follow these instructions (<a href="https://stackoverflow.com/questions/41200201/opencv-unable-to-stop-the-stream-inappropriate-ioctl-for-device">source</a>):
+<div class="highlight"><pre><span></span><code>sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>ffmpeg
+sudo<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>libavdevice-dev
+
+cmake<span class="w"> </span>-D<span class="w"> </span><span class="nv">BUILD_PERF_TESTS</span><span class="o">=</span>OFF<span class="w"> </span>-D<span class="w"> </span><span class="nv">BUILD_TESTS</span><span class="o">=</span>OFF<span class="w"> </span>-D<span class="w"> </span><span class="nv">CMAKE_BUILD_TYPE</span><span class="o">=</span>RELEASE<span class="w"> </span>-D<span class="w"> </span><span class="nv">CMAKE_INSTALL_PREFIX</span><span class="o">=</span>/usr/local<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-D<span class="w"> </span><span class="nv">WITH_FFMPEG</span><span class="o">=</span>ON<span class="w"> </span>-D<span class="w"> </span><span class="nv">WITH_TBB</span><span class="o">=</span>ON<span class="w"> </span>-D<span class="w"> </span><span class="nv">WITH_GTK</span><span class="o">=</span>ON<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-D<span class="w"> </span><span class="nv">WITH_V4L</span><span class="o">=</span>ON<span class="w"> </span>-D<span class="w"> </span><span class="nv">WITH_OPENGL</span><span class="o">=</span>ON<span class="w"> </span>-D<span class="w"> </span><span class="nv">WITH_CUBLAS</span><span class="o">=</span>ON<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-DWITH_QT<span class="o">=</span>OFF<span class="w"> </span>-DCUDA_NVCC_FLAGS<span class="o">=</span><span class="s2">&quot;-D_FORCE_INLINES&quot;</span><span class="w"> </span>..
+make<span class="w"> </span><span class="si">${</span><span class="nv">BUILD_THREADS</span><span class="si">}</span>
+sudo<span class="w"> </span>make<span class="w"> </span>install
+</code></pre></div>
+<br></p>
+<h4 id="valijson-v06"><strong>Valijson v0.6</strong><a class="headerlink" href="#valijson-v06" title="Permanent link">&para;</a></h4>
+<p>This is a headers-only library, no compilation/installation necessary.
+<div class="highlight"><pre><span></span><code><span class="nv">VALIJSON_VERSION</span><span class="o">=</span><span class="s2">&quot;v0.6&quot;</span>
+git<span class="w"> </span>clone<span class="w"> </span>--branch<span class="w"> </span><span class="si">${</span><span class="nv">VALIJSON_VERSION</span><span class="si">}</span><span class="w"> </span>https://github.com/tristanpenman/valijson.git<span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/valijson
+<span class="nb">cd</span><span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/valijson
+sudo<span class="w"> </span>cp<span class="w"> </span>-r<span class="w"> </span>include/*<span class="w"> </span>/usr/local/include/
+</code></pre></div>
+<br></p>
+<h4 id="faiss-v190"><strong>Faiss v1.9.0</strong><a class="headerlink" href="#faiss-v190" title="Permanent link">&para;</a></h4>
+<p>Install the Faiss library for similarity search.
+<div class="highlight"><pre><span></span><code><span class="nv">FAISS_VERSION</span><span class="o">=</span><span class="s2">&quot;v1.9.0&quot;</span>
+git<span class="w"> </span>clone<span class="w"> </span>--branch<span class="w"> </span><span class="si">${</span><span class="nv">FAISS_VERSION</span><span class="si">}</span><span class="w"> </span>https://github.com/facebookresearch/faiss.git<span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/faiss
+<span class="nb">cd</span><span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/faiss
+mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>-DFAISS_ENABLE_GPU<span class="o">=</span>OFF<span class="w"> </span>-DPython_EXECUTABLE<span class="o">=</span>/usr/bin/python3<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-DBUILD_SHARED_LIBS<span class="o">=</span>ON<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Release<span class="w"> </span>..
+make<span class="w"> </span><span class="si">${</span><span class="nv">BUILD_THREADS</span><span class="si">}</span>
+sudo<span class="w"> </span>make<span class="w"> </span>install
+</code></pre></div>
+<br></p>
+<h4 id="flinng"><strong>FLINNG</strong><a class="headerlink" href="#flinng" title="Permanent link">&para;</a></h4>
+<p>Install the Filters to Identify Near-Neighbor Groups (FLINNG) library for similarity search.
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/tonyzhang617/FLINNG.git<span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/FLINNG
+<span class="nb">cd</span><span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/FLINNG
+mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>..
+make<span class="w"> </span><span class="si">${</span><span class="nv">BUILD_THREADS</span><span class="si">}</span>
+sudo<span class="w"> </span>make<span class="w"> </span>install
+</code></pre></div>
+<br></p>
+<h4 id="tiledb-2141"><strong><a href="https://tiledb.io/">TileDB</a> 2.14.1</strong><a class="headerlink" href="#tiledb-2141" title="Permanent link">&para;</a></h4>
+<p>The directions below will help you install TileDB v2.14.1 from the source.
+You can also follow the directions listed <a href="https://docs.tiledb.io/en/latest/installation.html">here</a>.
+<div class="highlight"><pre><span></span><code><span class="nv">TILEDB_VERSION</span><span class="o">=</span><span class="s2">&quot;2.14.1&quot;</span>
+curl<span class="w"> </span>-L<span class="w"> </span>-o<span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/<span class="si">${</span><span class="nv">TILEDB_VERSION</span><span class="si">}</span>.tar.gz<span class="w"> </span>https://github.com/TileDB-Inc/TileDB/archive/refs/tags/<span class="si">${</span><span class="nv">TILEDB_VERSION</span><span class="si">}</span>.tar.gz<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+<span class="nb">cd</span><span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>
+tar<span class="w"> </span>-xvf<span class="w"> </span><span class="si">${</span><span class="nv">TILEDB_VERSION</span><span class="si">}</span>.tar.gz
+<span class="nb">cd</span><span class="w"> </span>TileDB-<span class="si">${</span><span class="nv">TILEDB_VERSION</span><span class="si">}</span>
+mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+../bootstrap<span class="w"> </span>--prefix<span class="o">=</span>/usr/local/
+make<span class="w"> </span><span class="si">${</span><span class="nv">BUILD_THREADS</span><span class="si">}</span>
+sudo<span class="w"> </span>make<span class="w"> </span>install-tiledb
+</code></pre></div>
+<br></p>
+<h4 id="aws-sdk-cpp-111336"><strong>AWS SDK CPP 1.11.336</strong><a class="headerlink" href="#aws-sdk-cpp-111336" title="Permanent link">&para;</a></h4>
+<p>Use the following instructions to install AWS SDK for C++.
+<div class="highlight"><pre><span></span><code><span class="nv">AWS_SDK_VERSION</span><span class="o">=</span><span class="s2">&quot;1.11.336&quot;</span>
+git<span class="w"> </span>clone<span class="w"> </span>-b<span class="w"> </span><span class="si">${</span><span class="nv">AWS_SDK_VERSION</span><span class="si">}</span><span class="w"> </span>--recurse-submodules<span class="w"> </span>https://github.com/aws/aws-sdk-cpp<span class="w"> </span><span class="si">${</span><span class="nv">VDMS_DEP_DIR</span><span class="si">}</span>/aws-sdk-cpp
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="si">${</span><span class="nv">VDMS_DEP_DIR</span><span class="si">}</span>/aws-sdk-cpp/build
+<span class="nb">cd</span><span class="w"> </span><span class="si">${</span><span class="nv">VDMS_DEP_DIR</span><span class="si">}</span>/aws-sdk-cpp/build
+cmake<span class="w"> </span>..<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Debug<span class="w"> </span>-DCMAKE_PREFIX_PATH<span class="o">=</span>/usr/local/<span class="w"> </span>-DCMAKE_INSTALL_PREFIX<span class="o">=</span>/usr/local/<span class="w"> </span>-DBUILD_ONLY<span class="o">=</span><span class="s2">&quot;s3&quot;</span><span class="w"> </span>-DCUSTOM_MEMORY_MANAGEMENT<span class="o">=</span>OFF
+make<span class="w"> </span><span class="si">${</span><span class="nv">BUILD_THREADS</span><span class="si">}</span>
+sudo<span class="w"> </span>make<span class="w"> </span>install
+</code></pre></div>
+<br></p>
+<h4 id="autoconf-v271"><strong>Autoconf v2.71</strong><a class="headerlink" href="#autoconf-v271" title="Permanent link">&para;</a></h4>
+<p><div class="highlight"><pre><span></span><code><span class="nv">AUTOCONF_VERSION</span><span class="o">=</span><span class="s2">&quot;2.71&quot;</span>
+curl<span class="w"> </span>-L<span class="w"> </span>-o<span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/autoconf-<span class="si">${</span><span class="nv">AUTOCONF_VERSION</span><span class="si">}</span>.tar.xz<span class="w"> </span>https://ftp.gnu.org/gnu/autoconf/autoconf-<span class="si">${</span><span class="nv">AUTOCONF_VERSION</span><span class="si">}</span>.tar.xz
+<span class="nb">cd</span><span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>
+tar<span class="w"> </span>-xf<span class="w"> </span>autoconf-<span class="si">${</span><span class="nv">AUTOCONF_VERSION</span><span class="si">}</span>.tar.xz
+<span class="nb">cd</span><span class="w"> </span>autoconf-<span class="si">${</span><span class="nv">AUTOCONF_VERSION</span><span class="si">}</span>
+./configure
+make<span class="w"> </span><span class="si">${</span><span class="nv">BUILD_THREADS</span><span class="si">}</span>
+sudo<span class="w"> </span>make<span class="w"> </span>install
+</code></pre></div>
+<br></p>
+<h4 id="neo4j-client"><strong>Neo4j Client</strong><a class="headerlink" href="#neo4j-client" title="Permanent link">&para;</a></h4>
+<p>Below are instructions for installing <strong><em>libneo4j-omni</em></strong> which requires Peg, libcypher-parser and libedit as dependencies.
+<div class="highlight"><pre><span></span><code><span class="nv">PEG_VERSION</span><span class="o">=</span><span class="s2">&quot;0.1.19&quot;</span>
+curl<span class="w"> </span>-L<span class="w"> </span>-o<span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/peg-<span class="si">${</span><span class="nv">PEG_VERSION</span><span class="si">}</span>.tar.gz<span class="w"> </span>https://github.com/gpakosz/peg/releases/download/<span class="si">${</span><span class="nv">PEG_VERSION</span><span class="si">}</span>/peg-<span class="si">${</span><span class="nv">PEG_VERSION</span><span class="si">}</span>.tar.gz
+<span class="nb">cd</span><span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/
+tar<span class="w"> </span>-xf<span class="w"> </span>peg-<span class="si">${</span><span class="nv">PEG_VERSION</span><span class="si">}</span>.tar.gz
+<span class="nb">cd</span><span class="w"> </span>peg-<span class="si">${</span><span class="nv">PEG_VERSION</span><span class="si">}</span>
+make<span class="w"> </span><span class="si">${</span><span class="nv">BUILD_THREADS</span><span class="si">}</span>
+sudo<span class="w"> </span>make<span class="w"> </span>install
+
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/cleishm/libcypher-parser.git<span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/libcypher
+<span class="nb">cd</span><span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/libcypher
+./autogen.sh
+./configure
+sudo<span class="w"> </span>make<span class="w"> </span>install
+
+<span class="nv">LIBEDIT_VERSION</span><span class="o">=</span><span class="s2">&quot;20230828-3.1&quot;</span>
+curl<span class="w"> </span>-L<span class="w"> </span>-o<span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/libedit-<span class="si">${</span><span class="nv">LIBEDIT_VERSION</span><span class="si">}</span>.tar.gz<span class="w"> </span>https://thrysoee.dk/editline/libedit-<span class="si">${</span><span class="nv">LIBEDIT_VERSION</span><span class="si">}</span>.tar.gz
+<span class="nb">cd</span><span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/
+tar<span class="w"> </span>-xzf<span class="w"> </span>libedit-<span class="si">${</span><span class="nv">LIBEDIT_VERSION</span><span class="si">}</span>.tar.gz
+<span class="nb">cd</span><span class="w"> </span>libedit-<span class="si">${</span><span class="nv">LIBEDIT_VERSION</span><span class="si">}</span>
+./configure
+make<span class="w"> </span><span class="si">${</span><span class="nv">BUILD_THREADS</span><span class="si">}</span>
+sudo<span class="w"> </span>make<span class="w"> </span>install
+
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/majensen/libneo4j-omni.git<span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/libomni
+<span class="nb">cd</span><span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/libomni
+./autogen.sh
+./configure<span class="w"> </span>--disable-werror<span class="w"> </span>--prefix<span class="o">=</span>/usr
+make<span class="w"> </span>clean<span class="w"> </span>check
+sudo<span class="w"> </span>make<span class="w"> </span>install<span class="w"> </span>-w<span class="w"> </span>--debug
+</code></pre></div>
+<br></p>
+<h4 id="kubernetes-client"><strong>Kubernetes Client</strong><a class="headerlink" href="#kubernetes-client" title="Permanent link">&para;</a></h4>
+<p>Installation required only if you plan to use the kubernetes environment
+Follow <a href="../guides/connectors-and-orchestrations/Kubernetes-Orchestration/">Kubernetes Orchestration in VDMS</a> for how to set up the environment.
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>--depth<span class="w"> </span><span class="m">1</span><span class="w"> </span>https://github.com/yaml/libyaml.git<span class="w"> </span>/dependencies/libyaml
+<span class="nb">cd</span><span class="w"> </span><span class="nv">$VDMS_DEP_DIR</span>/libyaml
+mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>-DCMAKE_INSTALL_PREFIX<span class="o">=</span>/usr/local/<span class="w"> </span>-DBUILD_TESTING<span class="o">=</span>OFF<span class="w">  </span>-DBUILD_SHARED_LIBS<span class="o">=</span>ON<span class="w"> </span>..
+make
+sudo<span class="w"> </span>make<span class="w"> </span>install
+
+<span class="nv">CLIENT_REPO_ROOT</span><span class="o">=</span><span class="nv">$VDMS_DEP_DIR</span>/k8s
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/kubernetes-client/c.git<span class="w"> </span><span class="si">${</span><span class="nv">CLIENT_REPO_ROOT</span><span class="si">}</span>
+<span class="nb">cd</span><span class="w"> </span><span class="si">${</span><span class="nv">CLIENT_REPO_ROOT</span><span class="si">}</span>/kubernetes
+mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>..
+make
+sudo<span class="w"> </span>make<span class="w"> </span>install
+</code></pre></div>
+<br></p>
+<h2 id="install-vdms">Install VDMS<a class="headerlink" href="#install-vdms" title="Permanent link">&para;</a></h2>
+<p>This version of VDMS treats PMGD as a submodule so both libraries are compiled at one time. After entering the vdms directory, the command <code>git submodule update --init --recursive</code> will pull pmgd into the appropriate directory. Furthermore, Cmake is used to compile all directories.
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>-b<span class="w"> </span>master<span class="w"> </span>--recurse-submodules<span class="w"> </span>https://github.com/IntelLabs/vdms.git
+<span class="nb">cd</span><span class="w"> </span>vdms
+</code></pre></div></p>
+<p>If your OS Platform is Debian 12+ or Ubuntu 22.04+ and you installed <code>openjdk-17-jdk-headless</code>, please modify PMGD to use this package:
+<div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;s|java-11-openjdk|java-17-openjdk|g&quot;</span><span class="w"> </span>src/pmgd/java/CMakeLists.txt
+sed<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;s|#include &lt;stdio.h&gt;|#include &lt;stdio.h&gt;\n#include &lt;stdexcept&gt;|&quot;</span><span class="w"> </span>src/pmgd/test/neighbortest.cc
+sed<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;s|#include &lt;stdio.h&gt;|#include &lt;stdio.h&gt;\n#include &lt;stdexcept&gt;|&quot;</span><span class="w"> </span>src/pmgd/tools/mkgraph.cc
+</code></pre></div></p>
+<p>If your OS Platform is Debian 11 or Ubuntu 20.04, please modify file to use older FFMPEG libraries:
+<div class="highlight"><pre><span></span><code>sed<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;s|#include &lt;libavcodec/avcodec.h&gt;||&quot;</span><span class="w"> </span>include/vcl/KeyFrame.h
+sed<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;s|#include &lt;libavcodec/bsf.h&gt;||&quot;</span><span class="w"> </span>include/vcl/KeyFrame.h
+</code></pre></div></p>
+<p>When compiling on a target without Optane persistent memory and without Kubernetes, use the following:
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>-p<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>..
+make<span class="w"> </span><span class="si">${</span><span class="nv">BUILD_THREADS</span><span class="si">}</span>
+cp<span class="w"> </span>../config-vdms.json<span class="w"> </span>.
+</code></pre></div></p>
+<p>When compiling on a target with Optane persistent memory, use the following:
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>-DCMAKE_CXX_FLAGS<span class="o">=</span><span class="s1">&#39;-DPM&#39;</span><span class="w"> </span>..
+make<span class="w"> </span><span class="si">${</span><span class="nv">BUILD_THREADS</span><span class="si">}</span>
+cp<span class="w"> </span>../config-vdms.json<span class="w"> </span>.
+</code></pre></div></p>
+<p>If you plan on setting up the Kubernetes environment with VDMS and remote operations (experimental), use the following:
+<div class="highlight"><pre><span></span><code>mkdir<span class="w"> </span>build<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+cmake<span class="w"> </span>-DUSE_K8S<span class="o">=</span>ON<span class="w"> </span>..
+make<span class="w"> </span><span class="si">${</span><span class="nv">BUILD_THREADS</span><span class="si">}</span>
+cp<span class="w"> </span>../config-vdms.json<span class="w"> </span>.
+</code></pre></div></p>
+<p><strong><em>NOTE:</em></strong> If error similar to <code>cannot open shared object file: No such file or directory</code> obtained during loading shared libraries, such as <code>libpmgd.so</code> or <code>libvcl.so</code>, add the correct directories to <code>LD_LIBRARY_PATH</code>. This may occur for non-root users. To find the correct directory, run <code>find</code> command for missing object file. An example solution for missing <code>libpmgd.so</code> and <code>libvcl.so</code> is:
+<div class="highlight"><pre><span></span><code>find<span class="w"> </span>/<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;libpmgd*so*&quot;</span><span class="w"> </span><span class="c1"># &lt;Path_to_VDMS_directory&gt;/build/src/pmgd/src</span>
+find<span class="w"> </span>/<span class="w"> </span>-name<span class="w"> </span><span class="s2">&quot;libvcl*so*&quot;</span><span class="w">  </span><span class="c1"># &lt;Path_to_VDMS_directory&gt;/build/src/vcl</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">LD_LIBRARY_PATH</span><span class="o">=</span><span class="si">${</span><span class="nv">LD_LIBRARY_PATH</span><span class="si">}</span>:&lt;Path_to_VDMS_directory&gt;/build/src/pmgd/src:&lt;Path_to_VDMS_directory&gt;/build/src/vcl
+</code></pre></div>
+<br></p>
+<h2 id="start-vdms-server">Start VDMS Server<a class="headerlink" href="#start-vdms-server" title="Permanent link">&para;</a></h2>
+<p>To start the server, run the following from the main VDMS directory:
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>build
+./vdms
+</code></pre></div></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href=".." class="btn btn-neutral float-left" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../Docker/" class="btn btn-neutral float-right" title="Docker">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2025 Intel Corporation</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="http://github.com/IntelLabs/vdms" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href=".." style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../Docker/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://intellabs.github.io/vdms/guides/remote-and-udf-operations/User-Defined-Operations/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>User Defined Operations - VDMS Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "User Defined Operations";
+        var mkdocs_page_input_path = "guides/remote-and-udf-operations/User-Defined-Operations.md";
+        var mkdocs_page_url = "/vdms/guides/remote-and-udf-operations/User-Defined-Operations/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> VDMS Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Install/">Install</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Docker/">Docker</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../VDMS-mTLS-Support/">VDMS Mutual TLS Support</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API (v2.0.0++)</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../API-Description/">Description</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../ConfigFile/">ConfigFile</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Keywords/">Keywords</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Returned-Status/">Returned Status</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Schema/">Schema Definition</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Commands</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Basic Building Blocks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-constraints/">Constraints</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-link/">Link</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-operations/">Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-properties/">Properties</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-rectangle/">Rectangle</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-results/">Results</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Insert</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddBlob/">AddBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddBoundingBox/">AddBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddConnection/">AddConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddDescriptor/">AddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddDescriptorSet/">AddDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddEntity/">AddEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddImage/">AddImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddVideo/">AddVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoAdd/">NeoAdd</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoAddDescriptor/">NeoAddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoAddDescriptorSet/">NeoAddDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Query</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/ClassifyDescriptor/">ClassifyDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindBlob/">FindBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindBoundingBox/">FindBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindConnection/">FindConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindDescriptor/">FindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindDescriptorSet/">FindDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindEntity/">FindEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindFrames/">FindFrames</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindImage/">FindImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindVideo/">FindVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoFind/">NeoFind</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoFindDescriptor/">NeoFindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoFindDescriptorSet/">NeoFindDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Update</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateBlob/">UpdateBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateBoundingBox/">UpdateBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateConnection/">UpdateConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateEntity/">UpdateEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateImage/">UpdateImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateVideo/">UpdateVideo</a>
+                </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials & Guides</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" >Tutorials</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Simple-Tutorial/">Simple Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Image-Tutorial/">Image Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Descriptor-Tutorial/">Descriptor Tutorial</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >How-to Guides</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" >Backends & Query Handlers</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../backends-and-handlers/Neo4J-Based-Scale-Out-VDMS/">Neo4j based Scale Out</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../backends-and-handlers/Query-Handler-Development/">Query Handler Development</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Connectors & Orchestrations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../connectors-and-orchestrations/Run-Kafka-VDMS-Example/">Kafka Connectors for VDMS</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../connectors-and-orchestrations/Kubernetes-Orchestration/">Kubernetes Orchestration in VDMS</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../CSV-Plugin-for-CPP-Client/">CSV Plugin for C++ Client</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Deletion, Backup, & Restore</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../deletion-backup-and-restore/Auto-Deletion-of-Expired-Data/">Auto-Deletion of Expired Data</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../deletion-backup-and-restore/VDMS-Backup-and-Restoring-Options/">Backup and Restoring Options</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../deletion-backup-and-restore/Deletion-Capabilities/">Deletion Capabilities</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Descriptors</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../descriptors/Descriptor-Memory-Usage/">Descriptors Memory Usage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../descriptors/FLINNG-Library-and-Performance/">FLINNG Library and Performance</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" >Remote & User Defined Operations</a>
+    <ul class="current">
+                <li class="toctree-l3"><a class="reference internal" href="../Remote-Operations/">Remote Operations</a>
+                </li>
+                <li class="toctree-l3 current"><a class="reference internal current" href="#">User Defined Operations</a>
+    <ul class="current">
+    <li class="toctree-l4"><a class="reference internal" href="#requirements">Requirements</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#udf-definition">UDF Definition</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#setup">Setup</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#client-query">Client Query</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#detailed-instructions-for-new-udf">Detailed Instructions for new UDF</a>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../Dynamic-Metadata/">Dynamically Add Metadata</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Remote-Storage-in-VDMS/">Remote Storage</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Timing-Capability/">Timing Capability</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Interactive Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="https://deepwiki.com/IntelLabs/vdms">DeepWiki</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribute</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../contribute/Developer-Guide/">Developer Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Test Suite</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../contribute/VDMS-Test-Suite/">VDMS Test Suite Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../contribute/VDMS-Test-Script/">VDMS Test Script</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">VDMS Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Tutorials & Guides</li>
+          <li class="breadcrumb-item">How-to Guides</li>
+          <li class="breadcrumb-item">Remote & User Defined Operations</li>
+      <li class="breadcrumb-item active">User Defined Operations</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="http://github.com/IntelLabs/vdms/blob/develop/docs/guides/remote-and-udf-operations/User-Defined-Operations.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="user-defined-operations-in-vdms">User Defined Operations in VDMS<a class="headerlink" href="#user-defined-operations-in-vdms" title="Permanent link">&para;</a></h1>
+<p>This submodule is required to execute user defined operations (UDF) in VDMS using message queues. Although shipped with VDMS, this submodule can be run independently and interacts with VDMS using message queues.</p>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Python 3 or higher</li>
+<li>Following python libraries<ul>
+<li>opencv-python-headless</li>
+<li>pyzmq</li>
+</ul>
+</li>
+</ul>
+<h2 id="udf-definition">UDF Definition<a class="headerlink" href="#udf-definition" title="Permanent link">&para;</a></h2>
+<p>Any operation can be added to the module by creating a python file and adding it to the <code>functions</code> folder. All related files for the UDF should be stored in the folder <code>resources</code>. The operation file should follow the following setup to define a <code>run</code> function that the interface file for VDMS will use;
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">input_params</span><span class="p">):</span>
+
+    <span class="c1"># message: The inputfile and other parameters sent from VDMS</span>
+    <span class="c1"># settings: System specific settings for the udf</span>
+    <span class="c1"># input_params: Any parameters required by the UDF to run</span>
+
+    <span class="c1"># Create outputfile</span>
+    <span class="c1"># Read from inputfile</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    The UDF logic goes here</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="c1"># Return outputfile</span>
+</code></pre></div></p>
+<p>Update the <code>settings.json</code> file with the following parameters;</p>
+<p><div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;opfile&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/tmp/tmp_op_file&quot;</span><span class="p">,</span><span class="w">                              </span><span class="err">#</span><span class="w"> </span><span class="err">Loca</span><span class="kc">t</span><span class="err">io</span><span class="kc">n</span><span class="w"> </span><span class="err">where</span><span class="w"> </span><span class="kc">t</span><span class="err">he</span><span class="w"> </span><span class="err">ou</span><span class="kc">t</span><span class="err">pu</span><span class="kc">tf</span><span class="err">ile</span><span class="w"> </span><span class="kc">te</span><span class="err">mporary</span><span class="w"> </span><span class="kc">f</span><span class="err">ile</span><span class="w"> </span><span class="err">will</span><span class="w"> </span><span class="err">be</span><span class="w"> </span><span class="err">s</span><span class="kc">t</span><span class="err">ored</span>
+<span class="w">    </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5555</span><span class="p">,</span><span class="w">                                              </span><span class="err">#</span><span class="w"> </span><span class="err">Por</span><span class="kc">t</span><span class="w"> </span><span class="err">o</span><span class="kc">n</span><span class="w"> </span><span class="err">which</span><span class="w"> </span><span class="kc">t</span><span class="err">he</span><span class="w"> </span><span class="err">message</span><span class="w"> </span><span class="err">queue</span><span class="w"> </span><span class="err">will</span><span class="w"> </span><span class="err">be</span><span class="w"> </span><span class="err">lis</span><span class="kc">ten</span><span class="err">i</span><span class="kc">n</span><span class="err">g</span><span class="w"> </span><span class="err">a</span><span class="kc">n</span><span class="err">d</span><span class="w"> </span><span class="err">wri</span><span class="kc">t</span><span class="err">i</span><span class="kc">n</span><span class="err">g</span>
+<span class="w">    </span><span class="nt">&quot;functions&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;facedetect&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;facedetect&quot;</span><span class="p">,</span><span class="w">                           </span><span class="err">#</span><span class="w"> </span><span class="err">Key</span><span class="w"> </span><span class="err">value</span><span class="w"> </span><span class="err">pair</span><span class="w"> </span><span class="kc">f</span><span class="err">or</span><span class="w"> </span><span class="kc">t</span><span class="err">he</span><span class="w"> </span><span class="err">UDFs.</span><span class="w"> </span><span class="err">&#39;key&#39;</span><span class="w"> </span><span class="err">is</span><span class="w"> </span><span class="kc">t</span><span class="err">he</span><span class="w"> </span><span class="err">UDF</span><span class="w"> </span><span class="err">id</span><span class="w"> </span><span class="err">a</span><span class="kc">n</span><span class="err">d</span><span class="w"> </span><span class="err">&#39;value&#39;</span><span class="w"> </span><span class="err">is</span><span class="w"> </span><span class="kc">t</span><span class="err">he</span><span class="w"> </span><span class="kc">f</span><span class="err">ile</span><span class="kc">na</span><span class="err">me</span><span class="w"> </span><span class="err">o</span><span class="kc">f</span><span class="w"> </span><span class="kc">t</span><span class="err">he</span><span class="w"> </span><span class="err">UDF.</span>
+<span class="w">        </span><span class="nt">&quot;flip&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;flip&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;carcount&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;carcount&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;activityrecognition&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;activityrecognition&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+<br></p>
+<h2 id="setup">Setup<a class="headerlink" href="#setup" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Either run from the location where you have the VDMS repo or just copy the <code>user_defined_operations</code> directory to wherever you want to run the UDFs, but ensure that it is on the same system as VDMS.</li>
+<li>Create your UDFs as python scripts and place them in the <code>user_defined_operations/functions</code> directory.</li>
+<li>Update the <code>settings.json</code> file to include your UDF file and other necessary information.</li>
+<li>
+<p>Follow the following steps to run the <code>user_defined_operations</code> submodule on port <port_number>.</p>
+<p><div class="highlight"><pre><span></span><code>cd user_defined_operations
+python3 -m venv venv
+source venv/bin/activate
+python3 -m pip install pip --upgrade
+python3 -m pip install wheel
+python3 -m pip install -r requirements.txt
+python3 udf_local.py
+</code></pre></div>
+<br></p>
+</li>
+</ol>
+<h2 id="client-query">Client Query<a class="headerlink" href="#client-query" title="Permanent link">&para;</a></h2>
+<p>The client query should contain the following two parameters:</p>
+<ul>
+<li><code>type</code>: Should always be <code>userOp</code> for remote operation</li>
+<li><code>options</code>: Any parameter that is required by the operation. The following three parameters are important:<ul>
+<li><code>id</code>: A mandatory parameter. It specifies the operation to be executed and should be a key in the <code>functions</code> parameter of the <code>settings.json</code> file. For instance, if the key is <code>facedetect</code>, then the <code>id</code> should be <code>facedetect</code>.</li>
+<li><code>format</code>: Optional, but specifies the format in which the image is required. Default is <code>jpg</code>.</li>
+<li><code>port</code>: The port on which the message queue will be listening and writing.</li>
+</ul>
+</li>
+</ul>
+<p><div class="highlight"><pre><span></span><code><span class="nt">&quot;FindImage&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;png&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;constraints&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;category&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;==&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;cars&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;operations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;userOp&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;carcount&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;png&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5555</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<br></p>
+<h2 id="detailed-instructions-for-new-udf">Detailed Instructions for new UDF<a class="headerlink" href="#detailed-instructions-for-new-udf" title="Permanent link">&para;</a></h2>
+<p>We now provide an example to add a new UDF <code>cardetect</code>. The <code>cardetect</code> operation detects cars in an image and creates a rectangle around all cars. This operation requires a pretrained model available in the form of <code>xml</code> file online.
+1. Copy <code>user_defined_operations</code> directory to anywhere you want but on the same server that is running VDMS. Say you copy the folder in the <code>home</code> directory.
+2. Copy <code>resources</code> directory (located at the root of the repository) into the <code>user_defined_operations</code> directory. The folder structure you have now will look something like this;
+    <div class="highlight"><pre><span></span><code>~/
+|__user_defined_operations
+|__functions
+|  |__facedetect.py
+|  |__flip.py
+|__README.md
+|__requirements.txt
+|__settings.json
+|__udf_local.py
+|__resources
+    |__haarcascade_frontalface_default.xml
+</code></pre></div>
+3. Download/Copy the <code>cars.xml</code> file to the <code>~/user_defined_operations/resources</code> directory.
+4. Create the <code>cardetect.py</code> file in <code>~/user_defined_operations/functions</code>.
+    <div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">car_cascade_src</span> <span class="o">=</span> <span class="s1">&#39;~/user_defined_operations/resources/cars.xml&#39;</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">run</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">input_params</span><span class="p">):</span>
+
+    <span class="k">global</span> <span class="n">car_cascade_src</span>
+
+    <span class="n">t1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="n">ipfilename</span> <span class="o">=</span> <span class="n">message</span>
+    <span class="nb">format</span> <span class="o">=</span> <span class="n">message</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">opfilename</span> <span class="o">=</span> <span class="n">settings</span><span class="p">[</span><span class="s2">&quot;opfile&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">t1</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="nb">format</span>
+
+    <span class="n">img</span> <span class="o">=</span> <span class="n">cv2</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">ipfilename</span><span class="p">)</span>
+
+    <span class="c1"># These lines</span>
+    <span class="c1"># represent the</span>
+    <span class="c1"># code logic</span>
+
+    <span class="n">cv2</span><span class="o">.</span><span class="n">imwrite</span><span class="p">(</span><span class="n">opfilename</span><span class="p">,</span> <span class="n">img</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t1</span><span class="p">),</span> <span class="n">opfilename</span>
+</code></pre></div>
+5. The final directory structure would be as follows;
+    <div class="highlight"><pre><span></span><code>~/
+|__user_defined_operations
+|__functions
+|  |__facedetect.py
+|  |__flip.py
+|  |__cardetect.py
+|__README.md
+|__requirements.txt
+|__settings.json
+|__udf_local.py
+|__resources
+    |__haarcascade_frontalface_default.xml
+    |__cars.xml
+</code></pre></div>
+6. Update the settings file with the new UDF information.
+    <div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;opfile&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/tmp/tmp_op_file&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5555</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;functions&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;facedetect&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;facedetect&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;flip&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;flip&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;cardetect&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cardetect&quot;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+7. Now start the <code>udf_local.py</code> file to initiate the message queue;
+    <div class="highlight"><pre><span></span><code>python3<span class="w"> </span>udf_local.py
+</code></pre></div>
+8. Say VDMS has a database of car images that have the property <code>category</code> set as <code>cars</code>. Then you can run the <code>cardetect</code> operation on these images using the following query;
+    <div class="highlight"><pre><span></span><code><span class="nt">&quot;FindImage&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;png&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;constraints&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;category&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;==&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;cars&quot;</span><span class="p">]</span>
+<span class="w">    </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">&quot;operations&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;userOp&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;options&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">5555</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cardetect&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;png&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../Remote-Operations/" class="btn btn-neutral float-left" title="Remote Operations"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../Dynamic-Metadata/" class="btn btn-neutral float-right" title="Dynamically Add Metadata">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2025 Intel Corporation</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="http://github.com/IntelLabs/vdms" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../Remote-Operations/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../Dynamic-Metadata/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

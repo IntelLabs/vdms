@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://intellabs.github.io/vdms/contribute/VDMS-Test-Suite/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>VDMS Test Suite Overview - VDMS Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "VDMS Test Suite Overview";
+        var mkdocs_page_input_path = "contribute/VDMS-Test-Suite.md";
+        var mkdocs_page_url = "/vdms/contribute/VDMS-Test-Suite/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> VDMS Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Install/">Install</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Docker/">Docker</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../guides/VDMS-mTLS-Support/">VDMS Mutual TLS Support</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API (v2.0.0++)</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../API-Description/">Description</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../ConfigFile/">ConfigFile</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Keywords/">Keywords</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Returned-Status/">Returned Status</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Schema/">Schema Definition</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Commands</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Basic Building Blocks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-constraints/">Constraints</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-link/">Link</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-operations/">Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-properties/">Properties</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-rectangle/">Rectangle</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-results/">Results</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Insert</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddBlob/">AddBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddBoundingBox/">AddBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddConnection/">AddConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddDescriptor/">AddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddDescriptorSet/">AddDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddEntity/">AddEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddImage/">AddImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddVideo/">AddVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoAdd/">NeoAdd</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoAddDescriptor/">NeoAddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoAddDescriptorSet/">NeoAddDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Query</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/ClassifyDescriptor/">ClassifyDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindBlob/">FindBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindBoundingBox/">FindBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindConnection/">FindConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindDescriptor/">FindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindDescriptorSet/">FindDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindEntity/">FindEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindFrames/">FindFrames</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindImage/">FindImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindVideo/">FindVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoFind/">NeoFind</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoFindDescriptor/">NeoFindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoFindDescriptorSet/">NeoFindDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Update</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateBlob/">UpdateBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateBoundingBox/">UpdateBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateConnection/">UpdateConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateEntity/">UpdateEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateImage/">UpdateImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateVideo/">UpdateVideo</a>
+                </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials & Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" >Tutorials</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../tutorials/Simple-Tutorial/">Simple Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../tutorials/Image-Tutorial/">Image Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../tutorials/Descriptor-Tutorial/">Descriptor Tutorial</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >How-to Guides</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Backends & Query Handlers</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/backends-and-handlers/Neo4J-Based-Scale-Out-VDMS/">Neo4j based Scale Out</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/backends-and-handlers/Query-Handler-Development/">Query Handler Development</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Connectors & Orchestrations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/connectors-and-orchestrations/Run-Kafka-VDMS-Example/">Kafka Connectors for VDMS</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/connectors-and-orchestrations/Kubernetes-Orchestration/">Kubernetes Orchestration in VDMS</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../guides/CSV-Plugin-for-CPP-Client/">CSV Plugin for C++ Client</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Deletion, Backup, & Restore</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/deletion-backup-and-restore/Auto-Deletion-of-Expired-Data/">Auto-Deletion of Expired Data</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/deletion-backup-and-restore/VDMS-Backup-and-Restoring-Options/">Backup and Restoring Options</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/deletion-backup-and-restore/Deletion-Capabilities/">Deletion Capabilities</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Descriptors</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/descriptors/Descriptor-Memory-Usage/">Descriptors Memory Usage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/descriptors/FLINNG-Library-and-Performance/">FLINNG Library and Performance</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Remote & User Defined Operations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/remote-and-udf-operations/Remote-Operations/">Remote Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/remote-and-udf-operations/User-Defined-Operations/">User Defined Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/remote-and-udf-operations/Dynamic-Metadata/">Dynamically Add Metadata</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../guides/Remote-Storage-in-VDMS/">Remote Storage</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../guides/Timing-Capability/">Timing Capability</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Interactive Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="https://deepwiki.com/IntelLabs/vdms">DeepWiki</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribute</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../Developer-Guide/">Developer Guide</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Test Suite</a>
+    <ul class="current">
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">VDMS Test Suite Overview</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#running-the-vdms-tests">Running the VDMS tests</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#run-tests-using-run_all_testspy">Run Tests Using run_all_tests.py</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#description">Description</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#requirements">Requirements</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#command-line">Command line</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#run-tests-using-the-shell-script-files">Run Tests Using the Shell script files</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#local-storage-tests">Local Storage Tests</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#remote-s3-storage-tests">Remote (S3 Storage) Tests</a>
+    </li>
+        </ul>
+    </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../VDMS-Test-Script/">VDMS Test Script</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">VDMS Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Contribute</li>
+          <li class="breadcrumb-item">Test Suite</li>
+      <li class="breadcrumb-item active">VDMS Test Suite Overview</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="http://github.com/IntelLabs/vdms/blob/develop/docs/contribute/VDMS-Test-Suite.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="vdms-test-suite">VDMS Test Suite<a class="headerlink" href="#vdms-test-suite" title="Permanent link">&para;</a></h1>
+<p>After you are ready for commit, run the tests from the tests folder.
+Make sure all the tests passes, if not, please fix the code, or the failing tests, or contact the person who wrote the test for help.
+Make sure that when running the tests, nothing else is printed on the screen other than test information.</p>
+<h2 id="running-the-vdms-tests">Running the VDMS tests<a class="headerlink" href="#running-the-vdms-tests" title="Permanent link">&para;</a></h2>
+<p>There are two ways for running the current tests found in the tests directory of the VDMS repo:</p>
+<ol>
+<li>Running the Python script called <code>tests/run_all_tests.py</code>. This script file can run 4 of the 5 types of existing tests:<ul>
+<li>Remote C++ tests</li>
+<li>Local C++ tests</li>
+<li>Remote Python tests</li>
+<li>Local Python tests</li>
+</ul>
+</li>
+<li>Running the specific Shell script file for each type of tests:<ul>
+<li>Remote C++ tests: <code>tests/run_aws_tests.sh</code></li>
+<li>Local C++ tests: <code>tests/run_tests.sh</code></li>
+<li>Remote Python tests: <code>tests/python/run_python_aws_tests.sh</code></li>
+<li>Local Python tests: <code>tests/python/run_python_tests.sh</code></li>
+<li>Neo4j tests: <code>tests/run_neo4j_tests.sh</code>
+<br></li>
+</ul>
+</li>
+</ol>
+<h2 id="run-tests-using-run_all_testspy">Run Tests Using run_all_tests.py<a class="headerlink" href="#run-tests-using-run_all_testspy" title="Permanent link">&para;</a></h2>
+<h3 id="description">Description<a class="headerlink" href="#description" title="Permanent link">&para;</a></h3>
+<p>This script provides the commands for running and managing various types of tests, including the local C++ unit tests, remote C++ unit tests, local Python tests, remote Python tests, and Neo4j tests.
+Details on the script are available in <a href="../VDMS-Test-Script/">VDMS Test Script</a>.
+The script file uses the argparse library to handle command-line arguments and supports configuration through JSON files.</p>
+<h3 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Python 3.10+</li>
+<li>Dependencies (e.g., argparse, json, os, subprocess)</li>
+</ul>
+<h3 id="command-line">Command line<a class="headerlink" href="#command-line" title="Permanent link">&para;</a></h3>
+<p>To run the tests, use the following command-line arguments:
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>run_all_tests.py<span class="w"> </span><span class="o">[</span>options<span class="o">]</span>
+</code></pre></div></p>
+<p>The following options are available:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th style="text-align: left;">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-a, --minio_port<br>(type: int)</td>
+<td style="text-align: left;">The port number to connect to the MinIO server.<br><br><em>Example:</em> <code>python3 run_all_tests.py -a 9000</code></td>
+</tr>
+<tr>
+<td>-b, --run<br>(action: store_false, default: True)</td>
+<td style="text-align: left;">If False then it validates the arguments, run the UDF scripts (if needed) but it doesn't run the tests.<br><br><em>Example:</em> <code>python run_all_tests.py -b</code></td>
+</tr>
+<tr>
+<td>-c, --config_files_for_vdms<br>(type: str, action: append)</td>
+<td style="text-align: left;">Create a list of config files to be used by VDMS instances. <br><br><em>Example:</em> <code>python3 run_all_tests.py -c config1.json -c config2.json</code> <br><br><strong>Note:</strong> If you need to run several instances of VDMS servers, then please add the corresponding config file per each instance.</td>
+</tr>
+<tr>
+<td>-d, --tmp_tests_dir<br>(type: str)</td>
+<td style="text-align: left;">Temporary dir for the files/dirs created by the tests.<br><br><em>Example:</em> <code>python3 run_all_tests.py -d /tmp/tests</code><br><br><strong>Note:</strong> By default, the dir path will be <code>/tmp/tests_output_dir</code></td>
+</tr>
+<tr>
+<td>-e, --stderr_filename<br>(type: str)</td>
+<td style="text-align: left;">Name of the file where the stderr messages are going to be written to.<br><br><em>Example:</em> <code>python3 run_all_tests.py -e error.log</code><br><br><strong>Note:</strong> This file will be created inside of the <code>tmp_tests_dir</code> directory.</td>
+</tr>
+<tr>
+<td>-g, --googletest_path<br>(type: str)</td>
+<td style="text-align: left;">Path to the compiled binary of the tests used by googletest.<br><br><em>Example:</em> <code>python run_all_tests.py -g /path/to/unittest</code></td>
+</tr>
+<tr>
+<td>-j, --json<br>(type: str)</td>
+<td style="text-align: left;">Path to the JSON config file where all the argument values can be found.<br><br><em>Example:</em> <code>python3 run_all_tests.py -j config.json</code><br><br><strong>Note:</strong> If you choose to use the config.json instead of adding the arguments directly to the command line, please take into account that you don't need to specify to the command line those arguments already found in the JSON config file. In case that by mistake you add an argument to the command line and it is already included in the JSON config file, the duplicated argument found in the command line will have a higher precedence. You can find a template of the JSON config file in the <code>tests/default-config-testing.json</code> file. The valid values are the following:<br><pre><code>{<br>// Any relative path must be used by considering the root of the repo as starting point<br>    "test_name": "TestSuite.*",<br>    "type_of_test": "ut",  //["ut", "pt", "rp", "ru", "neo"]<br>    "keep_tmp_tests_dir": false,  //[false, true]<br>    "tmp_tests_dir": "/tmp/tests_output_dir",<br>    "neo4j_port": 7687,<br>    "neo4j_username": "",<br>    "neo4j_password": "",<br>    "vdms_app_path": "build/vdms",<br>    "config_files_for_vdms": ["tests/unit_tests/VDMS1_CONFIG_FILE.json", "tests/unit_tests/VDMS2_CONFIG_FILE.json"],<br>    "googletest_path": "build/tests/unit_tests",<br>    "stop_tests_on_fai<br>    "minio_app_path": "minio",<br>    "minio_port": 9000,<br>    "minio_console_port": 9001,<br>    "stderr_filename": "stderr_log.log",  // by default, the location is in "/tmp/tests_output_dir" dir<br>    "stdout_filename": "stdout_log.log",  // by default, the location is in "/tmp/tests_output_dir" dir<br>    "run": true//[false, true]<br>} </code></pre></td>
+</tr>
+<tr>
+<td>-k, --keep_tmp_tests_dir<br>(action: store_true, default: False)</td>
+<td style="text-align: left;">If True then it does not delete the temporary directory created for the tests.<br><br><em>Example:</em> <code>python run_all_tests.py -k</code></td>
+</tr>
+<tr>
+<td>-m, --minio_app_path<br>(type: str)</td>
+<td style="text-align: left;">Path to the MinIO server app.<br><br><em>Example:</em> <code>python run_all_tests.py -m /path/to/minio</code></td>
+</tr>
+<tr>
+<td>-n, --test_name<br>(type: str)</td>
+<td style="text-align: left;">The name of the test or the pattern of the test names.<br><br><em>Example for Python tests:</em> <code>python run_all_tests.py -n TestBoundingBox.TestBoundingBox.test_addBoundingBox</code><br><em>Example for C++ tests:</em> <code>python run_all_tests.py -n ImageTest.DefaultConstructor</code><br><br><strong>Note:</strong> This argument accepts the patterns used by Googletest (for C++ tests) and unittest (for Python tests)</td>
+</tr>
+<tr>
+<td>-o, --stdout_filename<br>(type: str)</td>
+<td style="text-align: left;">Name of the file where the stdout messages are going to be written to.<br><br><em>Example:</em> <code>python run_all_tests.py -o output.log</code><br><br><strong>Note:</strong> This file will be created inside of the <code>tmp_tests_dir</code> directory.</td>
+</tr>
+<tr>
+<td>-p, --minio_password<br>(type: str)</td>
+<td style="text-align: left;">The password used to connect to the MinIO server.<br><br><em>Example:</em> <code>python run_all_tests.py -p password</code></td>
+</tr>
+<tr>
+<td>-r, --neo4j_port<br>(type: int)</td>
+<td style="text-align: left;">Port for Neo4j container.<br><br><em>Example:</em> <code>python run_all_tests.py -r 7687</code></td>
+</tr>
+<tr>
+<td>-s, --stop_tests_on_failure<br>(action: store_true, default: False)</td>
+<td style="text-align: left;">If True then, the execution of the rest of the tests will be skipped when one test fails (available only for googletest).<br><br><em>Example:</em> <code>python run_all_tests.py -s</code></td>
+</tr>
+<tr>
+<td>-t, --type_of_test<br>(type: str)</td>
+<td style="text-align: left;">The type of the test: <code>ut</code> for local unit tests, <code>ru</code> for remote unit tests, <code>pt</code> for local Python tests, <code>rp</code> for remote Python tests, and <code>neo</code> for Neo4j tests.<br><br><em>Example:</em> <code>python run_all_tests.py -t ut</code></td>
+</tr>
+<tr>
+<td>-u, --minio_username<br>(type: str)</td>
+<td style="text-align: left;">The username used to connect to the MinIO server.<br><br><em>Example:</em> <code>python run_all_tests.py -u username</code></td>
+</tr>
+<tr>
+<td>-v, --vdms_app_path<br>(type: str)</td>
+<td style="text-align: left;">The path to the VDMS app.<br><br><em>Example:</em> <code>python run_all_tests.py -v /path/to/vdms</code></td>
+</tr>
+<tr>
+<td>-w, --neo4j_password<br>(type: str)</td>
+<td style="text-align: left;">This argument specifies the password required to connect to the Neo4j container<br><br><em>Example:</em> <code>python run_all_tests.py -w mypassword</code></td>
+</tr>
+<tr>
+<td>-x, --neo4j_username<br>(type: str)</td>
+<td style="text-align: left;">This argument specifies the username required to connect to the Neo4j container.<br><br><em>Example:</em> <code>python run_all_tests.py -x myusername</code></td>
+</tr>
+<tr>
+<td>-y, --minio_console_port<br>(type: int)</td>
+<td style="text-align: left;">Console Port for Minio server.<br><br><em>Example:</em> <code>python run_all_tests.py -y 9001</code></td>
+</tr>
+<tr>
+<td>-z, --neo4j_endpoint<br>(type: str)</td>
+<td style="text-align: left;">This argument specifies the endpoint URL for the Neo4j container.<br><br><em>Example:</em> <code>python run_all_tests.py -z http://localhost:7474</code></td>
+</tr>
+<tr>
+<td><br></td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
+<h2 id="run-tests-using-the-shell-script-files">Run Tests Using the Shell script files<a class="headerlink" href="#run-tests-using-the-shell-script-files" title="Permanent link">&para;</a></h2>
+<p>In case you are interested in running the specific Shell script file for a specific type of test suite</p>
+<h3 id="local-storage-tests">Local Storage Tests<a class="headerlink" href="#local-storage-tests" title="Permanent link">&para;</a></h3>
+<p>There are some Shell scripts used to run the C++, Neo4j, and Python tests for local storage.</p>
+<h4 id="local-c-tests">Local C++ Tests<a class="headerlink" href="#local-c-tests" title="Permanent link">&para;</a></h4>
+<p>Run <code>sh run_tests.sh</code> from the <code>tests</code> directory for the C++ tests.
+There are two special flags that you may use when calling <code>sh run_tests.sh</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-n</td>
+<td>This flag let you specify a pattern of the test names to be tested. <br> For example:<br><ul><li><code>sh run_tests.sh -n "BLOB.find_Blob"</code>  The script runs the test called "BLOB.find_Blob" only</li><li><code>sh run_tests.sh -n "ImageTest.*"</code>   The script runs all the tests which Test suite is called "ImageTest"</li><li><code>sh run_tests.sh -n "*"</code>  The script runs everything, due to the single match-everything * value.</li><li><code>sh run_tests.sh -n "*Null*:*Constructor*"</code>  The script runs any test whose full name contains either "Null" or "Constructor" .</li><li><code>sh run_tests.sh -n "-*DeathTest.*"</code>  The script runs all non-death tests.</li><li><code>sh run_tests.sh -n "FooTest.*-FooTest.Bar"</code>  The script runs everything in test suite FooTest except FooTest.Bar.</li><li><code>sh run_tests.sh -n "FooTest.*:BarTest.*-FooTest.Bar:BarTest.Foo"</code>  The script runs everything in test suite FooTest except FooTest.Bar and everything in test suite BarTest except BarTest.Foo.</li></ul></td>
+</tr>
+<tr>
+<td>-s</td>
+<td>This flag let the script stop and skip the execution of the remaining tests in case any of the tests fails.<br>For example:<br><ul><li><code>sh run_tests.sh -s</code></li><ul></td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<p>You should see on screen something like:
+<div class="highlight"><pre><span></span><code>Running C++ tests...
+[==========] Running 214 tests from 18 test suites.
+[----------] Global test environment set-up.
+[----------] 1 test from AutoReplicate
+[ RUN      ] AutoReplicate.default_replicate
+[       OK ] AutoReplicate.default_replicate (1414 ms)
+[----------] 1 test from AutoReplicate (1414 ms total)
+
+[----------] 1 test from ExampleHandler
+[ RUN      ] ExampleHandler.simplePing
+[       OK ] ExampleHandler.simplePing (86 ms)
+[----------] 1 test from ExampleHandler (86 ms total)
+
+[----------] 2 tests from AddImage
+[ RUN      ] AddImage.simpleAdd
+[       OK ] AddImage.simpleAdd (419 ms)
+[ RUN      ] AddImage.simpleAddx10
+[       OK ] AddImage.simpleAddx10 (570 ms)
+[----------] 2 tests from AddImage (990 ms total)
+
+[----------] 1 test from UpdateEntity
+[ RUN      ] UpdateEntity.simpleAddUpdate
+[       OK ] UpdateEntity.simpleAddUpdate (448 ms)
+[----------] 1 test from UpdateEntity (448 ms total)
+
+...
+
+[----------] 10 tests from CLIENT_CPP_CSV
+[ RUN      ] CLIENT_CPP_CSV.parse_csv_entity
+[       OK ] CLIENT_CPP_CSV.parse_csv_entity (240 ms)
+[ RUN      ] CLIENT_CPP_CSV.parse_csv_connection
+[       OK ] CLIENT_CPP_CSV.parse_csv_connection (12 ms)
+[ RUN      ] CLIENT_CPP_CSV.parse_csv_images
+[       OK ] CLIENT_CPP_CSV.parse_csv_images (1662 ms)
+[ RUN      ] CLIENT_CPP_CSV.parse_csv_descriptor_set
+[       OK ] CLIENT_CPP_CSV.parse_csv_descriptor_set (27967 ms)
+[ RUN      ] CLIENT_CPP_CSV.parse_csv_descriptor
+[       OK ] CLIENT_CPP_CSV.parse_csv_descriptor (10 ms)
+[ RUN      ] CLIENT_CPP_CSV.parse_csv_bb
+[       OK ] CLIENT_CPP_CSV.parse_csv_bb (81 ms)
+[ RUN      ] CLIENT_CPP_CSV.parse_csv_video
+[       OK ] CLIENT_CPP_CSV.parse_csv_video (1495 ms)
+[ RUN      ] CLIENT_CPP_CSV.parse_csv_invalid_entity
+[       OK ] CLIENT_CPP_CSV.parse_csv_invalid_entity (1 ms)
+[ RUN      ] CLIENT_CPP_CSV.parse_csv_invalid_image
+Error: Failed to open file.
+[       OK ] CLIENT_CPP_CSV.parse_csv_invalid_image (3 ms)
+[ RUN      ] CLIENT_CPP_CSV.parse_csv_invalid_video
+Failed to open file: ../tests/test_videos/Megamind_invalid.avi
+[       OK ] CLIENT_CPP_CSV.parse_csv_invalid_video (2 ms)
+[----------] 10 tests from CLIENT_CPP_CSV (31476 ms total)
+
+[----------] 1 test from CLIENT_CPP_Video
+[ RUN      ] CLIENT_CPP_Video.add_single_video
+[       OK ] CLIENT_CPP_Video.add_single_video (1061 ms)
+[----------] 1 test from CLIENT_CPP_Video (1061 ms total)
+
+[----------] 3 tests from BLOB
+[ RUN      ] BLOB.add_Blob
+[       OK ] BLOB.add_Blob (40 ms)
+[ RUN      ] BLOB.update_Blob
+[       OK ] BLOB.update_Blob (8 ms)
+[ RUN      ] BLOB.find_Blob
+[       OK ] BLOB.find_Blob (3 ms)
+[----------] 3 tests from BLOB (52 ms total)
+
+[----------] Global test environment tear-down
+[==========] 214 tests from 18 test suites ran. (896859 ms total)
+[  PASSED  ] 214 tests.
+</code></pre></div></p>
+<p><br></p>
+<h4 id="local-python-tests">Local Python Tests<a class="headerlink" href="#local-python-tests" title="Permanent link">&para;</a></h4>
+<p>Run <code>sh run_python_tests.sh</code> from the <code>tests/python</code> directory for the Python tests.
+There is one special flag that you may use when calling <code>sh run_python_tests.sh</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-n</td>
+<td>This flag let you specify a pattern of the test names to be tested. It can be modules, classes or even individual test methods.<br>For example:<br><ul><li><code>sh run_python_tests.sh -n "TestVideos.TestVideos.test_updateVideo"</code>  The script runs the test called <code>TestVideos.TestVideos.test_updateVideo</code> only.</li><li><code>sh run_python_tests.sh -n "test_module1 test_module2"</code>  The script runs all the tests which belong to <code>test_module1</code> and <code>test_module2</code> modules.</li><li><code>sh run_python_tests.sh -n "test_module.TestClass"</code>  The script runs all the tests which belong to <code>test_module.TestClass</code> class.</li><li><code>sh run_python_tests.sh -n "test_module.TestClass.test_method"</code>  The script runs the test called <code>test_module.TestClass.test_method</code> only.</li><li><code>sh run_python_tests.sh -n "TestBoundingBox.py"</code>  The script runs all the tests found in the file called <code>TestBoundingBox.py</code>.</li></ul></td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<p>You should see on screen is something like:
+<div class="highlight"><pre><span></span><code>Running Python tests...
+test_addBoundingBox (TestBoundingBox.TestBoundingBox) ... ok
+test_addBoundingBoxWithImage (TestBoundingBox.TestBoundingBox) ... ok
+test_findBoundingBox (TestBoundingBox.TestBoundingBox) ... ok
+test_findBoundingBoxBlob (TestBoundingBox.TestBoundingBox) ... ok
+test_findBoundingBoxBlobComplex (TestBoundingBox.TestBoundingBox) ... ok
+test_findBoundingBoxByCoordinates (TestBoundingBox.TestBoundingBox) ... ok
+test_findBoundingBoxCoordinates (TestBoundingBox.TestBoundingBox) ... ok
+test_findBoundingBoxesInImage (TestBoundingBox.TestBoundingBox) ... ok
+test_updateBoundingBox (TestBoundingBox.TestBoundingBox) ... ok
+test_updateBoundingBoxCoords (TestBoundingBox.TestBoundingBox) ... ok
+test_FindEntity_link_constraints_float (TestConnections.TestConnections) ... ok
+test_FindEntity_link_constraints_string (TestConnections.TestConnections) ... ok
+test_addDescriptorsx1000 (TestDescriptors.TestDescriptors) ... ok
+test_addSet (TestDescriptors.TestDescriptors) ... ok
+test_addSetAndDescriptors (TestDescriptors.TestDescriptors) ... ok
+test_addSetAndDescriptorsDimMismatch (TestDescriptors.TestDescriptors) ... ok
+test_classifyDescriptor (TestDescriptors.TestDescriptors) ... ok
+test_addDescriptorsx1000FaissIVFFlat (TestEngineDescriptors.TestDescriptors) ... ok
+test_addDescriptorsx1000TileDBDense (TestEngineDescriptors.TestDescriptors) ... ok
+test_addDescriptorsx1000TileDBSparse (TestEngineDescriptors.TestDescriptors) ... ok
+test_addDifferentSets (TestEngineDescriptors.TestDescriptors) ... ok
+test_FindWithSortBlock (TestEntities.TestEntities) ... ok
+test_FindWithSortKey (TestEntities.TestEntities) ... ok
+test_addEntityWithLink (TestEntities.TestEntities) ... ok
+test_addFindEntity (TestEntities.TestEntities) ... ok
+test_addfindEntityWrongConstraints (TestEntities.TestEntities) ... ok
+test_runMultipleAdds (TestEntities.TestEntities) ... ok
+test_addEntityWithBlob (TestEntitiesBlobs.TestEntitiesBlob) ... ok
+test_addEntityWithBlobAndFind (TestEntitiesBlobs.TestEntitiesBlob) ... ok
+test_addEntityWithBlobNoBlob (TestEntitiesBlobs.TestEntitiesBlob) ... ok
+test_findDescByBlob (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescByBlobAndConstraints (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescByBlobNoLabels (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescByBlobNoResults (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescByBlobUnusedRef (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescByBlobWithLink (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescByConst_blobTrue (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescByConst_get_id (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescByConst_multiple_blobTrue (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescByConstraints (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescUnusedRef (TestFindDescriptors.TestFindDescriptors) ... ok
+test_addImage (TestImages.TestImages) ... ok
+test_addImageWithLink (TestImages.TestImages) ... ok
+test_findEntityImage (TestImages.TestImages) ... ok
+test_findImage (TestImages.TestImages) ... ok
+test_findImageNoBlob (TestImages.TestImages) ... ok
+test_findImageRefNoBlobNoPropsResults (TestImages.TestImages) ... ok
+test_findImageResults (TestImages.TestImages) ... ok
+test_findImage_multiple_results (TestImages.TestImages) ... ok
+test_updateImage (TestImages.TestImages) ... ok
+test_concurrent (TestRetail.TestEntities) ... skipped &#39;Skipping class until fixed&#39;
+test_create_connection (TestTestCommand.TestTestCommand) ... ok
+test_disconnect (TestTestCommand.TestTestCommand) ... ok
+test_vdms_existing_connection (TestVDMSClient.TestVDMSClient) ... ok
+test_vdms_get_last_response (TestVDMSClient.TestVDMSClient) ... ok
+test_vdms_get_last_response_str (TestVDMSClient.TestVDMSClient) ... ok
+test_vdms_non_existing_connection (TestVDMSClient.TestVDMSClient) ... ok
+test_vdms_non_json_query (TestVDMSClient.TestVDMSClient) ... ok
+test_vdms_print_last_response (TestVDMSClient.TestVDMSClient) ... ok
+test_vdms_query_disconnected (TestVDMSClient.TestVDMSClient) ... ok
+test_FindFramesByFrames (TestVideos.TestVideos) ... ok
+test_FindFramesByInterval (TestVideos.TestVideos) ... ok
+test_FindFramesInvalidParameters (TestVideos.TestVideos) ... ok
+test_FindFramesMissingParameters (TestVideos.TestVideos) ... ok
+test_addVideo (TestVideos.TestVideos) ... ok
+test_addVideoFromLocalFile_file_not_found (TestVideos.TestVideos) ... ok
+test_addVideoFromLocalFile_invalid_command (TestVideos.TestVideos) ... ok
+test_addVideoFromLocalFile_success (TestVideos.TestVideos) ... skipped &#39;Skipping class until fixed&#39;
+test_addVideoWithLink (TestVideos.TestVideos) ... ok
+test_extractKeyFrames (TestVideos.TestVideos) ... ok
+test_findVid_multiple_results (TestVideos.TestVideos) ... ok
+test_findVideo (TestVideos.TestVideos) ... ok
+test_findVideoNoBlob (TestVideos.TestVideos) ... ok
+test_findVideoResults (TestVideos.TestVideos) ... ok
+test_updateVideo (TestVideos.TestVideos) ... ok
+
+----------------------------------------------------------------------
+Ran 75 tests in 58.802s
+</code></pre></div></p>
+<p><br></p>
+<h4 id="c-neo4j-tests">C++ Neo4j Tests<a class="headerlink" href="#c-neo4j-tests" title="Permanent link">&para;</a></h4>
+<p>Run <code>sh run_neo4j_tests.sh</code> from the <code>tests</code> directory for the C++ Neo4j tests.
+There are a few flags available to run <code>sh run_neo4j_tests.sh</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-h, --help</td>
+<td>Print this help message</td>
+</tr>
+<tr>
+<td>-a, --minio_port</td>
+<td>API Port for S3/Minio server. Default is 9000</td>
+</tr>
+<tr>
+<td>-c, --minio_console_port</td>
+<td>Console Port for S3/Minio server. Default is 9001</td>
+</tr>
+<tr>
+<td>-p, --minio_password</td>
+<td>Password for S3/Minio server</td>
+</tr>
+<tr>
+<td>-u, --minio_username</td>
+<td>Username for S3/Minio server</td>
+</tr>
+<tr>
+<td>-e, --neo4j_endpoint</td>
+<td>Neo4j endpoint</td>
+</tr>
+<tr>
+<td>-v, --neo4j_port</td>
+<td>Port for Neo4j container. Default is 7687</td>
+</tr>
+<tr>
+<td>-w, --neo4j_password</td>
+<td>Password for Neo4j container</td>
+</tr>
+<tr>
+<td>-n, --neo4j_username</td>
+<td>Username for Neo4j container</td>
+</tr>
+<tr>
+<td>-t, --test_name</td>
+<td>Name of test to run [<code>OpsIOCoordinatorTest</code>, <code>Neo4JE2ETest</code>, <code>Neo4jBackendTest</code>, <code>NeoHandlerTest</code>]</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<p>You should see results similar to:
+<div class="highlight"><pre><span></span><code>Starting OpsIOCoordinatorTest...
+Note: Google Test filter = OpsIOCoordinatorTest.*
+[==========] Running 4 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 4 tests from OpsIOCoordinatorTest
+[ RUN      ] OpsIOCoordinatorTest.PutObjTest
+Warning: Using default endpoint_override
+Instantiating global S3 Connection...
+Global S3 Connection Started!
+Added object &#39;test_obj&#39; to bucket: minio-bucket
+[       OK ] OpsIOCoordinatorTest.PutObjTest (6352 ms)
+[ RUN      ] OpsIOCoordinatorTest.GetObjTest
+Instantiating global S3 Connection...
+Global S3 Connection Started!
+Successfully retrieved &#39;test_obj&#39; from &#39;minio-bucket&#39;.
+[       OK ] OpsIOCoordinatorTest.GetObjTest (6138 ms)
+[ RUN      ] OpsIOCoordinatorTest.GetConnTest
+Instantiating global S3 Connection...
+Global S3 Connection Started!
+[       OK ] OpsIOCoordinatorTest.GetConnTest (6040 ms)
+[ RUN      ] OpsIOCoordinatorTest.DoOpsTest
+Instantiating global S3 Connection...
+Global S3 Connection Started!
+14617
+[       OK ] OpsIOCoordinatorTest.DoOpsTest (6103 ms)
+[----------] 4 tests from OpsIOCoordinatorTest (24636 ms total)
+
+[----------] Global test environment tear-down
+[==========] 4 tests from 1 test suite ran. (24636 ms total)
+[  PASSED  ] 4 tests.
+
+Starting Neo4JE2ETest...
+Note: Google Test filter = Neo4JE2ETest.*
+[==========] Running 2 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 2 tests from Neo4JE2ETest
+[ RUN      ] Neo4JE2ETest.E2E_Neo4j_Add_Find_Img
+Warning: Using default endpoint_override
+[       OK ] Neo4JE2ETest.E2E_Neo4j_Add_Find_Img (1677 ms)
+[ RUN      ] Neo4JE2ETest.E2E_Neo4j_Add_Find_Metadata
+Warning: Using default endpoint_override
+[       OK ] Neo4JE2ETest.E2E_Neo4j_Add_Find_Metadata (210 ms)
+[----------] 2 tests from Neo4JE2ETest (1887 ms total)
+
+[----------] Global test environment tear-down
+[==========] 2 tests from 1 test suite ran. (1888 ms total)
+[  PASSED  ] 2 tests.
+</code></pre></div></p>
+<p><br></p>
+<h3 id="remote-s3-storage-tests">Remote (S3 Storage) Tests<a class="headerlink" href="#remote-s3-storage-tests" title="Permanent link">&para;</a></h3>
+<p>There are also scripts to run the C++ and Python tests for S3 storage.
+For testing the S3 storage, we use MinIO and MinIO Client.
+Prior to running this test, when using MinIO, it is necessary to install the MinIO components.
+Assuming the codebase is located in <code>/vdms</code>, run the following:
+<div class="highlight"><pre><span></span><code>curl<span class="w"> </span>-L<span class="w"> </span>-o<span class="w"> </span>/vdms/minio<span class="w"> </span>https://dl.min.io/server/minio/release/linux-amd64/minio
+chmod<span class="w"> </span>+x<span class="w"> </span>/vdms/minio
+mkdir<span class="w"> </span>-p<span class="w"> </span>/vdms/minio_files/minio-bucket
+
+
+<span class="c1"># Install the MinIO Client mc command line tool used by scripts for creating buckets</span>
+curl<span class="w"> </span>-o<span class="w"> </span>/usr/local/bin/mc<span class="w"> </span>https://dl.min.io/client/mc/release/linux-amd64/mc
+chmod<span class="w"> </span>+x<span class="w"> </span>/usr/local/bin/mc
+</code></pre></div>
+<br></p>
+<p>To properly run the testing scripts, we require the username for your S3/MinIO storage.
+It is okay to use the default username (<code>AWS_ACCESS_KEY_ID</code>) and password (<code>AWS_SECRET_ACCESS_KEY</code>) for MinIO but we need these values for the test.</p>
+<h4 id="remote-c-tests">Remote C++ Tests<a class="headerlink" href="#remote-c-tests" title="Permanent link">&para;</a></h4>
+<p>Run <code>sh run_aws_tests.sh -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY}</code> from the <code>tests</code> directory for the C++ tests.
+There are a few special flags that you may use when calling <code>sh run_aws_tests.sh</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-a</td>
+<td>This flag specifies the api port for your S3/MinIO storage. The default is 9000</td>
+</tr>
+<tr>
+<td>-n</td>
+<td>This flag let you specify a pattern of the test names to be tested.<br>For example:<br><ul><li><code>sh run_aws_tests.sh -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY} -n "RemoteConnectionTest.RemoteDisconnectedReadVideoFilename"</code>  The script runs the test called <code>RemoteConnectionTest.RemoteDisconnectedReadVideoFilename</code> only</li><li><code>sh run_aws_tests.sh -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY} -n "RemoteConnectionTest.*"</code>   The script runs all the tests which Test suite is called <code>RemoteConnectionTest</code></li><li><code>sh run_aws_tests.sh -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY} -n "*"</code>  The script runs everything, due to the single match-everything value (<code>*</code>).</li><li><code>sh run_aws_tests.sh -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY} -n "*Null*:*Constructor*"</code>  The script runs any test whose full name contains either <code>Null</code> or <code>Constructor</code> .</li><li><code>sh run_aws_tests.sh -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY} -n "-*DeathTest.*"</code>  The script runs all non-death tests.</li><li><code>sh run_aws_tests.sh -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY} -n "FooTest.*-FooTest.Bar"</code>  The script runs everything in test suite <code>FooTest</code> except <code>FooTest.Bar</code>.</li><li><code>sh run_aws_tests.sh -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY} -n "FooTest.*:BarTest.*-FooTest.Bar:BarTest.Foo"</code>  The script runs everything in test suite <code>FooTest</code> except <code>FooTest.Bar</code> and everything in test suite <code>BarTest</code> except <code>BarTest.Foo</code>.</li></ul></td>
+</tr>
+<tr>
+<td>-p</td>
+<td>This flag specifies the password for your S3/MinIO storage</td>
+</tr>
+<tr>
+<td>-s</td>
+<td>This flag let the script stop and skip the execution of the remaining tests in case any of the tests fails.<br>For example:<br><ul><li><code>sh run_aws_tests.sh -s</code></li></ul></td>
+</tr>
+<tr>
+<td>-u</td>
+<td>This flag specifies the username for your S3/MinIO storage</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<p>You should see on screen is something like:
+<div class="highlight"><pre><span></span><code>Running C++ tests...
+Note: Google Test filter = RemoteConnectionTest.*
+[==========] Running 19 tests from 1 test suite.
+[----------] Global test environment set-up.
+[----------] 19 tests from RemoteConnectionTest
+[ RUN      ] RemoteConnectionTest.RemoteWriteFilename
+Added object &#39;test_images/large1.jpg&#39; to bucket: minio-bucket
+[       OK ] RemoteConnectionTest.RemoteWriteFilename (6263 ms)
+[ RUN      ] RemoteConnectionTest.RemoteReadWriteBuffer
+Successfully retrieved &#39;test_images/large1.jpg&#39; from &#39;minio-bucket&#39;.
+Added object &#39;test_images/large1.jpg&#39; to bucket: minio-bucket
+[       OK ] RemoteConnectionTest.RemoteReadWriteBuffer (6141 ms)
+[ RUN      ] RemoteConnectionTest.RemoteListRetrieveFile
+Successfully retrieved &#39;test_images/large1.jpg&#39; from &#39;minio-bucket&#39;.
+[       OK ] RemoteConnectionTest.RemoteListRetrieveFile (6061 ms)
+[ RUN      ] RemoteConnectionTest.RemoteWriteVideoFilename
+Added object &#39;test_videos/Megamind.avi&#39; to bucket: minio-bucket
+[       OK ] RemoteConnectionTest.RemoteWriteVideoFilename (6172 ms)
+[ RUN      ] RemoteConnectionTest.RemoteReadVideoFilename
+Successfully retrieved &#39;test_videos/Megamind.avi&#39; from &#39;minio-bucket&#39;.
+[       OK ] RemoteConnectionTest.RemoteReadVideoFilename (6071 ms)
+[ RUN      ] RemoteConnectionTest.ImageRemoteWritePNG
+Added object &#39;pngs/test_image.png&#39; to bucket: minio-bucket
+[       OK ] RemoteConnectionTest.ImageRemoteWritePNG (6228 ms)
+[ RUN      ] RemoteConnectionTest.ImageRemoteReadPNG
+Successfully retrieved &#39;pngs/test_image.png&#39; from &#39;minio-bucket&#39;.
+[       OK ] RemoteConnectionTest.ImageRemoteReadPNG (6213 ms)
+[ RUN      ] RemoteConnectionTest.ImageRemoteRemovePNG
+[       OK ] RemoteConnectionTest.ImageRemoteRemovePNG (6050 ms)
+[ RUN      ] RemoteConnectionTest.ImageRemoteWriteJPG
+Added object &#39;jpgs/large1.jpg&#39; to bucket: minio-bucket
+[       OK ] RemoteConnectionTest.ImageRemoteWriteJPG (6124 ms)
+[ RUN      ] RemoteConnectionTest.ImageRemoteReadJPG
+Successfully retrieved &#39;jpgs/large1.jpg&#39; from &#39;minio-bucket&#39;.
+[       OK ] RemoteConnectionTest.ImageRemoteReadJPG (6186 ms)
+[ RUN      ] RemoteConnectionTest.ImageRemoteRemoveJPG
+[       OK ] RemoteConnectionTest.ImageRemoteRemoveJPG (6052 ms)
+[ RUN      ] RemoteConnectionTest.TDBImageWriteS3
+[       OK ] RemoteConnectionTest.TDBImageWriteS3 (6219 ms)
+[ RUN      ] RemoteConnectionTest.RemoteDisconnectedWriteFilename
+WRITE: The RemoteConnection has not been started
+[       OK ] RemoteConnectionTest.RemoteDisconnectedWriteFilename (6056 ms)
+[ RUN      ] RemoteConnectionTest.RemoteDisconnectedReadBuffer
+READ: The RemoteConnection has not been started
+Added object &#39;test_images/large1.jpg&#39; to bucket: minio-bucket
+[       OK ] RemoteConnectionTest.RemoteDisconnectedReadBuffer (6064 ms)
+[ RUN      ] RemoteConnectionTest.RemoteDisconnectedWriteBuffer
+WRITE: The RemoteConnection has not been started
+Successfully retrieved &#39;test_images/large1.jpg&#39; from &#39;minio-bucket&#39;.
+[       OK ] RemoteConnectionTest.RemoteDisconnectedWriteBuffer (6059 ms)
+[ RUN      ] RemoteConnectionTest.RemoteDisconnectedListFiles
+WRITE: The RemoteConnection has not been started
+[       OK ] RemoteConnectionTest.RemoteDisconnectedListFiles (6055 ms)
+[ RUN      ] RemoteConnectionTest.RemoteDisconnectedRetrieveFile
+WRITE: The RemoteConnection has not been started
+[       OK ] RemoteConnectionTest.RemoteDisconnectedRetrieveFile (6058 ms)
+[ RUN      ] RemoteConnectionTest.RemoteDisconnectedWriteVideoFilename
+WRITE: The RemoteConnection has not been started
+[       OK ] RemoteConnectionTest.RemoteDisconnectedWriteVideoFilename (6057 ms)
+[ RUN      ] RemoteConnectionTest.RemoteDisconnectedReadVideoFilename
+READ_Video: The RemoteConnection has not been started
+[       OK ] RemoteConnectionTest.RemoteDisconnectedReadVideoFilename (6054 ms)
+[----------] 19 tests from RemoteConnectionTest (116191 ms total)
+
+[----------] Global test environment tear-down
+[==========] 19 tests from 1 test suite ran. (116192 ms total)
+[  PASSED  ] 19 tests.
+</code></pre></div></p>
+<p><br></p>
+<h4 id="remote-python-tests">Remote Python Tests<a class="headerlink" href="#remote-python-tests" title="Permanent link">&para;</a></h4>
+<p>Run <code>sh run_python_aws_tests.sh -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY}</code> from the <code>tests/python</code> directory for the Python tests.
+There is a few special flag that you may use when calling <code>sh run_python_aws_tests.sh</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-a</td>
+<td>This flag specifies the api port for your S3/MinIO storage. The default is 9000</td>
+</tr>
+<tr>
+<td>-n</td>
+<td>This flag let you specify a pattern of the test names to be tested. It can be modules, classes or even individual test methods.<br>For example:<br><ul><li><code>sh run_python_aws_tests.sh -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY} -n "TestVideos.TestVideos.test_updateVideo"</code>  The script runs the test called <code>TestVideos.TestVideos.test_updateVideo</code> only.</li><li><code>sh run_python_aws_tests.sh -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY} -n "test_module1 test_module2"</code>  The script runs all the tests which belong to <code>test_module1</code> and <code>test_module2</code> modules.</li><li><code>sh run_python_aws_tests.sh -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY} -n "test_module.TestClass"</code>  The script runs all the tests which belong to <code>test_module.TestClass</code> class.</li><li><code>sh run_python_aws_tests.sh -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY} -n "test_module.TestClass.test_method"</code>  The script runs the test called <code>test_module.TestClass.test_method</code> only.</li><li><code>sh run_python_aws_tests.sh -u ${AWS_ACCESS_KEY_ID} -p ${AWS_SECRET_ACCESS_KEY} -n "TestBoundingBox.py"</code>  The script runs all the tests found in the file called <code>TestBoundingBox.py</code>.</li></td>
+</tr>
+<tr>
+<td>-p</td>
+<td>This flag specifies the password for your S3/MinIO storage</td>
+</tr>
+<tr>
+<td>-u</td>
+<td>This flag specifies the username for your S3/MinIO storage</td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<p>You should see on screen is something like:
+<div class="highlight"><pre><span></span><code>Running Python AWS S3 tests...
+test_addBoundingBox (TestBoundingBox.TestBoundingBox) ... ok
+test_addBoundingBoxWithImage (TestBoundingBox.TestBoundingBox) ... ok
+test_findBoundingBox (TestBoundingBox.TestBoundingBox) ... ok
+test_findBoundingBoxBlob (TestBoundingBox.TestBoundingBox) ... ok
+test_findBoundingBoxBlobComplex (TestBoundingBox.TestBoundingBox) ... ok
+test_findBoundingBoxByCoordinates (TestBoundingBox.TestBoundingBox) ... ok
+test_findBoundingBoxCoordinates (TestBoundingBox.TestBoundingBox) ... ok
+test_findBoundingBoxesInImage (TestBoundingBox.TestBoundingBox) ... ok
+test_updateBoundingBox (TestBoundingBox.TestBoundingBox) ... ok
+test_updateBoundingBoxCoords (TestBoundingBox.TestBoundingBox) ... ok
+test_FindEntity_link_constraints_float (TestConnections.TestConnections) ... ok
+test_FindEntity_link_constraints_string (TestConnections.TestConnections) ... ok
+test_addDescriptorsx1000 (TestDescriptors.TestDescriptors) ... ok
+test_addSet (TestDescriptors.TestDescriptors) ... ok
+test_addSetAndDescriptors (TestDescriptors.TestDescriptors) ... ok
+test_addSetAndDescriptorsDimMismatch (TestDescriptors.TestDescriptors) ... ok
+test_classifyDescriptor (TestDescriptors.TestDescriptors) ... ok
+test_addDescriptorsx1000FaissIVFFlat (TestEngineDescriptors.TestDescriptors) ... ok
+test_addDescriptorsx1000TileDBDense (TestEngineDescriptors.TestDescriptors) ... ok
+test_addDescriptorsx1000TileDBSparse (TestEngineDescriptors.TestDescriptors) ... ok
+test_addDifferentSets (TestEngineDescriptors.TestDescriptors) ... ok
+test_FindWithSortBlock (TestEntities.TestEntities) ... ok
+test_FindWithSortKey (TestEntities.TestEntities) ... ok
+test_addEntityWithLink (TestEntities.TestEntities) ... ok
+test_addFindEntity (TestEntities.TestEntities) ... ok
+test_addfindEntityWrongConstraints (TestEntities.TestEntities) ... ok
+test_runMultipleAdds (TestEntities.TestEntities) ... ok
+test_addEntityWithBlob (TestEntitiesBlobs.TestEntitiesBlob) ... ok
+test_addEntityWithBlobAndFind (TestEntitiesBlobs.TestEntitiesBlob) ... ok
+test_addEntityWithBlobNoBlob (TestEntitiesBlobs.TestEntitiesBlob) ... ok
+test_findDescByBlob (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescByBlobAndConstraints (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescByBlobNoLabels (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescByBlobNoResults (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescByBlobUnusedRef (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescByBlobWithLink (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescByConst_blobTrue (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescByConst_get_id (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescByConst_multiple_blobTrue (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescByConstraints (TestFindDescriptors.TestFindDescriptors) ... ok
+test_findDescUnusedRef (TestFindDescriptors.TestFindDescriptors) ... ok
+test_addImage (TestImages.TestImages) ... ok
+test_addImageWithLink (TestImages.TestImages) ... ok
+test_findEntityImage (TestImages.TestImages) ... ok
+test_findImage (TestImages.TestImages) ... ok
+test_findImageNoBlob (TestImages.TestImages) ... ok
+test_findImageRefNoBlobNoPropsResults (TestImages.TestImages) ... ok
+test_findImageResults (TestImages.TestImages) ... ok
+test_findImage_multiple_results (TestImages.TestImages) ... ok
+test_updateImage (TestImages.TestImages) ... ok
+test_concurrent (TestRetail.TestEntities) ... skipped &#39;Skipping class until fixed&#39;
+test_create_connection (TestTestCommand.TestTestCommand) ... ok
+test_disconnect (TestTestCommand.TestTestCommand) ... ok
+test_vdms_existing_connection (TestVDMSClient.TestVDMSClient) ... ok
+test_vdms_get_last_response (TestVDMSClient.TestVDMSClient) ... ok
+test_vdms_get_last_response_str (TestVDMSClient.TestVDMSClient) ... ok
+test_vdms_non_existing_connection (TestVDMSClient.TestVDMSClient) ... ok
+test_vdms_non_json_query (TestVDMSClient.TestVDMSClient) ... ok
+test_vdms_print_last_response (TestVDMSClient.TestVDMSClient) ... ok
+test_vdms_query_disconnected (TestVDMSClient.TestVDMSClient) ... ok
+test_FindFramesByFrames (TestVideos.TestVideos) ... ok
+test_FindFramesByInterval (TestVideos.TestVideos) ... ok
+test_FindFramesInvalidParameters (TestVideos.TestVideos) ... ok
+test_FindFramesMissingParameters (TestVideos.TestVideos) ... ok
+test_addVideo (TestVideos.TestVideos) ... ok
+test_addVideoFromLocalFile_file_not_found (TestVideos.TestVideos) ... ok
+test_addVideoFromLocalFile_invalid_command (TestVideos.TestVideos) ... ok
+test_addVideoFromLocalFile_success (TestVideos.TestVideos) ... skipped &#39;Skipping class until fixed&#39;
+test_addVideoWithLink (TestVideos.TestVideos) ... ok
+test_extractKeyFrames (TestVideos.TestVideos) ... ok
+test_findVid_multiple_results (TestVideos.TestVideos) ... ok
+test_findVideo (TestVideos.TestVideos) ... ok
+test_findVideoNoBlob (TestVideos.TestVideos) ... ok
+test_findVideoResults (TestVideos.TestVideos) ... ok
+test_updateVideo (TestVideos.TestVideos) ... ok
+
+----------------------------------------------------------------------
+Ran 75 tests in 320.375s
+</code></pre></div></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../Developer-Guide/" class="btn btn-neutral float-left" title="Developer Guide"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../VDMS-Test-Script/" class="btn btn-neutral float-right" title="VDMS Test Script">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2025 Intel Corporation</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="http://github.com/IntelLabs/vdms" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../Developer-Guide/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../VDMS-Test-Script/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

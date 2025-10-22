@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://intellabs.github.io/vdms/ConfigFile/" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>ConfigFile - VDMS Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "ConfigFile";
+        var mkdocs_page_input_path = "ConfigFile.md";
+        var mkdocs_page_url = "/vdms/ConfigFile/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> VDMS Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../Install/">Install</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../Docker/">Docker</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../guides/VDMS-mTLS-Support/">VDMS Mutual TLS Support</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API (v2.0.0++)</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../API-Description/">Description</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">ConfigFile</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#parameters">Parameters</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#config-file-example">Config File Example</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#default-directories-structure">Default Directories Structure</a>
+    </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../Keywords/">Keywords</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../Returned-Status/">Returned Status</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../Schema/">Schema Definition</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Commands</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Basic Building Blocks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../blocks/Block-constraints/">Constraints</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../blocks/Block-link/">Link</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../blocks/Block-operations/">Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../blocks/Block-properties/">Properties</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../blocks/Block-rectangle/">Rectangle</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../blocks/Block-results/">Results</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Insert</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/AddBlob/">AddBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/AddBoundingBox/">AddBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/AddConnection/">AddConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/AddDescriptor/">AddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/AddDescriptorSet/">AddDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/AddEntity/">AddEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/AddImage/">AddImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/AddVideo/">AddVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/NeoAdd/">NeoAdd</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/NeoAddDescriptor/">NeoAddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/NeoAddDescriptorSet/">NeoAddDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Query</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/ClassifyDescriptor/">ClassifyDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/FindBlob/">FindBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/FindBoundingBox/">FindBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/FindConnection/">FindConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/FindDescriptor/">FindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/FindDescriptorSet/">FindDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/FindEntity/">FindEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/FindFrames/">FindFrames</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/FindImage/">FindImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/FindVideo/">FindVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/NeoFind/">NeoFind</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/NeoFindDescriptor/">NeoFindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/NeoFindDescriptorSet/">NeoFindDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Update</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/UpdateBlob/">UpdateBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/UpdateBoundingBox/">UpdateBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/UpdateConnection/">UpdateConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/UpdateEntity/">UpdateEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/UpdateImage/">UpdateImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../commands/UpdateVideo/">UpdateVideo</a>
+                </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials & Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" >Tutorials</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../tutorials/Simple-Tutorial/">Simple Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tutorials/Image-Tutorial/">Image Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../tutorials/Descriptor-Tutorial/">Descriptor Tutorial</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >How-to Guides</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Backends & Query Handlers</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/backends-and-handlers/Neo4J-Based-Scale-Out-VDMS/">Neo4j based Scale Out</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/backends-and-handlers/Query-Handler-Development/">Query Handler Development</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Connectors & Orchestrations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/connectors-and-orchestrations/Run-Kafka-VDMS-Example/">Kafka Connectors for VDMS</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/connectors-and-orchestrations/Kubernetes-Orchestration/">Kubernetes Orchestration in VDMS</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../guides/CSV-Plugin-for-CPP-Client/">CSV Plugin for C++ Client</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Deletion, Backup, & Restore</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/deletion-backup-and-restore/Auto-Deletion-of-Expired-Data/">Auto-Deletion of Expired Data</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/deletion-backup-and-restore/VDMS-Backup-and-Restoring-Options/">Backup and Restoring Options</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/deletion-backup-and-restore/Deletion-Capabilities/">Deletion Capabilities</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Descriptors</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/descriptors/Descriptor-Memory-Usage/">Descriptors Memory Usage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/descriptors/FLINNG-Library-and-Performance/">FLINNG Library and Performance</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Remote & User Defined Operations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/remote-and-udf-operations/Remote-Operations/">Remote Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/remote-and-udf-operations/User-Defined-Operations/">User Defined Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../guides/remote-and-udf-operations/Dynamic-Metadata/">Dynamically Add Metadata</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../guides/Remote-Storage-in-VDMS/">Remote Storage</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../guides/Timing-Capability/">Timing Capability</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Interactive Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="https://deepwiki.com/IntelLabs/vdms">DeepWiki</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribute</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../contribute/Developer-Guide/">Developer Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Test Suite</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../contribute/VDMS-Test-Suite/">VDMS Test Suite Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../contribute/VDMS-Test-Script/">VDMS Test Script</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">VDMS Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">API (v2.0.0++)</li>
+      <li class="breadcrumb-item active">ConfigFile</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="http://github.com/IntelLabs/vdms/blob/develop/docs/ConfigFile.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="vdms-configuration-file">VDMS Configuration File<a class="headerlink" href="#vdms-configuration-file" title="Permanent link">&para;</a></h1>
+<p>VDMS uses a configuration file (written in JSON) that can be specified when starting the server by using the -cfg flag:
+<div class="highlight"><pre><span></span><code>./vdms<span class="w"> </span>-cfg<span class="w"> </span>config-vdms.json
+</code></pre></div></p>
+<p>If no configuration file is specified, VDMS will try to open the default file (config-vdms.json), and will fail to initiate if the file is not found.</p>
+<h2 id="parameters">Parameters<a class="headerlink" href="#parameters" title="Permanent link">&para;</a></h2>
+<p>All the parameters in the configuration file are optional, as VDMS has default values for all of them.</p>
+<table>
+<thead>
+<tr>
+<th>Param</th>
+<th>Explanation</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>autodelete_interval_s</td>
+<td>Time interval (in seconds) to delete specifc entries (Should be greater than 0)</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>autoreplicate_interval</td>
+<td>Time interval to backup the DB folder (Should be greater than 0)</td>
+<td>-1</td>
+</tr>
+<tr>
+<td>aws_log_level</td>
+<td>This parameter is optional and it is used when "storage_type" parameter is set to "aws" value, it is used to control the level of verbosity of AWS logging system. The acccepted values are "off", "fatal", "error", "warn", "info", "debug", "trace"</td>
+<td>off</td>
+</tr>
+<tr>
+<td>backup_flag</td>
+<td>Boolean whether to use the auto-replication thread</td>
+<td>false</td>
+</tr>
+<tr>
+<td>backup_path</td>
+<td>Path to store the backup DB</td>
+<td><code>db_root_path</code></td>
+</tr>
+<tr>
+<td>blobs_path</td>
+<td>Path to folder where blobs will be stored</td>
+<td>blobs (db/blobs)</td>
+</tr>
+<tr>
+<td>bucket_name</td>
+<td>Bucket name for AWS storage</td>
+<td>vdms_bucket</td>
+</tr>
+<tr>
+<td>db_root_path</td>
+<td>Path to the root folder where all filed/objects will be stored</td>
+<td>db</td>
+</tr>
+<tr>
+<td>descriptors_path</td>
+<td>Path to folder where descriptors will be stored</td>
+<td>descriptors (db/descriptors)</td>
+</tr>
+<tr>
+<td>endpoint_override</td>
+<td>Server address (including scheme and port number) to override the S3 storage address server. This parameter is valid when the "storage_type" parameter is set to "aws" value and "use_endpoint" parameter is set to true.</td>
+<td><code>http://127.0.0.1:9000</code> when "use_endpoint" parameter is set to true and the "storage_type" parameter is set to "aws"</td>
+</tr>
+<tr>
+<td>expiration_time</td>
+<td>Time interval (in seconds) to automatically delete entries</td>
+<td></td>
+</tr>
+<tr>
+<td>flinng_cells_per_row</td>
+<td>For the FLINNG indexing for descriptors, controls the number of bits in the distance sensitive LSH vector for each row</td>
+<td>1000</td>
+</tr>
+<tr>
+<td>flinng_hashes_per_table</td>
+<td>For the FLINNG indexing for descriptors, controls the number of hash functions to be used per table for group testing</td>
+<td>12</td>
+</tr>
+<tr>
+<td>flinng_num_hash_tables</td>
+<td>For the FLINNG indexing for descriptors, controls the number of hash tables (permutations) to be used for the dataset for group testing</td>
+<td>10</td>
+</tr>
+<tr>
+<td>flinng_num_rows</td>
+<td>For the FLINNG indexing for descriptors, controls the number of distance sensitive LSH vectors</td>
+<td>3</td>
+</tr>
+<tr>
+<td>hnsw_efConstruction</td>
+<td>For the HNSW indexing for descriptors, controls the breadth of the search during the index construction phase</td>
+<td>96</td>
+</tr>
+<tr>
+<td>hnsw_efsearch</td>
+<td>For the HNSW indexing for descriptors, controls the breadth of the search during the search query</td>
+<td>64</td>
+</tr>
+<tr>
+<td>hnsw_M</td>
+<td>For the HNSW indexing for descriptors, controls the maximum number of neighbors that each descriptor can have at each layer</td>
+<td>48</td>
+</tr>
+<tr>
+<td>images_path</td>
+<td>Path to folder where images (all formats) will be stored</td>
+<td>images (db/images)</td>
+</tr>
+<tr>
+<td>ivf_nlist</td>
+<td>For the IVF FLAT indexing for descriptors, specify the number of partitions to create using the k-means algorithm</td>
+<td>16</td>
+</tr>
+<tr>
+<td>k8s_container</td>
+<td>Boolean whether to use Kubernetes orchestration</td>
+<td>false</td>
+</tr>
+<tr>
+<td>max_simultaneous_clients</td>
+<td>Number of max simultaneous connections open</td>
+<td>500</td>
+</tr>
+<tr>
+<td>pmgd_num_allocators</td>
+<td>Number of allocators when creating a new PMGD graph (this will only be used when creating a new graph, and ignored if the graph already exist)</td>
+<td>1</td>
+</tr>
+<tr>
+<td>pmgd_path</td>
+<td>Path to folder where PMGD graph will be stored</td>
+<td>db</td>
+</tr>
+<tr>
+<td>port</td>
+<td>TCP port for incoming connections</td>
+<td>55555</td>
+</tr>
+<tr>
+<td>proxy_host</td>
+<td>Address of the proxy (optional). Example: "a.proxy.from.intel.com"</td>
+<td></td>
+</tr>
+<tr>
+<td>proxy_port</td>
+<td>Port number of the proxy. This parameter is needed when "proxy_host" parameter is set</td>
+<td></td>
+</tr>
+<tr>
+<td>proxy_scheme</td>
+<td>Scheme used by the proxy, accepted values are "http" and "https". This parameter is needed when "proxy_host" and "proxy_port" parameters are set</td>
+<td></td>
+</tr>
+<tr>
+<td>query_handler</td>
+<td>Specifies the query handler to use. Accepted values: <code>pmgd</code> (PMGD), or <code>neo4j</code> (Neo4j)</td>
+<td>pmgd</td>
+</tr>
+<tr>
+<td>neo4j_conn_pool_sz</td>
+<td>Sets the pool size of neo4j client connections. This parameter is only used when "query_handler" is set to <code>neo4j</code></td>
+<td>32</td>
+</tr>
+<tr>
+<td>replication_time</td>
+<td></td>
+<td>-1</td>
+</tr>
+<tr>
+<td>storage_type</td>
+<td>Database storage type. Accepted values: <code>local</code> (local storage), or <code>aws</code> (AWS S3)</td>
+<td>local</td>
+</tr>
+<tr>
+<td>tmp_path</td>
+<td>Path to the temporary directory (optional)</td>
+<td><code>/tmp/tmp</code></td>
+</tr>
+<tr>
+<td>unit</td>
+<td>Unit of the <code>autoreplicate_interval</code> variable. Accepted values: <code>h</code> (hour), <code>m</code> (minute), or <code>s</code> (seconds)</td>
+<td>s</td>
+</tr>
+<tr>
+<td>use_endpoint</td>
+<td>Boolean whether to use an AWS storage mocking server (MinIO). This parameter is valid when the "storage_type" parameter is set to "aws" value</td>
+<td>false</td>
+</tr>
+</tbody>
+</table>
+<h2 id="config-file-example">Config File Example<a class="headerlink" href="#config-file-example" title="Permanent link">&para;</a></h2>
+<p><div class="highlight"><pre><span></span><code><span class="c1">// VDMS Config File</span>
+<span class="c1">// This is the run-time config file</span>
+<span class="c1">// Sets database paths and other parameters</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">55555</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;cert_file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;cert.pem&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;key_file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;key.pem&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;ca_file&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ca.pem&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;autoreplicate_interval&quot;</span><span class="p">:</span><span class="mi">-1</span><span class="p">,</span><span class="w"> </span><span class="c1">// it should be &gt; 0</span>
+<span class="w">    </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="s2">&quot;s&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;max_simultaneous_clients&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span>
+<span class="w">    </span><span class="c1">// &quot;backup_path&quot;:&quot;backups_test&quot;, // set this if you want different path to store the back up file</span>
+<span class="w">    </span><span class="nt">&quot;db_root_path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;db&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;backup_flag&quot;</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;false&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;storage_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;local&quot;</span><span class="p">,</span><span class="w"> </span><span class="c1">//local, aws, etc</span>
+<span class="w">    </span><span class="nt">&quot;bucket_name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;vdms_bucket&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;more-info&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;github.com/IntelLabs/vdms&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;use_endpoint&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="c1">// storage_type is set to local</span>
+<span class="w">    </span><span class="nt">&quot;endpoint_override&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;http://127.0.0.1:9000&quot;</span><span class="p">,</span><span class="c1">// Format &quot;scheme://ip:port&quot;</span>
+<span class="w">    </span><span class="nt">&quot;k8s_container&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;proxy_host&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;a.proxy.from.intel.com&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;proxy_port&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">912</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;proxy_scheme&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;http&quot;</span><span class="p">,</span><span class="w"> </span><span class="c1">// [http|https] valid values,</span>
+<span class="w">    </span><span class="nt">&quot;aws_log_level&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;debug&quot;</span><span class="p">,</span><span class="w"> </span><span class="c1">// [off|fatal|error|warn|info|debug|trace]</span>
+<span class="w">    </span><span class="nt">&quot;tmp_path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/tmp/tmp&quot;</span>
+<span class="p">}</span>
+</code></pre></div>
+<br></p>
+<h2 id="default-directories-structure">Default Directories Structure<a class="headerlink" href="#default-directories-structure" title="Permanent link">&para;</a></h2>
+<p>By default, VDMS will create a directory structure as follows:</p>
+<div class="highlight"><pre><span></span><code>db
+├── blobs
+├── descriptors
+├── graph
+│   ├── allocator.jdb
+│   ├── edges.jdb
+│   ├── graph.jdb
+│   ├── indexmanager.jdb
+│   ├── journal.jdb
+│   ├── nodes.jdb
+│   ├── stringtable.jdb
+│   └── transaction.jdb
+└── images
+    ├── jpg
+    ├── png
+    └── tdb
+</code></pre></div>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../API-Description/" class="btn btn-neutral float-left" title="Description"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../Keywords/" class="btn btn-neutral float-right" title="Keywords">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2025 Intel Corporation</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="http://github.com/IntelLabs/vdms" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../API-Description/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../Keywords/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

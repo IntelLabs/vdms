@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://intellabs.github.io/vdms/contribute/VDMS-Test-Script/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>VDMS Test Script - VDMS Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "VDMS Test Script";
+        var mkdocs_page_input_path = "contribute/VDMS-Test-Script.md";
+        var mkdocs_page_url = "/vdms/contribute/VDMS-Test-Script/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> VDMS Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Install/">Install</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Docker/">Docker</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../guides/VDMS-mTLS-Support/">VDMS Mutual TLS Support</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API (v2.0.0++)</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../API-Description/">Description</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../ConfigFile/">ConfigFile</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Keywords/">Keywords</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Returned-Status/">Returned Status</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Schema/">Schema Definition</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Commands</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Basic Building Blocks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-constraints/">Constraints</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-link/">Link</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-operations/">Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-properties/">Properties</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-rectangle/">Rectangle</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-results/">Results</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Insert</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddBlob/">AddBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddBoundingBox/">AddBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddConnection/">AddConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddDescriptor/">AddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddDescriptorSet/">AddDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddEntity/">AddEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddImage/">AddImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddVideo/">AddVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoAdd/">NeoAdd</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoAddDescriptor/">NeoAddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoAddDescriptorSet/">NeoAddDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Query</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/ClassifyDescriptor/">ClassifyDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindBlob/">FindBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindBoundingBox/">FindBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindConnection/">FindConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindDescriptor/">FindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindDescriptorSet/">FindDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindEntity/">FindEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindFrames/">FindFrames</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindImage/">FindImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindVideo/">FindVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoFind/">NeoFind</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoFindDescriptor/">NeoFindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoFindDescriptorSet/">NeoFindDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Update</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateBlob/">UpdateBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateBoundingBox/">UpdateBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateConnection/">UpdateConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateEntity/">UpdateEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateImage/">UpdateImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateVideo/">UpdateVideo</a>
+                </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials & Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" >Tutorials</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../tutorials/Simple-Tutorial/">Simple Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../tutorials/Image-Tutorial/">Image Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../tutorials/Descriptor-Tutorial/">Descriptor Tutorial</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >How-to Guides</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Backends & Query Handlers</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/backends-and-handlers/Neo4J-Based-Scale-Out-VDMS/">Neo4j based Scale Out</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/backends-and-handlers/Query-Handler-Development/">Query Handler Development</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Connectors & Orchestrations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/connectors-and-orchestrations/Run-Kafka-VDMS-Example/">Kafka Connectors for VDMS</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/connectors-and-orchestrations/Kubernetes-Orchestration/">Kubernetes Orchestration in VDMS</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../guides/CSV-Plugin-for-CPP-Client/">CSV Plugin for C++ Client</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Deletion, Backup, & Restore</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/deletion-backup-and-restore/Auto-Deletion-of-Expired-Data/">Auto-Deletion of Expired Data</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/deletion-backup-and-restore/VDMS-Backup-and-Restoring-Options/">Backup and Restoring Options</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/deletion-backup-and-restore/Deletion-Capabilities/">Deletion Capabilities</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Descriptors</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/descriptors/Descriptor-Memory-Usage/">Descriptors Memory Usage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/descriptors/FLINNG-Library-and-Performance/">FLINNG Library and Performance</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Remote & User Defined Operations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/remote-and-udf-operations/Remote-Operations/">Remote Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/remote-and-udf-operations/User-Defined-Operations/">User Defined Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../guides/remote-and-udf-operations/Dynamic-Metadata/">Dynamically Add Metadata</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../guides/Remote-Storage-in-VDMS/">Remote Storage</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../guides/Timing-Capability/">Timing Capability</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Interactive Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="https://deepwiki.com/IntelLabs/vdms">DeepWiki</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribute</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../Developer-Guide/">Developer Guide</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >Test Suite</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" href="../VDMS-Test-Suite/">VDMS Test Suite Overview</a>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" href="#">VDMS Test Script</a>
+    <ul class="current">
+    <li class="toctree-l3"><a class="reference internal" href="#architecture-script">Architecture Script</a>
+        <ul>
+    <li class="toctree-l4"><a class="reference internal" href="#classes">Classes</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#base-class">Base class</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#derived-classes">Derived classes</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#constant-values">Constant values</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#running-tests">Running Tests</a>
+    </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">VDMS Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Contribute</li>
+          <li class="breadcrumb-item">Test Suite</li>
+      <li class="breadcrumb-item active">VDMS Test Script</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="http://github.com/IntelLabs/vdms/blob/develop/docs/contribute/VDMS-Test-Script.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="vdms-test-script">VDMS Test Script<a class="headerlink" href="#vdms-test-script" title="Permanent link">&para;</a></h1>
+<p>The <code>run_all_tests.py</code> script oversees the distinct types of tests located at the <code>tests</code> directory of the VDMS repo.</p>
+<p>It manages some signals so in case of any segmentation fault or any error, then this script will delete all the temporary files created (except when the <code>-k</code> flag is specified for keeping the temporary files when the testing finished) and it will kill all the processes started.</p>
+<h2 id="architecture-script">Architecture Script<a class="headerlink" href="#architecture-script" title="Permanent link">&para;</a></h2>
+<h3 id="classes">Classes<a class="headerlink" href="#classes" title="Permanent link">&para;</a></h3>
+<p>The classes found in this script file are:</p>
+<ul>
+<li>
+<p><strong>TestingArgs:</strong> This class is in charge of storing the value of most of the arguments set by command line or from the JSON config file.</p>
+</li>
+<li>
+<p><strong>TestingParser:</strong> This class provides a parser for command-line arguments used in testing.  It uses the argparse library to define and parse the arguments.</p>
+</li>
+</ul>
+<h3 id="base-class">Base class<a class="headerlink" href="#base-class" title="Permanent link">&para;</a></h3>
+<p><strong>AbstractTest:</strong> This class defines the interface for test cases, including methods for running tests, validating arguments, and filling default arguments. All the abstract methods must be implemented by subclasses:</p>
+<ul>
+<li>
+<p><code>run(self, testingArgs: TestingArgs)</code>: This abstract method is in charge of running the different applications needed by the specific type of test.</p>
+</li>
+<li>
+<p><code>validate_arguments(self, testingArgs: TestingArgs, parser: argparse.ArgumentParser)</code>: This abstract method must be implemented by each derived class, this method must validate the arguments received from the command line which arguments are required by each type of test.</p>
+</li>
+<li>
+<p><code>fill_default_arguments(self, testingArgs: TestingArgs)</code>: Due to each type of test requires mandatory information to execute the tests correctly, if that information does not come from the command line, then this script assumes that the user wants to use the default values provided by this script file to set the values for those missing arguments. Therefore, this method must be focused on filing out the values of the missing arguments.</p>
+</li>
+</ul>
+<h3 id="derived-classes">Derived classes<a class="headerlink" href="#derived-classes" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><strong>Neo4jTest:</strong> This class provides methods to validate Neo4j values and run Neo4j tests.  It extends the <code>AbstractTest</code> class. The <code>Neo4jTest</code> class implements the logic which exists in the Bash script called <code>tests/run_neo4j_tests.sh</code>.<br><strong><em>Note:</em></strong> The integration of the <code>Neo4JHandlerTest</code> tests is pending to be added to the methods of this class.</p>
+</li>
+<li>
+<p><strong>NonRemoteTest:</strong> This class provides methods to set up requirements for the remote UDF server and run non-remote tests. It extends the <code>AbstractTest</code> class. The <code>NonRemoteTest</code> class implements the logic which exists in the Bash script called <code>tests/run_tests.sh</code>.</p>
+</li>
+<li>
+<p><strong>NonRemotePythonTest:</strong> This class provides methods to set up the environment and run non-remote Python tests. It extends the <code>AbstractTest</code> class. The <code>NonRemotePythonTest</code> class implements the logic which exists in the Bash script called <code>tests/python/run_python_tests.sh</code>.</p>
+</li>
+<li>
+<p><strong>RemoteTest:</strong> This class provides methods to set up the environment and run remote C++ tests. It extends the <code>AbstractTest</code> class. The <code>RemoteTest</code> class implements the logic which exists in the Bash script called <code>tests/run_aws_tests.sh</code>.</p>
+</li>
+<li>
+<p><strong>RemotePythonTest:</strong> This class provides methods to set up the environment and run remote Python tests. It extends the <code>AbstractTest</code> class. The <code>RemotePythonTest</code> class implements the logic which exists in the Bash script called <code>tests/python/run_python_aws_tests.sh</code>.</p>
+</li>
+</ul>
+<p><strong><em>Notes:</em></strong></p>
+<ul>
+<li>If you need to create a new type of test such as integration tests, then you need to create a new class derived from the <code>AbstractClass</code> and implement at least the mandatory abstract methods.</li>
+<li>If you just need to add new arguments to the current classes, then please update the code in the mandatory abstract methods, to correctly manage those new arguments.</li>
+<li>Also add the new arguments in the <code>TestingArgs</code> class and add the corresponding parsing of those new arguments in the <code>TestingParser</code> class.</li>
+</ul>
+<h3 id="constant-values">Constant values<a class="headerlink" href="#constant-values" title="Permanent link">&para;</a></h3>
+<p>These are some constant values defined at the beginning of the script file:</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Default Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DEFAULT_CURRENT_DIR</code></td>
+<td>The directory where the <code>run_all_tests.py</code> file is located</td>
+<td><code>os.path.realpath(os.path.dirname(__file__))</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_DIR_REPO</code></td>
+<td>The root of the repository</td>
+<td><code>os.path.dirname(DEFAULT_CURRENT_DIR)</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_VDMS_APP_PATH</code></td>
+<td>The path where the VDMS binary is located</td>
+<td><code>DEFAULT_DIR_REPO + "/build/vdms"</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_MINIO_PATH</code></td>
+<td>The default path where the MinIO binary is located</td>
+<td><code>DEFAULT_DIR_REPO + "/minio"</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_MINIO_ALIAS_NAME</code></td>
+<td>The alias name for the MinIO server (used by the MinIO client mc)</td>
+<td><code>"myminio"</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_MINIO_PORT</code></td>
+<td>The default port number where the MinIO server runs</td>
+<td><code>9000</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_MINIO_TMP_DIR</code></td>
+<td>The default name of the directory where MinIO stores the temporary files</td>
+<td><code>"minio_files"</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_MINIO_CONSOLE_PORT</code></td>
+<td>The default port number to connect to MinIO server via console</td>
+<td><code>9001</code></td>
+</tr>
+<tr>
+<td><code>STOP_ON_FAILURE_FLAG</code></td>
+<td>The flag used by Googletest stops running the rest of the  tests when one of the tests fails</td>
+<td><code>"--gtest_fail_fast"</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_NEO_TEST_PORT</code></td>
+<td>The default port number for the Neo4j server</td>
+<td><code>7687</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_NEO_TEST_ENDPOINT</code></td>
+<td>The default endpoint for Neo4j</td>
+<td><code>f"neo4j://neo4j:{str(DEFAULT_NEO_TEST_PORT)}"</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_GOOGLETEST_PATH</code></td>
+<td>The default path where the binary used by Googletest is located</td>
+<td><code>DEFAULT_DIR_REPO + "/build/tests/unit_tests"</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_TESTS_STDERR_FILENAME</code><br><code>DEFAULT_TESTS_STDOUT_FILENAME</code></td>
+<td>The name of the logfiles used by unit_tests binary (Googletest) for logging any event (also it is displayed on console)</td>
+<td><code>"tests_stderr_log.log"</code><br><code>"tests_stdout_log.log"</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_UDF_LOCAL_STDERR_FILENAME</code><br><code>DEFAULT_UDF_LOCAL_STDOUT_FILENAME</code></td>
+<td>The name of the logfiles used by udf_local.py file for logging any event</td>
+<td><code>"udf_local_stderr_log.log"</code><br><code>"udf_local_stdout_log.log"</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_UDF_SERVER_STDERR_FILENAME</code><br><code>DEFAULT_UDF_SERVER_STDOUT_FILENAME</code></td>
+<td>The name of the logfiles used by udf_server.py file for logging any event</td>
+<td><code>"udf_server_stderr_log.log"</code><br><code>"udf_server_stdout_log.log"</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_TLS_STDERR_FILENAME</code><br><code>DEFAULT_TLS_STDOUT_FILENAME</code></td>
+<td>The name of the logfiles used by TLS script files for logging any event</td>
+<td><code>"tls_stderr_log.log"</code><br><code>"tls_stdout_log.log"</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_MINIO_STDERR_FILENAME</code><br><code>DEFAULT_MINIO_STDOUT_FILENAME</code></td>
+<td>The name of the logfiles used by MinIO server for logging any event</td>
+<td><code>"minio_stderr_log.log"</code><br><code>"minio_stdout_log.log"</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_VDMS_STDERR_FILENAME</code><br><code>DEFAULT_VDMS_STDOUT_FILENAME</code></td>
+<td>The name of the logfiles used by VDMS server for logging any event</td>
+<td><code>"vdms_stderr_log.log"</code><br><code>"vdms_stdout_log.log"</code></td>
+</tr>
+<tr>
+<td><code>TYPE_OF_TESTS_AVAILABLE</code></td>
+<td>These are the types of tests available and which can be run by running the run_all_tests.py script</td>
+<td><code>["ut", "ru", "pt", "rp", "neo"]</code> where:<br> * <code>ut</code>: C++ unit tests located at tests/unit_tests directory<br> * <code>ru</code>: Remote C++ unit tests located at tests/unit_tests directory<br> * <code>pt</code>: Python tests located at tests/python directory<br> * <code>rp</code>: Remote Python tests located at tests/python directory<br> * <code>neo</code>: C++ unit tests located at tests/unit_tests directory</td>
+</tr>
+<tr>
+<td><code>GOOGLETEST_TYPE_OF_TESTS</code></td>
+<td>The types of tests that Googletest can run</td>
+<td><code>["ut", "ru", "neo"]</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_TMP_DIR</code></td>
+<td>The default path to the temporary directory used by the tests</td>
+<td><code>"/tmp/tests_output_dir"</code></td>
+</tr>
+<tr>
+<td><code>TESTS_DIRNAME</code></td>
+<td>Name of the directory in the repo where the tests are located</td>
+<td><code>"tests"</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_NEO4J_OPSIO_TEST_FILTER</code></td>
+<td>Pattern used by Googletest to run all the tests related to Neo4j and OpsIOCoordinator</td>
+<td><code>"OpsIOCoordinatorTest.*"</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_NEO4J_OPSIO_CONFIG_FILES</code></td>
+<td>Path to the configuration files used by the Neo4 OpsIOCoordinator tests</td>
+<td><code>["unit_tests/config-aws-tests.json"]</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_NEO4J_E2E_TEST_FILTER</code><br><code>DEFAULT_NEO4J_E2E_CONFIG_FILES</code></td>
+<td>Pattern used by Googletest to run all the tests related to the end-to-end tests of Neo4j</td>
+<td><code>"”</code><br><code>["unit_tests/config-neo4j-e2e.json"]</code></td>
+</tr>
+<tr>
+<td><code>NEO4J_OPS_IO_TEST_TYPE</code><br><code>NEO4J_E2E_TEST_TYPE</code><br><code>NEO4J_BACKEND_TEST_TYPE</code></td>
+<td>Name of the buckets created by MinIO according to the type of Neo4j tests</td>
+<td><code>"OPS_IO"</code><br><code>"E2E"</code><br><code>"BACKEND"</code></td>
+</tr>
+<tr>
+<td><code>NEO4J_OPS_IO_REGEX</code></td>
+<td>Regular expression to match any OpsIOCoordinatorTest test suite</td>
+<td><code>r"^OpsIOCoordinatorTest\.|^'OpsIOCoordinatorTest\.[^']+'"</code></td>
+</tr>
+<tr>
+<td><code>NEO4J_E2E_REGEX</code></td>
+<td>Regular expression to match any Neo4JE2ETest test suite</td>
+<td><code>r"^Neo4JE2ETest\.|^'Neo4JE2ETest\.[^']+'"</code></td>
+</tr>
+<tr>
+<td><code>NEO4J_BACKEND_REGEX</code></td>
+<td>Regular expression to match any Neo4jBackendTest test suite</td>
+<td><code>r"^Neo4jBackendTest\.|^'Neo4jBackendTest\.[^']+'"</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_NON_REMOTE_PYTHON_CONFIG_FILES</code></td>
+<td>Path to the configuration files used by the local Python tests</td>
+<td><code>["python/config-tests.json","python/config-tls-tests.json"]</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_PYTHON_TEST_FILTER</code></td>
+<td>Pattern used by the unittest module used by Python for running all the tests which name starts with “Test” and they are located at the tests/python directory</td>
+<td><code>"discover -s ./python/ --pattern=Test*.py"</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_NON_REMOTE_PYTHON_TEST_FILTER</code></td>
+<td>Pattern used by the unittest module used by Python to run all the local Python tests</td>
+<td><code>DEFAULT_PYTHON_TEST_FILTER</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_NON_REMOTE_UNIT_TEST_FILTER</code></td>
+<td>Pattern used by Googletest to run all the local C++ unit tests (it executes all the tests except the specified in that list)</td>
+<td><code>"-RemoteConnectionTest.*:Neo4jBackendTest.*:OpsIOCoordinatorTest.*:Neo4JE2ETest.*:Neo4JHandlerTest.*"</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_NON_REMOTE_UNIT_TEST_CONFIG_FILES</code></td>
+<td>Path to the configuration files used by the local C++ unit tests</td>
+<td><code>["unit_tests/config-tests.json","unit_tests/config-client-tests.json"]</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_REMOTE_UNIT_TEST_FILTER</code></td>
+<td>Pattern used by Googletest to run all the remote C++ unit tests (it executes all the tests from the RemoteConnectionTest test suite)</td>
+<td><code>"RemoteConnectionTest.*"</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_REMOTE_UNIT_TEST_CONFIG_FILES</code></td>
+<td>Path to the configuration files used by the remote C++ unit tests</td>
+<td><code>["unit_tests/config-aws-tests.json"]</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_REMOTE_PYTHON_TEST_FILTER</code></td>
+<td>Pattern used by the unittest module used by Python to run all the remote Python tests</td>
+<td><code>DEFAULT_PYTHON_TEST_FILTER</code></td>
+</tr>
+<tr>
+<td><code>DEFAULT_REMOTE_PYTHON_CONFIG_FILES</code></td>
+<td>Path to the configuration files used by the remote Python tests</td>
+<td><code>["python/config-aws-tests.json","python/config-tls-aws-tests.json"]</code></td>
+</tr>
+</tbody>
+</table>
+<p><br></p>
+<h2 id="running-tests">Running Tests<a class="headerlink" href="#running-tests" title="Permanent link">&para;</a></h2>
+<p>The basic commands for running all the tests are the following:</p>
+<ul>
+<li>
+<p>The local C++ unit tests: <code>python3 run_all_tests.py -t ut</code></p>
+</li>
+<li>
+<p>The remote C++ unit tests: <code>python3 run_all_tests.py -t ut -u YOUR_MINIO_ROOT_USER -p YOUR_MINIO_ROOT_PASSWORD</code></p>
+</li>
+<li>
+<p>The local python tests: <code>python3 run_all_tests.py -t pt</code></p>
+</li>
+<li>
+<p>The remote Python tests: <code>python3 run_all_tests.py -t rp -u YOUR_MINIO_ROOT_USER -p YOUR_MINIO_ROOT_PASSWORD</code></p>
+</li>
+<li>
+<p>For running the Neo4j tests: <code>python3 run_all_tests.py -t neo -n 'Neo4JE2ETest.*' --minio_port 9000 --minio_console_port 9001 -u YOUR_MINIO_ROOT_USER -p YOUR_MINIO_ROOT_PASSWORD --neo4j_username YOUR_NEO4J_USERNAME --neo4j_password YOUR_NEO4J_PASSWORD --neo4j_port 7687 --neo4j_endpoint neo4j://localhost:7687</code></p>
+</li>
+</ul>
+<p><strong><em>Note:</em></strong> <code>YOUR_MINIO_ROOT_USER</code>, <code>YOUR_MINIO_ROOT_PASSWORD</code>, <code>YOUR_NEO4J_USERNAME</code>, and <code>YOUR_MINIO_ROOT_PASSWORD</code> corresponds to your MinIO username, MinIO password, Neo4j username, and Neo4j password, respectively.</p>
+<p>Please see <a href="../VDMS-Test-Suite/">VDMS Test Suite Overview</a> for information on remaining <code>run_all_tests.py</code> arguments.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../VDMS-Test-Suite/" class="btn btn-neutral float-left" title="VDMS Test Suite Overview"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2025 Intel Corporation</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="http://github.com/IntelLabs/vdms" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../VDMS-Test-Suite/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

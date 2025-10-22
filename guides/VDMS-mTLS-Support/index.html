@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://intellabs.github.io/vdms/guides/VDMS-mTLS-Support/" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>VDMS Mutual TLS Support - VDMS Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "VDMS Mutual TLS Support";
+        var mkdocs_page_input_path = "guides/VDMS-mTLS-Support.md";
+        var mkdocs_page_url = "/vdms/guides/VDMS-mTLS-Support/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> VDMS Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../../Install/">Install</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Docker/">Docker</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">VDMS Mutual TLS Support</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#generation-of-ca-certificates-and-keys">Generation of CA Certificates and keys</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#deploy-vdms-using-ca-and-keys">Deploy VDMS using CA and Keys</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#client-authentication">Client Authentication</a>
+    </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API (v2.0.0++)</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../API-Description/">Description</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../ConfigFile/">ConfigFile</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Keywords/">Keywords</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Returned-Status/">Returned Status</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../Schema/">Schema Definition</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Commands</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Basic Building Blocks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-constraints/">Constraints</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-link/">Link</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-operations/">Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-properties/">Properties</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-rectangle/">Rectangle</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../blocks/Block-results/">Results</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Insert</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddBlob/">AddBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddBoundingBox/">AddBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddConnection/">AddConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddDescriptor/">AddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddDescriptorSet/">AddDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddEntity/">AddEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddImage/">AddImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/AddVideo/">AddVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoAdd/">NeoAdd</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoAddDescriptor/">NeoAddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoAddDescriptorSet/">NeoAddDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Query</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/ClassifyDescriptor/">ClassifyDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindBlob/">FindBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindBoundingBox/">FindBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindConnection/">FindConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindDescriptor/">FindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindDescriptorSet/">FindDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindEntity/">FindEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindFrames/">FindFrames</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindImage/">FindImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/FindVideo/">FindVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoFind/">NeoFind</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoFindDescriptor/">NeoFindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/NeoFindDescriptorSet/">NeoFindDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Update</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateBlob/">UpdateBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateBoundingBox/">UpdateBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateConnection/">UpdateConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateEntity/">UpdateEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateImage/">UpdateImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../commands/UpdateVideo/">UpdateVideo</a>
+                </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials & Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" >Tutorials</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../tutorials/Simple-Tutorial/">Simple Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../tutorials/Image-Tutorial/">Image Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../tutorials/Descriptor-Tutorial/">Descriptor Tutorial</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >How-to Guides</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Backends & Query Handlers</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../backends-and-handlers/Neo4J-Based-Scale-Out-VDMS/">Neo4j based Scale Out</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../backends-and-handlers/Query-Handler-Development/">Query Handler Development</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Connectors & Orchestrations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../connectors-and-orchestrations/Run-Kafka-VDMS-Example/">Kafka Connectors for VDMS</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../connectors-and-orchestrations/Kubernetes-Orchestration/">Kubernetes Orchestration in VDMS</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../CSV-Plugin-for-CPP-Client/">CSV Plugin for C++ Client</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Deletion, Backup, & Restore</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../deletion-backup-and-restore/Auto-Deletion-of-Expired-Data/">Auto-Deletion of Expired Data</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../deletion-backup-and-restore/VDMS-Backup-and-Restoring-Options/">Backup and Restoring Options</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../deletion-backup-and-restore/Deletion-Capabilities/">Deletion Capabilities</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Descriptors</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../descriptors/Descriptor-Memory-Usage/">Descriptors Memory Usage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../descriptors/FLINNG-Library-and-Performance/">FLINNG Library and Performance</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Remote & User Defined Operations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../remote-and-udf-operations/Remote-Operations/">Remote Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../remote-and-udf-operations/User-Defined-Operations/">User Defined Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../remote-and-udf-operations/Dynamic-Metadata/">Dynamically Add Metadata</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../Remote-Storage-in-VDMS/">Remote Storage</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../Timing-Capability/">Timing Capability</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Interactive Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="https://deepwiki.com/IntelLabs/vdms">DeepWiki</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribute</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../contribute/Developer-Guide/">Developer Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Test Suite</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../contribute/VDMS-Test-Suite/">VDMS Test Suite Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../contribute/VDMS-Test-Script/">VDMS Test Script</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">VDMS Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Getting Started</li>
+      <li class="breadcrumb-item active">VDMS Mutual TLS Support</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="http://github.com/IntelLabs/vdms/blob/develop/docs/guides/VDMS-mTLS-Support.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="vdms-mtls-support">VDMS mTLS Support<a class="headerlink" href="#vdms-mtls-support" title="Permanent link">&para;</a></h1>
+<p>By default, VDMS deploys in an insecure mode which allows the client to connect to the server without any authentication (user, password, or keys).
+In some use-cases, a user may need some authentication to limit who can access the data in the VDMS server.
+For such cases, VDMS has mutual TLS (mTLS) support to the server and client while retaining support for running in a TLS only (transport security only, no client authentication) or an insecure mode.</p>
+<p>In mTLS, both client and server authenticate each other.
+From the client's perspective, it verifies the server certificate's validity (i.e., it's not expired) and its endorsement by a trusted authority.
+In the context of VDMS, this implies that we need to provide the client the CA certificate, which is the certificate authority responsible for creating the server's certificate.
+This is done to ensure that, within the specific context of VDMS, it is a trusted certificate.
+Conversely, the client presents its certificate to the server, which verifies its validity and its signing by the CA that the server uses for client authentication.
+Hence, on the client side, the CA certificate establishes trust, while on the server side, it authenticates.
+This is why both entities need to have the CA Certificate, as well as their respective certificates for identity verification.</p>
+<h2 id="generation-of-ca-certificates-and-keys">Generation of CA Certificates and keys<a class="headerlink" href="#generation-of-ca-certificates-and-keys" title="Permanent link">&para;</a></h2>
+<p>It's crucial to ensure that the CA certificate and key are present wherever the commands are executed.
+If you decide to generate the client and server certificate and key separately at the client and the server, the CA certificate and key need to be present in both locations.
+Please note that it should be the same CA certificate and key as both the server and client need to be signed by the same CA.</p>
+<p>Below are steps to generate all CA certificates and keys.
+In this case, these steps are performed on the system hosting the VDMS server.</p>
+<ol>
+<li>
+<p><strong><em>Specify names for CA, Server and Client:</em></strong> Any value can be used for the CA certificate, but the client and server names should match the hostname or IP you use to connect. When testing with both client and server on the same system, you can simply use <code>localhost</code>. If you do not have DNS setup and prefer not to use an IP address, you can add entries to the hosts files, such as <code>client.vdms.local</code> and <code>server.vdms.local</code>, and use those in the certificates.  For the purpose of an example, we are assuming two systems are used: <code>systemA.domain</code> as the hostname hosting the VDMS server, and <code>systemB.domain</code> as the hostname hosting the VDMS client.<br>
+    <div class="highlight"><pre><span></span><code><span class="nv">CA_NAME</span><span class="o">=</span><span class="s2">&quot;ca.vdms.local&quot;</span>
+<span class="nv">SERVER_NAME</span><span class="o">=</span><span class="s2">&quot;systemA.domain&quot;</span>
+<span class="nv">CLIENT_NAME</span><span class="o">=</span><span class="s2">&quot;systemB.domain&quot;</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong><em>Specify validity and directory:</em></strong> Specify the length of certificate validity in days, and the directory to store the generated keys and certificates. In this example, the files are valid for 1 year (365 days) and the files are stored in directory <code>auth_files</code>.
+    <div class="highlight"><pre><span></span><code><span class="nv">DAYS_VALID</span><span class="o">=</span><span class="m">365</span>
+<span class="nv">OUTPUT_DIR</span><span class="o">=</span><span class="s2">&quot;&lt;path_to_parent_key_directory&gt;/auth_files&quot;</span>
+mkdir<span class="w"> </span>-p<span class="w"> </span><span class="nv">$OUTPUT_DIR</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong><em>Generate CA private key:</em></strong> Here an RSA CA private key is generated with 2048 bits.
+    <div class="highlight"><pre><span></span><code>openssl<span class="w"> </span>genrsa<span class="w"> </span>-out<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">/ca_key.pem&quot;</span><span class="w"> </span><span class="m">2048</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong><em>Generate CA self-signed certificate:</em></strong> Here a new self signed CA certificate is generated. In this example the country, state, city, and organization is used to set subject name.
+    <div class="highlight"><pre><span></span><code><span class="nv">COUNTRY</span><span class="o">=</span><span class="s2">&quot;&lt;country&gt;&quot;</span>
+<span class="nv">STATE</span><span class="o">=</span><span class="s2">&quot;&lt;state&gt;&quot;</span>
+<span class="nv">CITY</span><span class="o">=</span><span class="s2">&quot;&lt;city&gt;&quot;</span>
+<span class="nv">ORG</span><span class="o">=</span><span class="s2">&quot;&lt;organization&gt;&quot;</span>
+openssl<span class="w"> </span>req<span class="w"> </span>-x509<span class="w"> </span>-new<span class="w"> </span>-nodes<span class="w"> </span>-key<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">/ca_key.pem&quot;</span><span class="w"> </span>-sha256<span class="w"> </span>-days<span class="w"> </span><span class="nv">$DAYS_VALID</span><span class="w"> </span>-out<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">/ca_cert.pem&quot;</span><span class="w"> </span>-subj<span class="w"> </span><span class="s2">&quot;/C=</span><span class="si">${</span><span class="nv">COUNTRY</span><span class="si">}</span><span class="s2">/ST=</span><span class="si">${</span><span class="nv">STATE</span><span class="si">}</span><span class="s2">/L=</span><span class="si">${</span><span class="nv">CITY</span><span class="si">}</span><span class="s2">/O=</span><span class="si">${</span><span class="nv">ORG</span><span class="si">}</span><span class="s2">/CN=</span><span class="si">${</span><span class="nv">CA_NAME</span><span class="si">}</span><span class="s2">&quot;</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong><em>Generate server private key:</em></strong> Here an RSA private key is generated for the server with 2048 bits.
+    <div class="highlight"><pre><span></span><code>openssl<span class="w"> </span>genrsa<span class="w"> </span>-out<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">/server_key.pem&quot;</span><span class="w"> </span><span class="m">2048</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong><em>Generate server certificate signing request (CSR):</em></strong> Here a new self signed server certificate is generated.
+    <div class="highlight"><pre><span></span><code>openssl<span class="w"> </span>req<span class="w"> </span>-new<span class="w"> </span>-key<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">/server_key.pem&quot;</span><span class="w"> </span>-out<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">/server.csr&quot;</span><span class="w"> </span>-subj<span class="w"> </span><span class="s2">&quot;/C=</span><span class="si">${</span><span class="nv">COUNTRY</span><span class="si">}</span><span class="s2">/ST=</span><span class="si">${</span><span class="nv">STATE</span><span class="si">}</span><span class="s2">/L=</span><span class="si">${</span><span class="nv">CITY</span><span class="si">}</span><span class="s2">/O=</span><span class="si">${</span><span class="nv">ORG</span><span class="si">}</span><span class="s2">/CN=</span><span class="si">${</span><span class="nv">SERVER_NAME</span><span class="si">}</span><span class="s2">&quot;</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong><em>Sign the server CSR with CA certificate:</em></strong> Here the server CSR is signed with the CA certificate.
+    <div class="highlight"><pre><span></span><code>openssl<span class="w"> </span>x509<span class="w"> </span>-req<span class="w"> </span>-in<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">/server.csr&quot;</span><span class="w"> </span>-CA<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">/ca_cert.pem&quot;</span><span class="w"> </span>-CAkey<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">/ca_key.pem&quot;</span><span class="w"> </span>-CAcreateserial<span class="w"> </span>-out<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">/server_cert.pem&quot;</span><span class="w"> </span>-days<span class="w"> </span><span class="nv">$DAYS_VALID</span><span class="w"> </span>-sha256
+</code></pre></div></p>
+</li>
+<li>
+<p><strong><em>Generate client private key:</em></strong> Here an RSA private key is generated for the client with 2048 bits.
+    <div class="highlight"><pre><span></span><code>openssl<span class="w"> </span>genrsa<span class="w"> </span>-out<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">/client_key.pem&quot;</span><span class="w"> </span><span class="m">2048</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong><em>Generate client certificate signing request (CSR):</em></strong> Here a new self signed client certificate is generated.
+    <div class="highlight"><pre><span></span><code>openssl<span class="w"> </span>req<span class="w"> </span>-new<span class="w"> </span>-key<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">/client_key.pem&quot;</span><span class="w"> </span>-out<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">/client.csr&quot;</span><span class="w"> </span>-subj<span class="w"> </span><span class="s2">&quot;/C=</span><span class="si">${</span><span class="nv">COUNTRY</span><span class="si">}</span><span class="s2">/ST=</span><span class="si">${</span><span class="nv">STATE</span><span class="si">}</span><span class="s2">/L=</span><span class="si">${</span><span class="nv">CITY</span><span class="si">}</span><span class="s2">/O=</span><span class="si">${</span><span class="nv">ORG</span><span class="si">}</span><span class="s2">/CN=</span><span class="si">${</span><span class="nv">CLIENT_NAME</span><span class="si">}</span><span class="s2">&quot;</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong><em>Sign the client CSR with CA certificate:</em></strong> Here the client CSR is signed with the CA certificate.
+    <div class="highlight"><pre><span></span><code>openssl<span class="w"> </span>x509<span class="w"> </span>-req<span class="w"> </span>-in<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">/client.csr&quot;</span><span class="w"> </span>-CA<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">/ca_cert.pem&quot;</span><span class="w"> </span>-CAkey<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">/ca_key.pem&quot;</span><span class="w"> </span>-CAcreateserial<span class="w"> </span>-out<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">/client_cert.pem&quot;</span><span class="w"> </span>-days<span class="w"> </span><span class="nv">$DAYS_VALID</span><span class="w"> </span>-sha256
+</code></pre></div></p>
+</li>
+<li>
+<p><strong><em>Cleanup CSR files:</em></strong>
+    <div class="highlight"><pre><span></span><code>rm<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">/server.csr&quot;</span>
+rm<span class="w"> </span><span class="s2">&quot;</span><span class="si">${</span><span class="nv">OUTPUT_DIR</span><span class="si">}</span><span class="s2">/client.csr&quot;</span>
+</code></pre></div>
+<br></p>
+</li>
+</ol>
+<h2 id="deploy-vdms-using-ca-and-keys">Deploy VDMS using CA and Keys<a class="headerlink" href="#deploy-vdms-using-ca-and-keys" title="Permanent link">&para;</a></h2>
+<p>To deploy VDMS with the proper credentials, we must update the <code>config-vdms.json</code>.
+There are a few parameters needed to use this capability.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ca_file</code></td>
+<td>File for CA certificate</td>
+</tr>
+<tr>
+<td><code>cert_file</code></td>
+<td>File for Server certificate signed by CA</td>
+</tr>
+<tr>
+<td><code>key_file</code></td>
+<td>File for Server Certificate Signing Request</td>
+</tr>
+</tbody>
+</table>
+<p>If using the Docker Image, you can mount the directory containing the keys/certificates and also override the <code>config-vdms.json</code> parameters as follows:
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>run<span class="w"> </span>-d<span class="w"> </span>--net<span class="o">=</span>host<span class="w"> </span>-v<span class="w"> </span>&lt;path_to_parent_key_directory&gt;/auth_files:/auth_files<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-e<span class="w"> </span><span class="nv">OVERRIDE_cert_file</span><span class="o">=</span>/auth_files/server_cert.pem<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-e<span class="w"> </span><span class="nv">OVERRIDE_key_file</span><span class="o">=</span>/auth_files/server_key.pem<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-e<span class="w"> </span><span class="nv">OVERRIDE_ca_file</span><span class="o">=</span>/auth_files/ca_cert.pem<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>intellabs/vdms:latest
+</code></pre></div></p>
+<p>If using a VDMS Server installed natively, simply update the <code>config-vdms.json</code> file prior to deploying the server.
+<br></p>
+<h2 id="client-authentication">Client Authentication<a class="headerlink" href="#client-authentication" title="Permanent link">&para;</a></h2>
+<p>To properly connect to the server, you must use the updated VDMS Client (v0.0.21+) and the CA certificate, client key, and client certificates must be on the system hosting the client.
+There are a few additional parameters that should be provided to the client.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>use_tls</code></td>
+<td>Flag indicating whether to use TLS. Set this to True</td>
+</tr>
+<tr>
+<td><code>ca_cert_file</code></td>
+<td>Local path to the CA certificate used to sign certificates</td>
+</tr>
+<tr>
+<td><code>client_cert_file</code></td>
+<td>Local path to the client CSR for secure communication</td>
+</tr>
+<tr>
+<td><code>client_key_file</code></td>
+<td>Local path to the client private key for secure communication</td>
+</tr>
+</tbody>
+</table>
+<p>With the mTLS support, there are a few limitations:</p>
+<ul>
+<li>If <code>ca_cert_file</code> is not set, client authentication will be disabled.</li>
+<li>Both <code>client_cert_file</code> and <code>client_key_file</code> must be specified together, not one and not the other.</li>
+</ul>
+<p>Based on the generated files above, the files <code>ca_cert.pem</code>, <code>client_cert.pem</code>, and <code>client_key.pem</code> should be copied to a directory on the client system (hostname: <code>systemB.domain</code>).
+For the sake of this example, let's assume these files were copied to <code>&lt;local_path_to_parent_dir&gt;/auth_files</code>.
+To connect to the server on hostname <code>systemA.domain</code> using the default port (55555), use the following:
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">vdms</span>
+<span class="n">db</span> <span class="o">=</span> <span class="n">vdms</span><span class="o">.</span><span class="n">vdms</span><span class="p">(</span><span class="n">use_tls</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ca_cert_file</span><span class="o">=</span><span class="s2">&quot;&lt;local_path_to_parent_dir&gt;/auth_files/ca_cert.pem&quot;</span><span class="p">,</span>
+               <span class="n">client_cert_file</span><span class="o">=</span><span class="s2">&quot;&lt;local_path_to_parent_dir&gt;/auth_files/client_cert.pem&quot;</span><span class="p">,</span>
+               <span class="n">client_key_file</span><span class="o">=</span><span class="s2">&quot;&lt;local_path_to_parent_dir&gt;/auth_files/client_key.pem&quot;</span><span class="p">)</span>
+<span class="n">db</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;systemA.domain&quot;</span><span class="p">,</span> <span class="mi">55555</span><span class="p">)</span>
+</code></pre></div></p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../../Docker/" class="btn btn-neutral float-left" title="Docker"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../API-Description/" class="btn btn-neutral float-right" title="Description">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2025 Intel Corporation</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="http://github.com/IntelLabs/vdms" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../../Docker/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../../API-Description/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

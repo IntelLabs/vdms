@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://intellabs.github.io/vdms/guides/backends-and-handlers/Query-Handler-Development/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Query Handler Development - VDMS Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Query Handler Development";
+        var mkdocs_page_input_path = "guides/backends-and-handlers/Query-Handler-Development.md";
+        var mkdocs_page_url = "/vdms/guides/backends-and-handlers/Query-Handler-Development/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> VDMS Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Install/">Install</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Docker/">Docker</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../VDMS-mTLS-Support/">VDMS Mutual TLS Support</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API (v2.0.0++)</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../API-Description/">Description</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../ConfigFile/">ConfigFile</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Keywords/">Keywords</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Returned-Status/">Returned Status</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Schema/">Schema Definition</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Commands</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Basic Building Blocks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-constraints/">Constraints</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-link/">Link</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-operations/">Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-properties/">Properties</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-rectangle/">Rectangle</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-results/">Results</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Insert</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddBlob/">AddBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddBoundingBox/">AddBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddConnection/">AddConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddDescriptor/">AddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddDescriptorSet/">AddDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddEntity/">AddEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddImage/">AddImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddVideo/">AddVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoAdd/">NeoAdd</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoAddDescriptor/">NeoAddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoAddDescriptorSet/">NeoAddDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Query</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/ClassifyDescriptor/">ClassifyDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindBlob/">FindBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindBoundingBox/">FindBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindConnection/">FindConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindDescriptor/">FindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindDescriptorSet/">FindDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindEntity/">FindEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindFrames/">FindFrames</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindImage/">FindImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindVideo/">FindVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoFind/">NeoFind</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoFindDescriptor/">NeoFindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoFindDescriptorSet/">NeoFindDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Update</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateBlob/">UpdateBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateBoundingBox/">UpdateBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateConnection/">UpdateConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateEntity/">UpdateEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateImage/">UpdateImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateVideo/">UpdateVideo</a>
+                </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials & Guides</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" >Tutorials</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Simple-Tutorial/">Simple Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Image-Tutorial/">Image Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Descriptor-Tutorial/">Descriptor Tutorial</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >How-to Guides</a>
+    <ul class="current">
+                <li class="toctree-l2 current"><a class="reference internal current" >Backends & Query Handlers</a>
+    <ul class="current">
+                <li class="toctree-l3"><a class="reference internal" href="../Neo4J-Based-Scale-Out-VDMS/">Neo4j based Scale Out</a>
+                </li>
+                <li class="toctree-l3 current"><a class="reference internal current" href="#">Query Handler Development</a>
+    <ul class="current">
+    <li class="toctree-l4"><a class="reference internal" href="#overview">Overview</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#available-query-handlers">Available Query Handlers</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#selecting-query-handler">Selecting Query Handler</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#query-handler-architecture">Query Handler Architecture</a>
+    </li>
+    </ul>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Connectors & Orchestrations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../connectors-and-orchestrations/Run-Kafka-VDMS-Example/">Kafka Connectors for VDMS</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../connectors-and-orchestrations/Kubernetes-Orchestration/">Kubernetes Orchestration in VDMS</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../CSV-Plugin-for-CPP-Client/">CSV Plugin for C++ Client</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Deletion, Backup, & Restore</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../deletion-backup-and-restore/Auto-Deletion-of-Expired-Data/">Auto-Deletion of Expired Data</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../deletion-backup-and-restore/VDMS-Backup-and-Restoring-Options/">Backup and Restoring Options</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../deletion-backup-and-restore/Deletion-Capabilities/">Deletion Capabilities</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Descriptors</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../descriptors/Descriptor-Memory-Usage/">Descriptors Memory Usage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../descriptors/FLINNG-Library-and-Performance/">FLINNG Library and Performance</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Remote & User Defined Operations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../remote-and-udf-operations/Remote-Operations/">Remote Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../remote-and-udf-operations/User-Defined-Operations/">User Defined Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../remote-and-udf-operations/Dynamic-Metadata/">Dynamically Add Metadata</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Remote-Storage-in-VDMS/">Remote Storage</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Timing-Capability/">Timing Capability</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Interactive Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="https://deepwiki.com/IntelLabs/vdms">DeepWiki</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribute</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../contribute/Developer-Guide/">Developer Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Test Suite</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../contribute/VDMS-Test-Suite/">VDMS Test Suite Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../contribute/VDMS-Test-Script/">VDMS Test Script</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">VDMS Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Tutorials & Guides</li>
+          <li class="breadcrumb-item">How-to Guides</li>
+          <li class="breadcrumb-item">Backends & Query Handlers</li>
+      <li class="breadcrumb-item active">Query Handler Development</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="http://github.com/IntelLabs/vdms/blob/develop/docs/guides/backends-and-handlers/Query-Handler-Development.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="query-handler-development">Query Handler Development<a class="headerlink" href="#query-handler-development" title="Permanent link">&para;</a></h1>
+<p>This page is intended primarily for developers who may want to either modify existing query handlers (e.g. changing data and operations flow) or develop entirely new handlers from scratch, e.g. enabling a new type of metadata backend. The data information below provides a basic overview of the architecture and pointers to examples for developing your own query handler.</p>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>The VDMS query handler is the portion of VDMS that takes in client requests and does the "work" of converting that into metadata operations and coordinating with VCL for corresponding operations (e.g. Image resize, video format changes, etc.) on upload and download.</p>
+<p>Different query handlers can be selected at server start time to change the behaviors and flow of VDMS. Currently we only fully support PMGD backend, and have a "Hello World" example as an alternate backend for testing and demonstration purposes. We are exploring a Neo4J based metadata storage backend.</p>
+<h2 id="available-query-handlers">Available Query Handlers<a class="headerlink" href="#available-query-handlers" title="Permanent link">&para;</a></h2>
+<p>Currently there are only 2 available query handlers:</p>
+<ul>
+<li><code>pmgd</code>: This is the primary default handler for PMGD, fully supporting the primary API with a graph database backend, as well as support for autoreplicate and delete features.</li>
+<li><code>example</code>: This is a simple stub handler that simply echoes hello-world back to the caller regardless of the contents of the API.</li>
+</ul>
+<h2 id="selecting-query-handler">Selecting Query Handler<a class="headerlink" href="#selecting-query-handler" title="Permanent link">&para;</a></h2>
+<p>To select what query handler is used, inside the VDMS configuration file, add in
+<div class="highlight"><pre><span></span><code><span class="nt">&quot;query_handler&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;query_handler_name&quot;</span>
+</code></pre></div></p>
+<p>If none is specified, it will default to the PMGD based query handler.</p>
+<h2 id="query-handler-architecture">Query Handler Architecture<a class="headerlink" href="#query-handler-architecture" title="Permanent link">&para;</a></h2>
+<p><img alt="Query Handler Architecture" src="../../../images/query_handler_arch.png" /></p>
+<p>At an architectural level, the query handler takes in a connection object from the communication manager, extracts the message, and then proceeds to "process" it. This includes any operations with the VCL, writing to local storage, and interactions with any "backends" for operations such as metadata storage, and creating a response to send back.</p>
+<p>In practice we have created a base query handler class that allows derived classes to selectively inherit commonly used methods (e.g. "process connection") and requires <code>process_query</code> implementation to be valid. Process query is responsible for implementing all logic and calling relevant VDMS query operations, though as we shown in the QueryHandleExample class, the minimum valid query processing simply requires a valid protobuf (which can be written with JSON) be written to the response variable, and does not have any backend or VCL connections.</p>
+<h3 id="queryhandlerbase-front-end"><em>QueryHandlerBase (Front End)</em><a class="headerlink" href="#queryhandlerbase-front-end" title="Permanent link">&para;</a></h3>
+<p>The query handler frontend handles coordination between the communication manager, as well as implementing/calling any relevant operations dictated in the protobuf it has received.</p>
+<p>The QueryHandlerBase class is the common base from which all other query handler frontends are derived. It contains the following:
+* A virtual cleanup query method, which can be used as a helper to remove dangling images and videos from a failed transaction.
+* A pure virtual <code>process_query</code> method, which is where most the front end logic should be implemented.
+* And a virtual <code>process_connection</code> method to hand the receiving and sending of the protobufs to the communications manager. This can be inherited or optionally overridden.</p>
+<h3 id="queryhandler-initialization"><em>QueryHandler Initialization:</em><a class="headerlink" href="#queryhandler-initialization" title="Permanent link">&para;</a></h3>
+<p>Different query handler implementations may have static state affiliated with a particular class instance. For example, the PMGD handler initializes a special lookup map (<code>_rs_cmds</code>) to handle different operations. This initialization is called at server start. We’ll describe the various "touch points" in the following section which describes how to implement and integrate a new query handler in slightly more detail.</p>
+<h3 id="queryhandlerbackends"><em>QueryHandlerBackends:</em><a class="headerlink" href="#queryhandlerbackends" title="Permanent link">&para;</a></h3>
+<p>Backends add additional logic for interacting with like graph databases for metadata. For example, we have a separate PMGDQueryHandler which handles all interactions with the PMGD instance for storing graph metadata.</p>
+<p>Note that a backend is not necessarily required, as all logic may be included in the front end handler. However, we encourage developers to logically separate them to reduce code complexity.</p>
+<h3 id="queryhandler-example"><em>QueryHandler Example</em><a class="headerlink" href="#queryhandler-example" title="Permanent link">&para;</a></h3>
+<p>Implementing a query handler requires a few basic touch points.</p>
+<p>A derived class must be implemented, with minimally the <code>process_query</code> method implemented. A barebones example of this is shown with queryhandlerexample.h/queryhandlerexample.cc</p>
+<p>Any static state required for initialization should be called from the server.cc source file (you can see there is an if-else chain that selects the correct query handler).</p>
+<p>The communication manager will need to have the  query handler instantiation added to its selection logic (see the <code>process_queue</code> method).
+Finally, the CMakeLists.txt file will need to be updated to include the additional source files.</p>
+<p>All told you should expect to modify 2 files (server.cc and communication manager.cc) and add a minimum of 2 new source files (header + implementations of your derived class).</p>
+<p>As a final note, it is the responsibility of the query handler to ensure transactional semantics are maintained. That is, failures during processing of a VDMS command should lead to a roll back of all metadata and data changes.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../Neo4J-Based-Scale-Out-VDMS/" class="btn btn-neutral float-left" title="Neo4j based Scale Out"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../connectors-and-orchestrations/Run-Kafka-VDMS-Example/" class="btn btn-neutral float-right" title="Kafka Connectors for VDMS">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2025 Intel Corporation</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="http://github.com/IntelLabs/vdms" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../Neo4J-Based-Scale-Out-VDMS/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../../connectors-and-orchestrations/Run-Kafka-VDMS-Example/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

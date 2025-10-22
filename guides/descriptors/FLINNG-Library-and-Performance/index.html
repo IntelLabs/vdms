@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><link rel="canonical" href="https://intellabs.github.io/vdms/guides/descriptors/FLINNG-Library-and-Performance/" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>FLINNG Library and Performance - VDMS Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "FLINNG Library and Performance";
+        var mkdocs_page_input_path = "guides/descriptors/FLINNG-Library-and-Performance.md";
+        var mkdocs_page_url = "/vdms/guides/descriptors/FLINNG-Library-and-Performance/";
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> VDMS Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Getting Started</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Install/">Install</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Docker/">Docker</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../VDMS-mTLS-Support/">VDMS Mutual TLS Support</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">API (v2.0.0++)</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../API-Description/">Description</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../ConfigFile/">ConfigFile</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Keywords/">Keywords</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Returned-Status/">Returned Status</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../Schema/">Schema Definition</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Commands</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" >Basic Building Blocks</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-constraints/">Constraints</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-link/">Link</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-operations/">Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-properties/">Properties</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-rectangle/">Rectangle</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../blocks/Block-results/">Results</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Insert</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddBlob/">AddBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddBoundingBox/">AddBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddConnection/">AddConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddDescriptor/">AddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddDescriptorSet/">AddDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddEntity/">AddEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddImage/">AddImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/AddVideo/">AddVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoAdd/">NeoAdd</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoAddDescriptor/">NeoAddDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoAddDescriptorSet/">NeoAddDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Query</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/ClassifyDescriptor/">ClassifyDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindBlob/">FindBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindBoundingBox/">FindBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindConnection/">FindConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindDescriptor/">FindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindDescriptorSet/">FindDescriptorSet</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindEntity/">FindEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindFrames/">FindFrames</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindImage/">FindImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/FindVideo/">FindVideo</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoFind/">NeoFind</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoFindDescriptor/">NeoFindDescriptor</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/NeoFindDescriptorSet/">NeoFindDescriptorSet</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Update</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateBlob/">UpdateBlob</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateBoundingBox/">UpdateBoundingBox</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateConnection/">UpdateConnection</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateEntity/">UpdateEntity</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateImage/">UpdateImage</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../../commands/UpdateVideo/">UpdateVideo</a>
+                </li>
+    </ul>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Tutorials & Guides</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" >Tutorials</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Simple-Tutorial/">Simple Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Image-Tutorial/">Image Tutorial</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../tutorials/Descriptor-Tutorial/">Descriptor Tutorial</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" >How-to Guides</a>
+    <ul class="current">
+                <li class="toctree-l2"><a class="reference internal" >Backends & Query Handlers</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../backends-and-handlers/Neo4J-Based-Scale-Out-VDMS/">Neo4j based Scale Out</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../backends-and-handlers/Query-Handler-Development/">Query Handler Development</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Connectors & Orchestrations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../connectors-and-orchestrations/Run-Kafka-VDMS-Example/">Kafka Connectors for VDMS</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../connectors-and-orchestrations/Kubernetes-Orchestration/">Kubernetes Orchestration in VDMS</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../CSV-Plugin-for-CPP-Client/">CSV Plugin for C++ Client</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Deletion, Backup, & Restore</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../deletion-backup-and-restore/Auto-Deletion-of-Expired-Data/">Auto-Deletion of Expired Data</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../deletion-backup-and-restore/VDMS-Backup-and-Restoring-Options/">Backup and Restoring Options</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../deletion-backup-and-restore/Deletion-Capabilities/">Deletion Capabilities</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2 current"><a class="reference internal current" >Descriptors</a>
+    <ul class="current">
+                <li class="toctree-l3"><a class="reference internal" href="../Descriptor-Memory-Usage/">Descriptors Memory Usage</a>
+                </li>
+                <li class="toctree-l3 current"><a class="reference internal current" href="#">FLINNG Library and Performance</a>
+    <ul class="current">
+    <li class="toctree-l4"><a class="reference internal" href="#when-to-use-flinng-library-as-opposed-to-other-libraries-supported-by-vdms">When To Use FLINNG Library as Opposed to Other Libraries Supported by VDMS</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#flinng-library-limitations">FLINNG Library Limitations</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#distance-metrics-supported-by-flinng-library">Distance Metrics Supported by FLINNG Library</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#vdms-and-flinng-library-api">VDMS and FLINNG Library API</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#flinng-library-parameters">FLINNG Library Parameters</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#sample-of-performance">Sample of Performance</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#flinng-algorithm-overview">FLINNG Algorithm Overview</a>
+    </li>
+    <li class="toctree-l4"><a class="reference internal" href="#flinng-toy-example">FLINNG Toy Example</a>
+    </li>
+    </ul>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" >Remote & User Defined Operations</a>
+    <ul>
+                <li class="toctree-l3"><a class="reference internal" href="../../remote-and-udf-operations/Remote-Operations/">Remote Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../remote-and-udf-operations/User-Defined-Operations/">User Defined Operations</a>
+                </li>
+                <li class="toctree-l3"><a class="reference internal" href="../../remote-and-udf-operations/Dynamic-Metadata/">Dynamically Add Metadata</a>
+                </li>
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Remote-Storage-in-VDMS/">Remote Storage</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../Timing-Capability/">Timing Capability</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Interactive Guide</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="https://deepwiki.com/IntelLabs/vdms">DeepWiki</a>
+                  </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Contribute</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="reference internal" href="../../../contribute/Developer-Guide/">Developer Guide</a>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" >Test Suite</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../../contribute/VDMS-Test-Suite/">VDMS Test Suite Overview</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../../contribute/VDMS-Test-Script/">VDMS Test Script</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">VDMS Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+          <li class="breadcrumb-item">Tutorials & Guides</li>
+          <li class="breadcrumb-item">How-to Guides</li>
+          <li class="breadcrumb-item">Descriptors</li>
+      <li class="breadcrumb-item active">FLINNG Library and Performance</li>
+    <li class="wy-breadcrumbs-aside">
+          <a href="http://github.com/IntelLabs/vdms/blob/develop/docs/guides/descriptors/FLINNG-Library-and-Performance.md" class="icon icon-github"> Edit on GitHub</a>
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="flinng-library-and-vdms">FLINNG Library and VDMS<a class="headerlink" href="#flinng-library-and-vdms" title="Permanent link">&para;</a></h1>
+<p><strong>Filters to Identify Near-Neighbor Groups (FLINNG)</strong> is a near neighbor search algorithm, for more detailed description and results please refer to the paper <a href="https://arxiv.org/pdf/2106.11565.pdf">Practical Near Neighbor Search via Group Testing</a>.</p>
+<p>FLINNG is an indexing Library for feature vectors of D dimensions each. It provides functionality to add vectors, search and retrieve vectors and similarity search (return nearest neighbors) to a given query vector. It provides similar functionality to <a href="https://github.com/facebookresearch/faiss">FAISS library</a> supported by VDMS.</p>
+<h2 id="when-to-use-flinng-library-as-opposed-to-other-libraries-supported-by-vdms">When To Use FLINNG Library as Opposed to Other Libraries Supported by VDMS<a class="headerlink" href="#when-to-use-flinng-library-as-opposed-to-other-libraries-supported-by-vdms" title="Permanent link">&para;</a></h2>
+<p>FLINNG should be used when the number of dimensions in the dataset is huge (curse of dimensionality) (e.g., &gt;1000 dimension). In this case, dimension-reduction can hurt the accuracy of the returned result for near-neighbor search performance. FLINNG will have lower accuracy compared to other libraries when the number of dimensions is small.
+The library is also attractive when the expected total number of items in the index is huge (e.g., billions of vectors).</p>
+<h2 id="flinng-library-limitations">FLINNG Library Limitations<a class="headerlink" href="#flinng-library-limitations" title="Permanent link">&para;</a></h2>
+<ol>
+<li>FLINNG works best on high-dimensional search tasks where the neighbors are all above a (relatively high) similarity threshold. It is not the best choice for problems such as k-NN classification, where low-similarity results may be important.</li>
+<li>Current implementation of the library expects the dataset to be <strong>normalized</strong> (i.e., dataset ranges between 0 and 1),</li>
+</ol>
+<h2 id="distance-metrics-supported-by-flinng-library">Distance Metrics Supported by FLINNG Library<a class="headerlink" href="#distance-metrics-supported-by-flinng-library" title="Permanent link">&para;</a></h2>
+<p>FLINNG currently supports two distance metrics: Inner Product (cosine similarity) and Euclidean (L2) distance metric.<br><br></p>
+<h2 id="vdms-and-flinng-library-api">VDMS and FLINNG Library API<a class="headerlink" href="#vdms-and-flinng-library-api" title="Permanent link">&para;</a></h2>
+<p>FLINNG supports the same standard API for indexing, searching, and retrieving feature vectors similar to other libraries in VDMS. The entire list of API is defined in DescriptorSet.cc and DescriptorSet.h.</p>
+<p>1) <strong><code>VCL::DescriptorParams* param = new VCL:: DescriptorParams(numrows, cellsperrow,  numhashtables, hashespertable,  subhashbits, cutoff=6)</code>:</strong>
+Used to create a new set of parameters for the library to be passed to the construction function to create an index. Setting the parameters will be covered later in this wiki.</p>
+<p>2) <strong><code>DescriptorSet(path, dim, engine, distance metric,  *parameters)</code>:</strong>
+The construction function creates a new index collection (if it does not exist) to be stored in the path supplied, supporting feature vectors with <code>dim</code>, dimensions per descriptor. To use FLINNG, the engine should be set using <code>eng=flinng</code> (default is FaissFlat), with the specific metric of choice whether L2 or IP (default is L2), and the last argument is a pointer to the parameters created in step 1.</p>
+<p>3) <strong><code>add_and_store(float* X, n_descriptors, long* labels)</code>:</strong>
+Adds an array of vectors, <code>X</code>, (d dimensions each) to the index. The total number, <code>n_descriptors</code>, of items are added (i.e., total size of X=d*num). The original dataset is stored in parallel in a data structure for subsequent retrieval of original data (if needed), and the labels if provided will be stored as well.</p>
+<p>4) <strong><code>add(float* X, n_descriptors, long* labels)</code>:</strong>
+Same as above but it only indexes the descriptors and does not store the original data set. This is for use cases where the user is only interested in retrieving the IDs of top-k neighbors but not feature vectors corresponding to these themselves.</p>
+<p>4) <strong><code>search(float *Q, unsigned n, unsigned K, long *ids)</code>:</strong>
+Searches the index using an array of vectors <code>Q</code> (d dimensions each). The total number of queries <code>n</code> (i.e., total size of Q=d*n). Nearest <code>K</code> neighbors will be returned in the array of vectors <code>ids</code>.</p>
+<p>5) <strong><code>search_with_distance(float *Q, unsigned n, unsigned K, long *ids, float *distances)</code>:</strong>
+Similar to the search API but will also return the inner product (IP) or L2 distance, based on the metric defined when the index is created, of each of the nearest <code>K</code> neighbors in the array distances.</p>
+<p>6) <strong><code>radius_search(float* query, float radius, long * descriptors, float* distances)</code>:</strong>
+Radius search is not supported by FLINNG library.</p>
+<p>7) <strong><code>classify(float* descriptors, unsigned n, long* ids, unsigned quorum)</code>:</strong>
+Searches the index using an array of vectors <code>Q</code> (d dimensions each), the total number of queries <code>n</code> (i.e., total size of Q=d*n), and then return a label to each query (i.e., classify) which is corresponding to the majority vote of the labels among each query Nearest K neighbors.</p>
+<p>8) <strong><code>finalize_index()</code>:</strong>
+This function is called after finishing the insertion of items in an index (i.e., after using <code>add()</code> or <code>add_and_store()</code>) to prepare the index for query (i.e., <code>search()</code> or <code>search_with_diance()</code>). Data items can be inserted incrementally using as many invocations of <code>add()</code> (or <code>add_and_store()</code>) as needed, but for the query results to be correct the function <code>finalize_index()</code> must be called first. Otherwise, query results will not be correct. User does not have to call this function explicitly. When a search function is called, a flag is checked if the index has not been already finalized and will act accordingly</p>
+<p>9) <strong><code>write_index(const char *fname)</code>:</strong>
+Stores the index to a file.</p>
+<p>10) <strong><code>read_index(const char *fname)</code>:</strong>
+Reads an index from a file.
+<br><br></p>
+<h2 id="flinng-library-parameters">FLINNG Library Parameters<a class="headerlink" href="#flinng-library-parameters" title="Permanent link">&para;</a></h2>
+<p>FLINNG library parameters are defined in <code>DescriptorParams.h</code>. They can be set by the user before creating the index as we defined in the previous section. The default parameters are set for feature vectors of 4K dimensions and 10M total number of items in the index.  Users can refer to implementation details section (Section 6) in the paper <a href="https://arxiv.org/pdf/2106.11565.pdf">Practical Near Neighbor Search via Group Testing</a> for a discussion of the library parameters.</p>
+<p>The most important parameter to tune given a dataset is <code>num_rows</code>. The query time (and similarly indexing time) is linearly proportional to this parameter. The returned query accuracy is asymptotically increasing with  <code>num_rows</code>. Due to the nature of the algorithm that depends on hashing, it is not strictly increasing. Sometimes increasing <code>num_rows</code> can decrease the accuracy for that value, but if <code>num_rows</code> increased further it will regain back the accuracy.</p>
+<p>The <code>cells_per_row</code>, <code>num_hash_tables</code> and <code>hashes_per_table</code> will all affect the accuracy but the default parameters should work with most use cases.
+We are also working on a standalone VDMS autotune tool (will be released in the future) that can help guide users on how to set the parameters of the different libraries supported by VDMS (FAISS, FLINNG, etc.) given a dataset of certain dimensions and probability distribution. <br><br></p>
+<h2 id="sample-of-performance">Sample of Performance<a class="headerlink" href="#sample-of-performance" title="Permanent link">&para;</a></h2>
+<p><img alt="FLINNG Sample Performance" class="center" src="../../../images/FLINNG/performance.png" style="height:250px" /></p>
+<!-- <p align="center"><img src="../images/FLINNG/performance.png"></p> -->
+<!-- [[/images/FLINNG/performance.png|FLINNG Sample Performance]] -->
+<!-- <figure><img src="../images/FLINNG/performance.png"><figcaption>FLINNG Sample Performance</figcaption></figure> -->
+
+<p>Testing on YFCC100M dataset with 4K dimension each, the figure shows a typical query time for R1@1 accuracy for FLINNG compared to other algorithms. FLINNG was 3.4 times faster than FAISS (IVF Flat Index) at the 0.99 recall level on YFCC100M with an order of magnitude faster indexing time for the dataset.<br><br></p>
+<h2 id="flinng-algorithm-overview">FLINNG Algorithm Overview<a class="headerlink" href="#flinng-algorithm-overview" title="Permanent link">&para;</a></h2>
+<p>Since our goal is to perform an approximate search, dimensionality reduction is a reasonable strategy. However, dimensionality reduction is costly for ultra-high dimensional data. Dimensionality reduction can incur a performance penalty, so we may wish to perform the near neighbor search over the original metric space.</p>
+<p>FLINNG addresses the computational challenges of high-dimensional similarity search by presenting an index with fast construction time, low memory requirement, and zero query-time distance computations. The approach is to transform a near neighbor search problem into a group testing problem by designing a test that outputs “positive” when a group of points contains a near neighbor to a query. That is, each test answers an approximate membership query over its group.</p>
+<p>FLINNG combines two ideas (1) group testing with (2) locality-sensitive hashing (LSH). The basic concept here is to reduce near-neighbor-search problem to a group testing problem, where near neighbors are “positives,” and far neighbors as “negatives,”. Then do a series of membership queries using group testing to refine our set of near neighbors to the required number.<br><br></p>
+<h3 id="locality-sensitive-hashing-lsh"><strong>Locality-Sensitive Hashing (LSH):</strong><a class="headerlink" href="#locality-sensitive-hashing-lsh" title="Permanent link">&para;</a></h3>
+<p>A hash function <code>h(x) -&gt; {1, ..., R}</code> is a function that maps an input <code>x</code> to an integer in a given range. Traditional hash functions (e.g., CRC, murmur hash, etc.) output will be completely uniform to minimize collisions (two inputs having the same hash) across inputs.</p>
+<p><img alt="Locality Sensitive Hashing" src="../../../images/FLINNG/lsh.png" /></p>
+<!-- [[/images/FLINNG/lsh.png|]] -->
+<!-- <figure><img src="images/FLINNG/lsh.png"><figcaption>Locality Sensitive Hashing</figcaption></figure> -->
+
+<p>Locality sensitive hash (LSH) similarly uses a hash to map inputs to an integer (or a bucket index), however, LSH hash functions are specifically designed so that hash value collisions are more likely for two input values that are similar or close together (within a certain distance, e.g., cosine, hamming, Euclidean, etc.). The best hashing function to be used is domain-specific and depends on the distance metric and the nature of the dataset (dimension size, dense, sparse, etc.) <br><br></p>
+<h3 id="distance-sensitive-bloom-filter-using-lsh"><strong>Distance Sensitive Bloom Filter Using LSH:</strong><a class="headerlink" href="#distance-sensitive-bloom-filter-using-lsh" title="Permanent link">&para;</a></h3>
+<p><img alt="Bloom Filter" src="../../../images/FLINNG/bloom.png" /></p>
+<!-- <figure><img src="images/FLINNG/bloom.png"><figcaption>Bloom Filter</figcaption></figure> -->
+
+<p>A Bloom filter is a widely used data structure for representing a set <code>S</code> and answering membership queries "Is <code>x</code> in <code>S</code>?" with allowing some false positive. As shown in the figure, Bloom filters use hash functions to set bits in one or more vectors of bits. Given a set <code>S</code>, each item in <code>S</code> is hashed and the bits corresponding to each element are set in the bloom filter vectors. When answering a membership query for a new input <code>X</code>, it is hashed using the same hash functions and the indices pointing to the hash functions are checked. If all the locations are set to 1, then with a very high probability <code>X</code> belongs to the set <code>S</code>. If any of the locations is 0, then with probability=100%, this item does not belong to the set. As shown in the figure, all bits corresponding to the tree input are 1's which indicates that the tree is a member of the set with a very high probability. Because of hash collisions, false-positives are possible but false-negatives are not possible. The false positive rate is a function of the randomness of the values generated by the hash functions, the total number of items in a set <code>S</code>, number of hash functions used, and the length of the bloom filter.</p>
+<p><img alt="Distance Sensitive Bloom Filter" src="../../../images/FLINNG/distancebloom.png" /></p>
+<!-- <figure><img src="images/FLINNG/distancebloom.png"><figcaption>Distance Sensitive Bloom Filter</figcaption></figure> -->
+
+<p>Kirsch et. al. (<a href="https://epubs.siam.org/doi/10.1137/1.9781611972863.4">“Distance-sensitive bloom filters”. In ALENEX'06</a>) presented an extension of the traditional Bloom filter using LSH. Distance-sensitive bloom filters replace regular hash functions in the traditional bloom filters with LSH functions and answer queries of the form, “Is <code>x</code> close to an element of <code>S</code>?”. The distance-sensitive Bloom structure consists of <code>m</code> binary arrays that are each indexed by an LSH function. When using LSH, the relative Hamming distance between two Bloom filters (of the same size and created with the same hash functions) can be used as a measure of the similarity of the underlying sets. As shown in the figure, when using a tree as an input (different than the original tree but has some similarity) and using LSH hashing functions, the number of locations set compared to the original tree is larger than when using a car as input and compare that with the original tree (4 out of 5 in the case of a similar tree and 1 out of 5 in the case of a car which has no similarity). As a result, using a fixed threshold (e.g., t ≤ m of the bits are set), distance-sensitive bloom filters can answer similarity membership queries.
+<br><br></p>
+<h3 id="group-testing-gt"><strong>Group Testing (GT):</strong><a class="headerlink" href="#group-testing-gt" title="Permanent link">&para;</a></h3>
+<p><img alt="Group Testing" src="../../../images/FLINNG/grouptesting.png" /></p>
+<!-- <figure><img src="images/FLINNG/grouptesting.png"><figcaption>Group Testing</figcaption></figure> -->
+
+<p>The idea of Group Testing (GT) is to identify the set of defective items in a set of objects. Typically, the number of defective items is &lt;&lt; than the total set of objects. The aim is to perform detection with the fewest possible number of tests without the need to test each object by itself. GT will randomly group all N objects into P pools and then test at the pool level with one test “Does the pool contain at least one defective?”. A pool test corresponds to an OR function among the variables of the group, i.e., it returns 1 if any of the pool members is 1 and returns 0 when all pool members are 0. As shown in the figure, all members of a defective pool are suspected as defective. Repeating the random pooling of objects multiple times and taking the intersection of defective pools, the defective items can be identified. The testing stops when the required size of the defective set is achieved or it remains constant without shrinking for a threshold of subsequent pooled tests.
+<br><br></p>
+<h2 id="flinng-toy-example">FLINNG Toy Example<a class="headerlink" href="#flinng-toy-example" title="Permanent link">&para;</a></h2>
+<p>FLINNG combined the ideas of distance-sensitive bloom filter with group testing to answer the  KNN problem. It uses a distance-sensitive bloom filter to identify a set of M neighbors and then use group testing to shrink the M down to K. To explain the high-level idea of the FLINNG algorithm, we can use a toy example for a KNN query on a very small dataset.</p>
+<p><strong>1) Problem Statement:</strong></p>
+<p><img alt="Problem Statement" src="../../../images/FLINNG/problemstatement.png" /></p>
+<!-- <figure><img src="images/FLINNG/problemstatement.png"><figcaption>Problem Statement</figcaption></figure> -->
+
+<p>As shown in the figure, if we assume that the original dataset has 6 items, then given a query <code>X</code>, we want to return the closest (<code>K=1</code>) item to it in the dataset (blue dot shown in the figure).</p>
+<p><strong>2) Indexing in a distance-sensitive Bloom filter:</strong></p>
+<p><img alt="Indexing" src="../../../images/FLINNG/indexing.png" /></p>
+<!-- <figure><img src="images/FLINNG/indexing.png"><figcaption>Indexing</figcaption></figure> -->
+
+<p>FLINNG creates random pools of the data items and indexes them in an array of distance-sensitive bloom filters using LSH hash functions. As shown in the figure in the toy example, a random 3 pools (2 items each) are created, then each pool (red, green, and blue) of items is inserted in its distinct distance-sensitive bloom filter.</p>
+<p><strong>3) Query with X, which Pools are suspected to have close neighbors to X:</strong></p>
+<p><img alt="Query" src="../../../images/FLINNG/query.png" /></p>
+<!-- <figure><img src="images/FLINNG/query.png"><figcaption>Query</figcaption></figure> -->
+
+<p>Given a query <code>X</code>, and using the same LSH hashing functions, <code>X</code> is checked across each distance-sensitive bloom filter and the pool of items that returns positive will contain a neighbor (similar enough) item to <code>X</code>. As shown in the figure, in the toy example, when the green pool returns as positive, the two items who are members in the green pool are suspected to be close neighbors to <code>X</code>.</p>
+<p><strong>4) Repeating with a new set of random pools</strong></p>
+<p><img alt="Repeating Query" src="../../../images/FLINNG/repeat.png" /></p>
+<!-- <figure><img src="images/FLINNG/repeat.png"><figcaption>Repeating Query</figcaption></figure> -->
+
+<p>Repeating steps 1-3 across a new set of random pooling of items, to create sets of "suspected" close neighbors. For example, in the figure, with a new different random pooling of items a new set of suspects (red pool in the figure) are identified as possible neighbors of <code>X</code>.</p>
+<p><strong>5) Group Testing to find the set of K nearest neighbors: (I.e., frequency counting)</strong></p>
+<p><img alt="Frequency Counting" src="../../../images/FLINNG/intersection.png" /></p>
+<!-- <figure><img src="images/FLINNG/intersection.png"><figcaption>Frequency Counting</figcaption></figure> -->
+
+<p>As previously discussed, using the concept of group testing, the pools of suspected neighbors are intersected together until <code>K</code> neighbors are identified. As shown in the figure, in the toy example, intersecting the two suspected pools out of the two iterations of random pooling, the nearest neighbor is the common item that is repeated across the two pools (blue dot).</p>
+<p><strong>6) Putting everything Together</strong></p>
+<p><img alt="Everything Together" src="../../../images/FLINNG/all.png" /></p>
+<!-- <figure><img src="images/FLINNG/all.png"><figcaption>Everything Together</figcaption></figure> -->
+
+<p>Although for the toy example we described FLINNG using a sequential set of rounds of tests, random pooling and test for neighbors can be performed in parallel. In general, FLINNG split a given dataset <code>D</code> into a set of groups, which we visualize as a <code>B × R</code> grid of cells. FLINNG randomly distributes the item in <code>D</code> across the <code>B</code> cells (pools) in each row, so that each cell has the same number of points. This can be done by randomly permuting the elements of <code>D</code> and assigning blocks of <code>N_b</code> elements to each cell using modulo hashing.</p>
+<p>Given a query, the algorithm produces a <code>B × R</code> array of group test results that can be efficiently decoded to identify the nearest neighbors. To query the index with a point <code>y</code>, FLINNG begin by querying each classifier (the classifier here is a distance-sensitive bloom filter). If <code>Cr,b(y) = 1</code>, then at least one of the points in <code>N_b</code> has a high similarity to <code>y</code>. FLINNG collects all of these “candidate points” by taking the union of the sets for which <code>Cr,b(y) = 1</code>. It repeats this process for each of the <code>R</code> repetitions to obtain <code>R</code> candidate sets, one for each column in the grid.</p>
+<p>With high probability, each candidate set contains the true neighbors, but it may also have some non-neighbors that were included in <code>N_b</code> by chance. To filter out these points, it intersects the candidate sets (group testing) to obtain the approximate near neighbor set <code>K</code>. In general, each repetition reduces the number of candidates by a factor of <code>1/B</code>, which decreases exponentially with the number of repetitions. FLINNG progressively rules out more and more candidates until it is left with only the near neighbors.
+<br></p>
+<p><strong>The advantage of FLINNG is that it identifies the near neighbors using group testing, without explicitly storing the data or performing any distance computations. Thus, it is independent of the original dimension of the data (only the hashing cost is proportional to the data dimension).</strong></p>
+<!-- https://github.com/tonyzhang617/FLINNG/wiki -->
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../Descriptor-Memory-Usage/" class="btn btn-neutral float-left" title="Descriptors Memory Usage"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../../remote-and-udf-operations/Remote-Operations/" class="btn btn-neutral float-right" title="Remote Operations">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+      <p>Copyright &copy; 2025 Intel Corporation</p>
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+        <span>
+          <a href="http://github.com/IntelLabs/vdms" class="fa fa-github" style="color: #fcfcfc"> GitHub</a>
+        </span>
+    
+    
+      <span><a href="../Descriptor-Memory-Usage/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../../remote-and-udf-operations/Remote-Operations/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
