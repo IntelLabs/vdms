@@ -105,38 +105,34 @@ sudo make install
 ```
 <br>
 
-#### **Protobuf v25.8 (4.25.8)**
-Install Protobuf (C++ and Python) which requires GoogleTest and Abseil C++ as dependencies.
+#### **GoogleTest**
+Install GoogleTest version used in Protobuf v29.5:
 ```bash
-PROTOBUF_VERSION="25.8"
-python3 -m pip install --no-cache-dir "protobuf==4.${PROTOBUF_VERSION}"
-
-git clone -b v${PROTOBUF_VERSION} --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
-
-cd $VDMS_DEP_DIR/protobuf/third_party/googletest
-mkdir build && cd build
+GOOGLETEST_VERSION="4c9a3bb62bf3ba1f1010bf96f9c8ed767b363774"
+git clone https://github.com/google/googletest.git $VDMS_DEP_DIR/googletest && \
+cd $VDMS_DEP_DIR/googletest
+git checkout "${GOOGLETEST_VERSION}"
+mkdir build && cd build/
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 ..
 make ${BUILD_THREADS}
 sudo make install
+```
+<br>
 
-cd $VDMS_DEP_DIR/protobuf/third_party/abseil-cpp
-mkdir build && cd build
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
-    -DCMAKE_INSTALL_PREFIX=/usr/local -DABSL_BUILD_TESTING=ON \
-    -DABSL_USE_EXTERNAL_GOOGLETEST=ON \
-    -DABSL_FIND_GOOGLETEST=ON -DCMAKE_CXX_STANDARD=17 ..
-make ${BUILD_THREADS}
-sudo make install
-sudo ldconfig /usr/local/lib
+#### **Protobuf v29.5 (5.29.5)**
+Install Protobuf (C++ and Python) with its dependencies.
+```bash
+PROTOBUF_VERSION="29.5"
+python3 -m pip install --no-cache-dir "protobuf==5.${PROTOBUF_VERSION}"
 
+git clone -b v${PROTOBUF_VERSION} --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
 cd $VDMS_DEP_DIR/protobuf
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
+cmake -Dprotobuf_FORCE_FETCH_DEPENDENCIES=ON \
+    -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DCMAKE_CXX_STANDARD=17 -Dprotobuf_BUILD_SHARED_LIBS=ON \
-    -Dprotobuf_ABSL_PROVIDER=package \
-    -Dprotobuf_BUILD_TESTS=ON \
-    -Dabsl_DIR=/usr/local/lib/cmake/absl .
+    -Dprotobuf_BUILD_TESTS=ON .
 make ${BUILD_THREADS}
 sudo make install
 ```

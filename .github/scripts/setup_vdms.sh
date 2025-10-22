@@ -176,7 +176,7 @@ export PATH="$VIRTUAL_ENV/bin:$PATH"
 
 if [ "${BUILD_COVERAGE}" = "ON" ]; then
     apt-get install -y --no-install-suggests --no-install-recommends gdb
-    python -m pip install --no-cache-dir "gcovr>=7.0"
+    python -m pip install --no-cache-dir "gcovr==8.4"
     curl -L -o ${WORKSPACE}/minio https://dl.min.io/server/minio/release/linux-amd64/minio
     chmod +x ${WORKSPACE}/minio
     mkdir -p ${WORKSPACE}/minio_files/minio-bucket
@@ -194,11 +194,12 @@ AUTOCONF_VERSION="2.71"
 AWS_SDK_VERSION="1.11.336"
 CMAKE_VERSION="v3.28.5"
 FAISS_VERSION="v1.9.0"
+GOOGLETEST_VERSION="4c9a3bb62bf3ba1f1010bf96f9c8ed767b363774"
 LIBEDIT_VERSION="20230828-3.1"
 NUMPY_MIN_VERSION="1.26.0"
 OPENCV_VERSION="4.9.0"
 PEG_VERSION="0.1.19"
-PROTOBUF_VERSION="25.8"
+PROTOBUF_VERSION="29.5"
 TILEDB_VERSION="2.14.1"
 VALIJSON_VERSION="v0.6"
 
@@ -213,9 +214,10 @@ make ${BUILD_THREADS}
 make install
 
 
-# INSTALL PROTOBUF & ITS DEPENDENCIES
-git clone -b "v${PROTOBUF_VERSION}" --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
-cd $VDMS_DEP_DIR/protobuf/third_party/googletest
+# GOOGLETEST
+git clone https://github.com/google/googletest.git $VDMS_DEP_DIR/googletest
+cd $VDMS_DEP_DIR/googletest
+git checkout "${GOOGLETEST_VERSION}"
 mkdir build && cd build/
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
@@ -223,22 +225,14 @@ cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
 make ${BUILD_THREADS}
 make install
 
-cd $VDMS_DEP_DIR/protobuf/third_party/abseil-cpp
-mkdir build && cd build
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
-    -DCMAKE_INSTALL_PREFIX=/usr/local -DABSL_BUILD_TESTING=ON \
-    -DABSL_USE_EXTERNAL_GOOGLETEST=ON \
-    -DABSL_FIND_GOOGLETEST=ON -DCMAKE_CXX_STANDARD=17 ..
-make ${BUILD_THREADS}
-make install
-ldconfig /usr/local/lib
 
+# INSTALL PROTOBUF & ITS DEPENDENCIES
+git clone -b "v${PROTOBUF_VERSION}" --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
 cd $VDMS_DEP_DIR/protobuf
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
+cmake -Dprotobuf_FORCE_FETCH_DEPENDENCIES=ON \
+    -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DCMAKE_CXX_STANDARD=17 -Dprotobuf_BUILD_SHARED_LIBS=ON \
-    -Dprotobuf_ABSL_PROVIDER=package \
-    -Dprotobuf_BUILD_TESTS=ON \
-    -Dabsl_DIR=/usr/local/lib/cmake/absl .
+    -Dprotobuf_BUILD_TESTS=ON .
 make ${BUILD_THREADS}
 make install
 
@@ -255,7 +249,7 @@ make install
 
 # INSTALL PYTHON PACKAGES
 python -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "coverage>=7.3.1" \
-    "protobuf==4.${PROTOBUF_VERSION}" "cryptography>=44.0.1"
+    "protobuf==5.${PROTOBUF_VERSION}" "cryptography>=44.0.1"
 
 
 # INSTALL VALIJSON
