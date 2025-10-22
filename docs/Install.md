@@ -105,12 +105,13 @@ sudo make install
 ```
 <br>
 
-#### **GoogleTest v1.17.0**
-Install GoogleTest v1.17.0:
+#### **GoogleTest**
+Install GoogleTest version used in Protobuf v29.5:
 ```bash
-GOOGLETEST_VERSION="v1.17.0"
-git clone -b "${GOOGLETEST_VERSION}" https://github.com/google/googletest.git $VDMS_DEP_DIR/googletest && \
+GOOGLETEST_VERSION="4c9a3bb62bf3ba1f1010bf96f9c8ed767b363774"
+git clone https://github.com/google/googletest.git $VDMS_DEP_DIR/googletest && \
 cd $VDMS_DEP_DIR/googletest
+git checkout "${GOOGLETEST_VERSION}"
 mkdir build && cd build/
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
@@ -124,7 +125,7 @@ sudo make install
 Install Protobuf (C++ and Python) with its dependencies.
 ```bash
 PROTOBUF_VERSION="29.5"
-python3 -m pip install --no-cache-dir "protobuf==4.${PROTOBUF_VERSION}"
+python3 -m pip install --no-cache-dir "protobuf==5.${PROTOBUF_VERSION}"
 
 git clone -b v${PROTOBUF_VERSION} --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
 cd $VDMS_DEP_DIR/protobuf
