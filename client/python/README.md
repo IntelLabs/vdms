@@ -24,4 +24,4 @@ db = vdms.vdms()
 db.connect(HOST, PORT)
 ```
 
-For more information, visit the VDMS [Wiki](https://github.com/IntelLabs/vdms/wiki).
+For more information, visit [VDMS Documentation](https://intellabs.github.io/vdms/).

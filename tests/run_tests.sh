@@ -107,18 +107,18 @@ function execute_commands() {
     exit 0
 }
 
-# Cleanup function to kill those processes which were started by the script
+# Cleanup function to stop those processes which were started by the script
 # Also it deletes those directories created by the script (or its tests)
 function cleanup() {
 
     exit_value=$?
 
-    echo "Killing the udf_server and udf_local"
+    echo "Stopping the udf_server and udf_local"
     pkill -9 -f udf_server.py || true
     pkill -9 -f udf_local.py || true
     pkill -9 -f prep-tls-tests.py || true
 
-    echo "Killing the vdms server and client"
+    echo "Stopping the vdms server and client"
     kill -9 $cpp_unittest_pid || true
     kill -9 $client_test_pid || true
 

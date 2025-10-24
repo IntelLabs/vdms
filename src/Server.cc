@@ -96,7 +96,13 @@ Server::Server(std::string config_file, std::string cert_file,
 void Server::setup_query_handler() {
 
   std::string qhandler_type;
+  std::string storage_tgt;
   qhandler_type = cfg->get_string_value("query_handler", DEFAULT_QUERY_HANDLER);
+  storage_tgt = cfg->get_string_value("storage_type", "local");
+
+  if(storage_tgt == "aws"){
+      global_s3_connection = instantiate_connection();
+  }
 
   // Select the correct logic for query handler instantiation
   // This is pretty clunky ATM and wont scale beyond a few handlers, but should
@@ -146,10 +152,15 @@ void Server::setup_query_handler() {
   } else if (qhandler_type == "example") {
     QueryHandlerExample::init();
   } else if (qhandler_type == "neo4j") {
+
+      if(storage_tgt != "aws"){
+          printf("Local Storage Currently Unsupported for Neo4J! Exiting...\n");
+          exit(1);
+      }
+
     printf("Setting up Neo4j handler...\n");
     _autoreplicate_settings.server_port =
         cfg->get_int_value("port", DEFAULT_PORT);
-    global_s3_connection = instantiate_connection();
     QueryHandlerNeo4j::init();
   } else {
     printf("Unrecognized handler: \"%s\", exiting!\n", qhandler_type.c_str());
@@ -196,15 +207,15 @@ void Server::auto_replicate_interval() {
   }
   try {
     if (_autoreplicate_settings.autoreplicate_interval ==
-        Disable_Auto_Replicate) {
+        Deactivate_Auto_Replicate) {
       replication_period =
-          -1; // this is defualt value of disableing auto-replicate feature
+          -1; // this is defualt value of deactivateing auto-replicate feature
     }
 
     if (_autoreplicate_settings.autoreplicate_interval <
-        Disable_Auto_Replicate) {
+        Deactivate_Auto_Replicate) {
       replication_period =
-          Disable_Auto_Replicate; // this is defualt value of disableing
+          Deactivate_Auto_Replicate; // this is defualt value of deactivateing
                                   // auto-replicate feature
       throw std::runtime_error(
           "Error: auto-replication interval must be a positive number.");

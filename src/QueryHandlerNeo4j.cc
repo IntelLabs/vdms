@@ -58,6 +58,7 @@ tbb::concurrent_unordered_map<std::string, int> NeoDescriptorsCommand::_desc_set
 
 void QueryHandlerNeo4j::init() {
   DescriptorsManager::init();
+  VDMSConfig *cfg = VDMSConfig::instance();
 
   _rs_cmds["NeoAdd"] = new Neo4jNeoAdd();
   _rs_cmds["NeoFind"] = new Neo4jNeoFind();
@@ -74,7 +75,7 @@ void QueryHandlerNeo4j::init() {
   char *pass = getenv("NEO4J_PASS");
 
   uint_fast32_t flags = NEO4J_INSECURE;
-  int nr_conns = 32; //TODO update to be configurable
+  int nr_conns = cfg->get_int_value("neo4j_conn_pool_sz", 32);
 
   neoconn_pool = new BackendNeo4j(nr_conns, (char *)tgtdb, user, pass, flags);
 
@@ -185,63 +186,75 @@ void QueryHandlerNeo4j::process_query(protobufs::queryMessage &proto_query,
   Json::Value json_responses;
   Json::Value cmd_result;
 
+  std::vector<std::string> images_log;
+
   Json::Value root;
   int blob_count = 0;
   bool error = false;
 
-  rc = parse_commands(proto_query, root);
-  // begin neo4j transaction
-  tx = neoconn_pool->open_tx(conn, 10000, "w");
-  for (int j = 0; j < root.size(); j++) {
-    Json::Value neo4j_resp;
-    std::string cypher;
+  try {
+    rc = parse_commands(proto_query, root);
+    // begin neo4j transaction
+    tx = neoconn_pool->open_tx(conn, 10000, "w");
+    for (int j = 0; j < root.size(); j++) {
+      Json::Value neo4j_resp;
+      std::string cypher;
 
-    Json::Value &query = root[j];
-    std::string cmd = query.getMemberNames()[0];
+      Json::Value &query = root[j];
+      std::string cmd = query.getMemberNames()[0];
 
 
-    if (_rs_cmds.count(cmd) == 0) {
-        std::cout<<"Command: " << cmd << "Does not exist!" << std::endl;
+      if (_rs_cmds.count(cmd) == 0) {
+          std::cout<<"Command: " << cmd << "Does not exist!" << std::endl;
+      }
+
+      Neo4jCommand *rscmd = _rs_cmds[cmd];
+      cypher = query[cmd]["cypher"].asString();
+
+      const std::string &blob =
+          rscmd->need_blob(query) ? proto_query.blobs(blob_count++) : "";
+
+      rc = rscmd->data_processing(cypher, query, blob, 0, cmd_result);
+      if (rc != 0) {
+        error = true;
+        proto_res.set_json(fastWriter.write(cmd_result));
+        break;
+      }
+      if (cmd_result.isMember("image_added")) {
+        images_log.push_back(cmd_result["image_added"].asString());
+      }
+      res_stream = neoconn_pool->run_in_tx((char *)cypher.c_str(), tx);
+      neo4j_resp = neoconn_pool->results_to_json(res_stream);
+      query["cp_result"] = cmd_result;
+      Json::Value resp_retval = rscmd->construct_responses(neo4j_resp, query, proto_res, blob);
+      //THIS IS VERY CLUNKY and confusing, NEEDS TO BE REFACTORED
+      if (neo4j_resp.isMember("metadata_res") && (cmd == "NeoAdd" || cmd == "NeoFind")) {
+          resp_retval["metadata_res"] = neo4j_resp["metadata_res"];
+      }
+      json_responses.append(resp_retval);
+
+
+    }
+      proto_res.set_json(fastWriter.write(json_responses));
+    // commit neo4j transaction, needs to be updated in future to account for
+    // errors on response construction
+    if (error == false) {
+      rc = neoconn_pool->commit_tx(tx);
+
+      if(rc != 0){
+          printf("Warning! Transaction Error: %d\n", rc);
+          exit(1);
+      }
+
     }
 
-    Neo4jCommand *rscmd = _rs_cmds[cmd];
-    cypher = query[cmd]["cypher"].asString();
-
-    const std::string &blob =
-        rscmd->need_blob(query) ? proto_query.blobs(blob_count++) : "";
-
-    rc = rscmd->data_processing(cypher, query, blob, 0, cmd_result);
-    if (rc != 0) {
-      error = true;
-      proto_res.set_json(fastWriter.write(cmd_result));
-      break;
+    neoconn_pool->put_conn(conn);
+  } catch(...) {
+    VCL::RemoteConnection *connection = get_existing_connection();
+    for (const std::string image : images_log) {
+      connection->Remove_Object(image);
     }
-    res_stream = neoconn_pool->run_in_tx((char *)cypher.c_str(), tx);
-    neo4j_resp = neoconn_pool->results_to_json(res_stream);
-    query["cp_result"] = cmd_result;
-    Json::Value resp_retval = rscmd->construct_responses(neo4j_resp, query, proto_res, blob);
-    //THIS IS VERY CLUNKY and confusing, NEEDS TO BE REFACTORED
-    if (neo4j_resp.isMember("metadata_res") && (cmd == "NeoAdd" || cmd == "NeoFind")) {
-        resp_retval["metadata_res"] = neo4j_resp["metadata_res"];
-    }
-    json_responses.append(resp_retval);
-
-
   }
-    proto_res.set_json(fastWriter.write(json_responses));
-  // commit neo4j transaction, needs to be updated in future to account for
-  // errors on response construction
-  if (error == false) {
-    rc = neoconn_pool->commit_tx(tx);
-
-    if(rc != 0){
-        printf("Warning! Transaction Error: %d\n", rc);
-        exit(1);
-    }
-
-  }
-
-  neoconn_pool->put_conn(conn);
 }
 
 int QueryHandlerNeo4j::parse_commands(

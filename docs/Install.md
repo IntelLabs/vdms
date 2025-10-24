@@ -1,8 +1,11 @@
 # Installation
 Here is the detailed process of installation of VDMS dependencies.
 
+
 ## Dependencies
 To install VDMS, we must install the necessary dependencies via apt, github, and pip (Python 3.9+).
+<br>
+
 
 ### Install Debian/Ubuntu Packages
 Here we will install the Debian/Ubuntu packages.
@@ -20,42 +23,44 @@ sudo apt-get install -y --no-install-suggests --no-install-recommends \
     libtiff-dev libtiff5-dev libtool libwebsockets-dev libzip-dev linux-libc-dev mpich \
     pkg-config procps software-properties-common swig uncrustify unzip uuid-dev
 ```
+<br>
 
 #### **Install JPEG package**
-Please install the JPEG package based on the OS platform being used:
-* ***Debian 10+:*** `sudo apt-get install -y libjpeg62-turbo-dev`
-* ***Ubuntu 20.04+:*** `sudo apt-get install -y libjpeg8-dev`
-
+Please install the JPEG package based on the OS platform being used:<br>
+* ***Debian 10+:*** `sudo apt-get install -y libjpeg62-turbo-dev`<br>
+* ***Ubuntu 20.04+:*** `sudo apt-get install -y libjpeg8-dev`<br>
+<br>
 
 #### **Install Package for C++ bindings**
-Please install the package for C++ bindings for libzmq (headers) based on the OS platform being used:
-* ***Debian 12+:*** `sudo apt-get install -y cppzmq-dev`
-* ***Debian 10-11, Ubuntu 20.04+:*** `sudo apt-get install -y libzmq3-dev`
-
+Please install the package for C++ bindings for libzmq (headers) based on the OS platform being used:<br>
+* ***Debian 12+:*** `sudo apt-get install -y cppzmq-dev`<br>
+* ***Debian 10-11, Ubuntu 20.04+:*** `sudo apt-get install -y libzmq3-dev`<br>
+<br>
 
 #### **Install OpenJDK Development Kit (JDK)**
-Please install the headless OpenJDK Development Kit (JDK) based on the OS platform being used:
-* ***Debian 12+, Ubuntu 22.04+:*** `sudo apt-get install -y openjdk-17-jdk-headless`
-* ***Debian 10-11, Ubuntu 20.04:*** `sudo apt-get install -y openjdk-11-jdk-headless`
-
+Please install the headless OpenJDK Development Kit (JDK) based on the OS platform being used:<br>
+* ***Debian 12+, Ubuntu 22.04+:*** `sudo apt-get install -y openjdk-17-jdk-headless`<br>
+* ***Debian 10-11, Ubuntu 20.04:*** `sudo apt-get install -y openjdk-11-jdk-headless`<br>
+<br>
 
 #### **Install Parallelism library for C++ - runtime files**
-Please install the package for parallelism library for C++ - runtime files based on the OS platform being used:
-* ***Debian 12+, Ubuntu 22.04+:*** `sudo apt-get install -y libtbbmalloc2`
-* ***Debian 10-11, Ubuntu 20.04:*** `sudo apt-get install -y libtbb2`
+Please install the package for parallelism library for C++ - runtime files based on the OS platform being used:<br>
+* ***Debian 12+, Ubuntu 22.04+:*** `sudo apt-get install -y libtbbmalloc2`<br>
+* ***Debian 10-11, Ubuntu 20.04:*** `sudo apt-get install -y libtbb2`<br>
 <br>
+
 
 ### Install Remaining Dependencies
 Here we assume `$VDMS_DEP_DIR` is the directory for installing additional dependencies.
 This directory is user-defined but here we use `/dependencies`.
 These instructions assume you have full permissions to your system.
-***NOTE:*** If running as ***root***, remove `sudo` where applicable.
+If running as ***root***, remove `sudo` where applicable.
 ```bash
 VDMS_DEP_DIR=/dependencies  # Set to any directory
 BUILD_THREADS="-j`nproc`"
 mkdir -p $VDMS_DEP_DIR
 ```
-
+<br>
 
 #### Python3 Packages
 It is expected that you have Python3.9 or higher installed on your system.
@@ -75,7 +80,7 @@ If you prefer, you can install the the Python 3 version available on the OS plat
 sudo apt-get install -y python3-dev python3-pip
 ```
 
-***NOTE:*** If multiple versions of Python 3 are present on your system, verify you are using Python3.9 or higher. You can specify the specific verison and set an alias for `python` and/or `python3` to easily use the desired python version. This can be done using the following:
+***NOTE:*** If multiple versions of Python 3 are present on your system, verify you are using Python3.9 or higher. You can specify the specific version and set an alias for `python` and/or `python3` to easily use the desired python version. This can be done using the following:
 ```bash
 alias python=/usr/bin/python3.x
 alias python3=/usr/bin/python3.x
@@ -86,7 +91,7 @@ Now that python is setup, now install Numpy and also install the coverage and cr
 python3 -m pip install --upgrade pip
 python3 -m pip install --no-cache-dir "numpy>=1.26.0,<2.0.0" "coverage>=7.3.1" "cryptography>=44.0.1"
 ```
-
+<br>
 
 #### **CMAKE v3.28.5**
 VDMS requires CMake v3.21+.  Here we install CMake v3.28.5.
@@ -98,44 +103,40 @@ cd $VDMS_DEP_DIR/CMake
 make ${BUILD_THREADS}
 sudo make install
 ```
+<br>
 
-
-#### **Protobuf v24.2 (4.24.2)**
-Install Protobuf (C++ and Python) which requires GoogleTest and Abseil C++ as dependencies.
+#### **GoogleTest**
+Install GoogleTest version used in Protobuf v29.5:
 ```bash
-PROTOBUF_VERSION="24.2"
-python3 -m pip install --no-cache-dir "protobuf==4.${PROTOBUF_VERSION}"
-
-git clone -b v${PROTOBUF_VERSION} --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
-
-cd $VDMS_DEP_DIR/protobuf/third_party/googletest
-mkdir build && cd build
+GOOGLETEST_VERSION="4c9a3bb62bf3ba1f1010bf96f9c8ed767b363774"
+git clone https://github.com/google/googletest.git $VDMS_DEP_DIR/googletest && \
+cd $VDMS_DEP_DIR/googletest
+git checkout "${GOOGLETEST_VERSION}"
+mkdir build && cd build/
 cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_BUILD_TYPE=Release \
     -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DBUILD_GMOCK=ON -DCMAKE_CXX_STANDARD=17 ..
 make ${BUILD_THREADS}
 sudo make install
+```
+<br>
 
-cd $VDMS_DEP_DIR/protobuf/third_party/abseil-cpp
-mkdir build && cd build
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_SHARED_LIBS=ON \
-    -DCMAKE_INSTALL_PREFIX=/usr/local -DABSL_BUILD_TESTING=ON \
-    -DABSL_USE_EXTERNAL_GOOGLETEST=ON \
-    -DABSL_FIND_GOOGLETEST=ON -DCMAKE_CXX_STANDARD=17 ..
-make ${BUILD_THREADS}
-sudo make install
-sudo ldconfig /usr/local/lib
+#### **Protobuf v29.5 (5.29.5)**
+Install Protobuf (C++ and Python) with its dependencies.
+```bash
+PROTOBUF_VERSION="29.5"
+python3 -m pip install --no-cache-dir "protobuf==5.${PROTOBUF_VERSION}"
 
+git clone -b v${PROTOBUF_VERSION} --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
 cd $VDMS_DEP_DIR/protobuf
-cmake -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
+cmake -Dprotobuf_FORCE_FETCH_DEPENDENCIES=ON \
+    -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DCMAKE_CXX_STANDARD=17 -Dprotobuf_BUILD_SHARED_LIBS=ON \
-    -Dprotobuf_ABSL_PROVIDER=package \
-    -Dprotobuf_BUILD_TESTS=ON \
-    -Dabsl_DIR=/usr/local/lib/cmake/absl .
+    -Dprotobuf_BUILD_TESTS=ON .
 make ${BUILD_THREADS}
 sudo make install
 ```
-
+<br>
 
 #### **[OpenCV](https://opencv.org/) 4.9.0**
 Below are instructions for installing ***OpenCV v4.9.0***.
@@ -162,7 +163,7 @@ cmake -D BUILD_PERF_TESTS=OFF -D BUILD_TESTS=OFF -D CMAKE_BUILD_TYPE=RELEASE -D 
 make ${BUILD_THREADS}
 sudo make install
 ```
-
+<br>
 
 #### **Valijson v0.6**
 This is a headers-only library, no compilation/installation necessary.
@@ -172,7 +173,7 @@ git clone --branch ${VALIJSON_VERSION} https://github.com/tristanpenman/valijson
 cd $VDMS_DEP_DIR/valijson
 sudo cp -r include/* /usr/local/include/
 ```
-
+<br>
 
 #### **Faiss v1.9.0**
 Install the Faiss library for similarity search.
@@ -186,7 +187,7 @@ cmake -DFAISS_ENABLE_GPU=OFF -DPython_EXECUTABLE=/usr/bin/python3 \
 make ${BUILD_THREADS}
 sudo make install
 ```
-
+<br>
 
 #### **FLINNG**
 Install the Filters to Identify Near-Neighbor Groups (FLINNG) library for similarity search.
@@ -198,7 +199,7 @@ cmake ..
 make ${BUILD_THREADS}
 sudo make install
 ```
-
+<br>
 
 #### **[TileDB](https://tiledb.io/) 2.14.1**
 The directions below will help you install TileDB v2.14.1 from the source.
@@ -214,7 +215,7 @@ mkdir build && cd build
 make ${BUILD_THREADS}
 sudo make install-tiledb
 ```
-
+<br>
 
 #### **AWS SDK CPP 1.11.336**
 Use the following instructions to install AWS SDK for C++.
@@ -227,7 +228,7 @@ cmake .. -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=/usr/local/ -DCMAKE_INSTAL
 make ${BUILD_THREADS}
 sudo make install
 ```
-
+<br>
 
 #### **Autoconf v2.71**
 ```bash
@@ -240,7 +241,7 @@ cd autoconf-${AUTOCONF_VERSION}
 make ${BUILD_THREADS}
 sudo make install
 ```
-
+<br>
 
 #### **Neo4j Client**
 Below are instructions for installing ***libneo4j-omni*** which requires Peg, libcypher-parser and libedit as dependencies.
@@ -275,12 +276,11 @@ cd $VDMS_DEP_DIR/libomni
 make clean check
 sudo make install -w --debug
 ```
-
 <br>
 
 #### **Kubernetes Client**
 Installation required only if you plan to use the kubernetes environment
-Follow [[Kubernetes README](kubernetes/README.md)] for how to set up the environment.
+Follow [Kubernetes Orchestration in VDMS](./guides/connectors-and-orchestrations/Kubernetes-Orchestration.md) for how to set up the environment.
 ```bash
 git clone --depth 1 https://github.com/yaml/libyaml.git /dependencies/libyaml
 cd $VDMS_DEP_DIR/libyaml
@@ -297,6 +297,8 @@ cmake ..
 make
 sudo make install
 ```
+<br>
+
 
 ## Install VDMS
 This version of VDMS treats PMGD as a submodule so both libraries are compiled at one time. After entering the vdms directory, the command `git submodule update --init --recursive` will pull pmgd into the appropriate directory. Furthermore, Cmake is used to compile all directories.
@@ -348,6 +350,8 @@ find / -name "libpmgd*so*" # <Path_to_VDMS_directory>/build/src/pmgd/src
 find / -name "libvcl*so*"  # <Path_to_VDMS_directory>/build/src/vcl
 export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:<Path_to_VDMS_directory>/build/src/pmgd/src:<Path_to_VDMS_directory>/build/src/vcl
 ```
+<br>
+
 
 ## Start VDMS Server
 To start the server, run the following from the main VDMS directory:

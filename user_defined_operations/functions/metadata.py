@@ -64,7 +64,7 @@ def run(settings, message, input_params):
                 faces = facedetectbbox(frame)
                 if len(faces) > 0:
                     face = faces[0]
-                    # We use dummy values here as an example to showcase
+                    # We use placeholder values here as an example to showcase
                     # different values for car.
                     tdict = {
                         "x": int(face[0]) + 3,
@@ -110,7 +110,7 @@ def run(settings, message, input_params):
             faces = facedetectbbox(img)
             if len(faces) > 0:
                 face = faces[0]
-                # We use dummy values here as an example to showcase
+                # We use placeholder values here as an example to showcase
                 # different values for car.
                 tdict = {
                     "x": int(face[0]) + 3,
