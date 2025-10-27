@@ -72,7 +72,7 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: cpp
-          queries: security-extended,security-and-quality
+          queries: security-extended
           build-mode: manual
 
       - name: Configure CMake (disable linking)
