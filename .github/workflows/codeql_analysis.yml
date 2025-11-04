@@ -1,0 +1,101 @@
+name: "CodeQL Analysis"
+
+on:
+  push:
+    branches: [ "develop" ]
+  workflow_dispatch:
+
+jobs:
+  analyze-python:
+    name: Analyze Python
+    runs-on: ubuntu-latest
+
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+
+      - name: Initialize CodeQL (Python)
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python
+
+      - name: Autobuild Python
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis (Python)
+        uses: github/codeql-action/analyze@v3
+
+  analyze-cpp:
+    name: Analyze CPP
+    runs-on: ubuntu-latest
+
+    # Run everything inside your Docker image
+    container:
+      image: intellabs/vdms:latest
+
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'cpp' ]   # VDMS is C++ based
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+        with:
+          submodules: recursive
+
+
+      - name: Install latest CMake
+        run: |
+          apt-get update
+          apt-get remove --purge -y cmake cmake-data || true
+          apt-get install -y wget tar xz-utils build-essential
+
+          CMAKE_VERSION=3.30.4
+          wget https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz
+          tar -xzf cmake-${CMAKE_VERSION}-linux-x86_64.tar.gz
+          mv cmake-${CMAKE_VERSION}-linux-x86_64 /opt/cmake
+          ln -sf /opt/cmake/bin/* /usr/local/bin/
+          cmake --version
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: cpp
+          queries: security-extended
+          build-mode: manual
+
+      - name: Configure CMake (disable linking)
+        run: |
+          sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" src/pmgd/test/neighbortest.cc
+          sed -i "s|#include <stdio.h>|#include <stdio.h>\n#include <stdexcept>|" src/pmgd/tools/mkgraph.cc
+          sed -i "s|java-11-openjdk|java-17-openjdk|g" src/pmgd/java/CMakeLists.txt
+          cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+                -DCMAKE_C_LINK_EXECUTABLE="/bin/true" \
+                -DCMAKE_CXX_LINK_EXECUTABLE="/bin/true"
+
+      - name: Build (compile only, no linking)
+        run: cmake --build build -j$(nproc)
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:cpp'
+          output: ./codeql-results
+
+      - name: Upload SARIF File
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02  # v4.6.2
+
+        with:
+          name : codeql-results
+          path: ./codeql-results/**/*.sarif

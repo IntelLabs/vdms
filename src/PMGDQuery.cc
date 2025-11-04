@@ -676,6 +676,8 @@ void PMGDQuery::QueryNode(int ref, const std::string &tag,
                           const Json::Value &constraints,
                           const Json::Value &results, bool unique,
                           bool intermediate_query) {
+  _readonly = false;
+
   PMGDCmd *cmdquery = new PMGDCmd();
   cmdquery->set_cmd_id(PMGDCmd::QueryNode);
   cmdquery->set_cmd_grp_id(_current_group_id);
@@ -713,6 +715,8 @@ void PMGDQuery::QueryEdge(int ref, int src_ref, int dest_ref,
                           const std::string &tag,
                           const Json::Value &constraints,
                           const Json::Value &results, bool unique) {
+  _readonly = false;
+
   PMGDCmd *cmdquery = new PMGDCmd();
   cmdquery->set_cmd_id(PMGDCmd::QueryEdge);
   cmdquery->set_cmd_grp_id(_current_group_id);

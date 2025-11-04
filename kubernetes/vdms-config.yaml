@@ -31,4 +31,4 @@ spec:
           configMap:
             name: node-map
       nodeSelector:
-        vdmstype : vdmsmaster
+        vdmstype : vdmscontrolplane

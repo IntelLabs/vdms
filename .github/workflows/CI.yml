@@ -71,7 +71,6 @@ jobs:
     permissions:
         contents: write
         pull-requests: write
-    # name: Lint & Update Reports
     needs: [Testing, Results]
     uses: ./.github/workflows/_CI_update.yml
     with:

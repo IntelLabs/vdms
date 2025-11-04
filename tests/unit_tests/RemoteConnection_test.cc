@@ -28,6 +28,7 @@
  */
 
 #include <string>
+#include <filesystem>
 
 #include "gtest/gtest.h"
 #include <exception>
@@ -41,6 +42,12 @@
 #include "RemoteConnection.h"
 #include "VDMSConfig.h"
 #include "vcl/Exception.h"
+
+#include "QueryHandlerPMGD.h"
+
+using namespace VDMS;
+using namespace PMGD;
+using namespace std;
 
 const std::string TMP_DIRNAME = "/tmp/tests_output_dir/";
 
@@ -434,5 +441,267 @@ TEST_F(RemoteConnectionTest, RemoteDisconnectedReadVideoFilename) {
     EXPECT_FALSE(not_a_connection.Read_Video(video_));
   } catch (...) {
     printErrorMessage("RemoteDisconnectedReadVideoFilename");
+  }
+}
+
+TEST_F(RemoteConnectionTest, ImageAddCropFailure) {
+  try {
+    std::string string_query_add_image_failure("[");
+    string_query_add_image_failure += " \
+      { \
+          \"AddImage\": { \
+              \"operations\": [{ \
+                  \"type\": \"crop\", \
+                  \"x\": 250, \
+                  \"y\": 250, \
+                  \"width\": 100, \
+                  \"height\": 100  \
+              }], \
+              \"properties\": { \
+                  \"name\": \"simpleCropFailure_brain_sample_image\", \
+                  \"doctor\": \"Dr. Strange Love\" \
+              }, \
+              \"format\": \"png\" \
+          } \
+      } \
+    ";
+    string_query_add_image_failure += "]";
+
+    VDMS::Server VDMS_server("unit_tests/config-aws-tests.json", "", "", "");
+
+    QueryHandlerPMGD query_handler;
+    query_handler.reset_autodelete_init_flag(); // set flag to show autodelete queue has
+                                          // been initialized
+
+    VDMS::protobufs::queryMessage proto_query;
+    proto_query.set_json(string_query_add_image_failure);
+
+    std::string image;
+    std::ifstream file("test_images/brain.png",
+                       std::ios::in | std::ios::binary | std::ios::ate);
+
+    image.resize(file.tellg());
+
+    file.seekg(0, std::ios::beg);
+    if (!file.read(&image[0], image.size()))
+      std::cout << "error" << std::endl;
+
+    proto_query.add_blobs(image);
+
+    VDMS::protobufs::queryMessage response;
+    query_handler.process_query(proto_query, response);
+
+    Json::Reader json_reader;
+    Json::Value json_response;
+
+    json_reader.parse(response.json(), json_response);
+
+    EXPECT_EQ(json_response[0]["status"].asString(), "-1");
+    EXPECT_EQ(json_response[0]["info"].asString(), "Internal Server Error: VCL Exception at QH\n");
+
+  } catch (...) {
+    printErrorMessage("ImageAddCropFailure");
+  }
+}
+
+TEST_F(RemoteConnectionTest, ImageTransactionRollback) {
+  try {
+    int s3_num_objects;
+    const char *s3_num_objects_cmd = "mc ls --recursive myminio/minio-bucket | wc -l";
+    std::array<char, 8> buffer;
+    std::string result;
+
+    std::string string_query_simple_add_image("[ \
+       { \
+          \"AddImage\": { \
+              \"properties\": { \
+                  \"name\": \"SampleImage\" \
+              }, \
+              \"format\": \"png\" \
+          } \
+      } \
+    ]");
+
+    std::string string_query_image_rollback("[");
+    string_query_image_rollback += " \
+      { \
+          \"AddImage\": { \
+              \"properties\": { \
+                  \"name\": \"ImageTransactionRollback_1\" \
+              }, \
+              \"format\": \"png\" \
+          } \
+      }, \
+      { \
+          \"AddImage\": { \
+              \"operations\": [{ \
+                  \"type\": \"crop\", \
+                  \"x\": 250, \
+                  \"y\": 250, \
+                  \"width\": 100, \
+                  \"height\": 100  \
+              }], \
+              \"properties\": { \
+                  \"name\": \"ImageTransactionRollback_2\" \
+              }, \
+              \"format\": \"png\" \
+          } \
+      } \
+    ";
+    string_query_image_rollback += "]";
+
+    VDMS::Server VDMS_server("unit_tests/config-aws-tests.json", "", "", "");
+
+    QueryHandlerPMGD query_handler;
+    query_handler.reset_autodelete_init_flag(); // set flag to show autodelete queue has
+                                                // been initialized
+
+    VDMS::protobufs::queryMessage proto_query;
+    proto_query.set_json(string_query_simple_add_image);
+
+    std::string image;
+    std::ifstream file("test_images/brain.png",
+                       std::ios::in | std::ios::binary | std::ios::ate);
+
+    image.resize(file.tellg());
+
+    file.seekg(0, std::ios::beg);
+    if (!file.read(&image[0], image.size()))
+      std::cout << "error" << std::endl;
+
+    proto_query.add_blobs(image);
+
+    VDMS::protobufs::queryMessage response;
+    query_handler.process_query(proto_query, response);
+
+    // Get initial number of objects stored in S3
+    std::unique_ptr<FILE, decltype(&pclose)> pipe1(popen(s3_num_objects_cmd, "r"), pclose);
+    if (!pipe1) {
+      throw std::runtime_error("popen() failed!");
+    }
+    while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe1.get()) != nullptr) {
+      result += buffer.data();
+    }
+    s3_num_objects = stoi(result);
+    result.clear();
+
+    proto_query.clear_blobs();
+    proto_query.set_json(string_query_image_rollback);
+    proto_query.add_blobs(image);
+    proto_query.add_blobs(image);
+    query_handler.process_query(proto_query, response);
+
+    Json::Reader json_reader;
+    Json::Value json_response;
+
+    json_reader.parse(response.json(), json_response);
+
+    EXPECT_EQ(json_response[0]["status"].asString(), "-1");
+    EXPECT_EQ(json_response[0]["info"].asString(), "Internal Server Error: VCL Exception at QH\n");
+
+    std::string string_query_image_lookup("[");
+    string_query_image_lookup += " \
+          { \
+              \"FindImage\": { \
+                  \"results\": { \
+                      \"list\": [\"name\"] \
+                  }, \
+                  \"constraints\": { \
+                      \"name\": [ \"==\", \"ImageTransactionFailureRollback_1\" ] \
+                  } \
+              } \
+          }, \
+          { \
+              \"FindImage\": { \
+                  \"results\": { \
+                      \"list\": [\"name\"] \
+                  }, \
+                  \"constraints\": { \
+                      \"name\": [ \"==\", \"ImageTransactionFailureRollback_2\" ] \
+                  } \
+              } \
+          } \
+      ";
+    string_query_image_lookup += "]";
+
+    proto_query.clear_blobs();
+    proto_query.set_json(string_query_image_lookup);
+
+    query_handler.process_query(proto_query, response);
+    json_reader.parse(response.json(), json_response);
+
+    EXPECT_EQ(json_response[0]["FindImage"]["status"].asString(), "0");
+    EXPECT_EQ(json_response[0]["FindImage"]["info"], "No entities found");
+    EXPECT_EQ(json_response[1]["FindImage"]["status"].asString(), "0");
+    EXPECT_EQ(json_response[1]["FindImage"]["info"], "No entities found");
+
+    // Make sure number of objects in S3 is still the same
+    std::unique_ptr<FILE, decltype(&pclose)> pipe2(popen(s3_num_objects_cmd, "r"), pclose);
+    if (!pipe2) {
+      throw std::runtime_error("popen() failed!");
+    }
+    while (fgets(buffer.data(), static_cast<int>(buffer.size()), pipe2.get()) != nullptr) {
+      result += buffer.data();
+    }
+
+    EXPECT_EQ(s3_num_objects, stoi(result));
+
+  } catch (...) {
+    printErrorMessage("ImageTransactionRollback");
+  }
+}
+
+TEST_F(RemoteConnectionTest, FindImageEmptyDB) {
+  try {
+    VDMS::Server VDMS_server("unit_tests/config-aws-tests.json", "", "", "");
+
+    QueryHandlerPMGD query_handler;
+    query_handler.reset_autodelete_init_flag(); // set flag to show autodelete queue has
+                                                // been initialized
+
+    VDMS::protobufs::queryMessage proto_query;
+    VDMS::protobufs::queryMessage response;
+
+    Json::Reader json_reader;
+    Json::Value json_response;
+
+    std::string string_query_image_lookup("[");
+    string_query_image_lookup += " \
+          { \
+              \"FindImage\": { \
+                  \"results\": { \
+                      \"list\": [\"name\"] \
+                  }, \
+                  \"constraints\": { \
+                      \"name\": [ \"==\", \"NonExistentImage1\" ] \
+                  } \
+              } \
+          }, \
+          { \
+              \"FindImage\": { \
+                  \"results\": { \
+                      \"list\": [\"name\"] \
+                  }, \
+                  \"constraints\": { \
+                      \"name\": [ \"==\", \"NonExistentImage2\" ] \
+                  } \
+              } \
+          } \
+      ";
+    string_query_image_lookup += "]";
+
+    proto_query.clear_blobs();
+    proto_query.set_json(string_query_image_lookup);
+
+    query_handler.process_query(proto_query, response);
+    json_reader.parse(response.json(), json_response);
+
+    EXPECT_EQ(json_response[0]["FindImage"]["status"].asString(), "0");
+    EXPECT_EQ(json_response[0]["FindImage"]["info"], "No entities found");
+    EXPECT_EQ(json_response[1]["FindImage"]["status"].asString(), "0");
+    EXPECT_EQ(json_response[1]["FindImage"]["info"], "No entities found");
+
+  } catch (...) {
+    printErrorMessage("FindImageEmptyDB");
   }
 }
