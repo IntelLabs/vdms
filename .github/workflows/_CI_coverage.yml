@@ -174,6 +174,52 @@ jobs:
           CMD_STR_hndle_str="./run_neo4j_tests.sh -t Neo4JHandlerTest ${S3_ARGS} ${COMMON_ARGS} -e neo4j://neo4j:${{ env.NEO_TEST_PORT}}"
           echo "CMD_STR_hndle_str=${CMD_STR_hndle_str}" >> $GITHUB_OUTPUT
 
+      - name: Runner cleanup
+        run: |
+          # Check prior to Cleanup
+          echo "Pre-cleanup space:"
+          df -h
+
+          # Remove Java (JDKs)
+          sudo rm -rf /usr/lib/jvm
+
+          # Remove .NET SDKs
+          sudo rm -rf /usr/share/dotnet
+
+          # Remove Swift toolchain
+          sudo rm -rf /usr/share/swift
+
+          # Remove Haskell (GHC)
+          sudo rm -rf /usr/local/.ghcup
+
+          # Remove Julia
+          sudo rm -rf /usr/local/julia*
+
+          # Remove Android SDKs
+          sudo rm -rf /usr/local/lib/android
+
+          # Remove Chromium (optional if not using for browser tests)
+          sudo rm -rf /usr/local/share/chromium
+
+          # Remove Microsoft/Edge and Google Chrome builds
+          sudo rm -rf /opt/microsoft /opt/google
+
+          # Remove Azure CLI
+          sudo rm -rf /opt/az
+
+          # Remove PowerShell
+          sudo rm -rf /usr/local/share/powershell
+
+          # Remove CodeQL and other toolcaches
+          sudo rm -rf /opt/hostedtoolcache
+
+          docker system prune -af || true
+          docker builder prune -af || true
+
+          # Check
+          echo "Post-cleanup space:"
+          df -h
+
       - name: Run Neo4J Tests
         shell: bash
         env:
