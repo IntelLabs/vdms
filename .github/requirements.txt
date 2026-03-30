@@ -16,7 +16,7 @@ opencv-python-headless==4.11.0.86
 pillow==12.0.0
 protobuf==5.29.5
 pycparser==2.23
-Pygments==2.19.2
+Pygments==2.20.0
 pyzmq==27.1.0
 scipy==1.16.2
 sk-video==1.1.10
