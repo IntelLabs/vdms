@@ -9,7 +9,7 @@ setuptools.setup(
     author="Chaunté W. Lacewell",
     author_email="chaunte.w.lacewell@intel.com",
     description="VDMS Client Module",
-    install_requires=["protobuf>=5.29.6"],
+    install_requires=["protobuf>=5.29.6,<6"],
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/IntelLabs/vdms",
