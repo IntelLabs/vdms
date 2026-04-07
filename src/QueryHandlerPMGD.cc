@@ -54,6 +54,7 @@
 #include <valijson/adapters/jsoncpp_adapter.hpp>
 #include <valijson/schema_parser.hpp>
 #include <valijson/utils/jsoncpp_utils.hpp>
+#include <iomanip>
 
 #include "timers/TimerMap.h"
 
@@ -471,7 +472,7 @@ void QueryHandlerPMGD::regular_run_autoreplicate(
   name.clear();
   auto t = std::time(nullptr);
   auto tm = *std::localtime(&t);
-  oss << asctime(&tm);
+  oss << std::put_time(&tm, "%c");
   name = oss.str();
   name.erase(remove(name.begin(), name.end(), ' '), name.end());
   name.erase(std::remove(name.begin(), name.end(), '\n'), name.end());
