@@ -89,7 +89,7 @@ alias python3=/usr/bin/python3.x
 Now that python is setup, now install Numpy and also install the coverage and cryptography packages if interested in running the Python unit tests.
 ```bash
 python3 -m pip install --upgrade pip
-python3 -m pip install --no-cache-dir "numpy>=1.26.0,<2.0.0" "coverage>=7.3.1" "cryptography>=44.0.1"
+python3 -m pip install --no-cache-dir "numpy>=1.26.4,<2.0.0" "coverage==7.13.5" "cryptography==46.0.5"
 ```
 <br>
 
@@ -121,11 +121,15 @@ sudo make install
 ```
 <br>
 
-#### **Protobuf v29.5 (5.29.5)**
+#### **Protobuf v29.6 (5.29.6)**
 Install Protobuf (C++ and Python) with its dependencies.
 ```bash
-PROTOBUF_VERSION="29.5"
+PROTOBUF_VERSION="29.6"
 python3 -m pip install --no-cache-dir "protobuf==5.${PROTOBUF_VERSION}"
+
+curl -LO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-linux-x86_64.zip"
+unzip "protoc-${PROTOBUF_VERSION}-linux-x86_64.zip" -d /usr/local
+rm "protoc-${PROTOBUF_VERSION}-linux-x86_64.zip"
 
 git clone -b v${PROTOBUF_VERSION} --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
 cd $VDMS_DEP_DIR/protobuf
@@ -138,10 +142,10 @@ sudo make install
 ```
 <br>
 
-#### **[OpenCV](https://opencv.org/) 4.9.0**
-Below are instructions for installing ***OpenCV v4.9.0***.
+#### **[OpenCV](https://opencv.org/) 4.11.0**
+Below are instructions for installing ***OpenCV v4.11.0***.
 ```bash
-OPENCV_VERSION="4.9.0"
+OPENCV_VERSION="4.11.0"
 git clone https://github.com/opencv/opencv.git $VDMS_DEP_DIR/opencv
 cd $VDMS_DEP_DIR/opencv
 git checkout tags/${OPENCV_VERSION}
