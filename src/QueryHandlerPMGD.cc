@@ -469,9 +469,13 @@ void QueryHandlerPMGD::regular_run_autoreplicate(
   Json::Value config_file;
   std::ofstream file_id;
   name.clear();
-  auto t = std::time(nullptr);
-  auto tm = *std::localtime(&t);
-  oss << asctime(&tm);
+  std::time_t t = std::time(nullptr);
+  std::tm tm;
+  if (localtime_r(&t, &tm) == nullptr) {
+    oss << t;
+  } else {
+    oss << asctime(&tm);
+  }
   name = oss.str();
   name.erase(remove(name.begin(), name.end(), ' '), name.end());
   name.erase(std::remove(name.begin(), name.end(), '\n'), name.end());
