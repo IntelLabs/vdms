@@ -21,8 +21,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBCONF_NOWARNINGS="yes"
 ENV PYTHON_BASE="3.12"
 ENV PYTHON_VERSION="${PYTHON_BASE}.3"
-ENV PROTOBUF_VERSION="29.5"
-ENV NUMPY_MIN_VERSION="1.26.0"
+ENV PROTOBUF_VERSION="29.6"
+ENV NUMPY_MIN_VERSION="1.26.4"
 ENV VIRTUAL_ENV=/opt/venv
 
 ENV AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}"
@@ -79,7 +79,7 @@ ENV AUTOCONF_VERSION="2.71" \
     FAISS_VERSION="v1.9.0" \
     GOOGLETEST_VERSION="4c9a3bb62bf3ba1f1010bf96f9c8ed767b363774" \
     LIBEDIT_VERSION="20230828-3.1" \
-    OPENCV_VERSION="4.9.0" \
+    OPENCV_VERSION="4.11.0" \
     PEG_VERSION="0.1.19" \
     TILEDB_VERSION="2.14.1" \
     VALIJSON_VERSION="v0.6"
@@ -102,7 +102,10 @@ RUN git clone https://github.com/google/googletest.git /dependencies/googletest 
 
 # PROTOBUF & ITS DEPENDENCIES
 # hadolint ignore=DL3003,SC2086
-RUN git clone -b "v${PROTOBUF_VERSION}" --recurse-submodules https://github.com/protocolbuffers/protobuf.git /dependencies/protobuf && \
+RUN curl -LO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-linux-x86_64.zip" && \
+        unzip "protoc-${PROTOBUF_VERSION}-linux-x86_64.zip" -d /opt/dist/usr/local && \
+        rm "protoc-${PROTOBUF_VERSION}-linux-x86_64.zip" && \
+    git clone --depth 1 -b "v${PROTOBUF_VERSION}" --recurse-submodules https://github.com/protocolbuffers/protobuf.git /dependencies/protobuf && \
         cd /dependencies/protobuf && \
         cmake -Dprotobuf_FORCE_FETCH_DEPENDENCIES=ON \
             -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/opt/dist/usr/local \
@@ -195,7 +198,7 @@ RUN if [ "${USE_K8S}" = "ON" ]; then \
     fi
 
 # CLEANUP
-RUN rm -rf /dependencies /usr/local/share/doc /usr/local/share/man && \
+RUN ldconfig && rm -rf /dependencies /usr/local/share/doc /usr/local/share/man && \
     mkdir -p /opt/dist/usr/include/x86_64-linux-gnu && \
     cp -rp /usr/include/x86_64-linux-gnu /opt/dist/usr/include/x86_64-linux-gnu
 
@@ -253,7 +256,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
     echo "/usr/local/lib" >> /etc/ld.so.conf.d/all-libs.conf && ldconfig && \
     python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "protobuf==5.${PROTOBUF_VERSION}" \
-        "coverage>=7.3.1" "cryptography>=44.0.1"
+        "coverage==7.13.5" "cryptography==46.0.5"
 
 # COVERAGE TESTING
 WORKDIR /vdms
