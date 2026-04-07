@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <stdlib.h> /* system, NULL, EXIT_FAILURE */
 #include <thread>
+#include <time.h>
 
 #include "Exception.h"
 #include <jsoncpp/json/json.h>
@@ -266,7 +267,8 @@ void Server::auto_replicate_data_exact_time() {
     // Get the current time
     auto now = std::chrono::system_clock::now();
     auto now_time = std::chrono::system_clock::to_time_t(now);
-    struct std::tm *now_tm = std::localtime(&now_time);
+    struct std::tm now_tm_storage;
+    struct std::tm *now_tm = localtime_r(&now_time, &now_tm_storage);
 
     // Calculate the next replication time
     std::tm replicate_tm = *now_tm;
