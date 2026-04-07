@@ -1,5 +1,5 @@
 numpy<2.0.0
-opencv-python-headless>=4.9.0.80
+opencv-python-headless>=4.11.0.86
 pyzmq>=26.0.3
 sk-video>=1.1.10
 imutils>=0.5.4

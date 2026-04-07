@@ -196,10 +196,10 @@ CMAKE_VERSION="v3.28.5"
 FAISS_VERSION="v1.9.0"
 GOOGLETEST_VERSION="4c9a3bb62bf3ba1f1010bf96f9c8ed767b363774"
 LIBEDIT_VERSION="20230828-3.1"
-NUMPY_MIN_VERSION="1.26.0"
-OPENCV_VERSION="4.9.0"
+NUMPY_MIN_VERSION="1.26.4"
+OPENCV_VERSION="4.11.0"
 PEG_VERSION="0.1.19"
-PROTOBUF_VERSION="29.5"
+PROTOBUF_VERSION="29.6"
 TILEDB_VERSION="2.14.1"
 VALIJSON_VERSION="v0.6"
 
@@ -227,7 +227,10 @@ make install
 
 
 # INSTALL PROTOBUF & ITS DEPENDENCIES
-git clone -b "v${PROTOBUF_VERSION}" --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
+curl -LO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-linux-x86_64.zip"
+unzip "protoc-${PROTOBUF_VERSION}-linux-x86_64.zip" -d /usr/local
+rm "protoc-${PROTOBUF_VERSION}-linux-x86_64.zip"
+git clone --depth 1 -b "v${PROTOBUF_VERSION}" --recurse-submodules https://github.com/protocolbuffers/protobuf.git $VDMS_DEP_DIR/protobuf
 cd $VDMS_DEP_DIR/protobuf
 cmake -Dprotobuf_FORCE_FETCH_DEPENDENCIES=ON \
     -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=/usr/local \
@@ -249,7 +252,7 @@ make install
 
 # INSTALL PYTHON PACKAGES
 python -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "coverage>=7.3.1" \
-    "protobuf==5.${PROTOBUF_VERSION}" "cryptography>=44.0.1"
+    "protobuf==5.${PROTOBUF_VERSION}" "cryptography==46.0.5"
 
 
 # INSTALL VALIJSON
@@ -354,6 +357,7 @@ if [ "${USE_K8S}" = "ON" ]; then
     make install
 fi
 
+ldconfig
 
 # CLEANUP
 rm -rf $VDMS_DEP_DIR
