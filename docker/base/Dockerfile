@@ -230,7 +230,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
     echo "/usr/local/lib" >> /etc/ld.so.conf.d/all-libs.conf && ldconfig && \
     python3 -m pip install --no-cache-dir "numpy>=${NUMPY_MIN_VERSION},<2.0.0" "protobuf==5.${PROTOBUF_VERSION}" \
-        "coverage==7.13.5" "cryptography==46.0.5"
+        "coverage==7.13.5" "cryptography>=46.0.6"
 
 # VDMS
 WORKDIR /vdms
