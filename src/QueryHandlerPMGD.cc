@@ -33,6 +33,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <iomanip>
 
 #include "BlobCommand.h"
 #include "BoundingBoxCommand.h"
@@ -474,7 +475,7 @@ void QueryHandlerPMGD::regular_run_autoreplicate(
   if (localtime_r(&t, &tm) == nullptr) {
     oss << t;
   } else {
-    oss << asctime(&tm);
+    oss << std::put_time(&tm, "%Y%m%d%H%M%S");
   }
   name = oss.str();
   name.erase(remove(name.begin(), name.end(), ' '), name.end());
